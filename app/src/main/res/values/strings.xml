@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VibeNavigator</string>
+
+    <string name="action_about">About</string>
+    <string name="action_start_navigation">Start navigation</string>
+    <string name="action_stop_navigation">Stop navigation</string>
+    <string name="action_add_stop">Add stop</string>
+    <string name="action_remove_stop">Remove stop</string>
+    <string name="action_select_profile_folder">Select BRouter profiles folder</string>
+    <string name="action_blocked_road">Blocked road</string>
+    <string name="action_clear_text">Clear</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_pick_folder">Pick folder</string>
+    <string name="action_open_settings">Open settings</string>
+
+    <string name="label_vehicle_profile">Vehicle</string>
+    <string name="label_destination">Destination</string>
+    <string name="label_intermediate_stop">Stop</string>
+    <string name="format_stop_label">Stop %1$d</string>
+
+    <string name="hint_search_destination">Search destination or paste coordinates</string>
+    <string name="hint_search_stop">Search stop or paste coordinates</string>
+
+    <string name="msg_missing_destination">Select a destination</string>
+    <string name="msg_invalid_coordinates">Select a place with coordinates</string>
+    <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
+    <string name="msg_brouter_not_found">BRouter is not installed</string>
+    <string name="msg_profile_folder_not_selected">Select the BRouter profiles folder to list vehicle profiles</string>
+    <string name="msg_location_disabled">Location is disabled. Enable it to navigate.</string>
+    <string name="msg_permission_required">Permission required</string>
+    <string name="msg_permission_location_rationale">VibeNavigator needs location access to navigate and vibrate directions.</string>
+    <string name="msg_permission_notifications_rationale">Notifications are used to alert upcoming turns.</string>
+    <string name="msg_enable_notifications">Enable notifications for turn alerts.</string>
+    <string name="msg_battery_opt_rationale">For reliable background navigation, allow VibeNavigator to ignore battery optimizations.</string>
+    <string name="msg_search_min_chars">Type at least 4 characters</string>
+    <string name="msg_search_no_results">No results</string>
+    <string name="msg_select_brouter_profiles_folder_title">Select BRouter profiles folder</string>
+    <string name="msg_select_brouter_profiles_folder_body">Select the BRouter folder that contains profiles2 (.brf). Example:\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2</string>
+    <string name="msg_intent_unrecognized">Shared location not recognized</string>
+    <string name="msg_profiles_empty">No profiles found</string>
+
+    <string name="nav_next">Next</string>
+    <string name="nav_after_next">After that</string>
+    <string name="nav_remaining">Remaining</string>
+    <string name="nav_eta">ETA</string>
+    <string name="nav_no_route">No route</string>
+
+    <string name="notification_channel_nav">Navigation</string>
+    <string name="notification_channel_turn_left">Turn (left)</string>
+    <string name="notification_channel_turn_right">Turn (right)</string>
+    <string name="notification_nav_running">Navigation running</string>
+    <string name="notification_nav_running_text">VibeNavigator is navigating in the background</string>
+
+    <string name="direction_continue">Continue</string>
+    <string name="direction_keep_left">Keep left</string>
+    <string name="direction_keep_right">Keep right</string>
+    <string name="direction_turn_left">Turn left</string>
+    <string name="direction_turn_right">Turn right</string>
+    <string name="direction_slight_left">Slight left</string>
+    <string name="direction_slight_right">Slight right</string>
+    <string name="direction_sharp_left">Sharp left</string>
+    <string name="direction_sharp_right">Sharp right</string>
+    <string name="direction_uturn_left">U-turn</string>
+    <string name="direction_uturn_right">U-turn right</string>
+    <string name="direction_roundabout_exit">Roundabout, exit %1$d</string>
+    <string name="direction_roundabout_exit_left">Roundabout, exit %1$d</string>
+    <string name="direction_exit_left">Exit left</string>
+    <string name="direction_exit_right">Exit right</string>
+    <string name="direction_offroute">Off route</string>
+    <string name="direction_arrive">Arrive</string>
+
+    <string name="format_distance_m">%1$.0f m</string>
+    <string name="format_distance_km">%1$.1f km</string>
+    <string name="format_time_s">%1$d s</string>
+    <string name="format_time_min">%1$d min</string>
+    <string name="format_eta_hm">%1$02d:%2$02d</string>
+    <string name="format_turn_notification">%1$s %2$s • %3$s • %4$s</string>
+    <string name="format_progress_line">%1$s: %2$s • %3$s • %4$s %5$s</string>
+    <string name="format_poi_suggestion">%1$s (%2$.5f, %3$.5f)</string>
+    <string name="format_coordinates">%1$.6f, %2$.6f</string>
+    <string name="symbol_plus">+</string>
+
+    <string name="about_title">About VibeNavigator</string>
+    <string name="format_version">Version %1$s</string>
+    <string name="about_body">VibeNavigator is a lightweight, battery-efficient, and offline-first vibe-coded GPS navigation app built around BRouter.\nIt keeps routing offline (via the installed BRouter app), and communicates directions through vibration patterns (no voice prompts) plus a minimal on-screen view.\n\nWhat it does:\n- Offline routing via BRouter (must be installed and have routing data)\n- Dark/black theme\n- Destination + optional intermediate stops\n- Background navigation via a foreground service (screen off supported)\n- Turn notifications with vibration (different patterns for left/right imminents)\n\nRequirements:\n- Android 5.0+ (minSdk 21)\n- BRouter installed (btools.routingapp)\n\nPOI search:\n- Uses Google REST APIs when a key is configured\n- Otherwise falls back to OpenStreetMap (Nominatim)\n- You can paste coordinates directly (e.g. 45.4642, 9.1900)\n\nUsing BRouter profiles:\nOn first launch, VibeNavigator asks you to select the profiles2 folder from the BRouter app storage, so it can list *.brf profiles in the vehicle selector.\nExample path (device-dependent):\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\n</string>
+</resources>

@@ -1,0 +1,137 @@
+package com.vibenavigator.nav.route;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.vibenavigator.geo.GeoMath;
+import com.vibenavigator.geo.LatLon;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public final class PolylineIndex {
+
+    public static final class Match {
+        public final double distanceToTrackMeters;
+        public final double alongTrackMeters;
+        public final double segmentBearingDegrees;
+        public final int segmentIndex;
+
+        Match(double distanceToTrackMeters, double alongTrackMeters, double segmentBearingDegrees, int segmentIndex) {
+            this.distanceToTrackMeters = distanceToTrackMeters;
+            this.alongTrackMeters = alongTrackMeters;
+            this.segmentBearingDegrees = segmentBearingDegrees;
+            this.segmentIndex = segmentIndex;
+        }
+    }
+
+    private final List<LatLon> pts;
+    private final double[] cumulative;
+
+    public PolylineIndex(@NonNull List<LatLon> points) {
+        this.pts = new ArrayList<>(points);
+        this.cumulative = new double[Math.max(1, points.size())];
+        double sum = 0;
+        for (int i = 1; i < points.size(); i++) {
+            LatLon a = points.get(i - 1);
+            LatLon b = points.get(i);
+            sum += GeoMath.distanceMeters(a.lat, a.lon, b.lat, b.lon);
+            cumulative[i] = sum;
+        }
+    }
+
+    public double totalLengthMeters() {
+        return cumulative.length == 0 ? 0 : cumulative[cumulative.length - 1];
+    }
+
+    public double distanceAtPointIndex(int idx) {
+        if (idx <= 0) return 0;
+        if (idx >= cumulative.length) return totalLengthMeters();
+        return cumulative[idx];
+    }
+
+    @Nullable
+    public Match match(@NonNull LatLon p, int lastSegmentIndex) {
+        if (pts.size() < 2) {
+            return null;
+        }
+
+        int start = 0;
+        int end = pts.size() - 2;
+        if (lastSegmentIndex >= 0) {
+            start = Math.max(0, lastSegmentIndex - 200);
+            end = Math.min(pts.size() - 2, lastSegmentIndex + 200);
+        }
+
+        double bestDist = Double.POSITIVE_INFINITY;
+        double bestAlong = 0;
+        double bestBearing = 0;
+        int bestSeg = -1;
+
+        for (int i = start; i <= end; i++) {
+            LatLon a = pts.get(i);
+            LatLon b = pts.get(i + 1);
+            Match m = projectToSegment(p, a, b, i);
+            if (m != null && m.distanceToTrackMeters < bestDist) {
+                bestDist = m.distanceToTrackMeters;
+                bestAlong = m.alongTrackMeters;
+                bestBearing = m.segmentBearingDegrees;
+                bestSeg = i;
+            }
+        }
+
+        if (bestSeg < 0 && lastSegmentIndex >= 0) {
+            // fallback to full scan on first miss
+            for (int i = 0; i <= pts.size() - 2; i++) {
+                LatLon a = pts.get(i);
+                LatLon b = pts.get(i + 1);
+                Match m = projectToSegment(p, a, b, i);
+                if (m != null && m.distanceToTrackMeters < bestDist) {
+                    bestDist = m.distanceToTrackMeters;
+                    bestAlong = m.alongTrackMeters;
+                    bestBearing = m.segmentBearingDegrees;
+                    bestSeg = i;
+                }
+            }
+        }
+
+        if (bestSeg < 0) {
+            return null;
+        }
+        return new Match(bestDist, bestAlong, bestBearing, bestSeg);
+    }
+
+    @Nullable
+    private Match projectToSegment(@NonNull LatLon p, @NonNull LatLon a, @NonNull LatLon b, int segIndex) {
+        // Equirectangular projection around p.lat for local metric computations.
+        double refLatRad = Math.toRadians(p.lat);
+        double kx = 111320.0 * Math.cos(refLatRad);
+        double ky = 111320.0;
+
+        double ax = (a.lon - p.lon) * kx;
+        double ay = (a.lat - p.lat) * ky;
+        double bx = (b.lon - p.lon) * kx;
+        double by = (b.lat - p.lat) * ky;
+
+        double abx = bx - ax;
+        double aby = by - ay;
+        double ab2 = abx * abx + aby * aby;
+        if (ab2 <= 0) {
+            return null;
+        }
+
+        // p is at (0,0), so projection t is -dot(a,ab)/|ab|^2
+        double t = -(ax * abx + ay * aby) / ab2;
+        if (t < 0) t = 0;
+        if (t > 1) t = 1;
+
+        double projx = ax + t * abx;
+        double projy = ay + t * aby;
+        double dist = Math.sqrt(projx * projx + projy * projy);
+
+        double segLen = Math.sqrt(ab2);
+        double along = distanceAtPointIndex(segIndex) + t * segLen;
+        double bearing = GeoMath.bearingDegrees(a.lat, a.lon, b.lat, b.lon);
+        return new Match(dist, along, bearing, segIndex);
+    }
+}

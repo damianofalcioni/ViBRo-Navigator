@@ -1,0 +1,72 @@
+import java.util.Properties
+
+plugins {
+    id "com.android.application"
+}
+
+configurations.configureEach {
+    resolutionStrategy {
+        force(
+                "org.jetbrains.kotlin:kotlin-stdlib:1.8.22",
+                "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.22",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22",
+                "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
+        )
+    }
+}
+
+def localProps = new Properties()
+def localPropsFile = rootProject.file("local.properties")
+if (localPropsFile.exists()) {
+    localPropsFile.withInputStream { localProps.load(it) }
+}
+
+def googleMapsApiKey = System.getenv("GOOGLE_MAPS_API_KEY")
+if (googleMapsApiKey == null) {
+    googleMapsApiKey = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
+}
+
+android {
+    namespace "com.vibenavigator"
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.vibenavigator"
+        minSdk 21
+        targetSdk 34
+        versionCode 1
+        versionName "0.1.0"
+
+        buildConfigField "String", "GOOGLE_MAPS_API_KEY", "\"${googleMapsApiKey}\""
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix ".debug"
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            signingConfig signingConfigs.debug
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+        aidl true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation "androidx.appcompat:appcompat:1.6.1"
+    implementation "androidx.core:core:1.12.0"
+
+    testImplementation "junit:junit:4.13.2"
+}

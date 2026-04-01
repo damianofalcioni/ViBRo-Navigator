@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="10dp"
+    android:orientation="horizontal">
+
+    <EditText
+        android:id="@+id/stopEdit"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="@string/hint_search_stop"
+        android:imeOptions="actionDone"
+        android:inputType="text"
+        android:textColor="@color/white"
+        android:textColorHint="@color/gray_700" />
+
+    <ImageButton
+        android:id="@+id/removeStopButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="8dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="@string/action_remove_stop"
+        android:src="@drawable/ic_close" />
+</LinearLayout>
