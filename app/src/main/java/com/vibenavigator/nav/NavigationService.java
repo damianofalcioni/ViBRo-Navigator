@@ -61,6 +61,7 @@ public class NavigationService extends Service implements LocationListener {
     public static final String ACTION_STOP = "com.vibenavigator.action.STOP";
 
     public static final int NOTIFICATION_ID_ONGOING = 1;
+    public static final int NOTIFICATION_ID_TURN = 2;
     public static final String CHANNEL_ID_NAV = "vibenavigator.navigation";
     public static final String CHANNEL_ID_TURN_LEFT = "vibenavigator.turn.left";
     public static final String CHANNEL_ID_TURN_RIGHT = "vibenavigator.turn.right";
@@ -90,6 +91,7 @@ public class NavigationService extends Service implements LocationListener {
     private int nextHintIdx = 0;
     private boolean notified10;
     private boolean notified5;
+    private boolean initialTurnNotificationSent;
     private long fastChecksUntilMs;
     private long lastRerouteMs;
     private List<NavTarget> targets = new ArrayList<>();
@@ -289,6 +291,7 @@ public class NavigationService extends Service implements LocationListener {
         nextHintIdx = 0;
         notified10 = false;
         notified5 = false;
+        initialTurnNotificationSent = false;
         targets = new ArrayList<>();
         fastChecksUntilMs = System.currentTimeMillis() + 30_000L;
         lastRerouteMs = 0;
@@ -774,6 +777,7 @@ public class NavigationService extends Service implements LocationListener {
                 targets = buildTargets(polylineIndex);
                 routeCalculationInProgress = false;
                 lastRouteFailureMessage = null;
+                sendInitialTurnNotificationIfNeeded();
                 AppLogger.i(TAG, "Route recalculation #" + requestNumber
                         + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
                         + " trackPoints=" + newRoute.track.size()
@@ -920,6 +924,43 @@ public class NavigationService extends Service implements LocationListener {
         sendTurnNotification(hint, distMeters, timeSeconds, channel, vibrate);
     }
 
+    private void sendInitialTurnNotificationIfNeeded() {
+        if (initialTurnNotificationSent || route == null || polylineIndex == null) {
+            return;
+        }
+        List<VoiceHint> hints = route.voiceHints;
+        if (hints.isEmpty() || nextHintIdx < 0 || nextHintIdx >= hints.size()) {
+            return;
+        }
+
+        double alongTrackMeters = 0.0;
+        Location loc = lastFiltered;
+        if (loc != null) {
+            PolylineIndex.Match match = polylineIndex.match(new LatLon(loc.getLatitude(), loc.getLongitude()), -1);
+            if (match != null) {
+                alongTrackMeters = match.alongTrackMeters;
+            }
+        }
+
+        VoiceHint next = hints.get(nextHintIdx);
+        double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
+        double distToNext = Math.max(0.0, hintDist - alongTrackMeters);
+        float speedMps = loc != null ? getSpeedMps(loc) : 0f;
+        double timeToNext = distToNext / Math.max(1.0, speedMps);
+
+        DirectionInfo direction = VoiceHintMapper.toDirection(next);
+        String channel = direction.kind == DirectionKind.LEFT
+                ? CHANNEL_ID_TURN_LEFT
+                : (direction.kind == DirectionKind.RIGHT ? CHANNEL_ID_TURN_RIGHT : CHANNEL_ID_NAV);
+        boolean vibrate = direction.kind == DirectionKind.LEFT || direction.kind == DirectionKind.RIGHT;
+        sendTurnNotification(next, distToNext, timeToNext, channel, vibrate);
+        initialTurnNotificationSent = true;
+        AppLogger.i(TAG, "Sent initial turn notification nextHintIdx=" + nextHintIdx
+                + " distanceMeters=" + distToNext
+                + " timeSeconds=" + timeToNext
+                + " kind=" + direction.kind);
+    }
+
     private void sendTurnNotification(@NonNull VoiceHint hint, double distMeters, double timeSeconds, @NonNull String channelId, boolean vibrate) {
         DirectionInfo di = VoiceHintMapper.toDirection(hint);
         String dirText = di.exitNumber > 0
@@ -951,9 +992,10 @@ public class NavigationService extends Service implements LocationListener {
             AppLogger.w(TAG, "NotificationManager unavailable, cannot send turn notification");
             return;
         }
-        nm.notify(1000 + nextHintIdx, b.build());
+        nm.notify(NOTIFICATION_ID_TURN, b.build());
         AppLogger.d(TAG, "Sent turn notification channel=" + channelId
                 + " vibrate=" + vibrate
+                + " notificationId=" + NOTIFICATION_ID_TURN
                 + " nextHintIdx=" + nextHintIdx
                 + " message=" + msg);
     }
