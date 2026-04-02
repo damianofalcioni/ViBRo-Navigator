@@ -3,6 +3,7 @@ package com.vibenavigator.poi.search;
 import androidx.annotation.NonNull;
 
 import com.vibenavigator.poi.Poi;
+import com.vibenavigator.util.AppLogger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,9 +22,12 @@ import java.util.Locale;
 
 public final class OsmNominatimClient implements PoiSearchClient {
 
+    private static final String TAG = "OsmNominatim";
+
     @NonNull
     @Override
     public List<Poi> search(@NonNull String query, int limit) throws IOException {
+        AppLogger.i(TAG, "Searching query=" + query + " limit=" + limit);
         String q = URLEncoder.encode(query, "UTF-8");
         String url = String.format(Locale.US,
                 "https://nominatim.openstreetmap.org/search?q=%s&format=jsonv2&addressdetails=0&limit=%d",
@@ -36,8 +40,10 @@ public final class OsmNominatimClient implements PoiSearchClient {
         conn.setRequestProperty("Accept", "application/json");
         try {
             int code = conn.getResponseCode();
+            AppLogger.i(TAG, "HTTP response code=" + code);
             InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
             if (is == null) {
+                AppLogger.w(TAG, "No response stream available for query=" + query);
                 return new ArrayList<>();
             }
             String body = readAll(is);
@@ -62,8 +68,10 @@ public final class OsmNominatimClient implements PoiSearchClient {
                     // ignore
                 }
             }
+            AppLogger.i(TAG, "Search completed query=" + query + " results=" + out.size());
             return out;
         } catch (Exception e) {
+            AppLogger.e(TAG, "Search failed query=" + query, e);
             throw new IOException(e);
         } finally {
             conn.disconnect();

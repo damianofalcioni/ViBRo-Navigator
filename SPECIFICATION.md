@@ -1,0 +1,212 @@
+# VibeNavigator Specification
+
+## Source
+
+This specification is derived from the original project-generation prompt and captures the intended product requirements for VibeNavigator.
+
+## Product summary
+
+VibeNavigator is a lightweight Android navigation app based on BRouter.
+
+Core product constraints:
+
+- Use Java
+- Avoid dependencies as much as possible, including Google Play Services
+- Keep generated and maintained code minimal while still implementing the features
+- Target the latest practical Android SDK while keeping `minSdk 21`
+- Use a black theme
+- Do not hardcode user-facing text in code
+- Support both portrait and landscape orientations
+- Check and request all required permissions on startup
+- Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app that only vibrates directions
+- Provide a distinctive app logo suitable for use as the app icon
+
+## Functional specification
+
+### 1. Main UI
+
+The app must show a main UI implemented as an `AppCompatActivity`.
+
+The main UI must include a vehicle selector at the top.
+
+#### 1.1 Vehicle profiles
+
+- The selector items must be the BRouter profile names
+- Profiles are the filenames with `.brf` extension available in the BRouter `profiles2` folder
+- Example legacy path:
+  `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
+
+### 2. Destination input
+
+Below the vehicle selector, the app must show an input field for searching a destination POI or coordinates.
+
+#### 2.1 History dropdown before typing
+
+- Before the user starts typing, a dropdown must appear below the input field
+- The dropdown must show previously searched POIs
+- Each history row must include an `X` control on the right to delete that POI from history
+
+#### 2.2 Search after 3+ characters
+
+- On every typed character, but only once the query length is greater than 3, the app must retrieve matching POIs
+- Each result must include the POI full name and coordinates
+- The data source must be Google Maps REST APIs when a Google API key is defined
+- If the Google API key is not defined, the app must use OpenStreetMap APIs
+
+#### 2.3 Search results dropdown
+
+- Search results must be shown in a dropdown below the input field
+- The user must be able to select a result from the dropdown
+- Selecting a result must bind the destination to the coordinates of that POI
+
+### 3. Intermediate stops
+
+Below the destination input, the app must show a centered plus button.
+
+#### 3.1 Add stop field
+
+- Pressing the plus button must add a new input field for an intermediate POI
+- Each intermediate input must have the same behavior and capabilities as the destination field
+
+#### 3.2 Remove stop field
+
+- Each added stop row must include an `X` button on the right
+- Pressing that button must remove both the stop input field and the button itself
+
+### 4. Start navigation
+
+At the bottom center of the main UI, the app must show a start navigation button.
+
+Pressing the button must:
+
+- Open a new navigation UI implemented as an `AppCompatActivity`
+- Access the current user location
+- Use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
+- Include any intermediate stops in the route calculation
+
+#### 4.3 BRouter integration
+
+The implementation must use BRouter integration compatible with these references:
+
+- `IBRouterService.aidl`
+  - [https://raw.githubusercontent.com/osmandapp/OsmAnd/refs/heads/master/OsmAnd/src/btools/routingapp/IBRouterService.aidl](https://raw.githubusercontent.com/osmandapp/OsmAnd/refs/heads/master/OsmAnd/src/btools/routingapp/IBRouterService.aidl)
+- `BRouterServiceConnection.java`
+  - [https://raw.githubusercontent.com/osmandapp/OsmAnd/refs/heads/master/OsmAnd/src/btools/routingapp/BRouterServiceConnection.java](https://raw.githubusercontent.com/osmandapp/OsmAnd/refs/heads/master/OsmAnd/src/btools/routingapp/BRouterServiceConnection.java)
+- OsmAnd sample usage in `RouteProvider.java`
+  - [https://raw.githubusercontent.com/osmandapp/OsmAnd/094097cc7411aef722b9183e24e828e6f749ca59/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java](https://raw.githubusercontent.com/osmandapp/OsmAnd/094097cc7411aef722b9183e24e828e6f749ca59/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java)
+
+#### 4.3.4 GeoJSON output
+
+- The app must request BRouter output in `format=geojson`
+
+#### 4.4 Navigation update loop
+
+The app must monitor user position:
+
+- Every 2 seconds initially
+- Later at a dynamic interval proportional to the distance to the next direction
+- The dynamic interval must never exceed 60 seconds
+- Position handling must use a Kalman filter
+
+#### 4.4.1 Off-track reroute
+
+- The route must be recalculated whenever the user position differs by 10 meters plus the GPS error distance from the current track
+
+#### 4.4.2 Wrong-direction reroute
+
+- The route must also be recalculated when the user is still on the track but is moving in the wrong direction
+- Wrong direction is defined as bearing difference greater than 60 degrees
+
+#### 4.4.3 Direction distance estimation
+
+- The app must estimate the distance left to the next direction
+- The estimation must use current speed and the direction distance returned by BRouter
+
+#### 4.4.4 Turn notifications
+
+- The app must send notifications:
+  - When the previous direction has just been passed
+  - When 10 seconds remain to the next direction
+  - When 5 seconds remain to the next direction
+- Each notification message must contain:
+  - A direction arrow emoji
+  - The distance left
+  - The time left
+  - The direction text
+  - The exit number for roundabouts when applicable
+
+#### 4.4.4.1 Imminent turn vibration patterns
+
+- The notification imminent to the next direction must use different vibration patterns for left and right directions
+
+#### 4.4.4.2 Voice hints
+
+- BRouter directions are returned in the GeoJSON property `voicehints`
+- Voice-hint interpretation must follow:
+  - `FormatJson.java`
+    - [https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/FormatJson.java](https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/FormatJson.java)
+  - `VoiceHint.java`
+    - [https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/VoiceHint.java](https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/VoiceHint.java)
+
+### 4.5 Navigation UI
+
+The navigation UI must show the following in large text:
+
+#### 4.5.1 Next two directions
+
+- At the top: the next two directions
+- Each must include emoji, text, distance left, and time left
+
+#### 4.5.2 Route progress
+
+- In the center: the distance left, time left, and arrival time
+- This must be shown for:
+  - The final destination
+  - Every intermediate stop
+
+#### 4.5.3 Blocked road button
+
+- Below the progress section and centered: a `blocked road` button
+
+##### 4.5.3.1 Blocked waypoint memory
+
+- Pressing the button must add the current location to an internal list of blocked waypoints
+- This list must be reset when a new navigation is started
+
+##### 4.5.3.2 Blocked reroute
+
+- After blocking the current location, the app must recalculate the route
+- The recalculation must pass the blocked waypoint list to BRouter
+
+#### 4.5.4 Stop navigation button
+
+- At the bottom: a button to stop navigation
+- Pressing it must return to the previous UI
+- Destination and intermediate stops must be kept
+
+### 4.6 Background behavior
+
+- Navigation functionality must remain active in the background
+- Navigation functionality must remain active when the screen is off
+
+### 5. About button and page
+
+- A small button showing only the app logo must be displayed at the very top center
+- Pressing it must open an about page
+- The about page must contain:
+  - The app version
+  - The same content as the README
+
+### 6. Shared/opened coordinates and addresses
+
+- The app must support opening or sharing map coordinates or addresses into the app
+- Shared/opened coordinates or addresses must be set as the destination
+
+## Non-functional expectations
+
+- Battery-conscious background navigation
+- Minimal UI and minimal code footprint
+- Offline-first routing through BRouter
+- Translation-friendly text resource usage
+- Orientation-safe layouts
+- Robust permission handling at startup

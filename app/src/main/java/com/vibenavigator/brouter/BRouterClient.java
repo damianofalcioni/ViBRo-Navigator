@@ -7,6 +7,8 @@ import android.util.Base64;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.vibenavigator.util.AppLogger;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -19,6 +21,8 @@ import btools.routingapp.IBRouterService;
 
 public final class BRouterClient implements AutoCloseable {
 
+    private static final String TAG = "BRouterClient";
+
     private final Context appContext;
     private BRouterServiceConnection connection;
 
@@ -28,10 +32,13 @@ public final class BRouterClient implements AutoCloseable {
 
     public boolean connect() {
         if (connection != null && connection.getBrouterService() != null) {
+            AppLogger.d(TAG, "Reusing existing BRouter service connection");
             return true;
         }
+        AppLogger.i(TAG, "Connecting to BRouter service");
         connection = BRouterServiceConnection.connect(appContext);
         if (connection == null) {
+            AppLogger.w(TAG, "BRouter connection object was not created");
             return false;
         }
         // Binding is async; wait briefly for onServiceConnected.
@@ -44,21 +51,27 @@ public final class BRouterClient implements AutoCloseable {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                AppLogger.w(TAG, "Interrupted while waiting for BRouter service connection", e);
                 break;
             }
         }
-        return connection.getBrouterService() != null;
+        boolean connected = connection.getBrouterService() != null;
+        AppLogger.i(TAG, "BRouter service connected=" + connected);
+        return connected;
     }
 
     @Nullable
     public String getTrackFromParams(@NonNull Bundle params) throws Exception {
         if (!connect()) {
+            AppLogger.w(TAG, "Cannot request track because BRouter is not connected");
             return null;
         }
         IBRouterService svc = connection.getBrouterService();
         if (svc == null) {
+            AppLogger.w(TAG, "BRouter service became unavailable before route request");
             return null;
         }
+        AppLogger.d(TAG, "Requesting track from BRouter service");
         return svc.getTrackFromParams(params);
     }
 
@@ -88,8 +101,9 @@ public final class BRouterClient implements AutoCloseable {
         if (connection != null) {
             try {
                 connection.disconnect(appContext);
-            } catch (Exception ignored) {
-                // ignore
+                AppLogger.d(TAG, "Disconnected from BRouter service");
+            } catch (Exception e) {
+                AppLogger.w(TAG, "Failed to disconnect BRouter service cleanly", e);
             }
             connection = null;
         }

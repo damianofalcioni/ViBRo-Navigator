@@ -9,11 +9,14 @@ import androidx.annotation.Nullable;
 import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.GeoJsonRouteParser;
+import com.vibenavigator.util.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public final class BRouterRouter {
+
+    private static final String TAG = "BRouterRouter";
 
     @NonNull
     public GeoJsonRoute routeGeoJson(
@@ -25,6 +28,11 @@ public final class BRouterRouter {
             @Nullable List<LatLon> blockedWaypoints
     ) throws Exception {
         List<LatLon> stops = intermediates != null ? intermediates : new ArrayList<>();
+        AppLogger.i(TAG, "Building route request start=" + start.lat + "," + start.lon
+                + " destination=" + end.lat + "," + end.lon
+                + " profile=" + profile
+                + " intermediates=" + stops.size()
+                + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
         Bundle params = BRouterParams.buildRouteParams(
                 start,
                 stops,
@@ -38,13 +46,21 @@ public final class BRouterRouter {
         try (BRouterClient client = new BRouterClient(context)) {
             String raw = client.getTrackFromParams(params);
             if (raw == null) {
+                AppLogger.w(TAG, "BRouter returned null route payload");
                 throw new IllegalStateException("BRouter service not available");
             }
             String decoded = BRouterClient.decodeResult(raw);
             if (!decoded.trim().startsWith("{")) {
+                AppLogger.w(TAG, "BRouter returned non-GeoJSON payload prefix="
+                        + decoded.trim().substring(0, Math.min(120, decoded.trim().length())));
                 throw new IllegalStateException(decoded.trim());
             }
-            return GeoJsonRouteParser.parse(decoded);
+            GeoJsonRoute route = GeoJsonRouteParser.parse(decoded);
+            AppLogger.i(TAG, "Parsed route trackPoints=" + route.track.size()
+                    + " voiceHints=" + route.voiceHints.size()
+                    + " lengthMeters=" + route.trackLengthMeters
+                    + " totalTimeSeconds=" + route.totalTimeSeconds);
+            return route;
         }
     }
 }

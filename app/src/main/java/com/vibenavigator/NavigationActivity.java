@@ -16,6 +16,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -24,6 +25,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationService;
+import com.vibenavigator.util.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +39,7 @@ public class NavigationActivity extends AppCompatActivity {
     public static final String EXTRA_STOPS = "stops";
 
     private static final int REQ_PERMS = 2001;
+    private static final String TAG = "NavigationActivity";
 
     private TextView next;
     private TextView afterNext;
@@ -46,6 +49,7 @@ public class NavigationActivity extends AppCompatActivity {
 
     private NavigationService.LocalBinder navBinder;
     private boolean bound;
+    private String lastRenderedStateKey = "";
 
     private final NavigationService.Listener navListener = state -> runOnUiThread(() -> render(state));
 
@@ -54,11 +58,13 @@ public class NavigationActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             navBinder = (NavigationService.LocalBinder) service;
             bound = true;
+            AppLogger.i(TAG, "NavigationService connected component=" + name);
             navBinder.registerListener(navListener);
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
+            AppLogger.w(TAG, "NavigationService disconnected component=" + name);
             bound = false;
             navBinder = null;
         }
@@ -68,9 +74,14 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
+        AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
+                + " request=" + describeNavigationRequest());
 
         ImageButton aboutButton = findViewById(R.id.aboutButton);
-        aboutButton.setOnClickListener(v -> startActivity(new Intent(this, AboutActivity.class)));
+        aboutButton.setOnClickListener(v -> {
+            AppLogger.i(TAG, "About button tapped");
+            startActivity(new Intent(this, AboutActivity.class));
+        });
 
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
@@ -82,12 +93,16 @@ public class NavigationActivity extends AppCompatActivity {
 
         blocked.setOnClickListener(v -> {
             if (navBinder != null) {
+                AppLogger.i(TAG, "Blocked-road reroute requested from UI");
                 navBinder.addBlockedWaypoint();
+            } else {
+                AppLogger.w(TAG, "Blocked-road button tapped before service binding completed");
             }
         });
 
         stop.setOnClickListener(v -> {
             if (navBinder != null) {
+                AppLogger.i(TAG, "Stop navigation requested from UI");
                 navBinder.stop();
             }
             finish();
@@ -99,19 +114,21 @@ public class NavigationActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        AppLogger.i(TAG, "Binding NavigationService");
         bindService(new Intent(this, NavigationService.class), connection, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        AppLogger.i(TAG, "onStop bound=" + bound);
         if (bound) {
             try {
                 if (navBinder != null) {
                     navBinder.unregisterListener(navListener);
                 }
-            } catch (Exception ignored) {
-                // ignore
+            } catch (Exception e) {
+                AppLogger.w(TAG, "Failed to unregister navigation listener", e);
             }
             unbindService(connection);
             bound = false;
@@ -123,6 +140,13 @@ public class NavigationActivity extends AppCompatActivity {
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
         remaining.setText(state.remainingBlock);
+        String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.remainingBlock;
+        if (!stateKey.equals(lastRenderedStateKey)) {
+            lastRenderedStateKey = stateKey;
+            AppLogger.d(TAG, "Rendered state next=" + state.nextLine
+                    + " afterNext=" + state.afterNextLine
+                    + " remaining=" + state.remainingBlock);
+        }
     }
 
     private void ensureReadyThenStart() {
@@ -137,6 +161,7 @@ public class NavigationActivity extends AppCompatActivity {
             perms.add(Manifest.permission.POST_NOTIFICATIONS);
         }
         if (!perms.isEmpty()) {
+            AppLogger.i(TAG, "Missing permissions=" + perms);
             boolean showRationale = false;
             for (String p : perms) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this, p)) {
@@ -145,6 +170,7 @@ public class NavigationActivity extends AppCompatActivity {
                 }
             }
             if (showRationale) {
+                AppLogger.i(TAG, "Showing permission rationale for permissions=" + perms);
                 String msg = getString(R.string.msg_permission_location_rationale);
                 if (perms.contains(Manifest.permission.POST_NOTIFICATIONS)) {
                     msg = msg + "\n\n" + getString(R.string.msg_permission_notifications_rationale);
@@ -157,12 +183,14 @@ public class NavigationActivity extends AppCompatActivity {
                         .setNegativeButton(android.R.string.cancel, null)
                         .show();
             } else {
+                AppLogger.i(TAG, "Requesting permissions directly permissions=" + perms);
                 ActivityCompat.requestPermissions(this, perms.toArray(new String[0]), REQ_PERMS);
             }
             return;
         }
 
         if (!isLocationEnabled()) {
+            AppLogger.w(TAG, "Location services are disabled");
             new AlertDialog.Builder(this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_location_disabled)
@@ -174,6 +202,7 @@ public class NavigationActivity extends AppCompatActivity {
         }
 
         if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+            AppLogger.w(TAG, "Notifications are disabled for the app");
             new AlertDialog.Builder(this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_enable_notifications)
@@ -187,6 +216,7 @@ public class NavigationActivity extends AppCompatActivity {
         }
 
         maybeRequestIgnoreBatteryOptimizations();
+        AppLogger.i(TAG, "Environment checks passed, starting navigation service");
         startNavigationService();
     }
 
@@ -198,8 +228,8 @@ public class NavigationActivity extends AppCompatActivity {
         try {
             gps = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
             net = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ignored) {
-            // ignore
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to query location providers", e);
         }
         return gps || net;
     }
@@ -213,8 +243,10 @@ public class NavigationActivity extends AppCompatActivity {
             return;
         }
         if (pm.isIgnoringBatteryOptimizations(getPackageName())) {
+            AppLogger.i(TAG, "Battery optimization exemption already granted");
             return;
         }
+        AppLogger.i(TAG, "Prompting for battery optimization exemption");
         new AlertDialog.Builder(this)
                 .setTitle(R.string.msg_permission_required)
                 .setMessage(R.string.msg_battery_opt_rationale)
@@ -238,6 +270,11 @@ public class NavigationActivity extends AppCompatActivity {
         if (stops != null) {
             start.putStringArrayListExtra(EXTRA_STOPS, stops);
         }
+        AppLogger.i(TAG, "Starting foreground navigation service profile="
+                + safe(getIntent().getStringExtra(EXTRA_PROFILE))
+                + " destination=(" + getIntent().getDoubleExtra(EXTRA_DEST_LAT, Double.NaN)
+                + "," + getIntent().getDoubleExtra(EXTRA_DEST_LON, Double.NaN)
+                + ") stops=" + (stops == null ? 0 : stops.size()));
         ContextCompat.startForegroundService(this, start);
     }
 
@@ -245,7 +282,36 @@ public class NavigationActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQ_PERMS) {
+            AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
             ensureReadyThenStart();
         }
+    }
+
+    @NonNull
+    private String describeNavigationRequest() {
+        ArrayList<String> stops = getIntent().getStringArrayListExtra(EXTRA_STOPS);
+        return "profile=" + safe(getIntent().getStringExtra(EXTRA_PROFILE))
+                + ", destName=" + safe(getIntent().getStringExtra(EXTRA_DEST_NAME))
+                + ", destLat=" + getIntent().getDoubleExtra(EXTRA_DEST_LAT, Double.NaN)
+                + ", destLon=" + getIntent().getDoubleExtra(EXTRA_DEST_LON, Double.NaN)
+                + ", stops=" + (stops == null ? 0 : stops.size());
+    }
+
+    @NonNull
+    private static String describePermissions(@NonNull String[] permissions, @NonNull int[] grantResults) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < permissions.length; i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(permissions[i]).append("=")
+                    .append(i < grantResults.length ? grantResults[i] : "missing");
+        }
+        return sb.toString();
+    }
+
+    @NonNull
+    private static String safe(@Nullable String value) {
+        return value == null ? "null" : value;
     }
 }

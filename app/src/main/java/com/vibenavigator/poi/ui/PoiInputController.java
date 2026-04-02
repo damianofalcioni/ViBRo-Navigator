@@ -19,6 +19,7 @@ import com.vibenavigator.poi.CoordinateParser;
 import com.vibenavigator.poi.Poi;
 import com.vibenavigator.poi.PoiHistoryStore;
 import com.vibenavigator.poi.search.PoiSearchClient;
+import com.vibenavigator.util.AppLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ public final class PoiInputController {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final String logTag;
 
     private Future<?> inFlight;
     private Runnable pendingSearch;
@@ -60,6 +62,8 @@ public final class PoiInputController {
         this.history = history;
         this.searchClient = searchClient;
         this.listener = listener;
+        this.logTag = "PoiInputController#" + Integer.toHexString(System.identityHashCode(this));
+        AppLogger.i(logTag, "Created controller");
 
         adapter = new PoiSuggestionAdapter(context, new PoiSuggestionAdapter.Listener() {
             @Override
@@ -84,12 +88,17 @@ public final class PoiInputController {
 
         editText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
+                AppLogger.d(logTag, "Input focused text=" + getRawText().trim());
                 maybeShowHistory();
             } else {
+                AppLogger.d(logTag, "Input lost focus");
                 popup.dismiss();
             }
         });
-        editText.setOnClickListener(v -> maybeShowHistory());
+        editText.setOnClickListener(v -> {
+            AppLogger.d(logTag, "Input clicked");
+            maybeShowHistory();
+        });
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -112,11 +121,13 @@ public final class PoiInputController {
     }
 
     public void dispose() {
+        AppLogger.i(logTag, "Disposing controller");
         popup.dismiss();
         executor.shutdownNow();
     }
 
     public void setText(@NonNull String text) {
+        AppLogger.d(logTag, "Programmatically setting text=" + text);
         programmaticChange = true;
         editText.setText(text);
         editText.setSelection(text.length());
@@ -133,6 +144,7 @@ public final class PoiInputController {
             items.add(new PoiSuggestion(p, true));
         }
         adapter.setItems(items);
+        AppLogger.d(logTag, "Showing history items=" + items.size());
         if (!items.isEmpty() && editText.hasFocus()) {
             popup.show();
             popup.getListView().setItemsCanFocus(true);
@@ -162,10 +174,13 @@ public final class PoiInputController {
         if (raw.isEmpty()) {
             return null;
         }
-        return CoordinateParser.tryParse(raw, raw);
+        Poi parsed = CoordinateParser.tryParse(raw, raw);
+        AppLogger.d(logTag, "Parsed current text as coordinates success=" + (parsed != null) + " raw=" + raw);
+        return parsed;
     }
 
     private void deleteHistoryItem(@NonNull PoiSuggestion suggestion) {
+        AppLogger.i(logTag, "Deleting history item=" + suggestion.poi.displayLabel());
         history.remove(suggestion.poi);
         showHistory();
     }
@@ -178,6 +193,7 @@ public final class PoiInputController {
         String query = raw.trim();
         Poi coords = CoordinateParser.tryParse(query, query);
         if (coords != null) {
+            AppLogger.d(logTag, "Recognized direct coordinate entry query=" + query);
             adapter.setItems(singleSuggestion(coords, false));
             if (editText.hasFocus()) {
                 popup.show();
@@ -188,8 +204,10 @@ public final class PoiInputController {
 
         if (query.length() <= 3) {
             if (query.isEmpty()) {
+                AppLogger.d(logTag, "Empty query, showing history");
                 showHistory();
             } else {
+                AppLogger.d(logTag, "Query too short for search query=" + query);
                 popup.dismiss();
                 adapter.setItems(new ArrayList<>());
             }
@@ -197,15 +215,18 @@ public final class PoiInputController {
         }
 
         pendingSearch = () -> runSearch(query);
+        AppLogger.d(logTag, "Scheduling search query=" + query);
         mainHandler.postDelayed(pendingSearch, 300);
     }
 
     private void runSearch(@NonNull String query) {
         if (inFlight != null) {
             inFlight.cancel(true);
+            AppLogger.d(logTag, "Cancelled in-flight search before starting query=" + query);
         }
         inFlight = executor.submit(() -> {
             try {
+                AppLogger.i(logTag, "Running search query=" + query);
                 List<Poi> results = searchClient.search(query, 10);
                 List<PoiSuggestion> suggestions = new ArrayList<>();
                 for (Poi p : results) {
@@ -213,12 +234,14 @@ public final class PoiInputController {
                 }
                 mainHandler.post(() -> {
                     adapter.setItems(suggestions);
+                    AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
                     if (!suggestions.isEmpty() && editText.hasFocus()) {
                         popup.show();
                         popup.getListView().setItemsCanFocus(true);
                     }
                 });
-            } catch (IOException ignored) {
+            } catch (IOException e) {
+                AppLogger.e(logTag, "Search failed query=" + query, e);
                 mainHandler.post(() -> adapter.setItems(new ArrayList<>()));
             }
         });
@@ -232,6 +255,7 @@ public final class PoiInputController {
         popup.dismiss();
         selectedPoi = poi;
         history.addOrPromote(poi);
+        AppLogger.i(logTag, "Selected POI=" + poi.displayLabel());
         listener.onPoiSelected(poi);
     }
 

@@ -30,6 +30,7 @@ import com.vibenavigator.nav.kalman.LatLonKalmanFilter;
 import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.nav.route.VoiceHint;
+import com.vibenavigator.util.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class NavigationService extends Service implements LocationListener {
+
+    private static final String TAG = "NavigationService";
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -77,16 +80,25 @@ public class NavigationService extends Service implements LocationListener {
     private long fastChecksUntilMs;
     private long lastRerouteMs;
     private List<NavTarget> targets = new ArrayList<>();
+    private int locationUpdateCount;
+    private int routeRequestCount;
+    private long lastRequestedLocationMinTimeMs = -1L;
+    @Nullable
+    private String lastRequestedProvider;
 
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         ensureChannels();
+        AppLogger.i(TAG, "Service created");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        AppLogger.i(TAG, "onStartCommand action=" + (intent == null ? "null" : intent.getAction())
+                + " flags=" + flags
+                + " startId=" + startId);
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
             stopNavigation();
             stopSelf();
@@ -105,6 +117,7 @@ public class NavigationService extends Service implements LocationListener {
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        AppLogger.i(TAG, "Client bound to service");
         return binder;
     }
 
@@ -112,24 +125,30 @@ public class NavigationService extends Service implements LocationListener {
         public void registerListener(@NonNull Listener l) {
             if (!listeners.contains(l)) {
                 listeners.add(l);
+                AppLogger.d(TAG, "Listener registered totalListeners=" + listeners.size());
             }
             emitState();
         }
 
         public void unregisterListener(@NonNull Listener l) {
             listeners.remove(l);
+            AppLogger.d(TAG, "Listener unregistered totalListeners=" + listeners.size());
         }
 
         public void addBlockedWaypoint() {
             Location loc = lastFiltered;
             if (loc == null) {
+                AppLogger.w(TAG, "Blocked waypoint requested without a current filtered location");
                 return;
             }
             blocked.add(new LatLon(loc.getLatitude(), loc.getLongitude()));
+            AppLogger.i(TAG, "Blocked waypoint added count=" + blocked.size()
+                    + " location=" + formatLocation(loc));
             requestRouteRecalc(true);
         }
 
         public void stop() {
+            AppLogger.i(TAG, "Stop requested through binder");
             stopNavigation();
             stopSelf();
         }
@@ -140,6 +159,10 @@ public class NavigationService extends Service implements LocationListener {
             return;
         }
         NotificationManager nm = getSystemService(NotificationManager.class);
+        if (nm == null) {
+            AppLogger.w(TAG, "NotificationManager unavailable while creating channels");
+            return;
+        }
 
         NotificationChannel nav = new NotificationChannel(
                 CHANNEL_ID_NAV,
@@ -166,6 +189,7 @@ public class NavigationService extends Service implements LocationListener {
         right.enableVibration(true);
         right.setVibrationPattern(new long[]{0, 220, 80, 80});
         nm.createNotificationChannel(right);
+        AppLogger.i(TAG, "Notification channels ensured");
     }
 
     private Notification buildOngoingNotification() {
@@ -191,9 +215,14 @@ public class NavigationService extends Service implements LocationListener {
                 LatLon ll = parseLatLon(s);
                 if (ll != null) {
                     intermediates.add(ll);
+                } else {
+                    AppLogger.w(TAG, "Discarded invalid intermediate stop=" + s);
                 }
             }
         }
+        AppLogger.i(TAG, "Navigation request loaded profile=" + profile
+                + " destination=" + formatLatLon(destination)
+                + " intermediates=" + intermediates.size());
     }
 
     private void startNavigation() {
@@ -207,24 +236,37 @@ public class NavigationService extends Service implements LocationListener {
         targets = new ArrayList<>();
         fastChecksUntilMs = System.currentTimeMillis() + 30_000L;
         lastRerouteMs = 0;
+        lastRequestedLocationMinTimeMs = -1L;
+        lastRequestedProvider = null;
+        locationUpdateCount = 0;
+        routeRequestCount = 0;
 
         acquireWakeLock();
         requestLocationUpdates(2000L);
         emitState();
+        AppLogger.i(TAG, "Navigation started profile=" + profile
+                + " destination=" + formatLatLon(destination)
+                + " intermediates=" + intermediates.size()
+                + " blockedReset=true");
 
         Location seed = getBestLastKnownLocation();
         if (seed != null) {
+            AppLogger.i(TAG, "Using last known location as seed " + formatLocation(seed));
             onLocationChanged(seed);
+        } else {
+            AppLogger.w(TAG, "No last known location available at navigation start");
         }
     }
 
     private void stopNavigation() {
+        AppLogger.i(TAG, "Stopping navigation listeners=" + listeners.size()
+                + " routeLoaded=" + (route != null));
         try {
             if (locationManager != null) {
                 locationManager.removeUpdates(this);
             }
-        } catch (SecurityException ignored) {
-            // ignore
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Failed to remove location updates", e);
         }
         releaseWakeLock();
         listeners.clear();
@@ -240,15 +282,18 @@ public class NavigationService extends Service implements LocationListener {
         try {
             PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
             if (pm == null) {
+                AppLogger.w(TAG, "PowerManager unavailable, wake lock not acquired");
                 return;
             }
             if (wakeLock != null && wakeLock.isHeld()) {
+                AppLogger.d(TAG, "Wake lock already held");
                 return;
             }
             wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "VibeNavigator:Nav");
             wakeLock.acquire();
-        } catch (Exception ignored) {
-            // ignore
+            AppLogger.i(TAG, "Wake lock acquired");
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to acquire wake lock", e);
         }
     }
 
@@ -256,9 +301,10 @@ public class NavigationService extends Service implements LocationListener {
         try {
             if (wakeLock != null && wakeLock.isHeld()) {
                 wakeLock.release();
+                AppLogger.i(TAG, "Wake lock released");
             }
-        } catch (Exception ignored) {
-            // ignore
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to release wake lock", e);
         } finally {
             wakeLock = null;
         }
@@ -267,16 +313,27 @@ public class NavigationService extends Service implements LocationListener {
     private void requestLocationUpdates(long minTimeMs) {
         try {
             if (locationManager == null) {
+                AppLogger.w(TAG, "LocationManager unavailable, cannot request updates");
                 return;
             }
             locationManager.removeUpdates(this);
+            String provider = null;
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+                provider = LocationManager.GPS_PROVIDER;
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTimeMs, 0, this);
             } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                provider = LocationManager.NETWORK_PROVIDER;
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs, 0, this);
+            } else {
+                AppLogger.w(TAG, "No enabled location provider available for updates");
             }
-        } catch (SecurityException ignored) {
-            // permissions gate is handled by the activity
+            if (provider != null && (minTimeMs != lastRequestedLocationMinTimeMs || !provider.equals(lastRequestedProvider))) {
+                lastRequestedLocationMinTimeMs = minTimeMs;
+                lastRequestedProvider = provider;
+                AppLogger.i(TAG, "Requested location updates provider=" + provider + " minTimeMs=" + minTimeMs);
+            }
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while requesting location updates", e);
         }
     }
 
@@ -295,8 +352,10 @@ public class NavigationService extends Service implements LocationListener {
             if (net != null && (best == null || net.getTime() > best.getTime())) {
                 best = net;
             }
+            AppLogger.d(TAG, "Best last known location=" + formatLocation(best));
             return best;
-        } catch (SecurityException ignored) {
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while reading last known location", e);
             return null;
         }
     }
@@ -305,10 +364,15 @@ public class NavigationService extends Service implements LocationListener {
     public void onLocationChanged(@NonNull Location location) {
         Location filtered = kalman.update(location);
         if (filtered == null) {
+            AppLogger.d(TAG, "Kalman filter dropped location " + formatLocation(location));
             return;
         }
         prevFiltered = lastFiltered;
         lastFiltered = filtered;
+        locationUpdateCount++;
+        AppLogger.d(TAG, "Location update #" + locationUpdateCount
+                + " raw=" + formatLocation(location)
+                + " filtered=" + formatLocation(filtered));
 
         evaluateAndMaybeReroute();
         emitState();
@@ -316,14 +380,17 @@ public class NavigationService extends Service implements LocationListener {
 
     private void evaluateAndMaybeReroute() {
         if (destination == null || profile == null || profile.trim().isEmpty()) {
+            AppLogger.w(TAG, "Skipping route evaluation because destination/profile is incomplete");
             return;
         }
         Location loc = lastFiltered;
         if (loc == null) {
+            AppLogger.d(TAG, "Skipping route evaluation because filtered location is unavailable");
             return;
         }
 
         if (route == null || polylineIndex == null || route.track.isEmpty()) {
+            AppLogger.i(TAG, "No active route loaded, requesting route calculation");
             requestRouteRecalc(false);
             return;
         }
@@ -331,6 +398,7 @@ public class NavigationService extends Service implements LocationListener {
         LatLon p = new LatLon(loc.getLatitude(), loc.getLongitude());
         PolylineIndex.Match m = polylineIndex.match(p, lastSegmentIndex);
         if (m == null) {
+            AppLogger.w(TAG, "Route match failed, requesting recalculation");
             requestRouteRecalc(false);
             return;
         }
@@ -339,6 +407,8 @@ public class NavigationService extends Service implements LocationListener {
         double accuracy = loc.hasAccuracy() ? loc.getAccuracy() : 20.0;
         double offTrackThreshold = 10.0 + accuracy;
         if (m.distanceToTrackMeters > offTrackThreshold) {
+            AppLogger.w(TAG, "Off-track detected distance=" + m.distanceToTrackMeters
+                    + " threshold=" + offTrackThreshold);
             requestRouteRecalc(false);
             return;
         }
@@ -348,6 +418,9 @@ public class NavigationService extends Service implements LocationListener {
         if (actualBearing != null) {
             double diff = GeoMath.angularDiffDegrees(actualBearing, expectedBearing);
             if (diff > 60.0) {
+                AppLogger.w(TAG, "Bearing mismatch detected diff=" + diff
+                        + " expected=" + expectedBearing
+                        + " actual=" + actualBearing);
                 requestRouteRecalc(false);
                 return;
             }
@@ -360,17 +433,27 @@ public class NavigationService extends Service implements LocationListener {
     private void requestRouteRecalc(boolean force) {
         long now = System.currentTimeMillis();
         if (!force && now - lastRerouteMs < 8000L) {
+            AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs=" + (now - lastRerouteMs));
             return;
         }
         lastRerouteMs = now;
 
         Location loc = lastFiltered;
         if (loc == null) {
+            AppLogger.w(TAG, "Cannot recalculate route without a filtered location");
             return;
         }
         LatLon start = new LatLon(loc.getLatitude(), loc.getLongitude());
+        int requestNumber = ++routeRequestCount;
+        AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
+                + " force=" + force
+                + " start=" + formatLatLon(start)
+                + " destination=" + formatLatLon(destination)
+                + " intermediates=" + intermediates.size()
+                + " blocked=" + blocked.size());
 
         routeExecutor.submit(() -> {
+            long beganAt = System.currentTimeMillis();
             try {
                 GeoJsonRoute newRoute = router.routeGeoJson(getApplicationContext(), start, intermediates, destination, profile, blocked);
                 route = newRoute;
@@ -380,9 +463,14 @@ public class NavigationService extends Service implements LocationListener {
                 notified10 = false;
                 notified5 = false;
                 targets = buildTargets(polylineIndex);
+                AppLogger.i(TAG, "Route recalculation #" + requestNumber
+                        + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
+                        + " trackPoints=" + newRoute.track.size()
+                        + " voiceHints=" + newRoute.voiceHints.size()
+                        + " lengthMeters=" + newRoute.trackLengthMeters);
                 emitState();
-            } catch (Exception ignored) {
-                // keep previous route if any
+            } catch (Exception e) {
+                AppLogger.e(TAG, "Route recalculation #" + requestNumber + " failed", e);
             }
         });
     }
@@ -502,11 +590,15 @@ public class NavigationService extends Service implements LocationListener {
 
     private void notifyPassed(@NonNull VoiceHint hint) {
         // "just passed" is informational only, no vibration.
+        AppLogger.i(TAG, "Passed voice hint index=" + nextHintIdx + " hintTrackIndex=" + hint.indexInTrack);
         sendTurnNotification(hint, 0, 0, CHANNEL_ID_NAV, false);
     }
 
     private void notifyImminent(@NonNull VoiceHint hint, double distMeters, double timeSeconds) {
         DirectionInfo di = VoiceHintMapper.toDirection(hint);
+        AppLogger.i(TAG, "Imminent turn kind=" + di.kind
+                + " distanceMeters=" + distMeters
+                + " timeSeconds=" + timeSeconds);
         String channel = di.kind == DirectionKind.LEFT ? CHANNEL_ID_TURN_LEFT : (di.kind == DirectionKind.RIGHT ? CHANNEL_ID_TURN_RIGHT : CHANNEL_ID_NAV);
         boolean vibrate = di.kind == DirectionKind.LEFT || di.kind == DirectionKind.RIGHT;
         sendTurnNotification(hint, distMeters, timeSeconds, channel, vibrate);
@@ -539,7 +631,15 @@ public class NavigationService extends Service implements LocationListener {
         }
 
         NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        if (nm == null) {
+            AppLogger.w(TAG, "NotificationManager unavailable, cannot send turn notification");
+            return;
+        }
         nm.notify(1000 + nextHintIdx, b.build());
+        AppLogger.d(TAG, "Sent turn notification channel=" + channelId
+                + " vibrate=" + vibrate
+                + " nextHintIdx=" + nextHintIdx
+                + " message=" + msg);
     }
 
     private String formatDistance(double meters) {
@@ -585,8 +685,42 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onDestroy() {
+        AppLogger.i(TAG, "Service destroyed");
         stopNavigation();
         routeExecutor.shutdownNow();
         super.onDestroy();
+    }
+
+    @NonNull
+    private static String formatLatLon(@Nullable LatLon value) {
+        if (value == null) {
+            return "null";
+        }
+        return value.lat + "," + value.lon;
+    }
+
+    @NonNull
+    private static String formatLocation(@Nullable Location location) {
+        if (location == null) {
+            return "null";
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append(location.getProvider())
+                .append("(")
+                .append(location.getLatitude())
+                .append(",")
+                .append(location.getLongitude())
+                .append(")");
+        if (location.hasAccuracy()) {
+            sb.append(" acc=").append(location.getAccuracy());
+        }
+        if (location.hasSpeed()) {
+            sb.append(" speed=").append(location.getSpeed());
+        }
+        if (location.hasBearing()) {
+            sb.append(" bearing=").append(location.getBearing());
+        }
+        sb.append(" time=").append(location.getTime());
+        return sb.toString();
     }
 }

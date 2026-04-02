@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import com.vibenavigator.util.AppLogger;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,6 +21,7 @@ public final class PoiHistoryStore {
     private static final String PREFS = "vibenavigator_poi_history";
     private static final String KEY_ITEMS = "items";
     private static final int MAX_ITEMS = 30;
+    private static final String TAG = "PoiHistory";
 
     private final SharedPreferences prefs;
 
@@ -48,13 +51,15 @@ public final class PoiHistoryStore {
                 }
                 out.add(new Poi(name, lat, lon));
             }
-        } catch (JSONException ignored) {
+        } catch (JSONException e) {
+            AppLogger.w(TAG, "Failed to parse POI history payload", e);
             return new ArrayList<>();
         }
         return out;
     }
 
     public void addOrPromote(@NonNull Poi poi) {
+        AppLogger.i(TAG, "Saving or promoting POI " + poi.displayLabel());
         List<Poi> current = list();
         Map<String, Poi> unique = new LinkedHashMap<>();
 
@@ -69,6 +74,7 @@ public final class PoiHistoryStore {
     }
 
     public void remove(@NonNull Poi poi) {
+        AppLogger.i(TAG, "Removing POI from history " + poi.displayLabel());
         List<Poi> current = list();
         List<Poi> next = new ArrayList<>();
         for (Poi p : current) {
@@ -81,6 +87,7 @@ public final class PoiHistoryStore {
 
     private void save(@NonNull Iterable<Poi> items) {
         JSONArray arr = new JSONArray();
+        int count = 0;
         for (Poi p : items) {
             JSONObject o = new JSONObject();
             try {
@@ -88,10 +95,12 @@ public final class PoiHistoryStore {
                 o.put("lat", p.lat);
                 o.put("lon", p.lon);
                 arr.put(o);
+                count++;
             } catch (JSONException ignored) {
                 // ignore
             }
         }
         prefs.edit().putString(KEY_ITEMS, arr.toString()).apply();
+        AppLogger.d(TAG, "Persisted POI history count=" + count);
     }
 }

@@ -3,6 +3,7 @@ package com.vibenavigator.poi.search;
 import androidx.annotation.NonNull;
 
 import com.vibenavigator.poi.Poi;
+import com.vibenavigator.util.AppLogger;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,6 +22,8 @@ import java.util.Locale;
 
 public final class GoogleGeocodeClient implements PoiSearchClient {
 
+    private static final String TAG = "GoogleGeocode";
+
     private final String apiKey;
 
     public GoogleGeocodeClient(@NonNull String apiKey) {
@@ -30,6 +33,7 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
     @NonNull
     @Override
     public List<Poi> search(@NonNull String query, int limit) throws IOException {
+        AppLogger.i(TAG, "Searching query=" + query + " limit=" + limit);
         String q = URLEncoder.encode(query, "UTF-8");
         String url = String.format(Locale.US,
                 "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s",
@@ -42,8 +46,10 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
         conn.setRequestProperty("Accept", "application/json");
         try {
             int code = conn.getResponseCode();
+            AppLogger.i(TAG, "HTTP response code=" + code);
             InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
             if (is == null) {
+                AppLogger.w(TAG, "No response stream available for query=" + query);
                 return new ArrayList<>();
             }
             String body = readAll(is);
@@ -74,8 +80,10 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
                 }
                 out.add(new Poi(name, lat, lon));
             }
+            AppLogger.i(TAG, "Search completed query=" + query + " results=" + out.size());
             return out;
         } catch (Exception e) {
+            AppLogger.e(TAG, "Search failed query=" + query, e);
             throw new IOException(e);
         } finally {
             conn.disconnect();
