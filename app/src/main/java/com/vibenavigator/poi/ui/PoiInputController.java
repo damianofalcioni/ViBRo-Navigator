@@ -61,11 +61,21 @@ public final class PoiInputController {
         this.searchClient = searchClient;
         this.listener = listener;
 
-        adapter = new PoiSuggestionAdapter(context, this::deleteHistoryItem);
+        adapter = new PoiSuggestionAdapter(context, new PoiSuggestionAdapter.Listener() {
+            @Override
+            public void onSuggestionClicked(@NonNull PoiSuggestion suggestion) {
+                selectPoi(suggestion.poi);
+            }
+
+            @Override
+            public void onDeleteClicked(@NonNull PoiSuggestion suggestion) {
+                deleteHistoryItem(suggestion);
+            }
+        });
         popup = new ListPopupWindow(context);
         popup.setAnchorView(editText);
         popup.setAdapter(adapter);
-        popup.setModal(true);
+        popup.setModal(false);
         popup.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.black)));
         popup.setOnItemClickListener((parent, view, position, id) -> {
             PoiSuggestion s = (PoiSuggestion) adapter.getItem(position);
@@ -74,12 +84,12 @@ public final class PoiInputController {
 
         editText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
-                showHistory();
+                maybeShowHistory();
             } else {
                 popup.dismiss();
             }
         });
-        editText.setOnClickListener(v -> showHistory());
+        editText.setOnClickListener(v -> maybeShowHistory());
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -129,6 +139,13 @@ public final class PoiInputController {
         }
     }
 
+    private void maybeShowHistory() {
+        if (!getRawText().trim().isEmpty()) {
+            return;
+        }
+        showHistory();
+    }
+
     @NonNull
     public String getRawText() {
         return editText.getText() != null ? editText.getText().toString() : "";
@@ -170,7 +187,12 @@ public final class PoiInputController {
         }
 
         if (query.length() <= 3) {
-            showHistory();
+            if (query.isEmpty()) {
+                showHistory();
+            } else {
+                popup.dismiss();
+                adapter.setItems(new ArrayList<>());
+            }
             return;
         }
 
@@ -203,7 +225,7 @@ public final class PoiInputController {
     }
 
     private void selectPoi(@NonNull Poi poi) {
-        String label = editText.getContext().getString(R.string.format_poi_suggestion, poi.name, poi.lat, poi.lon);
+        String label = poi.displayLabel();
         programmaticChange = true;
         editText.setText(label);
         editText.setSelection(label.length());

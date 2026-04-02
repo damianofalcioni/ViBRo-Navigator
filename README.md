@@ -14,8 +14,7 @@ It keeps routing offline (via the installed BRouter app), and communicates direc
 ## Requirements
 
 - Android 5.0+ (minSdk 21)
-- BRouter installed (`btools.routingapp`)
-- BRouter profiles available under `.../brouter/profiles2` (the app guides you to grant folder access on modern Android versions)
+- BRouter installed (`btools.routingapp`); bundled profiles are detected automatically, and custom external profiles can still be selected from a `profiles2` folder when present
 
 ## POI search
 
@@ -39,8 +38,9 @@ VibeNavigator will prompt you to enable what it needs, when it needs it:
 
 ## Using BRouter profiles
 
-On first launch, VibeNavigator asks you to select the `profiles2` folder from the BRouter app storage, so it can list `*.brf` profiles in the vehicle selector.
-Example path (device-dependent):
+VibeNavigator first tries to list bundled profiles directly from the installed BRouter app.
+If you use custom external `*.brf` profiles, you can still select a `profiles2` folder manually.
+Legacy/example path (device-dependent, may not exist on newer BRouter builds):
 
 `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
 

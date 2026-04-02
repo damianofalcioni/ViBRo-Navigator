@@ -7,7 +7,7 @@
     <string name="action_stop_navigation">Stop navigation</string>
     <string name="action_add_stop">Add stop</string>
     <string name="action_remove_stop">Remove stop</string>
-    <string name="action_select_profile_folder">Select BRouter profiles folder</string>
+    <string name="action_select_profile_folder">Select custom BRouter profiles folder</string>
     <string name="action_blocked_road">Blocked road</string>
     <string name="action_clear_text">Clear</string>
     <string name="action_delete">Delete</string>
@@ -26,7 +26,7 @@
     <string name="msg_invalid_coordinates">Select a place with coordinates</string>
     <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
-    <string name="msg_profile_folder_not_selected">Select the BRouter profiles folder to list vehicle profiles</string>
+    <string name="msg_profile_folder_not_selected">No BRouter profiles found. Select a custom profiles folder if you use external .brf files.</string>
     <string name="msg_location_disabled">Location is disabled. Enable it to navigate.</string>
     <string name="msg_permission_required">Permission required</string>
     <string name="msg_permission_location_rationale">VibeNavigator needs location access to navigate and vibrate directions.</string>
@@ -36,7 +36,7 @@
     <string name="msg_search_min_chars">Type at least 4 characters</string>
     <string name="msg_search_no_results">No results</string>
     <string name="msg_select_brouter_profiles_folder_title">Select BRouter profiles folder</string>
-    <string name="msg_select_brouter_profiles_folder_body">Select the BRouter folder that contains profiles2 (.brf). Example:\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2</string>
+    <string name="msg_select_brouter_profiles_folder_body">Select a folder that contains BRouter .brf profiles if you use custom external profiles.\n\nLegacy/example path on some devices:\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\n\nNewer BRouter versions may bundle default profiles internally, so this folder may not exist.</string>
     <string name="msg_intent_unrecognized">Shared location not recognized</string>
     <string name="msg_profiles_empty">No profiles found</string>
 
@@ -83,5 +83,5 @@
 
     <string name="about_title">About VibeNavigator</string>
     <string name="format_version">Version %1$s</string>
-    <string name="about_body">VibeNavigator is a lightweight, battery-efficient, and offline-first vibe-coded GPS navigation app built around BRouter.\nIt keeps routing offline (via the installed BRouter app), and communicates directions through vibration patterns (no voice prompts) plus a minimal on-screen view.\n\nWhat it does:\n- Offline routing via BRouter (must be installed and have routing data)\n- Dark/black theme\n- Destination + optional intermediate stops\n- Background navigation via a foreground service (screen off supported)\n- Turn notifications with vibration (different patterns for left/right imminents)\n\nRequirements:\n- Android 5.0+ (minSdk 21)\n- BRouter installed (btools.routingapp)\n\nPOI search:\n- Uses Google REST APIs when a key is configured\n- Otherwise falls back to OpenStreetMap (Nominatim)\n- You can paste coordinates directly (e.g. 45.4642, 9.1900)\n\nUsing BRouter profiles:\nOn first launch, VibeNavigator asks you to select the profiles2 folder from the BRouter app storage, so it can list *.brf profiles in the vehicle selector.\nExample path (device-dependent):\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\n</string>
+    <string name="about_body">VibeNavigator is a lightweight, battery-efficient, and offline-first vibe-coded GPS navigation app built around BRouter.\nIt keeps routing offline (via the installed BRouter app), and communicates directions through vibration patterns (no voice prompts) plus a minimal on-screen view.\n\nWhat it does:\n- Offline routing via BRouter (must be installed and have routing data)\n- Dark/black theme\n- Destination + optional intermediate stops\n- Background navigation via a foreground service (screen off supported)\n- Turn notifications with vibration (different patterns for left/right imminents)\n\nRequirements:\n- Android 5.0+ (minSdk 21)\n- BRouter installed (btools.routingapp)\n\nPOI search:\n- Uses Google REST APIs when a key is configured\n- Otherwise falls back to OpenStreetMap (Nominatim)\n- You can paste coordinates directly (e.g. 45.4642, 9.1900)\n\nUsing BRouter profiles:\nVibeNavigator lists bundled BRouter profiles automatically when they are packaged inside the installed BRouter app.\nIf you use custom external .brf profiles, you can select their folder manually.\nLegacy/example path (device-dependent):\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\n</string>
 </resources>

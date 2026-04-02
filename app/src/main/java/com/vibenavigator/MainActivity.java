@@ -58,7 +58,8 @@ public class MainActivity extends AppCompatActivity {
         startNavButton = findViewById(R.id.startNavButton);
 
         profilesRepository = new BRouterProfilesRepository();
-        profilesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, new ArrayList<>());
+        profilesAdapter = new ArrayAdapter<>(this, R.layout.item_profile_spinner, new ArrayList<>());
+        profilesAdapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
         profileSpinner.setAdapter(profilesAdapter);
 
         if (!profilesRepository.isBRouterInstalled(this)) {

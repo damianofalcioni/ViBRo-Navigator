@@ -17,6 +17,15 @@ public final class Poi {
     }
 
     @NonNull
+    public String displayLabel() {
+        String trimmed = name.trim();
+        if (!trimmed.isEmpty()) {
+            return trimmed;
+        }
+        return String.format(Locale.US, "%.6f, %.6f", lat, lon);
+    }
+
+    @NonNull
     public String stableKey() {
         return String.format(Locale.US, "%.6f,%.6f", lat, lon);
     }

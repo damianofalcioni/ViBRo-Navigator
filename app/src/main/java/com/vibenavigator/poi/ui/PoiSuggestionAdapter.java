@@ -19,6 +19,7 @@ import java.util.List;
 public final class PoiSuggestionAdapter extends BaseAdapter {
 
     public interface Listener {
+        void onSuggestionClicked(@NonNull PoiSuggestion suggestion);
         void onDeleteClicked(@NonNull PoiSuggestion suggestion);
     }
 
@@ -65,8 +66,9 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
         TextView text = v.findViewById(R.id.suggestionText);
         ImageButton del = v.findViewById(R.id.deleteSuggestionButton);
 
-        String label = v.getContext().getString(R.string.format_poi_suggestion, s.poi.name, s.poi.lat, s.poi.lon);
+        String label = s.poi.displayLabel();
         text.setText(label);
+        v.setOnClickListener(row -> listener.onSuggestionClicked(s));
 
         if (s.deletable) {
             del.setVisibility(View.VISIBLE);
