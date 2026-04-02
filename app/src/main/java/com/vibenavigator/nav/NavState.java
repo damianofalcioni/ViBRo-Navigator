@@ -17,23 +17,84 @@ import java.util.List;
 import java.util.Locale;
 
 public final class NavState {
+    public static final long NO_DEADLINE = -1L;
+
     @NonNull
     public final String nextLine;
     @NonNull
     public final String afterNextLine;
     @NonNull
+    public final String accuracyLine;
+    public final long nextEvaluationDeadlineElapsedMs;
+    @NonNull
     public final String remainingBlock;
 
-    private NavState(@NonNull String nextLine, @NonNull String afterNextLine, @NonNull String remainingBlock) {
+    private NavState(@NonNull String nextLine,
+                     @NonNull String afterNextLine,
+                     @NonNull String accuracyLine,
+                     long nextEvaluationDeadlineElapsedMs,
+                     @NonNull String remainingBlock) {
         this.nextLine = nextLine;
         this.afterNextLine = afterNextLine;
+        this.accuracyLine = accuracyLine;
+        this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
         this.remainingBlock = remainingBlock;
     }
 
     @NonNull
     public static NavState waiting(@NonNull Context context) {
         String noRoute = context.getString(R.string.nav_no_route);
-        return new NavState(noRoute, "", noRoute);
+        return new NavState(noRoute, "", "", NO_DEADLINE, noRoute);
+    }
+
+    @NonNull
+    public static NavState waitingForLocation(@NonNull Context context) {
+        return waitingForLocation(context, NO_DEADLINE);
+    }
+
+    @NonNull
+    public static NavState waitingForLocation(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
+        return new NavState(
+                context.getString(R.string.nav_waiting_for_location_title),
+                "",
+                "",
+                nextEvaluationDeadlineElapsedMs,
+                context.getString(R.string.nav_waiting_for_location_body)
+        );
+    }
+
+    @NonNull
+    public static NavState calculatingRoute(@NonNull Context context) {
+        return calculatingRoute(context, NO_DEADLINE);
+    }
+
+    @NonNull
+    public static NavState calculatingRoute(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
+        return new NavState(
+                context.getString(R.string.nav_calculating_route_title),
+                "",
+                "",
+                nextEvaluationDeadlineElapsedMs,
+                context.getString(R.string.nav_calculating_route_body)
+        );
+    }
+
+    @NonNull
+    public static NavState routeUnavailable(@NonNull Context context, @NonNull String detail) {
+        return routeUnavailable(context, detail, NO_DEADLINE);
+    }
+
+    @NonNull
+    public static NavState routeUnavailable(@NonNull Context context,
+                                            @NonNull String detail,
+                                            long nextEvaluationDeadlineElapsedMs) {
+        return new NavState(
+                context.getString(R.string.nav_route_unavailable_title),
+                "",
+                "",
+                nextEvaluationDeadlineElapsedMs,
+                context.getString(R.string.format_nav_route_unavailable_body, detail)
+        );
     }
 
     @NonNull
@@ -43,14 +104,25 @@ public final class NavState {
             double alongTrackMeters,
             int nextHintIdx,
             float speedMps,
+            float accuracyMeters,
+            long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
         String next = buildDirectionLine(route, index, alongTrackMeters, nextHintIdx, speedMps, context);
         String afterNext = buildDirectionLine(route, index, alongTrackMeters, nextHintIdx + 1, speedMps, context);
+        String accuracy = buildAccuracyLine(accuracyMeters, context);
         String remaining = buildRemaining(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
-        return new NavState(next, afterNext, remaining);
+        return new NavState(next, afterNext, accuracy, nextEvaluationDeadlineElapsedMs, remaining);
+    }
+
+    @NonNull
+    private static String buildAccuracyLine(float accuracyMeters, @NonNull Context context) {
+        if (!Float.isFinite(accuracyMeters) || accuracyMeters <= 0f) {
+            return context.getString(R.string.nav_status_unavailable);
+        }
+        return context.getString(R.string.format_nav_accuracy_value, accuracyMeters);
     }
 
     @NonNull
@@ -87,21 +159,8 @@ public final class NavState {
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
-        double total = index.totalLengthMeters();
-        double remainingDistance = Math.max(0.0, total - alongTrackMeters);
-
-        double estimatedSeconds = estimateSeconds(route, total, remainingDistance, speedMps);
-        String header = context.getString(
-                R.string.format_progress_line,
-                context.getString(R.string.nav_remaining),
-                formatDistance(context, remainingDistance),
-                formatTimeSeconds(context, (int) Math.round(estimatedSeconds)),
-                context.getString(R.string.nav_eta),
-                formatEta(context, nowMs + (long) (estimatedSeconds * 1000))
-        );
-
         List<String> lines = new ArrayList<>();
-        lines.add(header);
+        double total = index.totalLengthMeters();
 
         for (NavTarget t : targets) {
             double distTo = Math.max(0.0, t.alongTrackMeters - alongTrackMeters);

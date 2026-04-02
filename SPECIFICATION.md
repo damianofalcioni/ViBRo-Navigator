@@ -197,6 +197,16 @@ The navigation UI must show the following in large text:
   - The app version
   - The same content as the README
 
+#### 5.1 Hidden developer mode
+
+- While on the about page, five fast taps anywhere on the page must enable a hidden developer mode
+- Enabling developer mode must show a popup confirming that developer mode is now enabled
+- Developer mode state must persist across app restarts
+- The app must write its log file only when developer mode is enabled
+- When developer mode is enabled for the first time, the app must create a new log file named `vibe-navigator-log-yyyymmddhhmm.txt` using the current local date and time
+- Repeating the five-tap developer-mode gesture while developer mode is already enabled must start a new developer log session and switch logging to a newly timestamped file
+- When developer mode is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
+
 ### 6. Shared/opened coordinates and addresses
 
 - The app must support opening or sharing map coordinates or addresses into the app

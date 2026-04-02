@@ -1,6 +1,7 @@
 package com.vibenavigator.util;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -18,46 +19,88 @@ import java.util.Locale;
 
 public final class AppLogger {
 
+    private static final String TAG = "AppLogger";
     private static final Object LOCK = new Object();
     private static final long MAX_LOG_BYTES = 4L * 1024L * 1024L;
     private static final long KEEP_LOG_BYTES = 3L * 1024L * 1024L;
     private static final String LOG_DIR = "logs";
-    private static final String LOG_FILE = "app-behavior.log";
+    private static final String LOG_FILE_PREFIX = "vibe-navigator-log-";
+    private static final String LOG_FILE_SUFFIX = ".txt";
+    private static final String PREFS = "vibenavigator_developer";
+    private static final String KEY_DEVELOPER_MODE = "developer_mode_enabled";
+    private static final String KEY_LOG_FILE_NAME = "log_file_name";
 
     @Nullable
     private static File logFile;
+    private static boolean developerModeEnabled;
 
     private AppLogger() {
     }
 
     public static void init(@NonNull Context context) {
         synchronized (LOCK) {
-            if (logFile != null) {
+            Context appContext = context.getApplicationContext();
+            developerModeEnabled = readDeveloperModeEnabled(appContext);
+            if (!developerModeEnabled) {
+                logFile = null;
                 return;
             }
-
-            File dir = resolveLogDir(context.getApplicationContext());
-            if (!dir.exists() && !dir.mkdirs() && !dir.exists()) {
-                return;
-            }
-            logFile = new File(dir, LOG_FILE);
-            migrateLegacyInternalLogIfNeeded(context.getApplicationContext(), logFile);
+            ensureLogFileLocked(appContext, false);
         }
     }
 
     @NonNull
     public static String getLogFilePath(@NonNull Context context) {
-        init(context);
         synchronized (LOCK) {
+            Context appContext = context.getApplicationContext();
+            developerModeEnabled = readDeveloperModeEnabled(appContext);
+            if (developerModeEnabled) {
+                ensureLogFileLocked(appContext, false);
+            }
             if (logFile != null) {
                 return logFile.getAbsolutePath();
             }
         }
-        return new File(resolveLogDir(context.getApplicationContext()), LOG_FILE).getAbsolutePath();
+        return new File(
+                resolveLogDir(context.getApplicationContext()),
+                buildLogFileName(new Date())
+        ).getAbsolutePath();
+    }
+
+    public static boolean isDeveloperModeEnabled(@NonNull Context context) {
+        synchronized (LOCK) {
+            developerModeEnabled = readDeveloperModeEnabled(context.getApplicationContext());
+            return developerModeEnabled;
+        }
+    }
+
+    public static boolean enableDeveloperMode(@NonNull Context context) {
+        Context appContext = context.getApplicationContext();
+        synchronized (LOCK) {
+            developerModeEnabled = readDeveloperModeEnabled(appContext);
+            if (developerModeEnabled) {
+                ensureLogFileLocked(appContext, true);
+                writeCurrentLogFileMarkerLocked("Developer log restarted");
+                return false;
+            }
+            SharedPreferences prefs = appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+            prefs.edit()
+                    .putBoolean(KEY_DEVELOPER_MODE, true)
+                    .putString(KEY_LOG_FILE_NAME, buildLogFileName(new Date()))
+                    .apply();
+            developerModeEnabled = true;
+            ensureLogFileLocked(appContext, true);
+        }
+        write("INFO", TAG, "Developer mode enabled", null);
+        return true;
     }
 
     public static void d(@NonNull String tag, @NonNull String message) {
         write("DEBUG", tag, message, null);
+    }
+
+    public static void dMultiline(@NonNull String tag, @NonNull String message, @NonNull String body) {
+        writeMultiline("DEBUG", tag, message, body);
     }
 
     public static void i(@NonNull String tag, @NonNull String message) {
@@ -84,6 +127,9 @@ public final class AppLogger {
     ) {
         File target;
         synchronized (LOCK) {
+            if (!developerModeEnabled) {
+                return;
+            }
             target = logFile;
         }
         if (target == null) {
@@ -123,6 +169,52 @@ public final class AppLogger {
         }
     }
 
+    private static void writeMultiline(
+            @NonNull String level,
+            @NonNull String tag,
+            @NonNull String message,
+            @NonNull String body
+    ) {
+        File target;
+        synchronized (LOCK) {
+            if (!developerModeEnabled) {
+                return;
+            }
+            target = logFile;
+        }
+        if (target == null) {
+            return;
+        }
+
+        StringBuilder block = new StringBuilder();
+        block.append(timestamp())
+                .append(" ")
+                .append(level)
+                .append("/")
+                .append(tag)
+                .append(" [")
+                .append(Thread.currentThread().getName())
+                .append("] ")
+                .append(sanitize(message))
+                .append("\n")
+                .append(normalizeMultiline(body));
+        if (!body.endsWith("\n") && !body.endsWith("\r")) {
+            block.append("\n");
+        }
+
+        synchronized (LOCK) {
+            if (logFile == null) {
+                return;
+            }
+            trimIfNeededLocked(logFile);
+            try (FileWriter writer = new FileWriter(logFile, true)) {
+                writer.write(block.toString());
+            } catch (Exception ignored) {
+                // Logging must never crash the app.
+            }
+        }
+    }
+
     @NonNull
     private static String timestamp() {
         return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US).format(new Date());
@@ -131,6 +223,11 @@ public final class AppLogger {
     @NonNull
     private static String sanitize(@NonNull String message) {
         return message.replace("\r", "\\r").replace("\n", "\\n");
+    }
+
+    @NonNull
+    private static String normalizeMultiline(@NonNull String message) {
+        return message.replace("\r\n", "\n").replace('\r', '\n');
     }
 
     private static void trimIfNeededLocked(@NonNull File file) {
@@ -203,7 +300,7 @@ public final class AppLogger {
             return;
         }
 
-        File legacyFile = new File(new File(context.getFilesDir(), LOG_DIR), LOG_FILE);
+        File legacyFile = new File(new File(context.getFilesDir(), LOG_DIR), "app-behavior.log");
         if (!legacyFile.exists() || legacyFile.equals(targetFile)) {
             return;
         }
@@ -241,5 +338,55 @@ public final class AppLogger {
         }
         //noinspection ResultOfMethodCallIgnored
         legacyFile.delete();
+    }
+
+    private static void ensureLogFileLocked(@NonNull Context context, boolean forceRefresh) {
+        File dir = resolveLogDir(context);
+        if (!dir.exists() && !dir.mkdirs() && !dir.exists()) {
+            return;
+        }
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        String fileName = prefs.getString(KEY_LOG_FILE_NAME, null);
+        if (forceRefresh || fileName == null || fileName.trim().isEmpty()) {
+            fileName = buildLogFileName(new Date());
+            prefs.edit().putString(KEY_LOG_FILE_NAME, fileName).apply();
+        }
+        File target = new File(dir, fileName);
+        if (logFile != null && logFile.equals(target)) {
+            return;
+        }
+        logFile = target;
+        migrateLegacyInternalLogIfNeeded(context, logFile);
+    }
+
+    private static void writeCurrentLogFileMarkerLocked(@NonNull String message) {
+        if (logFile == null) {
+            return;
+        }
+        String block = timestamp()
+                + " INFO/"
+                + TAG
+                + " ["
+                + Thread.currentThread().getName()
+                + "] "
+                + sanitize(message)
+                + "\n";
+        trimIfNeededLocked(logFile);
+        try (FileWriter writer = new FileWriter(logFile, true)) {
+            writer.write(block);
+        } catch (Exception ignored) {
+            // Logging must never crash the app.
+        }
+    }
+
+    private static boolean readDeveloperModeEnabled(@NonNull Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        return prefs.getBoolean(KEY_DEVELOPER_MODE, false);
+    }
+
+    @NonNull
+    private static String buildLogFileName(@NonNull Date now) {
+        String timestamp = new SimpleDateFormat("yyyyMMddHHmm", Locale.US).format(now);
+        return LOG_FILE_PREFIX + timestamp + LOG_FILE_SUFFIX;
     }
 }

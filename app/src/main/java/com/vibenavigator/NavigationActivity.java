@@ -8,8 +8,11 @@ import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -32,6 +35,7 @@ import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity {
 
+    public static final String EXTRA_RESUME_EXISTING = "resume_existing";
     public static final String EXTRA_PROFILE = "profile";
     public static final String EXTRA_DEST_NAME = "dest_name";
     public static final String EXTRA_DEST_LAT = "dest_lat";
@@ -43,13 +47,25 @@ public class NavigationActivity extends AppCompatActivity {
 
     private TextView next;
     private TextView afterNext;
+    private TextView gpsStatus;
     private TextView remaining;
     private Button blocked;
     private Button stop;
 
     private NavigationService.LocalBinder navBinder;
     private boolean bound;
+    private boolean autoStartNavigation;
+    @Nullable
+    private NavState currentState;
     private String lastRenderedStateKey = "";
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final Runnable countdownTicker = new Runnable() {
+        @Override
+        public void run() {
+            renderCountdown();
+            uiHandler.postDelayed(this, 1000L);
+        }
+    };
 
     private final NavigationService.Listener navListener = state -> runOnUiThread(() -> render(state));
 
@@ -74,7 +90,9 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
+        autoStartNavigation = savedInstanceState == null && hasNavigationRequest() && !shouldResumeExistingNavigation();
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
+                + " autoStartNavigation=" + autoStartNavigation
                 + " request=" + describeNavigationRequest());
 
         ImageButton aboutButton = findViewById(R.id.aboutButton);
@@ -85,6 +103,7 @@ public class NavigationActivity extends AppCompatActivity {
 
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
+        gpsStatus = findViewById(R.id.gpsStatusText);
         remaining = findViewById(R.id.remainingText);
         blocked = findViewById(R.id.blockedRoadButton);
         stop = findViewById(R.id.stopNavButton);
@@ -112,8 +131,19 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        autoStartNavigation = hasNavigationRequest() && !shouldResumeExistingNavigation();
+        AppLogger.i(TAG, "onNewIntent autoStartNavigation=" + autoStartNavigation
+                + " request=" + describeNavigationRequest());
+        ensureReadyThenStart();
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
+        uiHandler.post(countdownTicker);
         AppLogger.i(TAG, "Binding NavigationService");
         bindService(new Intent(this, NavigationService.class), connection, BIND_AUTO_CREATE);
     }
@@ -122,6 +152,7 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onStop() {
         super.onStop();
         AppLogger.i(TAG, "onStop bound=" + bound);
+        uiHandler.removeCallbacks(countdownTicker);
         if (bound) {
             try {
                 if (navBinder != null) {
@@ -137,19 +168,50 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void render(@NonNull NavState state) {
+        currentState = state;
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
+        renderCountdown();
         remaining.setText(state.remainingBlock);
-        String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.remainingBlock;
+        String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.accuracyLine
+                + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.remainingBlock;
         if (!stateKey.equals(lastRenderedStateKey)) {
             lastRenderedStateKey = stateKey;
             AppLogger.d(TAG, "Rendered state next=" + state.nextLine
                     + " afterNext=" + state.afterNextLine
+                    + " accuracy=" + state.accuracyLine
+                    + " nextEvalDeadline=" + state.nextEvaluationDeadlineElapsedMs
                     + " remaining=" + state.remainingBlock);
         }
     }
 
+    private void renderCountdown() {
+        if (currentState == null) {
+            gpsStatus.setText(getString(
+                    R.string.format_nav_gps_status,
+                    getString(R.string.nav_status_unavailable),
+                    getString(R.string.nav_status_unavailable)
+            ));
+            return;
+        }
+        String nextEvaluationValue = getString(R.string.nav_status_unavailable);
+        long remainingMs = Math.max(0L, currentState.nextEvaluationDeadlineElapsedMs - SystemClock.elapsedRealtime());
+        if (currentState.nextEvaluationDeadlineElapsedMs != NavState.NO_DEADLINE && remainingMs > 0L) {
+            long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
+            nextEvaluationValue = getString(R.string.format_nav_next_position_check_value, remainingSeconds);
+        }
+        gpsStatus.setText(getString(
+                R.string.format_nav_gps_status,
+                currentState.accuracyLine,
+                nextEvaluationValue
+        ));
+    }
+
     private void ensureReadyThenStart() {
+        if (!autoStartNavigation) {
+            AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
+            return;
+        }
         List<String> perms = new ArrayList<>();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             perms.add(Manifest.permission.ACCESS_FINE_LOCATION);
@@ -218,6 +280,7 @@ public class NavigationActivity extends AppCompatActivity {
         maybeRequestIgnoreBatteryOptimizations();
         AppLogger.i(TAG, "Environment checks passed, starting navigation service");
         startNavigationService();
+        autoStartNavigation = false;
     }
 
     private boolean isLocationEnabled() {
@@ -290,11 +353,26 @@ public class NavigationActivity extends AppCompatActivity {
     @NonNull
     private String describeNavigationRequest() {
         ArrayList<String> stops = getIntent().getStringArrayListExtra(EXTRA_STOPS);
-        return "profile=" + safe(getIntent().getStringExtra(EXTRA_PROFILE))
+        return "resumeExisting=" + shouldResumeExistingNavigation()
+                + ", profile=" + safe(getIntent().getStringExtra(EXTRA_PROFILE))
                 + ", destName=" + safe(getIntent().getStringExtra(EXTRA_DEST_NAME))
                 + ", destLat=" + getIntent().getDoubleExtra(EXTRA_DEST_LAT, Double.NaN)
                 + ", destLon=" + getIntent().getDoubleExtra(EXTRA_DEST_LON, Double.NaN)
                 + ", stops=" + (stops == null ? 0 : stops.size());
+    }
+
+    private boolean shouldResumeExistingNavigation() {
+        return getIntent().getBooleanExtra(EXTRA_RESUME_EXISTING, false);
+    }
+
+    private boolean hasNavigationRequest() {
+        Intent intent = getIntent();
+        if (intent == null) {
+            return false;
+        }
+        return intent.hasExtra(EXTRA_PROFILE)
+                && intent.hasExtra(EXTRA_DEST_LAT)
+                && intent.hasExtra(EXTRA_DEST_LON);
     }
 
     @NonNull

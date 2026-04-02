@@ -42,6 +42,9 @@
     <string name="msg_profiles_empty">No profiles found</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
+    <string name="msg_developer_mode_enabled">You are now in developer mode.</string>
+    <string name="msg_developer_mode_already_enabled">Developer mode is already enabled.</string>
+    <string name="msg_developer_mode_restarted">Developer log restarted.</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
 
@@ -49,7 +52,16 @@
     <string name="nav_after_next">After that</string>
     <string name="nav_remaining">Remaining</string>
     <string name="nav_eta">ETA</string>
+    <string name="nav_status_unavailable">--</string>
     <string name="nav_no_route">No route</string>
+    <string name="nav_waiting_for_location_title">Waiting for location</string>
+    <string name="nav_waiting_for_location_body">Waiting for a usable location fix to calculate the route.</string>
+    <string name="nav_calculating_route_title">Calculating route</string>
+    <string name="nav_calculating_route_body">Getting directions from BRouter.</string>
+    <string name="nav_route_unavailable_title">Route unavailable</string>
+    <string name="format_nav_route_unavailable_body">Could not start navigation: %1$s</string>
+    <string name="nav_route_unavailable_generic">unknown error</string>
+    <string name="nav_start_invalid_request">navigation request is incomplete</string>
 
     <string name="notification_channel_nav">Navigation</string>
     <string name="notification_channel_turn_left">Turn (left)</string>
@@ -80,6 +92,9 @@
     <string name="format_time_s">%1$d s</string>
     <string name="format_time_min">%1$d min</string>
     <string name="format_eta_hm">%1$02d:%2$02d</string>
+    <string name="format_nav_accuracy_value">%1$.0f m</string>
+    <string name="format_nav_next_position_check_value">%1$d s</string>
+    <string name="format_nav_gps_status">GPS Status: %1$s • %2$s</string>
     <string name="format_turn_notification">%1$s %2$s • %3$s • %4$s</string>
     <string name="format_progress_line">%1$s: %2$s • %3$s • %4$s %5$s</string>
     <string name="format_poi_suggestion">%1$s (%2$.5f, %3$.5f)</string>

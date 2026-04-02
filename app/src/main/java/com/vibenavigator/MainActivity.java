@@ -36,6 +36,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
+
     private static final int REQ_PICK_PROFILES_FOLDER = 1001;
     private static final int REQ_PICK_CUSTOM_PROFILE = 1002;
     private static final String TAG = "MainActivity";
@@ -197,6 +199,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         refreshProfiles();
+        if (handleOpenNavigationIntent(getIntent())) {
+            return;
+        }
         handleIncomingIntent(getIntent());
     }
 
@@ -205,6 +210,9 @@ public class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         AppLogger.i(TAG, "onNewIntent " + describeIntent(intent));
+        if (handleOpenNavigationIntent(intent)) {
+            return;
+        }
         handleIncomingIntent(intent);
     }
 
@@ -274,6 +282,46 @@ public class MainActivity extends AppCompatActivity {
         destinationController.setText(query.trim());
         destinationController.getEditText().requestFocus();
         AppLogger.i(TAG, "Applied incoming destination query=" + query.trim());
+    }
+
+    private boolean handleOpenNavigationIntent(@Nullable Intent intent) {
+        if (intent == null || !intent.getBooleanExtra(EXTRA_OPEN_NAVIGATION, false)) {
+            return false;
+        }
+        AppLogger.i(TAG, "Forwarding notification tap to NavigationActivity");
+        Intent navigationIntent = new Intent(this, NavigationActivity.class);
+        navigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+
+        String profile = intent.getStringExtra(NavigationActivity.EXTRA_PROFILE);
+        if (profile != null) {
+            navigationIntent.putExtra(NavigationActivity.EXTRA_PROFILE, profile);
+        }
+        String destinationName = intent.getStringExtra(NavigationActivity.EXTRA_DEST_NAME);
+        if (destinationName != null) {
+            navigationIntent.putExtra(NavigationActivity.EXTRA_DEST_NAME, destinationName);
+        }
+        if (intent.hasExtra(NavigationActivity.EXTRA_DEST_LAT)) {
+            navigationIntent.putExtra(
+                    NavigationActivity.EXTRA_DEST_LAT,
+                    intent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LAT, Double.NaN)
+            );
+        }
+        if (intent.hasExtra(NavigationActivity.EXTRA_DEST_LON)) {
+            navigationIntent.putExtra(
+                    NavigationActivity.EXTRA_DEST_LON,
+                    intent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LON, Double.NaN)
+            );
+        }
+        ArrayList<String> stops = intent.getStringArrayListExtra(NavigationActivity.EXTRA_STOPS);
+        if (stops != null) {
+            navigationIntent.putStringArrayListExtra(NavigationActivity.EXTRA_STOPS, stops);
+        }
+
+        intent.removeExtra(EXTRA_OPEN_NAVIGATION);
+        intent.removeExtra(NavigationActivity.EXTRA_RESUME_EXISTING);
+        setIntent(intent);
+        startActivity(navigationIntent);
+        return true;
     }
 
     private void refreshProfiles() {

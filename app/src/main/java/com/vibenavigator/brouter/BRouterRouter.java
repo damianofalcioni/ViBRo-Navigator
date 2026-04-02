@@ -50,6 +50,7 @@ public final class BRouterRouter {
                 throw new IllegalStateException("BRouter service not available");
             }
             String decoded = BRouterClient.decodeResult(raw);
+            AppLogger.dMultiline(TAG, "Full BRouter response=", decoded);
             if (!decoded.trim().startsWith("{")) {
                 AppLogger.w(TAG, "BRouter returned non-GeoJSON payload prefix="
                         + decoded.trim().substring(0, Math.min(120, decoded.trim().length())));

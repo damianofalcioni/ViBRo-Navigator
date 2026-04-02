@@ -3,6 +3,7 @@ package com.vibenavigator.nav;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
@@ -11,13 +12,17 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.os.IBinder;
 import android.os.PowerManager;
+import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
+import com.vibenavigator.MainActivity;
 import com.vibenavigator.NavigationActivity;
 import com.vibenavigator.R;
 import com.vibenavigator.brouter.BRouterRouter;
@@ -34,12 +39,19 @@ import com.vibenavigator.util.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 public class NavigationService extends Service implements LocationListener {
 
     private static final String TAG = "NavigationService";
+    private static final long LOCATION_STALE_MS = 15_000L;
+    private static final long LOCATION_FRESHNESS_BIAS_MS = 8_000L;
+    private static final long LOCATION_TIME_TOLERANCE_MS = 1_000L;
+    private static final float LOCATION_ACCURACY_BIAS_METERS = 15f;
+    private static final float LOCATION_ACCURACY_IMPROVEMENT_METERS = 5f;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -61,6 +73,7 @@ public class NavigationService extends Service implements LocationListener {
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
 
     private LocationManager locationManager;
+    private Executor locationCallbackExecutor;
     private PowerManager.WakeLock wakeLock;
 
     private String profile;
@@ -85,11 +98,26 @@ public class NavigationService extends Service implements LocationListener {
     private long lastRequestedLocationMinTimeMs = -1L;
     @Nullable
     private String lastRequestedProvider;
+    @Nullable
+    private Location latestGpsLocation;
+    @Nullable
+    private Location latestNetworkLocation;
+    @Nullable
+    private Location lastDispatchedRawLocation;
+    @Nullable
+    private CancellationSignal gpsCurrentLocationCancellation;
+    @Nullable
+    private CancellationSignal networkCurrentLocationCancellation;
+    private long nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+    private volatile boolean routeCalculationInProgress;
+    @Nullable
+    private volatile String lastRouteFailureMessage;
 
     @Override
     public void onCreate() {
         super.onCreate();
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationCallbackExecutor = ContextCompat.getMainExecutor(this);
         ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
@@ -193,11 +221,39 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private Notification buildOngoingNotification() {
+        Intent openNavigationIntent = new Intent(this, MainActivity.class);
+        openNavigationIntent.putExtra(MainActivity.EXTRA_OPEN_NAVIGATION, true);
+        openNavigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+        openNavigationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        if (profile != null) {
+            openNavigationIntent.putExtra(NavigationActivity.EXTRA_PROFILE, profile);
+        }
+        if (destination != null) {
+            openNavigationIntent.putExtra(NavigationActivity.EXTRA_DEST_LAT, destination.lat);
+            openNavigationIntent.putExtra(NavigationActivity.EXTRA_DEST_LON, destination.lon);
+        }
+        if (!intermediates.isEmpty()) {
+            ArrayList<String> stops = new ArrayList<>(intermediates.size());
+            for (LatLon stop : intermediates) {
+                stops.add(stop.lat + "," + stop.lon);
+            }
+            openNavigationIntent.putStringArrayListExtra(NavigationActivity.EXTRA_STOPS, stops);
+        }
+        PendingIntent openNavigationPendingIntent = PendingIntent.getActivity(
+                this,
+                0,
+                openNavigationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         return new NotificationCompat.Builder(this, CHANNEL_ID_NAV)
                 .setSmallIcon(R.drawable.ic_logo)
                 .setContentTitle(getString(R.string.notification_nav_running))
                 .setContentText(getString(R.string.notification_nav_running_text))
                 .setOngoing(true)
+                .setContentIntent(openNavigationPendingIntent)
                 .build();
     }
 
@@ -240,9 +296,25 @@ public class NavigationService extends Service implements LocationListener {
         lastRequestedProvider = null;
         locationUpdateCount = 0;
         routeRequestCount = 0;
+        routeCalculationInProgress = false;
+        lastRouteFailureMessage = null;
+        latestGpsLocation = null;
+        latestNetworkLocation = null;
+        lastDispatchedRawLocation = null;
+        nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+        cancelPendingCurrentLocationRequests();
+
+        if (destination == null || profile == null || profile.trim().isEmpty()) {
+            lastRouteFailureMessage = getString(R.string.nav_start_invalid_request);
+            AppLogger.e(TAG, "Navigation start aborted because the request is incomplete profile="
+                    + profile + " destination=" + formatLatLon(destination), null);
+            emitState();
+            return;
+        }
 
         acquireWakeLock();
         requestLocationUpdates(2000L);
+        requestCurrentLocationSeeds();
         emitState();
         AppLogger.i(TAG, "Navigation started profile=" + profile
                 + " destination=" + formatLatLon(destination)
@@ -254,13 +326,15 @@ public class NavigationService extends Service implements LocationListener {
             AppLogger.i(TAG, "Using last known location as seed " + formatLocation(seed));
             onLocationChanged(seed);
         } else {
-            AppLogger.w(TAG, "No last known location available at navigation start");
+            AppLogger.w(TAG, "No last known location available at navigation start "
+                    + describeLocationAvailability());
         }
     }
 
     private void stopNavigation() {
         AppLogger.i(TAG, "Stopping navigation listeners=" + listeners.size()
                 + " routeLoaded=" + (route != null));
+        cancelPendingCurrentLocationRequests();
         try {
             if (locationManager != null) {
                 locationManager.removeUpdates(this);
@@ -317,16 +391,23 @@ public class NavigationService extends Service implements LocationListener {
                 return;
             }
             locationManager.removeUpdates(this);
-            String provider = null;
+            List<String> providers = new ArrayList<>(2);
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                provider = LocationManager.GPS_PROVIDER;
-                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, minTimeMs, 0, this);
-            } else if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                provider = LocationManager.NETWORK_PROVIDER;
-                locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs, 0, this);
-            } else {
-                AppLogger.w(TAG, "No enabled location provider available for updates");
+                requestProviderUpdates(LocationManager.GPS_PROVIDER, minTimeMs);
+                providers.add(LocationManager.GPS_PROVIDER);
             }
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                requestProviderUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs);
+                providers.add(LocationManager.NETWORK_PROVIDER);
+            }
+            if (providers.isEmpty()) {
+                nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+                AppLogger.w(TAG, "No enabled location provider available for updates "
+                        + describeLocationAvailability());
+            } else {
+                nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+            }
+            String provider = joinProviders(providers);
             if (provider != null && (minTimeMs != lastRequestedLocationMinTimeMs || !provider.equals(lastRequestedProvider))) {
                 lastRequestedLocationMinTimeMs = minTimeMs;
                 lastRequestedProvider = provider;
@@ -334,6 +415,75 @@ public class NavigationService extends Service implements LocationListener {
             }
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Permission denied while requesting location updates", e);
+        }
+    }
+
+    private void requestProviderUpdates(@NonNull String provider, long minTimeMs) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, locationCallbackExecutor, this);
+        } else {
+            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, this);
+        }
+    }
+
+    private void requestCurrentLocationSeeds() {
+        if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return;
+        }
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            gpsCurrentLocationCancellation = requestCurrentLocationSeed(LocationManager.GPS_PROVIDER);
+        }
+        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            networkCurrentLocationCancellation = requestCurrentLocationSeed(LocationManager.NETWORK_PROVIDER);
+        }
+    }
+
+    @Nullable
+    private CancellationSignal requestCurrentLocationSeed(@NonNull String provider) {
+        CancellationSignal cancellationSignal = new CancellationSignal();
+        Consumer<Location> consumer = location -> {
+            clearCurrentLocationCancellation(provider, cancellationSignal);
+            if (location == null) {
+                AppLogger.d(TAG, "Current location seed returned null provider=" + provider);
+                return;
+            }
+            AppLogger.i(TAG, "Received current location seed provider=" + provider
+                    + " location=" + formatLocation(location));
+            onLocationChanged(location);
+        };
+        try {
+            locationManager.getCurrentLocation(provider, cancellationSignal, locationCallbackExecutor, consumer);
+            AppLogger.d(TAG, "Requested current location seed provider=" + provider);
+            return cancellationSignal;
+        } catch (SecurityException e) {
+            clearCurrentLocationCancellation(provider, cancellationSignal);
+            AppLogger.w(TAG, "Permission denied while requesting current location seed provider=" + provider, e);
+            return null;
+        } catch (Exception e) {
+            clearCurrentLocationCancellation(provider, cancellationSignal);
+            AppLogger.w(TAG, "Failed to request current location seed provider=" + provider, e);
+            return null;
+        }
+    }
+
+    private void clearCurrentLocationCancellation(@NonNull String provider,
+                                                  @NonNull CancellationSignal cancellationSignal) {
+        if (LocationManager.GPS_PROVIDER.equals(provider) && gpsCurrentLocationCancellation == cancellationSignal) {
+            gpsCurrentLocationCancellation = null;
+        } else if (LocationManager.NETWORK_PROVIDER.equals(provider)
+                && networkCurrentLocationCancellation == cancellationSignal) {
+            networkCurrentLocationCancellation = null;
+        }
+    }
+
+    private void cancelPendingCurrentLocationRequests() {
+        if (gpsCurrentLocationCancellation != null) {
+            gpsCurrentLocationCancellation.cancel();
+            gpsCurrentLocationCancellation = null;
+        }
+        if (networkCurrentLocationCancellation != null) {
+            networkCurrentLocationCancellation.cancel();
+            networkCurrentLocationCancellation = null;
         }
     }
 
@@ -362,25 +512,71 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
-        Location filtered = kalman.update(location);
+        rememberLatestProviderLocation(location);
+        Location selected = selectBestLiveLocation();
+        if (selected == null) {
+            AppLogger.d(TAG, "Dropped location because no recent candidate is available raw="
+                    + formatLocation(location));
+            return;
+        }
+        if (!shouldDispatchLocation(selected)) {
+            AppLogger.d(TAG, "Dropped location because selected candidate is unchanged raw="
+                    + formatLocation(location)
+                    + " selected=" + formatLocation(selected));
+            return;
+        }
+        lastDispatchedRawLocation = new Location(selected);
+
+        Location filtered = kalman.update(selected);
         if (filtered == null) {
-            AppLogger.d(TAG, "Kalman filter dropped location " + formatLocation(location));
+            AppLogger.d(TAG, "Kalman filter dropped location " + formatLocation(selected));
             return;
         }
         prevFiltered = lastFiltered;
         lastFiltered = filtered;
+        lastRouteFailureMessage = null;
         locationUpdateCount++;
         AppLogger.d(TAG, "Location update #" + locationUpdateCount
-                + " raw=" + formatLocation(location)
+                + " raw=" + formatLocation(selected)
                 + " filtered=" + formatLocation(filtered));
 
         evaluateAndMaybeReroute();
         emitState();
     }
 
+    @Override
+    public void onProviderEnabled(@NonNull String provider) {
+        AppLogger.i(TAG, "Location provider enabled provider=" + provider);
+        long minTimeMs = lastRequestedLocationMinTimeMs > 0 ? lastRequestedLocationMinTimeMs : 2000L;
+        requestLocationUpdates(minTimeMs);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (LocationManager.GPS_PROVIDER.equals(provider)) {
+                gpsCurrentLocationCancellation = requestCurrentLocationSeed(provider);
+            } else if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+                networkCurrentLocationCancellation = requestCurrentLocationSeed(provider);
+            }
+        }
+        emitState();
+    }
+
+    @Override
+    public void onProviderDisabled(@NonNull String provider) {
+        AppLogger.w(TAG, "Location provider disabled provider=" + provider);
+        if (LocationManager.GPS_PROVIDER.equals(provider)) {
+            latestGpsLocation = null;
+        } else if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+            latestNetworkLocation = null;
+        }
+        long minTimeMs = lastRequestedLocationMinTimeMs > 0 ? lastRequestedLocationMinTimeMs : 2000L;
+        requestLocationUpdates(minTimeMs);
+        emitState();
+    }
+
     private void evaluateAndMaybeReroute() {
         if (destination == null || profile == null || profile.trim().isEmpty()) {
-            AppLogger.w(TAG, "Skipping route evaluation because destination/profile is incomplete");
+            lastRouteFailureMessage = getString(R.string.nav_start_invalid_request);
+            AppLogger.e(TAG, "Skipping route evaluation because destination/profile is incomplete profile="
+                    + profile + " destination=" + formatLatLon(destination), null);
             return;
         }
         Location loc = lastFiltered;
@@ -430,6 +626,113 @@ public class NavigationService extends Service implements LocationListener {
         adjustUpdateInterval(m.alongTrackMeters, getSpeedMps(loc));
     }
 
+    private void rememberLatestProviderLocation(@NonNull Location location) {
+        Location copy = new Location(location);
+        String provider = location.getProvider();
+        if (LocationManager.GPS_PROVIDER.equals(provider)) {
+            latestGpsLocation = copy;
+        } else if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+            latestNetworkLocation = copy;
+        }
+    }
+
+    @Nullable
+    private Location selectBestLiveLocation() {
+        Location gps = isRecentLocation(latestGpsLocation) ? latestGpsLocation : null;
+        Location network = isRecentLocation(latestNetworkLocation) ? latestNetworkLocation : null;
+        if (gps == null && network == null) {
+            return null;
+        }
+        if (gps == null) {
+            return new Location(network);
+        }
+        if (network == null) {
+            return new Location(gps);
+        }
+
+        long gpsAgeMs = ageMs(gps);
+        long networkAgeMs = ageMs(network);
+        float gpsAccuracy = accuracyMeters(gps);
+        float networkAccuracy = accuracyMeters(network);
+
+        if (gpsAccuracy <= networkAccuracy + LOCATION_ACCURACY_IMPROVEMENT_METERS
+                && gpsAgeMs <= networkAgeMs + LOCATION_TIME_TOLERANCE_MS) {
+            return new Location(gps);
+        }
+        if (networkAccuracy + LOCATION_ACCURACY_BIAS_METERS < gpsAccuracy
+                && networkAgeMs <= gpsAgeMs + LOCATION_TIME_TOLERANCE_MS) {
+            return new Location(network);
+        }
+        if (Math.abs(gpsAgeMs - networkAgeMs) >= LOCATION_FRESHNESS_BIAS_MS) {
+            return gpsAgeMs < networkAgeMs ? new Location(gps) : new Location(network);
+        }
+        return new Location(gps);
+    }
+
+    private boolean shouldDispatchLocation(@NonNull Location candidate) {
+        if (lastDispatchedRawLocation == null) {
+            return true;
+        }
+        long candidateTime = candidate.getTime();
+        long lastTime = lastDispatchedRawLocation.getTime();
+        if (candidateTime > lastTime + LOCATION_TIME_TOLERANCE_MS) {
+            return true;
+        }
+        if (candidateTime + LOCATION_TIME_TOLERANCE_MS < lastTime) {
+            return false;
+        }
+
+        float candidateAccuracy = accuracyMeters(candidate);
+        float lastAccuracy = accuracyMeters(lastDispatchedRawLocation);
+        if (candidateAccuracy + LOCATION_ACCURACY_IMPROVEMENT_METERS < lastAccuracy) {
+            return true;
+        }
+        if (sameFix(candidate, lastDispatchedRawLocation)) {
+            return false;
+        }
+        return candidateAccuracy <= lastAccuracy + LOCATION_ACCURACY_BIAS_METERS;
+    }
+
+    private boolean isRecentLocation(@Nullable Location location) {
+        return location != null && ageMs(location) <= LOCATION_STALE_MS;
+    }
+
+    private long ageMs(@NonNull Location location) {
+        return Math.max(0L, System.currentTimeMillis() - location.getTime());
+    }
+
+    private float accuracyMeters(@NonNull Location location) {
+        return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    private boolean sameFix(@NonNull Location first, @NonNull Location second) {
+        return first.getTime() == second.getTime()
+                && safeProvider(first).equals(safeProvider(second))
+                && Double.compare(first.getLatitude(), second.getLatitude()) == 0
+                && Double.compare(first.getLongitude(), second.getLongitude()) == 0;
+    }
+
+    @Nullable
+    private String joinProviders(@NonNull List<String> providers) {
+        if (providers.isEmpty()) {
+            return null;
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < providers.size(); i++) {
+            if (i > 0) {
+                sb.append("+");
+            }
+            sb.append(providers.get(i));
+        }
+        return sb.toString();
+    }
+
+    @NonNull
+    private static String safeProvider(@NonNull Location location) {
+        String provider = location.getProvider();
+        return provider == null ? "unknown" : provider;
+    }
+
     private void requestRouteRecalc(boolean force) {
         long now = System.currentTimeMillis();
         if (!force && now - lastRerouteMs < 8000L) {
@@ -445,6 +748,9 @@ public class NavigationService extends Service implements LocationListener {
         }
         LatLon start = new LatLon(loc.getLatitude(), loc.getLongitude());
         int requestNumber = ++routeRequestCount;
+        routeCalculationInProgress = true;
+        lastRouteFailureMessage = null;
+        emitState();
         AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
                 + " force=" + force
                 + " start=" + formatLatLon(start)
@@ -456,6 +762,9 @@ public class NavigationService extends Service implements LocationListener {
             long beganAt = System.currentTimeMillis();
             try {
                 GeoJsonRoute newRoute = router.routeGeoJson(getApplicationContext(), start, intermediates, destination, profile, blocked);
+                if (newRoute.track.isEmpty()) {
+                    throw new IllegalStateException("BRouter returned an empty route");
+                }
                 route = newRoute;
                 polylineIndex = new PolylineIndex(newRoute.track);
                 lastSegmentIndex = -1;
@@ -463,6 +772,8 @@ public class NavigationService extends Service implements LocationListener {
                 notified10 = false;
                 notified5 = false;
                 targets = buildTargets(polylineIndex);
+                routeCalculationInProgress = false;
+                lastRouteFailureMessage = null;
                 AppLogger.i(TAG, "Route recalculation #" + requestNumber
                         + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
                         + " trackPoints=" + newRoute.track.size()
@@ -470,7 +781,12 @@ public class NavigationService extends Service implements LocationListener {
                         + " lengthMeters=" + newRoute.trackLengthMeters);
                 emitState();
             } catch (Exception e) {
+                routeCalculationInProgress = false;
+                lastRouteFailureMessage = summarizeRouteFailure(e);
                 AppLogger.e(TAG, "Route recalculation #" + requestNumber + " failed", e);
+                AppLogger.w(TAG, "Route recalculation #" + requestNumber + " failure summary="
+                        + lastRouteFailureMessage);
+                emitState();
             }
         });
     }
@@ -669,8 +985,22 @@ public class NavigationService extends Service implements LocationListener {
 
     @NonNull
     private NavState buildState() {
-        if (route == null || polylineIndex == null || lastFiltered == null) {
-            return NavState.waiting(this);
+        if (lastFiltered == null) {
+            if (lastRouteFailureMessage != null) {
+                return NavState.routeUnavailable(this, lastRouteFailureMessage, nextEvaluationDeadlineElapsedMs);
+            }
+            return NavState.waitingForLocation(this, nextEvaluationDeadlineElapsedMs);
+        }
+
+        if (routeCalculationInProgress) {
+            return NavState.calculatingRoute(this, nextEvaluationDeadlineElapsedMs);
+        }
+
+        if (route == null || polylineIndex == null) {
+            if (lastRouteFailureMessage != null) {
+                return NavState.routeUnavailable(this, lastRouteFailureMessage, nextEvaluationDeadlineElapsedMs);
+            }
+            return NavState.calculatingRoute(this, nextEvaluationDeadlineElapsedMs);
         }
 
         LatLon p = new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude());
@@ -680,7 +1010,18 @@ public class NavigationService extends Service implements LocationListener {
         }
 
         float speed = getSpeedMps(lastFiltered);
-        return NavState.from(route, polylineIndex, m.alongTrackMeters, nextHintIdx, speed, System.currentTimeMillis(), targets, this);
+        return NavState.from(
+                route,
+                polylineIndex,
+                m.alongTrackMeters,
+                nextHintIdx,
+                speed,
+                accuracyMeters(lastFiltered),
+                nextEvaluationDeadlineElapsedMs,
+                System.currentTimeMillis(),
+                targets,
+                this
+        );
     }
 
     @Override
@@ -722,5 +1063,60 @@ public class NavigationService extends Service implements LocationListener {
         }
         sb.append(" time=").append(location.getTime());
         return sb.toString();
+    }
+
+    @NonNull
+    private String describeLocationAvailability() {
+        if (locationManager == null) {
+            return "locationManager=null";
+        }
+        boolean gpsEnabled = false;
+        boolean networkEnabled = false;
+        try {
+            gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to read GPS provider state", e);
+        }
+        try {
+            networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to read network provider state", e);
+        }
+        return "gpsEnabled=" + gpsEnabled
+                + ", networkEnabled=" + networkEnabled
+                + ", lastGps=" + formatLocation(getLastKnownLocationQuietly(LocationManager.GPS_PROVIDER))
+                + ", lastNetwork=" + formatLocation(getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER));
+    }
+
+    @Nullable
+    private Location getLastKnownLocationQuietly(@NonNull String provider) {
+        if (locationManager == null) {
+            return null;
+        }
+        try {
+            return locationManager.getLastKnownLocation(provider);
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while reading last known location provider=" + provider, e);
+            return null;
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to read last known location provider=" + provider, e);
+            return null;
+        }
+    }
+
+    @NonNull
+    private String summarizeRouteFailure(@NonNull Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null) {
+                String sanitized = message.replace('\r', ' ').replace('\n', ' ').trim();
+                if (!sanitized.isEmpty()) {
+                    return sanitized.length() > 120 ? sanitized.substring(0, 117) + "..." : sanitized;
+                }
+            }
+            current = current.getCause();
+        }
+        return getString(R.string.nav_route_unavailable_generic);
     }
 }
