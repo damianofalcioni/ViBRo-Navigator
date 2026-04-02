@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 public final class CoordinateParser {
 
     private static final Pattern LAT_LON = Pattern.compile(
-            "(-?\\d{1,2}(?:\\.\\d+)?)\\s*,\\s*(-?\\d{1,3}(?:\\.\\d+)?)"
+            "(?<![\\d.])(-?\\d{1,2}(?:\\.\\d+)?)\\s*,\\s*(-?\\d{1,3}(?:\\.\\d+)?)(?![\\d.])"
     );
 
     private CoordinateParser() {

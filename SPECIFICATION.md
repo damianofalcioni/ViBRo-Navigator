@@ -132,15 +132,19 @@ The app must monitor user position:
 #### 4.4.4 Turn notifications
 
 - The app must send notifications:
+  - When navigation starts and the first route has been calculated, for the first upcoming direction even if the user is not moving yet
   - When the previous direction has just been passed
   - When 10 seconds remain to the next direction
   - When 5 seconds remain to the next direction
+- Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
+- Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
 - Each notification message must contain:
   - A direction arrow emoji
   - The distance left
   - The time left
   - The direction text
   - The exit number for roundabouts when applicable
+  - Hyphen (`-`) separators between fields instead of the bullet character
 
 #### 4.4.4.1 Imminent turn vibration patterns
 
@@ -228,6 +232,15 @@ The navigation UI must show the following in large text:
 
 - The app must support opening or sharing map coordinates or addresses into the app
 - Shared/opened coordinates or addresses must be set as the destination
+- The app must register as a target for at least these incoming Android formats:
+  - `geo:` map intents
+  - `google.navigation:` intents
+  - shared `text/plain` payloads
+  - common Google Maps and OpenStreetMap `http(s)` links that contain a destination or coordinates
+- Incoming coordinate or address intents must open the app without crashing on any supported Android version
+- Parsing of incoming locations must be compatible with the app's minimum supported Android API level
+- Invalid or malformed incoming coordinate payloads must fail gracefully instead of crashing or silently redirecting to placeholder coordinates
+- On devices where multiple apps can handle the same map/share intent, the system chooser may appear before the user selects VibeNavigator
 
 ## Non-functional expectations
 
@@ -237,3 +250,4 @@ The navigation UI must show the following in large text:
 - Translation-friendly text resource usage
 - Orientation-safe layouts
 - Robust permission handling at startup
+- Compatibility with all supported Android versions for intent parsing and deep-link handling

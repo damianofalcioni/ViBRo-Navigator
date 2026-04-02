@@ -276,6 +276,9 @@ public class MainActivity extends AppCompatActivity {
         }
         String query = IntentLocationParser.parseToQuery(intent);
         if (query == null || query.trim().isEmpty()) {
+            if (Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_SEND.equals(intent.getAction())) {
+                Toast.makeText(this, R.string.msg_intent_unrecognized, Toast.LENGTH_SHORT).show();
+            }
             AppLogger.d(TAG, "No destination extracted from intent");
             return;
         }
