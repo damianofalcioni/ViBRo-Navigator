@@ -51,6 +51,41 @@ public final class PolylineIndex {
     }
 
     @Nullable
+    public LatLon pointAtDistance(double alongTrackMeters) {
+        if (pts.isEmpty()) {
+            return null;
+        }
+        if (pts.size() == 1 || alongTrackMeters <= 0.0) {
+            return pts.get(0);
+        }
+
+        double totalLength = totalLengthMeters();
+        if (alongTrackMeters >= totalLength) {
+            return pts.get(pts.size() - 1);
+        }
+
+        for (int i = 1; i < pts.size(); i++) {
+            double segmentStart = cumulative[i - 1];
+            double segmentEnd = cumulative[i];
+            if (segmentEnd < alongTrackMeters) {
+                continue;
+            }
+            LatLon start = pts.get(i - 1);
+            LatLon end = pts.get(i);
+            double segmentLength = segmentEnd - segmentStart;
+            if (segmentLength <= 0.0) {
+                return end;
+            }
+            double t = (alongTrackMeters - segmentStart) / segmentLength;
+            double lat = start.lat + (end.lat - start.lat) * t;
+            double lon = start.lon + (end.lon - start.lon) * t;
+            return new LatLon(lat, lon);
+        }
+
+        return pts.get(pts.size() - 1);
+    }
+
+    @Nullable
     public Match match(@NonNull LatLon p, int lastSegmentIndex) {
         if (pts.size() < 2) {
             return null;

@@ -12,18 +12,6 @@ import java.util.List;
 
 public final class BRouterParams {
 
-    public enum VehicleMode {
-        MOTORCAR("motorcar"),
-        BICYCLE("bicycle"),
-        FOOT("foot");
-
-        public final String brouterValue;
-
-        VehicleMode(@NonNull String v) {
-            brouterValue = v;
-        }
-    }
-
     private BRouterParams() {
     }
 
@@ -33,9 +21,7 @@ public final class BRouterParams {
             @NonNull List<LatLon> intermediates,
             @NonNull LatLon end,
             @NonNull String profile,
-            @NonNull VehicleMode mode,
-            boolean fast,
-            @Nullable List<LatLon> nogos
+            @Nullable List<NogoPoint> nogos
     ) {
         List<LatLon> pts = new ArrayList<>();
         pts.add(start);
@@ -58,9 +44,10 @@ public final class BRouterParams {
             double[] nogoLons = new double[nogos.size()];
             double[] nogoRadi = new double[nogos.size()];
             for (int i = 0; i < nogos.size(); i++) {
-                nogoLats[i] = nogos.get(i).lat;
-                nogoLons[i] = nogos.get(i).lon;
-                nogoRadi[i] = 10.0;
+                NogoPoint nogo = nogos.get(i);
+                nogoLats[i] = nogo.lat;
+                nogoLons[i] = nogo.lon;
+                nogoRadi[i] = nogo.radiusMeters;
             }
             b.putDoubleArray("nogoLats", nogoLats);
             b.putDoubleArray("nogoLons", nogoLons);
@@ -71,8 +58,6 @@ public final class BRouterParams {
             b.putDoubleArray("nogoRadi", new double[0]);
         }
 
-        b.putString("fast", fast ? "1" : "0");
-        b.putString("v", mode.brouterValue);
         b.putString("profile", profile);
 
         // GeoJSON output from BRouter is called "json" and follows GeoJSON FeatureCollection.

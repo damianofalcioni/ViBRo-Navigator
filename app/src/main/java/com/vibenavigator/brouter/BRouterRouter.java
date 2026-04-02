@@ -25,7 +25,7 @@ public final class BRouterRouter {
             @NonNull List<LatLon> intermediates,
             @NonNull LatLon end,
             @NonNull String profile,
-            @Nullable List<LatLon> blockedWaypoints
+            @Nullable List<NogoPoint> blockedWaypoints
     ) throws Exception {
         List<LatLon> stops = intermediates != null ? intermediates : new ArrayList<>();
         AppLogger.i(TAG, "Building route request start=" + start.lat + "," + start.lon
@@ -38,8 +38,6 @@ public final class BRouterRouter {
                 stops,
                 end,
                 profile,
-                BRouterParams.VehicleMode.MOTORCAR,
-                false,
                 blockedWaypoints
         );
 

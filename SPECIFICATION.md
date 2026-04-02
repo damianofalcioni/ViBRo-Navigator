@@ -27,18 +27,19 @@ Core product constraints:
 
 The app must show a main UI implemented as an `AppCompatActivity`.
 
-The main UI must include a vehicle selector at the top.
+The main UI must include a routing-profile selector at the top.
 
-#### 1.1 Vehicle profiles
+#### 1.1 Routing profiles
 
 - The selector items must be the BRouter profile names
 - Profiles are the filenames with `.brf` extension available in the BRouter `profiles2` folder
+- The selector is profile-based, not a separate vehicle-type toggle
 - Example legacy path:
   `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
 
 ### 2. Destination input
 
-Below the vehicle selector, the app must show an input field for searching a destination POI or coordinates.
+Below the routing-profile selector, the app must show an input field for searching a destination POI or coordinates.
 
 #### 2.1 History dropdown before typing
 
@@ -95,9 +96,15 @@ The implementation must use BRouter integration compatible with these references
 - OsmAnd sample usage in `RouteProvider.java`
   - [https://raw.githubusercontent.com/osmandapp/OsmAnd/094097cc7411aef722b9183e24e828e6f749ca59/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java](https://raw.githubusercontent.com/osmandapp/OsmAnd/094097cc7411aef722b9183e24e828e6f749ca59/OsmAnd/src/net/osmand/plus/routing/RouteProvider.java)
 
+#### 4.3.1 Profile selection
+
+- Route calculations must send the selected BRouter `profile` explicitly
+- The app must not force a separate `v` vehicle-mode parameter when an explicit profile is supplied
+- The selected `.brf` file is the source of routing behavior for walk, bike, or car use cases
+
 #### 4.3.4 GeoJSON output
 
-- The app must request BRouter output in `format=geojson`
+- The app must request BRouter GeoJSON output using the Android-service parameters that produce a GeoJSON `FeatureCollection`
 
 #### 4.4 Navigation update loop
 
@@ -168,15 +175,25 @@ The navigation UI must show the following in large text:
 
 - Below the progress section and centered: a `blocked road` button
 
-##### 4.5.3.1 Blocked waypoint memory
+##### 4.5.3.1 Blocked no-go memory
 
-- Pressing the button must add the current location to an internal list of blocked waypoints
-- This list must be reset when a new navigation is started
+- Pressing the button must add route-based no-go points derived from the upcoming matched route geometry, not from the raw GPS position
+- The first press in an area must create a single no-go point slightly ahead on the route
+- The first blocked area must use a small street-scale radius of about 10 to 12 meters
+- This internal no-go list must be reset when a new navigation is started
 
 ##### 4.5.3.2 Blocked reroute
 
-- After blocking the current location, the app must recalculate the route
-- The recalculation must pass the blocked waypoint list to BRouter
+- After blocking the upcoming route area, the app must recalculate the route
+- The recalculation must pass the no-go point list, including per-point radii, to BRouter
+
+##### 4.5.3.3 Repeated blocked-road escalation
+
+- Repeated presses in the same nearby area, or repeated presses within a short time window in a nearby area, must escalate the blocked region
+- Escalation must increase both:
+  - the number of forward route points used as no-go points
+  - the no-go radius applied to those points
+- The blocked-road behavior should be tuned primarily for walking and cycling, with cars treated as a secondary use case
 
 #### 4.5.4 Stop navigation button
 

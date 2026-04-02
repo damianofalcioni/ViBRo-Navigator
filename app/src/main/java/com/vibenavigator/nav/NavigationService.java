@@ -26,6 +26,7 @@ import com.vibenavigator.MainActivity;
 import com.vibenavigator.NavigationActivity;
 import com.vibenavigator.R;
 import com.vibenavigator.brouter.BRouterRouter;
+import com.vibenavigator.brouter.NogoPoint;
 import com.vibenavigator.geo.GeoMath;
 import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.directions.DirectionInfo;
@@ -52,6 +53,15 @@ public class NavigationService extends Service implements LocationListener {
     private static final long LOCATION_TIME_TOLERANCE_MS = 1_000L;
     private static final float LOCATION_ACCURACY_BIAS_METERS = 15f;
     private static final float LOCATION_ACCURACY_IMPROVEMENT_METERS = 5f;
+    private static final double BLOCKED_ROUTE_FIRST_POINT_OFFSET_METERS = 20.0;
+    private static final double BLOCKED_ROUTE_POINT_STEP_METERS = 18.0;
+    private static final double BLOCKED_RADIUS_BASE_METERS = 12.0;
+    private static final double BLOCKED_RADIUS_STEP_METERS = 6.0;
+    private static final double BLOCKED_RADIUS_MAX_METERS = 30.0;
+    private static final int BLOCKED_POINT_COUNT_MAX = 3;
+    private static final double BLOCKED_SAME_AREA_METERS = 35.0;
+    private static final double BLOCKED_QUICK_REPEAT_NEARBY_METERS = 75.0;
+    private static final long BLOCKED_QUICK_REPEAT_WINDOW_MS = 15_000L;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -80,7 +90,7 @@ public class NavigationService extends Service implements LocationListener {
     private String profile;
     private LatLon destination;
     private List<LatLon> intermediates = new ArrayList<>();
-    private final List<LatLon> blocked = new ArrayList<>();
+    private final List<NogoPoint> blocked = new ArrayList<>();
 
     private Location lastFiltered;
     private Location prevFiltered;
@@ -114,6 +124,10 @@ public class NavigationService extends Service implements LocationListener {
     private volatile boolean routeCalculationInProgress;
     @Nullable
     private volatile String lastRouteFailureMessage;
+    @Nullable
+    private LatLon lastBlockedAreaCenter;
+    private long lastBlockedAreaAtMs;
+    private int lastBlockedAreaLevel;
 
     @Override
     public void onCreate() {
@@ -171,8 +185,13 @@ public class NavigationService extends Service implements LocationListener {
                 AppLogger.w(TAG, "Blocked waypoint requested without a current filtered location");
                 return;
             }
-            blocked.add(new LatLon(loc.getLatitude(), loc.getLongitude()));
-            AppLogger.i(TAG, "Blocked waypoint added count=" + blocked.size()
+            List<NogoPoint> added = addBlockedPointsAhead(loc);
+            if (added.isEmpty()) {
+                AppLogger.w(TAG, "Blocked-road reroute ignored because no route point ahead could be matched");
+                return;
+            }
+            AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
+                    + " totalBlocked=" + blocked.size()
                     + " location=" + formatLocation(loc));
             requestRouteRecalc(true);
         }
@@ -301,6 +320,9 @@ public class NavigationService extends Service implements LocationListener {
         routeRequestCount = 0;
         routeCalculationInProgress = false;
         lastRouteFailureMessage = null;
+        lastBlockedAreaCenter = null;
+        lastBlockedAreaAtMs = 0L;
+        lastBlockedAreaLevel = 0;
         latestGpsLocation = null;
         latestNetworkLocation = null;
         lastDispatchedRawLocation = null;
@@ -736,6 +758,88 @@ public class NavigationService extends Service implements LocationListener {
         return provider == null ? "unknown" : provider;
     }
 
+    @NonNull
+    private List<NogoPoint> addBlockedPointsAhead(@NonNull Location location) {
+        List<NogoPoint> added = new ArrayList<>();
+        if (route == null || polylineIndex == null || route.track.isEmpty()) {
+            return added;
+        }
+
+        PolylineIndex.Match match = polylineIndex.match(
+                new LatLon(location.getLatitude(), location.getLongitude()),
+                lastSegmentIndex
+        );
+        if (match == null) {
+            return added;
+        }
+
+        LatLon anchor = polylineIndex.pointAtDistance(match.alongTrackMeters + BLOCKED_ROUTE_FIRST_POINT_OFFSET_METERS);
+        if (anchor == null) {
+            return added;
+        }
+
+        int level = nextBlockedAreaLevel(anchor);
+        double radiusMeters = blockedRadiusForLevel(level);
+        int pointCount = blockedPointCountForLevel(level);
+        replaceNearbyBlockedPoints(anchor);
+
+        for (int i = 0; i < pointCount; i++) {
+            double distance = match.alongTrackMeters
+                    + BLOCKED_ROUTE_FIRST_POINT_OFFSET_METERS
+                    + (i * BLOCKED_ROUTE_POINT_STEP_METERS);
+            LatLon point = polylineIndex.pointAtDistance(distance);
+            if (point == null) {
+                continue;
+            }
+            NogoPoint nogo = new NogoPoint(point.lat, point.lon, radiusMeters);
+            blocked.add(nogo);
+            added.add(nogo);
+        }
+
+        lastBlockedAreaCenter = anchor;
+        lastBlockedAreaAtMs = System.currentTimeMillis();
+        lastBlockedAreaLevel = level;
+        return added;
+    }
+
+    private int nextBlockedAreaLevel(@NonNull LatLon anchor) {
+        long now = System.currentTimeMillis();
+        if (lastBlockedAreaCenter == null || lastBlockedAreaLevel <= 0) {
+            return 1;
+        }
+        double distanceMeters = GeoMath.distanceMeters(
+                lastBlockedAreaCenter.lat,
+                lastBlockedAreaCenter.lon,
+                anchor.lat,
+                anchor.lon
+        );
+        boolean sameArea = distanceMeters <= BLOCKED_SAME_AREA_METERS;
+        boolean quickNearbyRepeat = now - lastBlockedAreaAtMs <= BLOCKED_QUICK_REPEAT_WINDOW_MS
+                && distanceMeters <= BLOCKED_QUICK_REPEAT_NEARBY_METERS;
+        if (sameArea || quickNearbyRepeat) {
+            return Math.min(BLOCKED_POINT_COUNT_MAX, lastBlockedAreaLevel + 1);
+        }
+        return 1;
+    }
+
+    private void replaceNearbyBlockedPoints(@NonNull LatLon anchor) {
+        blocked.removeIf(existing ->
+                GeoMath.distanceMeters(existing.lat, existing.lon, anchor.lat, anchor.lon)
+                        <= BLOCKED_QUICK_REPEAT_NEARBY_METERS
+        );
+    }
+
+    private int blockedPointCountForLevel(int level) {
+        return Math.max(1, Math.min(BLOCKED_POINT_COUNT_MAX, level));
+    }
+
+    private double blockedRadiusForLevel(int level) {
+        return Math.min(
+                BLOCKED_RADIUS_MAX_METERS,
+                BLOCKED_RADIUS_BASE_METERS + ((Math.max(1, level) - 1) * BLOCKED_RADIUS_STEP_METERS)
+        );
+    }
+
     private void requestRouteRecalc(boolean force) {
         long now = System.currentTimeMillis();
         if (!force && now - lastRerouteMs < 8000L) {
@@ -751,6 +855,7 @@ public class NavigationService extends Service implements LocationListener {
         }
         LatLon start = new LatLon(loc.getLatitude(), loc.getLongitude());
         int requestNumber = ++routeRequestCount;
+        List<NogoPoint> blockedSnapshot = new ArrayList<>(blocked);
         routeCalculationInProgress = true;
         lastRouteFailureMessage = null;
         emitState();
@@ -759,21 +864,29 @@ public class NavigationService extends Service implements LocationListener {
                 + " start=" + formatLatLon(start)
                 + " destination=" + formatLatLon(destination)
                 + " intermediates=" + intermediates.size()
-                + " blocked=" + blocked.size());
+                + " blocked=" + blockedSnapshot.size());
 
         routeExecutor.submit(() -> {
             long beganAt = System.currentTimeMillis();
             try {
-                GeoJsonRoute newRoute = router.routeGeoJson(getApplicationContext(), start, intermediates, destination, profile, blocked);
+                GeoJsonRoute newRoute = router.routeGeoJson(
+                        getApplicationContext(),
+                        start,
+                        intermediates,
+                        destination,
+                        profile,
+                        blockedSnapshot
+                );
                 if (newRoute.track.isEmpty()) {
                     throw new IllegalStateException("BRouter returned an empty route");
                 }
                 route = newRoute;
                 polylineIndex = new PolylineIndex(newRoute.track);
                 lastSegmentIndex = -1;
-                nextHintIdx = 0;
+                nextHintIdx = findNextHintIndex(newRoute, polylineIndex, lastFiltered);
                 notified10 = false;
                 notified5 = false;
+                initialTurnNotificationSent = false;
                 targets = buildTargets(polylineIndex);
                 routeCalculationInProgress = false;
                 lastRouteFailureMessage = null;
@@ -793,6 +906,31 @@ public class NavigationService extends Service implements LocationListener {
                 emitState();
             }
         });
+    }
+
+    private int findNextHintIndex(@NonNull GeoJsonRoute candidateRoute,
+                                  @NonNull PolylineIndex candidateIndex,
+                                  @Nullable Location location) {
+        if (location == null || candidateRoute.voiceHints.isEmpty()) {
+            return 0;
+        }
+
+        PolylineIndex.Match match = candidateIndex.match(
+                new LatLon(location.getLatitude(), location.getLongitude()),
+                -1
+        );
+        if (match == null) {
+            return 0;
+        }
+
+        for (int i = 0; i < candidateRoute.voiceHints.size(); i++) {
+            VoiceHint hint = candidateRoute.voiceHints.get(i);
+            double hintDistance = candidateIndex.distanceAtPointIndex(hint.indexInTrack);
+            if (hintDistance + 5.0 > match.alongTrackMeters) {
+                return i;
+            }
+        }
+        return candidateRoute.voiceHints.size();
     }
 
     @NonNull
@@ -1080,6 +1218,22 @@ public class NavigationService extends Service implements LocationListener {
             return "null";
         }
         return value.lat + "," + value.lon;
+    }
+
+    @NonNull
+    private static String formatNogoPoints(@NonNull List<NogoPoint> values) {
+        if (values.isEmpty()) {
+            return "[]";
+        }
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) {
+                sb.append("; ");
+            }
+            sb.append(values.get(i));
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     @NonNull
