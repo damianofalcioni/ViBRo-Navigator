@@ -33,8 +33,11 @@ Main flow:
 
 - `app/src/main/java/com/vibenavigator/MainActivity.java`
   - Main form for vehicle profile selection, destination input, optional stops, and start navigation
-  - Should stay a thin UI/activity layer that delegates profile selection and navigation-input resolution
+  - Should stay a thin UI/activity layer that delegates profile selection, stop-row management, incoming-intent handling, and navigation-input resolution
   - Uses `ProfileSpinnerController` for profile spinner state and document-picker related selection flow
+  - Uses `MainActivityProfilePicker` for BRouter profiles-folder prompting plus custom/folder document-picker result handling
+  - Uses `MainActivityStopController` for dynamic stop-row creation, restore/save state, and controller disposal
+  - Uses `MainActivityIntentHandler` for resume-notification forwarding and shared/deep-link destination application
   - Uses `NavigationInputResolver` for destination/stop validation and history persistence before launch
   - Accepts shared `geo:` and text intents via `IntentLocationParser`
 - `app/src/main/java/com/vibenavigator/NavigationActivity.java`
@@ -145,6 +148,8 @@ Current test strategy:
 - Keep pure lifecycle rules in `NavigationLifecyclePolicy` when practical so they can also be covered by plain JUnit tests
 - Keep navigation heuristics in plain-Java policy/planner helpers when practical so threshold changes stay directly unit-testable
 - Keep service-side orchestration seams in extracted helpers when practical so notification monitoring, route callback handoff, turn-event fan-out, and listener broadcasting stay directly unit-testable without inflating `NavigationService`
+- Pure `MainActivity` extractions that only move existing wiring into thin helpers do not require new tests by default if behavior is unchanged and the existing JVM suite still passes
+- Add or update JVM tests when `MainActivity` helper changes alter behavior for incoming-intent handling, profile picker flows, saved stop restoration, or navigation launch validation
 
 ## Project rules
 

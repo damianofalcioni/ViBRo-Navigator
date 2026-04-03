@@ -278,7 +278,7 @@ The navigation UI must show the following in large text:
 
 ## Implementation guidance
 
-- Keep `MainActivity` as a thin UI coordinator. Navigation-input validation and profile-selection state should live in dedicated helpers instead of growing back into the activity.
+- Keep `MainActivity` as a thin UI coordinator. Navigation-input validation, profile-picker flow, incoming-intent handling, and dynamic stop-row state should live in dedicated helpers instead of growing back into the activity.
 - Keep `NavigationActivity` focused on rendering, service binding, and task/back-button behavior. Permission checks, settings redirects, battery-optimization prompting, and navigation-service startup should stay isolated behind a dedicated startup/preflight coordinator instead of drifting back into the activity.
 - Keep navigation text formatting shared between on-screen state and notifications so turn wording, distance formatting, and time formatting cannot drift across surfaces.
 - Keep the foreground service focused on Android lifecycle concerns and orchestration. Notification/foreground handling, ongoing-notification monitoring, route-execution threading, listener/state fan-out, turn-event dispatch, wake-lock ownership, and Android location-provider bookkeeping should be isolated in focused helpers instead of growing back into one monolithic service class.
@@ -307,3 +307,5 @@ The navigation UI must show the following in large text:
 - Shared navigation-request serialization, live-location arbitration, reroute-threshold policy, adaptive polling policy, turn-event planning, session route-state behavior, and route-request lifecycle handling are part of the expected JVM regression surface and should remain covered by unit tests
 - Navigation startup/preflight decision flow should stay covered by JVM tests through a dedicated coordinator seam rather than only through activity-level manual verification
 - Foreground notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting should remain covered by focused JVM tests through their extracted collaborators instead of only through end-to-end service tests
+- Refactors that only keep `MainActivity` thin by moving unchanged wiring into focused helpers do not require new tests by default if user-visible behavior is unchanged and the existing JVM suite still passes
+- Changes to `MainActivity` helper behavior for incoming intents, profile picking, stop restore/save handling, or navigation input resolution should add or update focused JVM or Robolectric coverage
