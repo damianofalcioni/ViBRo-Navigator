@@ -276,6 +276,13 @@ The navigation UI must show the following in large text:
 - Robust permission handling at startup
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
 
+## Implementation guidance
+
+- Keep `MainActivity` as a thin UI coordinator. Navigation-input validation and profile-selection state should live in dedicated helpers instead of growing back into the activity.
+- Keep navigation text formatting shared between on-screen state and notifications so turn wording, distance formatting, and time formatting cannot drift across surfaces.
+- Keep the foreground service focused on Android lifecycle concerns. Route/session state, reroute heuristics, blocked-road escalation, and route-result application should remain isolated in a dedicated navigation-session component.
+- Keep POI search execution shared across destination and stop fields rather than allocating one executor or thread owner per input controller.
+
 ## Testing expectations
 
 - Automated regression coverage should prefer JVM tests

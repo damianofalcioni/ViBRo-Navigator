@@ -30,14 +30,10 @@ import com.vibenavigator.NavigationActivity;
 import com.vibenavigator.R;
 import com.vibenavigator.brouter.BRouterRouter;
 import com.vibenavigator.brouter.NogoPoint;
-import com.vibenavigator.geo.GeoMath;
-import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.directions.DirectionInfo;
 import com.vibenavigator.nav.directions.DirectionKind;
 import com.vibenavigator.nav.directions.VoiceHintMapper;
-import com.vibenavigator.nav.kalman.LatLonKalmanFilter;
 import com.vibenavigator.nav.route.GeoJsonRoute;
-import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.nav.route.VoiceHint;
 import com.vibenavigator.util.AppLogger;
 
@@ -51,15 +47,6 @@ import java.util.function.Consumer;
 public class NavigationService extends Service implements LocationListener {
 
     private static final String TAG = "NavigationService";
-    private static final double BLOCKED_ROUTE_FIRST_POINT_OFFSET_METERS = 20.0;
-    private static final double BLOCKED_ROUTE_POINT_STEP_METERS = 18.0;
-    private static final double BLOCKED_RADIUS_BASE_METERS = 12.0;
-    private static final double BLOCKED_RADIUS_STEP_METERS = 6.0;
-    private static final double BLOCKED_RADIUS_MAX_METERS = 30.0;
-    private static final int BLOCKED_POINT_COUNT_MAX = 3;
-    private static final double BLOCKED_SAME_AREA_METERS = 35.0;
-    private static final double BLOCKED_QUICK_REPEAT_NEARBY_METERS = 75.0;
-    private static final long BLOCKED_QUICK_REPEAT_WINDOW_MS = 15_000L;
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
 
     public interface Listener {
@@ -80,9 +67,8 @@ public class NavigationService extends Service implements LocationListener {
 
     private final ExecutorService routeExecutor = Executors.newSingleThreadExecutor();
     private final BRouterRouter router = new BRouterRouter();
-    private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
-    private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
+    private final NavigationSession navigationSession = new NavigationSession();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
     private final Runnable notificationMonitor = new Runnable() {
@@ -104,28 +90,6 @@ public class NavigationService extends Service implements LocationListener {
     private Executor locationCallbackExecutor;
     private PowerManager.WakeLock wakeLock;
 
-    private String profile;
-    private String destinationName;
-    private LatLon destination;
-    private List<LatLon> intermediates = new ArrayList<>();
-    private final List<NogoPoint> blocked = new ArrayList<>();
-
-    private Location lastFiltered;
-    private Location prevFiltered;
-
-    private GeoJsonRoute route;
-    private PolylineIndex polylineIndex;
-    private int lastSegmentIndex = -1;
-    private int nextHintIdx = 0;
-    private boolean notified10;
-    private boolean notified5;
-    private boolean initialTurnNotificationSent;
-    private long fastChecksUntilMs;
-    private long lastRerouteMs;
-    private List<NavTarget> targets = new ArrayList<>();
-    private int locationUpdateCount;
-    private int routeRequestCount;
-    private int routeRequestToken;
     private long lastRequestedLocationMinTimeMs = -1L;
     @Nullable
     private String lastRequestedProvider;
@@ -134,13 +98,6 @@ public class NavigationService extends Service implements LocationListener {
     @Nullable
     private CancellationSignal networkCurrentLocationCancellation;
     private long nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
-    private volatile boolean routeCalculationInProgress;
-    @Nullable
-    private volatile String lastRouteFailureMessage;
-    @Nullable
-    private LatLon lastBlockedAreaCenter;
-    private long lastBlockedAreaAtMs;
-    private int lastBlockedAreaLevel;
 
     @Override
     public void onCreate() {
@@ -202,18 +159,17 @@ public class NavigationService extends Service implements LocationListener {
         }
 
         public void addBlockedWaypoint() {
-            Location loc = lastFiltered;
+            Location loc = navigationSession.getLastFilteredLocation();
             if (loc == null) {
                 AppLogger.w(TAG, "Blocked waypoint requested without a current filtered location");
                 return;
             }
-            List<NogoPoint> added = addBlockedPointsAhead(loc);
+            List<NogoPoint> added = navigationSession.addBlockedPointsAhead();
             if (added.isEmpty()) {
                 AppLogger.w(TAG, "Blocked-road reroute ignored because no route point ahead could be matched");
                 return;
             }
             AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
-                    + " totalBlocked=" + blocked.size()
                     + " location=" + formatLocation(loc));
             requestRouteRecalc(true);
         }
@@ -279,7 +235,7 @@ public class NavigationService extends Service implements LocationListener {
         openNavigationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        currentNavigationRequest().putInto(openNavigationIntent);
+        navigationSession.currentNavigationRequest().putInto(openNavigationIntent);
         PendingIntent openNavigationPendingIntent = PendingIntent.getActivity(
                 this,
                 0,
@@ -304,43 +260,16 @@ public class NavigationService extends Service implements LocationListener {
 
     private void readNavRequest(@NonNull Intent intent) {
         NavigationRequest request = NavigationRequest.fromIntent(intent);
-        profile = request.profile;
-        destinationName = request.destinationName;
-        destination = request.destination;
-        intermediates = new ArrayList<>(request.stops);
-        AppLogger.i(TAG, "Navigation request loaded " + request.describe());
+        navigationSession.loadRequest(request);
     }
 
     private void startNavigation() {
-        invalidatePendingRouteResults();
-        blocked.clear();
-        route = null;
-        polylineIndex = null;
-        lastSegmentIndex = -1;
-        nextHintIdx = 0;
-        notified10 = false;
-        notified5 = false;
-        initialTurnNotificationSent = false;
-        targets = new ArrayList<>();
-        fastChecksUntilMs = System.currentTimeMillis() + 30_000L;
-        lastRerouteMs = 0;
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;
-        locationUpdateCount = 0;
-        routeRequestCount = 0;
-        routeCalculationInProgress = false;
-        lastRouteFailureMessage = null;
-        lastBlockedAreaCenter = null;
-        lastBlockedAreaAtMs = 0L;
-        lastBlockedAreaLevel = 0;
-        liveLocationCoordinator.reset();
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
         cancelPendingCurrentLocationRequests();
 
-        if (destination == null || profile == null || profile.trim().isEmpty()) {
-            lastRouteFailureMessage = getString(R.string.nav_start_invalid_request);
-            AppLogger.e(TAG, "Navigation start aborted because the request is incomplete profile="
-                    + profile + " destination=" + formatLatLon(destination), null);
+        if (!navigationSession.start(this, System.currentTimeMillis())) {
             emitState();
             return;
         }
@@ -349,10 +278,8 @@ public class NavigationService extends Service implements LocationListener {
         requestLocationUpdates(2000L);
         requestCurrentLocationSeeds();
         emitState();
-        AppLogger.i(TAG, "Navigation started profile=" + profile
-                + " destination=" + formatLatLon(destination)
-                + " intermediates=" + intermediates.size()
-                + " blockedReset=true");
+        NavigationRequest request = navigationSession.currentNavigationRequest();
+        AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
 
         Location seed = getBestLastKnownLocation();
         if (seed != null) {
@@ -366,8 +293,8 @@ public class NavigationService extends Service implements LocationListener {
 
     private void stopNavigation() {
         AppLogger.i(TAG, "Stopping navigation listeners=" + listeners.size()
-                + " routeLoaded=" + (route != null));
-        invalidatePendingRouteResults();
+                + " routeLoaded=" + navigationSession.hasActiveRoute());
+        navigationSession.stop();
         stopNotificationMonitor();
         cancelPendingCurrentLocationRequests();
         try {
@@ -579,35 +506,17 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
-        liveLocationCoordinator.remember(location);
-        Location selected = liveLocationCoordinator.selectBestLiveLocation();
-        if (selected == null) {
-            AppLogger.d(TAG, "Dropped location because no recent candidate is available raw="
-                    + formatLocation(location));
+        NavigationSession.LocationUpdateResult result =
+                navigationSession.onRawLocationChanged(this, location, System.currentTimeMillis());
+        if (result.isDropped()) {
             return;
         }
-        if (!liveLocationCoordinator.shouldDispatch(selected)) {
-            AppLogger.d(TAG, "Dropped location because selected candidate is unchanged raw="
-                    + formatLocation(location)
-                    + " selected=" + formatLocation(selected));
-            return;
+        if (result.shouldRecalculateRoute()) {
+            requestRouteRecalc(false);
+        } else if (result.getSuggestedUpdateIntervalMs() > 0L) {
+            requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
         }
-        liveLocationCoordinator.markDispatched(selected);
-
-        Location filtered = kalman.update(selected);
-        if (filtered == null) {
-            AppLogger.d(TAG, "Kalman filter dropped location " + formatLocation(selected));
-            return;
-        }
-        prevFiltered = lastFiltered;
-        lastFiltered = filtered;
-        lastRouteFailureMessage = null;
-        locationUpdateCount++;
-        AppLogger.d(TAG, "Location update #" + locationUpdateCount
-                + " raw=" + formatLocation(selected)
-                + " filtered=" + formatLocation(filtered));
-
-        evaluateAndMaybeReroute();
+        dispatchTurnEvents(result.turnEvents);
         emitState();
     }
 
@@ -629,7 +538,7 @@ public class NavigationService extends Service implements LocationListener {
     @Override
     public void onProviderDisabled(@NonNull String provider) {
         AppLogger.w(TAG, "Location provider disabled provider=" + provider);
-        liveLocationCoordinator.clearProvider(provider);
+        navigationSession.onProviderDisabled(provider);
         long minTimeMs = lastRequestedLocationMinTimeMs > 0 ? lastRequestedLocationMinTimeMs : 2000L;
         requestLocationUpdates(minTimeMs);
         emitState();
@@ -639,64 +548,6 @@ public class NavigationService extends Service implements LocationListener {
     @SuppressWarnings("deprecation")
     public void onStatusChanged(@Nullable String provider, int status, @Nullable Bundle extras) {
         AppLogger.d(TAG, "Location provider status changed provider=" + provider + " status=" + status);
-    }
-
-    private void evaluateAndMaybeReroute() {
-        if (destination == null || profile == null || profile.trim().isEmpty()) {
-            lastRouteFailureMessage = getString(R.string.nav_start_invalid_request);
-            AppLogger.e(TAG, "Skipping route evaluation because destination/profile is incomplete profile="
-                    + profile + " destination=" + formatLatLon(destination), null);
-            return;
-        }
-        Location loc = lastFiltered;
-        if (loc == null) {
-            AppLogger.d(TAG, "Skipping route evaluation because filtered location is unavailable");
-            return;
-        }
-
-        if (route == null || polylineIndex == null || route.track.isEmpty()) {
-            AppLogger.i(TAG, "No active route loaded, requesting route calculation");
-            requestRouteRecalc(false);
-            return;
-        }
-
-        LatLon p = new LatLon(loc.getLatitude(), loc.getLongitude());
-        PolylineIndex.Match m = polylineIndex.match(p, lastSegmentIndex);
-        if (m == null) {
-            AppLogger.w(TAG, "Route match failed, requesting recalculation");
-            requestRouteRecalc(false);
-            return;
-        }
-        lastSegmentIndex = m.segmentIndex;
-
-        double accuracy = loc.hasAccuracy() ? loc.getAccuracy() : 20.0;
-        double offTrackThreshold = 10.0 + accuracy;
-        if (m.distanceToTrackMeters > offTrackThreshold) {
-            AppLogger.w(TAG, "Off-track detected distance=" + m.distanceToTrackMeters
-                    + " threshold=" + offTrackThreshold);
-            requestRouteRecalc(false);
-            return;
-        }
-
-        double expectedBearing = m.segmentBearingDegrees;
-        Double actualBearing = getActualBearingDegrees(loc);
-        if (actualBearing != null) {
-            double diff = GeoMath.angularDiffDegrees(actualBearing, expectedBearing);
-            if (diff > 60.0) {
-                AppLogger.w(TAG, "Bearing mismatch detected diff=" + diff
-                        + " expected=" + expectedBearing
-                        + " actual=" + actualBearing);
-                requestRouteRecalc(false);
-                return;
-            }
-        }
-
-        advanceVoiceHints(m.alongTrackMeters, getSpeedMps(loc));
-        adjustUpdateInterval(m.alongTrackMeters, getSpeedMps(loc));
-    }
-
-    private float accuracyMeters(@NonNull Location location) {
-        return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 
     @Nullable
@@ -714,122 +565,13 @@ public class NavigationService extends Service implements LocationListener {
         return sb.toString();
     }
 
-    @NonNull
-    private List<NogoPoint> addBlockedPointsAhead(@NonNull Location location) {
-        List<NogoPoint> added = new ArrayList<>();
-        if (route == null || polylineIndex == null || route.track.isEmpty()) {
-            return added;
-        }
-
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(location.getLatitude(), location.getLongitude()),
-                lastSegmentIndex
-        );
-        if (match == null) {
-            return added;
-        }
-
-        LatLon anchor = polylineIndex.pointAtDistance(match.alongTrackMeters + BLOCKED_ROUTE_FIRST_POINT_OFFSET_METERS);
-        if (anchor == null) {
-            return added;
-        }
-
-        int level = nextBlockedAreaLevel(anchor);
-        double radiusMeters = blockedRadiusForLevel(level);
-        int pointCount = blockedPointCountForLevel(level);
-        replaceNearbyBlockedPoints(anchor);
-
-        for (int i = 0; i < pointCount; i++) {
-            double distance = match.alongTrackMeters
-                    + BLOCKED_ROUTE_FIRST_POINT_OFFSET_METERS
-                    + (i * BLOCKED_ROUTE_POINT_STEP_METERS);
-            LatLon point = polylineIndex.pointAtDistance(distance);
-            if (point == null) {
-                continue;
-            }
-            NogoPoint nogo = new NogoPoint(point.lat, point.lon, radiusMeters);
-            blocked.add(nogo);
-            added.add(nogo);
-        }
-
-        lastBlockedAreaCenter = anchor;
-        lastBlockedAreaAtMs = System.currentTimeMillis();
-        lastBlockedAreaLevel = level;
-        return added;
-    }
-
-    private int nextBlockedAreaLevel(@NonNull LatLon anchor) {
-        long now = System.currentTimeMillis();
-        if (lastBlockedAreaCenter == null || lastBlockedAreaLevel <= 0) {
-            return 1;
-        }
-        double distanceMeters = GeoMath.distanceMeters(
-                lastBlockedAreaCenter.lat,
-                lastBlockedAreaCenter.lon,
-                anchor.lat,
-                anchor.lon
-        );
-        boolean sameArea = distanceMeters <= BLOCKED_SAME_AREA_METERS;
-        boolean quickNearbyRepeat = now - lastBlockedAreaAtMs <= BLOCKED_QUICK_REPEAT_WINDOW_MS
-                && distanceMeters <= BLOCKED_QUICK_REPEAT_NEARBY_METERS;
-        if (sameArea || quickNearbyRepeat) {
-            return Math.min(BLOCKED_POINT_COUNT_MAX, lastBlockedAreaLevel + 1);
-        }
-        return 1;
-    }
-
-    private void replaceNearbyBlockedPoints(@NonNull LatLon anchor) {
-        blocked.removeIf(existing ->
-                GeoMath.distanceMeters(existing.lat, existing.lon, anchor.lat, anchor.lon)
-                        <= BLOCKED_QUICK_REPEAT_NEARBY_METERS
-        );
-    }
-
-    private int blockedPointCountForLevel(int level) {
-        return Math.max(1, Math.min(BLOCKED_POINT_COUNT_MAX, level));
-    }
-
-    private double blockedRadiusForLevel(int level) {
-        return Math.min(
-                BLOCKED_RADIUS_MAX_METERS,
-                BLOCKED_RADIUS_BASE_METERS + ((Math.max(1, level) - 1) * BLOCKED_RADIUS_STEP_METERS)
-        );
-    }
-
     private void requestRouteRecalc(boolean force) {
-        long now = System.currentTimeMillis();
-        if (!force && now - lastRerouteMs < 8000L) {
-            AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs=" + (now - lastRerouteMs));
+        NavigationSession.RouteRequestSnapshot snapshot =
+                navigationSession.prepareRouteRequest(force, System.currentTimeMillis());
+        if (snapshot == null) {
             return;
         }
-        lastRerouteMs = now;
-
-        Location loc = lastFiltered;
-        if (loc == null) {
-            AppLogger.w(TAG, "Cannot recalculate route without a filtered location");
-            return;
-        }
-        LatLon start = new LatLon(loc.getLatitude(), loc.getLongitude());
-        int requestNumber = ++routeRequestCount;
-        int requestToken = ++routeRequestToken;
-        RouteRequestSnapshot snapshot = new RouteRequestSnapshot(
-                requestNumber,
-                requestToken,
-                start,
-                new ArrayList<>(intermediates),
-                destination,
-                profile,
-                new ArrayList<>(blocked)
-        );
-        routeCalculationInProgress = true;
-        lastRouteFailureMessage = null;
         emitState();
-        AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
-                + " force=" + force
-                + " start=" + formatLatLon(start)
-                + " destination=" + formatLatLon(destination)
-                + " intermediates=" + snapshot.intermediates.size()
-                + " blocked=" + snapshot.blocked.size());
 
         routeExecutor.submit(() -> {
             long beganAt = System.currentTimeMillis();
@@ -845,198 +587,53 @@ public class NavigationService extends Service implements LocationListener {
                 if (newRoute.track.isEmpty()) {
                     throw new IllegalStateException("BRouter returned an empty route");
                 }
-                mainHandler.post(() -> applyRouteResult(snapshot, beganAt, newRoute));
+                mainHandler.post(() -> {
+                    dispatchTurnEvents(navigationSession.applyRouteResult(this, snapshot, newRoute, beganAt));
+                    emitState();
+                });
             } catch (Exception e) {
-                mainHandler.post(() -> applyRouteFailure(snapshot, e));
+                mainHandler.post(() -> {
+                    navigationSession.applyRouteFailure(this, snapshot, e);
+                    emitState();
+                });
             }
         });
     }
 
-    private int findNextHintIndex(@NonNull GeoJsonRoute candidateRoute,
-                                  @NonNull PolylineIndex candidateIndex,
-                                  @Nullable Location location) {
-        if (location == null || candidateRoute.voiceHints.isEmpty()) {
-            return 0;
-        }
-
-        PolylineIndex.Match match = candidateIndex.match(
-                new LatLon(location.getLatitude(), location.getLongitude()),
-                -1
-        );
-        if (match == null) {
-            return 0;
-        }
-
-        for (int i = 0; i < candidateRoute.voiceHints.size(); i++) {
-            VoiceHint hint = candidateRoute.voiceHints.get(i);
-            double hintDistance = candidateIndex.distanceAtPointIndex(hint.indexInTrack);
-            if (hintDistance + 5.0 > match.alongTrackMeters) {
-                return i;
+    private void dispatchTurnEvents(@NonNull List<NavigationSession.TurnEvent> turnEvents) {
+        for (NavigationSession.TurnEvent event : turnEvents) {
+            switch (event.type) {
+                case PASSED:
+                    AppLogger.i(TAG, "Passed voice hint hintTrackIndex=" + event.hint.indexInTrack);
+                    sendTurnNotification(event.hint, 0, 0, CHANNEL_ID_NAV, false);
+                    break;
+                case INITIAL:
+                    AppLogger.i(TAG, "Sent initial turn notification distanceMeters=" + event.distanceMeters
+                            + " timeSeconds=" + event.timeSeconds);
+                    notifyImminent(event.hint, event.distanceMeters, event.timeSeconds);
+                    break;
+                case IMMINENT:
+                    notifyImminent(event.hint, event.distanceMeters, event.timeSeconds);
+                    break;
             }
         }
-        return candidateRoute.voiceHints.size();
-    }
-
-    @NonNull
-    private List<NavTarget> buildTargets(@NonNull PolylineIndex idx) {
-        List<NavTarget> out = new ArrayList<>();
-        for (int i = 0; i < intermediates.size(); i++) {
-            LatLon s = intermediates.get(i);
-            PolylineIndex.Match m = idx.match(s, -1);
-            if (m != null) {
-                out.add(new NavTarget(getString(R.string.format_stop_label, i + 1), m.alongTrackMeters));
-            }
-        }
-        out.add(new NavTarget(getString(R.string.label_destination), idx.totalLengthMeters()));
-        return out;
-    }
-
-    private float getSpeedMps(@NonNull Location loc) {
-        if (loc.hasSpeed()) {
-            return Math.max(0f, loc.getSpeed());
-        }
-        if (prevFiltered != null) {
-            double d = GeoMath.distanceMeters(prevFiltered.getLatitude(), prevFiltered.getLongitude(), loc.getLatitude(), loc.getLongitude());
-            double dt = Math.max(1.0, (loc.getTime() - prevFiltered.getTime()) / 1000.0);
-            return (float) (d / dt);
-        }
-        return 0f;
-    }
-
-    @Nullable
-    private Double getActualBearingDegrees(@NonNull Location loc) {
-        if (loc.hasBearing() && getSpeedMps(loc) > 1.0f) {
-            return (double) loc.getBearing();
-        }
-        if (prevFiltered != null) {
-            double d = GeoMath.distanceMeters(prevFiltered.getLatitude(), prevFiltered.getLongitude(), loc.getLatitude(), loc.getLongitude());
-            if (d < 3.0) {
-                return null;
-            }
-            return GeoMath.bearingDegrees(prevFiltered.getLatitude(), prevFiltered.getLongitude(), loc.getLatitude(), loc.getLongitude());
-        }
-        return null;
-    }
-
-    private void advanceVoiceHints(double alongTrackMeters, float speedMps) {
-        if (route == null || polylineIndex == null) {
-            return;
-        }
-        List<VoiceHint> hints = route.voiceHints;
-        if (hints.isEmpty()) {
-            return;
-        }
-
-        while (nextHintIdx < hints.size()) {
-            VoiceHint next = hints.get(nextHintIdx);
-            double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-            if (alongTrackMeters >= hintDist + 5.0) {
-                // just passed
-                notifyPassed(next);
-                nextHintIdx++;
-                notified10 = false;
-                notified5 = false;
-                continue;
-            }
-            break;
-        }
-
-        if (nextHintIdx >= hints.size()) {
-            return;
-        }
-        VoiceHint next = hints.get(nextHintIdx);
-        double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-        double distToNext = Math.max(0.0, hintDist - alongTrackMeters);
-        double timeToNext = distToNext / Math.max(1.0, speedMps);
-
-        if (!notified10 && timeToNext <= 10.0) {
-            notified10 = true;
-            notifyImminent(next, distToNext, timeToNext);
-        }
-        if (!notified5 && timeToNext <= 5.0) {
-            notified5 = true;
-            notifyImminent(next, distToNext, timeToNext);
-        }
-    }
-
-    private void adjustUpdateInterval(double alongTrackMeters, float speedMps) {
-        long now = System.currentTimeMillis();
-        long nextMinTime = 2000L;
-
-        if (now > fastChecksUntilMs && route != null && polylineIndex != null && !route.voiceHints.isEmpty() && nextHintIdx < route.voiceHints.size()) {
-            VoiceHint next = route.voiceHints.get(nextHintIdx);
-            double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-            double dist = Math.max(0.0, hintDist - alongTrackMeters);
-            double sec = dist / Math.max(1.0, speedMps);
-            long suggested = (long) Math.max(2000.0, Math.min(60000.0, sec * 250.0));
-            nextMinTime = suggested;
-        }
-
-        requestLocationUpdates(nextMinTime);
-    }
-
-    private void notifyPassed(@NonNull VoiceHint hint) {
-        // "just passed" is informational only, no vibration.
-        AppLogger.i(TAG, "Passed voice hint index=" + nextHintIdx + " hintTrackIndex=" + hint.indexInTrack);
-        sendTurnNotification(hint, 0, 0, CHANNEL_ID_NAV, false);
     }
 
     private void notifyImminent(@NonNull VoiceHint hint, double distMeters, double timeSeconds) {
-        DirectionInfo di = VoiceHintMapper.toDirection(hint);
-        AppLogger.i(TAG, "Imminent turn kind=" + di.kind
+        DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
+        AppLogger.i(TAG, "Imminent turn kind=" + directionInfo.kind
                 + " distanceMeters=" + distMeters
                 + " timeSeconds=" + timeSeconds);
-        String channel = di.kind == DirectionKind.LEFT ? CHANNEL_ID_TURN_LEFT : (di.kind == DirectionKind.RIGHT ? CHANNEL_ID_TURN_RIGHT : CHANNEL_ID_NAV);
-        boolean vibrate = di.kind == DirectionKind.LEFT || di.kind == DirectionKind.RIGHT;
-        sendTurnNotification(hint, distMeters, timeSeconds, channel, vibrate);
-    }
-
-    private void sendInitialTurnNotificationIfNeeded() {
-        if (initialTurnNotificationSent || route == null || polylineIndex == null) {
-            return;
-        }
-        List<VoiceHint> hints = route.voiceHints;
-        if (hints.isEmpty() || nextHintIdx < 0 || nextHintIdx >= hints.size()) {
-            return;
-        }
-
-        double alongTrackMeters = 0.0;
-        Location loc = lastFiltered;
-        if (loc != null) {
-            PolylineIndex.Match match = polylineIndex.match(new LatLon(loc.getLatitude(), loc.getLongitude()), -1);
-            if (match != null) {
-                alongTrackMeters = match.alongTrackMeters;
-            }
-        }
-
-        VoiceHint next = hints.get(nextHintIdx);
-        double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-        double distToNext = Math.max(0.0, hintDist - alongTrackMeters);
-        float speedMps = loc != null ? getSpeedMps(loc) : 0f;
-        double timeToNext = distToNext / Math.max(1.0, speedMps);
-
-        DirectionInfo direction = VoiceHintMapper.toDirection(next);
-        String channel = direction.kind == DirectionKind.LEFT
+        String channel = directionInfo.kind == DirectionKind.LEFT
                 ? CHANNEL_ID_TURN_LEFT
-                : (direction.kind == DirectionKind.RIGHT ? CHANNEL_ID_TURN_RIGHT : CHANNEL_ID_NAV);
-        boolean vibrate = direction.kind == DirectionKind.LEFT || direction.kind == DirectionKind.RIGHT;
-        sendTurnNotification(next, distToNext, timeToNext, channel, vibrate);
-        initialTurnNotificationSent = true;
-        AppLogger.i(TAG, "Sent initial turn notification nextHintIdx=" + nextHintIdx
-                + " distanceMeters=" + distToNext
-                + " timeSeconds=" + timeToNext
-                + " kind=" + direction.kind);
+                : (directionInfo.kind == DirectionKind.RIGHT ? CHANNEL_ID_TURN_RIGHT : CHANNEL_ID_NAV);
+        boolean vibrate = directionInfo.kind == DirectionKind.LEFT || directionInfo.kind == DirectionKind.RIGHT;
+        sendTurnNotification(hint, distMeters, timeSeconds, channel, vibrate);
     }
 
     private void sendTurnNotification(@NonNull VoiceHint hint, double distMeters, double timeSeconds, @NonNull String channelId, boolean vibrate) {
         DirectionInfo di = VoiceHintMapper.toDirection(hint);
-        String dirText = di.exitNumber > 0
-                ? getString(di.labelRes, di.exitNumber)
-                : getString(di.labelRes);
-
-        String distText = formatDistance(distMeters);
-        String timeText = formatTimeSeconds((int) Math.round(timeSeconds));
-        String msg = getString(R.string.format_turn_notification, di.emoji, distText, timeText, dirText);
+        String msg = NavigationTextFormatter.formatTurnNotification(this, hint, distMeters, timeSeconds);
 
         NotificationCompat.Builder b = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(R.drawable.ic_logo)
@@ -1063,26 +660,11 @@ public class NavigationService extends Service implements LocationListener {
         AppLogger.d(TAG, "Sent turn notification channel=" + channelId
                 + " vibrate=" + vibrate
                 + " notificationId=" + NOTIFICATION_ID_TURN
-                + " nextHintIdx=" + nextHintIdx
                 + " message=" + msg);
     }
 
-    private String formatDistance(double meters) {
-        if (meters >= 1000.0) {
-            return getString(R.string.format_distance_km, meters / 1000.0);
-        }
-        return getString(R.string.format_distance_m, meters);
-    }
-
-    private String formatTimeSeconds(int seconds) {
-        if (seconds >= 60) {
-            return getString(R.string.format_time_min, (int) Math.round(seconds / 60.0));
-        }
-        return getString(R.string.format_time_s, Math.max(0, seconds));
-    }
-
     private void emitState() {
-        NavState s = buildState();
+        NavState s = navigationSession.buildState(this, nextEvaluationDeadlineElapsedMs, System.currentTimeMillis());
         for (Listener l : new ArrayList<>(listeners)) {
             try {
                 l.onState(s);
@@ -1090,47 +672,6 @@ public class NavigationService extends Service implements LocationListener {
                 // ignore
             }
         }
-    }
-
-    @NonNull
-    private NavState buildState() {
-        if (lastFiltered == null) {
-            if (lastRouteFailureMessage != null) {
-                return NavState.routeUnavailable(this, lastRouteFailureMessage, nextEvaluationDeadlineElapsedMs);
-            }
-            return NavState.waitingForLocation(this, nextEvaluationDeadlineElapsedMs);
-        }
-
-        if (routeCalculationInProgress) {
-            return NavState.calculatingRoute(this, nextEvaluationDeadlineElapsedMs);
-        }
-
-        if (route == null || polylineIndex == null) {
-            if (lastRouteFailureMessage != null) {
-                return NavState.routeUnavailable(this, lastRouteFailureMessage, nextEvaluationDeadlineElapsedMs);
-            }
-            return NavState.calculatingRoute(this, nextEvaluationDeadlineElapsedMs);
-        }
-
-        LatLon p = new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude());
-        PolylineIndex.Match m = polylineIndex.match(p, lastSegmentIndex);
-        if (m == null) {
-            return NavState.waiting(this);
-        }
-
-        float speed = getSpeedMps(lastFiltered);
-        return NavState.from(
-                route,
-                polylineIndex,
-                m.alongTrackMeters,
-                nextHintIdx,
-                speed,
-                accuracyMeters(lastFiltered),
-                nextEvaluationDeadlineElapsedMs,
-                System.currentTimeMillis(),
-                targets,
-                this
-        );
     }
 
     @Override
@@ -1149,14 +690,6 @@ public class NavigationService extends Service implements LocationListener {
             stopSelf();
         }
         super.onTaskRemoved(rootIntent);
-    }
-
-    @NonNull
-    private static String formatLatLon(@Nullable LatLon value) {
-        if (value == null) {
-            return "null";
-        }
-        return value.lat + "," + value.lon;
     }
 
     @NonNull
@@ -1239,103 +772,4 @@ public class NavigationService extends Service implements LocationListener {
         }
     }
 
-    @NonNull
-    private String summarizeRouteFailure(@NonNull Throwable throwable) {
-        Throwable current = throwable;
-        while (current != null) {
-            String message = current.getMessage();
-            if (message != null) {
-                String sanitized = message.replace('\r', ' ').replace('\n', ' ').trim();
-                if (!sanitized.isEmpty()) {
-                    return sanitized.length() > 120 ? sanitized.substring(0, 117) + "..." : sanitized;
-                }
-            }
-            current = current.getCause();
-        }
-        return getString(R.string.nav_route_unavailable_generic);
-    }
-
-    @NonNull
-    private NavigationRequest currentNavigationRequest() {
-        return new NavigationRequest(profile, destinationName, destination, intermediates);
-    }
-
-    private void invalidatePendingRouteResults() {
-        routeRequestToken++;
-        routeCalculationInProgress = false;
-    }
-
-    private void applyRouteResult(
-            @NonNull RouteRequestSnapshot snapshot,
-            long beganAt,
-            @NonNull GeoJsonRoute newRoute
-    ) {
-        if (snapshot.requestToken != routeRequestToken) {
-            AppLogger.d(TAG, "Discarded stale route result #" + snapshot.requestNumber);
-            return;
-        }
-        route = newRoute;
-        polylineIndex = new PolylineIndex(newRoute.track);
-        lastSegmentIndex = -1;
-        nextHintIdx = findNextHintIndex(newRoute, polylineIndex, lastFiltered);
-        notified10 = false;
-        notified5 = false;
-        initialTurnNotificationSent = false;
-        targets = buildTargets(polylineIndex);
-        routeCalculationInProgress = false;
-        lastRouteFailureMessage = null;
-        sendInitialTurnNotificationIfNeeded();
-        AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
-                + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
-                + " trackPoints=" + newRoute.track.size()
-                + " voiceHints=" + newRoute.voiceHints.size()
-                + " lengthMeters=" + newRoute.trackLengthMeters);
-        emitState();
-    }
-
-    private void applyRouteFailure(@NonNull RouteRequestSnapshot snapshot, @NonNull Exception error) {
-        if (snapshot.requestToken != routeRequestToken) {
-            AppLogger.d(TAG, "Discarded stale route failure #" + snapshot.requestNumber);
-            return;
-        }
-        routeCalculationInProgress = false;
-        lastRouteFailureMessage = summarizeRouteFailure(error);
-        AppLogger.e(TAG, "Route recalculation #" + snapshot.requestNumber + " failed", error);
-        AppLogger.w(TAG, "Route recalculation #" + snapshot.requestNumber + " failure summary="
-                + lastRouteFailureMessage);
-        emitState();
-    }
-
-    private static final class RouteRequestSnapshot {
-        private final int requestNumber;
-        private final int requestToken;
-        @NonNull
-        private final LatLon start;
-        @NonNull
-        private final List<LatLon> intermediates;
-        @Nullable
-        private final LatLon destination;
-        @Nullable
-        private final String profile;
-        @NonNull
-        private final List<NogoPoint> blocked;
-
-        private RouteRequestSnapshot(
-                int requestNumber,
-                int requestToken,
-                @NonNull LatLon start,
-                @NonNull List<LatLon> intermediates,
-                @Nullable LatLon destination,
-                @Nullable String profile,
-                @NonNull List<NogoPoint> blocked
-        ) {
-            this.requestNumber = requestNumber;
-            this.requestToken = requestToken;
-            this.start = start;
-            this.intermediates = intermediates;
-            this.destination = destination;
-            this.profile = profile;
-            this.blocked = blocked;
-        }
-    }
 }

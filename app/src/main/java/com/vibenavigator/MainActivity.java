@@ -7,9 +7,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.DocumentsContract;
 import android.provider.OpenableColumns;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -23,7 +20,6 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.brouter.BRouterProfilesRepository;
-import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.poi.CoordinateParser;
 import com.vibenavigator.poi.Poi;
@@ -57,11 +53,7 @@ public class MainActivity extends AppCompatActivity {
     private BRouterProfilesRepository profilesRepository;
     private PoiHistoryStore historyStore;
     private PoiSearchClient searchClient;
-    private ArrayAdapter<ProfileOption> profilesAdapter;
-    private List<String> profiles = new ArrayList<>();
-    private final List<ProfileOption> profileOptions = new ArrayList<>();
-    private boolean suppressProfileSelectionCallback;
-    private boolean profileSelectionUserInitiated;
+    private ProfileSpinnerController profileSpinnerController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,38 +75,12 @@ public class MainActivity extends AppCompatActivity {
         startNavButton = findViewById(R.id.startNavButton);
 
         profilesRepository = new BRouterProfilesRepository();
-        profilesAdapter = new ArrayAdapter<>(this, R.layout.item_profile_spinner, new ArrayList<>());
-        profilesAdapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
-        profileSpinner.setAdapter(profilesAdapter);
-        profileSpinner.setOnTouchListener((v, event) -> {
-            profileSelectionUserInitiated = true;
-            return false;
-        });
-        profileSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (suppressProfileSelectionCallback || position < 0 || position >= profileOptions.size()) {
-                    return;
-                }
-                ProfileOption option = profileOptions.get(position);
-                persistSelectedProfileOption(option);
-                if (!option.isCustom()) {
-                    profileSelectionUserInitiated = false;
-                    return;
-                }
-                if (!profileSelectionUserInitiated) {
-                    AppLogger.d(TAG, "Ignoring custom profile auto-selection");
-                    return;
-                }
-                profileSelectionUserInitiated = false;
-                AppLogger.i(TAG, "Custom profile entry selected");
-                startCustomProfilePicker();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-            }
-        });
+        profileSpinnerController = new ProfileSpinnerController(
+                this,
+                profileSpinner,
+                profilesRepository,
+                this::startCustomProfilePicker
+        );
 
         boolean brouterInstalled = profilesRepository.isBRouterInstalled(this);
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
@@ -142,11 +108,20 @@ public class MainActivity extends AppCompatActivity {
         startNavButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "Start navigation tapped destinationRaw=" + destinationController.getRawText().trim()
                     + " stopsVisible=" + stopControllers.size());
-            ResolvedNavigationInput input = resolveNavigationInput();
+            String profile = profileSpinnerController.resolveSelectedProfile();
+            if (profile == null) {
+                return;
+            }
+            NavigationInputResolver.Result input = NavigationInputResolver.resolve(
+                    this,
+                    destinationController,
+                    stopControllers,
+                    profile
+            );
             if (input == null) {
                 return;
             }
-            rememberNavigationHistory(input);
+            NavigationInputResolver.rememberHistory(historyStore, input);
             launchNavigation(input.request);
         });
 
@@ -248,7 +223,8 @@ public class MainActivity extends AppCompatActivity {
         Poi parsedPoi = CoordinateParser.tryParse(trimmedQuery, trimmedQuery);
         if (parsedPoi != null) {
             destinationController.setPoi(parsedPoi);
-            AppLogger.i(TAG, "Applied incoming destination POI=" + formatPoi(parsedPoi));
+            AppLogger.i(TAG, "Applied incoming destination POI=" + parsedPoi.displayLabel()
+                    + " (" + parsedPoi.lat + "," + parsedPoi.lon + ")");
         } else {
             destinationController.setText(trimmedQuery);
             AppLogger.i(TAG, "Applied incoming destination query=" + trimmedQuery);
@@ -272,89 +248,6 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    @Nullable
-    private ResolvedNavigationInput resolveNavigationInput() {
-        Poi destination = resolveDestination();
-        if (destination == null) {
-            return null;
-        }
-
-        List<Poi> stops = resolveStops();
-        if (stops == null) {
-            return null;
-        }
-
-        String profile = resolveSelectedProfile();
-        if (profile == null || profile.trim().isEmpty()) {
-            AppLogger.w(TAG, "Navigation blocked because a profile is not selected");
-            return null;
-        }
-
-        List<LatLon> stopPoints = new ArrayList<>(stops.size());
-        for (Poi stop : stops) {
-            stopPoints.add(new LatLon(stop.lat, stop.lon));
-        }
-
-        return new ResolvedNavigationInput(
-                new NavigationRequest(
-                        profile,
-                        destination.name,
-                        new LatLon(destination.lat, destination.lon),
-                        stopPoints
-                ),
-                destination,
-                stops
-        );
-    }
-
-    @Nullable
-    private Poi resolveDestination() {
-        Poi destination = destinationController.getSelectedPoi();
-        if (destination == null) {
-            destination = destinationController.parseCurrentPoi();
-        }
-        if (destination == null) {
-            AppLogger.w(TAG, "Navigation blocked because destination is missing or unparsable");
-            Toast.makeText(this, R.string.msg_missing_destination, Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        if (Double.isNaN(destination.lat) || Double.isNaN(destination.lon)) {
-            AppLogger.w(TAG, "Navigation blocked because destination coordinates are invalid destination=" + formatPoi(destination));
-            Toast.makeText(this, R.string.msg_invalid_coordinates, Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        return destination;
-    }
-
-    @Nullable
-    private List<Poi> resolveStops() {
-        List<Poi> resolvedStops = new ArrayList<>();
-        for (PoiInputController controller : stopControllers) {
-            String raw = controller.getRawText().trim();
-            if (raw.isEmpty()) {
-                continue;
-            }
-            Poi stop = controller.getSelectedPoi();
-            if (stop == null) {
-                stop = controller.parseCurrentPoi();
-            }
-            if (stop == null || Double.isNaN(stop.lat) || Double.isNaN(stop.lon)) {
-                AppLogger.w(TAG, "Navigation blocked because a stop is invalid raw=" + raw);
-                Toast.makeText(this, R.string.msg_invalid_stop, Toast.LENGTH_SHORT).show();
-                return null;
-            }
-            resolvedStops.add(stop);
-        }
-        return resolvedStops;
-    }
-
-    private void rememberNavigationHistory(@NonNull ResolvedNavigationInput input) {
-        historyStore.addOrPromote(input.destination);
-        for (Poi stop : input.stops) {
-            historyStore.addOrPromote(stop);
-        }
-    }
-
     private void launchNavigation(@NonNull NavigationRequest request) {
         AppLogger.i(TAG, "Starting NavigationActivity " + request.describe());
         Intent intent = new Intent(this, NavigationActivity.class);
@@ -363,30 +256,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void refreshProfiles() {
-        String currentSelectionKey = getSelectedProfileKey();
-        if (currentSelectionKey == null) {
-            currentSelectionKey = profilesRepository.getSelectedProfileKey(this);
-        }
-        profiles = profilesRepository.listProfiles(this);
-        String customProfile = profilesRepository.getCustomProfileName(this);
-        suppressProfileSelectionCallback = true;
-        profilesAdapter.clear();
-        profileOptions.clear();
-        for (String profile : profiles) {
-            profileOptions.add(new ProfileOption(profile, profile, false));
-        }
-        profileOptions.add(buildCustomOption(customProfile));
-        profilesAdapter.addAll(profileOptions);
-        profilesAdapter.notifyDataSetChanged();
-        restoreProfileSelection(currentSelectionKey, customProfile);
-        suppressProfileSelectionCallback = false;
-        if (profiles.isEmpty() && customProfile == null) {
+        profileSpinnerController.refresh();
+        if (profileSpinnerController.shouldPromptForProfilesFolder()) {
             AppLogger.w(TAG, "No routing profiles found");
             maybePromptProfilesFolder();
         }
-        AppLogger.i(TAG, "Loaded routing profiles count=" + profiles.size()
-                + " profiles=" + profiles
-                + " customProfile=" + safe(customProfile));
     }
 
     private void maybePromptProfilesFolder() {
@@ -472,18 +346,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleCustomProfilePickerResult(int resultCode, @Nullable Intent data) {
         if (resultCode != RESULT_OK || data == null) {
-            AppLogger.i(TAG, "Custom profile picker cancelled");
-            if (profilesRepository.getCustomProfileName(this) == null) {
-                selectFirstRegularProfile();
-            }
+            profileSpinnerController.onCustomProfilePickerCancelled();
             return;
         }
         Uri uri = data.getData();
         if (uri == null) {
             AppLogger.w(TAG, "Custom profile picker returned without URI");
-            if (profilesRepository.getCustomProfileName(this) == null) {
-                selectFirstRegularProfile();
-            }
+            profileSpinnerController.onCustomProfilePickerCancelled();
             return;
         }
         int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -499,112 +368,14 @@ public class MainActivity extends AppCompatActivity {
             AppLogger.w(TAG, "Custom profile picker returned a non-.brf file uri=" + uri
                     + " displayName=" + safe(displayName));
             Toast.makeText(this, R.string.msg_invalid_custom_profile, Toast.LENGTH_SHORT).show();
-            selectFirstRegularProfile();
+            profileSpinnerController.onCustomProfilePickerCancelled();
             return;
         }
         profilesRepository.saveCustomProfile(this, uri, profileName);
-        refreshProfiles();
-        selectCustomProfileOption();
-    }
-
-    @Nullable
-    private String resolveSelectedProfile() {
-        int position = profileSpinner.getSelectedItemPosition();
-        if (position < 0 || position >= profileOptions.size()) {
-            Toast.makeText(this, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
-            return null;
+        profileSpinnerController.onCustomProfileSaved();
+        if (profileSpinnerController.shouldPromptForProfilesFolder()) {
+            maybePromptProfilesFolder();
         }
-        ProfileOption option = profileOptions.get(position);
-        if (!option.isCustom()) {
-            return option.profileName;
-        }
-        String customProfile = profilesRepository.getCustomProfileName(this);
-        if (customProfile == null || customProfile.trim().isEmpty()) {
-            Toast.makeText(this, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
-            startCustomProfilePicker();
-            return null;
-        }
-        return customProfile;
-    }
-
-    @Nullable
-    private String getSelectedProfileKey() {
-        int position = profileSpinner.getSelectedItemPosition();
-        if (position < 0 || position >= profileOptions.size()) {
-            return null;
-        }
-        return profileOptions.get(position).selectionKey();
-    }
-
-    private void restoreProfileSelection(@Nullable String selectionKey, @Nullable String customProfile) {
-        int target = findProfileOptionPosition(selectionKey);
-        if (target < 0 && profiles.isEmpty() && customProfile != null) {
-            target = findCustomProfilePosition();
-        }
-        if (target < 0) {
-            target = 0;
-        }
-        setProfileSelection(target);
-    }
-
-    private void selectFirstRegularProfile() {
-        if (!profiles.isEmpty()) {
-            setProfileSelection(0);
-            return;
-        }
-        int customPosition = findCustomProfilePosition();
-        if (customPosition >= 0) {
-            setProfileSelection(customPosition);
-        }
-    }
-
-    private void selectCustomProfileOption() {
-        int position = findCustomProfilePosition();
-        if (position >= 0) {
-            setProfileSelection(position);
-        }
-    }
-
-    private int findCustomProfilePosition() {
-        return findProfileOptionPosition(ProfileOption.CUSTOM_KEY);
-    }
-
-    private int findProfileOptionPosition(@Nullable String selectionKey) {
-        if (selectionKey == null) {
-            return -1;
-        }
-        for (int i = 0; i < profileOptions.size(); i++) {
-            if (selectionKey.equals(profileOptions.get(i).selectionKey())) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    private void setProfileSelection(int position) {
-        if (position < 0 || position >= profileOptions.size()) {
-            return;
-        }
-        suppressProfileSelectionCallback = true;
-        profileSpinner.setSelection(position, false);
-        suppressProfileSelectionCallback = false;
-        persistSelectedProfileOption(profileOptions.get(position));
-    }
-
-    private void persistSelectedProfileOption(@NonNull ProfileOption option) {
-        profilesRepository.saveSelectedProfileKey(this, option.selectionKey());
-    }
-
-    @NonNull
-    private ProfileOption buildCustomOption(@Nullable String customProfile) {
-        if (customProfile == null || customProfile.trim().isEmpty()) {
-            return new ProfileOption(getString(R.string.label_vehicle_profile_custom), null, true);
-        }
-        return new ProfileOption(
-                getString(R.string.label_vehicle_profile_custom_with_name, customProfile),
-                customProfile,
-                true
-        );
     }
 
     @Nullable
@@ -633,62 +404,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @NonNull
-    private static String formatPoi(@NonNull Poi poi) {
-        return poi.displayLabel() + " (" + poi.lat + "," + poi.lon + ")";
-    }
-
-    @NonNull
     private static String safe(@Nullable String value) {
         return value == null ? "null" : value;
-    }
-
-    private static final class ProfileOption {
-        private static final String CUSTOM_KEY = "__custom__";
-
-        @NonNull
-        private final String label;
-        @Nullable
-        private final String profileName;
-        private final boolean custom;
-
-        private ProfileOption(@NonNull String label, @Nullable String profileName, boolean custom) {
-            this.label = label;
-            this.profileName = profileName;
-            this.custom = custom;
-        }
-
-        private boolean isCustom() {
-            return custom;
-        }
-
-        @NonNull
-        private String selectionKey() {
-            return custom ? CUSTOM_KEY : safe(profileName);
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
-
-    private static final class ResolvedNavigationInput {
-        @NonNull
-        private final NavigationRequest request;
-        @NonNull
-        private final Poi destination;
-        @NonNull
-        private final List<Poi> stops;
-
-        private ResolvedNavigationInput(
-                @NonNull NavigationRequest request,
-                @NonNull Poi destination,
-                @NonNull List<Poi> stops
-        ) {
-            this.request = request;
-            this.destination = destination;
-            this.stops = stops;
-        }
     }
 }

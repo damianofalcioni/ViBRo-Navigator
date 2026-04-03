@@ -26,8 +26,6 @@ import com.vibenavigator.util.AppLogger;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public final class PoiInputController {
@@ -44,12 +42,12 @@ public final class PoiInputController {
     private final ListPopupWindow popup;
     private final PoiSuggestionAdapter adapter;
 
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final String logTag;
 
     private Future<?> inFlight;
     private Runnable pendingSearch;
+    private int searchGeneration;
     private Poi selectedPoi;
     private boolean programmaticChange;
 
@@ -128,12 +126,8 @@ public final class PoiInputController {
             mainHandler.removeCallbacks(pendingSearch);
             pendingSearch = null;
         }
-        if (inFlight != null) {
-            inFlight.cancel(true);
-            inFlight = null;
-        }
+        cancelInFlightSearch();
         dismissPopup();
-        executor.shutdownNow();
     }
 
     public void setText(@NonNull String text) {
@@ -214,6 +208,7 @@ public final class PoiInputController {
         String query = raw.trim();
         Poi coords = CoordinateParser.tryParse(query, query);
         if (coords != null) {
+            cancelInFlightSearch();
             AppLogger.d(logTag, "Recognized direct coordinate entry query=" + query);
             adapter.setItems(singleSuggestion(coords, false));
             if (editText.hasFocus()) {
@@ -223,6 +218,7 @@ public final class PoiInputController {
         }
 
         if (query.length() <= 3) {
+            cancelInFlightSearch();
             if (query.isEmpty()) {
                 AppLogger.d(logTag, "Empty query, showing history");
                 showHistory();
@@ -240,11 +236,9 @@ public final class PoiInputController {
     }
 
     private void runSearch(@NonNull String query) {
-        if (inFlight != null) {
-            inFlight.cancel(true);
-            AppLogger.d(logTag, "Cancelled in-flight search before starting query=" + query);
-        }
-        inFlight = executor.submit(() -> {
+        cancelInFlightSearch();
+        int generation = ++searchGeneration;
+        inFlight = PoiSearchDispatcher.submit(() -> {
             try {
                 AppLogger.i(logTag, "Running search query=" + query);
                 List<Poi> results = searchClient.search(query, 10);
@@ -253,6 +247,10 @@ public final class PoiInputController {
                     suggestions.add(new PoiSuggestion(p, false));
                 }
                 mainHandler.post(() -> {
+                    if (generation != searchGeneration) {
+                        AppLogger.d(logTag, "Discarding stale search result query=" + query);
+                        return;
+                    }
                     adapter.setItems(suggestions);
                     AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
                     if (!suggestions.isEmpty() && editText.hasFocus()) {
@@ -261,9 +259,22 @@ public final class PoiInputController {
                 });
             } catch (IOException e) {
                 AppLogger.e(logTag, "Search failed query=" + query, e);
-                mainHandler.post(() -> adapter.setItems(new ArrayList<>()));
+                mainHandler.post(() -> {
+                    if (generation == searchGeneration) {
+                        adapter.setItems(new ArrayList<>());
+                    }
+                });
             }
         });
+    }
+
+    private void cancelInFlightSearch() {
+        searchGeneration++;
+        if (inFlight != null) {
+            inFlight.cancel(true);
+            inFlight = null;
+            AppLogger.d(logTag, "Cancelled in-flight search");
+        }
     }
 
     private void selectPoi(@NonNull Poi poi) {

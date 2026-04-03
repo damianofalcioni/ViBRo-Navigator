@@ -5,16 +5,12 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import com.vibenavigator.R;
-import com.vibenavigator.nav.directions.DirectionInfo;
-import com.vibenavigator.nav.directions.VoiceHintMapper;
 import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.Locale;
 
 public final class NavState {
     public static final long NO_DEADLINE = -1L;
@@ -141,12 +137,7 @@ public final class NavState {
         double hintDist = index.distanceAtPointIndex(hint.indexInTrack);
         double dist = Math.max(0.0, hintDist - alongTrackMeters);
         double time = dist / Math.max(1.0, speedMps);
-
-        DirectionInfo di = VoiceHintMapper.toDirection(hint);
-        String dirText = di.exitNumber > 0 ? context.getString(di.labelRes, di.exitNumber) : context.getString(di.labelRes);
-        String distText = formatDistance(context, dist);
-        String timeText = formatTimeSeconds(context, (int) Math.round(time));
-        return context.getString(R.string.format_turn_notification, di.emoji, distText, timeText, dirText);
+        return NavigationTextFormatter.formatTurnNotification(context, hint, dist, time);
     }
 
     @NonNull
@@ -168,10 +159,10 @@ public final class NavState {
             String line = context.getString(
                     R.string.format_progress_line,
                     t.label,
-                    formatDistance(context, distTo),
-                    formatTimeSeconds(context, (int) Math.round(secTo)),
+                    NavigationTextFormatter.formatDistance(context, distTo),
+                    NavigationTextFormatter.formatTimeSeconds(context, (int) Math.round(secTo)),
                     context.getString(R.string.nav_eta),
-                    formatEta(context, nowMs + (long) (secTo * 1000))
+                    NavigationTextFormatter.formatEta(nowMs + (long) (secTo * 1000))
             );
             lines.add(line);
         }
@@ -194,30 +185,5 @@ public final class NavState {
             return route.totalTimeSeconds * (remainingMeters / totalMeters);
         }
         return 0.0;
-    }
-
-    @NonNull
-    private static String formatDistance(@NonNull Context context, double meters) {
-        if (meters >= 1000.0) {
-            return context.getString(R.string.format_distance_km, meters / 1000.0);
-        }
-        return context.getString(R.string.format_distance_m, meters);
-    }
-
-    @NonNull
-    private static String formatTimeSeconds(@NonNull Context context, int seconds) {
-        if (seconds >= 60) {
-            return context.getString(R.string.format_time_min, (int) Math.round(seconds / 60.0));
-        }
-        return context.getString(R.string.format_time_s, Math.max(0, seconds));
-    }
-
-    @NonNull
-    private static String formatEta(@NonNull Context context, long timeMs) {
-        Calendar c = Calendar.getInstance();
-        c.setTimeInMillis(timeMs);
-        int h = c.get(Calendar.HOUR_OF_DAY);
-        int m = c.get(Calendar.MINUTE);
-        return String.format(Locale.getDefault(), "%02d:%02d", h, m);
     }
 }
