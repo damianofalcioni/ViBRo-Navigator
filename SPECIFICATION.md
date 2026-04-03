@@ -17,7 +17,7 @@ Core product constraints:
 - Use a black theme
 - Do not hardcode user-facing text in code
 - Support both portrait and landscape orientations
-- Check and request all required permissions on startup
+- Check and request all required permissions before starting navigation, when they are needed
 - Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app that only vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
 
@@ -238,7 +238,7 @@ The navigation UI must show the following in large text:
 - Pressing it must open an about page
 - The about page must contain:
   - The app version
-  - The same content as the README
+  - A concise in-app product summary aligned with the README's description of the app and its core behavior
 
 #### 5.1 Hidden developer mode
 
@@ -273,41 +273,24 @@ The navigation UI must show the following in large text:
 - Offline-first routing through BRouter
 - Translation-friendly text resource usage
 - Orientation-safe layouts
-- Robust permission handling at startup
+- Robust permission handling before navigation starts
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
 
 ## Implementation guidance
 
-- Keep `MainActivity` as a thin UI coordinator. Navigation-input validation, profile-picker flow, incoming-intent handling, and dynamic stop-row state should live in dedicated helpers instead of growing back into the activity.
-- Keep `NavigationActivity` focused on rendering, service binding, and task/back-button behavior. Permission checks, settings redirects, battery-optimization prompting, and navigation-service startup should stay isolated behind a dedicated startup/preflight coordinator instead of drifting back into the activity.
-- Keep navigation text formatting shared between on-screen state and notifications so turn wording, distance formatting, and time formatting cannot drift across surfaces.
-- Keep the foreground service focused on Android lifecycle concerns and orchestration. Notification/foreground handling, ongoing-notification monitoring, route-execution threading, listener/state fan-out, turn-event dispatch, wake-lock ownership, and Android location-provider bookkeeping should be isolated in focused helpers instead of growing back into one monolithic service class.
-- Keep background route computation isolated behind a dedicated route-execution helper so route calculation can remain asynchronous while all shared navigation-state mutation continues to happen on the main thread.
-- Keep foreground-notification visibility checks and task-removal stop behavior isolated behind a dedicated foreground coordinator so lifecycle policy stays testable outside the Android service shell.
-- Keep turn-event fan-out to notifications isolated behind a dedicated dispatcher so turn logging and notification behavior cannot drift across initial, imminent, and passed events.
-- Keep listener registration and safe state broadcasting isolated behind a dedicated broadcaster so UI/service binding concerns do not reintroduce ad hoc listener bookkeeping into the service.
-- Keep `NavigationSession` as a thin coordinator over focused session collaborators rather than a monolithic state owner.
-- Keep filtered-location ownership, live-location arbitration, and derived speed/bearing calculations isolated from route-state progression.
-- Keep active-route progress and `NavState` rendering inputs isolated from route-request throttling and stale-request handling.
-- Keep blocked-road no-go memory/escalation isolated from turn progression so those state machines can evolve independently without growing `NavigationSessionRouteState` back into a monolith.
-- Keep initial/imminent/passed turn progression and adaptive polling cadence in a dedicated turn-state helper built on the existing plain-Java planner/policy utilities.
-- Keep route-request throttling, request-token validation, and route-failure summarization isolated in a dedicated request-lifecycle helper so stale background results cannot overwrite newer navigation state.
-- Keep reroute thresholds, adaptive polling cadence, and turn-alert timing in plain-Java policy/planner helpers so navigation heuristics remain directly unit-testable.
-- Keep POI search execution shared across destination and stop fields rather than allocating one executor or thread owner per input controller.
-- Keep the navigation-intent extras contract owned by `NavigationRequest` so activities, the foreground service, and resume notifications all serialize the same request shape instead of rebuilding extras in UI code.
+- Keep `MainActivity` and `NavigationActivity` thin. Input validation, incoming-intent handling, startup/preflight checks, and navigation startup orchestration should stay in dedicated helpers.
+- Keep navigation text formatting shared between on-screen state and notifications.
+- Keep `NavigationService` focused on Android lifecycle and orchestration, with notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn-event fan-out isolated in focused collaborators.
+- Keep background route computation asynchronous while all shared navigation-state mutation remains serialized on the main thread.
+- Keep `NavigationSession` split across focused collaborators for filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle handling rather than collapsing that logic into one class.
+- Keep heuristics such as reroute thresholds, polling cadence, and turn-alert timing in small policy/planner helpers, and keep POI search execution shared across destination and stop fields.
+- Keep the navigation-intent extras contract owned by `NavigationRequest` so activities, the foreground service, and resume notifications serialize the same request shape.
 
 ## Testing expectations
 
-- Automated regression coverage should prefer JVM tests
-- Navigation lifecycle behavior should be covered with host-side Robolectric tests where practical
-- Pure lifecycle decision rules should be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
-- Navigation heuristics such as off-track detection, wrong-direction detection, dynamic polling intervals, and turn-alert progression should also be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
-- Session route-state behavior, blocked-road escalation, turn-state progression, and route-request throttling/stale-result rejection are part of the expected JVM regression surface and should remain covered by unit tests
-- The project should not require an emulator or real device for its core automated test suite
-- Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage
-- Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including rendered direction symbols for user-visible cues
-- Shared navigation-request serialization, live-location arbitration, reroute-threshold policy, adaptive polling policy, turn-event planning, turn-state progression, blocked-road escalation, session route-state behavior, and route-request lifecycle handling are part of the expected JVM regression surface and should remain covered by unit tests
-- Navigation startup/preflight decision flow should stay covered by JVM tests through a dedicated coordinator seam rather than only through activity-level manual verification
-- Foreground notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting should remain covered by focused JVM tests through their extracted collaborators instead of only through end-to-end service tests
-- Refactors that only keep `MainActivity` thin by moving unchanged wiring into focused helpers do not require new tests by default if user-visible behavior is unchanged and the existing JVM suite still passes
-- Changes to `MainActivity` helper behavior for incoming intents, profile picking, stop restore/save handling, or navigation input resolution should add or update focused JVM or Robolectric coverage
+- Prefer JVM regression coverage, with Robolectric for Android lifecycle behavior where practical.
+- The core automated suite should not require an emulator or real device, though some foreground-service and OEM notification behaviors may still need manual verification.
+- Keep lifecycle decisions, heuristics, planners, and policy thresholds in small helpers when practical so they remain directly unit-testable.
+- Maintain coverage for navigation-request serialization, startup/preflight flow, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting.
+- Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including user-visible direction symbols.
+- Refactors that only move unchanged wiring into helpers do not require new tests by default. Behavior changes in helper-owned flows should add or update focused JVM or Robolectric coverage.
