@@ -63,8 +63,16 @@ Supporting packages:
 Tests currently live in:
 
 - `app/src/test/java/com/vibenavigator/geo/`
+- `app/src/test/java/com/vibenavigator/`
 - `app/src/test/java/com/vibenavigator/nav/directions/`
 - `app/src/test/java/com/vibenavigator/nav/kalman/`
+
+Current test strategy:
+
+- Prefer JVM tests only
+- Lifecycle coverage that would normally require instrumentation should be implemented with Robolectric where practical
+- Do not add tests that require a real device or emulator unless explicitly requested
+- Current lifecycle coverage includes host-side tests for navigation back-button behavior, foreground re-promotion, and `onTaskRemoved()` shutdown
 
 ## Project rules
 
@@ -84,6 +92,7 @@ Tests currently live in:
 ## Editing guidance
 
 - If you change navigation state, rerouting, route parsing, voice-hint mapping, or geometry helpers, add or update unit tests.
+- If you change navigation/task/foreground-service lifecycle behavior, prefer updating the Robolectric JVM tests under `app/src/test/java/com/vibenavigator/`.
 - If you change manifest-declared components or permissions, verify the corresponding runtime checks in `NavigationActivity`.
 - If you change BRouter request parameters or response parsing, inspect both `brouter/` and `nav/route/` code paths together.
 - If you change POI search behavior, keep direct coordinate entry working and keep history suggestions available when the field is focused and empty.

@@ -10,12 +10,15 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CancellationSignal;
 import android.os.IBinder;
+import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,6 +65,7 @@ public class NavigationService extends Service implements LocationListener {
     private static final double BLOCKED_SAME_AREA_METERS = 35.0;
     private static final double BLOCKED_QUICK_REPEAT_NEARBY_METERS = 75.0;
     private static final long BLOCKED_QUICK_REPEAT_WINDOW_MS = 15_000L;
+    private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -82,6 +86,19 @@ public class NavigationService extends Service implements LocationListener {
     private final ExecutorService routeExecutor = Executors.newSingleThreadExecutor();
     private final BRouterRouter router = new BRouterRouter();
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
+    private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
+    private final Runnable notificationMonitor = new Runnable() {
+        @Override
+        public void run() {
+            if (!isOngoingNotificationVisible()) {
+                AppLogger.w(TAG, "Foreground notification is missing, stopping navigation");
+                stopNavigation();
+                stopSelf();
+                return;
+            }
+            notificationMonitorHandler.postDelayed(this, FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS);
+        }
+    };
 
     private LocationManager locationManager;
     private Executor locationCallbackExecutor;
@@ -154,7 +171,7 @@ public class NavigationService extends Service implements LocationListener {
             startNavigation();
         }
 
-        startForeground(NOTIFICATION_ID_ONGOING, buildOngoingNotification());
+        promoteToForeground();
         return START_STICKY;
     }
 
@@ -172,6 +189,11 @@ public class NavigationService extends Service implements LocationListener {
                 AppLogger.d(TAG, "Listener registered totalListeners=" + listeners.size());
             }
             emitState();
+        }
+
+        public void ensureForegroundNotification() {
+            AppLogger.i(TAG, "Foreground notification refresh requested through binder");
+            promoteToForeground();
         }
 
         public void unregisterListener(@NonNull Listener l) {
@@ -242,6 +264,15 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private Notification buildOngoingNotification() {
+        Intent stopNavigationIntent = new Intent(this, NavigationService.class);
+        stopNavigationIntent.setAction(ACTION_STOP);
+        PendingIntent stopNavigationPendingIntent = PendingIntent.getService(
+                this,
+                1,
+                stopNavigationIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         Intent openNavigationIntent = new Intent(this, MainActivity.class);
         openNavigationIntent.putExtra(MainActivity.EXTRA_OPEN_NAVIGATION, true);
         openNavigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
@@ -274,8 +305,14 @@ public class NavigationService extends Service implements LocationListener {
                 .setContentTitle(getString(R.string.notification_nav_running))
                 .setContentText(getString(R.string.notification_nav_running_text))
                 .setOngoing(true)
+                .setDeleteIntent(stopNavigationPendingIntent)
                 .setContentIntent(openNavigationPendingIntent)
                 .build();
+    }
+
+    private void promoteToForeground() {
+        startForeground(NOTIFICATION_ID_ONGOING, buildOngoingNotification());
+        startNotificationMonitor();
     }
 
     private void readNavRequest(@NonNull Intent intent) {
@@ -359,6 +396,7 @@ public class NavigationService extends Service implements LocationListener {
     private void stopNavigation() {
         AppLogger.i(TAG, "Stopping navigation listeners=" + listeners.size()
                 + " routeLoaded=" + (route != null));
+        stopNotificationMonitor();
         cancelPendingCurrentLocationRequests();
         try {
             if (locationManager != null) {
@@ -374,6 +412,38 @@ public class NavigationService extends Service implements LocationListener {
         } else {
             //noinspection deprecation
             stopForeground(true);
+        }
+    }
+
+    private void startNotificationMonitor() {
+        stopNotificationMonitor();
+        notificationMonitorHandler.postDelayed(notificationMonitor, FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS);
+    }
+
+    private void stopNotificationMonitor() {
+        notificationMonitorHandler.removeCallbacks(notificationMonitor);
+    }
+
+    private boolean isOngoingNotificationVisible() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            return true;
+        }
+        NotificationManager nm = getSystemService(NotificationManager.class);
+        if (nm == null) {
+            AppLogger.w(TAG, "NotificationManager unavailable while checking foreground notification");
+            return true;
+        }
+        try {
+            StatusBarNotification[] notifications = nm.getActiveNotifications();
+            for (StatusBarNotification notification : notifications) {
+                if (notification.getId() == NOTIFICATION_ID_ONGOING) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to query active notifications", e);
+            return true;
         }
     }
 
@@ -1216,6 +1286,14 @@ public class NavigationService extends Service implements LocationListener {
         stopNavigation();
         routeExecutor.shutdownNow();
         super.onDestroy();
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        AppLogger.i(TAG, "Task removed, stopping navigation service");
+        stopNavigation();
+        stopSelf();
+        super.onTaskRemoved(rootIntent);
     }
 
     @NonNull

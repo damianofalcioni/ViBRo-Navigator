@@ -206,10 +206,23 @@ The navigation UI must show the following in large text:
 - Pressing it must return to the previous UI
 - Destination and intermediate stops must be kept
 
+#### 4.5.5 Back button behavior during navigation
+
+- Pressing the system back button while the navigation UI is open must move the whole app task to the background
+- Pressing back during navigation must not reveal the main UI underneath the navigation UI
+- Navigation must continue running after this backgrounding action as long as the foreground service remains active
+
 ### 4.6 Background behavior
 
 - Navigation functionality must remain active in the background
 - Navigation functionality must remain active when the screen is off
+
+#### 4.6.1 Foreground service lifecycle
+
+- Active navigation must run through a foreground service with an ongoing notification
+- If the app task is removed from recents, navigation must stop and the foreground service must be terminated
+- If the foreground notification is removed while navigation is still running, reopening the app from recents must restore the foreground notification immediately when the navigation UI reconnects to the running service
+- The app should treat removal of its own ongoing navigation notification as a stop signal when the Android device delivers that removal event to the app
 
 ### 5. About button and page
 
@@ -253,3 +266,10 @@ The navigation UI must show the following in large text:
 - Orientation-safe layouts
 - Robust permission handling at startup
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
+
+## Testing expectations
+
+- Automated regression coverage should prefer JVM tests
+- Navigation lifecycle behavior should be covered with host-side Robolectric tests where practical
+- The project should not require an emulator or real device for its core automated test suite
+- Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage

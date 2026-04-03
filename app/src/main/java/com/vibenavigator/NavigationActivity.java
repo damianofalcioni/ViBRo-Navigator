@@ -25,6 +25,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.activity.OnBackPressedCallback;
 
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationService;
@@ -75,6 +76,7 @@ public class NavigationActivity extends AppCompatActivity {
             navBinder = (NavigationService.LocalBinder) service;
             bound = true;
             AppLogger.i(TAG, "NavigationService connected component=" + name);
+            navBinder.ensureForegroundNotification();
             navBinder.registerListener(navListener);
         }
 
@@ -107,6 +109,16 @@ public class NavigationActivity extends AppCompatActivity {
         remaining = findViewById(R.id.remainingText);
         blocked = findViewById(R.id.blockedRoadButton);
         stop = findViewById(R.id.stopNavButton);
+
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
+                if (!moveTaskToBack(true)) {
+                    finish();
+                }
+            }
+        });
 
         render(NavState.waiting(this));
 

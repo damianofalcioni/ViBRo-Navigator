@@ -75,6 +75,7 @@
         <service
             android:name=".nav.NavigationService"
             android:exported="false"
+            android:stopWithTask="true"
             android:foregroundServiceType="location" />
 
     </application>

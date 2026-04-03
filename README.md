@@ -10,6 +10,9 @@ It keeps routing offline (via the installed BRouter app), and communicates direc
 - Destination + optional intermediate stops.
 - Background navigation via a foreground service (screen off supported).
 - Turn notifications with vibration (different patterns for left/right imminents).
+- Pressing back during navigation sends the app to background instead of returning to the main screen.
+- Removing the app from recents stops navigation.
+- Reopening an active navigation session restores the foreground notification if the system hid or removed it.
 
 ## Requirements
 
