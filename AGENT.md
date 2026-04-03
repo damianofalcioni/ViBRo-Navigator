@@ -46,6 +46,7 @@ Supporting packages:
 
 - `app/src/main/java/com/vibenavigator/brouter/`
   - BRouter AIDL/service bridge, params, profile discovery, and GeoJSON route requests
+  - Route requests currently use BRouter native `timode=9` so GeoJSON voice hints preserve beeline and distinct exit-left/exit-right commands
 - `app/src/main/java/com/vibenavigator/poi/`
   - POI model, coordinate parsing, search history
 - `app/src/main/java/com/vibenavigator/poi/search/`
@@ -66,6 +67,7 @@ Tests currently live in:
 - `app/src/test/java/com/vibenavigator/geo/`
 - `app/src/test/java/com/vibenavigator/`
 - `app/src/test/java/com/vibenavigator/nav/directions/`
+  - Includes voice-hint mapping coverage for the current BRouter mode-9 command table and user-visible symbols
 - `app/src/test/java/com/vibenavigator/nav/kalman/`
 
 Current test strategy:
@@ -87,6 +89,7 @@ Current test strategy:
 - Preserve support for shared coordinates/addresses and `geo:` deep links.
 - Preserve background and screen-off navigation behavior. Changes affecting the foreground service, wake lock, notifications, or battery optimization flow need extra scrutiny.
 - Preserve BRouter compatibility. Route requests should continue using the local BRouter service and GeoJSON output.
+- Preserve the current BRouter voice-hint contract unless there is a deliberate product change: mode `9`, distinct `beeline`, `exit left`, and `exit right`, and a neutral unknown fallback.
 - Keep profile handling compatible with both bundled BRouter profiles and user-selected external `profiles2` folders.
 - Keep notification behavior tied to turn timing and left/right vibration patterns.
 - Prefer extending the existing logging with `AppLogger` when touching startup, permissions, routing, background execution, or network search behavior.
@@ -94,6 +97,7 @@ Current test strategy:
 ## Editing guidance
 
 - If you change navigation state, rerouting, route parsing, voice-hint mapping, or geometry helpers, add or update unit tests.
+- If you change BRouter voice-hint mapping, keep the mode-9 command coverage and symbol assertions aligned in `VoiceHintMapperTest`.
 - If you change navigation/task/foreground-service lifecycle behavior, prefer updating the Robolectric JVM tests under `app/src/test/java/com/vibenavigator/`.
 - If you change manifest-declared components or permissions, verify the corresponding runtime checks in `NavigationActivity`.
 - If you change BRouter request parameters or response parsing, inspect both `brouter/` and `nav/route/` code paths together.

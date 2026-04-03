@@ -33,10 +33,11 @@ public final class VoiceHintMapper {
             case 9:
                 return new DirectionInfo("↗️", R.string.direction_keep_right, 0, DirectionKind.RIGHT);
             case 10:
-            case 15:
                 return new DirectionInfo("↩️", R.string.direction_uturn_left, 0, DirectionKind.LEFT);
             case 11:
                 return new DirectionInfo("↪️", R.string.direction_uturn_right, 0, DirectionKind.RIGHT);
+            case 15:
+                return new DirectionInfo("↩️", R.string.direction_uturn, 0, DirectionKind.OTHER);
             case 12:
                 return new DirectionInfo("⚠️", R.string.direction_offroute, 0, DirectionKind.OTHER);
             case 13:
@@ -44,7 +45,7 @@ public final class VoiceHintMapper {
             case 14:
                 return new DirectionInfo("🔄", R.string.direction_roundabout_exit_left, Math.abs(hint.exitNumber), DirectionKind.LEFT);
             case 16:
-                return new DirectionInfo("➡️", R.string.direction_continue, 0, DirectionKind.OTHER);
+                return new DirectionInfo("🎯", R.string.direction_beeline, 0, DirectionKind.OTHER);
             case 17:
                 return new DirectionInfo("⬅️", R.string.direction_exit_left, 0, DirectionKind.LEFT);
             case 18:
@@ -52,8 +53,7 @@ public final class VoiceHintMapper {
             case 100:
                 return new DirectionInfo("🏁", R.string.direction_arrive, 0, DirectionKind.OTHER);
             default:
-                return new DirectionInfo("➡️", R.string.direction_continue, 0, DirectionKind.OTHER);
+                return new DirectionInfo("❓", R.string.direction_unknown, 0, DirectionKind.OTHER);
         }
     }
 }
-

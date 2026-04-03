@@ -6,4 +6,3 @@ public enum DirectionKind {
     STRAIGHT,
     OTHER
 }
-

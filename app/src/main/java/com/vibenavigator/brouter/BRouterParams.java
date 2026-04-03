@@ -64,8 +64,8 @@ public final class BRouterParams {
         b.putString("format", "json");
         b.putString("trackFormat", "json");
 
-        // Ensure voice hints are included (osmand style -> timode 3).
-        b.putString("turnInstructionFormat", "osmand");
+        // Use BRouter-native turn hints so exits and beeline hints remain distinct.
+        b.putString("timode", "9");
         b.putString("acceptCompressedResult", "true");
 
         return b;

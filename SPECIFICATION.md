@@ -106,6 +106,7 @@ The implementation must use BRouter integration compatible with these references
 #### 4.3.4 GeoJSON output
 
 - The app must request BRouter GeoJSON output using the Android-service parameters that produce a GeoJSON `FeatureCollection`
+- The app must request BRouter native turn-instruction mode `9` so GeoJSON `voicehints` preserve distinct exit-left, exit-right, and beeline commands
 
 #### 4.4 Navigation update loop
 
@@ -159,6 +160,11 @@ The app must monitor user position:
     - [https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/FormatJson.java](https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/FormatJson.java)
   - `VoiceHint.java`
     - [https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/VoiceHint.java](https://raw.githubusercontent.com/abrensch/brouter/refs/heads/master/brouter-core/src/main/java/btools/router/VoiceHint.java)
+- The app must interpret the current BRouter mode-9 GeoJSON command set, including distinct mappings for:
+  - `16` beeline
+  - `17` exit left
+  - `18` exit right
+- Unknown or unsupported voice-hint commands must fall back to a neutral unknown-direction presentation instead of pretending to be a normal continue instruction
 
 ### 4.5 Navigation UI
 
@@ -274,3 +280,4 @@ The navigation UI must show the following in large text:
 - Pure lifecycle decision rules should be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
 - The project should not require an emulator or real device for its core automated test suite
 - Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage
+- Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including rendered direction symbols for user-visible cues
