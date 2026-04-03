@@ -5,7 +5,6 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.vibenavigator.NavigationActivity;
 import com.vibenavigator.geo.LatLon;
 
 import java.util.ArrayList;
@@ -13,6 +12,12 @@ import java.util.Collections;
 import java.util.List;
 
 public final class NavigationRequest {
+
+    public static final String EXTRA_PROFILE = "com.vibenavigator.extra.PROFILE";
+    public static final String EXTRA_DEST_NAME = "com.vibenavigator.extra.DEST_NAME";
+    public static final String EXTRA_DEST_LAT = "com.vibenavigator.extra.DEST_LAT";
+    public static final String EXTRA_DEST_LON = "com.vibenavigator.extra.DEST_LON";
+    public static final String EXTRA_STOPS = "com.vibenavigator.extra.STOPS";
 
     @Nullable
     public final String profile;
@@ -41,13 +46,13 @@ public final class NavigationRequest {
             return new NavigationRequest(null, null, null, Collections.emptyList());
         }
 
-        String profile = intent.getStringExtra(NavigationActivity.EXTRA_PROFILE);
-        String destinationName = intent.getStringExtra(NavigationActivity.EXTRA_DEST_NAME);
-        double lat = intent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LAT, Double.NaN);
-        double lon = intent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LON, Double.NaN);
+        String profile = intent.getStringExtra(EXTRA_PROFILE);
+        String destinationName = intent.getStringExtra(EXTRA_DEST_NAME);
+        double lat = intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN);
+        double lon = intent.getDoubleExtra(EXTRA_DEST_LON, Double.NaN);
         LatLon destination = (!Double.isNaN(lat) && !Double.isNaN(lon)) ? new LatLon(lat, lon) : null;
 
-        ArrayList<String> rawStops = intent.getStringArrayListExtra(NavigationActivity.EXTRA_STOPS);
+        ArrayList<String> rawStops = intent.getStringArrayListExtra(EXTRA_STOPS);
         List<LatLon> stops = new ArrayList<>();
         if (rawStops != null) {
             for (String rawStop : rawStops) {
@@ -67,17 +72,17 @@ public final class NavigationRequest {
 
     public void putInto(@NonNull Intent intent) {
         if (profile != null) {
-            intent.putExtra(NavigationActivity.EXTRA_PROFILE, profile);
+            intent.putExtra(EXTRA_PROFILE, profile);
         }
         if (destinationName != null) {
-            intent.putExtra(NavigationActivity.EXTRA_DEST_NAME, destinationName);
+            intent.putExtra(EXTRA_DEST_NAME, destinationName);
         }
         if (destination != null) {
-            intent.putExtra(NavigationActivity.EXTRA_DEST_LAT, destination.lat);
-            intent.putExtra(NavigationActivity.EXTRA_DEST_LON, destination.lon);
+            intent.putExtra(EXTRA_DEST_LAT, destination.lat);
+            intent.putExtra(EXTRA_DEST_LON, destination.lon);
         }
         if (!stops.isEmpty()) {
-            intent.putStringArrayListExtra(NavigationActivity.EXTRA_STOPS, toStopStrings());
+            intent.putStringArrayListExtra(EXTRA_STOPS, toStopStrings());
         }
     }
 

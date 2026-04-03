@@ -2,7 +2,6 @@ package com.vibenavigator.nav;
 
 import android.content.Intent;
 
-import com.vibenavigator.NavigationActivity;
 import com.vibenavigator.geo.LatLon;
 
 import org.junit.Test;
@@ -51,11 +50,11 @@ public class NavigationRequestTest {
     @Test
     public void fromIntent_discardsInvalidStopsAndRequiresProfile() {
         Intent intent = new Intent();
-        intent.putExtra(NavigationActivity.EXTRA_DEST_NAME, "Test destination");
-        intent.putExtra(NavigationActivity.EXTRA_DEST_LAT, 48.2082d);
-        intent.putExtra(NavigationActivity.EXTRA_DEST_LON, 16.3738d);
+        intent.putExtra(NavigationRequest.EXTRA_DEST_NAME, "Test destination");
+        intent.putExtra(NavigationRequest.EXTRA_DEST_LAT, 48.2082d);
+        intent.putExtra(NavigationRequest.EXTRA_DEST_LON, 16.3738d);
         intent.putStringArrayListExtra(
-                NavigationActivity.EXTRA_STOPS,
+                NavigationRequest.EXTRA_STOPS,
                 new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12"))
         );
 

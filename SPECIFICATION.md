@@ -279,6 +279,7 @@ The navigation UI must show the following in large text:
 ## Implementation guidance
 
 - Keep `MainActivity` as a thin UI coordinator. Navigation-input validation and profile-selection state should live in dedicated helpers instead of growing back into the activity.
+- Keep `NavigationActivity` focused on rendering, service binding, and task/back-button behavior. Permission checks, settings redirects, battery-optimization prompting, and navigation-service startup should stay isolated behind a dedicated startup/preflight coordinator instead of drifting back into the activity.
 - Keep navigation text formatting shared between on-screen state and notifications so turn wording, distance formatting, and time formatting cannot drift across surfaces.
 - Keep the foreground service focused on Android lifecycle concerns and orchestration. Notification/foreground handling, wake-lock ownership, and Android location-provider bookkeeping should be isolated in focused helpers instead of growing back into one monolithic service class.
 - Keep `NavigationSession` as a thin coordinator over focused session collaborators rather than a monolithic state owner.
@@ -287,6 +288,7 @@ The navigation UI must show the following in large text:
 - Keep route-request throttling, request-token validation, and route-failure summarization isolated in a dedicated request-lifecycle helper so stale background results cannot overwrite newer navigation state.
 - Keep reroute thresholds, adaptive polling cadence, and turn-alert timing in plain-Java policy/planner helpers so navigation heuristics remain directly unit-testable.
 - Keep POI search execution shared across destination and stop fields rather than allocating one executor or thread owner per input controller.
+- Keep the navigation-intent extras contract owned by `NavigationRequest` so activities, the foreground service, and resume notifications all serialize the same request shape instead of rebuilding extras in UI code.
 
 ## Testing expectations
 
@@ -299,3 +301,4 @@ The navigation UI must show the following in large text:
 - Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including rendered direction symbols for user-visible cues
 - Shared navigation-request serialization, live-location arbitration, reroute-threshold policy, adaptive polling policy, turn-event planning, session route-state behavior, and route-request lifecycle handling are part of the expected JVM regression surface and should remain covered by unit tests
+- Navigation startup/preflight decision flow should stay covered by JVM tests through a dedicated coordinator seam rather than only through activity-level manual verification

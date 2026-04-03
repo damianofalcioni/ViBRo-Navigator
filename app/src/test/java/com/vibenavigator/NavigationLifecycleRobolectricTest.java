@@ -11,6 +11,7 @@ import android.content.ServiceConnection;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.nav.NavigationService;
 
 import org.junit.Test;
@@ -46,9 +47,9 @@ public class NavigationLifecycleRobolectricTest {
     public void ensureForegroundNotificationRestoresForegroundState() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationActivity.EXTRA_PROFILE, "test-profile");
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LAT, 48.2082d);
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putExtra(NavigationRequest.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_LON, 16.3738d);
 
         ServiceController<NavigationService> controller =
                 Robolectric.buildService(NavigationService.class, startIntent).create();
@@ -76,12 +77,12 @@ public class NavigationLifecycleRobolectricTest {
     public void foregroundNotificationResumeIntentPreservesNavigationRequest() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationActivity.EXTRA_PROFILE, "test-profile");
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_NAME, "Vienna Center");
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LAT, 48.2082d);
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putExtra(NavigationRequest.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_NAME, "Vienna Center");
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_LON, 16.3738d);
         startIntent.putStringArrayListExtra(
-                NavigationActivity.EXTRA_STOPS,
+                NavigationRequest.EXTRA_STOPS,
                 new ArrayList<>(Arrays.asList("48.2100,16.3600", "48.2200,16.3900"))
         );
 
@@ -96,13 +97,13 @@ public class NavigationLifecycleRobolectricTest {
 
         assertTrue(resumeIntent.getBooleanExtra(MainActivity.EXTRA_OPEN_NAVIGATION, false));
         assertTrue(resumeIntent.getBooleanExtra(NavigationActivity.EXTRA_RESUME_EXISTING, false));
-        assertEquals("test-profile", resumeIntent.getStringExtra(NavigationActivity.EXTRA_PROFILE));
-        assertEquals("Vienna Center", resumeIntent.getStringExtra(NavigationActivity.EXTRA_DEST_NAME));
-        assertEquals(48.2082d, resumeIntent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LAT, Double.NaN), 0.0);
-        assertEquals(16.3738d, resumeIntent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LON, Double.NaN), 0.0);
+        assertEquals("test-profile", resumeIntent.getStringExtra(NavigationRequest.EXTRA_PROFILE));
+        assertEquals("Vienna Center", resumeIntent.getStringExtra(NavigationRequest.EXTRA_DEST_NAME));
+        assertEquals(48.2082d, resumeIntent.getDoubleExtra(NavigationRequest.EXTRA_DEST_LAT, Double.NaN), 0.0);
+        assertEquals(16.3738d, resumeIntent.getDoubleExtra(NavigationRequest.EXTRA_DEST_LON, Double.NaN), 0.0);
         assertEquals(
                 Arrays.asList("48.21,16.36", "48.22,16.39"),
-                resumeIntent.getStringArrayListExtra(NavigationActivity.EXTRA_STOPS)
+                resumeIntent.getStringArrayListExtra(NavigationRequest.EXTRA_STOPS)
         );
     }
 
@@ -110,9 +111,9 @@ public class NavigationLifecycleRobolectricTest {
     public void onTaskRemovedStopsNavigationAndForegroundState() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationActivity.EXTRA_PROFILE, "test-profile");
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LAT, 48.2082d);
-        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putExtra(NavigationRequest.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(NavigationRequest.EXTRA_DEST_LON, 16.3738d);
 
         ServiceController<NavigationService> controller =
                 Robolectric.buildService(NavigationService.class, startIntent).create();

@@ -4,12 +4,10 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.provider.Settings;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -24,24 +22,15 @@ import androidx.activity.OnBackPressedCallback;
 
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationLifecyclePolicy;
-import com.vibenavigator.nav.NavigationPreflight;
 import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.nav.NavigationService;
+import com.vibenavigator.nav.NavigationStartupCoordinator;
 import com.vibenavigator.util.AppLogger;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class NavigationActivity extends AppCompatActivity {
 
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
-    public static final String EXTRA_PROFILE = "profile";
-    public static final String EXTRA_DEST_NAME = "dest_name";
-    public static final String EXTRA_DEST_LAT = "dest_lat";
-    public static final String EXTRA_DEST_LON = "dest_lon";
-    public static final String EXTRA_STOPS = "stops";
 
-    private static final int REQ_PERMS = 2001;
     private static final String TAG = "NavigationActivity";
 
     private TextView next;
@@ -53,12 +42,13 @@ public class NavigationActivity extends AppCompatActivity {
 
     private NavigationService.LocalBinder navBinder;
     private boolean bound;
-    private boolean autoStartNavigation;
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     @Nullable
     private NavState currentState;
     private String lastRenderedStateKey = "";
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final NavigationStartupCoordinator startupCoordinator =
+            new NavigationStartupCoordinator(new NavigationStartupHost());
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
@@ -91,9 +81,11 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
-        autoStartNavigation = savedInstanceState == null && hasNavigationRequest() && !shouldResumeExistingNavigation();
+        startupCoordinator.setAutoStartNavigation(
+                savedInstanceState == null && hasNavigationRequest() && !shouldResumeExistingNavigation()
+        );
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
-                + " autoStartNavigation=" + autoStartNavigation
+                + " autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
 
         ImageButton aboutButton = findViewById(R.id.aboutButton);
@@ -148,8 +140,8 @@ public class NavigationActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        autoStartNavigation = hasNavigationRequest() && !shouldResumeExistingNavigation();
-        AppLogger.i(TAG, "onNewIntent autoStartNavigation=" + autoStartNavigation
+        startupCoordinator.setAutoStartNavigation(hasNavigationRequest() && !shouldResumeExistingNavigation());
+        AppLogger.i(TAG, "onNewIntent autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
         ensureReadyThenStart();
     }
@@ -222,98 +214,17 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private void ensureReadyThenStart() {
-        if (!autoStartNavigation) {
+        if (!startupCoordinator.isAutoStartNavigation()) {
             AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
-            return;
         }
-
-        NavigationPreflight.Status status = NavigationPreflight.inspect(this);
-        if (status.hasMissingPermissions()) {
-            AppLogger.i(TAG, "Missing permissions=" + status.missingPermissions);
-            if (status.showPermissionRationale) {
-                AppLogger.i(TAG, "Showing permission rationale for permissions=" + status.missingPermissions);
-                String msg = getString(R.string.msg_permission_location_rationale);
-                if (status.missingPermissions.contains(android.Manifest.permission.POST_NOTIFICATIONS)) {
-                    msg = msg + "\n\n" + getString(R.string.msg_permission_notifications_rationale);
-                }
-                new AlertDialog.Builder(this)
-                        .setTitle(R.string.msg_permission_required)
-                        .setMessage(msg)
-                        .setPositiveButton(android.R.string.ok, (d, w) ->
-                                ActivityCompat.requestPermissions(
-                                        this,
-                                        status.missingPermissions.toArray(new String[0]),
-                                        REQ_PERMS
-                                ))
-                        .setNegativeButton(android.R.string.cancel, null)
-                        .show();
-            } else {
-                AppLogger.i(TAG, "Requesting permissions directly permissions=" + status.missingPermissions);
-                ActivityCompat.requestPermissions(this, status.missingPermissions.toArray(new String[0]), REQ_PERMS);
-            }
-            return;
-        }
-
-        if (!status.locationEnabled) {
-            AppLogger.w(TAG, "Location services are disabled");
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.msg_permission_required)
-                    .setMessage(R.string.msg_location_disabled)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) ->
-                            startActivity(NavigationPreflight.newLocationSettingsIntent()))
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-            return;
-        }
-
-        if (!status.notificationsEnabled) {
-            AppLogger.w(TAG, "Notifications are disabled for the app");
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.msg_permission_required)
-                    .setMessage(R.string.msg_enable_notifications)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) ->
-                            startActivity(NavigationPreflight.newNotificationSettingsIntent(this)))
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-        }
-
-        maybeRequestIgnoreBatteryOptimizations(status);
-        AppLogger.i(TAG, "Environment checks passed, starting navigation service");
-        startNavigationService();
-        autoStartNavigation = false;
-    }
-
-    private void maybeRequestIgnoreBatteryOptimizations(@NonNull NavigationPreflight.Status status) {
-        if (!status.needsBatteryOptimizationExemption) {
-            AppLogger.i(TAG, "Battery optimization exemption already granted");
-            return;
-        }
-        AppLogger.i(TAG, "Prompting for battery optimization exemption");
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.msg_permission_required)
-                .setMessage(R.string.msg_battery_opt_rationale)
-                .setPositiveButton(R.string.action_open_settings, (d, w) ->
-                        startActivity(NavigationPreflight.newBatteryOptimizationIntent(this)))
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    private void startNavigationService() {
-        Intent start = new Intent(this, NavigationService.class);
-        start.setAction(NavigationService.ACTION_START);
-        NavigationRequest request = NavigationRequest.fromIntent(getIntent());
-        request.putInto(start);
-        AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
-        ContextCompat.startForegroundService(this, start);
+        startupCoordinator.ensureReadyThenStart();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQ_PERMS) {
-            AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
-            ensureReadyThenStart();
-        }
+        AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
+        startupCoordinator.onRequestPermissionsResult(requestCode);
     }
 
     @NonNull
@@ -328,6 +239,64 @@ public class NavigationActivity extends AppCompatActivity {
 
     private boolean hasNavigationRequest() {
         return NavigationRequest.fromIntent(getIntent()).isComplete();
+    }
+
+    private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
+        @NonNull
+        @Override
+        public android.app.Activity getActivity() {
+            return NavigationActivity.this;
+        }
+
+        @NonNull
+        @Override
+        public NavigationRequest getNavigationRequest() {
+            return NavigationRequest.fromIntent(getIntent());
+        }
+
+        @Override
+        public void requestPermissions(@NonNull String[] permissions, int requestCode) {
+            ActivityCompat.requestPermissions(NavigationActivity.this, permissions, requestCode);
+        }
+
+        @Override
+        public void showPermissionRationale(@NonNull String message, @NonNull Runnable onContinue) {
+            new AlertDialog.Builder(NavigationActivity.this)
+                    .setTitle(R.string.msg_permission_required)
+                    .setMessage(message)
+                    .setPositiveButton(android.R.string.ok, (d, w) -> onContinue.run())
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        @Override
+        public void showSettingsRedirectDialog(int messageResId, @NonNull Intent settingsIntent) {
+            new AlertDialog.Builder(NavigationActivity.this)
+                    .setTitle(R.string.msg_permission_required)
+                    .setMessage(messageResId)
+                    .setPositiveButton(R.string.action_open_settings, (d, w) -> startActivity(settingsIntent))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        @Override
+        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent) {
+            new AlertDialog.Builder(NavigationActivity.this)
+                    .setTitle(R.string.msg_permission_required)
+                    .setMessage(R.string.msg_battery_opt_rationale)
+                    .setPositiveButton(R.string.action_open_settings, (d, w) -> startActivity(settingsIntent))
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+        }
+
+        @Override
+        public void startNavigationService(@NonNull NavigationRequest request) {
+            Intent start = new Intent(NavigationActivity.this, NavigationService.class);
+            start.setAction(NavigationService.ACTION_START);
+            request.putInto(start);
+            AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
+            ContextCompat.startForegroundService(NavigationActivity.this, start);
+        }
     }
 
     @NonNull

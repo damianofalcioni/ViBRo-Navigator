@@ -45,6 +45,23 @@ public final class NavigationPreflight {
         public boolean hasMissingPermissions() {
             return !missingPermissions.isEmpty();
         }
+
+        @NonNull
+        public static Status create(
+                @NonNull List<String> missingPermissions,
+                boolean showPermissionRationale,
+                boolean locationEnabled,
+                boolean notificationsEnabled,
+                boolean needsBatteryOptimizationExemption
+        ) {
+            return new Status(
+                    missingPermissions,
+                    showPermissionRationale,
+                    locationEnabled,
+                    notificationsEnabled,
+                    needsBatteryOptimizationExemption
+            );
+        }
     }
 
     private NavigationPreflight() {
@@ -57,7 +74,7 @@ public final class NavigationPreflight {
         boolean locationEnabled = isLocationEnabled(activity);
         boolean notificationsEnabled = NotificationManagerCompat.from(activity).areNotificationsEnabled();
         boolean needsBatteryOptimizationExemption = needsBatteryOptimizationExemption(activity);
-        return new Status(
+        return Status.create(
                 missingPermissions,
                 showPermissionRationale,
                 locationEnabled,
