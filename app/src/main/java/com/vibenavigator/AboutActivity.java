@@ -43,15 +43,15 @@ public class AboutActivity extends AppCompatActivity {
         developerTapTimes[developerTapTimes.length - 1] = SystemClock.uptimeMillis();
 
         long now = developerTapTimes[developerTapTimes.length - 1];
-        if (developerTapTimes[0] < now - DEVELOPER_TAP_WINDOW_MS) {
+        if (developerTapTimes[0] == 0L || developerTapTimes[0] < now - DEVELOPER_TAP_WINDOW_MS) {
             return;
         }
 
         if (AppLogger.enableDeveloperMode(this)) {
             Toast.makeText(this, R.string.msg_developer_mode_enabled, Toast.LENGTH_SHORT).show();
             AppLogger.i("AboutActivity", "Developer mode unlocked from About page");
-        } else if (AppLogger.isDeveloperModeEnabled(this)) {
-            Toast.makeText(this, R.string.msg_developer_mode_restarted, Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, R.string.msg_developer_mode_already_enabled, Toast.LENGTH_SHORT).show();
         }
         clearDeveloperTapWindow();
     }

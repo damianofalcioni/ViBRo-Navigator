@@ -244,10 +244,12 @@ The navigation UI must show the following in large text:
 
 - While on the about page, five fast taps anywhere on the page must enable a hidden developer mode
 - Enabling developer mode must show a popup confirming that developer mode is now enabled
-- Developer mode state must persist across app restarts
+- The app must start with developer mode disabled on every app launch
+- Developer mode must apply only after it is enabled from the about page during the current app run
 - The app must write its log file only when developer mode is enabled
 - When developer mode is enabled for the first time, the app must create a new log file named `vibe-navigator-log-yyyymmddhhmm.txt` using the current local date and time
-- Repeating the five-tap developer-mode gesture while developer mode is already enabled must start a new developer log session and switch logging to a newly timestamped file
+- When developer mode is enabled again after a later app restart, the app must start a fresh log session by recreating that run's target log file before writing new entries
+- Repeating the five-tap developer-mode gesture while developer mode is already enabled must not restart logging and must instead show a popup that developer mode is already enabled
 - When developer mode is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
 

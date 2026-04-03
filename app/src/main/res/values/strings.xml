@@ -44,7 +44,6 @@
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_developer_mode_enabled">You are now in developer mode.</string>
     <string name="msg_developer_mode_already_enabled">Developer mode is already enabled.</string>
-    <string name="msg_developer_mode_restarted">Developer log restarted.</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
 
