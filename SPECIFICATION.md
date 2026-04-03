@@ -288,7 +288,9 @@ The navigation UI must show the following in large text:
 - Keep listener registration and safe state broadcasting isolated behind a dedicated broadcaster so UI/service binding concerns do not reintroduce ad hoc listener bookkeeping into the service.
 - Keep `NavigationSession` as a thin coordinator over focused session collaborators rather than a monolithic state owner.
 - Keep filtered-location ownership, live-location arbitration, and derived speed/bearing calculations isolated from route-state progression.
-- Keep active-route progress, blocked-road escalation, turn-event generation, and `NavState` rendering inputs isolated from route-request throttling and stale-request handling.
+- Keep active-route progress and `NavState` rendering inputs isolated from route-request throttling and stale-request handling.
+- Keep blocked-road no-go memory/escalation isolated from turn progression so those state machines can evolve independently without growing `NavigationSessionRouteState` back into a monolith.
+- Keep initial/imminent/passed turn progression and adaptive polling cadence in a dedicated turn-state helper built on the existing plain-Java planner/policy utilities.
 - Keep route-request throttling, request-token validation, and route-failure summarization isolated in a dedicated request-lifecycle helper so stale background results cannot overwrite newer navigation state.
 - Keep reroute thresholds, adaptive polling cadence, and turn-alert timing in plain-Java policy/planner helpers so navigation heuristics remain directly unit-testable.
 - Keep POI search execution shared across destination and stop fields rather than allocating one executor or thread owner per input controller.
@@ -300,11 +302,11 @@ The navigation UI must show the following in large text:
 - Navigation lifecycle behavior should be covered with host-side Robolectric tests where practical
 - Pure lifecycle decision rules should be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
 - Navigation heuristics such as off-track detection, wrong-direction detection, dynamic polling intervals, and turn-alert progression should also be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
-- Session route-state behavior, blocked-road escalation, and route-request throttling/stale-result rejection are part of the expected JVM regression surface and should remain covered by unit tests
+- Session route-state behavior, blocked-road escalation, turn-state progression, and route-request throttling/stale-result rejection are part of the expected JVM regression surface and should remain covered by unit tests
 - The project should not require an emulator or real device for its core automated test suite
 - Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including rendered direction symbols for user-visible cues
-- Shared navigation-request serialization, live-location arbitration, reroute-threshold policy, adaptive polling policy, turn-event planning, session route-state behavior, and route-request lifecycle handling are part of the expected JVM regression surface and should remain covered by unit tests
+- Shared navigation-request serialization, live-location arbitration, reroute-threshold policy, adaptive polling policy, turn-event planning, turn-state progression, blocked-road escalation, session route-state behavior, and route-request lifecycle handling are part of the expected JVM regression surface and should remain covered by unit tests
 - Navigation startup/preflight decision flow should stay covered by JVM tests through a dedicated coordinator seam rather than only through activity-level manual verification
 - Foreground notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting should remain covered by focused JVM tests through their extracted collaborators instead of only through end-to-end service tests
 - Refactors that only keep `MainActivity` thin by moving unchanged wiring into focused helpers do not require new tests by default if user-visible behavior is unchanged and the existing JVM suite still passes
