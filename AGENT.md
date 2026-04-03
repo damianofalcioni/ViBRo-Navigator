@@ -45,13 +45,16 @@ Main flow:
   - Owns navigation startup/preflight orchestration before foreground-service launch
   - Uses `NavigationPreflight` for inspection and a small host interface for permission requests, dialogs, and service startup
 - `app/src/main/java/com/vibenavigator/nav/NavigationService.java`
-  - Foreground-service shell for binding, route execution orchestration, blocked-waypoint requests, and listener dispatch
-  - Delegates Android notification/foreground behavior to `NavigationForegroundController`
+  - Foreground-service shell for binding, lifecycle callbacks, navigation start/stop, and delegation to focused collaborators
+  - Delegates Android notification rendering/promotion to `NavigationForegroundController`
+  - Delegates foreground-notification monitoring and task-removal lifecycle policy to `NavigationForegroundCoordinator`
   - Delegates Android location-provider subscription, last-known/current-location seeding, and provider bookkeeping to `NavigationLocationController`
   - Delegates wake-lock ownership to `NavigationWakeLockController`
   - Delegates navigation session orchestration, reroute requests, blocked-waypoint handling, and route-result application to `NavigationSession`
-  - Route calculations may execute on the background route executor, but shared navigation state must only be committed back on the main thread
-  - Uses `NavigationLifecyclePolicy` for extracted plain-Java lifecycle decisions
+  - Delegates async route calculation and callback handoff to `NavigationRouteExecutor`
+  - Delegates listener registration and safe state fan-out to `NavigationStateBroadcaster`
+  - Delegates initial/imminent/passed turn notification fan-out to `NavigationTurnEventDispatcher`
+  - Shared navigation state must only be committed back on the main thread after background route execution completes
 - `app/src/main/java/com/vibenavigator/nav/NavigationSession.java`
   - Thin coordinator for session-level workflow and the public API used by `NavigationService`
   - Delegates filtered-location ownership and live-location arbitration to `NavigationSessionLocationState`
@@ -98,8 +101,16 @@ Supporting packages:
   - Isolated GPS/network arbitration and stale/duplicate location suppression
 - `app/src/main/java/com/vibenavigator/nav/NavigationForegroundController.java`
   - Encapsulates notification channels, foreground promotion, ongoing-notification visibility checks, and turn-notification dispatch
+- `app/src/main/java/com/vibenavigator/nav/NavigationForegroundCoordinator.java`
+  - Encapsulates ongoing-notification monitoring, binder-triggered foreground restoration, and task-removal stop policy around `NavigationLifecyclePolicy`
 - `app/src/main/java/com/vibenavigator/nav/NavigationLocationController.java`
   - Encapsulates `LocationManager` subscriptions, last-known/current-location retrieval, provider enable/disable response, and deadline tracking
+- `app/src/main/java/com/vibenavigator/nav/NavigationRouteExecutor.java`
+  - Encapsulates background route calculation, executor ownership, empty-route rejection, and main-thread callback handoff
+- `app/src/main/java/com/vibenavigator/nav/NavigationTurnEventDispatcher.java`
+  - Encapsulates initial/imminent/passed turn-event logging plus notification fan-out
+- `app/src/main/java/com/vibenavigator/nav/NavigationStateBroadcaster.java`
+  - Encapsulates listener registration, removal, clearing, and exception-safe state broadcasting
 - `app/src/main/java/com/vibenavigator/nav/NavigationWakeLockController.java`
   - Encapsulates partial wake-lock acquisition/release for active navigation
 - `app/src/main/java/com/vibenavigator/nav/RouteDeviationPolicy.java`
@@ -121,6 +132,7 @@ Tests currently live in:
 - `app/src/test/java/com/vibenavigator/nav/kalman/`
 - `app/src/test/java/com/vibenavigator/nav/`
   - Includes focused JVM coverage for `NavigationRequest`, `NavigationStartupCoordinator`, `LiveLocationCoordinator`, `RouteDeviationPolicy`, `NavigationUpdateScheduler`, `TurnEventPlanner`, `NavigationRouteRequestManager`, and `NavigationSessionRouteState`
+  - Includes focused JVM coverage for `NavigationForegroundCoordinator`, `NavigationRouteExecutor`, and `NavigationTurnEventDispatcher`
 
 Current test strategy:
 
@@ -132,6 +144,7 @@ Current test strategy:
 - Navigation startup/preflight branching is covered through `NavigationStartupCoordinatorTest` and should stay off the activity itself unless UI behavior truly requires it
 - Keep pure lifecycle rules in `NavigationLifecyclePolicy` when practical so they can also be covered by plain JUnit tests
 - Keep navigation heuristics in plain-Java policy/planner helpers when practical so threshold changes stay directly unit-testable
+- Keep service-side orchestration seams in extracted helpers when practical so notification monitoring, route callback handoff, turn-event fan-out, and listener broadcasting stay directly unit-testable without inflating `NavigationService`
 
 ## Project rules
 
@@ -153,12 +166,12 @@ Current test strategy:
 ## Editing guidance
 
 - If you change navigation state, rerouting, route parsing, voice-hint mapping, or geometry helpers, add or update unit tests.
-- If you change `NavigationService` or `NavigationSession` route-execution flow, keep background route computation separated from main-thread state mutation.
-- If you change navigation-state ownership, keep Android service concerns delegated through `NavigationForegroundController`, `NavigationLocationController`, and `NavigationWakeLockController`, while `NavigationSession` remains a coordinator over focused session collaborators instead of reabsorbing location, route-state, or request-lifecycle details.
+- If you change `NavigationService` or `NavigationSession` route-execution flow, keep background route computation separated from main-thread state mutation and preserve the `NavigationRouteExecutor` seam instead of inlining thread management back into the service.
+- If you change navigation-state ownership, keep Android service concerns delegated through `NavigationForegroundController`, `NavigationForegroundCoordinator`, `NavigationLocationController`, `NavigationTurnEventDispatcher`, `NavigationStateBroadcaster`, and `NavigationWakeLockController`, while `NavigationSession` remains a coordinator over focused session collaborators instead of reabsorbing location, route-state, or request-lifecycle details.
 - If you change reroute thresholds, dynamic polling cadence, or turn-alert timing, update the corresponding policy/planner tests under `app/src/test/java/com/vibenavigator/nav/`.
 - If you change filtered-location ownership, blocked-road escalation, or reroute-throttling behavior, update the corresponding tests for `NavigationSessionLocationState`, `NavigationSessionRouteState`, or `NavigationRouteRequestManager`.
 - If you change BRouter voice-hint mapping, keep the mode-9 command coverage and symbol assertions aligned in `VoiceHintMapperTest`.
-- If you change navigation/task/foreground-service lifecycle behavior, prefer updating the Robolectric JVM tests under `app/src/test/java/com/vibenavigator/`.
+- If you change navigation/task/foreground-service lifecycle behavior, prefer updating the Robolectric JVM tests under `app/src/test/java/com/vibenavigator/` and the focused collaborator tests under `app/src/test/java/com/vibenavigator/nav/`.
 - If you change navigation intent extras, update `NavigationRequest` first and keep notification resume/start flows serialized through it instead of hand-copying extras.
 - If you change startup permission/settings/battery-optimization flow, keep `NavigationActivity` thin and update `NavigationStartupCoordinatorTest` plus any affected Robolectric lifecycle coverage.
 - If you change manifest-declared components or permissions, verify the corresponding runtime checks in `NavigationPreflight` and `NavigationStartupCoordinator`.

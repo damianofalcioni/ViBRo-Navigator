@@ -12,16 +12,10 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import com.vibenavigator.brouter.BRouterRouter;
 import com.vibenavigator.brouter.NogoPoint;
-import com.vibenavigator.nav.route.GeoJsonRoute;
-import com.vibenavigator.nav.route.VoiceHint;
 import com.vibenavigator.util.AppLogger;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class NavigationService extends Service implements LocationListener {
 
@@ -42,31 +36,23 @@ public class NavigationService extends Service implements LocationListener {
     public static final String CHANNEL_ID_TURN_RIGHT = "vibenavigator.turn.right";
 
     private final IBinder binder = new LocalBinder();
-    private final List<Listener> listeners = new ArrayList<>();
-
-    private final ExecutorService routeExecutor = Executors.newSingleThreadExecutor();
-    private final BRouterRouter router = new BRouterRouter();
-    private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final NavigationSession navigationSession = new NavigationSession();
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();
     private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
+    private final NavigationForegroundCoordinator foregroundCoordinator =
+            new NavigationForegroundCoordinator(
+                    notificationMonitorHandler,
+                    new NavigationLifecyclePolicy(),
+                    FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS,
+                    new ForegroundHost()
+            );
+    private final NavigationRouteExecutor routeExecutor =
+            NavigationRouteExecutor.createDefault(new Handler(Looper.getMainLooper()));
+    private final NavigationRouteExecutor.Callback routeCallback = new NavigationRouteCallback();
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
     private NavigationWakeLockController wakeLockController;
-    private final Runnable notificationMonitor = new Runnable() {
-        @Override
-        public void run() {
-            NavigationLifecyclePolicy.ForegroundAction action =
-                    lifecyclePolicy.onForegroundNotificationCheck(foregroundController.isOngoingNotificationVisible());
-            if (action == NavigationLifecyclePolicy.ForegroundAction.STOP_NAVIGATION) {
-                AppLogger.w(TAG, "Foreground notification is missing, stopping navigation");
-                stopNavigation();
-                stopSelf();
-                return;
-            }
-            notificationMonitorHandler.postDelayed(this, FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS);
-        }
-    };
+    private NavigationTurnEventDispatcher turnEventDispatcher;
 
     @Override
     public void onCreate() {
@@ -74,6 +60,7 @@ public class NavigationService extends Service implements LocationListener {
         foregroundController = new NavigationForegroundController(this);
         locationController = new NavigationLocationController(this, this);
         wakeLockController = new NavigationWakeLockController(this);
+        turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
         foregroundController.ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
@@ -107,25 +94,18 @@ public class NavigationService extends Service implements LocationListener {
 
     public final class LocalBinder extends Binder {
         public void registerListener(@NonNull Listener l) {
-            if (!listeners.contains(l)) {
-                listeners.add(l);
-                AppLogger.d(TAG, "Listener registered totalListeners=" + listeners.size());
-            }
+            stateBroadcaster.register(l);
+            AppLogger.d(TAG, "Listener registered totalListeners=" + stateBroadcaster.size());
             emitState();
         }
 
         public void ensureForegroundNotification() {
-            NavigationLifecyclePolicy.ForegroundAction action =
-                    lifecyclePolicy.onNavigationUiConnected(foregroundController.isOngoingNotificationVisible());
-            if (action == NavigationLifecyclePolicy.ForegroundAction.PROMOTE_TO_FOREGROUND) {
-                AppLogger.i(TAG, "Foreground notification refresh requested through binder");
-                promoteToForeground();
-            }
+            foregroundCoordinator.onNavigationUiConnected();
         }
 
         public void unregisterListener(@NonNull Listener l) {
-            listeners.remove(l);
-            AppLogger.d(TAG, "Listener unregistered totalListeners=" + listeners.size());
+            stateBroadcaster.unregister(l);
+            AppLogger.d(TAG, "Listener unregistered totalListeners=" + stateBroadcaster.size());
         }
 
         public void addBlockedWaypoint() {
@@ -153,7 +133,7 @@ public class NavigationService extends Service implements LocationListener {
 
     private void promoteToForeground() {
         foregroundController.promoteToForeground(navigationSession.currentNavigationRequest());
-        startNotificationMonitor();
+        foregroundCoordinator.startMonitoring();
     }
 
     private void readNavRequest(@NonNull Intent intent) {
@@ -187,25 +167,15 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private void stopNavigation() {
-        AppLogger.i(TAG, "Stopping navigation listeners=" + listeners.size()
+        AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
         navigationSession.stop();
-        stopNotificationMonitor();
+        foregroundCoordinator.stopMonitoring();
         locationController.stopTracking();
         wakeLockController.release();
-        listeners.clear();
+        stateBroadcaster.clear();
         foregroundController.stopForegroundService();
     }
-
-    private void startNotificationMonitor() {
-        stopNotificationMonitor();
-        notificationMonitorHandler.postDelayed(notificationMonitor, FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS);
-    }
-
-    private void stopNotificationMonitor() {
-        notificationMonitorHandler.removeCallbacks(notificationMonitor);
-    }
-
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
@@ -251,60 +221,13 @@ public class NavigationService extends Service implements LocationListener {
             return;
         }
         emitState();
-
-        routeExecutor.submit(() -> {
-            long beganAt = System.currentTimeMillis();
-            try {
-                GeoJsonRoute newRoute = router.routeGeoJson(
-                        getApplicationContext(),
-                        snapshot.start,
-                        snapshot.intermediates,
-                        snapshot.destination,
-                        snapshot.profile,
-                        snapshot.blocked
-                );
-                if (newRoute.track.isEmpty()) {
-                    throw new IllegalStateException("BRouter returned an empty route");
-                }
-                mainHandler.post(() -> {
-                    dispatchTurnEvents(navigationSession.applyRouteResult(this, snapshot, newRoute, beganAt));
-                    emitState();
-                });
-            } catch (Exception e) {
-                mainHandler.post(() -> {
-                    navigationSession.applyRouteFailure(this, snapshot, e);
-                    emitState();
-                });
-            }
-        });
+        routeExecutor.requestRoute(this, snapshot, routeCallback);
     }
 
     private void dispatchTurnEvents(@NonNull List<NavigationSession.TurnEvent> turnEvents) {
-        for (NavigationSession.TurnEvent event : turnEvents) {
-            switch (event.type) {
-                case PASSED:
-                    AppLogger.i(TAG, "Passed voice hint hintTrackIndex=" + event.hint.indexInTrack);
-                    foregroundController.sendPassedTurnNotification(event.hint);
-                    break;
-                case INITIAL:
-                    AppLogger.i(TAG, "Sent initial turn notification distanceMeters=" + event.distanceMeters
-                            + " timeSeconds=" + event.timeSeconds);
-                    notifyImminent(event.hint, event.distanceMeters, event.timeSeconds);
-                    break;
-                case IMMINENT:
-                    notifyImminent(event.hint, event.distanceMeters, event.timeSeconds);
-                    break;
-            }
+        if (turnEventDispatcher != null) {
+            turnEventDispatcher.dispatch(turnEvents);
         }
-    }
-
-    private void notifyImminent(@NonNull VoiceHint hint, double distMeters, double timeSeconds) {
-        com.vibenavigator.nav.directions.DirectionInfo directionInfo =
-                com.vibenavigator.nav.directions.VoiceHintMapper.toDirection(hint);
-        AppLogger.i(TAG, "Imminent turn kind=" + directionInfo.kind
-                + " distanceMeters=" + distMeters
-                + " timeSeconds=" + timeSeconds);
-        foregroundController.sendImminentTurnNotification(hint, distMeters, timeSeconds);
     }
 
     private void emitState() {
@@ -313,31 +236,84 @@ public class NavigationService extends Service implements LocationListener {
                 locationController.getNextEvaluationDeadlineElapsedMs(),
                 System.currentTimeMillis()
         );
-        for (Listener l : new ArrayList<>(listeners)) {
-            try {
-                l.onState(s);
-            } catch (Exception ignored) {
-                // ignore
-            }
-        }
+        stateBroadcaster.dispatch(s);
     }
 
     @Override
     public void onDestroy() {
         AppLogger.i(TAG, "Service destroyed");
         stopNavigation();
-        routeExecutor.shutdownNow();
+        routeExecutor.shutdown();
         super.onDestroy();
     }
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        if (lifecyclePolicy.onTaskRemoved() == NavigationLifecyclePolicy.TaskRemovedAction.STOP_NAVIGATION) {
+        if (foregroundCoordinator.shouldStopOnTaskRemoved()) {
             AppLogger.i(TAG, "Task removed, stopping navigation service");
             stopNavigation();
             stopSelf();
         }
         super.onTaskRemoved(rootIntent);
+    }
+
+    private final class ForegroundHost implements NavigationForegroundCoordinator.Host {
+        @Override
+        public boolean isOngoingNotificationVisible() {
+            return foregroundController != null && foregroundController.isOngoingNotificationVisible();
+        }
+
+        @Override
+        public void promoteToForeground() {
+            NavigationService.this.promoteToForeground();
+        }
+
+        @Override
+        public void stopNavigation() {
+            NavigationService.this.stopNavigation();
+        }
+
+        @Override
+        public void stopSelf() {
+            NavigationService.this.stopSelf();
+        }
+    }
+
+    private final class ForegroundNotificationSink implements NavigationTurnEventDispatcher.TurnNotificationSink {
+        @Override
+        public void sendPassedTurnNotification(@NonNull com.vibenavigator.nav.route.VoiceHint hint) {
+            foregroundController.sendPassedTurnNotification(hint);
+        }
+
+        @Override
+        public void sendImminentTurnNotification(
+                @NonNull com.vibenavigator.nav.route.VoiceHint hint,
+                double distanceMeters,
+                double timeSeconds
+        ) {
+            foregroundController.sendImminentTurnNotification(hint, distanceMeters, timeSeconds);
+        }
+    }
+
+    private final class NavigationRouteCallback implements NavigationRouteExecutor.Callback {
+        @Override
+        public void onRouteApplied(
+                @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+                @NonNull com.vibenavigator.nav.route.GeoJsonRoute newRoute,
+                long beganAt
+        ) {
+            dispatchTurnEvents(navigationSession.applyRouteResult(NavigationService.this, snapshot, newRoute, beganAt));
+            emitState();
+        }
+
+        @Override
+        public void onRouteFailure(
+                @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+                @NonNull Exception error
+        ) {
+            navigationSession.applyRouteFailure(NavigationService.this, snapshot, error);
+            emitState();
+        }
     }
 
     @NonNull
