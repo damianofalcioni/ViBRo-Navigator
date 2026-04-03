@@ -37,7 +37,7 @@ public final class VoiceHintMapper {
             case 11:
                 return new DirectionInfo("↪️", R.string.direction_uturn_right, 0, DirectionKind.RIGHT);
             case 15:
-                return new DirectionInfo("↩️", R.string.direction_uturn, 0, DirectionKind.OTHER);
+                return new DirectionInfo("⬇️", R.string.direction_uturn, 0, DirectionKind.OTHER);
             case 12:
                 return new DirectionInfo("⚠️", R.string.direction_offroute, 0, DirectionKind.OTHER);
             case 13:

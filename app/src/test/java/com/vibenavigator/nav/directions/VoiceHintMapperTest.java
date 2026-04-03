@@ -43,7 +43,7 @@ public class VoiceHintMapperTest {
         assertDirection(12, 0, DirectionKind.OTHER, R.string.direction_offroute, 0, "⚠️");
         assertDirection(13, 3, DirectionKind.RIGHT, R.string.direction_roundabout_exit, 3, "🔄");
         assertDirection(14, -2, DirectionKind.LEFT, R.string.direction_roundabout_exit_left, 2, "🔄");
-        assertDirection(15, 0, DirectionKind.OTHER, R.string.direction_uturn, 0, "↩️");
+        assertDirection(15, 0, DirectionKind.OTHER, R.string.direction_uturn, 0, "⬇️");
         assertDirection(16, 0, DirectionKind.OTHER, R.string.direction_beeline, 0, "🎯");
         assertDirection(17, 0, DirectionKind.LEFT, R.string.direction_exit_left, 0, "⬅️");
         assertDirection(18, 0, DirectionKind.RIGHT, R.string.direction_exit_right, 0, "➡️");
