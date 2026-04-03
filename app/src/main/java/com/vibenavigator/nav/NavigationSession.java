@@ -35,6 +35,9 @@ final class NavigationSession {
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
+    private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
+    private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
+    private final TurnEventPlanner turnEventPlanner = new TurnEventPlanner();
 
     @Nullable
     private String profile;
@@ -192,28 +195,48 @@ final class NavigationSession {
         }
         lastSegmentIndex = match.segmentIndex;
 
-        double accuracy = filtered.hasAccuracy() ? filtered.getAccuracy() : 20.0;
-        double offTrackThreshold = 10.0 + accuracy;
-        if (match.distanceToTrackMeters > offTrackThreshold) {
+        Double actualBearing = getActualBearingDegrees(filtered);
+        RouteDeviationPolicy.Decision deviationDecision = routeDeviationPolicy.evaluate(
+                match.distanceToTrackMeters,
+                accuracyMeters(filtered),
+                actualBearing,
+                match.segmentBearingDegrees
+        );
+        if (deviationDecision.reason == RouteDeviationPolicy.Reason.OFF_TRACK) {
             AppLogger.w(TAG, "Off-track detected distance=" + match.distanceToTrackMeters
-                    + " threshold=" + offTrackThreshold);
+                    + " threshold=" + deviationDecision.offTrackThresholdMeters);
+            return LocationUpdateResult.accepted(filtered, true, Collections.emptyList(), NO_SUGGESTED_INTERVAL);
+        }
+        if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
+            AppLogger.w(TAG, "Bearing mismatch detected diff=" + deviationDecision.bearingDiffDegrees
+                    + " expected=" + match.segmentBearingDegrees
+                    + " actual=" + actualBearing);
             return LocationUpdateResult.accepted(filtered, true, Collections.emptyList(), NO_SUGGESTED_INTERVAL);
         }
 
-        Double actualBearing = getActualBearingDegrees(filtered);
-        if (actualBearing != null) {
-            double diff = GeoMath.angularDiffDegrees(actualBearing, match.segmentBearingDegrees);
-            if (diff > 60.0) {
-                AppLogger.w(TAG, "Bearing mismatch detected diff=" + diff
-                        + " expected=" + match.segmentBearingDegrees
-                        + " actual=" + actualBearing);
-                return LocationUpdateResult.accepted(filtered, true, Collections.emptyList(), NO_SUGGESTED_INTERVAL);
-            }
-        }
-
         float speedMps = getSpeedMps(filtered);
-        List<TurnEvent> turnEvents = advanceVoiceHints(match.alongTrackMeters, speedMps);
-        long suggestedIntervalMs = suggestUpdateInterval(match.alongTrackMeters, speedMps, nowMs);
+        TurnEventPlanner.Progress turnProgress = turnEventPlanner.advance(
+                route.voiceHints,
+                polylineIndex,
+                nextHintIdx,
+                notified10,
+                notified5,
+                match.alongTrackMeters,
+                speedMps
+        );
+        nextHintIdx = turnProgress.nextHintIdx;
+        notified10 = turnProgress.notified10;
+        notified5 = turnProgress.notified5;
+        List<TurnEvent> turnEvents = toTurnEvents(turnProgress.signals);
+        long suggestedIntervalMs = updateScheduler.suggestUpdateInterval(
+                nowMs,
+                fastChecksUntilMs,
+                route.voiceHints,
+                polylineIndex,
+                nextHintIdx,
+                match.alongTrackMeters,
+                speedMps
+        );
         return LocationUpdateResult.accepted(filtered, false, turnEvents, suggestedIntervalMs);
     }
 
@@ -384,65 +407,6 @@ final class NavigationSession {
         );
     }
 
-    private long suggestUpdateInterval(double alongTrackMeters, float speedMps, long nowMs) {
-        long nextMinTime = 2000L;
-        if (nowMs > fastChecksUntilMs
-                && route != null
-                && polylineIndex != null
-                && !route.voiceHints.isEmpty()
-                && nextHintIdx < route.voiceHints.size()) {
-            VoiceHint next = route.voiceHints.get(nextHintIdx);
-            double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-            double dist = Math.max(0.0, hintDist - alongTrackMeters);
-            double sec = dist / Math.max(1.0, speedMps);
-            nextMinTime = (long) Math.max(2000.0, Math.min(60000.0, sec * 250.0));
-        }
-        return nextMinTime;
-    }
-
-    @NonNull
-    private List<TurnEvent> advanceVoiceHints(double alongTrackMeters, float speedMps) {
-        if (route == null || polylineIndex == null) {
-            return Collections.emptyList();
-        }
-        List<VoiceHint> hints = route.voiceHints;
-        if (hints.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        List<TurnEvent> events = new ArrayList<>();
-        while (nextHintIdx < hints.size()) {
-            VoiceHint next = hints.get(nextHintIdx);
-            double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-            if (alongTrackMeters >= hintDist + 5.0) {
-                events.add(TurnEvent.passed(next));
-                nextHintIdx++;
-                notified10 = false;
-                notified5 = false;
-                continue;
-            }
-            break;
-        }
-
-        if (nextHintIdx >= hints.size()) {
-            return events;
-        }
-        VoiceHint next = hints.get(nextHintIdx);
-        double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-        double distToNext = Math.max(0.0, hintDist - alongTrackMeters);
-        double timeToNext = distToNext / Math.max(1.0, speedMps);
-
-        if (!notified10 && timeToNext <= 10.0) {
-            notified10 = true;
-            events.add(TurnEvent.imminent(next, distToNext, timeToNext));
-        }
-        if (!notified5 && timeToNext <= 5.0) {
-            notified5 = true;
-            events.add(TurnEvent.imminent(next, distToNext, timeToNext));
-        }
-        return events;
-    }
-
     @NonNull
     private List<TurnEvent> buildInitialTurnEventIfNeeded() {
         if (initialTurnNotificationSent || route == null || polylineIndex == null) {
@@ -464,13 +428,20 @@ final class NavigationSession {
             }
         }
 
-        VoiceHint next = hints.get(nextHintIdx);
-        double hintDist = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-        double distToNext = Math.max(0.0, hintDist - alongTrackMeters);
         float speedMps = lastFiltered != null ? getSpeedMps(lastFiltered) : 0f;
-        double timeToNext = distToNext / Math.max(1.0, speedMps);
+        TurnEventPlanner.TurnSignal initialSignal = turnEventPlanner.buildInitialSignal(
+                hints,
+                polylineIndex,
+                nextHintIdx,
+                initialTurnNotificationSent,
+                alongTrackMeters,
+                speedMps
+        );
+        if (initialSignal == null) {
+            return Collections.emptyList();
+        }
         initialTurnNotificationSent = true;
-        return Collections.singletonList(TurnEvent.initial(next, distToNext, timeToNext));
+        return Collections.singletonList(toTurnEvent(initialSignal));
     }
 
     private int findNextHintIndex(
@@ -498,6 +469,31 @@ final class NavigationSession {
             }
         }
         return candidateRoute.voiceHints.size();
+    }
+
+    @NonNull
+    private List<TurnEvent> toTurnEvents(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
+        if (signals.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<TurnEvent> events = new ArrayList<>(signals.size());
+        for (TurnEventPlanner.TurnSignal signal : signals) {
+            events.add(toTurnEvent(signal));
+        }
+        return events;
+    }
+
+    @NonNull
+    private TurnEvent toTurnEvent(@NonNull TurnEventPlanner.TurnSignal signal) {
+        switch (signal.type) {
+            case PASSED:
+                return TurnEvent.passed(signal.hint);
+            case INITIAL:
+                return TurnEvent.initial(signal.hint, signal.distanceMeters, signal.timeSeconds);
+            case IMMINENT:
+            default:
+                return TurnEvent.imminent(signal.hint, signal.distanceMeters, signal.timeSeconds);
+        }
     }
 
     @NonNull

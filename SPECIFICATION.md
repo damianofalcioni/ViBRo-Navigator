@@ -280,7 +280,9 @@ The navigation UI must show the following in large text:
 
 - Keep `MainActivity` as a thin UI coordinator. Navigation-input validation and profile-selection state should live in dedicated helpers instead of growing back into the activity.
 - Keep navigation text formatting shared between on-screen state and notifications so turn wording, distance formatting, and time formatting cannot drift across surfaces.
-- Keep the foreground service focused on Android lifecycle concerns. Route/session state, reroute heuristics, blocked-road escalation, and route-result application should remain isolated in a dedicated navigation-session component.
+- Keep the foreground service focused on Android lifecycle concerns and orchestration. Notification/foreground handling, wake-lock ownership, and Android location-provider bookkeeping should be isolated in focused helpers instead of growing back into one monolithic service class.
+- Keep route/session state, blocked-road escalation, and route-result application isolated in a dedicated navigation-session component.
+- Keep reroute thresholds, adaptive polling cadence, and turn-alert timing in plain-Java policy/planner helpers so navigation heuristics remain directly unit-testable.
 - Keep POI search execution shared across destination and stop fields rather than allocating one executor or thread owner per input controller.
 
 ## Testing expectations
@@ -288,7 +290,8 @@ The navigation UI must show the following in large text:
 - Automated regression coverage should prefer JVM tests
 - Navigation lifecycle behavior should be covered with host-side Robolectric tests where practical
 - Pure lifecycle decision rules should be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
+- Navigation heuristics such as off-track detection, wrong-direction detection, dynamic polling intervals, and turn-alert progression should also be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
 - The project should not require an emulator or real device for its core automated test suite
 - Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including rendered direction symbols for user-visible cues
-- Shared navigation-request serialization and live-location arbitration are part of the expected JVM regression surface and should remain covered by unit tests
+- Shared navigation-request serialization, live-location arbitration, reroute-threshold policy, adaptive polling policy, and turn-event planning are part of the expected JVM regression surface and should remain covered by unit tests
