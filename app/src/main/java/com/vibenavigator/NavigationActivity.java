@@ -1,17 +1,13 @@
 package com.vibenavigator;
 
-import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.widget.Button;
@@ -21,14 +17,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.app.NotificationManagerCompat;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.OnBackPressedCallback;
 
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationLifecyclePolicy;
+import com.vibenavigator.nav.NavigationPreflight;
+import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.nav.NavigationService;
 import com.vibenavigator.util.AppLogger;
 
@@ -229,100 +226,65 @@ public class NavigationActivity extends AppCompatActivity {
             AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
             return;
         }
-        List<String> perms = new ArrayList<>();
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            perms.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            perms.add(Manifest.permission.ACCESS_COARSE_LOCATION);
-        }
-        if (Build.VERSION.SDK_INT >= 33 && ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED) {
-            perms.add(Manifest.permission.POST_NOTIFICATIONS);
-        }
-        if (!perms.isEmpty()) {
-            AppLogger.i(TAG, "Missing permissions=" + perms);
-            boolean showRationale = false;
-            for (String p : perms) {
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, p)) {
-                    showRationale = true;
-                    break;
-                }
-            }
-            if (showRationale) {
-                AppLogger.i(TAG, "Showing permission rationale for permissions=" + perms);
+
+        NavigationPreflight.Status status = NavigationPreflight.inspect(this);
+        if (status.hasMissingPermissions()) {
+            AppLogger.i(TAG, "Missing permissions=" + status.missingPermissions);
+            if (status.showPermissionRationale) {
+                AppLogger.i(TAG, "Showing permission rationale for permissions=" + status.missingPermissions);
                 String msg = getString(R.string.msg_permission_location_rationale);
-                if (perms.contains(Manifest.permission.POST_NOTIFICATIONS)) {
+                if (status.missingPermissions.contains(android.Manifest.permission.POST_NOTIFICATIONS)) {
                     msg = msg + "\n\n" + getString(R.string.msg_permission_notifications_rationale);
                 }
                 new AlertDialog.Builder(this)
                         .setTitle(R.string.msg_permission_required)
                         .setMessage(msg)
                         .setPositiveButton(android.R.string.ok, (d, w) ->
-                                ActivityCompat.requestPermissions(this, perms.toArray(new String[0]), REQ_PERMS))
+                                ActivityCompat.requestPermissions(
+                                        this,
+                                        status.missingPermissions.toArray(new String[0]),
+                                        REQ_PERMS
+                                ))
                         .setNegativeButton(android.R.string.cancel, null)
                         .show();
             } else {
-                AppLogger.i(TAG, "Requesting permissions directly permissions=" + perms);
-                ActivityCompat.requestPermissions(this, perms.toArray(new String[0]), REQ_PERMS);
+                AppLogger.i(TAG, "Requesting permissions directly permissions=" + status.missingPermissions);
+                ActivityCompat.requestPermissions(this, status.missingPermissions.toArray(new String[0]), REQ_PERMS);
             }
             return;
         }
 
-        if (!isLocationEnabled()) {
+        if (!status.locationEnabled) {
             AppLogger.w(TAG, "Location services are disabled");
             new AlertDialog.Builder(this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_location_disabled)
                     .setPositiveButton(R.string.action_open_settings, (d, w) ->
-                            startActivity(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)))
+                            startActivity(NavigationPreflight.newLocationSettingsIntent()))
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
             return;
         }
 
-        if (!NotificationManagerCompat.from(this).areNotificationsEnabled()) {
+        if (!status.notificationsEnabled) {
             AppLogger.w(TAG, "Notifications are disabled for the app");
             new AlertDialog.Builder(this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_enable_notifications)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> {
-                        Intent i = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                                .putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-                        startActivity(i);
-                    })
+                    .setPositiveButton(R.string.action_open_settings, (d, w) ->
+                            startActivity(NavigationPreflight.newNotificationSettingsIntent(this)))
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
         }
 
-        maybeRequestIgnoreBatteryOptimizations();
+        maybeRequestIgnoreBatteryOptimizations(status);
         AppLogger.i(TAG, "Environment checks passed, starting navigation service");
         startNavigationService();
         autoStartNavigation = false;
     }
 
-    private boolean isLocationEnabled() {
-        LocationManager lm = (LocationManager) getSystemService(LOCATION_SERVICE);
-        if (lm == null) return false;
-        boolean gps = false;
-        boolean net = false;
-        try {
-            gps = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            net = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to query location providers", e);
-        }
-        return gps || net;
-    }
-
-    private void maybeRequestIgnoreBatteryOptimizations() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return;
-        }
-        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        if (pm == null) {
-            return;
-        }
-        if (pm.isIgnoringBatteryOptimizations(getPackageName())) {
+    private void maybeRequestIgnoreBatteryOptimizations(@NonNull NavigationPreflight.Status status) {
+        if (!status.needsBatteryOptimizationExemption) {
             AppLogger.i(TAG, "Battery optimization exemption already granted");
             return;
         }
@@ -330,11 +292,8 @@ public class NavigationActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle(R.string.msg_permission_required)
                 .setMessage(R.string.msg_battery_opt_rationale)
-                .setPositiveButton(R.string.action_open_settings, (d, w) -> {
-                    Intent i = new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                    i.setData(Uri.parse("package:" + getPackageName()));
-                    startActivity(i);
-                })
+                .setPositiveButton(R.string.action_open_settings, (d, w) ->
+                        startActivity(NavigationPreflight.newBatteryOptimizationIntent(this)))
                 .setNegativeButton(android.R.string.cancel, null)
                 .show();
     }
@@ -342,19 +301,9 @@ public class NavigationActivity extends AppCompatActivity {
     private void startNavigationService() {
         Intent start = new Intent(this, NavigationService.class);
         start.setAction(NavigationService.ACTION_START);
-        start.putExtra(EXTRA_PROFILE, getIntent().getStringExtra(EXTRA_PROFILE));
-        start.putExtra(EXTRA_DEST_NAME, getIntent().getStringExtra(EXTRA_DEST_NAME));
-        start.putExtra(EXTRA_DEST_LAT, getIntent().getDoubleExtra(EXTRA_DEST_LAT, Double.NaN));
-        start.putExtra(EXTRA_DEST_LON, getIntent().getDoubleExtra(EXTRA_DEST_LON, Double.NaN));
-        ArrayList<String> stops = getIntent().getStringArrayListExtra(EXTRA_STOPS);
-        if (stops != null) {
-            start.putStringArrayListExtra(EXTRA_STOPS, stops);
-        }
-        AppLogger.i(TAG, "Starting foreground navigation service profile="
-                + safe(getIntent().getStringExtra(EXTRA_PROFILE))
-                + " destination=(" + getIntent().getDoubleExtra(EXTRA_DEST_LAT, Double.NaN)
-                + "," + getIntent().getDoubleExtra(EXTRA_DEST_LON, Double.NaN)
-                + ") stops=" + (stops == null ? 0 : stops.size()));
+        NavigationRequest request = NavigationRequest.fromIntent(getIntent());
+        request.putInto(start);
+        AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
         ContextCompat.startForegroundService(this, start);
     }
 
@@ -369,13 +318,8 @@ public class NavigationActivity extends AppCompatActivity {
 
     @NonNull
     private String describeNavigationRequest() {
-        ArrayList<String> stops = getIntent().getStringArrayListExtra(EXTRA_STOPS);
         return "resumeExisting=" + shouldResumeExistingNavigation()
-                + ", profile=" + safe(getIntent().getStringExtra(EXTRA_PROFILE))
-                + ", destName=" + safe(getIntent().getStringExtra(EXTRA_DEST_NAME))
-                + ", destLat=" + getIntent().getDoubleExtra(EXTRA_DEST_LAT, Double.NaN)
-                + ", destLon=" + getIntent().getDoubleExtra(EXTRA_DEST_LON, Double.NaN)
-                + ", stops=" + (stops == null ? 0 : stops.size());
+                + ", " + NavigationRequest.fromIntent(getIntent()).describe();
     }
 
     private boolean shouldResumeExistingNavigation() {
@@ -383,13 +327,7 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     private boolean hasNavigationRequest() {
-        Intent intent = getIntent();
-        if (intent == null) {
-            return false;
-        }
-        return intent.hasExtra(EXTRA_PROFILE)
-                && intent.hasExtra(EXTRA_DEST_LAT)
-                && intent.hasExtra(EXTRA_DEST_LON);
+        return NavigationRequest.fromIntent(getIntent()).isComplete();
     }
 
     @NonNull

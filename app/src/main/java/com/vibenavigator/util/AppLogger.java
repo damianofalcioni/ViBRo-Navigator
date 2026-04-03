@@ -125,19 +125,39 @@ public final class AppLogger {
             @NonNull String message,
             @Nullable Throwable throwable
     ) {
-        File target;
-        synchronized (LOCK) {
-            if (!developerModeEnabled) {
-                return;
-            }
-            target = logFile;
+        StringBuilder block = buildLogPrefix(level, tag, message);
+        if (throwable != null) {
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            throwable.printStackTrace(pw);
+            pw.flush();
+            block.append(sw);
         }
-        if (target == null) {
-            return;
-        }
+        appendBlock(block);
+    }
 
-        StringBuilder block = new StringBuilder();
-        block.append(timestamp())
+    private static void writeMultiline(
+            @NonNull String level,
+            @NonNull String tag,
+            @NonNull String message,
+            @NonNull String body
+    ) {
+        StringBuilder block = buildLogPrefix(level, tag, message)
+                .append(normalizeMultiline(body));
+        if (!body.endsWith("\n") && !body.endsWith("\r")) {
+            block.append("\n");
+        }
+        appendBlock(block);
+    }
+
+    @NonNull
+    private static StringBuilder buildLogPrefix(
+            @NonNull String level,
+            @NonNull String tag,
+            @NonNull String message
+    ) {
+        return new StringBuilder()
+                .append(timestamp())
                 .append(" ")
                 .append(level)
                 .append("/")
@@ -147,13 +167,12 @@ public final class AppLogger {
                 .append("] ")
                 .append(sanitize(message))
                 .append("\n");
+    }
 
-        if (throwable != null) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            throwable.printStackTrace(pw);
-            pw.flush();
-            block.append(sw);
+    private static void appendBlock(@NonNull CharSequence block) {
+        File target = currentLogFile();
+        if (target == null) {
+            return;
         }
 
         synchronized (LOCK) {
@@ -169,49 +188,13 @@ public final class AppLogger {
         }
     }
 
-    private static void writeMultiline(
-            @NonNull String level,
-            @NonNull String tag,
-            @NonNull String message,
-            @NonNull String body
-    ) {
-        File target;
+    @Nullable
+    private static File currentLogFile() {
         synchronized (LOCK) {
             if (!developerModeEnabled) {
-                return;
+                return null;
             }
-            target = logFile;
-        }
-        if (target == null) {
-            return;
-        }
-
-        StringBuilder block = new StringBuilder();
-        block.append(timestamp())
-                .append(" ")
-                .append(level)
-                .append("/")
-                .append(tag)
-                .append(" [")
-                .append(Thread.currentThread().getName())
-                .append("] ")
-                .append(sanitize(message))
-                .append("\n")
-                .append(normalizeMultiline(body));
-        if (!body.endsWith("\n") && !body.endsWith("\r")) {
-            block.append("\n");
-        }
-
-        synchronized (LOCK) {
-            if (logFile == null) {
-                return;
-            }
-            trimIfNeededLocked(logFile);
-            try (FileWriter writer = new FileWriter(logFile, true)) {
-                writer.write(block.toString());
-            } catch (Exception ignored) {
-                // Logging must never crash the app.
-            }
+            return logFile;
         }
     }
 

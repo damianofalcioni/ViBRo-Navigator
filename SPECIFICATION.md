@@ -116,6 +116,7 @@ The app must monitor user position:
 - Later at a dynamic interval proportional to the distance to the next direction
 - The dynamic interval must never exceed 60 seconds
 - Position handling must use a Kalman filter
+- Any asynchronous route calculation must apply its resulting shared navigation state in a single serialized path so stale background results cannot overwrite newer navigation state
 
 #### 4.4.1 Off-track reroute
 
@@ -229,6 +230,7 @@ The navigation UI must show the following in large text:
 - If the app task is removed from recents, navigation must stop and the foreground service must be terminated
 - If the foreground notification is removed while navigation is still running, reopening the app from recents must restore the foreground notification immediately when the navigation UI reconnects to the running service
 - The app should treat removal of its own ongoing navigation notification as a stop signal when the Android device delivers that removal event to the app
+- Navigation request extras used by the main screen, navigation screen, foreground service, and resume notification should be serialized through one shared contract so those entry points stay behaviorally identical
 
 ### 5. About button and page
 
@@ -247,6 +249,7 @@ The navigation UI must show the following in large text:
 - When developer mode is enabled for the first time, the app must create a new log file named `vibe-navigator-log-yyyymmddhhmm.txt` using the current local date and time
 - Repeating the five-tap developer-mode gesture while developer mode is already enabled must start a new developer log session and switch logging to a newly timestamped file
 - When developer mode is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
+- The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
 
 ### 6. Shared/opened coordinates and addresses
 
@@ -281,3 +284,4 @@ The navigation UI must show the following in large text:
 - The project should not require an emulator or real device for its core automated test suite
 - Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including rendered direction symbols for user-visible cues
+- Shared navigation-request serialization and live-location arbitration are part of the expected JVM regression surface and should remain covered by unit tests

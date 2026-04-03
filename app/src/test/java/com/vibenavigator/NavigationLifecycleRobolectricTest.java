@@ -21,6 +21,9 @@ import org.robolectric.android.controller.ActivityController;
 import org.robolectric.android.controller.ServiceController;
 import org.robolectric.shadows.ShadowService;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 @RunWith(RobolectricTestRunner.class)
 public class NavigationLifecycleRobolectricTest {
 
@@ -67,6 +70,40 @@ public class NavigationLifecycleRobolectricTest {
         assertEquals(NavigationService.NOTIFICATION_ID_ONGOING, shadowService.getLastForegroundNotificationId());
         assertNotNull(shadowService.getLastForegroundNotification());
         assertFalse(shadowService.isForegroundStopped());
+    }
+
+    @Test
+    public void foregroundNotificationResumeIntentPreservesNavigationRequest() {
+        Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
+        startIntent.setAction(NavigationService.ACTION_START);
+        startIntent.putExtra(NavigationActivity.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationActivity.EXTRA_DEST_NAME, "Vienna Center");
+        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(NavigationActivity.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putStringArrayListExtra(
+                NavigationActivity.EXTRA_STOPS,
+                new ArrayList<>(Arrays.asList("48.2100,16.3600", "48.2200,16.3900"))
+        );
+
+        ServiceController<NavigationService> controller =
+                Robolectric.buildService(NavigationService.class, startIntent).create();
+        NavigationService service = controller.get();
+
+        service.onStartCommand(startIntent, 0, 1);
+
+        ShadowService shadowService = shadowOf(service);
+        Intent resumeIntent = shadowOf(shadowService.getLastForegroundNotification().contentIntent).getSavedIntent();
+
+        assertTrue(resumeIntent.getBooleanExtra(MainActivity.EXTRA_OPEN_NAVIGATION, false));
+        assertTrue(resumeIntent.getBooleanExtra(NavigationActivity.EXTRA_RESUME_EXISTING, false));
+        assertEquals("test-profile", resumeIntent.getStringExtra(NavigationActivity.EXTRA_PROFILE));
+        assertEquals("Vienna Center", resumeIntent.getStringExtra(NavigationActivity.EXTRA_DEST_NAME));
+        assertEquals(48.2082d, resumeIntent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LAT, Double.NaN), 0.0);
+        assertEquals(16.3738d, resumeIntent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LON, Double.NaN), 0.0);
+        assertEquals(
+                Arrays.asList("48.21,16.36", "48.22,16.39"),
+                resumeIntent.getStringArrayListExtra(NavigationActivity.EXTRA_STOPS)
+        );
     }
 
     @Test

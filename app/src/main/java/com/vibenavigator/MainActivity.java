@@ -23,6 +23,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.brouter.BRouterProfilesRepository;
+import com.vibenavigator.geo.LatLon;
+import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.poi.CoordinateParser;
 import com.vibenavigator.poi.Poi;
 import com.vibenavigator.poi.PoiHistoryStore;
@@ -53,6 +55,8 @@ public class MainActivity extends AppCompatActivity {
     private PoiInputController destinationController;
 
     private BRouterProfilesRepository profilesRepository;
+    private PoiHistoryStore historyStore;
+    private PoiSearchClient searchClient;
     private ArrayAdapter<ProfileOption> profilesAdapter;
     private List<String> profiles = new ArrayList<>();
     private final List<ProfileOption> profileOptions = new ArrayList<>();
@@ -118,8 +122,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.msg_brouter_not_found, Toast.LENGTH_LONG).show();
         }
 
-        PoiHistoryStore historyStore = new PoiHistoryStore(this);
-        PoiSearchClient searchClient = PoiSearchClients.createDefault();
+        historyStore = new PoiHistoryStore(this);
+        searchClient = PoiSearchClients.createDefault();
         AppLogger.i(TAG, "Selected POI search client=" + searchClient.getClass().getSimpleName());
         destinationController = new PoiInputController(
                 this,
@@ -132,67 +136,18 @@ public class MainActivity extends AppCompatActivity {
 
         addStopButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "Add stop requested");
-            addStopRow(null, historyStore, searchClient);
+            addStopRow(null);
         });
 
         startNavButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "Start navigation tapped destinationRaw=" + destinationController.getRawText().trim()
                     + " stopsVisible=" + stopControllers.size());
-            Poi dest = destinationController.getSelectedPoi();
-            if (dest == null) {
-                dest = destinationController.parseCurrentPoi();
-            }
-            if (dest == null) {
-                AppLogger.w(TAG, "Navigation blocked because destination is missing or unparsable");
-                Toast.makeText(this, R.string.msg_missing_destination, Toast.LENGTH_SHORT).show();
+            ResolvedNavigationInput input = resolveNavigationInput();
+            if (input == null) {
                 return;
             }
-            if (Double.isNaN(dest.lat) || Double.isNaN(dest.lon)) {
-                AppLogger.w(TAG, "Navigation blocked because destination coordinates are invalid destination=" + formatPoi(dest));
-                Toast.makeText(this, R.string.msg_invalid_coordinates, Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            ArrayList<String> stops = new ArrayList<>();
-            List<Poi> resolvedStops = new ArrayList<>();
-            for (PoiInputController c : stopControllers) {
-                String raw = c.getRawText().trim();
-                if (raw.isEmpty()) {
-                    continue;
-                }
-                Poi stop = c.getSelectedPoi();
-                if (stop == null) {
-                    stop = c.parseCurrentPoi();
-                }
-                if (stop == null || Double.isNaN(stop.lat) || Double.isNaN(stop.lon)) {
-                    AppLogger.w(TAG, "Navigation blocked because a stop is invalid raw=" + raw);
-                    Toast.makeText(this, R.string.msg_invalid_stop, Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                stops.add(stop.lat + "," + stop.lon);
-                resolvedStops.add(stop);
-            }
-
-            String profile = resolveSelectedProfile();
-            if (profile == null || profile.trim().isEmpty()) {
-                AppLogger.w(TAG, "Navigation blocked because a profile is not selected");
-                return;
-            }
-            historyStore.addOrPromote(dest);
-            for (Poi stop : resolvedStops) {
-                historyStore.addOrPromote(stop);
-            }
-            AppLogger.i(TAG, "Starting NavigationActivity profile=" + profile
-                    + " destination=" + formatPoi(dest)
-                    + " stops=" + stops);
-
-            Intent i = new Intent(this, NavigationActivity.class);
-            i.putExtra(NavigationActivity.EXTRA_PROFILE, profile);
-            i.putExtra(NavigationActivity.EXTRA_DEST_NAME, dest.name);
-            i.putExtra(NavigationActivity.EXTRA_DEST_LAT, dest.lat);
-            i.putExtra(NavigationActivity.EXTRA_DEST_LON, dest.lon);
-            i.putStringArrayListExtra(NavigationActivity.EXTRA_STOPS, stops);
-            startActivity(i);
+            rememberNavigationHistory(input);
+            launchNavigation(input.request);
         });
 
         if (savedInstanceState != null) {
@@ -200,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
             if (stopTexts != null) {
                 AppLogger.i(TAG, "Restoring stop rows count=" + stopTexts.size());
                 for (String t : stopTexts) {
-                    addStopRow(t, historyStore, searchClient);
+                    addStopRow(t);
                 }
             }
         }
@@ -246,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void addStopRow(@Nullable String initialText, PoiHistoryStore historyStore, PoiSearchClient searchClient) {
+    private void addStopRow(@Nullable String initialText) {
         android.view.View row = getLayoutInflater().inflate(R.layout.item_stop_row, stopsContainer, false);
         EditText stopEdit = row.findViewById(R.id.stopEdit);
         android.widget.ImageButton remove = row.findViewById(R.id.removeStopButton);
@@ -308,37 +263,103 @@ public class MainActivity extends AppCompatActivity {
         AppLogger.i(TAG, "Forwarding notification tap to NavigationActivity");
         Intent navigationIntent = new Intent(this, NavigationActivity.class);
         navigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
-
-        String profile = intent.getStringExtra(NavigationActivity.EXTRA_PROFILE);
-        if (profile != null) {
-            navigationIntent.putExtra(NavigationActivity.EXTRA_PROFILE, profile);
-        }
-        String destinationName = intent.getStringExtra(NavigationActivity.EXTRA_DEST_NAME);
-        if (destinationName != null) {
-            navigationIntent.putExtra(NavigationActivity.EXTRA_DEST_NAME, destinationName);
-        }
-        if (intent.hasExtra(NavigationActivity.EXTRA_DEST_LAT)) {
-            navigationIntent.putExtra(
-                    NavigationActivity.EXTRA_DEST_LAT,
-                    intent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LAT, Double.NaN)
-            );
-        }
-        if (intent.hasExtra(NavigationActivity.EXTRA_DEST_LON)) {
-            navigationIntent.putExtra(
-                    NavigationActivity.EXTRA_DEST_LON,
-                    intent.getDoubleExtra(NavigationActivity.EXTRA_DEST_LON, Double.NaN)
-            );
-        }
-        ArrayList<String> stops = intent.getStringArrayListExtra(NavigationActivity.EXTRA_STOPS);
-        if (stops != null) {
-            navigationIntent.putStringArrayListExtra(NavigationActivity.EXTRA_STOPS, stops);
-        }
+        NavigationRequest.fromIntent(intent).putInto(navigationIntent);
 
         intent.removeExtra(EXTRA_OPEN_NAVIGATION);
         intent.removeExtra(NavigationActivity.EXTRA_RESUME_EXISTING);
         setIntent(intent);
         startActivity(navigationIntent);
         return true;
+    }
+
+    @Nullable
+    private ResolvedNavigationInput resolveNavigationInput() {
+        Poi destination = resolveDestination();
+        if (destination == null) {
+            return null;
+        }
+
+        List<Poi> stops = resolveStops();
+        if (stops == null) {
+            return null;
+        }
+
+        String profile = resolveSelectedProfile();
+        if (profile == null || profile.trim().isEmpty()) {
+            AppLogger.w(TAG, "Navigation blocked because a profile is not selected");
+            return null;
+        }
+
+        List<LatLon> stopPoints = new ArrayList<>(stops.size());
+        for (Poi stop : stops) {
+            stopPoints.add(new LatLon(stop.lat, stop.lon));
+        }
+
+        return new ResolvedNavigationInput(
+                new NavigationRequest(
+                        profile,
+                        destination.name,
+                        new LatLon(destination.lat, destination.lon),
+                        stopPoints
+                ),
+                destination,
+                stops
+        );
+    }
+
+    @Nullable
+    private Poi resolveDestination() {
+        Poi destination = destinationController.getSelectedPoi();
+        if (destination == null) {
+            destination = destinationController.parseCurrentPoi();
+        }
+        if (destination == null) {
+            AppLogger.w(TAG, "Navigation blocked because destination is missing or unparsable");
+            Toast.makeText(this, R.string.msg_missing_destination, Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        if (Double.isNaN(destination.lat) || Double.isNaN(destination.lon)) {
+            AppLogger.w(TAG, "Navigation blocked because destination coordinates are invalid destination=" + formatPoi(destination));
+            Toast.makeText(this, R.string.msg_invalid_coordinates, Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        return destination;
+    }
+
+    @Nullable
+    private List<Poi> resolveStops() {
+        List<Poi> resolvedStops = new ArrayList<>();
+        for (PoiInputController controller : stopControllers) {
+            String raw = controller.getRawText().trim();
+            if (raw.isEmpty()) {
+                continue;
+            }
+            Poi stop = controller.getSelectedPoi();
+            if (stop == null) {
+                stop = controller.parseCurrentPoi();
+            }
+            if (stop == null || Double.isNaN(stop.lat) || Double.isNaN(stop.lon)) {
+                AppLogger.w(TAG, "Navigation blocked because a stop is invalid raw=" + raw);
+                Toast.makeText(this, R.string.msg_invalid_stop, Toast.LENGTH_SHORT).show();
+                return null;
+            }
+            resolvedStops.add(stop);
+        }
+        return resolvedStops;
+    }
+
+    private void rememberNavigationHistory(@NonNull ResolvedNavigationInput input) {
+        historyStore.addOrPromote(input.destination);
+        for (Poi stop : input.stops) {
+            historyStore.addOrPromote(stop);
+        }
+    }
+
+    private void launchNavigation(@NonNull NavigationRequest request) {
+        AppLogger.i(TAG, "Starting NavigationActivity " + request.describe());
+        Intent intent = new Intent(this, NavigationActivity.class);
+        request.putInto(intent);
+        startActivity(intent);
     }
 
     private void refreshProfiles() {
@@ -649,6 +670,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public String toString() {
             return label;
+        }
+    }
+
+    private static final class ResolvedNavigationInput {
+        @NonNull
+        private final NavigationRequest request;
+        @NonNull
+        private final Poi destination;
+        @NonNull
+        private final List<Poi> stops;
+
+        private ResolvedNavigationInput(
+                @NonNull NavigationRequest request,
+                @NonNull Poi destination,
+                @NonNull List<Poi> stops
+        ) {
+            this.request = request;
+            this.destination = destination;
+            this.stops = stops;
         }
     }
 }

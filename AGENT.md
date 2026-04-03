@@ -36,11 +36,16 @@ Main flow:
   - Accepts shared `geo:` and text intents via `IntentLocationParser`
 - `app/src/main/java/com/vibenavigator/NavigationActivity.java`
   - Navigation screen
-  - Checks runtime permissions, location enabled state, notifications, and battery optimization exemption before starting the foreground service
+  - Uses `NavigationPreflight` for permission/settings inspection before starting the foreground service
 - `app/src/main/java/com/vibenavigator/nav/NavigationService.java`
   - Foreground navigation engine
-  - Owns location updates, Kalman filtering, reroute logic, blocked-waypoint handling, notifications, and UI state emission
+  - Still owns reroute logic, blocked-waypoint handling, notifications, and UI state emission
+  - Route calculations may execute on the background route executor, but shared navigation state must only be committed back on the main thread
+  - Uses `LiveLocationCoordinator` for provider arbitration and duplicate-fix suppression
   - Uses `NavigationLifecyclePolicy` for extracted plain-Java lifecycle decisions
+- `app/src/main/java/com/vibenavigator/nav/NavigationRequest.java`
+  - Shared parsing/serialization for navigation intents passed between activities and the service
+  - Also defines the resume-notification request contract so new navigation extras are not rebuilt manually in multiple places
 
 Supporting packages:
 
@@ -59,8 +64,13 @@ Supporting packages:
   - Voice-hint mapping from BRouter codes to in-app direction semantics
 - `app/src/main/java/com/vibenavigator/nav/kalman/`
   - Lightweight filtering for location smoothing
+- `app/src/main/java/com/vibenavigator/nav/NavigationPreflight.java`
+  - Shared inspection of runtime permissions, settings prerequisites, and battery-optimization state
+- `app/src/main/java/com/vibenavigator/nav/LiveLocationCoordinator.java`
+  - Isolated GPS/network arbitration and stale/duplicate location suppression
 - `app/src/main/java/com/vibenavigator/util/AppLogger.java`
   - File-based app logging used across app startup, routing, search, and navigation
+  - Single-line and multiline writes must continue to share the same formatting and append path
 
 Tests currently live in:
 
@@ -69,6 +79,8 @@ Tests currently live in:
 - `app/src/test/java/com/vibenavigator/nav/directions/`
   - Includes voice-hint mapping coverage for the current BRouter mode-9 command table and user-visible symbols
 - `app/src/test/java/com/vibenavigator/nav/kalman/`
+- `app/src/test/java/com/vibenavigator/nav/`
+  - Includes focused JVM coverage for `NavigationRequest` and `LiveLocationCoordinator`
 
 Current test strategy:
 
@@ -76,6 +88,7 @@ Current test strategy:
 - Lifecycle coverage that would normally require instrumentation should be implemented with Robolectric where practical
 - Do not add tests that require a real device or emulator unless explicitly requested
 - Current lifecycle coverage includes host-side tests for navigation back-button behavior, foreground re-promotion, and `onTaskRemoved()` shutdown
+- Notification-resume intent serialization is covered with Robolectric and should stay aligned with `NavigationRequest`
 - Keep pure lifecycle rules in `NavigationLifecyclePolicy` when practical so they can also be covered by plain JUnit tests
 
 ## Project rules
@@ -93,13 +106,17 @@ Current test strategy:
 - Keep profile handling compatible with both bundled BRouter profiles and user-selected external `profiles2` folders.
 - Keep notification behavior tied to turn timing and left/right vibration patterns.
 - Prefer extending the existing logging with `AppLogger` when touching startup, permissions, routing, background execution, or network search behavior.
+- Keep `AppLogger` on one shared file-append path. If logging behavior changes, do not reintroduce separate write flows for single-line versus multiline entries.
 
 ## Editing guidance
 
 - If you change navigation state, rerouting, route parsing, voice-hint mapping, or geometry helpers, add or update unit tests.
+- If you change `NavigationService` route-execution flow, keep background route computation separated from main-thread state mutation.
 - If you change BRouter voice-hint mapping, keep the mode-9 command coverage and symbol assertions aligned in `VoiceHintMapperTest`.
 - If you change navigation/task/foreground-service lifecycle behavior, prefer updating the Robolectric JVM tests under `app/src/test/java/com/vibenavigator/`.
+- If you change navigation intent extras, update `NavigationRequest` first and keep notification resume/start flows serialized through it instead of hand-copying extras.
 - If you change manifest-declared components or permissions, verify the corresponding runtime checks in `NavigationActivity`.
+- If you change logging, keep `buildLogPrefix`/`appendBlock` style sharing intact so formatting and file-rotation behavior stay consistent across entry types.
 - If you change BRouter request parameters or response parsing, inspect both `brouter/` and `nav/route/` code paths together.
 - If you change POI search behavior, keep direct coordinate entry working and keep history suggestions available when the field is focused and empty.
 - If you change intent/deep-link destination handling or POI binding, keep externally opened/shared locations flowing through the same history behavior as manual destination selection.
