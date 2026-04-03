@@ -40,6 +40,7 @@ Main flow:
 - `app/src/main/java/com/vibenavigator/nav/NavigationService.java`
   - Foreground navigation engine
   - Owns location updates, Kalman filtering, reroute logic, blocked-waypoint handling, notifications, and UI state emission
+  - Uses `NavigationLifecyclePolicy` for extracted plain-Java lifecycle decisions
 
 Supporting packages:
 
@@ -73,6 +74,7 @@ Current test strategy:
 - Lifecycle coverage that would normally require instrumentation should be implemented with Robolectric where practical
 - Do not add tests that require a real device or emulator unless explicitly requested
 - Current lifecycle coverage includes host-side tests for navigation back-button behavior, foreground re-promotion, and `onTaskRemoved()` shutdown
+- Keep pure lifecycle rules in `NavigationLifecyclePolicy` when practical so they can also be covered by plain JUnit tests
 
 ## Project rules
 

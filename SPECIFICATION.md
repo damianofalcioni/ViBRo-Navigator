@@ -271,5 +271,6 @@ The navigation UI must show the following in large text:
 
 - Automated regression coverage should prefer JVM tests
 - Navigation lifecycle behavior should be covered with host-side Robolectric tests where practical
+- Pure lifecycle decision rules should be kept in small plain-Java helpers when practical so they can be covered by standard JUnit tests
 - The project should not require an emulator or real device for its core automated test suite
 - Foreground-service and task-lifecycle behaviors that depend on OEM or system UI notification handling may still require manual verification in addition to JVM coverage

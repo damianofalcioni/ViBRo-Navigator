@@ -28,6 +28,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.OnBackPressedCallback;
 
 import com.vibenavigator.nav.NavState;
+import com.vibenavigator.nav.NavigationLifecyclePolicy;
 import com.vibenavigator.nav.NavigationService;
 import com.vibenavigator.util.AppLogger;
 
@@ -56,6 +57,7 @@ public class NavigationActivity extends AppCompatActivity {
     private NavigationService.LocalBinder navBinder;
     private boolean bound;
     private boolean autoStartNavigation;
+    private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     @Nullable
     private NavState currentState;
     private String lastRenderedStateKey = "";
@@ -113,9 +115,12 @@ public class NavigationActivity extends AppCompatActivity {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
-                if (!moveTaskToBack(true)) {
-                    finish();
+                NavigationLifecyclePolicy.BackPressAction action = lifecyclePolicy.onNavigationBackPressed();
+                if (action == NavigationLifecyclePolicy.BackPressAction.MOVE_TASK_TO_BACKGROUND) {
+                    AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
+                    if (!moveTaskToBack(true)) {
+                        finish();
+                    }
                 }
             }
         });

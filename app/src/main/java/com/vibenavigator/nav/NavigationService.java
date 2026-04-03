@@ -86,11 +86,14 @@ public class NavigationService extends Service implements LocationListener {
     private final ExecutorService routeExecutor = Executors.newSingleThreadExecutor();
     private final BRouterRouter router = new BRouterRouter();
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
+    private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
     private final Runnable notificationMonitor = new Runnable() {
         @Override
         public void run() {
-            if (!isOngoingNotificationVisible()) {
+            NavigationLifecyclePolicy.ForegroundAction action =
+                    lifecyclePolicy.onForegroundNotificationCheck(isOngoingNotificationVisible());
+            if (action == NavigationLifecyclePolicy.ForegroundAction.STOP_NAVIGATION) {
                 AppLogger.w(TAG, "Foreground notification is missing, stopping navigation");
                 stopNavigation();
                 stopSelf();
@@ -192,8 +195,12 @@ public class NavigationService extends Service implements LocationListener {
         }
 
         public void ensureForegroundNotification() {
-            AppLogger.i(TAG, "Foreground notification refresh requested through binder");
-            promoteToForeground();
+            NavigationLifecyclePolicy.ForegroundAction action =
+                    lifecyclePolicy.onNavigationUiConnected(isOngoingNotificationVisible());
+            if (action == NavigationLifecyclePolicy.ForegroundAction.PROMOTE_TO_FOREGROUND) {
+                AppLogger.i(TAG, "Foreground notification refresh requested through binder");
+                promoteToForeground();
+            }
         }
 
         public void unregisterListener(@NonNull Listener l) {
@@ -1290,9 +1297,11 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onTaskRemoved(Intent rootIntent) {
-        AppLogger.i(TAG, "Task removed, stopping navigation service");
-        stopNavigation();
-        stopSelf();
+        if (lifecyclePolicy.onTaskRemoved() == NavigationLifecyclePolicy.TaskRemovedAction.STOP_NAVIGATION) {
+            AppLogger.i(TAG, "Task removed, stopping navigation service");
+            stopNavigation();
+            stopSelf();
+        }
         super.onTaskRemoved(rootIntent);
     }
 
