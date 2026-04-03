@@ -10,12 +10,12 @@ VibeNavigator is a lightweight Android navigation app built around the installed
 
 - Single-module Android app at `app/`
 - Language: Java only
-- UI base: AppCompat
+- UI base: platform `Activity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
 - Gradle: `8.2`
 - Android Gradle Plugin: `8.2.2`
 - Java toolchain: `17`
 - SDKs in repo today: `compileSdk 34`, `targetSdk 34`, `minSdk 21`
-- Runtime dependencies are intentionally minimal: `androidx.appcompat` and `androidx.core`
+- Runtime dependencies are intentionally minimal: `androidx.core`
 - Do not add Google Play Services or other heavy dependencies unless explicitly requested
 
 Verified commands from the repository root:

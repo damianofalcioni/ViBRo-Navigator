@@ -25,7 +25,7 @@ Core product constraints:
 
 ### 1. Main UI
 
-The app must show a main UI implemented as an `AppCompatActivity`.
+The app must show a main UI implemented as an Android `Activity`.
 
 The main UI must include a routing-profile selector at the top.
 
@@ -81,7 +81,7 @@ At the bottom center of the main UI, the app must show a start navigation button
 
 Pressing the button must:
 
-- Open a new navigation UI implemented as an `AppCompatActivity`
+- Open a new navigation UI implemented as an Android `Activity`
 - Access the current user location
 - Use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
 - Include any intermediate stops in the route calculation

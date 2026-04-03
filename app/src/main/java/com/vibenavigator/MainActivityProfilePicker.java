@@ -1,5 +1,7 @@
 package com.vibenavigator;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -10,8 +12,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.brouter.BRouterProfilesRepository;
 import com.vibenavigator.util.AppLogger;
@@ -23,7 +23,7 @@ final class MainActivityProfilePicker {
     private static final String TAG = "MainProfilePicker";
 
     @NonNull
-    private final AppCompatActivity activity;
+    private final Activity activity;
     @NonNull
     private final BRouterProfilesRepository profilesRepository;
 
@@ -31,7 +31,7 @@ final class MainActivityProfilePicker {
     private ProfileSpinnerController profileSpinnerController;
 
     MainActivityProfilePicker(
-            @NonNull AppCompatActivity activity,
+            @NonNull Activity activity,
             @NonNull BRouterProfilesRepository profilesRepository
     ) {
         this.activity = activity;
@@ -111,7 +111,7 @@ final class MainActivityProfilePicker {
     }
 
     private void handleProfilesFolderPickerResult(int resultCode, @Nullable Intent data) {
-        if (resultCode != AppCompatActivity.RESULT_OK || data == null) {
+        if (resultCode != Activity.RESULT_OK || data == null) {
             return;
         }
         Uri uri = data.getData();
@@ -132,7 +132,7 @@ final class MainActivityProfilePicker {
 
     private void handleCustomProfilePickerResult(int resultCode, @Nullable Intent data) {
         ProfileSpinnerController controller = requireProfileSpinnerController();
-        if (resultCode != AppCompatActivity.RESULT_OK || data == null) {
+        if (resultCode != Activity.RESULT_OK || data == null) {
             controller.onCustomProfilePickerCancelled();
             return;
         }

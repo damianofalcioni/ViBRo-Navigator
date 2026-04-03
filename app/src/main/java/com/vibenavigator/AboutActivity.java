@@ -1,16 +1,15 @@
 package com.vibenavigator;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import com.vibenavigator.util.AppLogger;
 
-public class AboutActivity extends AppCompatActivity {
+public class AboutActivity extends Activity {
 
     private static final int DEVELOPER_TAP_COUNT = 5;
     private static final long DEVELOPER_TAP_WINDOW_MS = 2000L;

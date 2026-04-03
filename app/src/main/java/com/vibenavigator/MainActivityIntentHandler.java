@@ -1,12 +1,12 @@
 package com.vibenavigator;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.poi.CoordinateParser;
@@ -22,7 +22,7 @@ final class MainActivityIntentHandler {
     private MainActivityIntentHandler() {
     }
 
-    static boolean handleOpenNavigationIntent(@NonNull AppCompatActivity activity, @Nullable Intent intent) {
+    static boolean handleOpenNavigationIntent(@NonNull Activity activity, @Nullable Intent intent) {
         if (intent == null || !intent.getBooleanExtra(MainActivity.EXTRA_OPEN_NAVIGATION, false)) {
             return false;
         }

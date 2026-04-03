@@ -1,5 +1,6 @@
 package com.vibenavigator;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -8,7 +9,6 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.poi.PoiHistoryStore;
 import com.vibenavigator.poi.search.PoiSearchClient;
@@ -25,7 +25,7 @@ final class MainActivityStopController {
     private static final String TAG = "MainStopController";
 
     @NonNull
-    private final AppCompatActivity activity;
+    private final Activity activity;
     @NonNull
     private final LinearLayout stopsContainer;
     @NonNull
@@ -36,7 +36,7 @@ final class MainActivityStopController {
     private final List<PoiInputController> stopControllers = new ArrayList<>();
 
     MainActivityStopController(
-            @NonNull AppCompatActivity activity,
+            @NonNull Activity activity,
             @NonNull LinearLayout stopsContainer,
             @NonNull PoiHistoryStore historyStore,
             @NonNull PoiSearchClient searchClient

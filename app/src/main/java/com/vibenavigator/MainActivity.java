@@ -1,5 +1,6 @@
 package com.vibenavigator;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -11,7 +12,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.brouter.BRouterProfilesRepository;
 import com.vibenavigator.nav.NavigationRequest;
@@ -21,7 +21,7 @@ import com.vibenavigator.poi.search.PoiSearchClients;
 import com.vibenavigator.poi.ui.PoiInputController;
 import com.vibenavigator.util.AppLogger;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
 

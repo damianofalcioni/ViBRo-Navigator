@@ -1,5 +1,7 @@
 package com.vibenavigator;
 
+import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -14,11 +16,8 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.activity.OnBackPressedCallback;
 
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationLifecyclePolicy;
@@ -27,7 +26,7 @@ import com.vibenavigator.nav.NavigationService;
 import com.vibenavigator.nav.NavigationStartupCoordinator;
 import com.vibenavigator.util.AppLogger;
 
-public class NavigationActivity extends AppCompatActivity {
+public class NavigationActivity extends Activity {
 
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
 
@@ -100,19 +99,6 @@ public class NavigationActivity extends AppCompatActivity {
         remaining = findViewById(R.id.remainingText);
         blocked = findViewById(R.id.blockedRoadButton);
         stop = findViewById(R.id.stopNavButton);
-
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                NavigationLifecyclePolicy.BackPressAction action = lifecyclePolicy.onNavigationBackPressed();
-                if (action == NavigationLifecyclePolicy.BackPressAction.MOVE_TASK_TO_BACKGROUND) {
-                    AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
-                    if (!moveTaskToBack(true)) {
-                        finish();
-                    }
-                }
-            }
-        });
 
         render(NavState.waiting(this));
 
@@ -221,6 +207,20 @@ public class NavigationActivity extends AppCompatActivity {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
+    public void onBackPressed() {
+        NavigationLifecyclePolicy.BackPressAction action = lifecyclePolicy.onNavigationBackPressed();
+        if (action == NavigationLifecyclePolicy.BackPressAction.MOVE_TASK_TO_BACKGROUND) {
+            AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
+            if (!moveTaskToBack(true)) {
+                finish();
+            }
+            return;
+        }
+        super.onBackPressed();
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
@@ -241,10 +241,10 @@ public class NavigationActivity extends AppCompatActivity {
         return NavigationRequest.fromIntent(getIntent()).isComplete();
     }
 
-    private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
+        private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
         @NonNull
         @Override
-        public android.app.Activity getActivity() {
+        public Activity getActivity() {
             return NavigationActivity.this;
         }
 
