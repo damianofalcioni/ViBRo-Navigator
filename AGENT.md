@@ -45,15 +45,23 @@ Main flow:
   - Delegates Android notification/foreground behavior to `NavigationForegroundController`
   - Delegates Android location-provider subscription, last-known/current-location seeding, and provider bookkeeping to `NavigationLocationController`
   - Delegates wake-lock ownership to `NavigationWakeLockController`
-  - Delegates navigation session state, reroute requests, blocked-waypoint handling, and route-result application to `NavigationSession`
+  - Delegates navigation session orchestration, reroute requests, blocked-waypoint handling, and route-result application to `NavigationSession`
   - Route calculations may execute on the background route executor, but shared navigation state must only be committed back on the main thread
   - Uses `NavigationLifecyclePolicy` for extracted plain-Java lifecycle decisions
 - `app/src/main/java/com/vibenavigator/nav/NavigationSession.java`
-  - Owns mutable navigation-session state, location filtering/arbitration integration, blocked-road escalation, turn-event generation, and `NavState` construction
-  - Keeps route progress and route-result application in one place so stale async results do not overwrite newer state
+  - Thin coordinator for session-level workflow and the public API used by `NavigationService`
+  - Delegates filtered-location ownership and live-location arbitration to `NavigationSessionLocationState`
+  - Delegates active-route progress, blocked-road escalation, turn-event generation, and `NavState` construction to `NavigationSessionRouteState`
+  - Delegates reroute throttling, request tokens, and route failure state to `NavigationRouteRequestManager`
+- `app/src/main/java/com/vibenavigator/nav/NavigationSessionLocationState.java`
+  - Owns live-location arbitration, Kalman filtering, and derived speed/bearing/accuracy calculations for the current session
+- `app/src/main/java/com/vibenavigator/nav/NavigationSessionRouteState.java`
+  - Owns active-route progress, blocked-road no-go memory/escalation, initial/imminent/passed turn events, and `NavState` rendering inputs
   - Delegates route-deviation thresholds to `RouteDeviationPolicy`
   - Delegates adaptive polling cadence to `NavigationUpdateScheduler`
   - Delegates upcoming-turn alert progression to `TurnEventPlanner`
+- `app/src/main/java/com/vibenavigator/nav/NavigationRouteRequestManager.java`
+  - Owns reroute throttling, stale-request rejection, in-flight route-calculation state, and route-failure summarization
 - `app/src/main/java/com/vibenavigator/nav/NavigationRequest.java`
   - Shared parsing/serialization for navigation intents passed between activities and the service
   - Also defines the resume-notification request contract so new navigation extras are not rebuilt manually in multiple places
@@ -107,7 +115,7 @@ Tests currently live in:
   - Includes voice-hint mapping coverage for the current BRouter mode-9 command table and user-visible symbols
 - `app/src/test/java/com/vibenavigator/nav/kalman/`
 - `app/src/test/java/com/vibenavigator/nav/`
-  - Includes focused JVM coverage for `NavigationRequest`, `LiveLocationCoordinator`, `RouteDeviationPolicy`, `NavigationUpdateScheduler`, and `TurnEventPlanner`
+  - Includes focused JVM coverage for `NavigationRequest`, `LiveLocationCoordinator`, `RouteDeviationPolicy`, `NavigationUpdateScheduler`, `TurnEventPlanner`, `NavigationRouteRequestManager`, and `NavigationSessionRouteState`
 
 Current test strategy:
 
@@ -140,8 +148,9 @@ Current test strategy:
 
 - If you change navigation state, rerouting, route parsing, voice-hint mapping, or geometry helpers, add or update unit tests.
 - If you change `NavigationService` or `NavigationSession` route-execution flow, keep background route computation separated from main-thread state mutation.
-- If you change navigation-state ownership, keep Android service concerns delegated through `NavigationForegroundController`, `NavigationLocationController`, and `NavigationWakeLockController`, while session/reroute state remains in `NavigationSession` unless there is a deliberate architectural shift.
+- If you change navigation-state ownership, keep Android service concerns delegated through `NavigationForegroundController`, `NavigationLocationController`, and `NavigationWakeLockController`, while `NavigationSession` remains a coordinator over focused session collaborators instead of reabsorbing location, route-state, or request-lifecycle details.
 - If you change reroute thresholds, dynamic polling cadence, or turn-alert timing, update the corresponding policy/planner tests under `app/src/test/java/com/vibenavigator/nav/`.
+- If you change filtered-location ownership, blocked-road escalation, or reroute-throttling behavior, update the corresponding tests for `NavigationSessionLocationState`, `NavigationSessionRouteState`, or `NavigationRouteRequestManager`.
 - If you change BRouter voice-hint mapping, keep the mode-9 command coverage and symbol assertions aligned in `VoiceHintMapperTest`.
 - If you change navigation/task/foreground-service lifecycle behavior, prefer updating the Robolectric JVM tests under `app/src/test/java/com/vibenavigator/`.
 - If you change navigation intent extras, update `NavigationRequest` first and keep notification resume/start flows serialized through it instead of hand-copying extras.
