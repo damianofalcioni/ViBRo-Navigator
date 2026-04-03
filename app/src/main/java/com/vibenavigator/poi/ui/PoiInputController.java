@@ -7,12 +7,14 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.ListPopupWindow;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.ViewCompat;
 
 import com.vibenavigator.R;
 import com.vibenavigator.poi.CoordinateParser;
@@ -122,7 +124,15 @@ public final class PoiInputController {
 
     public void dispose() {
         AppLogger.i(logTag, "Disposing controller");
-        popup.dismiss();
+        if (pendingSearch != null) {
+            mainHandler.removeCallbacks(pendingSearch);
+            pendingSearch = null;
+        }
+        if (inFlight != null) {
+            inFlight.cancel(true);
+            inFlight = null;
+        }
+        dismissPopup();
         executor.shutdownNow();
     }
 
@@ -146,8 +156,7 @@ public final class PoiInputController {
         adapter.setItems(items);
         AppLogger.d(logTag, "Showing history items=" + items.size());
         if (!items.isEmpty() && editText.hasFocus()) {
-            popup.show();
-            popup.getListView().setItemsCanFocus(true);
+            showPopupIfPossible("history");
         }
     }
 
@@ -196,8 +205,7 @@ public final class PoiInputController {
             AppLogger.d(logTag, "Recognized direct coordinate entry query=" + query);
             adapter.setItems(singleSuggestion(coords, false));
             if (editText.hasFocus()) {
-                popup.show();
-                popup.getListView().setItemsCanFocus(true);
+                showPopupIfPossible("coordinate-entry");
             }
             return;
         }
@@ -208,7 +216,7 @@ public final class PoiInputController {
                 showHistory();
             } else {
                 AppLogger.d(logTag, "Query too short for search query=" + query);
-                popup.dismiss();
+                dismissPopup();
                 adapter.setItems(new ArrayList<>());
             }
             return;
@@ -236,8 +244,7 @@ public final class PoiInputController {
                     adapter.setItems(suggestions);
                     AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
                     if (!suggestions.isEmpty() && editText.hasFocus()) {
-                        popup.show();
-                        popup.getListView().setItemsCanFocus(true);
+                        showPopupIfPossible("search-results");
                     }
                 });
             } catch (IOException e) {
@@ -252,11 +259,43 @@ public final class PoiInputController {
         programmaticChange = true;
         editText.setText(label);
         editText.setSelection(label.length());
-        popup.dismiss();
+        dismissPopup();
         selectedPoi = poi;
         history.addOrPromote(poi);
         AppLogger.i(logTag, "Selected POI=" + poi.displayLabel());
         listener.onPoiSelected(poi);
+    }
+
+    private void dismissPopup() {
+        if (popup.isShowing()) {
+            popup.dismiss();
+        }
+    }
+
+    private void showPopupIfPossible(@NonNull String reason) {
+        if (!editText.hasFocus()) {
+            return;
+        }
+        boolean attached = ViewCompat.isAttachedToWindow(editText);
+        boolean hasWindowToken = editText.getWindowToken() != null;
+        boolean viewVisible = editText.getVisibility() == View.VISIBLE;
+        boolean windowVisible = editText.getWindowVisibility() == View.VISIBLE;
+        if (!attached || !hasWindowToken || !viewVisible || !windowVisible) {
+            AppLogger.d(logTag, "Skipping popup show reason=" + reason
+                    + " attached=" + attached
+                    + " windowToken=" + hasWindowToken
+                    + " viewVisible=" + viewVisible
+                    + " windowVisible=" + windowVisible);
+            return;
+        }
+        try {
+            popup.show();
+            if (popup.getListView() != null) {
+                popup.getListView().setItemsCanFocus(true);
+            }
+        } catch (WindowManager.BadTokenException | IllegalStateException e) {
+            AppLogger.w(logTag, "Skipping popup show because anchor window is not ready reason=" + reason, e);
+        }
     }
 
     @NonNull

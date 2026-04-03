@@ -1,5 +1,7 @@
 # VibeNavigator Agent Guide
 
+Primary product requirements live in `SPECIFICATION.md` at the repository root. Use this guide together with that specification, and treat `SPECIFICATION.md` as the source of truth when implementation details or feature expectations are unclear.
+
 ## Project intent
 
 VibeNavigator is a lightweight Android navigation app built around the installed BRouter app. The product goal is minimal, battery-efficient, offline-first navigation with vibration-led turn guidance and a dark visual theme.

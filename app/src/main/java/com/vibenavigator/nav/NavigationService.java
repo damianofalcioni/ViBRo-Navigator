@@ -597,6 +597,12 @@ public class NavigationService extends Service implements LocationListener {
         emitState();
     }
 
+    @Override
+    @SuppressWarnings("deprecation")
+    public void onStatusChanged(@Nullable String provider, int status, @Nullable Bundle extras) {
+        AppLogger.d(TAG, "Location provider status changed provider=" + provider + " status=" + status);
+    }
+
     private void evaluateAndMaybeReroute() {
         if (destination == null || profile == null || profile.trim().isEmpty()) {
             lastRouteFailureMessage = getString(R.string.nav_start_invalid_request);
