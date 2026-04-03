@@ -45,6 +45,7 @@ Below the routing-profile selector, the app must show an input field for searchi
 
 - Before the user starts typing, a dropdown must appear below the input field
 - The dropdown must show previously searched POIs
+- History entries must be promoted when a destination or stop is selected or otherwise resolved to valid coordinates for navigation
 - Each history row must include an `X` control on the right to delete that POI from history
 
 #### 2.2 Search after 3+ characters
@@ -232,6 +233,7 @@ The navigation UI must show the following in large text:
 
 - The app must support opening or sharing map coordinates or addresses into the app
 - Shared/opened coordinates or addresses must be set as the destination
+- Incoming locations that resolve to valid coordinates must be saved into the same destination history list used by manual POI selection
 - The app must register as a target for at least these incoming Android formats:
   - `geo:` map intents
   - `google.navigation:` intents

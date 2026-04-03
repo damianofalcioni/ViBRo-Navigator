@@ -87,6 +87,7 @@ Tests currently live in:
 - If you change manifest-declared components or permissions, verify the corresponding runtime checks in `NavigationActivity`.
 - If you change BRouter request parameters or response parsing, inspect both `brouter/` and `nav/route/` code paths together.
 - If you change POI search behavior, keep direct coordinate entry working and keep history suggestions available when the field is focused and empty.
+- If you change intent/deep-link destination handling or POI binding, keep externally opened/shared locations flowing through the same history behavior as manual destination selection.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
 
 ## Local config

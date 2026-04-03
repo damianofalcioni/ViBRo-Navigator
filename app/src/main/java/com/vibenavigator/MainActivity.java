@@ -23,6 +23,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.vibenavigator.brouter.BRouterProfilesRepository;
+import com.vibenavigator.poi.CoordinateParser;
 import com.vibenavigator.poi.Poi;
 import com.vibenavigator.poi.PoiHistoryStore;
 import com.vibenavigator.poi.search.PoiSearchClient;
@@ -153,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             ArrayList<String> stops = new ArrayList<>();
+            List<Poi> resolvedStops = new ArrayList<>();
             for (PoiInputController c : stopControllers) {
                 String raw = c.getRawText().trim();
                 if (raw.isEmpty()) {
@@ -168,12 +170,17 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 stops.add(stop.lat + "," + stop.lon);
+                resolvedStops.add(stop);
             }
 
             String profile = resolveSelectedProfile();
             if (profile == null || profile.trim().isEmpty()) {
                 AppLogger.w(TAG, "Navigation blocked because a profile is not selected");
                 return;
+            }
+            historyStore.addOrPromote(dest);
+            for (Poi stop : resolvedStops) {
+                historyStore.addOrPromote(stop);
             }
             AppLogger.i(TAG, "Starting NavigationActivity profile=" + profile
                     + " destination=" + formatPoi(dest)
@@ -282,9 +289,16 @@ public class MainActivity extends AppCompatActivity {
             AppLogger.d(TAG, "No destination extracted from intent");
             return;
         }
-        destinationController.setText(query.trim());
+        String trimmedQuery = query.trim();
+        Poi parsedPoi = CoordinateParser.tryParse(trimmedQuery, trimmedQuery);
+        if (parsedPoi != null) {
+            destinationController.setPoi(parsedPoi);
+            AppLogger.i(TAG, "Applied incoming destination POI=" + formatPoi(parsedPoi));
+        } else {
+            destinationController.setText(trimmedQuery);
+            AppLogger.i(TAG, "Applied incoming destination query=" + trimmedQuery);
+        }
         destinationController.getEditText().requestFocus();
-        AppLogger.i(TAG, "Applied incoming destination query=" + query.trim());
     }
 
     private boolean handleOpenNavigationIntent(@Nullable Intent intent) {

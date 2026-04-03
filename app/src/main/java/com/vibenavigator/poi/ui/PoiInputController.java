@@ -143,6 +143,18 @@ public final class PoiInputController {
         editText.setSelection(text.length());
     }
 
+    public void setPoi(@NonNull Poi poi) {
+        String label = poi.displayLabel();
+        AppLogger.d(logTag, "Programmatically setting POI=" + label);
+        programmaticChange = true;
+        editText.setText(label);
+        editText.setSelection(label.length());
+        dismissPopup();
+        selectedPoi = poi;
+        history.addOrPromote(poi);
+        listener.onPoiSelected(poi);
+    }
+
     @NonNull
     public EditText getEditText() {
         return editText;
@@ -255,15 +267,8 @@ public final class PoiInputController {
     }
 
     private void selectPoi(@NonNull Poi poi) {
-        String label = poi.displayLabel();
-        programmaticChange = true;
-        editText.setText(label);
-        editText.setSelection(label.length());
-        dismissPopup();
-        selectedPoi = poi;
-        history.addOrPromote(poi);
         AppLogger.i(logTag, "Selected POI=" + poi.displayLabel());
-        listener.onPoiSelected(poi);
+        setPoi(poi);
     }
 
     private void dismissPopup() {
