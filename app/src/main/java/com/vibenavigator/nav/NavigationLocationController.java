@@ -72,30 +72,40 @@ final class NavigationLocationController {
                 AppLogger.w(TAG, "LocationManager unavailable, cannot request updates");
                 return;
             }
-            locationManager.removeUpdates(listener);
             List<String> providers = new ArrayList<>(2);
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                requestProviderUpdates(LocationManager.GPS_PROVIDER, minTimeMs);
                 providers.add(LocationManager.GPS_PROVIDER);
             }
             if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                requestProviderUpdates(LocationManager.NETWORK_PROVIDER, minTimeMs);
                 providers.add(LocationManager.NETWORK_PROVIDER);
             }
+            String providerSummary = joinProviders(providers);
             if (providers.isEmpty()) {
                 nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+                if (lastRequestedProvider != null) {
+                    locationManager.removeUpdates(listener);
+                    lastRequestedLocationMinTimeMs = -1L;
+                    lastRequestedProvider = null;
+                }
                 AppLogger.w(TAG, "No enabled location provider available for updates " + describeAvailability());
-            } else {
-                nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+                return;
             }
-            String providerSummary = joinProviders(providers);
-            if (providerSummary != null
-                    && (minTimeMs != lastRequestedLocationMinTimeMs
-                    || !providerSummary.equals(lastRequestedProvider))) {
-                lastRequestedLocationMinTimeMs = minTimeMs;
-                lastRequestedProvider = providerSummary;
-                AppLogger.i(TAG, "Requested location updates provider=" + providerSummary + " minTimeMs=" + minTimeMs);
+            nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+            if (shouldReuseActiveLocationRequest(
+                    minTimeMs,
+                    providerSummary,
+                    lastRequestedLocationMinTimeMs,
+                    lastRequestedProvider
+            )) {
+                return;
             }
+            locationManager.removeUpdates(listener);
+            for (String provider : providers) {
+                requestProviderUpdates(provider, minTimeMs);
+            }
+            lastRequestedLocationMinTimeMs = minTimeMs;
+            lastRequestedProvider = providerSummary;
+            AppLogger.i(TAG, "Requested location updates provider=" + providerSummary + " minTimeMs=" + minTimeMs);
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Permission denied while requesting location updates", e);
         }
@@ -301,6 +311,17 @@ final class NavigationLocationController {
 
     private static float accuracyMeters(@NonNull Location location) {
         return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    static boolean shouldReuseActiveLocationRequest(
+            long minTimeMs,
+            @Nullable String providerSummary,
+            long lastRequestedLocationMinTimeMs,
+            @Nullable String lastRequestedProvider
+    ) {
+        return providerSummary != null
+                && minTimeMs == lastRequestedLocationMinTimeMs
+                && providerSummary.equals(lastRequestedProvider);
     }
 
     @NonNull

@@ -65,6 +65,46 @@ public class NavigationLocationControllerTest {
         assertTrue(NavigationLocationController.isUsableStartupLastKnownLocation(location, nowMs));
     }
 
+    @Test
+    public void shouldReuseActiveLocationRequest_returnsTrueForMatchingIntervalAndProviders() {
+        assertTrue(NavigationLocationController.shouldReuseActiveLocationRequest(
+                1_000L,
+                "gps+network",
+                1_000L,
+                "gps+network"
+        ));
+    }
+
+    @Test
+    public void shouldReuseActiveLocationRequest_returnsFalseForChangedInterval() {
+        assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
+                2_000L,
+                "gps+network",
+                1_000L,
+                "gps+network"
+        ));
+    }
+
+    @Test
+    public void shouldReuseActiveLocationRequest_returnsFalseForChangedProviders() {
+        assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
+                1_000L,
+                "gps",
+                1_000L,
+                "gps+network"
+        ));
+    }
+
+    @Test
+    public void shouldReuseActiveLocationRequest_returnsFalseWhenNoProviderSummaryExists() {
+        assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
+                1_000L,
+                null,
+                1_000L,
+                "gps+network"
+        ));
+    }
+
     private static Location location(String provider, long timeMs, float accuracyMeters) {
         Location location = new Location(provider);
         location.setLatitude(48.2082d);

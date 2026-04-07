@@ -120,8 +120,11 @@ The app must monitor user position:
 - Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance to that direction
 - When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 1 second
 - Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
+- The post-warmup dynamic interval must be snapped to a small fixed bucket set instead of continuously varying on every update
+- The bucket set must currently be `1s`, `2s`, `3s`, `5s`, `8s`, `12s`, `20s`, `30s`, and `60s`
 - The dynamic interval must never be lower than 1 second
 - The dynamic interval must never exceed 60 seconds
+- Re-requesting location updates must reuse the active listener registration when the requested interval bucket and enabled provider set are unchanged, so the app does not continuously tear down and rebuild subscriptions
 - Position handling must use a Kalman filter
 - Any asynchronous route calculation must apply its resulting shared navigation state in a single serialized path so stale background results cannot overwrite newer navigation state
 

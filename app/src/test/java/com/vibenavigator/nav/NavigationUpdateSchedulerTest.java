@@ -47,7 +47,7 @@ public class NavigationUpdateSchedulerTest {
                 10f
         );
 
-        assertEquals(5559L, intervalMs);
+        assertEquals(5000L, intervalMs);
     }
 
     @Test
@@ -86,5 +86,18 @@ public class NavigationUpdateSchedulerTest {
         );
 
         assertEquals(60000L, intervalMs);
+    }
+
+    @Test
+    public void bucketInterval_snapsToNearestBucket() {
+        assertEquals(5000L, NavigationUpdateScheduler.bucketInterval(5_559L));
+        assertEquals(8000L, NavigationUpdateScheduler.bucketInterval(7_200L));
+        assertEquals(12000L, NavigationUpdateScheduler.bucketInterval(11_100L));
+    }
+
+    @Test
+    public void bucketInterval_clampsBeforeBucketing() {
+        assertEquals(1000L, NavigationUpdateScheduler.bucketInterval(500L));
+        assertEquals(60000L, NavigationUpdateScheduler.bucketInterval(90_000L));
     }
 }
