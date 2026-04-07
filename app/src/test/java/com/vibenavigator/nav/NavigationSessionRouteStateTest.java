@@ -65,6 +65,76 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void evaluateLocation_surfacesOffTrackRerouteNotice() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.0003, 0.0, 2_000L),
+                5f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertTrue(evaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, evaluation.rerouteNotice.reason);
+        assertEquals(15.0, evaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
+    }
+
+    @Test
+    public void evaluateLocation_surfacesBearingMismatchRerouteNotice() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.0001, 2_000L),
+                5f,
+                5f,
+                180.0,
+                2_000L,
+                0L
+        );
+
+        assertTrue(evaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.BEARING_MISMATCH, evaluation.rerouteNotice.reason);
+        assertEquals(90.0, evaluation.rerouteNotice.bearingDiffDegrees, 0.0);
+        assertEquals(90.0, evaluation.rerouteNotice.expectedBearingDegrees, 0.0);
+        assertEquals(180.0, evaluation.rerouteNotice.actualBearingDegrees, 0.0);
+    }
+
+    @Test
     public void addBlockedPointsAhead_escalatesNearbyRepeatsAndReplacesOldMarkers() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

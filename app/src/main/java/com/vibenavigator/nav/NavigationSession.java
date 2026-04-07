@@ -81,7 +81,7 @@ final class NavigationSession {
             routeRequestManager.markInvalidRequest(context);
             AppLogger.e(TAG, "Skipping route evaluation because the request is incomplete "
                     + currentRequest.describe(), null);
-            return LocationUpdateResult.accepted(filtered, true, Collections.emptyList(), NO_SUGGESTED_INTERVAL);
+            return LocationUpdateResult.accepted(filtered, true, null, Collections.emptyList(), NO_SUGGESTED_INTERVAL);
         }
 
         NavigationSessionRouteState.Evaluation evaluation = routeState.evaluateLocation(
@@ -95,6 +95,7 @@ final class NavigationSession {
         return LocationUpdateResult.accepted(
                 filtered,
                 evaluation.shouldRecalculateRoute(),
+                evaluation.rerouteNotice,
                 evaluation.turnEvents,
                 evaluation.getSuggestedUpdateIntervalMs()
         );
@@ -163,6 +164,8 @@ final class NavigationSession {
         private final boolean shouldRecalculateRoute;
         private final long suggestedUpdateIntervalMs;
         @Nullable
+        private final NavigationRerouteNotice rerouteNotice;
+        @Nullable
         final Location filteredLocation;
         @NonNull
         final List<TurnEvent> turnEvents;
@@ -171,25 +174,28 @@ final class NavigationSession {
                 boolean dropped,
                 boolean shouldRecalculateRoute,
                 long suggestedUpdateIntervalMs,
+                @Nullable NavigationRerouteNotice rerouteNotice,
                 @Nullable Location filteredLocation,
                 @NonNull List<TurnEvent> turnEvents
         ) {
             this.dropped = dropped;
             this.shouldRecalculateRoute = shouldRecalculateRoute;
             this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
+            this.rerouteNotice = rerouteNotice;
             this.filteredLocation = filteredLocation;
             this.turnEvents = turnEvents;
         }
 
         @NonNull
         static LocationUpdateResult dropped() {
-            return new LocationUpdateResult(true, false, NO_SUGGESTED_INTERVAL, null, Collections.emptyList());
+            return new LocationUpdateResult(true, false, NO_SUGGESTED_INTERVAL, null, null, Collections.emptyList());
         }
 
         @NonNull
         static LocationUpdateResult accepted(
                 @Nullable Location filteredLocation,
                 boolean shouldRecalculateRoute,
+                @Nullable NavigationRerouteNotice rerouteNotice,
                 @NonNull List<TurnEvent> turnEvents,
                 long suggestedUpdateIntervalMs
         ) {
@@ -197,6 +203,7 @@ final class NavigationSession {
                     false,
                     shouldRecalculateRoute,
                     suggestedUpdateIntervalMs,
+                    rerouteNotice,
                     filteredLocation,
                     turnEvents
             );
@@ -212,6 +219,11 @@ final class NavigationSession {
 
         long getSuggestedUpdateIntervalMs() {
             return suggestedUpdateIntervalMs;
+        }
+
+        @Nullable
+        NavigationRerouteNotice getRerouteNotice() {
+            return rerouteNotice;
         }
     }
 

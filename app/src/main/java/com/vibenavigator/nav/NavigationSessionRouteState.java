@@ -63,7 +63,7 @@ final class NavigationSessionRouteState {
     ) {
         if (route == null || polylineIndex == null || route.track.isEmpty()) {
             AppLogger.i(TAG, "No active route loaded, requesting route calculation");
-            return Evaluation.requestRecalculation();
+            return Evaluation.requestRecalculation(null);
         }
 
         PolylineIndex.Match match = polylineIndex.match(
@@ -72,7 +72,7 @@ final class NavigationSessionRouteState {
         );
         if (match == null) {
             AppLogger.w(TAG, "Route match failed, requesting recalculation");
-            return Evaluation.requestRecalculation();
+            return Evaluation.requestRecalculation(null);
         }
         lastSegmentIndex = match.segmentIndex;
 
@@ -85,13 +85,13 @@ final class NavigationSessionRouteState {
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.OFF_TRACK) {
             AppLogger.w(TAG, "Off-track detected distance=" + match.distanceToTrackMeters
                     + " threshold=" + deviationDecision.offTrackThresholdMeters);
-            return Evaluation.requestRecalculation();
+            return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
         }
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
             AppLogger.w(TAG, "Bearing mismatch detected diff=" + deviationDecision.bearingDiffDegrees
                     + " expected=" + match.segmentBearingDegrees
                     + " actual=" + actualBearingDegrees);
-            return Evaluation.requestRecalculation();
+            return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
         }
 
         NavigationTurnState.Progress progress = turnState.evaluate(
@@ -219,22 +219,26 @@ final class NavigationSessionRouteState {
     static final class Evaluation {
         private final boolean shouldRecalculateRoute;
         private final long suggestedUpdateIntervalMs;
+        @Nullable
+        final NavigationRerouteNotice rerouteNotice;
         @NonNull
         final List<NavigationSession.TurnEvent> turnEvents;
 
         private Evaluation(
                 boolean shouldRecalculateRoute,
                 long suggestedUpdateIntervalMs,
+                @Nullable NavigationRerouteNotice rerouteNotice,
                 @NonNull List<NavigationSession.TurnEvent> turnEvents
         ) {
             this.shouldRecalculateRoute = shouldRecalculateRoute;
             this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
+            this.rerouteNotice = rerouteNotice;
             this.turnEvents = turnEvents;
         }
 
         @NonNull
-        static Evaluation requestRecalculation() {
-            return new Evaluation(true, NO_SUGGESTED_INTERVAL, Collections.emptyList());
+        static Evaluation requestRecalculation(@Nullable NavigationRerouteNotice rerouteNotice) {
+            return new Evaluation(true, NO_SUGGESTED_INTERVAL, rerouteNotice, Collections.emptyList());
         }
 
         @NonNull
@@ -242,7 +246,7 @@ final class NavigationSessionRouteState {
                 @NonNull List<NavigationSession.TurnEvent> turnEvents,
                 long suggestedUpdateIntervalMs
         ) {
-            return new Evaluation(false, suggestedUpdateIntervalMs, turnEvents);
+            return new Evaluation(false, suggestedUpdateIntervalMs, null, turnEvents);
         }
 
         boolean shouldRecalculateRoute() {

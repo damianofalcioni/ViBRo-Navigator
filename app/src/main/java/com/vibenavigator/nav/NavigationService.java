@@ -121,7 +121,7 @@ public class NavigationService extends Service implements LocationListener {
             }
             AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
                     + " location=" + formatLocation(loc));
-            requestRouteRecalc(true);
+            requestRouteRecalc(true, null);
         }
 
         public void stop() {
@@ -185,7 +185,7 @@ public class NavigationService extends Service implements LocationListener {
             return;
         }
         if (result.shouldRecalculateRoute()) {
-            requestRouteRecalc(false);
+            requestRouteRecalc(false, result.getRerouteNotice());
         } else if (result.getSuggestedUpdateIntervalMs() > 0L) {
             locationController.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
         }
@@ -214,13 +214,16 @@ public class NavigationService extends Service implements LocationListener {
         AppLogger.d(TAG, "Location provider status changed provider=" + provider + " status=" + status);
     }
 
-    private void requestRouteRecalc(boolean force) {
+    private void requestRouteRecalc(boolean force, @Nullable NavigationRerouteNotice rerouteNotice) {
         NavigationSession.RouteRequestSnapshot snapshot =
                 navigationSession.prepareRouteRequest(force, System.currentTimeMillis());
         if (snapshot == null) {
             return;
         }
         emitState();
+        if (rerouteNotice != null) {
+            foregroundController.sendOffRouteNotification(rerouteNotice);
+        }
         routeExecutor.requestRoute(this, snapshot, routeCallback);
     }
 

@@ -18,17 +18,27 @@ final class RouteDeviationPolicy {
 
     static final class Decision {
         final Reason reason;
+        final double distanceToTrackMeters;
         final double offTrackThresholdMeters;
+        final double expectedBearingDegrees;
+        @Nullable
+        final Double actualBearingDegrees;
         @Nullable
         final Double bearingDiffDegrees;
 
         private Decision(
                 Reason reason,
+                double distanceToTrackMeters,
                 double offTrackThresholdMeters,
+                double expectedBearingDegrees,
+                @Nullable Double actualBearingDegrees,
                 @Nullable Double bearingDiffDegrees
         ) {
             this.reason = reason;
+            this.distanceToTrackMeters = distanceToTrackMeters;
             this.offTrackThresholdMeters = offTrackThresholdMeters;
+            this.expectedBearingDegrees = expectedBearingDegrees;
+            this.actualBearingDegrees = actualBearingDegrees;
             this.bearingDiffDegrees = bearingDiffDegrees;
         }
 
@@ -46,17 +56,45 @@ final class RouteDeviationPolicy {
         double safeAccuracyMeters = accuracyMeters > 0f ? accuracyMeters : DEFAULT_ACCURACY_METERS;
         double offTrackThresholdMeters = BASE_OFF_TRACK_THRESHOLD_METERS + safeAccuracyMeters;
         if (distanceToTrackMeters > offTrackThresholdMeters) {
-            return new Decision(Reason.OFF_TRACK, offTrackThresholdMeters, null);
+            return new Decision(
+                    Reason.OFF_TRACK,
+                    distanceToTrackMeters,
+                    offTrackThresholdMeters,
+                    expectedBearingDegrees,
+                    actualBearingDegrees,
+                    null
+            );
         }
 
         if (actualBearingDegrees == null) {
-            return new Decision(Reason.NONE, offTrackThresholdMeters, null);
+            return new Decision(
+                    Reason.NONE,
+                    distanceToTrackMeters,
+                    offTrackThresholdMeters,
+                    expectedBearingDegrees,
+                    null,
+                    null
+            );
         }
 
         double bearingDiffDegrees = GeoMath.angularDiffDegrees(actualBearingDegrees, expectedBearingDegrees);
         if (bearingDiffDegrees > BEARING_MISMATCH_THRESHOLD_DEGREES) {
-            return new Decision(Reason.BEARING_MISMATCH, offTrackThresholdMeters, bearingDiffDegrees);
+            return new Decision(
+                    Reason.BEARING_MISMATCH,
+                    distanceToTrackMeters,
+                    offTrackThresholdMeters,
+                    expectedBearingDegrees,
+                    actualBearingDegrees,
+                    bearingDiffDegrees
+            );
         }
-        return new Decision(Reason.NONE, offTrackThresholdMeters, bearingDiffDegrees);
+        return new Decision(
+                Reason.NONE,
+                distanceToTrackMeters,
+                offTrackThresholdMeters,
+                expectedBearingDegrees,
+                actualBearingDegrees,
+                bearingDiffDegrees
+        );
     }
 }

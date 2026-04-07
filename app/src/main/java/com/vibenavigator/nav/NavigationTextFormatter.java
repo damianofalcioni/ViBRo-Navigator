@@ -3,6 +3,7 @@ package com.vibenavigator.nav;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.vibenavigator.R;
 import com.vibenavigator.nav.directions.DirectionInfo;
@@ -38,6 +39,31 @@ public final class NavigationTextFormatter {
     }
 
     @NonNull
+    public static String formatOffRouteNotification(
+            @NonNull Context context,
+            @NonNull NavigationRerouteNotice rerouteNotice
+    ) {
+        switch (rerouteNotice.reason) {
+            case OFF_TRACK:
+                return context.getString(
+                        R.string.format_off_route_off_track_notification,
+                        formatDistance(context, rerouteNotice.distanceToTrackMeters),
+                        formatDistance(context, rerouteNotice.offTrackThresholdMeters)
+                );
+            case BEARING_MISMATCH:
+                return context.getString(
+                        R.string.format_off_route_bearing_notification,
+                        formatBearingDegrees(context, rerouteNotice.bearingDiffDegrees),
+                        formatBearingDegrees(context, rerouteNotice.expectedBearingDegrees),
+                        formatBearingDegrees(context, rerouteNotice.actualBearingDegrees)
+                );
+            case NONE:
+            default:
+                return context.getString(R.string.notification_off_route_title);
+        }
+    }
+
+    @NonNull
     public static String formatDistance(@NonNull Context context, double meters) {
         if (meters >= 1000.0) {
             return context.getString(R.string.format_distance_km, meters / 1000.0);
@@ -51,6 +77,14 @@ public final class NavigationTextFormatter {
             return context.getString(R.string.format_time_min, (int) Math.round(seconds / 60.0));
         }
         return context.getString(R.string.format_time_s, Math.max(0, seconds));
+    }
+
+    @NonNull
+    public static String formatBearingDegrees(@NonNull Context context, @Nullable Double degrees) {
+        return context.getString(
+                R.string.format_bearing_degrees,
+                degrees == null ? 0.0 : degrees
+        );
     }
 
     @NonNull

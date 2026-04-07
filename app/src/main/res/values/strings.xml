@@ -68,6 +68,7 @@
     <string name="notification_channel_turn_right">Turn (right)</string>
     <string name="notification_nav_running">Navigation running</string>
     <string name="notification_nav_running_text">VibeNavigator is navigating in the background</string>
+    <string name="notification_off_route_title">Off route</string>
 
     <string name="direction_continue">Continue</string>
     <string name="direction_keep_left">Keep left</string>
@@ -92,6 +93,7 @@
 
     <string name="format_distance_m">%1$.0f m</string>
     <string name="format_distance_km">%1$.1f km</string>
+    <string name="format_bearing_degrees">%1$.0f°</string>
     <string name="format_time_s">%1$d s</string>
     <string name="format_time_min">%1$d min</string>
     <string name="format_eta_hm">%1$02d:%2$02d</string>
@@ -99,6 +101,8 @@
     <string name="format_nav_next_position_check_value">%1$d s</string>
     <string name="format_nav_gps_status">GPS Status: %1$s • %2$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>
+    <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
+    <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>
     <string name="format_progress_line">%1$s: %2$s • %3$s • %4$s %5$s</string>
     <string name="format_poi_suggestion">%1$s (%2$.5f, %3$.5f)</string>
     <string name="format_coordinates">%1$.6f, %2$.6f</string>

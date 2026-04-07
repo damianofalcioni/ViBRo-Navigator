@@ -123,6 +123,27 @@ final class NavigationForegroundController {
         sendTurnNotification(hint, distanceMeters, timeSeconds, channelId, vibrate);
     }
 
+    void sendOffRouteNotification(@NonNull NavigationRerouteNotice rerouteNotice) {
+        String title = service.getString(R.string.notification_off_route_title);
+        String message = NavigationTextFormatter.formatOffRouteNotification(service, rerouteNotice);
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_NAV)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(title)
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        NotificationManager notificationManager =
+                (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
+        if (notificationManager == null) {
+            AppLogger.w(TAG, "NotificationManager unavailable, cannot send off-route notification");
+            return;
+        }
+        notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
+        AppLogger.i(TAG, "Sent off-route notification reason=" + rerouteNotice.reason + " message=" + message);
+    }
+
     @NonNull
     private Notification buildOngoingNotification(@NonNull NavigationRequest request) {
         Intent stopNavigationIntent = new Intent(service, NavigationService.class);
