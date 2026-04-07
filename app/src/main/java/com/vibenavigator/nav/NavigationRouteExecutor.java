@@ -1,11 +1,14 @@
 package com.vibenavigator.nav;
 
 import android.content.Context;
+import android.os.DeadObjectException;
 import android.os.Handler;
+import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
+import com.vibenavigator.brouter.BRouterClient;
 import com.vibenavigator.brouter.BRouterRouter;
 import com.vibenavigator.brouter.NogoPoint;
 import com.vibenavigator.geo.LatLon;
@@ -16,8 +19,14 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 final class NavigationRouteExecutor {
+
+    @VisibleForTesting
+    interface Sleeper {
+        void sleep(long delayMs) throws InterruptedException;
+    }
 
     interface Callback {
         void onRouteApplied(
@@ -49,19 +58,46 @@ final class NavigationRouteExecutor {
     }
 
     private static final String TAG = "NavRouteExecutor";
+    private static final int DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES = 2;
+    private static final long DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS = 400L;
 
     private final RouteCalculator routeCalculator;
     private final ExecutorService executorService;
     private final MainThreadPoster mainThreadPoster;
+    private final int maxTransientRouteRetries;
+    private final long transientRouteRetryDelayMs;
+    private final Sleeper sleeper;
 
     NavigationRouteExecutor(
             @NonNull RouteCalculator routeCalculator,
             @NonNull ExecutorService executorService,
             @NonNull MainThreadPoster mainThreadPoster
     ) {
+        this(
+                routeCalculator,
+                executorService,
+                mainThreadPoster,
+                DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES,
+                DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS,
+                Thread::sleep
+        );
+    }
+
+    @VisibleForTesting
+    NavigationRouteExecutor(
+            @NonNull RouteCalculator routeCalculator,
+            @NonNull ExecutorService executorService,
+            @NonNull MainThreadPoster mainThreadPoster,
+            int maxTransientRouteRetries,
+            long transientRouteRetryDelayMs,
+            @NonNull Sleeper sleeper
+    ) {
         this.routeCalculator = routeCalculator;
         this.executorService = executorService;
         this.mainThreadPoster = mainThreadPoster;
+        this.maxTransientRouteRetries = Math.max(0, maxTransientRouteRetries);
+        this.transientRouteRetryDelayMs = Math.max(0L, transientRouteRetryDelayMs);
+        this.sleeper = sleeper;
     }
 
     @NonNull
@@ -83,14 +119,7 @@ final class NavigationRouteExecutor {
             executorService.submit(() -> {
                 long beganAt = System.currentTimeMillis();
                 try {
-                    GeoJsonRoute newRoute = routeCalculator.routeGeoJson(
-                            appContext,
-                            snapshot.start,
-                            snapshot.intermediates,
-                            requireDestination(snapshot),
-                            requireProfile(snapshot),
-                            snapshot.blocked
-                    );
+                    GeoJsonRoute newRoute = calculateRouteWithRetry(appContext, snapshot);
                     if (newRoute.track.isEmpty()) {
                         throw new IllegalStateException("BRouter returned an empty route");
                     }
@@ -106,6 +135,39 @@ final class NavigationRouteExecutor {
 
     void shutdown() {
         executorService.shutdownNow();
+        if (!awaitExecutorTermination()) {
+            AppLogger.w(TAG, "Route executor did not terminate cleanly before cleanup");
+        }
+        closeRouteCalculator();
+    }
+
+    @NonNull
+    private GeoJsonRoute calculateRouteWithRetry(
+            @NonNull Context appContext,
+            @NonNull NavigationSession.RouteRequestSnapshot snapshot
+    ) throws Exception {
+        int attempt = 0;
+        while (true) {
+            attempt++;
+            try {
+                return routeCalculator.routeGeoJson(
+                        appContext,
+                        snapshot.start,
+                        snapshot.intermediates,
+                        requireDestination(snapshot),
+                        requireProfile(snapshot),
+                        snapshot.blocked
+                );
+            } catch (Exception e) {
+                if (!shouldRetryTransientRouteFailure(e, attempt)) {
+                    throw e;
+                }
+                AppLogger.w(TAG, "Transient BRouter route failure attempt="
+                        + attempt + "/" + (maxTransientRouteRetries + 1)
+                        + " retryDelayMs=" + transientRouteRetryDelayMs, e);
+                sleepBeforeRetry();
+            }
+        }
     }
 
     @NonNull
@@ -124,12 +186,71 @@ final class NavigationRouteExecutor {
         return snapshot.profile;
     }
 
-    private static final class BRouterRouteCalculator implements RouteCalculator {
+    private boolean shouldRetryTransientRouteFailure(@NonNull Exception error, int attempt) {
+        return attempt <= maxTransientRouteRetries && isTransientBRouterFailure(error);
+    }
+
+    private boolean isTransientBRouterFailure(@NonNull Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof DeadObjectException || current instanceof RemoteException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null) {
+                String normalized = message.trim().toLowerCase();
+                if (normalized.contains("brouter service not available")
+                        || normalized.contains("brouter is not connected")
+                        || normalized.contains("brouter binding died")
+                        || normalized.contains("null binding")) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
+    }
+
+    private void sleepBeforeRetry() throws Exception {
+        if (transientRouteRetryDelayMs <= 0L) {
+            return;
+        }
+        try {
+            sleeper.sleep(transientRouteRetryDelayMs);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while retrying BRouter route calculation", e);
+        }
+    }
+
+    private boolean awaitExecutorTermination() {
+        try {
+            return executorService.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            AppLogger.w(TAG, "Interrupted while waiting for route executor shutdown", e);
+            return false;
+        }
+    }
+
+    private void closeRouteCalculator() {
+        if (!(routeCalculator instanceof AutoCloseable)) {
+            return;
+        }
+        try {
+            ((AutoCloseable) routeCalculator).close();
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to close route calculator cleanly", e);
+        }
+    }
+
+    private static final class BRouterRouteCalculator implements RouteCalculator, AutoCloseable {
         private final BRouterRouter router = new BRouterRouter();
+        private BRouterClient client;
 
         @NonNull
         @Override
-        public GeoJsonRoute routeGeoJson(
+        public synchronized GeoJsonRoute routeGeoJson(
                 @NonNull Context context,
                 @NonNull LatLon start,
                 @NonNull List<LatLon> intermediates,
@@ -137,7 +258,18 @@ final class NavigationRouteExecutor {
                 @NonNull String profile,
                 @NonNull List<NogoPoint> blocked
         ) throws Exception {
-            return router.routeGeoJson(context, start, intermediates, destination, profile, blocked);
+            if (client == null) {
+                client = new BRouterClient(context.getApplicationContext());
+            }
+            return router.routeGeoJson(client, start, intermediates, destination, profile, blocked);
+        }
+
+        @Override
+        public synchronized void close() {
+            if (client != null) {
+                client.close();
+                client = null;
+            }
         }
     }
 

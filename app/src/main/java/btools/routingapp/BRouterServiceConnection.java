@@ -12,13 +12,29 @@ import androidx.annotation.Nullable;
 public class BRouterServiceConnection implements ServiceConnection {
 
     private IBRouterService brouterService;
+    private boolean bindingDied;
+    private boolean nullBinding;
 
     public void onServiceConnected(ComponentName className, IBinder boundService) {
         brouterService = IBRouterService.Stub.asInterface(boundService);
+        bindingDied = false;
+        nullBinding = false;
     }
 
     public void onServiceDisconnected(ComponentName className) {
         brouterService = null;
+    }
+
+    @Override
+    public void onBindingDied(@NonNull ComponentName name) {
+        brouterService = null;
+        bindingDied = true;
+    }
+
+    @Override
+    public void onNullBinding(@NonNull ComponentName name) {
+        brouterService = null;
+        nullBinding = true;
     }
 
     public void disconnect(@NonNull Context ctx) {
@@ -28,6 +44,14 @@ public class BRouterServiceConnection implements ServiceConnection {
     @Nullable
     public IBRouterService getBrouterService() {
         return brouterService;
+    }
+
+    public boolean hasBindingDied() {
+        return bindingDied;
+    }
+
+    public boolean hasNullBinding() {
+        return nullBinding;
     }
 
     @Nullable
