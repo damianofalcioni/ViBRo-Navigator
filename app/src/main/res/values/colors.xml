@@ -4,6 +4,8 @@
     <color name="white">#FFFFFF</color>
     <color name="gray_700">#616161</color>
     <color name="gray_900">#212121</color>
-    <color name="accent">#00E676</color>
     <color name="danger">#FF5252</color>
+    <color name="surface_800">#151B22</color>
+    <color name="outline">#2C3744</color>
+    <color name="ripple_light">#33FFFFFF</color>
 </resources>
