@@ -149,7 +149,7 @@ final class NavigationForegroundController {
         );
 
         return new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_NAV)
-                .setSmallIcon(R.drawable.ic_logo)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(service.getString(R.string.notification_nav_running))
                 .setContentText(service.getString(R.string.notification_nav_running_text))
                 .setOngoing(true)
@@ -169,7 +169,7 @@ final class NavigationForegroundController {
         String message = NavigationTextFormatter.formatTurnNotification(service, hint, distanceMeters, timeSeconds);
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(service, channelId)
-                .setSmallIcon(R.drawable.ic_logo)
+                .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(service.getString(R.string.app_name))
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
