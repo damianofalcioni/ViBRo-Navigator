@@ -18,6 +18,7 @@ Core product constraints:
 - Do not hardcode user-facing text in code
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
+- When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
 - Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app that only vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
 
@@ -276,6 +277,7 @@ The navigation UI must show the following in large text:
 - Translation-friendly text resource usage
 - Orientation-safe layouts
 - Robust permission handling before navigation starts
+- Robust OEM-compatible redirects for required system settings such as battery-optimization exemptions
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
 
 ## Implementation guidance

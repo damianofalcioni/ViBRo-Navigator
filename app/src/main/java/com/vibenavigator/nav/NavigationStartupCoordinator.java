@@ -44,6 +44,8 @@ public final class NavigationStartupCoordinator {
     private final PreflightInspector preflightInspector;
 
     private boolean autoStartNavigation;
+    private boolean settingsLaunchInProgress;
+    private boolean awaitingSettingsReturn;
 
     public NavigationStartupCoordinator(@NonNull Host host) {
         this(host, NavigationPreflight::inspect);
@@ -91,11 +93,13 @@ public final class NavigationStartupCoordinator {
                     R.string.msg_enable_notifications,
                     NavigationPreflight.newNotificationSettingsIntent(activity)
             );
+            return;
         }
 
         if (status.needsBatteryOptimizationExemption) {
             AppLogger.i(TAG, "Prompting for battery optimization exemption");
             host.showBatteryOptimizationDialog(NavigationPreflight.newBatteryOptimizationIntent(activity));
+            return;
         } else {
             AppLogger.i(TAG, "Battery optimization exemption already granted");
         }
@@ -112,6 +116,28 @@ public final class NavigationStartupCoordinator {
         }
         ensureReadyThenStart();
         return true;
+    }
+
+    public void onSettingsOpened() {
+        settingsLaunchInProgress = true;
+    }
+
+    public void onPause() {
+        if (!settingsLaunchInProgress) {
+            return;
+        }
+        awaitingSettingsReturn = true;
+        AppLogger.i(TAG, "Activity paused after opening external settings");
+    }
+
+    public void onResume() {
+        if (!awaitingSettingsReturn) {
+            return;
+        }
+        awaitingSettingsReturn = false;
+        settingsLaunchInProgress = false;
+        AppLogger.i(TAG, "Returned from external settings, rechecking startup preflight");
+        ensureReadyThenStart();
     }
 
     private void requestMissingPermissions(

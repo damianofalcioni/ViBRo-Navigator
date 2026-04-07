@@ -3,8 +3,8 @@ package com.vibenavigator.nav;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -19,6 +19,9 @@ import java.util.Collections;
 import java.util.List;
 
 public final class NavigationPreflight {
+
+    private static final String LEGACY_EXTRA_APP_PACKAGE = "app_package";
+    private static final String LEGACY_EXTRA_APP_UID = "app_uid";
 
     public static final class Status {
         @NonNull
@@ -90,14 +93,20 @@ public final class NavigationPreflight {
 
     @NonNull
     public static Intent newNotificationSettingsIntent(@NonNull Activity activity) {
-        return new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
-                .putExtra(Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
+        Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            return intent.putExtra(Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
+        }
+
+        ApplicationInfo applicationInfo = activity.getApplicationInfo();
+        return intent
+                .putExtra(LEGACY_EXTRA_APP_PACKAGE, activity.getPackageName())
+                .putExtra(LEGACY_EXTRA_APP_UID, applicationInfo.uid);
     }
 
     @NonNull
     public static Intent newBatteryOptimizationIntent(@NonNull Activity activity) {
-        return new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                .setData(Uri.parse("package:" + activity.getPackageName()));
+        return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
     }
 
     @NonNull

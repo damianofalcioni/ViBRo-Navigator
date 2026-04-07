@@ -34,6 +34,7 @@
     <string name="msg_permission_notifications_rationale">Notifications are used to alert upcoming turns.</string>
     <string name="msg_enable_notifications">Enable notifications for turn alerts.</string>
     <string name="msg_battery_opt_rationale">For reliable background navigation, allow VibeNavigator to ignore battery optimizations.</string>
+    <string name="msg_open_settings_failed">Could not open settings on this device.</string>
     <string name="msg_search_min_chars">Type at least 4 characters</string>
     <string name="msg_search_no_results">No results</string>
     <string name="msg_select_brouter_profiles_folder_title">Select BRouter profile source</string>

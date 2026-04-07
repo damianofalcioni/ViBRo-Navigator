@@ -13,6 +13,7 @@ import android.os.SystemClock;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +23,7 @@ import androidx.core.content.ContextCompat;
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationLifecyclePolicy;
 import com.vibenavigator.nav.NavigationRequest;
+import com.vibenavigator.nav.NavigationSettingsLauncher;
 import com.vibenavigator.nav.NavigationService;
 import com.vibenavigator.nav.NavigationStartupCoordinator;
 import com.vibenavigator.util.AppLogger;
@@ -138,6 +140,18 @@ public class NavigationActivity extends Activity {
         uiHandler.post(countdownTicker);
         AppLogger.i(TAG, "Binding NavigationService");
         bindService(new Intent(this, NavigationService.class), connection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startupCoordinator.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        startupCoordinator.onPause();
+        super.onPause();
     }
 
     @Override
@@ -274,7 +288,7 @@ public class NavigationActivity extends Activity {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(messageResId)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> startActivity(settingsIntent))
+                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsIntent))
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
         }
@@ -284,7 +298,7 @@ public class NavigationActivity extends Activity {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_battery_opt_rationale)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> startActivity(settingsIntent))
+                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsIntent))
                     .setNegativeButton(android.R.string.cancel, null)
                     .show();
         }
@@ -296,6 +310,18 @@ public class NavigationActivity extends Activity {
             request.putInto(start);
             AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
             ContextCompat.startForegroundService(NavigationActivity.this, start);
+        }
+
+        private void openSettings(@NonNull Intent settingsIntent) {
+            if (NavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
+                startupCoordinator.onSettingsOpened();
+                return;
+            }
+            Toast.makeText(
+                    NavigationActivity.this,
+                    R.string.msg_open_settings_failed,
+                    Toast.LENGTH_SHORT
+            ).show();
         }
     }
 

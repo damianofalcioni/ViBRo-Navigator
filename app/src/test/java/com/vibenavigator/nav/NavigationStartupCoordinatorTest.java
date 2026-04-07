@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import android.Manifest;
 import android.app.Activity;
@@ -81,6 +82,142 @@ public class NavigationStartupCoordinatorTest {
         assertEquals(com.vibenavigator.R.string.msg_location_disabled, host.settingsDialogMessageResId.intValue());
         assertEquals(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS, host.settingsIntent.getAction());
         assertNull(host.startedRequest);
+    }
+
+    @Test
+    public void ensureReadyThenStart_showsNotificationSettingsAndDoesNotStart() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                activity -> NavigationPreflight.Status.create(
+                        Collections.emptyList(),
+                        false,
+                        true,
+                        false,
+                        false
+                )
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+
+        assertEquals(com.vibenavigator.R.string.msg_enable_notifications, host.settingsDialogMessageResId.intValue());
+        assertNull(host.batteryOptimizationIntent);
+        assertNull(host.startedRequest);
+        assertTrue(coordinator.isAutoStartNavigation());
+    }
+
+    @Test
+    public void ensureReadyThenStart_showsBatteryOptimizationDialogAndDoesNotStart() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                activity -> NavigationPreflight.Status.create(
+                        Collections.emptyList(),
+                        false,
+                        true,
+                        true,
+                        true
+                )
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+
+        assertNotNull(host.batteryOptimizationIntent);
+        assertEquals(
+                android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS,
+                host.batteryOptimizationIntent.getAction()
+        );
+        assertNull(host.startedRequest);
+        assertTrue(coordinator.isAutoStartNavigation());
+    }
+
+    @Test
+    public void onResume_doesNotRecheckPreflightWithoutPauseAfterSettingsOpened() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                new NavigationStartupCoordinator.PreflightInspector() {
+                    private int callCount;
+
+                    @NonNull
+                    @Override
+                    public NavigationPreflight.Status inspect(@NonNull Activity activity) {
+                        callCount++;
+                        if (callCount == 1) {
+                            return NavigationPreflight.Status.create(
+                                    Collections.emptyList(),
+                                    false,
+                                    true,
+                                    false,
+                                    false
+                            );
+                        }
+                        return NavigationPreflight.Status.create(
+                                Collections.emptyList(),
+                                false,
+                                true,
+                                true,
+                                false
+                        );
+                    }
+                }
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+        assertNull(host.startedRequest);
+
+        coordinator.onSettingsOpened();
+        coordinator.onResume();
+
+        assertNull(host.startedRequest);
+        assertTrue(coordinator.isAutoStartNavigation());
+    }
+
+    @Test
+    public void onResume_rechecksPreflightAfterPauseAndSettingsOpened() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                new NavigationStartupCoordinator.PreflightInspector() {
+                    private int callCount;
+
+                    @NonNull
+                    @Override
+                    public NavigationPreflight.Status inspect(@NonNull Activity activity) {
+                        callCount++;
+                        if (callCount == 1) {
+                            return NavigationPreflight.Status.create(
+                                    Collections.emptyList(),
+                                    false,
+                                    true,
+                                    false,
+                                    false
+                            );
+                        }
+                        return NavigationPreflight.Status.create(
+                                Collections.emptyList(),
+                                false,
+                                true,
+                                true,
+                                false
+                        );
+                    }
+                }
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+        assertNull(host.startedRequest);
+
+        coordinator.onSettingsOpened();
+        coordinator.onPause();
+        coordinator.onResume();
+
+        assertNotNull(host.startedRequest);
+        assertFalse(coordinator.isAutoStartNavigation());
     }
 
     @Test

@@ -37,7 +37,7 @@ public class NavigationLifecycleRobolectricTest {
                 Robolectric.buildActivity(TestNavigationActivity.class, intent).setup();
         TestNavigationActivity activity = controller.get();
 
-        activity.getOnBackPressedDispatcher().onBackPressed();
+        activity.onBackPressed();
 
         assertTrue(activity.moveTaskToBackCalled);
         assertFalse(activity.isFinishing());
