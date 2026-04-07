@@ -86,6 +86,7 @@ Pressing the button must:
 - Access the current user location
 - Use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
 - Include any intermediate stops in the route calculation
+- A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 
 #### 4.3 BRouter integration
 
@@ -113,8 +114,10 @@ The implementation must use BRouter integration compatible with these references
 
 The app must monitor user position:
 
-- Every 2 seconds initially
+- Every 1 second while startup route lock is still stabilizing, for at most the first 60 seconds after navigation starts
+- Startup fast polling may end earlier once the app has gathered several consecutive accurate on-route updates
 - Later at a dynamic interval proportional to the distance to the next direction
+- The dynamic interval must never be lower than 1 second
 - The dynamic interval must never exceed 60 seconds
 - Position handling must use a Kalman filter
 - Any asynchronous route calculation must apply its resulting shared navigation state in a single serialized path so stale background results cannot overwrite newer navigation state

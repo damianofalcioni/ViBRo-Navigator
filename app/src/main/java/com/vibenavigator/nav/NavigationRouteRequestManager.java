@@ -17,33 +17,29 @@ import java.util.List;
 final class NavigationRouteRequestManager {
 
     private static final String TAG = "NavRouteRequests";
-    private static final long FAST_CHECK_WARMUP_MS = 30_000L;
-    private static final long REROUTE_THROTTLE_MS = 8_000L;
+    private static final long REROUTE_THROTTLE_MS = 2_000L;
 
-    private long fastChecksUntilMs;
     private long lastRerouteMs;
     private int routeRequestCount;
     private int routeRequestToken;
     private boolean routeCalculationInProgress;
+    private boolean pendingRecalculation;
     @Nullable
     private Exception lastRouteFailure;
 
     void reset(long nowMs) {
         routeRequestToken++;
-        fastChecksUntilMs = nowMs + FAST_CHECK_WARMUP_MS;
         lastRerouteMs = 0L;
         routeRequestCount = 0;
         routeCalculationInProgress = false;
+        pendingRecalculation = false;
         lastRouteFailure = null;
     }
 
     void stop() {
         routeRequestToken++;
         routeCalculationInProgress = false;
-    }
-
-    long getFastChecksUntilMs() {
-        return fastChecksUntilMs;
+        pendingRecalculation = false;
     }
 
     boolean isRouteCalculationInProgress() {
@@ -59,6 +55,12 @@ final class NavigationRouteRequestManager {
         lastRouteFailure = null;
     }
 
+    boolean consumePendingRecalculation() {
+        boolean queued = pendingRecalculation;
+        pendingRecalculation = false;
+        return queued;
+    }
+
     void markInvalidRequest(@NonNull Context context) {
         lastRouteFailure = new IllegalStateException(context.getString(R.string.nav_start_invalid_request));
     }
@@ -71,6 +73,11 @@ final class NavigationRouteRequestManager {
             @Nullable Location lastFiltered,
             @NonNull List<NogoPoint> blocked
     ) {
+        if (routeCalculationInProgress) {
+            pendingRecalculation = true;
+            AppLogger.d(TAG, "Queued route recalculation while previous request is still running");
+            return null;
+        }
         if (!force && nowMs - lastRerouteMs < REROUTE_THROTTLE_MS) {
             AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs=" + (nowMs - lastRerouteMs));
             return null;

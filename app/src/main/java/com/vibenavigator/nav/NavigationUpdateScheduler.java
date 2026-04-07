@@ -10,7 +10,7 @@ import java.util.List;
 
 final class NavigationUpdateScheduler {
 
-    private static final long MIN_UPDATE_INTERVAL_MS = 2000L;
+    private static final long MIN_UPDATE_INTERVAL_MS = 1000L;
     private static final long MAX_UPDATE_INTERVAL_MS = 60000L;
     private static final double SPEED_FLOOR_METERS_PER_SECOND = 1.0;
     private static final double DISTANCE_TO_INTERVAL_FACTOR = 250.0;

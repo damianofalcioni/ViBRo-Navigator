@@ -27,7 +27,7 @@ public class NavigationUpdateSchedulerTest {
                 5f
         );
 
-        assertEquals(2000L, intervalMs);
+        assertEquals(1000L, intervalMs);
     }
 
     @Test

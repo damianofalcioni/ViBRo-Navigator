@@ -37,9 +37,9 @@ public class NavigationRouteRequestManagerTest {
         );
         NavigationSession.RouteRequestSnapshot second = manager.prepare(
                 false,
-                13_000L,
+                11_000L,
                 navigationRequest(),
-                location(0.0, 0.0, 13_000L),
+                location(0.0, 0.0, 11_000L),
                 Collections.emptyList()
         );
 
@@ -49,7 +49,7 @@ public class NavigationRouteRequestManagerTest {
     }
 
     @Test
-    public void onRouteApplied_keepsNewerRequestInProgressWhenOlderResultArrives() {
+    public void prepare_queuesRecalculationWhileRequestIsInProgress() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 
@@ -61,17 +61,43 @@ public class NavigationRouteRequestManagerTest {
                 Collections.emptyList()
         );
         NavigationSession.RouteRequestSnapshot second = manager.prepare(
-                true,
+                false,
                 3_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 3_000L),
                 Collections.emptyList()
         );
 
-        assertFalse(manager.onRouteApplied(first));
+        assertNotNull(first);
+        assertNull(second);
         assertTrue(manager.isRouteCalculationInProgress());
-        assertTrue(manager.onRouteApplied(second));
+        assertTrue(manager.consumePendingRecalculation());
+        assertFalse(manager.consumePendingRecalculation());
+    }
+
+    @Test
+    public void onRouteApplied_clearsInProgressAndAllowsQueuedRetry() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset(1_000L);
+
+        NavigationSession.RouteRequestSnapshot first = manager.prepare(
+                true,
+                2_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 2_000L),
+                Collections.emptyList()
+        );
+        manager.prepare(
+                false,
+                3_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 3_000L),
+                Collections.emptyList()
+        );
+
+        assertTrue(manager.onRouteApplied(first));
         assertFalse(manager.isRouteCalculationInProgress());
+        assertTrue(manager.consumePendingRecalculation());
     }
 
     @Test

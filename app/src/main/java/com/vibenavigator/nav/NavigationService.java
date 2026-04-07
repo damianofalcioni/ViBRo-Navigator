@@ -21,6 +21,7 @@ public class NavigationService extends Service implements LocationListener {
 
     private static final String TAG = "NavigationService";
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
+    private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS = 1_000L;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -150,18 +151,18 @@ public class NavigationService extends Service implements LocationListener {
         }
 
         wakeLockController.acquire();
-        locationController.requestLocationUpdates(2000L);
+        locationController.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         locationController.requestCurrentLocationSeeds();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
 
-        Location seed = locationController.getBestLastKnownLocation();
+        Location seed = locationController.getBestStartupLastKnownLocation();
         if (seed != null) {
             AppLogger.i(TAG, "Using last known location as seed " + formatLocation(seed));
             onLocationChanged(seed);
         } else {
-            AppLogger.w(TAG, "No last known location available at navigation start "
+            AppLogger.w(TAG, "No usable cached location available at navigation start "
                     + locationController.describeAvailability());
         }
     }
@@ -196,7 +197,7 @@ public class NavigationService extends Service implements LocationListener {
     @Override
     public void onProviderEnabled(@NonNull String provider) {
         AppLogger.i(TAG, "Location provider enabled provider=" + provider);
-        locationController.onProviderEnabled(provider, 2000L);
+        locationController.onProviderEnabled(provider, DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         emitState();
     }
 
@@ -204,7 +205,9 @@ public class NavigationService extends Service implements LocationListener {
     public void onProviderDisabled(@NonNull String provider) {
         AppLogger.w(TAG, "Location provider disabled provider=" + provider);
         navigationSession.onProviderDisabled(provider);
-        locationController.requestLocationUpdates(locationController.getLastRequestedLocationMinTimeMsOrDefault(2000L));
+        locationController.requestLocationUpdates(
+                locationController.getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
+        );
         emitState();
     }
 
@@ -307,6 +310,10 @@ public class NavigationService extends Service implements LocationListener {
         ) {
             dispatchTurnEvents(navigationSession.applyRouteResult(NavigationService.this, snapshot, newRoute, beganAt));
             emitState();
+            if (navigationSession.consumePendingRouteRecalculation()) {
+                AppLogger.i(TAG, "Re-running queued route recalculation after previous request finished");
+                requestRouteRecalc(true, null);
+            }
         }
 
         @Override
@@ -316,6 +323,10 @@ public class NavigationService extends Service implements LocationListener {
         ) {
             navigationSession.applyRouteFailure(NavigationService.this, snapshot, error);
             emitState();
+            if (navigationSession.consumePendingRouteRecalculation()) {
+                AppLogger.i(TAG, "Retrying queued route recalculation after previous request failed");
+                requestRouteRecalc(true, null);
+            }
         }
     }
 

@@ -233,6 +233,7 @@ final class NavigationSessionRouteState {
 
     static final class Evaluation {
         private final boolean shouldRecalculateRoute;
+        private final boolean stableOnRouteSample;
         private final long suggestedUpdateIntervalMs;
         @Nullable
         final NavigationRerouteNotice rerouteNotice;
@@ -241,11 +242,13 @@ final class NavigationSessionRouteState {
 
         private Evaluation(
                 boolean shouldRecalculateRoute,
+                boolean stableOnRouteSample,
                 long suggestedUpdateIntervalMs,
                 @Nullable NavigationRerouteNotice rerouteNotice,
                 @NonNull List<NavigationSession.TurnEvent> turnEvents
         ) {
             this.shouldRecalculateRoute = shouldRecalculateRoute;
+            this.stableOnRouteSample = stableOnRouteSample;
             this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
             this.rerouteNotice = rerouteNotice;
             this.turnEvents = turnEvents;
@@ -253,7 +256,7 @@ final class NavigationSessionRouteState {
 
         @NonNull
         static Evaluation requestRecalculation(@Nullable NavigationRerouteNotice rerouteNotice) {
-            return new Evaluation(true, NO_SUGGESTED_INTERVAL, rerouteNotice, Collections.emptyList());
+            return new Evaluation(true, false, NO_SUGGESTED_INTERVAL, rerouteNotice, Collections.emptyList());
         }
 
         @NonNull
@@ -261,11 +264,15 @@ final class NavigationSessionRouteState {
                 @NonNull List<NavigationSession.TurnEvent> turnEvents,
                 long suggestedUpdateIntervalMs
         ) {
-            return new Evaluation(false, suggestedUpdateIntervalMs, null, turnEvents);
+            return new Evaluation(false, true, suggestedUpdateIntervalMs, null, turnEvents);
         }
 
         boolean shouldRecalculateRoute() {
             return shouldRecalculateRoute;
+        }
+
+        boolean isStableOnRouteSample() {
+            return stableOnRouteSample;
         }
 
         long getSuggestedUpdateIntervalMs() {

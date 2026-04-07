@@ -22,6 +22,7 @@ final class NavigationSession {
 
     private final NavigationSessionLocationState locationState = new NavigationSessionLocationState();
     private final NavigationSessionRouteState routeState = new NavigationSessionRouteState();
+    private final NavigationWarmupController warmupController = new NavigationWarmupController();
     private final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
 
     @NonNull
@@ -35,6 +36,7 @@ final class NavigationSession {
     boolean start(@NonNull Context context, long nowMs) {
         locationState.reset();
         routeState.reset();
+        warmupController.reset(nowMs);
         routeRequestManager.reset(nowMs);
 
         if (!currentRequest.isComplete()) {
@@ -90,8 +92,9 @@ final class NavigationSession {
                 locationState.accuracyMeters(filtered),
                 locationState.actualBearingDegrees(filtered),
                 nowMs,
-                routeRequestManager.getFastChecksUntilMs()
+                warmupController.getFastChecksUntilMs()
         );
+        warmupController.recordEvaluation(evaluation.isStableOnRouteSample(), locationState.accuracyMeters(filtered), nowMs);
         return LocationUpdateResult.accepted(
                 filtered,
                 evaluation.shouldRecalculateRoute(),
@@ -127,6 +130,7 @@ final class NavigationSession {
         if (!routeRequestManager.onRouteApplied(snapshot)) {
             return Collections.emptyList();
         }
+        warmupController.onRouteApplied();
         Location lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         return routeState.applyRouteResult(context, currentRequest, snapshot, newRoute, lastFiltered, speedMps, beganAt);
@@ -138,6 +142,10 @@ final class NavigationSession {
             @NonNull Exception error
     ) {
         routeRequestManager.onRouteFailure(context, snapshot, error);
+    }
+
+    boolean consumePendingRouteRecalculation() {
+        return routeRequestManager.consumePendingRecalculation();
     }
 
     @NonNull
