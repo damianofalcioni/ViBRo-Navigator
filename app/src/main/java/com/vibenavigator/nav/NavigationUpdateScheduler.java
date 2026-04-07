@@ -14,6 +14,7 @@ final class NavigationUpdateScheduler {
     private static final long MAX_UPDATE_INTERVAL_MS = 60000L;
     private static final double SPEED_FLOOR_METERS_PER_SECOND = 1.0;
     private static final double DISTANCE_TO_INTERVAL_FACTOR = 250.0;
+    private static final double VERY_IMMINENT_HINT_THRESHOLD_SECONDS = 8.0;
 
     long suggestUpdateInterval(
             long nowMs,
@@ -38,6 +39,9 @@ final class NavigationUpdateScheduler {
         double hintDistMeters = polylineIndex.distanceAtPointIndex(next.indexInTrack);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
         double timeToNextSeconds = distanceToNextMeters / Math.max(SPEED_FLOOR_METERS_PER_SECOND, speedMps);
+        if (timeToNextSeconds <= VERY_IMMINENT_HINT_THRESHOLD_SECONDS) {
+            return MIN_UPDATE_INTERVAL_MS;
+        }
         double intervalMs = timeToNextSeconds * DISTANCE_TO_INTERVAL_FACTOR;
         return (long) Math.max(MIN_UPDATE_INTERVAL_MS, Math.min(MAX_UPDATE_INTERVAL_MS, intervalMs));
     }

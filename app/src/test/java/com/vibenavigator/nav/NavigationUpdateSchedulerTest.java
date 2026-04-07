@@ -51,6 +51,25 @@ public class NavigationUpdateSchedulerTest {
     }
 
     @Test
+    public void suggestUpdateInterval_usesMinimumValueForVeryImminentHint() {
+        PolylineIndex index = new PolylineIndex(Arrays.asList(
+                new LatLon(0.0, 0.0),
+                new LatLon(0.0, 0.001)
+        ));
+        long intervalMs = scheduler.suggestUpdateInterval(
+                5_000L,
+                1_000L,
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                index,
+                0,
+                40.0,
+                10f
+        );
+
+        assertEquals(1000L, intervalMs);
+    }
+
+    @Test
     public void suggestUpdateInterval_clampsToMaxValue() {
         PolylineIndex index = new PolylineIndex(Arrays.asList(
                 new LatLon(0.0, 0.0),

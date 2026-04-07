@@ -115,8 +115,11 @@ The implementation must use BRouter integration compatible with these references
 The app must monitor user position:
 
 - Every 1 second while startup route lock is still stabilizing, for at most the first 60 seconds after navigation starts
-- Startup fast polling may end earlier once the app has gathered several consecutive accurate on-route updates
-- Later at a dynamic interval proportional to the distance to the next direction
+- Startup fast polling may end earlier once the app has gathered 5 consecutive accurate on-route updates after a route is active
+- An accurate warmup update means an on-route evaluation with location accuracy of 25 meters or better
+- Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance to that direction
+- When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 1 second
+- Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
 - The dynamic interval must never be lower than 1 second
 - The dynamic interval must never exceed 60 seconds
 - Position handling must use a Kalman filter
