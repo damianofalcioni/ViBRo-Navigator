@@ -94,6 +94,23 @@ public final class NavState {
     }
 
     @NonNull
+    public static NavState withNotice(@NonNull NavState base, @NonNull String notice) {
+        if (notice.trim().isEmpty()) {
+            return base;
+        }
+        String remaining = base.remainingBlock.isEmpty()
+                ? notice
+                : notice + "\n" + base.remainingBlock;
+        return new NavState(
+                base.nextLine,
+                base.afterNextLine,
+                base.accuracyLine,
+                base.nextEvaluationDeadlineElapsedMs,
+                remaining
+        );
+    }
+
+    @NonNull
     public static NavState from(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,

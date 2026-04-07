@@ -26,7 +26,7 @@ final class NavigationRouteRequestManager {
     private int routeRequestToken;
     private boolean routeCalculationInProgress;
     @Nullable
-    private String lastRouteFailureMessage;
+    private Exception lastRouteFailure;
 
     void reset(long nowMs) {
         routeRequestToken++;
@@ -34,7 +34,7 @@ final class NavigationRouteRequestManager {
         lastRerouteMs = 0L;
         routeRequestCount = 0;
         routeCalculationInProgress = false;
-        lastRouteFailureMessage = null;
+        lastRouteFailure = null;
     }
 
     void stop() {
@@ -51,16 +51,16 @@ final class NavigationRouteRequestManager {
     }
 
     @Nullable
-    String getLastRouteFailureMessage() {
-        return lastRouteFailureMessage;
+    Exception getLastRouteFailure() {
+        return lastRouteFailure;
     }
 
     void clearRouteFailure() {
-        lastRouteFailureMessage = null;
+        lastRouteFailure = null;
     }
 
     void markInvalidRequest(@NonNull Context context) {
-        lastRouteFailureMessage = context.getString(R.string.nav_start_invalid_request);
+        lastRouteFailure = new IllegalStateException(context.getString(R.string.nav_start_invalid_request));
     }
 
     @Nullable
@@ -93,7 +93,7 @@ final class NavigationRouteRequestManager {
                 new ArrayList<>(blocked)
         );
         routeCalculationInProgress = true;
-        lastRouteFailureMessage = null;
+        lastRouteFailure = null;
         AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
                 + " force=" + force
                 + " start=" + formatLatLon(snapshot.start)
@@ -109,7 +109,7 @@ final class NavigationRouteRequestManager {
             return false;
         }
         routeCalculationInProgress = false;
-        lastRouteFailureMessage = null;
+        lastRouteFailure = null;
         return true;
     }
 
@@ -123,26 +123,10 @@ final class NavigationRouteRequestManager {
             return;
         }
         routeCalculationInProgress = false;
-        lastRouteFailureMessage = summarizeRouteFailure(context, error);
+        lastRouteFailure = error;
         AppLogger.e(TAG, "Route recalculation #" + snapshot.requestNumber + " failed", error);
         AppLogger.w(TAG, "Route recalculation #" + snapshot.requestNumber + " failure summary="
-                + lastRouteFailureMessage);
-    }
-
-    @NonNull
-    private String summarizeRouteFailure(@NonNull Context context, @NonNull Throwable throwable) {
-        Throwable current = throwable;
-        while (current != null) {
-            String message = current.getMessage();
-            if (message != null) {
-                String sanitized = message.replace('\r', ' ').replace('\n', ' ').trim();
-                if (!sanitized.isEmpty()) {
-                    return sanitized.length() > 120 ? sanitized.substring(0, 117) + "..." : sanitized;
-                }
-            }
-            current = current.getCause();
-        }
-        return context.getString(R.string.nav_route_unavailable_generic);
+                + NavigationRouteFailureFormatter.format(context, error, false));
     }
 
     @NonNull

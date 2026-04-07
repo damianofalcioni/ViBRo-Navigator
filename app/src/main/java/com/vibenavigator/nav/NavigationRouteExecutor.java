@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import com.vibenavigator.brouter.BRouterClient;
+import com.vibenavigator.brouter.BRouterRouteException;
 import com.vibenavigator.brouter.BRouterRouter;
 import com.vibenavigator.brouter.NogoPoint;
 import com.vibenavigator.geo.LatLon;
@@ -195,6 +196,9 @@ final class NavigationRouteExecutor {
         while (current != null) {
             if (current instanceof DeadObjectException || current instanceof RemoteException) {
                 return true;
+            }
+            if (current instanceof BRouterRouteException) {
+                return ((BRouterRouteException) current).reason == BRouterRouteException.Reason.SERVICE_UNAVAILABLE;
             }
             String message = current.getMessage();
             if (message != null) {

@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
 import com.vibenavigator.R;
+import com.vibenavigator.brouter.BRouterRouteException;
 import com.vibenavigator.brouter.NogoPoint;
 import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.route.GeoJsonRoute;
@@ -164,6 +165,63 @@ public class NavigationSessionRouteStateTest {
         assertEquals(18.0, second.get(0).radiusMeters, 0.0);
         assertEquals(18.0, second.get(1).radiusMeters, 0.0);
         assertEquals(2, state.copyBlockedPoints().size());
+    }
+
+    @Test
+    public void buildState_keepsRouteVisibleAndShowsFriendlyNoRouteNotice() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        );
+        Location currentLocation = location(0.0, 0.0, 1_000L);
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithoutHints(),
+                currentLocation,
+                5f,
+                500L
+        );
+
+        NavState navState = state.buildState(
+                context,
+                currentLocation,
+                5f,
+                5f,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                BRouterRouteException.fromTextResponse("no track found at pass=0")
+        );
+
+        assertTrue(navState.remainingBlock.contains(
+                context.getString(R.string.nav_route_notice_no_alternative_keep_current)));
+        assertTrue(navState.remainingBlock.contains(context.getString(R.string.label_destination)));
+    }
+
+    @Test
+    public void buildState_withoutActiveRouteShowsFriendlyNoRouteMessage() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        NavState navState = state.buildState(
+                context,
+                location(0.0, 0.0, 1_000L),
+                5f,
+                5f,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                BRouterRouteException.fromTextResponse("no track found at pass=0")
+        );
+
+        assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.nextLine);
+        assertTrue(navState.remainingBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
     }
 
     @NonNull

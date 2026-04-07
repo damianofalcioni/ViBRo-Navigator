@@ -95,7 +95,8 @@ public class NavigationRouteRequestManagerTest {
         );
 
         assertFalse(manager.isRouteCalculationInProgress());
-        assertEquals("route failed because blocked", manager.getLastRouteFailureMessage());
+        assertNotNull(manager.getLastRouteFailure());
+        assertEquals("route failed because blocked", manager.getLastRouteFailure().getCause().getMessage().replace('\n', ' '));
     }
 
     @NonNull

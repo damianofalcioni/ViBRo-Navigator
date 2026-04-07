@@ -157,11 +157,15 @@ final class NavigationSessionRouteState {
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             boolean routeCalculationInProgress,
-            @Nullable String lastRouteFailureMessage
+            @Nullable Throwable lastRouteFailure
     ) {
         if (lastFiltered == null) {
-            if (lastRouteFailureMessage != null) {
-                return NavState.routeUnavailable(context, lastRouteFailureMessage, nextEvaluationDeadlineElapsedMs);
+            if (lastRouteFailure != null) {
+                return NavState.routeUnavailable(
+                        context,
+                        NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
+                        nextEvaluationDeadlineElapsedMs
+                );
             }
             return NavState.waitingForLocation(context, nextEvaluationDeadlineElapsedMs);
         }
@@ -171,8 +175,12 @@ final class NavigationSessionRouteState {
         }
 
         if (route == null || polylineIndex == null) {
-            if (lastRouteFailureMessage != null) {
-                return NavState.routeUnavailable(context, lastRouteFailureMessage, nextEvaluationDeadlineElapsedMs);
+            if (lastRouteFailure != null) {
+                return NavState.routeUnavailable(
+                        context,
+                        NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
+                        nextEvaluationDeadlineElapsedMs
+                );
             }
             return NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
         }
@@ -185,7 +193,7 @@ final class NavigationSessionRouteState {
             return NavState.waiting(context);
         }
 
-        return NavState.from(
+        NavState state = NavState.from(
                 route,
                 polylineIndex,
                 match.alongTrackMeters,
@@ -197,6 +205,13 @@ final class NavigationSessionRouteState {
                 targets,
                 context
         );
+        if (lastRouteFailure != null) {
+            return NavState.withNotice(
+                    state,
+                    NavigationRouteFailureFormatter.format(context, lastRouteFailure, true)
+            );
+        }
+        return state;
     }
 
     @NonNull

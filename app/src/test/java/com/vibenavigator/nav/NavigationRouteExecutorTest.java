@@ -9,6 +9,7 @@ import android.os.DeadObjectException;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import com.vibenavigator.brouter.BRouterRouteException;
 import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.route.GeoJsonRoute;
 
@@ -135,7 +136,7 @@ public class NavigationRouteExecutorTest {
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
                 (context, start, intermediates, destination, profile, blocked) -> {
                     if (attempts.incrementAndGet() == 1) {
-                        throw new IllegalStateException("BRouter service not available");
+                        throw BRouterRouteException.serviceUnavailable("BRouter service not available");
                     }
                     return new GeoJsonRoute(
                             Arrays.asList(start, destination),
@@ -196,7 +197,7 @@ public class NavigationRouteExecutorTest {
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
                 (context, start, intermediates, destination, profile, blocked) -> {
                     attempts.incrementAndGet();
-                    throw new IllegalStateException("BRouter service not available");
+                    throw BRouterRouteException.serviceUnavailable("BRouter service not available");
                 },
                 Executors.newSingleThreadExecutor(),
                 Runnable::run,
@@ -298,6 +299,58 @@ public class NavigationRouteExecutorTest {
             assertNull(failure.get());
             assertNotNull(appliedRoute.get());
             assertEquals(2, attempts.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void requestRouteDoesNotRetryNoRouteFoundBRouterFailure() throws Exception {
+        AtomicInteger attempts = new AtomicInteger();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                (context, start, intermediates, destination, profile, blocked) -> {
+                    attempts.incrementAndGet();
+                    throw BRouterRouteException.fromTextResponse("no track found at pass=0");
+                },
+                Executors.newSingleThreadExecutor(),
+                Runnable::run,
+                1,
+                0L,
+                delayMs -> {
+                }
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        try {
+            executor.requestRoute(
+                    ApplicationProvider.getApplicationContext(),
+                    routeSnapshot(),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationSession.RouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationSession.RouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            failure.set(error);
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
+            assertNotNull(failure.get());
+            assertEquals("no track found at pass=0", failure.get().getMessage());
+            assertEquals(1, attempts.get());
         } finally {
             executor.shutdown();
         }

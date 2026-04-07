@@ -58,14 +58,15 @@ public final class BRouterRouter {
         String raw = client.getTrackFromParams(params);
         if (raw == null) {
             AppLogger.w(TAG, "BRouter returned null route payload");
-            throw new IllegalStateException("BRouter service not available");
+            throw BRouterRouteException.serviceUnavailable("BRouter service not available");
         }
         String decoded = BRouterClient.decodeResult(raw);
         AppLogger.dMultiline(TAG, "Full BRouter response=", decoded);
-        if (!decoded.trim().startsWith("{")) {
+        String sanitized = decoded == null ? "" : decoded.trim();
+        if (!sanitized.startsWith("{")) {
             AppLogger.w(TAG, "BRouter returned non-GeoJSON payload prefix="
-                    + decoded.trim().substring(0, Math.min(120, decoded.trim().length())));
-            throw new IllegalStateException(decoded.trim());
+                    + sanitized.substring(0, Math.min(120, sanitized.length())));
+            throw BRouterRouteException.fromTextResponse(sanitized);
         }
         GeoJsonRoute route = GeoJsonRouteParser.parse(decoded);
         AppLogger.i(TAG, "Parsed route trackPoints=" + route.track.size()

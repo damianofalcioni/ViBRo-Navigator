@@ -155,7 +155,7 @@ final class NavigationSession {
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 routeRequestManager.isRouteCalculationInProgress(),
-                routeRequestManager.getLastRouteFailureMessage()
+                routeRequestManager.getLastRouteFailure()
         );
     }
 

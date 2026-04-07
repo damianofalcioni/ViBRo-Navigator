@@ -59,9 +59,16 @@
     <string name="nav_calculating_route_title">Calculating route</string>
     <string name="nav_calculating_route_body">Getting directions from BRouter.</string>
     <string name="nav_route_unavailable_title">Route unavailable</string>
-    <string name="format_nav_route_unavailable_body">Could not start navigation: %1$s</string>
+    <string name="format_nav_route_unavailable_body">Route unavailable: %1$s</string>
     <string name="nav_route_unavailable_generic">unknown error</string>
     <string name="nav_start_invalid_request">navigation request is incomplete</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Could not find an alternative route around the blocked area. Keeping current route.</string>
+    <string name="nav_route_notice_no_route_found">No route found for this destination.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Routing service unavailable. Keeping current route.</string>
+    <string name="nav_route_notice_service_unavailable">Routing service unavailable.</string>
+    <string name="nav_route_notice_invalid_profile">Routing profile is invalid.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Could not update the route. Keeping current route.</string>
+    <string name="nav_route_notice_unavailable">Could not calculate a route.</string>
 
     <string name="notification_channel_nav">Navigation</string>
     <string name="notification_channel_turn_left">Turn (left)</string>
