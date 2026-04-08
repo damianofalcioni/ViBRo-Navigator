@@ -200,7 +200,6 @@ The navigation UI must show the following in large text:
 - Each must include emoji, text, distance left, and time left
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
-- Directly below the next two directions, the UI must show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
 
 #### 4.5.2 Compass route view
 
@@ -209,13 +208,19 @@ The navigation UI must show the following in large text:
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
+- The current-position marker should be shown as a small center dot
+- A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
+- A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line
+- Each distance ring should have a short semi-transparent white tick on the vertical guide at its upper intersection, with a matching semi-transparent distance label placed next to that tick
+- Small semi-transparent white point markers must be shown on the route at the visible start position, at each visible hint position, and at the final destination
 - The route must be rendered as a continuous line, not as discrete dots
 - The destination endpoint must be shown with a finish-line icon without an enclosing badge
 
 #### 4.5.3 Remaining stop progress
 
+- Below the compass, the UI must first show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
 - Below the compass, the UI must show the distance left, time left, and arrival time for every intermediate stop that is still ahead on the route
-- The destination progress line is not repeated in this lower block because it is already shown under the next-direction lines
+- The destination progress line sits above the remaining intermediate-stop progress block
 
 #### 4.5.4 Blocked road button
 

@@ -19,8 +19,11 @@ public final class NavCompassState {
 
     public final float headingDegrees;
     public final float visibleRadiusMeters;
+    public final float accuracyRadiusMeters;
     @NonNull
     public final List<RoutePoint> routePoints;
+    @NonNull
+    public final List<RoutePoint> hintPoints;
     public final float destinationEastMeters;
     public final float destinationNorthMeters;
     public final boolean destinationWithinRadius;
@@ -28,14 +31,18 @@ public final class NavCompassState {
     public NavCompassState(
             float headingDegrees,
             float visibleRadiusMeters,
+            float accuracyRadiusMeters,
             @NonNull List<RoutePoint> routePoints,
+            @NonNull List<RoutePoint> hintPoints,
             float destinationEastMeters,
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
         this.headingDegrees = headingDegrees;
         this.visibleRadiusMeters = visibleRadiusMeters;
+        this.accuracyRadiusMeters = accuracyRadiusMeters;
         this.routePoints = Collections.unmodifiableList(routePoints);
+        this.hintPoints = Collections.unmodifiableList(hintPoints);
         this.destinationEastMeters = destinationEastMeters;
         this.destinationNorthMeters = destinationNorthMeters;
         this.destinationWithinRadius = destinationWithinRadius;

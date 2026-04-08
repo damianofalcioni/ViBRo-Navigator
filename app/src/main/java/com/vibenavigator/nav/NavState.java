@@ -165,6 +165,7 @@ public final class NavState {
                 index,
                 currentLocation,
                 alongTrackMeters,
+                accuracyMeters,
                 headingDegrees
         );
         return new NavState(next, afterNext, destination, accuracy, nextEvaluationDeadlineElapsedMs, remaining, compassState);
@@ -285,6 +286,7 @@ public final class NavState {
             @NonNull PolylineIndex index,
             @NonNull Location currentLocation,
             double alongTrackMeters,
+            float accuracyMeters,
             @Nullable Double headingDegrees
     ) {
         if (route.track.isEmpty()) {
@@ -297,6 +299,7 @@ public final class NavState {
         double routeEnd = Math.min(index.totalLengthMeters(), alongTrackMeters + 420.0);
         double stepMeters = 12.0;
         List<NavCompassState.RoutePoint> points = new ArrayList<>();
+        List<NavCompassState.RoutePoint> hintPoints = new ArrayList<>();
         double furthestDistanceMeters = 0.0;
 
         for (double distance = routeStart; distance <= routeEnd; distance += stepMeters) {
@@ -313,6 +316,20 @@ public final class NavState {
             );
         }
 
+        for (VoiceHint hint : route.voiceHints) {
+            double hintDistance = index.distanceAtPointIndex(hint.indexInTrack);
+            if (hintDistance < routeStart || hintDistance > routeEnd) {
+                continue;
+            }
+            LatLon hintPoint = index.pointAtDistance(hintDistance);
+            if (hintPoint == null) {
+                continue;
+            }
+            float eastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, hintPoint.lat, hintPoint.lon);
+            float northMeters = (float) GeoMath.northMeters(currentLat, hintPoint.lat);
+            hintPoints.add(new NavCompassState.RoutePoint(eastMeters, northMeters));
+        }
+
         LatLon routeEndPoint = route.track.get(route.track.size() - 1);
         float destinationEastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, routeEndPoint.lat, routeEndPoint.lon);
         float destinationNorthMeters = (float) GeoMath.northMeters(currentLat, routeEndPoint.lat);
@@ -324,11 +341,17 @@ public final class NavState {
         return new NavCompassState(
                 resolvedHeading,
                 visibleRadiusMeters,
+                sanitizeAccuracyMeters(accuracyMeters),
                 points,
+                hintPoints,
                 destinationEastMeters,
                 destinationNorthMeters,
                 destinationDistanceMeters <= visibleRadiusMeters
         );
+    }
+
+    private static float sanitizeAccuracyMeters(float accuracyMeters) {
+        return Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0f;
     }
 
     private static float normalizeHeading(double headingDegrees) {
