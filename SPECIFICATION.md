@@ -144,7 +144,9 @@ The app must monitor user position:
 #### 4.4.3 Direction distance estimation
 
 - The app must estimate the distance left to the next direction
-- The estimation must use current speed and the direction distance returned by BRouter
+- The live remaining distance to the next direction should be derived from the user's current matched position along the active route geometry
+- Current speed should be used to estimate the time left to that direction
+- BRouter voice-hint distance metadata may be parsed and retained, but it must not be treated as the primary source of the user's live remaining distance to the next direction
 - The app must treat very short maneuver distances as unreliable whenever they fall inside the current location uncertainty radius
 - A next-direction distance that is less than or equal to the current trusted uncertainty radius must not be presented as a trustworthy instruction
 
@@ -198,31 +200,40 @@ The navigation UI must show the following in large text:
 - Each must include emoji, text, distance left, and time left
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
+- Directly below the next two directions, the UI must show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
 
-#### 4.5.2 Route progress
+#### 4.5.2 Compass route view
 
-- In the center: the distance left, time left, and arrival time
-- This must be shown for:
-  - The final destination
-  - Every intermediate stop
+- In the center: a map-free compass canvas showing the active route relative to the current position
+- The compass must not render a map background
+- The route must rotate live with the latest trusted display heading so forward stays at the top of the view
+- The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
+- The inner circles must remain stable visual distance references for the route
+- The route must be rendered as a continuous line, not as discrete dots
+- The destination endpoint must be shown with a finish-line icon without an enclosing badge
 
-#### 4.5.3 Blocked road button
+#### 4.5.3 Remaining stop progress
+
+- Below the compass, the UI must show the distance left, time left, and arrival time for every intermediate stop that is still ahead on the route
+- The destination progress line is not repeated in this lower block because it is already shown under the next-direction lines
+
+#### 4.5.4 Blocked road button
 
 - Below the progress section and centered: a `blocked road` button
 
-##### 4.5.3.1 Blocked no-go memory
+##### 4.5.4.1 Blocked no-go memory
 
 - Pressing the button must add route-based no-go points derived from the upcoming matched route geometry, not from the raw GPS position
 - The first press in an area must create a single no-go point slightly ahead on the route
 - The first blocked area must use a small street-scale radius of about 10 to 12 meters
 - This internal no-go list must be reset when a new navigation is started
 
-##### 4.5.3.2 Blocked reroute
+##### 4.5.4.2 Blocked reroute
 
 - After blocking the upcoming route area, the app must recalculate the route
 - The recalculation must pass the no-go point list, including per-point radii, to BRouter
 
-##### 4.5.3.3 Repeated blocked-road escalation
+##### 4.5.4.3 Repeated blocked-road escalation
 
 - Repeated presses in the same nearby area, or repeated presses within a short time window in a nearby area, must escalate the blocked region
 - Escalation must increase both:
@@ -230,13 +241,13 @@ The navigation UI must show the following in large text:
   - the no-go radius applied to those points
 - The blocked-road behavior should be tuned primarily for walking and cycling, with cars treated as a secondary use case
 
-#### 4.5.4 Stop navigation button
+#### 4.5.5 Stop navigation button
 
 - At the bottom: a button to stop navigation
 - Pressing it must return to the previous UI
 - Destination and intermediate stops must be kept
 
-#### 4.5.5 Back button behavior during navigation
+#### 4.5.6 Back button behavior during navigation
 
 - Pressing the system back button while the navigation UI is open must move the whole app task to the background
 - Pressing back during navigation must not reveal the main UI underneath the navigation UI
@@ -257,7 +268,7 @@ The navigation UI must show the following in large text:
 
 ### 5. About button and page
 
-- A small button showing only the app logo must be displayed at the very top center
+- A small button showing only the app logo must be displayed at the very top center of the main UI
 - Pressing it must open an about page
 - The about page must contain:
   - The app version

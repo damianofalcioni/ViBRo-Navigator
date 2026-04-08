@@ -159,17 +159,29 @@ final class NavigationSession {
     }
 
     @NonNull
-    NavState buildState(@NonNull Context context, long nextEvaluationDeadlineElapsedMs, long nowMs) {
+    NavState buildState(
+            @NonNull Context context,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Double displayHeadingDegrees
+    ) {
         Location lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
                 : Float.MAX_VALUE;
+        Double headingDegrees = displayHeadingDegrees;
+        if (headingDegrees == null) {
+            headingDegrees = lastFiltered != null
+                    ? locationState.actualBearingDegrees(lastFiltered)
+                    : null;
+        }
         return routeState.buildState(
                 context,
                 lastFiltered,
                 speedMps,
                 accuracyMeters,
+                headingDegrees,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 routeRequestManager.isRouteCalculationInProgress(),

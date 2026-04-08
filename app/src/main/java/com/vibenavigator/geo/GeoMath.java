@@ -32,4 +32,13 @@ public final class GeoMath {
         double d = ((a - b + 540.0) % 360.0) - 180.0;
         return Math.abs(d);
     }
+
+    public static double eastMeters(double refLat, double refLon, double lat, double lon) {
+        double refLatRad = Math.toRadians(refLat);
+        return (lon - refLon) * 111320.0 * Math.cos(refLatRad);
+    }
+
+    public static double northMeters(double refLat, double lat) {
+        return (lat - refLat) * 111320.0;
+    }
 }

@@ -14,6 +14,10 @@ import com.vibenavigator.util.AppLogger;
 
 final class GeomagneticOrientationMonitor implements SensorEventListener {
 
+    interface Callback {
+        void onSampleUpdated(@NonNull Sample sample);
+    }
+
     static final class Sample {
         private static final double MAX_FLAT_TILT_DEGREES = 25.0;
 
@@ -48,15 +52,18 @@ final class GeomagneticOrientationMonitor implements SensorEventListener {
     @Nullable
     private final Sensor orientationSensor;
     @Nullable
+    private final Callback callback;
+    @Nullable
     private Sample latestSample;
     private int lastAccuracy = SensorManager.SENSOR_STATUS_UNRELIABLE;
     private boolean started;
 
-    GeomagneticOrientationMonitor(@NonNull Context context) {
+    GeomagneticOrientationMonitor(@NonNull Context context, @Nullable Callback callback) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         orientationSensor = sensorManager == null
                 ? null
                 : sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+        this.callback = callback;
     }
 
     boolean start() {
@@ -107,6 +114,9 @@ final class GeomagneticOrientationMonitor implements SensorEventListener {
                 lastAccuracy,
                 SystemClock.elapsedRealtime()
         );
+        if (callback != null) {
+            callback.onSampleUpdated(latestSample);
+        }
     }
 
     @Override

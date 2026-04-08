@@ -51,6 +51,7 @@
     <string name="nav_next">Next</string>
     <string name="nav_after_next">After that</string>
     <string name="nav_remaining">Remaining</string>
+    <string name="nav_destination_label">🏁</string>
     <string name="nav_eta">ETA</string>
     <string name="nav_status_unavailable">--</string>
     <string name="nav_no_route">No route</string>

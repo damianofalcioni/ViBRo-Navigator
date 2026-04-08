@@ -33,6 +33,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 
 - `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
+- The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.
 - `NavigationSession` is the session-level coordinator. Keep filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle split across dedicated state/policy classes instead of collapsing them back together.
 - `NavigationRequest` owns the shared navigation extras contract used by activities, the service, and resume notifications.
@@ -55,6 +56,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Keep the implementation lightweight. Prefer platform APIs and small local helpers over new libraries.
 - Keep code in Java.
 - Preserve the dark/black theme and support both portrait and landscape layouts.
+- Preserve the map-free compass visualization on the navigation screen. Do not replace it with a map dependency or a full cartographic surface unless explicitly requested.
 - Do not hardcode user-facing text in Java or XML layouts. Add or update strings in `app/src/main/res/values/strings.xml`.
 - Keep repository documentation aligned with the code when relevant changes are made. Update `SPECIFICATION.md` when product behavior, requirements, or user-visible flows change. Update `AGENT.md` when architecture, guardrails, workflows, or coding expectations change. Do not make doc-only churn for code changes that do not affect those areas.
 - Keep README/about content aligned at the product-description level. `README.md` and `about_body` in `strings.xml` should stay consistent about the app's purpose and core behavior, but they do not need to be literal copies of each other.
@@ -65,6 +67,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Preserve the bucketed navigation polling cadence. Small ETA fluctuations should not continuously change the requested location interval, and identical interval/provider requests should reuse the active listener registration instead of forcing a remove-and-readd cycle.
 - Preserve conservative guidance under uncertainty. Bearing-only reroutes, sub-accuracy maneuver prompts, and other low-confidence direction changes must not be surfaced as trustworthy instructions.
 - Keep sensor-based orientation hints separated from reroute trust. Geomagnetic heading may support advisory stationary notifications when confidence is high enough, but wrong-direction reroutes must remain movement-derived.
+- Keep live compass rotation display separated from reroute trust. The navigation UI may rotate from geomagnetic heading for user feedback, but route-decision logic must continue to rely on the existing confidence gates.
 - Treat OEM settings quirks as part of the product surface. For battery-optimization redirects, prefer a settings destination that reliably stays open on real devices over a nominally more direct intent that immediately closes.
 - Preserve BRouter compatibility. Route requests should continue using the local BRouter service and GeoJSON output.
 - Preserve the current BRouter voice-hint contract unless there is a deliberate product change: mode `9`, distinct `beeline`, `exit left`, and `exit right`, and a neutral unknown fallback.
@@ -83,6 +86,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - If you change navigation intent extras, update `NavigationRequest` first and keep resume/start flows serialized through it instead of hand-copying extras.
 - If you change startup permission/settings/battery-optimization flow, keep `NavigationActivity` thin and update the startup/lifecycle tests.
 - If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect both `brouter/` and `nav/route/` paths together and keep mode-9 coverage aligned.
+- If you change the navigation compass behavior or visuals, update both `SPECIFICATION.md` and the custom-view/state plumbing together so rendering expectations, live heading inputs, and route geometry assumptions stay aligned.
 - If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, shared search dispatch, and history behavior for externally opened locations.
 - If you change logging, keep the shared `buildLogPrefix`/`appendBlock` style intact so formatting and file-rotation behavior stay consistent.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.

@@ -22,6 +22,8 @@ public class NavigationService extends Service implements LocationListener {
     private static final String TAG = "NavigationService";
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
     private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS = 1_000L;
+    private static final long MAX_COMPASS_HEADING_SAMPLE_AGE_MS = 5_000L;
+    private static final long MIN_COMPASS_UI_UPDATE_INTERVAL_MS = 100L;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -58,6 +60,7 @@ public class NavigationService extends Service implements LocationListener {
     private GeomagneticOrientationMonitor geomagneticOrientationMonitor;
     private long stationarySinceElapsedRealtimeMs;
     private boolean stationaryOrientationHandledForCurrentStop;
+    private long lastCompassUiUpdateElapsedRealtimeMs;
 
     @Override
     public void onCreate() {
@@ -66,7 +69,7 @@ public class NavigationService extends Service implements LocationListener {
         locationController = new NavigationLocationController(this, this);
         wakeLockController = new NavigationWakeLockController(this);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
-        geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this);
+        geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, this::onGeomagneticSampleUpdated);
         foregroundController.ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
@@ -258,6 +261,7 @@ public class NavigationService extends Service implements LocationListener {
     private void endStationaryOrientationMonitoring() {
         stationarySinceElapsedRealtimeMs = 0L;
         stationaryOrientationHandledForCurrentStop = false;
+        lastCompassUiUpdateElapsedRealtimeMs = 0L;
         if (geomagneticOrientationMonitor != null) {
             geomagneticOrientationMonitor.stop();
         }
@@ -321,13 +325,42 @@ public class NavigationService extends Service implements LocationListener {
         stationaryOrientationHandledForCurrentStop = false;
     }
 
+    private void onGeomagneticSampleUpdated(@NonNull GeomagneticOrientationMonitor.Sample sample) {
+        if (!navigationSession.hasActiveRoute() || stateBroadcaster.size() == 0) {
+            return;
+        }
+        long nowElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime();
+        if (nowElapsedRealtimeMs - lastCompassUiUpdateElapsedRealtimeMs < MIN_COMPASS_UI_UPDATE_INTERVAL_MS) {
+            return;
+        }
+        lastCompassUiUpdateElapsedRealtimeMs = nowElapsedRealtimeMs;
+        notificationMonitorHandler.post(this::emitState);
+    }
+
     private void emitState() {
         NavState s = navigationSession.buildState(
                 this,
                 locationController.getNextEvaluationDeadlineElapsedMs(),
-                System.currentTimeMillis()
+                System.currentTimeMillis(),
+                currentDisplayHeadingDegrees()
         );
         stateBroadcaster.dispatch(s);
+    }
+
+    @Nullable
+    private Double currentDisplayHeadingDegrees() {
+        if (geomagneticOrientationMonitor == null) {
+            return null;
+        }
+        GeomagneticOrientationMonitor.Sample sample = geomagneticOrientationMonitor.getLatestSample();
+        if (sample == null) {
+            return null;
+        }
+        long ageMs = android.os.SystemClock.elapsedRealtime() - sample.elapsedRealtimeMs;
+        if (ageMs > MAX_COMPASS_HEADING_SAMPLE_AGE_MS) {
+            return null;
+        }
+        return sample.headingDegrees;
     }
 
     @Override

@@ -11,7 +11,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,6 +35,8 @@ public class NavigationActivity extends Activity {
 
     private TextView next;
     private TextView afterNext;
+    private TextView destination;
+    private NavigationCompassView compass;
     private TextView gpsStatus;
     private TextView remaining;
     private Button blocked;
@@ -89,14 +90,10 @@ public class NavigationActivity extends Activity {
                 + " autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
 
-        ImageButton aboutButton = findViewById(R.id.aboutButton);
-        aboutButton.setOnClickListener(v -> {
-            AppLogger.i(TAG, "About button tapped");
-            startActivity(new Intent(this, AboutActivity.class));
-        });
-
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
+        destination = findViewById(R.id.destinationText);
+        compass = findViewById(R.id.navigationCompassView);
         gpsStatus = findViewById(R.id.gpsStatusText);
         remaining = findViewById(R.id.remainingText);
         blocked = findViewById(R.id.blockedRoadButton);
@@ -177,16 +174,24 @@ public class NavigationActivity extends Activity {
         currentState = state;
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
+        destination.setText(state.destinationLine);
+        compass.setCompassState(state.compassState);
         renderCountdown();
         remaining.setText(state.remainingBlock);
         String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.accuracyLine
-                + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.remainingBlock;
+                + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.destinationLine
+                + "|" + state.remainingBlock
+                + "|" + (state.compassState == null ? "no-compass"
+                : state.compassState.routePoints.size() + ":" + state.compassState.headingDegrees);
         if (!stateKey.equals(lastRenderedStateKey)) {
             lastRenderedStateKey = stateKey;
             AppLogger.d(TAG, "Rendered state next=" + state.nextLine
                     + " afterNext=" + state.afterNextLine
                     + " accuracy=" + state.accuracyLine
                     + " nextEvalDeadline=" + state.nextEvaluationDeadlineElapsedMs
+                    + " destination=" + state.destinationLine
+                    + " compass=" + (state.compassState == null ? "none"
+                    : ("points=" + state.compassState.routePoints.size() + " heading=" + state.compassState.headingDegrees))
                     + " remaining=" + state.remainingBlock);
         }
     }

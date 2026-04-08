@@ -167,6 +167,7 @@ final class NavigationSessionRouteState {
             @Nullable Location lastFiltered,
             float speedMps,
             float accuracyMeters,
+            @Nullable Double headingDegrees,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             boolean routeCalculationInProgress,
@@ -213,6 +214,8 @@ final class NavigationSessionRouteState {
                 turnState.getNextHintIdx(),
                 speedMps,
                 accuracyMeters,
+                lastFiltered,
+                headingDegrees,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 targets,
@@ -240,7 +243,7 @@ final class NavigationSessionRouteState {
                 out.add(new NavTarget(context.getString(R.string.format_stop_label, i + 1), match.alongTrackMeters));
             }
         }
-        out.add(new NavTarget(context.getString(R.string.label_destination), index.totalLengthMeters()));
+        out.add(new NavTarget(context.getString(R.string.nav_destination_label), index.totalLengthMeters()));
         return out;
     }
 

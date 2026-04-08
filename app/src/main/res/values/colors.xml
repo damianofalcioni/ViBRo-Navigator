@@ -8,4 +8,10 @@
     <color name="surface_800">#151B22</color>
     <color name="outline">#2C3744</color>
     <color name="ripple_light">#33FFFFFF</color>
+    <color name="compass_surface">#1D1D1D</color>
+    <color name="compass_ring">#3C3C3C</color>
+    <color name="compass_accent">#F28A35</color>
+    <color name="compass_route">#E14646</color>
+    <color name="compass_route_glow">#66E14646</color>
+    <color name="compass_center">#F8F8F8</color>
 </resources>
