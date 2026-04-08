@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -98,6 +99,32 @@ public class DeveloperModeRobolectricTest {
                 activity.getString(R.string.msg_developer_mode_already_enabled),
                 ShadowToast.getTextOfLatestToast()
         );
+    }
+
+    @Test
+    public void aboutPageShowsUsedSensorStatusesInDeveloperMode() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        View root = activity.findViewById(R.id.aboutRoot);
+        TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
+        TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
+
+        assertEquals(View.GONE, sensorStatusTitle.getVisibility());
+        assertEquals(View.GONE, sensorStatusBody.getVisibility());
+
+        performDeveloperUnlockGesture(root);
+
+        assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
+        assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
+        assertTrue(sensorStatusBody.getText().toString().contains(
+                activity.getString(R.string.label_sensor_gps_provider)
+        ));
+        assertTrue(sensorStatusBody.getText().toString().contains(
+                activity.getString(R.string.label_sensor_network_provider)
+        ));
+        assertTrue(sensorStatusBody.getText().toString().contains(
+                activity.getString(R.string.label_sensor_geomagnetic_rotation_vector)
+        ));
+        assertTrue(sensorStatusBody.getText().toString().contains("value="));
     }
 
     private static void performDeveloperUnlockGesture(View view) {

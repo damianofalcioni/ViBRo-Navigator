@@ -120,5 +120,15 @@
 
     <string name="about_title">About VibeNavigator</string>
     <string name="format_version">Version %1$s</string>
-    <string name="about_body">VibeNavigator is a lightweight, battery-efficient, and offline-first vibe-coded GPS navigation app built around BRouter.\nIt keeps routing offline (via the installed BRouter app), and communicates directions through vibration patterns (no voice prompts) plus a minimal on-screen view.\n\nWhat it does:\n- Offline routing via BRouter (must be installed and have routing data)\n- Dark/black theme\n- Destination + optional intermediate stops\n- Background navigation via a foreground service (screen off supported)\n- Turn notifications with vibration (different patterns for left/right imminents)\n\nRequirements:\n- Android 5.0+ (minSdk 21)\n- BRouter installed (btools.routingapp)\n\nPOI search:\n- Uses Google REST APIs when a key is configured\n- Otherwise falls back to OpenStreetMap (Nominatim)\n- You can paste coordinates directly (e.g. 45.4642, 9.1900)\n\nUsing BRouter profiles:\nVibeNavigator lists bundled BRouter profiles automatically when they are packaged inside the installed BRouter app.\nIf you use custom external .brf profiles, you can select their folder manually.\nInternal storage example:\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\nRemovable storage example:\nMemory card/Android/data/btools.routingapp/files/brouter/profiles2\n</string>
+    <string name="about_body">VibeNavigator is a lightweight, battery-efficient, and offline-first, GPS navigation app that only vibrate directions, built around BRouter (and yes, also vibe-coded).</string>
+    <string name="about_sensor_status_title">Used sensors</string>
+    <string name="label_sensor_gps_provider">GPS provider</string>
+    <string name="label_sensor_network_provider">Network provider</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Geomagnetic rotation vector</string>
+    <string name="sensor_status_enabled">enabled</string>
+    <string name="sensor_status_disabled">disabled</string>
+    <string name="sensor_status_available">available</string>
+    <string name="sensor_status_unavailable">unavailable</string>
+    <string name="sensor_status_permission_denied">permission denied</string>
+    <string name="format_about_sensor_status_detail">%1$s: %2$s • %3$s</string>
 </resources>

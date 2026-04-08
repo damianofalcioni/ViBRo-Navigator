@@ -275,6 +275,15 @@ The navigation UI must show the following in large text:
 - Repeating the five-tap developer-mode gesture while developer mode is already enabled must not restart logging and must instead show a popup that developer mode is already enabled
 - When developer mode is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
+- When developer mode is enabled, the about page must additionally show a developer-only diagnostics block below the normal about text
+- That diagnostics block must currently list the app's used live inputs:
+  - GPS provider
+  - network provider
+  - geomagnetic rotation vector
+- The diagnostics block must refresh automatically every 1 second while the about page is visible
+- Each listed item must show both its current status and its latest available value details
+- Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, and sample age when available
+- Geomagnetic rotation-vector details should include the latest available heading/orientation-derived values and sample age when available
 
 ### 6. Shared/opened coordinates and addresses
 
