@@ -21,11 +21,11 @@
             android:id="@+id/aboutButton"
             android:layout_width="72dp"
             android:layout_height="72dp"
-            android:contentDescription="@string/action_about"
             style="@style/Widget.VibeNavigator.IconButton"
+            android:contentDescription="@string/action_about"
             android:padding="8dp"
             android:scaleType="fitCenter"
-            android:src="@drawable/ic_launcher_brand" />
+            android:src="@drawable/ic_logo_in_app" />
         </LinearLayout>
 
         <TextView
