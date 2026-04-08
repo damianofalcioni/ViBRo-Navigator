@@ -64,6 +64,20 @@ public final class NavigationTextFormatter {
     }
 
     @NonNull
+    public static String formatStationaryOrientationNotification(
+            @NonNull Context context,
+            @NonNull StationaryOrientationAdvisor.Decision decision
+    ) {
+        return context.getString(
+                R.string.format_startup_orientation_notification,
+                formatBearingDegrees(context, decision.absoluteTurnDegrees()),
+                context.getString(decision.turnRight()
+                        ? R.string.direction_side_right
+                        : R.string.direction_side_left)
+        );
+    }
+
+    @NonNull
     public static String formatDistance(@NonNull Context context, double meters) {
         if (meters >= 1000.0) {
             return context.getString(R.string.format_distance_km, meters / 1000.0);

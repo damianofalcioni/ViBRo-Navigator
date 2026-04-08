@@ -50,10 +50,14 @@ public class NavigationService extends Service implements LocationListener {
     private final NavigationRouteExecutor routeExecutor =
             NavigationRouteExecutor.createDefault(new Handler(Looper.getMainLooper()));
     private final NavigationRouteExecutor.Callback routeCallback = new NavigationRouteCallback();
+    private final StationaryOrientationAdvisor stationaryOrientationAdvisor = new StationaryOrientationAdvisor();
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
     private NavigationWakeLockController wakeLockController;
     private NavigationTurnEventDispatcher turnEventDispatcher;
+    private GeomagneticOrientationMonitor geomagneticOrientationMonitor;
+    private long stationarySinceElapsedRealtimeMs;
+    private boolean stationaryOrientationHandledForCurrentStop;
 
     @Override
     public void onCreate() {
@@ -62,6 +66,7 @@ public class NavigationService extends Service implements LocationListener {
         locationController = new NavigationLocationController(this, this);
         wakeLockController = new NavigationWakeLockController(this);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
+        geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this);
         foregroundController.ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
@@ -153,6 +158,7 @@ public class NavigationService extends Service implements LocationListener {
         wakeLockController.acquire();
         locationController.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         locationController.requestCurrentLocationSeeds();
+        beginStationaryOrientationMonitoring();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
@@ -174,6 +180,7 @@ public class NavigationService extends Service implements LocationListener {
         foregroundCoordinator.stopMonitoring();
         locationController.stopTracking();
         wakeLockController.release();
+        endStationaryOrientationMonitoring();
         stateBroadcaster.clear();
         foregroundController.stopForegroundService();
     }
@@ -191,6 +198,7 @@ public class NavigationService extends Service implements LocationListener {
             locationController.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
         }
         dispatchTurnEvents(result.turnEvents);
+        maybeSendStationaryOrientationNotification();
         emitState();
     }
 
@@ -234,6 +242,83 @@ public class NavigationService extends Service implements LocationListener {
         if (turnEventDispatcher != null) {
             turnEventDispatcher.dispatch(turnEvents);
         }
+    }
+
+    private void beginStationaryOrientationMonitoring() {
+        stationarySinceElapsedRealtimeMs = 0L;
+        stationaryOrientationHandledForCurrentStop = false;
+        if (geomagneticOrientationMonitor == null) {
+            return;
+        }
+        if (!geomagneticOrientationMonitor.start()) {
+            AppLogger.w(TAG, "Stationary orientation monitor unavailable, skipping stationary orientation notifications");
+        }
+    }
+
+    private void endStationaryOrientationMonitoring() {
+        stationarySinceElapsedRealtimeMs = 0L;
+        stationaryOrientationHandledForCurrentStop = false;
+        if (geomagneticOrientationMonitor != null) {
+            geomagneticOrientationMonitor.stop();
+        }
+    }
+
+    private void maybeSendStationaryOrientationNotification() {
+        if (foregroundController == null || geomagneticOrientationMonitor == null) {
+            return;
+        }
+        if (!navigationSession.hasActiveRoute()) {
+            return;
+        }
+
+        float speedMps = navigationSession.lastFilteredSpeedMps();
+        if (!stationaryOrientationAdvisor.isStationary(speedMps)) {
+            resetStationaryOrientationEpisode();
+            return;
+        }
+
+        long nowElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime();
+        if (stationarySinceElapsedRealtimeMs <= 0L) {
+            stationarySinceElapsedRealtimeMs = nowElapsedRealtimeMs;
+            stationaryOrientationHandledForCurrentStop = false;
+        }
+        if (stationaryOrientationHandledForCurrentStop) {
+            return;
+        }
+
+        StationaryOrientationAdvisor.Evaluation evaluation = stationaryOrientationAdvisor.evaluate(
+                speedMps,
+                stationarySinceElapsedRealtimeMs,
+                navigationSession.currentRouteBearingDegrees(),
+                geomagneticOrientationMonitor.getLatestSample(),
+                nowElapsedRealtimeMs
+        );
+        switch (evaluation.outcome) {
+            case ALIGNED:
+                stationaryOrientationHandledForCurrentStop = true;
+                AppLogger.i(TAG, "Stationary orientation notification skipped because the user is already aligned");
+                return;
+            case NOTIFY:
+                if (evaluation.decision != null) {
+                    foregroundController.sendStationaryOrientationNotification(evaluation.decision);
+                    stationaryOrientationHandledForCurrentStop = true;
+                }
+                return;
+            case MOVING:
+                resetStationaryOrientationEpisode();
+                return;
+            case WAITING_FOR_DWELL:
+            case WAITING_FOR_ROUTE:
+            case WAITING_FOR_SENSOR:
+            case WAITING_FOR_CALIBRATION:
+            default:
+                return;
+        }
+    }
+
+    private void resetStationaryOrientationEpisode() {
+        stationarySinceElapsedRealtimeMs = 0L;
+        stationaryOrientationHandledForCurrentStop = false;
     }
 
     private void emitState() {
@@ -309,6 +394,7 @@ public class NavigationService extends Service implements LocationListener {
                 long beganAt
         ) {
             dispatchTurnEvents(navigationSession.applyRouteResult(NavigationService.this, snapshot, newRoute, beganAt));
+            maybeSendStationaryOrientationNotification();
             emitState();
             if (navigationSession.consumePendingRouteRecalculation()) {
                 AppLogger.i(TAG, "Re-running queued route recalculation after previous request finished");

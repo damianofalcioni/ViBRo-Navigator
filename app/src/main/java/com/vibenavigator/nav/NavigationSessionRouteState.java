@@ -106,6 +106,18 @@ final class NavigationSessionRouteState {
         return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs);
     }
 
+    @Nullable
+    Double currentSegmentBearingDegrees(@Nullable Location lastFiltered) {
+        if (lastFiltered == null || route == null || polylineIndex == null || route.track.isEmpty()) {
+            return null;
+        }
+        PolylineIndex.Match match = polylineIndex.match(
+                new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
+                lastSegmentIndex
+        );
+        return match == null ? null : match.segmentBearingDegrees;
+    }
+
     @NonNull
     List<NogoPoint> addBlockedPointsAhead(@Nullable Location lastFiltered, long nowMs) {
         List<NogoPoint> added = new ArrayList<>();

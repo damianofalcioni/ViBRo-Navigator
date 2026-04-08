@@ -268,6 +268,7 @@ public class NavigationSessionRouteStateTest {
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(timeMs);
+        location.setAccuracy(5f);
         return location;
     }
 }

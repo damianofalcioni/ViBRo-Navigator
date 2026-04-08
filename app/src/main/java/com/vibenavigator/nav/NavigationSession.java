@@ -65,6 +65,16 @@ final class NavigationSession {
         return locationState.getLastFilteredLocation();
     }
 
+    float lastFilteredSpeedMps() {
+        Location lastFiltered = locationState.getLastFilteredLocation();
+        return lastFiltered == null ? 0f : locationState.speedMps(lastFiltered);
+    }
+
+    @Nullable
+    Double currentRouteBearingDegrees() {
+        return routeState.currentSegmentBearingDegrees(locationState.getLastFilteredLocation());
+    }
+
     @NonNull
     NavigationRequest currentNavigationRequest() {
         return currentRequest;

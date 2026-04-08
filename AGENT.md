@@ -64,6 +64,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Preserve startup seed quality. Cached last-known location may only accelerate navigation startup when it is fresh and accurate enough; stale or low-quality cached fixes must not trigger the initial route calculation.
 - Preserve the bucketed navigation polling cadence. Small ETA fluctuations should not continuously change the requested location interval, and identical interval/provider requests should reuse the active listener registration instead of forcing a remove-and-readd cycle.
 - Preserve conservative guidance under uncertainty. Bearing-only reroutes, sub-accuracy maneuver prompts, and other low-confidence direction changes must not be surfaced as trustworthy instructions.
+- Keep sensor-based orientation hints separated from reroute trust. Geomagnetic heading may support advisory stationary notifications when confidence is high enough, but wrong-direction reroutes must remain movement-derived.
 - Treat OEM settings quirks as part of the product surface. For battery-optimization redirects, prefer a settings destination that reliably stays open on real devices over a nominally more direct intent that immediately closes.
 - Preserve BRouter compatibility. Route requests should continue using the local BRouter service and GeoJSON output.
 - Preserve the current BRouter voice-hint contract unless there is a deliberate product change: mode `9`, distinct `beeline`, `exit left`, and `exit right`, and a neutral unknown fallback.

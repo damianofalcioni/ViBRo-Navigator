@@ -123,6 +123,33 @@ final class NavigationForegroundController {
         sendTurnNotification(hint, distanceMeters, timeSeconds, channelId, vibrate);
     }
 
+    void sendStationaryOrientationNotification(@NonNull StationaryOrientationAdvisor.Decision decision) {
+        String channelId = decision.turnRight()
+                ? NavigationService.CHANNEL_ID_TURN_RIGHT
+                : NavigationService.CHANNEL_ID_TURN_LEFT;
+        String message = NavigationTextFormatter.formatStationaryOrientationNotification(service, decision);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, channelId)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(service.getString(R.string.app_name))
+                .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setVibrate(decision.turnRight() ? rightVibrationPattern() : leftVibrationPattern());
+        }
+
+        NotificationManager notificationManager = (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
+        if (notificationManager == null) {
+            AppLogger.w(TAG, "NotificationManager unavailable, cannot send stationary orientation notification");
+            return;
+        }
+        notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
+        AppLogger.i(TAG, "Sent stationary orientation notification message=" + message);
+    }
+
     void sendOffRouteNotification(@NonNull NavigationRerouteNotice rerouteNotice) {
         String title = service.getString(R.string.notification_off_route_title);
         String message = NavigationTextFormatter.formatOffRouteNotification(service, rerouteNotice);

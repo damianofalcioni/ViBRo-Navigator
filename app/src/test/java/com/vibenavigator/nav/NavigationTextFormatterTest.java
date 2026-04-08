@@ -41,4 +41,14 @@ public class NavigationTextFormatterTest {
                 message
         );
     }
+
+    @Test
+    public void formatStationaryOrientationNotification_formatsRelativeTurn() {
+        String message = NavigationTextFormatter.formatStationaryOrientationNotification(
+                context,
+                new StationaryOrientationAdvisor.Decision(-42.0)
+        );
+
+        assertEquals("Turn yourself 42° left to face the route.", message);
+    }
 }
