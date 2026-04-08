@@ -16,6 +16,7 @@ final class TurnEventPlanner {
     private static final double INITIAL_IMMINENT_THRESHOLD_SECONDS = 10.0;
     private static final double VERY_IMMINENT_THRESHOLD_SECONDS = 5.0;
     private static final double MIN_SPEED_METERS_PER_SECOND = 1.0;
+    private static final double MIN_TRUSTED_TURN_DISTANCE_METERS = 5.0;
 
     static final class Progress {
         final int nextHintIdx;
@@ -77,7 +78,8 @@ final class TurnEventPlanner {
             boolean notified10,
             boolean notified5,
             double alongTrackMeters,
-            float speedMps
+            float speedMps,
+            float accuracyMeters
     ) {
         if (hints.isEmpty() || nextHintIdx >= hints.size()) {
             return new Progress(nextHintIdx, notified10, notified5, Collections.emptyList());
@@ -108,14 +110,18 @@ final class TurnEventPlanner {
         VoiceHint next = hints.get(updatedHintIdx);
         double hintDistMeters = polylineIndex.distanceAtPointIndex(next.indexInTrack);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
+        if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
+            return new Progress(updatedHintIdx, updatedNotified10, updatedNotified5, signals);
+        }
         double timeToNextSeconds = distanceToNextMeters / Math.max(MIN_SPEED_METERS_PER_SECOND, speedMps);
 
-        if (!updatedNotified10 && timeToNextSeconds <= INITIAL_IMMINENT_THRESHOLD_SECONDS) {
-            updatedNotified10 = true;
-            signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
-        }
         if (!updatedNotified5 && timeToNextSeconds <= VERY_IMMINENT_THRESHOLD_SECONDS) {
             updatedNotified5 = true;
+            signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
+            return new Progress(updatedHintIdx, updatedNotified10, updatedNotified5, signals);
+        }
+        if (!updatedNotified10 && timeToNextSeconds <= INITIAL_IMMINENT_THRESHOLD_SECONDS) {
+            updatedNotified10 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
         }
         return new Progress(updatedHintIdx, updatedNotified10, updatedNotified5, signals);
@@ -128,7 +134,8 @@ final class TurnEventPlanner {
             int nextHintIdx,
             boolean initialTurnNotificationSent,
             double alongTrackMeters,
-            float speedMps
+            float speedMps,
+            float accuracyMeters
     ) {
         if (initialTurnNotificationSent || hints.isEmpty() || nextHintIdx < 0 || nextHintIdx >= hints.size()) {
             return null;
@@ -137,7 +144,18 @@ final class TurnEventPlanner {
         VoiceHint next = hints.get(nextHintIdx);
         double hintDistMeters = polylineIndex.distanceAtPointIndex(next.indexInTrack);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
+        if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
+            return null;
+        }
         double timeToNextSeconds = distanceToNextMeters / Math.max(MIN_SPEED_METERS_PER_SECOND, speedMps);
         return TurnSignal.initial(next, distanceToNextMeters, timeToNextSeconds);
+    }
+
+    private boolean isTurnDistanceReliable(double distanceToNextMeters, float accuracyMeters) {
+        double safeAccuracyMeters = Float.isFinite(accuracyMeters) && accuracyMeters > 0f
+                ? accuracyMeters
+                : 0.0;
+        double minTrustedDistanceMeters = Math.max(MIN_TRUSTED_TURN_DISTANCE_METERS, safeAccuracyMeters);
+        return distanceToNextMeters > minTrustedDistanceMeters;
     }
 }

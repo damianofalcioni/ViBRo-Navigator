@@ -6,6 +6,8 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 
 VibeNavigator is a lightweight Android navigation app built around the installed BRouter app. The product goal is minimal, battery-efficient, offline-first navigation with vibration-led turn guidance and a dark visual theme.
 
+Map-free trust is a primary product constraint. Assume the user may not see the map at all and may need to trust the next direction blindly. When guidance confidence is weak, conservative behavior is preferred: suppress, delay, or simplify instructions rather than surfacing a misleading maneuver.
+
 ## Stack and build
 
 - Single-module Android app at `app/`
@@ -61,6 +63,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Preserve background and screen-off navigation behavior. Changes affecting the foreground service, wake lock, notifications, or battery optimization flow need extra scrutiny.
 - Preserve startup seed quality. Cached last-known location may only accelerate navigation startup when it is fresh and accurate enough; stale or low-quality cached fixes must not trigger the initial route calculation.
 - Preserve the bucketed navigation polling cadence. Small ETA fluctuations should not continuously change the requested location interval, and identical interval/provider requests should reuse the active listener registration instead of forcing a remove-and-readd cycle.
+- Preserve conservative guidance under uncertainty. Bearing-only reroutes, sub-accuracy maneuver prompts, and other low-confidence direction changes must not be surfaced as trustworthy instructions.
 - Treat OEM settings quirks as part of the product surface. For battery-optimization redirects, prefer a settings destination that reliably stays open on real devices over a nominally more direct intent that immediately closes.
 - Preserve BRouter compatibility. Route requests should continue using the local BRouter service and GeoJSON output.
 - Preserve the current BRouter voice-hint contract unless there is a deliberate product change: mode `9`, distinct `beeline`, `exit left`, and `exit right`, and a neutral unknown fallback.
@@ -75,6 +78,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Keep background route computation separated from main-thread state mutation. Preserve `NavigationRouteExecutor` rather than inlining thread management back into `NavigationService`.
 - Keep Android service concerns delegated through the existing foreground/location/wakelock/dispatch/broadcast helpers, and keep `NavigationSession` as a coordinator over focused session collaborators.
 - If you change reroute thresholds, polling cadence, turn-alert timing, blocked-road escalation, or route-request lifecycle behavior, update the corresponding `nav/` tests.
+- If you change guidance confidence rules, keep map-free use in mind and update tests around bearing trust, turn suppression, and duplicate/imminent alert behavior.
 - If you change navigation intent extras, update `NavigationRequest` first and keep resume/start flows serialized through it instead of hand-copying extras.
 - If you change startup permission/settings/battery-optimization flow, keep `NavigationActivity` thin and update the startup/lifecycle tests.
 - If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect both `brouter/` and `nav/route/` paths together and keep mode-9 coverage aligned.
@@ -96,3 +100,4 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Does navigation still work in background and with screen off?
 - Are permissions/settings prompts still reachable for location, notifications, and battery optimization?
 - Are BRouter profile selection and route calculation still intact?
+- Would the resulting turn guidance still be safe to trust without looking at a map?

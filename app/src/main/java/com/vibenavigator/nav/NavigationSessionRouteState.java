@@ -99,6 +99,7 @@ final class NavigationSessionRouteState {
                 polylineIndex,
                 match.alongTrackMeters,
                 speedMps,
+                accuracyMeters,
                 nowMs,
                 fastChecksUntilMs
         );
@@ -139,7 +140,7 @@ final class NavigationSessionRouteState {
         targets = buildTargets(context, request.stops, polylineIndex);
 
         List<NavigationSession.TurnEvent> turnEvents =
-                turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, speedMps);
+                turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, speedMps, accuracyOf(lastFiltered));
         AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
                 + " trackPoints=" + newRoute.track.size()
@@ -229,6 +230,10 @@ final class NavigationSessionRouteState {
         }
         out.add(new NavTarget(context.getString(R.string.label_destination), index.totalLengthMeters()));
         return out;
+    }
+
+    private float accuracyOf(@Nullable Location location) {
+        return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 
     static final class Evaluation {

@@ -21,6 +21,8 @@ Core product constraints:
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
 - Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app that only vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
+- Treat map-free use as a primary product mode: navigation guidance must be trustworthy enough that a user who does not see the map can rely on the next direction without visual confirmation
+- When the current position or heading confidence is too weak, prefer delaying or suppressing a direction update over presenting a misleading one
 
 ## Functional specification
 
@@ -136,11 +138,15 @@ The app must monitor user position:
 
 - The route must also be recalculated when the user is still on the track but is moving in the wrong direction
 - Wrong direction is defined as bearing difference greater than 60 degrees
+- Bearing-based wrong-direction detection must only be trusted when the current fix is accurate enough and movement-derived heading is credible for the current speed/displacement
+- Low-confidence bearing estimates must not trigger reroutes on their own
 
 #### 4.4.3 Direction distance estimation
 
 - The app must estimate the distance left to the next direction
 - The estimation must use current speed and the direction distance returned by BRouter
+- The app must treat very short maneuver distances as unreliable whenever they fall inside the current location uncertainty radius
+- A next-direction distance that is less than or equal to the current trusted uncertainty radius must not be presented as a trustworthy instruction
 
 #### 4.4.4 Turn notifications
 
@@ -149,6 +155,8 @@ The app must monitor user position:
   - When the previous direction has just been passed
   - When 10 seconds remain to the next direction
   - When 5 seconds remain to the next direction
+- The app must suppress or delay turn notifications whose remaining distance is not trustworthy relative to current location accuracy
+- When the user is already inside the most urgent threshold, the app should emit only the single most urgent imminent-turn notification instead of stacking multiple near-identical alerts
 - Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
 - Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
 - Each notification message must contain:
@@ -185,6 +193,8 @@ The navigation UI must show the following in large text:
 
 - At the top: the next two directions
 - Each must include emoji, text, distance left, and time left
+- The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
+- In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
 
 #### 4.5.2 Route progress
 
@@ -288,6 +298,7 @@ The navigation UI must show the following in large text:
 - Robust permission handling before navigation starts
 - Robust OEM-compatible redirects for required system settings such as battery-optimization exemptions
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
+- Robustness for map-free guidance: the product should favor conservative, high-confidence navigation prompts over aggressive but error-prone updates
 
 ## Implementation guidance
 

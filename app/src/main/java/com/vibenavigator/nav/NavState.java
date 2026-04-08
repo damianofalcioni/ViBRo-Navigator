@@ -123,8 +123,17 @@ public final class NavState {
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
-        String next = buildDirectionLine(route, index, alongTrackMeters, nextHintIdx, speedMps, context);
-        String afterNext = buildDirectionLine(route, index, alongTrackMeters, nextHintIdx + 1, speedMps, context);
+        List<String> directionLines = buildDirectionLines(
+                route,
+                index,
+                alongTrackMeters,
+                nextHintIdx,
+                speedMps,
+                accuracyMeters,
+                context
+        );
+        String next = directionLines.isEmpty() ? "" : directionLines.get(0);
+        String afterNext = directionLines.size() > 1 ? directionLines.get(1) : "";
         String accuracy = buildAccuracyLine(accuracyMeters, context);
         String remaining = buildRemaining(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
         return new NavState(next, afterNext, accuracy, nextEvaluationDeadlineElapsedMs, remaining);
@@ -139,22 +148,38 @@ public final class NavState {
     }
 
     @NonNull
-    private static String buildDirectionLine(
+    private static List<String> buildDirectionLines(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             double alongTrackMeters,
             int hintIdx,
             float speedMps,
+            float accuracyMeters,
             @NonNull Context context
     ) {
         if (route.voiceHints.isEmpty() || hintIdx < 0 || hintIdx >= route.voiceHints.size()) {
-            return "";
+            return new ArrayList<>();
         }
-        VoiceHint hint = route.voiceHints.get(hintIdx);
-        double hintDist = index.distanceAtPointIndex(hint.indexInTrack);
-        double dist = Math.max(0.0, hintDist - alongTrackMeters);
-        double time = dist / Math.max(1.0, speedMps);
-        return NavigationTextFormatter.formatTurnNotification(context, hint, dist, time);
+        List<String> lines = new ArrayList<>(2);
+        double minReliableDistanceMeters = minimumReliableTurnDistanceMeters(accuracyMeters);
+        for (int i = hintIdx; i < route.voiceHints.size() && lines.size() < 2; i++) {
+            VoiceHint hint = route.voiceHints.get(i);
+            double hintDist = index.distanceAtPointIndex(hint.indexInTrack);
+            double dist = Math.max(0.0, hintDist - alongTrackMeters);
+            if (dist <= minReliableDistanceMeters) {
+                continue;
+            }
+            double time = dist / Math.max(1.0, speedMps);
+            lines.add(NavigationTextFormatter.formatTurnNotification(context, hint, dist, time));
+        }
+        return lines;
+    }
+
+    private static double minimumReliableTurnDistanceMeters(float accuracyMeters) {
+        double safeAccuracyMeters = Float.isFinite(accuracyMeters) && accuracyMeters > 0f
+                ? accuracyMeters
+                : 0.0;
+        return Math.max(5.0, safeAccuracyMeters);
     }
 
     @NonNull

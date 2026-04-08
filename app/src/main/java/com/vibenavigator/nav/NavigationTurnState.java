@@ -41,6 +41,7 @@ final class NavigationTurnState {
             @NonNull PolylineIndex polylineIndex,
             double alongTrackMeters,
             float speedMps,
+            float accuracyMeters,
             long nowMs,
             long fastChecksUntilMs
     ) {
@@ -51,7 +52,8 @@ final class NavigationTurnState {
                 notified10,
                 notified5,
                 alongTrackMeters,
-                speedMps
+                speedMps,
+                accuracyMeters
         );
         nextHintIdx = progress.nextHintIdx;
         notified10 = progress.notified10;
@@ -73,13 +75,14 @@ final class NavigationTurnState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @Nullable Location lastFiltered,
-            float speedMps
+            float speedMps,
+            float accuracyMeters
     ) {
         nextHintIdx = findNextHintIndex(route, polylineIndex, lastFiltered);
         notified10 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
-        return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps);
+        return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps, accuracyMeters);
     }
 
     @NonNull
@@ -87,7 +90,8 @@ final class NavigationTurnState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @Nullable Location lastFiltered,
-            float speedMps
+            float speedMps,
+            float accuracyMeters
     ) {
         if (initialTurnNotificationSent) {
             return Collections.emptyList();
@@ -114,7 +118,8 @@ final class NavigationTurnState {
                 nextHintIdx,
                 initialTurnNotificationSent,
                 alongTrackMeters,
-                speedMps
+                speedMps,
+                accuracyMeters
         );
         if (initialSignal == null) {
             return Collections.emptyList();

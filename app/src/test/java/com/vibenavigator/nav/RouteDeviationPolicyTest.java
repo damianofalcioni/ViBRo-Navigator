@@ -33,6 +33,16 @@ public class RouteDeviationPolicyTest {
     }
 
     @Test
+    public void evaluate_ignoresBearingMismatchWhenAccuracyIsPoor() {
+        RouteDeviationPolicy.Decision decision = policy.evaluate(5.0, 25f, 180.0, 90.0);
+
+        assertEquals(RouteDeviationPolicy.Reason.NONE, decision.reason);
+        assertFalse(decision.shouldRecalculateRoute());
+        assertEquals(35.0, decision.offTrackThresholdMeters, 0.0);
+        assertEquals(180.0, decision.actualBearingDegrees, 0.0);
+    }
+
+    @Test
     public void evaluate_keepsCurrentRouteWhenWithinThresholds() {
         RouteDeviationPolicy.Decision decision = policy.evaluate(8.0, 5f, 100.0, 90.0);
 

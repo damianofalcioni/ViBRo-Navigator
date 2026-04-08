@@ -36,6 +36,7 @@ public class TurnEventPlannerTest {
                 true,
                 true,
                 120.0,
+                5f,
                 5f
         );
 
@@ -47,7 +48,7 @@ public class TurnEventPlannerTest {
     }
 
     @Test
-    public void advance_emitsTenAndFiveSecondSignalsWhenNeeded() {
+    public void advance_emitsOnlyMostUrgentSignalWhenAlreadyWithinFiveSeconds() {
         PolylineIndex index = new PolylineIndex(Arrays.asList(
                 new LatLon(0.0, 0.0),
                 new LatLon(0.0, 0.001)
@@ -61,13 +62,12 @@ public class TurnEventPlannerTest {
                 false,
                 false,
                 90.0,
+                5f,
                 5f
         );
 
-        assertEquals(2, progress.signals.size());
+        assertEquals(1, progress.signals.size());
         assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
-        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(1).type);
-        assertTrue(progress.notified10);
         assertTrue(progress.notified5);
     }
 
@@ -85,6 +85,7 @@ public class TurnEventPlannerTest {
                 0,
                 false,
                 55.0,
+                5f,
                 5f
         );
 
@@ -106,7 +107,50 @@ public class TurnEventPlannerTest {
                 0,
                 true,
                 0.0,
+                0f,
                 0f
+        );
+
+        assertNull(signal);
+    }
+
+    @Test
+    public void advance_suppressesImminentSignalInsideAccuracyRadius() {
+        PolylineIndex index = new PolylineIndex(Arrays.asList(
+                new LatLon(0.0, 0.0),
+                new LatLon(0.0, 0.001)
+        ));
+        VoiceHint hint = new VoiceHint(1, 0, 0, 0.0, 0);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                Collections.singletonList(hint),
+                index,
+                0,
+                false,
+                false,
+                100.0,
+                5f,
+                20f
+        );
+
+        assertTrue(progress.signals.isEmpty());
+    }
+
+    @Test
+    public void buildInitialSignal_returnsNullWhenTurnDistanceIsNotReliable() {
+        PolylineIndex index = new PolylineIndex(Arrays.asList(
+                new LatLon(0.0, 0.0),
+                new LatLon(0.0, 0.001)
+        ));
+
+        TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                index,
+                0,
+                false,
+                100.0,
+                5f,
+                20f
         );
 
         assertNull(signal);

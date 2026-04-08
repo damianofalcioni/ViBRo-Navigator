@@ -29,13 +29,14 @@ public class NavigationTurnStateTest {
         state.reset();
         assertEquals(
                 NavigationSession.TurnEvent.Type.INITIAL,
-                state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 5f).get(0).type
+                state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 5f, 5f).get(0).type
         );
 
         NavigationTurnState.Progress progress = state.evaluate(
                 route,
                 polylineIndex,
                 120.0,
+                5f,
                 5f,
                 1_000L,
                 0L

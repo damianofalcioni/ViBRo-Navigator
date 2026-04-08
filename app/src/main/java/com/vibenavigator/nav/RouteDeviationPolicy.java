@@ -9,6 +9,7 @@ final class RouteDeviationPolicy {
     private static final double BASE_OFF_TRACK_THRESHOLD_METERS = 10.0;
     private static final double DEFAULT_ACCURACY_METERS = 20.0;
     private static final double BEARING_MISMATCH_THRESHOLD_DEGREES = 60.0;
+    private static final double MAX_TRUSTED_BEARING_ACCURACY_METERS = 15.0;
 
     enum Reason {
         NONE,
@@ -73,6 +74,16 @@ final class RouteDeviationPolicy {
                     offTrackThresholdMeters,
                     expectedBearingDegrees,
                     null,
+                    null
+            );
+        }
+        if (safeAccuracyMeters > MAX_TRUSTED_BEARING_ACCURACY_METERS) {
+            return new Decision(
+                    Reason.NONE,
+                    distanceToTrackMeters,
+                    offTrackThresholdMeters,
+                    expectedBearingDegrees,
+                    actualBearingDegrees,
                     null
             );
         }
