@@ -154,7 +154,7 @@ The app must monitor user position:
 
 - The app must send notifications:
   - When navigation starts and the first route has been calculated, for the first upcoming direction even if the user is not moving yet
-  - When the user has remained stationary for several seconds during navigation and the app has a sufficiently trustworthy geomagnetic heading sample that shows the user is not already facing the route
+- When the user has remained stationary for several seconds during navigation and the app has a sufficiently trustworthy geomagnetic heading sample that shows the user is not already facing the route
   - When the previous direction has just been passed
   - When 10 seconds remain to the next direction
   - When 5 seconds remain to the next direction
@@ -163,6 +163,7 @@ The app must monitor user position:
 - Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
 - Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
 - A stationary orientation notification must be emitted only after a short stationary dwell, must require a fresh geomagnetic heading sample with good calibration, and must be suppressed when the user is already mostly aligned with the route
+- Geomagnetic stationary-orientation monitoring must remain available during background and screen-off navigation so those advisory notifications still work without the navigation UI being open
 - Stationary orientation notifications are advisory turn-to-face-the-route prompts and must not change wrong-direction reroute behavior, which remains gated by movement-derived heading confidence
 - Each notification message must contain:
   - A direction arrow emoji
@@ -206,6 +207,7 @@ The navigation UI must show the following in large text:
 - In the center: a map-free compass canvas showing the active route relative to the current position
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
+- Live geomagnetic compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
 - The current-position marker should be shown as a small center dot
@@ -262,6 +264,7 @@ The navigation UI must show the following in large text:
 
 - Navigation functionality must remain active in the background
 - Navigation functionality must remain active when the screen is off
+- Screen-off or background navigation may suspend compass UI updates, but geomagnetic monitoring needed for stationary-orientation notifications must continue
 
 #### 4.6.1 Foreground service lifecycle
 

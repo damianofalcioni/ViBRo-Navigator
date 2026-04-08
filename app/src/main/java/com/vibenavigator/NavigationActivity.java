@@ -68,6 +68,7 @@ public class NavigationActivity extends Activity {
             bound = true;
             AppLogger.i(TAG, "NavigationService connected component=" + name);
             navBinder.ensureForegroundNotification();
+            navBinder.setNavigationUiVisible(true);
             navBinder.registerListener(navListener);
         }
 
@@ -159,6 +160,7 @@ public class NavigationActivity extends Activity {
         if (bound) {
             try {
                 if (navBinder != null) {
+                    navBinder.setNavigationUiVisible(false);
                     navBinder.unregisterListener(navListener);
                 }
             } catch (Exception e) {

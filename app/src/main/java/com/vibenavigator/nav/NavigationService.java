@@ -1,7 +1,10 @@
 package com.vibenavigator.nav;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.app.Service;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Binder;
@@ -9,6 +12,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -61,6 +65,22 @@ public class NavigationService extends Service implements LocationListener {
     private long stationarySinceElapsedRealtimeMs;
     private boolean stationaryOrientationHandledForCurrentStop;
     private long lastCompassUiUpdateElapsedRealtimeMs;
+    private boolean navigationUiVisible;
+    private boolean screenInteractive = true;
+    private boolean orientationMonitoringActive;
+    private final BroadcastReceiver screenInteractiveReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent == null || intent.getAction() == null) {
+                return;
+            }
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                onScreenInteractiveChanged(false);
+            } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                onScreenInteractiveChanged(true);
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -70,6 +90,10 @@ public class NavigationService extends Service implements LocationListener {
         wakeLockController = new NavigationWakeLockController(this);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
         geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, this::onGeomagneticSampleUpdated);
+        screenInteractive = isScreenInteractive();
+        IntentFilter screenInteractiveFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
+        screenInteractiveFilter.addAction(Intent.ACTION_SCREEN_ON);
+        registerReceiver(screenInteractiveReceiver, screenInteractiveFilter);
         foregroundController.ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
@@ -110,6 +134,10 @@ public class NavigationService extends Service implements LocationListener {
 
         public void ensureForegroundNotification() {
             foregroundCoordinator.onNavigationUiConnected();
+        }
+
+        public void setNavigationUiVisible(boolean visible) {
+            NavigationService.this.setNavigationUiVisible(visible);
         }
 
         public void unregisterListener(@NonNull Listener l) {
@@ -161,7 +189,7 @@ public class NavigationService extends Service implements LocationListener {
         wakeLockController.acquire();
         locationController.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         locationController.requestCurrentLocationSeeds();
-        beginStationaryOrientationMonitoring();
+        ensureOrientationMonitoring();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
@@ -183,7 +211,7 @@ public class NavigationService extends Service implements LocationListener {
         foregroundCoordinator.stopMonitoring();
         locationController.stopTracking();
         wakeLockController.release();
-        endStationaryOrientationMonitoring();
+        stopOrientationMonitoring();
         stateBroadcaster.clear();
         foregroundController.stopForegroundService();
     }
@@ -247,21 +275,26 @@ public class NavigationService extends Service implements LocationListener {
         }
     }
 
-    private void beginStationaryOrientationMonitoring() {
-        stationarySinceElapsedRealtimeMs = 0L;
-        stationaryOrientationHandledForCurrentStop = false;
-        if (geomagneticOrientationMonitor == null) {
+    private void ensureOrientationMonitoring() {
+        resetStationaryOrientationEpisode();
+        if (orientationMonitoringActive || geomagneticOrientationMonitor == null) {
             return;
         }
         if (!geomagneticOrientationMonitor.start()) {
             AppLogger.w(TAG, "Stationary orientation monitor unavailable, skipping stationary orientation notifications");
+            return;
         }
+        orientationMonitoringActive = true;
     }
 
-    private void endStationaryOrientationMonitoring() {
+    private void stopOrientationMonitoring() {
         stationarySinceElapsedRealtimeMs = 0L;
         stationaryOrientationHandledForCurrentStop = false;
         lastCompassUiUpdateElapsedRealtimeMs = 0L;
+        if (!orientationMonitoringActive) {
+            return;
+        }
+        orientationMonitoringActive = false;
         if (geomagneticOrientationMonitor != null) {
             geomagneticOrientationMonitor.stop();
         }
@@ -325,8 +358,49 @@ public class NavigationService extends Service implements LocationListener {
         stationaryOrientationHandledForCurrentStop = false;
     }
 
+    private void setNavigationUiVisible(boolean visible) {
+        if (navigationUiVisible == visible) {
+            return;
+        }
+        navigationUiVisible = visible;
+        if (visible && screenInteractive) {
+            emitState();
+        }
+    }
+
+    private void onScreenInteractiveChanged(boolean interactive) {
+        if (screenInteractive == interactive) {
+            return;
+        }
+        screenInteractive = interactive;
+        if (interactive && navigationUiVisible && stateBroadcaster.size() > 0) {
+            emitState();
+        }
+    }
+
+    private boolean shouldDispatchCompassUi() {
+        return shouldDispatchCompassUi(
+                navigationSession.hasActiveRoute(),
+                navigationUiVisible,
+                screenInteractive
+        );
+    }
+
+    static boolean shouldDispatchCompassUi(
+            boolean hasActiveRoute,
+            boolean navigationUiVisible,
+            boolean screenInteractive
+    ) {
+        return hasActiveRoute && navigationUiVisible && screenInteractive;
+    }
+
+    private boolean isScreenInteractive() {
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        return powerManager == null || powerManager.isInteractive();
+    }
+
     private void onGeomagneticSampleUpdated(@NonNull GeomagneticOrientationMonitor.Sample sample) {
-        if (!navigationSession.hasActiveRoute() || stateBroadcaster.size() == 0) {
+        if (!shouldDispatchCompassUi() || stateBroadcaster.size() == 0) {
             return;
         }
         long nowElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime();
@@ -349,7 +423,7 @@ public class NavigationService extends Service implements LocationListener {
 
     @Nullable
     private Double currentDisplayHeadingDegrees() {
-        if (geomagneticOrientationMonitor == null) {
+        if (!orientationMonitoringActive || geomagneticOrientationMonitor == null) {
             return null;
         }
         GeomagneticOrientationMonitor.Sample sample = geomagneticOrientationMonitor.getLatestSample();
@@ -367,6 +441,7 @@ public class NavigationService extends Service implements LocationListener {
     public void onDestroy() {
         AppLogger.i(TAG, "Service destroyed");
         stopNavigation();
+        unregisterReceiver(screenInteractiveReceiver);
         routeExecutor.shutdown();
         super.onDestroy();
     }
