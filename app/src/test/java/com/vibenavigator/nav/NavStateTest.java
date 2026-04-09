@@ -52,6 +52,7 @@ public class NavStateTest {
                 20f,
                 locationAt(0.0, 0.0),
                 45.0,
+                null,
                 NavState.NO_DEADLINE,
                 0L,
                 Collections.singletonList(new NavTarget("Destination", 222.0)),
@@ -84,6 +85,7 @@ public class NavStateTest {
                 5f,
                 locationAt(48.2000, 16.3600),
                 90.0,
+                8.0f,
                 NavState.NO_DEADLINE,
                 0L,
                 Collections.singletonList(new NavTarget("Destination", 130.0)),
@@ -92,6 +94,8 @@ public class NavStateTest {
 
         assertNotNull(state.compassState);
         assertEquals(90.0f, state.compassState.headingDegrees, 0.01f);
+        assertEquals(8.0f, state.compassState.headingAccuracyDegrees, 0.01f);
+        assertEquals(1.0f, state.compassState.referenceSpeedMps, 0.01f);
         assertTrue(state.compassState.routePoints.size() >= 2);
         assertTrue(state.compassState.visibleRadiusMeters >= 90f);
     }

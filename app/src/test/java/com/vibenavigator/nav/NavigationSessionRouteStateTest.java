@@ -54,6 +54,7 @@ public class NavigationSessionRouteStateTest {
                 5f,
                 5f,
                 null,
+                null,
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
@@ -63,7 +64,7 @@ public class NavigationSessionRouteStateTest {
         assertEquals(1, turnEvents.size());
         assertEquals(NavigationSession.TurnEvent.Type.INITIAL, turnEvents.get(0).type);
         assertFalse(navState.nextLine.isEmpty());
-        assertTrue(navState.remainingBlock.contains(context.getString(R.string.label_destination)));
+        assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
     }
 
     @Test
@@ -195,6 +196,7 @@ public class NavigationSessionRouteStateTest {
                 5f,
                 5f,
                 null,
+                null,
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
@@ -203,7 +205,7 @@ public class NavigationSessionRouteStateTest {
 
         assertTrue(navState.remainingBlock.contains(
                 context.getString(R.string.nav_route_notice_no_alternative_keep_current)));
-        assertTrue(navState.remainingBlock.contains(context.getString(R.string.label_destination)));
+        assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
     }
 
     @Test
@@ -216,6 +218,7 @@ public class NavigationSessionRouteStateTest {
                 location(0.0, 0.0, 1_000L),
                 5f,
                 5f,
+                null,
                 null,
                 NavState.NO_DEADLINE,
                 1_000L,

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -13,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import com.vibenavigator.nav.NavCompassState;
+import com.vibenavigator.nav.NavigationTextFormatter;
 
 public final class NavigationCompassView extends View {
 
@@ -23,6 +25,8 @@ public final class NavigationCompassView extends View {
     private static final float HEADING_GUIDE_TOP_SCALE = 0.94f;
     private static final float HEADING_GUIDE_ARROW_WIDTH_DP = 12f;
     private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = 10f;
+    private static final float HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES = 5f;
+    private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
     private static final float ROUTE_MARKER_RADIUS_DP = 2.5f;
@@ -42,14 +46,17 @@ public final class NavigationCompassView extends View {
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routeMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headingGuidePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint headingAccuracyGuidePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceMarkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint distanceLegendPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint distanceLegendRightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint distanceLegendLeftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint finishPolePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint finishFlagLightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint finishFlagDarkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint clipPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path compassClipPath = new Path();
     private final Path routePath = new Path();
+    private final RectF arcBounds = new RectF();
 
     public NavigationCompassView(Context context) {
         super(context);
@@ -120,23 +127,33 @@ public final class NavigationCompassView extends View {
         accuracyOverlayPaint.setAlpha(128);
 
         headingGuidePaint.setStyle(Paint.Style.STROKE);
-        headingGuidePaint.setStrokeWidth(dp(2.4f));
+        headingGuidePaint.setStrokeWidth(dp(1.2f));
         headingGuidePaint.setStrokeCap(Paint.Cap.ROUND);
         headingGuidePaint.setStrokeJoin(Paint.Join.ROUND);
         headingGuidePaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
         headingGuidePaint.setAlpha(128);
 
+        headingAccuracyGuidePaint.setStyle(Paint.Style.STROKE);
+        headingAccuracyGuidePaint.setStrokeWidth(dp(1.2f));
+        headingAccuracyGuidePaint.setStrokeCap(Paint.Cap.ROUND);
+        headingAccuracyGuidePaint.setStrokeJoin(Paint.Join.ROUND);
+        headingAccuracyGuidePaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        headingAccuracyGuidePaint.setAlpha(128);
+
         distanceMarkPaint.setStyle(Paint.Style.STROKE);
-        distanceMarkPaint.setStrokeWidth(dp(2.4f));
+        distanceMarkPaint.setStrokeWidth(dp(1.2f));
         distanceMarkPaint.setStrokeCap(Paint.Cap.ROUND);
         distanceMarkPaint.setStrokeJoin(Paint.Join.ROUND);
         distanceMarkPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
         distanceMarkPaint.setAlpha(128);
 
-        distanceLegendPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
-        distanceLegendPaint.setTextAlign(Paint.Align.LEFT);
-        distanceLegendPaint.setTextSize(dp(10f));
-        distanceLegendPaint.setAlpha(128);
+        distanceLegendRightPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        distanceLegendRightPaint.setTextAlign(Paint.Align.LEFT);
+        distanceLegendRightPaint.setTextSize(dp(10f));
+        distanceLegendRightPaint.setAlpha(128);
+
+        distanceLegendLeftPaint.set(distanceLegendRightPaint);
+        distanceLegendLeftPaint.setTextAlign(Paint.Align.RIGHT);
 
         finishPolePaint.setStyle(Paint.Style.STROKE);
         finishPolePaint.setStrokeCap(Paint.Cap.ROUND);
@@ -194,6 +211,7 @@ public final class NavigationCompassView extends View {
         canvas.restoreToCount(saveCount);
 
         drawHeadingGuide(canvas, cx, cy, radius);
+        drawHeadingAccuracyGuides(canvas, cx, cy, radius);
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius);
         drawDestinationMarker(canvas, cx, cy, routeRadius, headingDegrees);
@@ -281,6 +299,29 @@ public final class NavigationCompassView extends View {
         canvas.drawLine(cx, arrowTipY, cx + arrowHalfWidth, arrowBaseY, headingGuidePaint);
     }
 
+    private void drawHeadingAccuracyGuides(@NonNull Canvas canvas, float cx, float cy, float radius) {
+        Float visibleHeadingAccuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
+        if (visibleHeadingAccuracyDegrees == null) {
+            return;
+        }
+        drawHeadingAccuracyGuideLine(canvas, cx, cy, radius, -90f - visibleHeadingAccuracyDegrees);
+        drawHeadingAccuracyGuideLine(canvas, cx, cy, radius, -90f + visibleHeadingAccuracyDegrees);
+    }
+
+    private void drawHeadingAccuracyGuideLine(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float radius,
+            float angleDegrees
+    ) {
+        double radians = Math.toRadians(angleDegrees);
+        float guideRadius = radius * DISTANCE_RING_SCALES[0];
+        float endX = cx + (float) Math.cos(radians) * guideRadius;
+        float endY = cy + (float) Math.sin(radians) * guideRadius;
+        canvas.drawLine(cx, cy, endX, endY, headingAccuracyGuidePaint);
+    }
+
     private void drawCurrentPositionMarker(@NonNull Canvas canvas, float cx, float cy, float radius) {
         float markerDotRadius = radius * CENTER_MARKER_DOT_RADIUS_SCALE;
         canvas.drawCircle(cx, cy, markerDotRadius, centerPaint);
@@ -345,16 +386,105 @@ public final class NavigationCompassView extends View {
             return;
         }
 
-        Paint.FontMetrics fontMetrics = distanceLegendPaint.getFontMetrics();
+        Float visibleHeadingAccuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
+        Paint.FontMetrics fontMetrics = distanceLegendRightPaint.getFontMetrics();
         float labelBaselineOffset = -(fontMetrics.ascent + fontMetrics.descent) / 2f;
         float dashHalfWidth = dp(DISTANCE_MARK_WIDTH_DP) / 2f;
-        float labelX = cx + dashHalfWidth + dp(DISTANCE_LABEL_OFFSET_DP);
         for (float ringScale : DISTANCE_RING_SCALES) {
             float y = cy - radius * ringScale;
             float ringDistanceMeters = compassState.visibleRadiusMeters * ringScale;
-            canvas.drawLine(cx - dashHalfWidth, y, cx + dashHalfWidth, y, distanceMarkPaint);
-            canvas.drawText(formatDistanceLabel(ringDistanceMeters), labelX, y + labelBaselineOffset, distanceLegendPaint);
+            String distanceLabel = formatDistanceLabel(ringDistanceMeters);
+            String secondsLabel = formatRingTimeLabel(ringDistanceMeters);
+            if (visibleHeadingAccuracyDegrees != null) {
+                drawHeadingAccuracyArc(canvas, cx, cy, radius * ringScale, visibleHeadingAccuracyDegrees);
+                float[] rightAnchor = resolveHeadingAccuracyRingIntersection(
+                        cx,
+                        cy,
+                        radius * ringScale,
+                        -90f + visibleHeadingAccuracyDegrees
+                );
+                float[] leftAnchor = resolveHeadingAccuracyRingIntersection(
+                        cx,
+                        cy,
+                        radius * ringScale,
+                        -90f - visibleHeadingAccuracyDegrees
+                );
+                canvas.drawText(
+                        distanceLabel,
+                        rightAnchor[0] + dp(DISTANCE_LABEL_OFFSET_DP),
+                        rightAnchor[1] + labelBaselineOffset,
+                        distanceLegendRightPaint
+                );
+                canvas.drawText(
+                        secondsLabel,
+                        leftAnchor[0] - dp(DISTANCE_LABEL_OFFSET_DP),
+                        leftAnchor[1] + labelBaselineOffset,
+                        distanceLegendLeftPaint
+                );
+            } else {
+                float labelX = cx + dashHalfWidth + dp(DISTANCE_LABEL_OFFSET_DP);
+                float secondsX = cx - dashHalfWidth - dp(DISTANCE_LABEL_OFFSET_DP);
+                canvas.drawLine(cx - dashHalfWidth, y, cx + dashHalfWidth, y, distanceMarkPaint);
+                canvas.drawText(
+                        distanceLabel,
+                        labelX,
+                        y + labelBaselineOffset,
+                        distanceLegendRightPaint
+                );
+                canvas.drawText(
+                        secondsLabel,
+                        secondsX,
+                        y + labelBaselineOffset,
+                        distanceLegendLeftPaint
+                );
+            }
         }
+    }
+
+    @Nullable
+    private Float resolvedVisibleHeadingAccuracyDegrees() {
+        if (compassState == null || compassState.headingAccuracyDegrees == null) {
+            return null;
+        }
+        float headingAccuracyDegrees = Math.min(
+                HEADING_ACCURACY_GUIDE_MAX_DEGREES,
+                Math.max(0f, compassState.headingAccuracyDegrees)
+        );
+        if (headingAccuracyDegrees <= 0f) {
+            return null;
+        }
+        return Math.max(HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES, headingAccuracyDegrees);
+    }
+
+    private void drawHeadingAccuracyArc(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float arcRadius,
+            float visibleHeadingAccuracyDegrees
+    ) {
+        arcBounds.set(cx - arcRadius, cy - arcRadius, cx + arcRadius, cy + arcRadius);
+        canvas.drawArc(
+                arcBounds,
+                -90f - visibleHeadingAccuracyDegrees,
+                visibleHeadingAccuracyDegrees * 2f,
+                false,
+                headingAccuracyGuidePaint
+        );
+    }
+
+    @NonNull
+    private float[] resolveHeadingAccuracyRingIntersection(
+            float cx,
+            float cy,
+            float ringRadius,
+            float angleDegrees
+    ) {
+        double radians = Math.toRadians(angleDegrees);
+        return new float[]{
+                cx + (float) Math.cos(radians) * ringRadius,
+                cy + (float) Math.sin(radians) * ringRadius
+        };
     }
 
     private void drawDestinationMarker(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
@@ -428,6 +558,15 @@ public final class NavigationCompassView extends View {
             return getResources().getString(R.string.format_distance_km, distanceMeters / 1000f);
         }
         return getResources().getString(R.string.format_distance_m, distanceMeters);
+    }
+
+    @NonNull
+    private String formatRingTimeLabel(float distanceMeters) {
+        if (compassState == null) {
+            return getResources().getString(R.string.nav_status_unavailable);
+        }
+        int seconds = (int) Math.round(distanceMeters / Math.max(1f, compassState.referenceSpeedMps));
+        return NavigationTextFormatter.formatTimeSeconds(getContext(), seconds);
     }
 
     private float dp(float value) {

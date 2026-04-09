@@ -215,7 +215,10 @@ The navigation UI must show the following in large text:
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line
-- Each distance ring should have a short semi-transparent white tick on the vertical guide at its upper intersection, with a matching semi-transparent distance label placed next to that tick
+- When the displayed heading comes from a geomagnetic sample that exposes a heading-accuracy estimate, the compass must show two semi-transparent white straight guide lines, using the same visual treatment as the fixed top heading guide, from the center to the outer distance ring at the negative and positive angular error bounds around the fixed top heading guide
+- Each distance ring should show a semi-transparent distance label on the right side and a matching travel-time label on the left side
+- When heading accuracy is zero or unavailable, those labels should stay aligned with the short vertical-guide tick at the top ring intersection
+- When heading accuracy is non-zero, the top tick should be replaced by a semi-transparent arc spanning between the left and right heading-accuracy guides, and the right distance label plus left travel-time label should align with those guide intersections
 - Small semi-transparent white point markers must be shown on the route at the visible start position, at each visible hint position, and at the final destination
 - The route must be rendered as a continuous line, not as discrete dots
 - The destination endpoint must be shown with a finish-line icon without an enclosing badge

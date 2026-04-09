@@ -175,18 +175,35 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         double headingDegrees = (Math.toDegrees(orientation[0]) + 360.0) % 360.0;
         double pitchDegrees = Math.toDegrees(orientation[1]);
         double rollDegrees = Math.toDegrees(orientation[2]);
+        String headingAccuracyValue = describeHeadingAccuracy(latestGeomagneticVector);
         long ageMs = Math.max(0L, SystemClock.elapsedRealtime() - latestGeomagneticElapsedRealtimeMs);
 
         return String.format(
                 Locale.US,
-                "value=heading=%.0fdeg pitch=%.0fdeg roll=%.0fdeg acc=%s age=%dms raw=%s",
+                "value=heading=%.0fdeg pitch=%.0fdeg roll=%.0fdeg headingAcc=%s acc=%s age=%dms raw=%s",
                 headingDegrees,
                 pitchDegrees,
                 rollDegrees,
+                headingAccuracyValue,
                 accuracyLabel(latestGeomagneticAccuracy),
                 ageMs,
                 formatVector(latestGeomagneticVector)
         );
+    }
+
+    @NonNull
+    private static String describeHeadingAccuracy(@NonNull float[] values) {
+        if (values.length <= 4) {
+            return "missing";
+        }
+        float headingAccuracyRadians = values[4];
+        if (!Float.isFinite(headingAccuracyRadians)) {
+            return "invalid";
+        }
+        if (headingAccuracyRadians < 0f) {
+            return "unreliable";
+        }
+        return String.format(Locale.US, "%.1fdeg", Math.toDegrees(headingAccuracyRadians));
     }
 
     @NonNull

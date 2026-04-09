@@ -1,5 +1,6 @@
 package com.vibenavigator.nav;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.NonNull;
 
 import java.util.Collections;
@@ -18,6 +19,9 @@ public final class NavCompassState {
     }
 
     public final float headingDegrees;
+    @Nullable
+    public final Float headingAccuracyDegrees;
+    public final float referenceSpeedMps;
     public final float visibleRadiusMeters;
     public final float accuracyRadiusMeters;
     @NonNull
@@ -30,6 +34,8 @@ public final class NavCompassState {
 
     public NavCompassState(
             float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
             float visibleRadiusMeters,
             float accuracyRadiusMeters,
             @NonNull List<RoutePoint> routePoints,
@@ -39,6 +45,8 @@ public final class NavCompassState {
             boolean destinationWithinRadius
     ) {
         this.headingDegrees = headingDegrees;
+        this.headingAccuracyDegrees = headingAccuracyDegrees;
+        this.referenceSpeedMps = referenceSpeedMps;
         this.visibleRadiusMeters = visibleRadiusMeters;
         this.accuracyRadiusMeters = accuracyRadiusMeters;
         this.routePoints = Collections.unmodifiableList(routePoints);

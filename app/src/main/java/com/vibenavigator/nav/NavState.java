@@ -141,6 +141,7 @@ public final class NavState {
             float accuracyMeters,
             @NonNull Location currentLocation,
             @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @NonNull List<NavTarget> targets,
@@ -165,8 +166,10 @@ public final class NavState {
                 index,
                 currentLocation,
                 alongTrackMeters,
+                speedMps,
                 accuracyMeters,
-                headingDegrees
+                headingDegrees,
+                headingAccuracyDegrees
         );
         return new NavState(next, afterNext, destination, accuracy, nextEvaluationDeadlineElapsedMs, remaining, compassState);
     }
@@ -286,8 +289,10 @@ public final class NavState {
             @NonNull PolylineIndex index,
             @NonNull Location currentLocation,
             double alongTrackMeters,
+            float speedMps,
             float accuracyMeters,
-            @Nullable Double headingDegrees
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees
     ) {
         if (route.track.isEmpty()) {
             return null;
@@ -340,6 +345,8 @@ public final class NavState {
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return new NavCompassState(
                 resolvedHeading,
+                sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
+                sanitizeReferenceSpeedMps(speedMps),
                 visibleRadiusMeters,
                 sanitizeAccuracyMeters(accuracyMeters),
                 points,
@@ -352,6 +359,19 @@ public final class NavState {
 
     private static float sanitizeAccuracyMeters(float accuracyMeters) {
         return Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0f;
+    }
+
+    private static float sanitizeReferenceSpeedMps(float speedMps) {
+        return Float.isFinite(speedMps) && speedMps > 0f ? Math.max(1f, speedMps) : 1f;
+    }
+
+    @Nullable
+    private static Float sanitizeHeadingAccuracyDegrees(@Nullable Float headingAccuracyDegrees) {
+        return headingAccuracyDegrees != null
+                && Float.isFinite(headingAccuracyDegrees)
+                && headingAccuracyDegrees > 0f
+                ? headingAccuracyDegrees
+                : null;
     }
 
     private static float normalizeHeading(double headingDegrees) {

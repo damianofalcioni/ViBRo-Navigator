@@ -427,13 +427,45 @@ public class NavigationService extends Service implements LocationListener {
                 this,
                 locationController.getNextEvaluationDeadlineElapsedMs(),
                 System.currentTimeMillis(),
-                currentDisplayHeadingDegrees()
+                currentDisplayHeadingDegrees(),
+                currentDisplayHeadingAccuracyDegrees()
         );
         stateBroadcaster.dispatch(s);
     }
 
     @Nullable
     private Double currentDisplayHeadingDegrees() {
+        GeomagneticOrientationMonitor.Sample sample = currentDisplayHeadingSample();
+        if (sample == null) {
+            return null;
+        }
+        return sample.headingDegrees;
+    }
+
+    @Nullable
+    private Float currentDisplayHeadingAccuracyDegrees() {
+        GeomagneticOrientationMonitor.Sample sample = currentDisplayHeadingSample();
+        if (sample == null) {
+            return null;
+        }
+        if (sample.headingAccuracyDegrees != null) {
+            return sample.headingAccuracyDegrees.floatValue();
+        }
+        switch (sample.accuracy) {
+            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
+                return 10f;
+            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+                return 20f;
+            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+                return 35f;
+            case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
+            default:
+                return null;
+        }
+    }
+
+    @Nullable
+    private GeomagneticOrientationMonitor.Sample currentDisplayHeadingSample() {
         if (!orientationMonitoringActive || geomagneticOrientationMonitor == null) {
             return null;
         }
@@ -445,7 +477,7 @@ public class NavigationService extends Service implements LocationListener {
         if (ageMs > MAX_COMPASS_HEADING_SAMPLE_AGE_MS) {
             return null;
         }
-        return sample.headingDegrees;
+        return sample;
     }
 
     @Override
