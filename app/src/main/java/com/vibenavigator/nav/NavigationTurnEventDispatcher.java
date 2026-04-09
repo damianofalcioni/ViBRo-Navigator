@@ -12,8 +12,6 @@ import java.util.List;
 final class NavigationTurnEventDispatcher {
 
     interface TurnNotificationSink {
-        void sendPassedTurnNotification(@NonNull VoiceHint hint);
-
         void sendImminentTurnNotification(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds);
     }
 
@@ -30,7 +28,6 @@ final class NavigationTurnEventDispatcher {
             switch (event.type) {
                 case PASSED:
                     AppLogger.i(TAG, "Passed voice hint hintTrackIndex=" + event.hint.indexInTrack);
-                    notificationSink.sendPassedTurnNotification(event.hint);
                     break;
                 case INITIAL:
                     AppLogger.i(TAG, "Sent initial turn notification distanceMeters=" + event.distanceMeters

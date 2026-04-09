@@ -108,10 +108,6 @@ final class NavigationForegroundController {
         }
     }
 
-    void sendPassedTurnNotification(@NonNull VoiceHint hint) {
-        sendTurnNotification(hint, 0.0, 0.0, NavigationService.CHANNEL_ID_NAV, false);
-    }
-
     void sendImminentTurnNotification(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
         String channelId = directionInfo.kind == DirectionKind.LEFT

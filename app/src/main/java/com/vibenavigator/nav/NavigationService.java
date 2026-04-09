@@ -491,11 +491,6 @@ public class NavigationService extends Service implements LocationListener {
 
     private final class ForegroundNotificationSink implements NavigationTurnEventDispatcher.TurnNotificationSink {
         @Override
-        public void sendPassedTurnNotification(@NonNull com.vibenavigator.nav.route.VoiceHint hint) {
-            foregroundController.sendPassedTurnNotification(hint);
-        }
-
-        @Override
         public void sendImminentTurnNotification(
                 @NonNull com.vibenavigator.nav.route.VoiceHint hint,
                 double distanceMeters,

@@ -12,7 +12,7 @@ import java.util.Collections;
 public class NavigationTurnEventDispatcherTest {
 
     @Test
-    public void passedEventUsesPassedNotification() {
+    public void passedEventDoesNotSendNotification() {
         RecordingSink sink = new RecordingSink();
         NavigationTurnEventDispatcher dispatcher = new NavigationTurnEventDispatcher(sink);
 
@@ -20,9 +20,7 @@ public class NavigationTurnEventDispatcherTest {
                 NavigationSession.TurnEvent.passed(new VoiceHint(7, 2, 0, 0.0, 0))
         ));
 
-        assertEquals(1, sink.passedCalls);
         assertEquals(0, sink.imminentCalls);
-        assertEquals(7, sink.lastPassedHintIndex);
     }
 
     @Test
@@ -35,7 +33,6 @@ public class NavigationTurnEventDispatcherTest {
                 NavigationSession.TurnEvent.imminent(new VoiceHint(4, 5, 0, 0.0, 0), 25.0, 2.0)
         ));
 
-        assertEquals(0, sink.passedCalls);
         assertEquals(2, sink.imminentCalls);
         assertEquals(4, sink.lastImminentHintIndex);
         assertEquals(25.0, sink.lastImminentDistanceMeters, 0.0);
@@ -43,18 +40,10 @@ public class NavigationTurnEventDispatcherTest {
     }
 
     private static final class RecordingSink implements NavigationTurnEventDispatcher.TurnNotificationSink {
-        int passedCalls;
         int imminentCalls;
-        int lastPassedHintIndex = -1;
         int lastImminentHintIndex = -1;
         double lastImminentDistanceMeters;
         double lastImminentTimeSeconds;
-
-        @Override
-        public void sendPassedTurnNotification(VoiceHint hint) {
-            passedCalls++;
-            lastPassedHintIndex = hint.indexInTrack;
-        }
 
         @Override
         public void sendImminentTurnNotification(VoiceHint hint, double distanceMeters, double timeSeconds) {

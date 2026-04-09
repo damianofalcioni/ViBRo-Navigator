@@ -155,10 +155,11 @@ The app must monitor user position:
 - The app must send notifications:
   - When navigation starts and the first route has been calculated, for the first upcoming direction even if the user is not moving yet
 - When the user has remained stationary for several seconds during navigation, recent filtered fixes show only negligible displacement, and the app has a sufficiently trustworthy geomagnetic heading sample that shows the user is not already facing the route
-  - When the previous direction has just been passed
+  - When the previous direction has just been passed, only if advancing guidance requires surfacing a new actionable upcoming instruction rather than replaying the just-passed maneuver
   - When 10 seconds remain to the next direction
   - When 5 seconds remain to the next direction
 - The app must suppress or delay turn notifications whose remaining distance is not trustworthy relative to current location accuracy
+- The app must not emit a passed-turn notification whose displayed remaining distance or time would collapse to zero; in that case it should suppress the passed maneuver and move on to the next actionable instruction
 - When the user is already inside the most urgent threshold, the app should emit only the single most urgent imminent-turn notification instead of stacking multiple near-identical alerts
 - Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
 - Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
