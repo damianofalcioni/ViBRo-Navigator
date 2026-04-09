@@ -30,6 +30,7 @@ public final class NavigationCompassView extends View {
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
     private static final float ROUTE_MARKER_RADIUS_DP = 2.5f;
+    private static final float DESTINATION_MARKER_RADIUS_DP = 4f;
 
     @Nullable
     private NavCompassState compassState;
@@ -50,9 +51,7 @@ public final class NavigationCompassView extends View {
     private final Paint distanceMarkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceLegendRightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceLegendLeftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint finishPolePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint finishFlagLightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint finishFlagDarkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint destinationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint clipPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path compassClipPath = new Path();
     private final Path routePath = new Path();
@@ -155,16 +154,8 @@ public final class NavigationCompassView extends View {
         distanceLegendLeftPaint.set(distanceLegendRightPaint);
         distanceLegendLeftPaint.setTextAlign(Paint.Align.RIGHT);
 
-        finishPolePaint.setStyle(Paint.Style.STROKE);
-        finishPolePaint.setStrokeCap(Paint.Cap.ROUND);
-        finishPolePaint.setStrokeWidth(dp(2f));
-        finishPolePaint.setColor(ContextCompat.getColor(getContext(), R.color.black));
-
-        finishFlagLightPaint.setStyle(Paint.Style.FILL);
-        finishFlagLightPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
-
-        finishFlagDarkPaint.setStyle(Paint.Style.FILL);
-        finishFlagDarkPaint.setColor(ContextCompat.getColor(getContext(), R.color.black));
+        destinationPaint.setStyle(Paint.Style.FILL);
+        destinationPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
 
         clipPaint.setStyle(Paint.Style.FILL);
         clipPaint.setColor(ContextCompat.getColor(getContext(), R.color.black));
@@ -214,7 +205,6 @@ public final class NavigationCompassView extends View {
         drawHeadingAccuracyGuides(canvas, cx, cy, radius);
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius);
-        drawDestinationMarker(canvas, cx, cy, routeRadius, headingDegrees);
         drawDestinationPoint(canvas, cx, cy, routeRadius, headingDegrees);
     }
 
@@ -378,7 +368,7 @@ public final class NavigationCompassView extends View {
         if (position == null) {
             return;
         }
-        canvas.drawCircle(position[0], position[1], dp(ROUTE_MARKER_RADIUS_DP), routeMarkerPaint);
+        canvas.drawCircle(position[0], position[1], dp(DESTINATION_MARKER_RADIUS_DP), destinationPaint);
     }
 
     private void drawDistanceLegend(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -487,23 +477,6 @@ public final class NavigationCompassView extends View {
         };
     }
 
-    private void drawDestinationMarker(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null) {
-            return;
-        }
-        float iconSize = dp(compassState.destinationWithinRadius ? 18f : 20f);
-        float[] position = resolveDestinationPosition(cx, cy, routeRadius, headingDegrees, iconSize);
-        if (position == null) {
-            return;
-        }
-        float x = position[0];
-        float y = position[1];
-
-        float poleX = x - iconSize * 0.18f;
-        canvas.drawLine(poleX, y + iconSize * 0.42f, poleX, y - iconSize * 0.48f, finishPolePaint);
-        drawFinishFlag(canvas, x - iconSize * 0.10f, y - iconSize * 0.48f, iconSize * 0.82f, iconSize * 0.72f);
-    }
-
     @Nullable
     private float[] resolveDestinationPosition(
             float cx,
@@ -541,15 +514,6 @@ public final class NavigationCompassView extends View {
             }
         }
         return new float[]{x, y};
-    }
-
-    private void drawFinishFlag(@NonNull Canvas canvas, float left, float top, float width, float height) {
-        float cellWidth = width / 2f;
-        float cellHeight = height / 2f;
-        canvas.drawRect(left, top, left + cellWidth, top + cellHeight, finishFlagLightPaint);
-        canvas.drawRect(left + cellWidth, top, left + width, top + cellHeight, finishFlagDarkPaint);
-        canvas.drawRect(left, top + cellHeight, left + cellWidth, top + height, finishFlagDarkPaint);
-        canvas.drawRect(left + cellWidth, top + cellHeight, left + width, top + height, finishFlagLightPaint);
     }
 
     @NonNull

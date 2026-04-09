@@ -222,9 +222,9 @@ The navigation UI must show the following in large text:
 - Each distance ring should show a semi-transparent distance label on the right side and a matching travel-time label on the left side
 - When heading accuracy is zero or unavailable, those labels should stay aligned with the short vertical-guide tick at the top ring intersection
 - When heading accuracy is non-zero, the top tick should be replaced by a semi-transparent arc spanning between the left and right heading-accuracy guides, and the right distance label plus left travel-time label should align with those guide intersections
-- Small semi-transparent white point markers must be shown on the route at the visible start position, at each visible hint position, and at the final destination
+- Small semi-transparent white point markers must be shown on the route at the visible start position and at each visible hint position
 - The route must be rendered as a continuous line, not as discrete dots
-- The destination endpoint must be shown with a finish-line icon without an enclosing badge
+- The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
 
 #### 4.5.3 Remaining stop progress
 

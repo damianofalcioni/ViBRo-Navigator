@@ -10,6 +10,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -200,8 +203,7 @@ public class NavigationActivity extends Activity {
 
     private void renderCountdown() {
         if (currentState == null) {
-            gpsStatus.setText(getString(
-                    R.string.format_nav_gps_status,
+            gpsStatus.setText(buildGpsStatusText(
                     getString(R.string.nav_status_unavailable),
                     getString(R.string.nav_status_unavailable)
             ));
@@ -213,11 +215,23 @@ public class NavigationActivity extends Activity {
             long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
             nextEvaluationValue = getString(R.string.format_nav_next_position_check_value, remainingSeconds);
         }
-        gpsStatus.setText(getString(
-                R.string.format_nav_gps_status,
-                currentState.accuracyLine,
-                nextEvaluationValue
-        ));
+        gpsStatus.setText(buildGpsStatusText(currentState.accuracyLine, nextEvaluationValue));
+    }
+
+    @NonNull
+    private CharSequence buildGpsStatusText(@NonNull String accuracyValue, @NonNull String nextEvaluationValue) {
+        String statusText = getString(R.string.format_nav_gps_status, accuracyValue, nextEvaluationValue);
+        SpannableString styledStatusText = new SpannableString(statusText);
+        int accuracyStart = statusText.indexOf(accuracyValue);
+        if (accuracyStart >= 0 && !accuracyValue.isEmpty()) {
+            styledStatusText.setSpan(
+                    new ForegroundColorSpan(ContextCompat.getColor(this, R.color.compass_accent)),
+                    accuracyStart,
+                    accuracyStart + accuracyValue.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
+        return styledStatusText;
     }
 
     private void ensureReadyThenStart() {
