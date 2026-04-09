@@ -11,9 +11,11 @@
     <string name="action_blocked_road">Blocked road</string>
     <string name="action_clear_text">Clear</string>
     <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
     <string name="action_pick_folder">Pick folder</string>
     <string name="action_pick_file">Pick .brf file</string>
     <string name="action_open_settings">Open settings</string>
+    <string name="action_save">Save</string>
 
     <string name="label_vehicle_profile">Vehicle</string>
     <string name="label_destination">Destination</string>
@@ -24,6 +26,7 @@
     <string name="hint_search_stop">Search stop or paste coordinates</string>
 
     <string name="msg_missing_destination">Select a destination</string>
+    <string name="msg_invalid_destination_name">Enter a destination name</string>
     <string name="msg_invalid_coordinates">Select a place with coordinates</string>
     <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
@@ -47,6 +50,7 @@
     <string name="msg_developer_mode_already_enabled">Developer mode is already enabled.</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
+    <string name="title_edit_destination_name">Edit destination name</string>
 
     <string name="nav_next">Next</string>
     <string name="nav_after_next">After that</string>

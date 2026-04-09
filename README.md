@@ -24,6 +24,8 @@ It keeps routing offline (via the installed BRouter app), and communicates direc
 - If a Google API key is provided, searches using Google’s REST APIs.
 - Otherwise uses OpenStreetMap (Nominatim).
 - You can always paste coordinates directly (e.g. `45.4642, 9.1900`).
+- Saved destination history entries can be renamed or deleted from the dropdown.
+- Selecting a saved destination closes the dropdown and does not immediately reopen suggestions unless you change the text again.
 
 ## Permissions
 

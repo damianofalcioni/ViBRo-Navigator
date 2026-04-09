@@ -1,14 +1,18 @@
 package com.vibenavigator.poi.ui;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
-import android.graphics.drawable.ColorDrawable;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ListPopupWindow;
 
 import androidx.annotation.NonNull;
@@ -50,6 +54,7 @@ public final class PoiInputController {
     private int searchGeneration;
     private Poi selectedPoi;
     private boolean programmaticChange;
+    private boolean suppressNextSearch;
 
     public PoiInputController(
             @NonNull Context context,
@@ -69,6 +74,11 @@ public final class PoiInputController {
             @Override
             public void onSuggestionClicked(@NonNull PoiSuggestion suggestion) {
                 selectPoi(suggestion.poi);
+            }
+
+            @Override
+            public void onEditClicked(@NonNull PoiSuggestion suggestion) {
+                promptRenameHistoryItem(suggestion);
             }
 
             @Override
@@ -114,6 +124,15 @@ public final class PoiInputController {
                 if (!programmaticChange) {
                     selectedPoi = null;
                 }
+                if (suppressNextSearch) {
+                    AppLogger.d(logTag, "Suppressing search after programmatic POI selection");
+                    cancelPendingSearch();
+                    cancelInFlightSearch();
+                    dismissPopup();
+                    suppressNextSearch = false;
+                    programmaticChange = false;
+                    return;
+                }
                 scheduleSearch(s.toString());
                 programmaticChange = false;
             }
@@ -122,10 +141,7 @@ public final class PoiInputController {
 
     public void dispose() {
         AppLogger.i(logTag, "Disposing controller");
-        if (pendingSearch != null) {
-            mainHandler.removeCallbacks(pendingSearch);
-            pendingSearch = null;
-        }
+        cancelPendingSearch();
         cancelInFlightSearch();
         dismissPopup();
     }
@@ -140,11 +156,12 @@ public final class PoiInputController {
     public void setPoi(@NonNull Poi poi) {
         String label = poi.displayLabel();
         AppLogger.d(logTag, "Programmatically setting POI=" + label);
+        suppressNextSearch = true;
         programmaticChange = true;
+        selectedPoi = poi;
         editText.setText(label);
         editText.setSelection(label.length());
         dismissPopup();
-        selectedPoi = poi;
         history.addOrPromote(poi);
         listener.onPoiSelected(poi);
     }
@@ -200,10 +217,63 @@ public final class PoiInputController {
         showHistory();
     }
 
-    private void scheduleSearch(@NonNull String raw) {
-        if (pendingSearch != null) {
-            mainHandler.removeCallbacks(pendingSearch);
+    private void promptRenameHistoryItem(@NonNull PoiSuggestion suggestion) {
+        Context context = editText.getContext();
+        Poi poi = suggestion.poi;
+        EditText input = new EditText(context);
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
+        input.setSingleLine(true);
+        input.setText(poi.displayLabel());
+        input.setSelection(input.getText().length());
+
+        int horizontalPaddingPx = Math.round(context.getResources().getDisplayMetrics().density * 24f);
+        FrameLayout container = new FrameLayout(context);
+        container.setPadding(horizontalPaddingPx, 0, horizontalPaddingPx, 0);
+        container.addView(input, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setTitle(R.string.title_edit_destination_name)
+                .setView(container)
+                .setNegativeButton(android.R.string.cancel, null)
+                .setPositiveButton(R.string.action_save, null)
+                .create();
+        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
+            String updatedName = input.getText() != null ? input.getText().toString().trim() : "";
+            if (updatedName.isEmpty()) {
+                input.setError(context.getString(R.string.msg_invalid_destination_name));
+                return;
+            }
+
+            if (!history.rename(poi, updatedName)) {
+                dialog.dismiss();
+                return;
+            }
+
+            Poi renamedPoi = new Poi(updatedName, poi.lat, poi.lon);
+            if (selectedPoi != null && selectedPoi.stableKey().equals(poi.stableKey())) {
+                selectedPoi = renamedPoi;
+                if (getRawText().trim().equals(poi.displayLabel())) {
+                    programmaticChange = true;
+                    editText.setText(renamedPoi.displayLabel());
+                    editText.setSelection(editText.getText().length());
+                }
+            }
+            AppLogger.i(logTag, "Renamed history item key=" + poi.stableKey() + " newName=" + updatedName);
+            showHistory();
+            dialog.dismiss();
+        }));
+        dialog.show();
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         }
+        input.requestFocus();
+    }
+
+    private void scheduleSearch(@NonNull String raw) {
+        cancelPendingSearch();
 
         String query = raw.trim();
         Poi coords = CoordinateParser.tryParse(query, query);
@@ -233,6 +303,13 @@ public final class PoiInputController {
         pendingSearch = () -> runSearch(query);
         AppLogger.d(logTag, "Scheduling search query=" + query);
         mainHandler.postDelayed(pendingSearch, 300);
+    }
+
+    private void cancelPendingSearch() {
+        if (pendingSearch != null) {
+            mainHandler.removeCallbacks(pendingSearch);
+            pendingSearch = null;
+        }
     }
 
     private void runSearch(@NonNull String query) {

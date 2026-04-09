@@ -49,7 +49,9 @@ Below the routing-profile selector, the app must show an input field for searchi
 - Before the user starts typing, a dropdown must appear below the input field
 - The dropdown must show previously searched POIs
 - History entries must be promoted when a destination or stop is selected or otherwise resolved to valid coordinates for navigation
+- Each history row must include an edit control on the right that lets the user rename the stored display label without changing the saved coordinates
 - Each history row must include an `X` control on the right to delete that POI from history
+- Renaming a history row must preserve that entry's coordinate identity so later selection still resolves to the same saved destination
 
 #### 2.2 Search after 3+ characters
 
@@ -63,6 +65,7 @@ Below the routing-profile selector, the app must show an input field for searchi
 - Search results must be shown in a dropdown below the input field
 - The user must be able to select a result from the dropdown
 - Selecting a result must bind the destination to the coordinates of that POI
+- Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again
 
 ### 3. Intermediate stops
 

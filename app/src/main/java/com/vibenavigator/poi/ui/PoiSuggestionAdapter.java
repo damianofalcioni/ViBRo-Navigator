@@ -20,6 +20,7 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
 
     public interface Listener {
         void onSuggestionClicked(@NonNull PoiSuggestion suggestion);
+        void onEditClicked(@NonNull PoiSuggestion suggestion);
         void onDeleteClicked(@NonNull PoiSuggestion suggestion);
     }
 
@@ -64,6 +65,7 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
 
         PoiSuggestion s = items.get(position);
         TextView text = v.findViewById(R.id.suggestionText);
+        ImageButton edit = v.findViewById(R.id.editSuggestionButton);
         ImageButton del = v.findViewById(R.id.deleteSuggestionButton);
 
         String label = s.poi.displayLabel();
@@ -71,9 +73,13 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
         v.setOnClickListener(row -> listener.onSuggestionClicked(s));
 
         if (s.deletable) {
+            edit.setVisibility(View.VISIBLE);
+            edit.setOnClickListener(btn -> listener.onEditClicked(s));
             del.setVisibility(View.VISIBLE);
             del.setOnClickListener(btn -> listener.onDeleteClicked(s));
         } else {
+            edit.setVisibility(View.GONE);
+            edit.setOnClickListener(null);
             del.setVisibility(View.GONE);
             del.setOnClickListener(null);
         }

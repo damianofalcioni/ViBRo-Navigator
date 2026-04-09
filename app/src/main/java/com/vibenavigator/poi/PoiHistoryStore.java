@@ -85,6 +85,31 @@ public final class PoiHistoryStore {
         save(next);
     }
 
+    public boolean rename(@NonNull Poi poi, @NonNull String name) {
+        String trimmedName = name.trim();
+        if (trimmedName.isEmpty()) {
+            AppLogger.w(TAG, "Ignoring POI rename because name is blank key=" + poi.stableKey());
+            return false;
+        }
+
+        AppLogger.i(TAG, "Renaming POI in history key=" + poi.stableKey() + " newName=" + trimmedName);
+        List<Poi> current = list();
+        List<Poi> next = new ArrayList<>();
+        boolean renamed = false;
+        for (Poi p : current) {
+            if (p.stableKey().equals(poi.stableKey())) {
+                next.add(new Poi(trimmedName, p.lat, p.lon));
+                renamed = true;
+            } else {
+                next.add(p);
+            }
+        }
+        if (renamed) {
+            save(next);
+        }
+        return renamed;
+    }
+
     private void save(@NonNull Iterable<Poi> items) {
         JSONArray arr = new JSONArray();
         int count = 0;
