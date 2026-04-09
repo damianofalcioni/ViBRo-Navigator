@@ -45,7 +45,6 @@ public final class NavigationCompassView extends View {
     private final Paint accentTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint cardinalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint routeGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint centerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -111,12 +110,6 @@ public final class NavigationCompassView extends View {
         routePaint.setStrokeJoin(Paint.Join.ROUND);
         routePaint.setStrokeCap(Paint.Cap.ROUND);
         routePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route));
-
-        routeGlowPaint.setStyle(Paint.Style.STROKE);
-        routeGlowPaint.setStrokeWidth(dp(6f));
-        routeGlowPaint.setStrokeJoin(Paint.Join.ROUND);
-        routeGlowPaint.setStrokeCap(Paint.Cap.ROUND);
-        routeGlowPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route_glow));
 
         passedRoutePaint.setStyle(Paint.Style.STROKE);
         passedRoutePaint.setStrokeWidth(dp(3f));
@@ -270,8 +263,8 @@ public final class NavigationCompassView extends View {
         }
 
         float scale = routeRadius / compassState.visibleRadiusMeters;
-        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint, null);
-        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint, routeGlowPaint);
+        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint);
+        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint);
     }
 
     private void drawRouteSegment(
@@ -281,8 +274,7 @@ public final class NavigationCompassView extends View {
             float scale,
             float headingDegrees,
             @NonNull List<NavCompassState.RoutePoint> points,
-            @NonNull Paint strokePaint,
-            @Nullable Paint glowPaint
+            @NonNull Paint strokePaint
     ) {
         if (points.isEmpty()) {
             return;
@@ -303,9 +295,6 @@ public final class NavigationCompassView extends View {
         }
         if (!started) {
             return;
-        }
-        if (glowPaint != null) {
-            canvas.drawPath(routePath, glowPaint);
         }
         canvas.drawPath(routePath, strokePaint);
     }
