@@ -29,6 +29,7 @@ public class NavigationCompassViewTest {
                 0f,
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
                 300f,
                 0f,
                 false
@@ -48,6 +49,7 @@ public class NavigationCompassViewTest {
                 0f,
                 Collections.emptyList(),
                 Collections.emptyList(),
+                Collections.emptyList(),
                 60f,
                 0f,
                 true
@@ -65,6 +67,7 @@ public class NavigationCompassViewTest {
                 1f,
                 60f,
                 0f,
+                Collections.emptyList(),
                 Collections.emptyList(),
                 Collections.emptyList(),
                 60f,

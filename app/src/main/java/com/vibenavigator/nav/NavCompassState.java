@@ -25,6 +25,8 @@ public final class NavCompassState {
     public final float visibleRadiusMeters;
     public final float accuracyRadiusMeters;
     @NonNull
+    public final List<RoutePoint> passedRoutePoints;
+    @NonNull
     public final List<RoutePoint> routePoints;
     @NonNull
     public final List<RoutePoint> hintPoints;
@@ -38,6 +40,7 @@ public final class NavCompassState {
             float referenceSpeedMps,
             float visibleRadiusMeters,
             float accuracyRadiusMeters,
+            @NonNull List<RoutePoint> passedRoutePoints,
             @NonNull List<RoutePoint> routePoints,
             @NonNull List<RoutePoint> hintPoints,
             float destinationEastMeters,
@@ -49,6 +52,7 @@ public final class NavCompassState {
         this.referenceSpeedMps = referenceSpeedMps;
         this.visibleRadiusMeters = visibleRadiusMeters;
         this.accuracyRadiusMeters = accuracyRadiusMeters;
+        this.passedRoutePoints = Collections.unmodifiableList(passedRoutePoints);
         this.routePoints = Collections.unmodifiableList(routePoints);
         this.hintPoints = Collections.unmodifiableList(hintPoints);
         this.destinationEastMeters = destinationEastMeters;

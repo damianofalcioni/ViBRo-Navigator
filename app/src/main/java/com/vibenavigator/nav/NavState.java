@@ -172,6 +172,7 @@ public final class NavState {
         NavCompassState compassState = buildCompassState(
                 route,
                 index,
+                alongTrackMeters,
                 currentLocation,
                 speedMps,
                 likelyStationary,
@@ -297,6 +298,7 @@ public final class NavState {
     private static NavCompassState buildCompassState(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
+            double alongTrackMeters,
             @NonNull Location currentLocation,
             float speedMps,
             boolean likelyStationary,
@@ -312,7 +314,7 @@ public final class NavState {
 
         double currentLat = currentLocation.getLatitude();
         double currentLon = currentLocation.getLongitude();
-        CompassTrackSample trackSample = sampleCompassTrack(route, index, currentLat, currentLon);
+        CompassTrackSample trackSample = sampleCompassTrack(route, index, alongTrackMeters, currentLat, currentLon);
 
         LatLon routeEndPoint = route.track.get(route.track.size() - 1);
         float destinationEastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, routeEndPoint.lat, routeEndPoint.lon);
@@ -343,6 +345,7 @@ public final class NavState {
                 referenceSpeedMps,
                 visibleRadiusMeters,
                 sanitizeAccuracyMeters(accuracyMeters),
+                trackSample.passedRoutePoints,
                 trackSample.routePoints,
                 trackSample.hintPoints,
                 destinationEastMeters,
@@ -355,10 +358,12 @@ public final class NavState {
     private static CompassTrackSample sampleCompassTrack(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
+            double alongTrackMeters,
             double currentLat,
             double currentLon
     ) {
         List<NavCompassState.RoutePoint> points = new ArrayList<>();
+        List<NavCompassState.RoutePoint> passedPoints = new ArrayList<>();
         List<NavCompassState.RoutePoint> hintPoints = new ArrayList<>();
         double furthestDistanceMeters = 0.0;
 
@@ -368,27 +373,27 @@ public final class NavState {
         } else {
             double totalLengthMeters = index.totalLengthMeters();
             double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
-            for (double distance = 0.0; distance < totalLengthMeters; distance += stepMeters) {
-                LatLon point = index.pointAtDistance(distance);
-                if (point == null) {
-                    continue;
-                }
-                NavCompassState.RoutePoint routePoint = projectRoutePoint(currentLat, currentLon, point);
-                points.add(routePoint);
-                furthestDistanceMeters = Math.max(
-                        furthestDistanceMeters,
-                        Math.hypot(routePoint.eastMeters, routePoint.northMeters)
-                );
-            }
-            LatLon endPoint = index.pointAtDistance(totalLengthMeters);
-            if (endPoint != null) {
-                NavCompassState.RoutePoint routePoint = projectRoutePoint(currentLat, currentLon, endPoint);
-                points.add(routePoint);
-                furthestDistanceMeters = Math.max(
-                        furthestDistanceMeters,
-                        Math.hypot(routePoint.eastMeters, routePoint.northMeters)
-                );
-            }
+            double clampedAlongTrackMeters = Math.max(0.0, Math.min(alongTrackMeters, totalLengthMeters));
+            furthestDistanceMeters = addSampledRoutePoints(
+                    index,
+                    currentLat,
+                    currentLon,
+                    0.0,
+                    clampedAlongTrackMeters,
+                    stepMeters,
+                    passedPoints,
+                    furthestDistanceMeters
+            );
+            furthestDistanceMeters = addSampledRoutePoints(
+                    index,
+                    currentLat,
+                    currentLon,
+                    clampedAlongTrackMeters,
+                    totalLengthMeters,
+                    stepMeters,
+                    points,
+                    furthestDistanceMeters
+            );
         }
 
         for (VoiceHint hint : route.voiceHints) {
@@ -399,7 +404,49 @@ public final class NavState {
             hintPoints.add(projectRoutePoint(currentLat, currentLon, hintPoint));
         }
 
-        return new CompassTrackSample(points, hintPoints, furthestDistanceMeters);
+        return new CompassTrackSample(passedPoints, points, hintPoints, furthestDistanceMeters);
+    }
+
+    private static double addSampledRoutePoints(
+            @NonNull PolylineIndex index,
+            double currentLat,
+            double currentLon,
+            double startMeters,
+            double endMeters,
+            double stepMeters,
+            @NonNull List<NavCompassState.RoutePoint> target,
+            double furthestDistanceMeters
+    ) {
+        if (endMeters < startMeters) {
+            return furthestDistanceMeters;
+        }
+        for (double distance = startMeters; distance < endMeters; distance += stepMeters) {
+            LatLon point = index.pointAtDistance(distance);
+            if (point == null) {
+                continue;
+            }
+            furthestDistanceMeters = addProjectedRoutePoint(currentLat, currentLon, point, target, furthestDistanceMeters);
+        }
+        LatLon endPoint = index.pointAtDistance(endMeters);
+        if (endPoint != null) {
+            furthestDistanceMeters = addProjectedRoutePoint(currentLat, currentLon, endPoint, target, furthestDistanceMeters);
+        }
+        return furthestDistanceMeters;
+    }
+
+    private static double addProjectedRoutePoint(
+            double currentLat,
+            double currentLon,
+            @NonNull LatLon point,
+            @NonNull List<NavCompassState.RoutePoint> target,
+            double furthestDistanceMeters
+    ) {
+        NavCompassState.RoutePoint routePoint = projectRoutePoint(currentLat, currentLon, point);
+        target.add(routePoint);
+        return Math.max(
+                furthestDistanceMeters,
+                Math.hypot(routePoint.eastMeters, routePoint.northMeters)
+        );
     }
 
     @NonNull
@@ -484,16 +531,20 @@ public final class NavState {
 
     private static final class CompassTrackSample {
         @NonNull
+        final List<NavCompassState.RoutePoint> passedRoutePoints;
+        @NonNull
         final List<NavCompassState.RoutePoint> routePoints;
         @NonNull
         final List<NavCompassState.RoutePoint> hintPoints;
         final double furthestDistanceMeters;
 
         private CompassTrackSample(
+                @NonNull List<NavCompassState.RoutePoint> passedRoutePoints,
                 @NonNull List<NavCompassState.RoutePoint> routePoints,
                 @NonNull List<NavCompassState.RoutePoint> hintPoints,
                 double furthestDistanceMeters
         ) {
+            this.passedRoutePoints = passedRoutePoints;
             this.routePoints = routePoints;
             this.hintPoints = hintPoints;
             this.furthestDistanceMeters = furthestDistanceMeters;

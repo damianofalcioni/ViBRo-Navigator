@@ -238,6 +238,9 @@ The navigation UI must show the following in large text:
 - When heading accuracy is non-zero, the top tick should be replaced by a semi-transparent arc spanning between the left and right heading-accuracy guides, and the right distance label plus left travel-time label should align with those guide intersections
 - Small semi-transparent white point markers must be shown on the route at the visible start position and at each visible hint position
 - The route must be rendered as a continuous line, not as discrete dots
+- The route ahead of the current matched position must keep the normal route red styling
+- The already passed part of the currently active route must be shown as the same red with about 50 percent transparency
+- When a reroute is applied, the passed-route overlay must be rebuilt from the new active route geometry and must not retain passed geometry from the previous route
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
 - The destination endpoint must only be shown when it falls within the currently visible compass radius; if it lies outside the visible radius, it should not be clamped back onto the compass edge as a detached marker
 

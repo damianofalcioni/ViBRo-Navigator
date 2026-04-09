@@ -16,6 +16,8 @@ import androidx.core.content.ContextCompat;
 import com.vibenavigator.nav.NavCompassState;
 import com.vibenavigator.nav.NavigationTextFormatter;
 
+import java.util.List;
+
 public final class NavigationCompassView extends View {
 
     private static final int DEFAULT_SIZE_DP = 280;
@@ -44,6 +46,7 @@ public final class NavigationCompassView extends View {
     private final Paint cardinalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routeGlowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint centerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routeMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -114,6 +117,12 @@ public final class NavigationCompassView extends View {
         routeGlowPaint.setStrokeJoin(Paint.Join.ROUND);
         routeGlowPaint.setStrokeCap(Paint.Cap.ROUND);
         routeGlowPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route_glow));
+
+        passedRoutePaint.setStyle(Paint.Style.STROKE);
+        passedRoutePaint.setStrokeWidth(dp(3f));
+        passedRoutePaint.setStrokeJoin(Paint.Join.ROUND);
+        passedRoutePaint.setStrokeCap(Paint.Cap.ROUND);
+        passedRoutePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route_passed));
 
         centerPaint.setStyle(Paint.Style.FILL);
         centerPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_center));
@@ -256,14 +265,32 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawRoute(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.routePoints.isEmpty() || compassState.visibleRadiusMeters <= 0f) {
+        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
             return;
         }
 
         float scale = routeRadius / compassState.visibleRadiusMeters;
+        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint, null);
+        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint, routeGlowPaint);
+    }
+
+    private void drawRouteSegment(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            @NonNull List<NavCompassState.RoutePoint> points,
+            @NonNull Paint strokePaint,
+            @Nullable Paint glowPaint
+    ) {
+        if (points.isEmpty()) {
+            return;
+        }
+
         routePath.reset();
         boolean started = false;
-        for (NavCompassState.RoutePoint point : compassState.routePoints) {
+        for (NavCompassState.RoutePoint point : points) {
             float[] projected = projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees);
             float x = cx + projected[0] * scale;
             float y = cy - projected[1] * scale;
@@ -274,10 +301,13 @@ public final class NavigationCompassView extends View {
                 routePath.lineTo(x, y);
             }
         }
-        if (started) {
-            canvas.drawPath(routePath, routeGlowPaint);
-            canvas.drawPath(routePath, routePaint);
+        if (!started) {
+            return;
         }
+        if (glowPaint != null) {
+            canvas.drawPath(routePath, glowPaint);
+        }
+        canvas.drawPath(routePath, strokePaint);
     }
 
     private void drawHeadingGuide(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -345,12 +375,15 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawStartPoint(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.routePoints.isEmpty() || compassState.visibleRadiusMeters <= 0f) {
+        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
             return;
         }
 
+        NavCompassState.RoutePoint point = resolveVisibleStartPoint();
+        if (point == null) {
+            return;
+        }
         float scale = routeRadius / compassState.visibleRadiusMeters;
-        NavCompassState.RoutePoint point = compassState.routePoints.get(0);
         float[] projected = projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees);
         canvas.drawCircle(
                 cx + projected[0] * scale,
@@ -358,6 +391,20 @@ public final class NavigationCompassView extends View {
                 dp(ROUTE_MARKER_RADIUS_DP),
                 routeMarkerPaint
         );
+    }
+
+    @Nullable
+    private NavCompassState.RoutePoint resolveVisibleStartPoint() {
+        if (compassState == null) {
+            return null;
+        }
+        if (!compassState.passedRoutePoints.isEmpty()) {
+            return compassState.passedRoutePoints.get(0);
+        }
+        if (!compassState.routePoints.isEmpty()) {
+            return compassState.routePoints.get(0);
+        }
+        return null;
     }
 
     private void drawDestinationPoint(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {

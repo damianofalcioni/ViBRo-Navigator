@@ -109,6 +109,45 @@ public class NavStateTest {
                 state.compassState.referenceSpeedMps,
                 0.01f
         );
+        assertTrue(state.compassState.passedRoutePoints.size() >= 1);
+    }
+
+    @Test
+    public void from_afterProgressSplitsPassedAndUpcomingCompassRoute() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002),
+                        new LatLon(0.0, 0.003)
+                ),
+                Collections.emptyList(),
+                240.0,
+                333.0
+        );
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                140.0,
+                -1,
+                2f,
+                false,
+                5f,
+                locationAt(0.0, 0.0013),
+                0.0,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 333.0)),
+                context
+        );
+
+        assertNotNull(state.compassState);
+        assertTrue(state.compassState.passedRoutePoints.size() >= 2);
+        assertTrue(state.compassState.routePoints.size() >= 2);
     }
 
     @Test
