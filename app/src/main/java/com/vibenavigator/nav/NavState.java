@@ -32,33 +32,37 @@ public final class NavState {
     @NonNull
     public final String destinationLine;
     @NonNull
+    public final String stopProgressBlock;
+    @NonNull
     public final String accuracyLine;
     public final long nextEvaluationDeadlineElapsedMs;
     @NonNull
-    public final String remainingBlock;
+    public final String detailBlock;
     @Nullable
     public final NavCompassState compassState;
 
     private NavState(@NonNull String nextLine,
                      @NonNull String afterNextLine,
                      @NonNull String destinationLine,
+                     @NonNull String stopProgressBlock,
                      @NonNull String accuracyLine,
                      long nextEvaluationDeadlineElapsedMs,
-                     @NonNull String remainingBlock,
+                     @NonNull String detailBlock,
                      @Nullable NavCompassState compassState) {
         this.nextLine = nextLine;
         this.afterNextLine = afterNextLine;
         this.destinationLine = destinationLine;
+        this.stopProgressBlock = stopProgressBlock;
         this.accuracyLine = accuracyLine;
         this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
-        this.remainingBlock = remainingBlock;
+        this.detailBlock = detailBlock;
         this.compassState = compassState;
     }
 
     @NonNull
     public static NavState waiting(@NonNull Context context) {
         String noRoute = context.getString(R.string.nav_no_route);
-        return new NavState(noRoute, "", "", "", NO_DEADLINE, noRoute, null);
+        return new NavState(noRoute, "", "", "", "", NO_DEADLINE, noRoute, null);
     }
 
     @NonNull
@@ -70,6 +74,7 @@ public final class NavState {
     public static NavState waitingForLocation(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
         return new NavState(
                 context.getString(R.string.nav_waiting_for_location_title),
+                "",
                 "",
                 "",
                 "",
@@ -88,6 +93,7 @@ public final class NavState {
     public static NavState calculatingRoute(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
         return new NavState(
                 context.getString(R.string.nav_calculating_route_title),
+                "",
                 "",
                 "",
                 "",
@@ -111,6 +117,7 @@ public final class NavState {
                 "",
                 "",
                 "",
+                "",
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.format_nav_route_unavailable_body, detail),
                 null
@@ -122,16 +129,17 @@ public final class NavState {
         if (notice.trim().isEmpty()) {
             return base;
         }
-        String remaining = base.remainingBlock.isEmpty()
+        String detail = base.detailBlock.isEmpty()
                 ? notice
-                : notice + "\n" + base.remainingBlock;
+                : notice + "\n" + base.detailBlock;
         return new NavState(
                 base.nextLine,
                 base.afterNextLine,
                 base.destinationLine,
+                base.stopProgressBlock,
                 base.accuracyLine,
                 base.nextEvaluationDeadlineElapsedMs,
-                remaining,
+                detail,
                 base.compassState
         );
     }
@@ -167,8 +175,8 @@ public final class NavState {
         String next = directionLines.isEmpty() ? "" : directionLines.get(0);
         String afterNext = directionLines.size() > 1 ? directionLines.get(1) : "";
         String destination = buildDestinationLine(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
+        String stopProgress = buildStopProgress(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
         String accuracy = buildAccuracyLine(accuracyMeters, context);
-        String remaining = buildRemaining(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
         NavCompassState compassState = buildCompassState(
                 route,
                 index,
@@ -182,7 +190,16 @@ public final class NavState {
                 previousCompassVisibleRadiusMeters,
                 compassRadiusUpdateDeltaMs
         );
-        return new NavState(next, afterNext, destination, accuracy, nextEvaluationDeadlineElapsedMs, remaining, compassState);
+        return new NavState(
+                next,
+                afterNext,
+                destination,
+                stopProgress,
+                accuracy,
+                nextEvaluationDeadlineElapsedMs,
+                "",
+                compassState
+        );
     }
 
     @NonNull
@@ -256,7 +273,7 @@ public final class NavState {
     }
 
     @NonNull
-    private static String buildRemaining(
+    private static String buildStopProgress(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             double alongTrackMeters,
@@ -265,15 +282,17 @@ public final class NavState {
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
-        List<String> lines = new ArrayList<>();
         double total = index.totalLengthMeters();
 
         int lastStopIndex = Math.max(0, targets.size() - 1);
         for (int i = 0; i < lastStopIndex; i++) {
             NavTarget t = targets.get(i);
             double distTo = Math.max(0.0, t.alongTrackMeters - alongTrackMeters);
+            if (distTo <= 0.0) {
+                continue;
+            }
             double secTo = estimateSeconds(route, total, distTo, speedMps);
-            String line = context.getString(
+            return context.getString(
                     R.string.format_progress_line,
                     t.label,
                     NavigationTextFormatter.formatDistance(context, distTo),
@@ -281,17 +300,8 @@ public final class NavState {
                     context.getString(R.string.nav_eta),
                     NavigationTextFormatter.formatEta(nowMs + (long) (secTo * 1000))
             );
-            lines.add(line);
         }
-
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < lines.size(); i++) {
-            if (i > 0) {
-                sb.append('\n');
-            }
-            sb.append(lines.get(i));
-        }
-        return sb.toString();
+        return "";
     }
 
     @Nullable

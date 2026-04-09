@@ -39,9 +39,9 @@ public class NavigationActivity extends Activity {
     private TextView next;
     private TextView afterNext;
     private TextView destination;
+    private TextView stopProgress;
     private NavigationCompassView compass;
     private TextView gpsStatus;
-    private TextView remaining;
     private Button blocked;
     private Button stop;
 
@@ -97,9 +97,9 @@ public class NavigationActivity extends Activity {
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
         destination = findViewById(R.id.destinationText);
+        stopProgress = findViewById(R.id.stopProgressText);
         compass = findViewById(R.id.navigationCompassView);
         gpsStatus = findViewById(R.id.gpsStatusText);
-        remaining = findViewById(R.id.remainingText);
         blocked = findViewById(R.id.blockedRoadButton);
         stop = findViewById(R.id.stopNavButton);
 
@@ -180,12 +180,14 @@ public class NavigationActivity extends Activity {
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
         destination.setText(state.destinationLine);
+        String secondaryText = !state.detailBlock.isEmpty() ? state.detailBlock : state.stopProgressBlock;
+        stopProgress.setText(secondaryText);
         compass.setCompassState(state.compassState);
         renderCountdown();
-        remaining.setText(state.remainingBlock);
         String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.accuracyLine
                 + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.destinationLine
-                + "|" + state.remainingBlock
+                + "|" + state.stopProgressBlock
+                + "|" + state.detailBlock
                 + "|" + (state.compassState == null ? "no-compass"
                 : state.compassState.routePoints.size() + ":" + state.compassState.headingDegrees);
         if (!stateKey.equals(lastRenderedStateKey)) {
@@ -195,9 +197,10 @@ public class NavigationActivity extends Activity {
                     + " accuracy=" + state.accuracyLine
                     + " nextEvalDeadline=" + state.nextEvaluationDeadlineElapsedMs
                     + " destination=" + state.destinationLine
+                    + " stops=" + state.stopProgressBlock
                     + " compass=" + (state.compassState == null ? "none"
                     : ("points=" + state.compassState.routePoints.size() + " heading=" + state.compassState.headingDegrees))
-                    + " remaining=" + state.remainingBlock);
+                    + " detail=" + state.detailBlock);
         }
     }
 

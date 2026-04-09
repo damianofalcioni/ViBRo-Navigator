@@ -57,14 +57,14 @@
             android:textSize="18sp" />
 
         <TextView
-            android:id="@+id/remainingText"
+            android:id="@+id/stopProgressText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:gravity="center"
-            android:text="@string/nav_no_route"
+            android:text=""
             android:textColor="@color/white"
-            android:textSize="20sp" />
+            android:textSize="18sp" />
     </LinearLayout>
 
     <Button

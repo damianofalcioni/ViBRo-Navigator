@@ -244,11 +244,14 @@ The navigation UI must show the following in large text:
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
 - The destination endpoint must only be shown when it falls within the currently visible compass radius; if it lies outside the visible radius, it should not be clamped back onto the compass edge as a detached marker
 
-#### 4.5.3 Remaining stop progress
+#### 4.5.3 Secondary progress/detail line
 
 - Below the compass, the UI must first show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
-- Below the compass, the UI must show the distance left, time left, and arrival time for every intermediate stop that is still ahead on the route
-- The destination progress line sits above the remaining intermediate-stop progress block
+- Below the destination progress line, the UI must use a single shared secondary text line instead of separate stop-progress and generic-message areas
+- When an intermediate stop is still ahead on the route and there is no higher-priority notice to show, that secondary line must show the distance left, time left, and arrival time for only the next intermediate stop ahead
+- When the current next intermediate stop is passed, the secondary line must switch to the following intermediate stop if one remains
+- The UI must not list all remaining intermediate stops at once in that secondary line
+- When a navigation detail or notice needs to be surfaced in that area, such as route-unavailable detail or blocked-road reroute feedback, that detail must take precedence over intermediate-stop progress on the shared secondary line
 
 #### 4.5.4 Blocked road button
 

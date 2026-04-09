@@ -66,6 +66,7 @@ public class NavigationSessionRouteStateTest {
         assertEquals(NavigationSession.TurnEvent.Type.INITIAL, turnEvents.get(0).type);
         assertFalse(navState.nextLine.isEmpty());
         assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertTrue(navState.stopProgressBlock.isEmpty());
     }
 
     @Test
@@ -205,7 +206,7 @@ public class NavigationSessionRouteStateTest {
                 BRouterRouteException.fromTextResponse("no track found at pass=0")
         );
 
-        assertTrue(navState.remainingBlock.contains(
+        assertTrue(navState.detailBlock.contains(
                 context.getString(R.string.nav_route_notice_no_alternative_keep_current)));
         assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
     }
@@ -230,7 +231,100 @@ public class NavigationSessionRouteStateTest {
         );
 
         assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.nextLine);
-        assertTrue(navState.remainingBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
+        assertTrue(navState.detailBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
+    }
+
+    @Test
+    public void buildState_keepsIntermediateStopProgressSeparateFromDetailNoticeArea() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.003),
+                Collections.singletonList(new LatLon(0.0, 0.002))
+        );
+        Location currentLocation = location(0.0, 0.0, 1_000L);
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithoutHints(),
+                currentLocation,
+                5f,
+                500L
+        );
+
+        NavState navState = state.buildState(
+                context,
+                currentLocation,
+                5f,
+                false,
+                5f,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null
+        );
+
+        assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertTrue(navState.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+        assertTrue(navState.detailBlock.isEmpty());
+    }
+
+    @Test
+    public void buildState_showsOnlyNextIntermediateStopAhead() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.003),
+                Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithoutHints(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavState beforeFirstStop = state.buildState(
+                context,
+                location(0.0, 0.0, 1_000L),
+                5f,
+                false,
+                5f,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null
+        );
+        NavState afterFirstStop = state.buildState(
+                context,
+                location(0.0, 0.0015, 2_000L),
+                5f,
+                false,
+                5f,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null
+        );
+
+        assertTrue(beforeFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+        assertFalse(beforeFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
+        assertTrue(afterFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
+        assertFalse(afterFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
     }
 
     @NonNull
