@@ -153,6 +153,16 @@ public final class PoiInputController {
         editText.setSelection(text.length());
     }
 
+    public void restoreText(@NonNull String text) {
+        AppLogger.d(logTag, "Restoring raw text without suggestions=" + text);
+        suppressNextSearch = true;
+        programmaticChange = true;
+        selectedPoi = null;
+        editText.setText(text);
+        editText.setSelection(text.length());
+        dismissPopup();
+    }
+
     public void setPoi(@NonNull Poi poi) {
         String label = poi.displayLabel();
         AppLogger.d(logTag, "Programmatically setting POI=" + label);
@@ -164,6 +174,17 @@ public final class PoiInputController {
         dismissPopup();
         history.addOrPromote(poi);
         listener.onPoiSelected(poi);
+    }
+
+    public void restorePoi(@NonNull Poi poi) {
+        String label = poi.displayLabel();
+        AppLogger.d(logTag, "Restoring POI without suggestions=" + label);
+        suppressNextSearch = true;
+        programmaticChange = true;
+        selectedPoi = poi;
+        editText.setText(label);
+        editText.setSelection(label.length());
+        dismissPopup();
     }
 
     @NonNull

@@ -86,7 +86,7 @@ final class MainActivityStopController {
         stopControllers.add(controller);
 
         if (initialText != null) {
-            controller.setText(initialText);
+            controller.restoreText(initialText);
         }
         AppLogger.i(TAG, "Added stop row initialText=" + safe(initialText) + " totalStops=" + stopControllers.size());
 

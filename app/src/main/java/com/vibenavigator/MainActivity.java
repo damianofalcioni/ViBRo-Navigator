@@ -24,6 +24,10 @@ import com.vibenavigator.util.AppLogger;
 public class MainActivity extends Activity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
+    private static final String STATE_DESTINATION_TEXT = "destinationText";
+    private static final String STATE_DESTINATION_SELECTED_NAME = "destinationSelectedName";
+    private static final String STATE_DESTINATION_SELECTED_LAT = "destinationSelectedLat";
+    private static final String STATE_DESTINATION_SELECTED_LON = "destinationSelectedLon";
 
     private static final String TAG = "MainActivity";
 
@@ -111,9 +115,24 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        if (destinationController != null) {
+            outState.putString(STATE_DESTINATION_TEXT, destinationController.getRawText());
+            com.vibenavigator.poi.Poi selectedPoi = destinationController.getSelectedPoi();
+            if (selectedPoi != null) {
+                outState.putString(STATE_DESTINATION_SELECTED_NAME, selectedPoi.name);
+                outState.putDouble(STATE_DESTINATION_SELECTED_LAT, selectedPoi.lat);
+                outState.putDouble(STATE_DESTINATION_SELECTED_LON, selectedPoi.lon);
+            }
+        }
         if (stopController != null) {
             stopController.saveState(outState);
         }
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        restoreDestinationState(savedInstanceState);
     }
 
     @Override
@@ -163,6 +182,27 @@ public class MainActivity extends Activity {
                 + " hasData=" + (data != null));
         if (profilePicker != null && profilePicker.handleActivityResult(requestCode, resultCode, data)) {
             return;
+        }
+    }
+
+    private void restoreDestinationState(@NonNull Bundle savedInstanceState) {
+        if (destinationController == null) {
+            return;
+        }
+        String selectedName = savedInstanceState.getString(STATE_DESTINATION_SELECTED_NAME);
+        double selectedLat = savedInstanceState.getDouble(STATE_DESTINATION_SELECTED_LAT, Double.NaN);
+        double selectedLon = savedInstanceState.getDouble(STATE_DESTINATION_SELECTED_LON, Double.NaN);
+        if (selectedName != null && !Double.isNaN(selectedLat) && !Double.isNaN(selectedLon)) {
+            destinationController.restorePoi(new com.vibenavigator.poi.Poi(selectedName, selectedLat, selectedLon));
+            AppLogger.i(TAG, "Restored selected destination POI=" + selectedName
+                    + " (" + selectedLat + "," + selectedLon + ")");
+            return;
+        }
+
+        String destinationText = savedInstanceState.getString(STATE_DESTINATION_TEXT);
+        if (destinationText != null && !destinationText.isEmpty()) {
+            destinationController.restoreText(destinationText);
+            AppLogger.i(TAG, "Restored destination text=" + destinationText);
         }
     }
 }

@@ -67,6 +67,7 @@ Below the routing-profile selector, the app must show an input field for searchi
 - The user must be able to select a result from the dropdown
 - Selecting a result must bind the destination to the coordinates of that POI
 - Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again
+- After a portrait/landscape layout change or other activity recreation, restoring a previously selected destination or stop must keep that resolved selection and must not reopen suggestions unless the user edits the restored text
 
 ### 3. Intermediate stops
 
@@ -200,6 +201,14 @@ The app must monitor user position:
 ### 4.5 Navigation UI
 
 The navigation UI must show the following in large text:
+
+#### 4.5.0 Portrait vs landscape arrangement
+
+- The navigation UI may use different layouts in portrait and landscape as long as the same navigation information and actions remain available
+- On phone-sized screens in landscape orientation, the navigation UI must switch to a two-column layout
+- In that landscape layout, the left column must contain all navigation text content and both action buttons
+- In that landscape layout, the right column must contain only the compass route view
+- The landscape layout must keep the blocked-road and stop-navigation buttons in the left column instead of placing them under the compass
 
 #### 4.5.1 Next two directions
 

@@ -61,4 +61,53 @@ public class PoiInputControllerTest {
         assertSame(selected, controller.getSelectedPoi());
         assertSame(selected, listenerSelection[0]);
     }
+
+    @Test
+    public void restorePoi_doesNotTriggerSearchSuggestionsAndRetainsSelection() {
+        AtomicInteger searchCalls = new AtomicInteger();
+        PoiSearchClient searchClient = (query, limit) -> {
+            searchCalls.incrementAndGet();
+            return Collections.emptyList();
+        };
+        Poi selected = new Poi("Stored destination", 48.2082d, 16.3738d);
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                new PoiHistoryStore(context),
+                searchClient,
+                poi -> {
+                }
+        );
+
+        controller.restorePoi(selected);
+        shadowOf(Looper.getMainLooper()).idleFor(400, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+        assertEquals(0, searchCalls.get());
+        assertEquals("Stored destination", controller.getRawText());
+        assertSame(selected, controller.getSelectedPoi());
+    }
+
+    @Test
+    public void restoreText_doesNotTriggerSearchSuggestions() {
+        AtomicInteger searchCalls = new AtomicInteger();
+        PoiSearchClient searchClient = (query, limit) -> {
+            searchCalls.incrementAndGet();
+            return Collections.emptyList();
+        };
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                new PoiHistoryStore(context),
+                searchClient,
+                poi -> {
+                }
+        );
+
+        controller.restoreText("Cafe Central");
+        shadowOf(Looper.getMainLooper()).idleFor(400, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+        assertEquals(0, searchCalls.get());
+        assertEquals("Cafe Central", controller.getRawText());
+        assertEquals(null, controller.getSelectedPoi());
+    }
 }
