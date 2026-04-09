@@ -21,6 +21,7 @@ final class NavigationSessionRouteState {
 
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
+    private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
 
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
@@ -33,12 +34,17 @@ final class NavigationSessionRouteState {
     private int lastSegmentIndex = -1;
     @NonNull
     private List<NavTarget> targets = new ArrayList<>();
+    @Nullable
+    private Float lastCompassVisibleRadiusMeters;
+    private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
 
     void reset() {
         route = null;
         polylineIndex = null;
         lastSegmentIndex = -1;
         targets = new ArrayList<>();
+        lastCompassVisibleRadiusMeters = null;
+        lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         blockedRouteState.reset();
         turnState.reset();
     }
@@ -150,6 +156,8 @@ final class NavigationSessionRouteState {
         polylineIndex = new PolylineIndex(newRoute.track);
         lastSegmentIndex = -1;
         targets = buildTargets(context, request.stops, polylineIndex);
+        lastCompassVisibleRadiusMeters = null;
+        lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
 
         List<NavigationSession.TurnEvent> turnEvents =
                 turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, speedMps, accuracyOf(lastFiltered));
@@ -166,6 +174,7 @@ final class NavigationSessionRouteState {
             @NonNull Context context,
             @Nullable Location lastFiltered,
             float speedMps,
+            boolean likelyStationary,
             float accuracyMeters,
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
@@ -214,15 +223,19 @@ final class NavigationSessionRouteState {
                 match.alongTrackMeters,
                 turnState.getNextHintIdx(),
                 speedMps,
+                likelyStationary,
                 accuracyMeters,
                 lastFiltered,
                 headingDegrees,
                 headingAccuracyDegrees,
+                lastCompassVisibleRadiusMeters,
+                resolveCompassRadiusUpdateDeltaMs(nowMs),
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 targets,
                 context
         );
+        rememberCompassVisibleRadius(state, nowMs);
         if (lastRouteFailure != null) {
             return NavState.withNotice(
                     state,
@@ -251,6 +264,21 @@ final class NavigationSessionRouteState {
 
     private float accuracyOf(@Nullable Location location) {
         return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    private long resolveCompassRadiusUpdateDeltaMs(long nowMs) {
+        if (lastCompassRadiusUpdateTimeMs == NO_COMPASS_RADIUS_UPDATE_TIME_MS || nowMs <= lastCompassRadiusUpdateTimeMs) {
+            return 0L;
+        }
+        return nowMs - lastCompassRadiusUpdateTimeMs;
+    }
+
+    private void rememberCompassVisibleRadius(@NonNull NavState state, long nowMs) {
+        if (state.compassState == null) {
+            return;
+        }
+        lastCompassVisibleRadiusMeters = state.compassState.visibleRadiusMeters;
+        lastCompassRadiusUpdateTimeMs = nowMs;
     }
 
     static final class Evaluation {

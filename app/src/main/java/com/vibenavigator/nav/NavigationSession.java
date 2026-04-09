@@ -191,6 +191,7 @@ final class NavigationSession {
                 context,
                 lastFiltered,
                 speedMps,
+                locationState.isLikelyStationary(),
                 accuracyMeters,
                 headingDegrees,
                 headingAccuracyDegrees,

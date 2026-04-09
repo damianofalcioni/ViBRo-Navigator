@@ -225,16 +225,21 @@ The navigation UI must show the following in large text:
 - Live geomagnetic compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
+- When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
+- When the user is moving, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
+- Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line
 - When the displayed heading comes from a geomagnetic sample that exposes a heading-accuracy estimate, the compass must show two semi-transparent white straight guide lines, using the same visual treatment as the fixed top heading guide, from the center to the outer distance ring at the negative and positive angular error bounds around the fixed top heading guide
 - Each distance ring should show a semi-transparent distance label on the right side and a matching travel-time label on the left side
+- In moving mode, the top visible distance ring is the primary horizon reference for those labels; inner-ring distance and time labels must scale from that top visible ring rather than from the hidden compass edge
 - When heading accuracy is zero or unavailable, those labels should stay aligned with the short vertical-guide tick at the top ring intersection
 - When heading accuracy is non-zero, the top tick should be replaced by a semi-transparent arc spanning between the left and right heading-accuracy guides, and the right distance label plus left travel-time label should align with those guide intersections
 - Small semi-transparent white point markers must be shown on the route at the visible start position and at each visible hint position
 - The route must be rendered as a continuous line, not as discrete dots
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
+- The destination endpoint must only be shown when it falls within the currently visible compass radius; if it lies outside the visible radius, it should not be clamped back onto the compass edge as a detached marker
 
 #### 4.5.3 Remaining stop progress
 

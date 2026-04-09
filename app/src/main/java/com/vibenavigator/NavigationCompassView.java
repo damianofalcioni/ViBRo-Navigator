@@ -31,6 +31,7 @@ public final class NavigationCompassView extends View {
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
     private static final float ROUTE_MARKER_RADIUS_DP = 2.5f;
     private static final float DESTINATION_MARKER_RADIUS_DP = 4f;
+    private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
 
     @Nullable
     private NavCompassState compassState;
@@ -360,11 +361,13 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawDestinationPoint(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
+        if (compassState == null
+                || compassState.visibleRadiusMeters <= 0f
+                || !compassState.destinationWithinRadius) {
             return;
         }
 
-        float[] position = resolveDestinationPosition(cx, cy, routeRadius, headingDegrees, dp(20f));
+        float[] position = resolveDestinationPosition(cx, cy, routeRadius, headingDegrees);
         if (position == null) {
             return;
         }
@@ -382,7 +385,7 @@ public final class NavigationCompassView extends View {
         float dashHalfWidth = dp(DISTANCE_MARK_WIDTH_DP) / 2f;
         for (float ringScale : DISTANCE_RING_SCALES) {
             float y = cy - radius * ringScale;
-            float ringDistanceMeters = compassState.visibleRadiusMeters * ringScale;
+            float ringDistanceMeters = resolveLegendRingDistanceMeters(ringScale);
             String distanceLabel = formatDistanceLabel(ringDistanceMeters);
             String secondsLabel = formatRingTimeLabel(ringDistanceMeters);
             if (visibleHeadingAccuracyDegrees != null) {
@@ -482,10 +485,9 @@ public final class NavigationCompassView extends View {
             float cx,
             float cy,
             float routeRadius,
-            float headingDegrees,
-            float iconSize
+            float headingDegrees
     ) {
-        if (compassState == null) {
+        if (compassState == null || !compassState.destinationWithinRadius) {
             return null;
         }
 
@@ -502,17 +504,6 @@ public final class NavigationCompassView extends View {
         );
         float x = cx + projected[0] * scale;
         float y = cy - projected[1] * scale;
-
-        if (!compassState.destinationWithinRadius) {
-            float dx = x - cx;
-            float dy = y - cy;
-            float norm = (float) Math.hypot(dx, dy);
-            if (norm > 0f) {
-                float clamped = routeRadius - iconSize - dp(6f);
-                x = cx + dx / norm * clamped;
-                y = cy + dy / norm * clamped;
-            }
-        }
         return new float[]{x, y};
     }
 
@@ -531,6 +522,13 @@ public final class NavigationCompassView extends View {
         }
         int seconds = (int) Math.round(distanceMeters / Math.max(1f, compassState.referenceSpeedMps));
         return NavigationTextFormatter.formatTimeSeconds(getContext(), seconds);
+    }
+
+    private float resolveLegendRingDistanceMeters(float ringScale) {
+        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
+            return 0f;
+        }
+        return compassState.visibleRadiusMeters * (ringScale / OUTER_DISTANCE_RING_SCALE);
     }
 
     private float dp(float value) {
