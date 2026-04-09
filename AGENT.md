@@ -28,6 +28,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
 - The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
+- Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw geomagnetic heading available for non-UI orientation logic such as stationary turn-to-face-route advice.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.
 - `NavigationSession` is the session-level coordinator. Keep filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle split across dedicated state/policy classes instead of collapsing them back together.
 - `NavigationRequest` owns the shared navigation extras contract used by activities, the service, and resume notifications.

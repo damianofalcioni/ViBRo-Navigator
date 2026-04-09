@@ -222,6 +222,7 @@ The navigation UI must show the following in large text:
 - In the center: a map-free compass canvas showing the active route relative to the current position
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
+- The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees
 - Live geomagnetic compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route

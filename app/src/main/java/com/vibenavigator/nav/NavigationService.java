@@ -13,6 +13,9 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
+import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -439,7 +442,7 @@ public class NavigationService extends Service implements LocationListener {
         if (sample == null) {
             return null;
         }
-        return sample.headingDegrees;
+        return remapHeadingDegreesForDisplayRotation(sample.headingDegrees, currentDisplayRotation());
     }
 
     @Nullable
@@ -478,6 +481,39 @@ public class NavigationService extends Service implements LocationListener {
             return null;
         }
         return sample;
+    }
+
+    static double remapHeadingDegreesForDisplayRotation(double headingDegrees, int displayRotation) {
+        double rotationOffsetDegrees;
+        switch (displayRotation) {
+            case Surface.ROTATION_90:
+                rotationOffsetDegrees = 90.0;
+                break;
+            case Surface.ROTATION_180:
+                rotationOffsetDegrees = 180.0;
+                break;
+            case Surface.ROTATION_270:
+                rotationOffsetDegrees = 270.0;
+                break;
+            case Surface.ROTATION_0:
+            default:
+                rotationOffsetDegrees = 0.0;
+                break;
+        }
+        double normalized = (headingDegrees + rotationOffsetDegrees) % 360.0;
+        return normalized < 0.0 ? normalized + 360.0 : normalized;
+    }
+
+    private int currentDisplayRotation() {
+        DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
+        if (displayManager == null) {
+            return Surface.ROTATION_0;
+        }
+        Display defaultDisplay = displayManager.getDisplay(Display.DEFAULT_DISPLAY);
+        if (defaultDisplay == null) {
+            return Surface.ROTATION_0;
+        }
+        return defaultDisplay.getRotation();
     }
 
     @Override
