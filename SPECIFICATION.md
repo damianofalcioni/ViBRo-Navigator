@@ -37,6 +37,7 @@ The main UI must include a routing-profile selector at the top.
 - The selector items must be the BRouter profile names
 - Profiles are the filenames with `.brf` extension available in the BRouter `profiles2` folder
 - The selector is profile-based, not a separate vehicle-type toggle
+- Profile handling must remain compatible with both bundled BRouter profiles and user-selected external `profiles2` folders
 - Example legacy path:
   `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
 
@@ -348,6 +349,7 @@ The navigation UI must show the following in large text:
 - Keep `NavigationSession` split across focused collaborators for filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle handling rather than collapsing that logic into one class.
 - Keep heuristics such as reroute thresholds, polling cadence, and turn-alert timing in small policy/planner helpers, and keep POI search execution shared across destination and stop fields.
 - Keep the navigation-intent extras contract owned by `NavigationRequest` so activities, the foreground service, and resume notifications serialize the same request shape.
+- Prefer extending the existing `AppLogger` coverage when touching startup, permissions, routing, background execution, or network search behavior.
 
 ## Testing expectations
 
