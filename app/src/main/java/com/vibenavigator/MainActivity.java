@@ -92,7 +92,7 @@ public class MainActivity extends Activity {
 
         startNavButton.setOnClickListener(v -> startNavigationFromInputs());
 
-        stopController.restoreState(savedInstanceState);
+        stopController.restoreRows(savedInstanceState);
 
         profilePicker.refreshProfiles();
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
@@ -133,6 +133,9 @@ public class MainActivity extends Activity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
         restoreDestinationState(savedInstanceState);
+        if (stopController != null) {
+            stopController.restoreValues(savedInstanceState);
+        }
     }
 
     @Override

@@ -22,6 +22,9 @@ import java.util.List;
 final class MainActivityStopController {
 
     private static final String STATE_STOP_TEXTS = "stopTexts";
+    private static final String STATE_STOP_SELECTED_NAMES = "stopSelectedNames";
+    private static final String STATE_STOP_SELECTED_LATS = "stopSelectedLats";
+    private static final String STATE_STOP_SELECTED_LONS = "stopSelectedLons";
     private static final String TAG = "MainStopController";
 
     @NonNull
@@ -47,7 +50,7 @@ final class MainActivityStopController {
         this.searchClient = searchClient;
     }
 
-    void restoreState(@Nullable Bundle savedInstanceState) {
+    void restoreRows(@Nullable Bundle savedInstanceState) {
         if (savedInstanceState == null) {
             return;
         }
@@ -55,18 +58,68 @@ final class MainActivityStopController {
         if (stopTexts == null) {
             return;
         }
-        AppLogger.i(TAG, "Restoring stop rows count=" + stopTexts.size());
-        for (String text : stopTexts) {
-            addStopRow(text);
+        AppLogger.i(TAG, "Restoring stop row shells count=" + stopTexts.size());
+        for (int i = 0; i < stopTexts.size(); i++) {
+            addStopRow(null);
+        }
+    }
+
+    void restoreValues(@Nullable Bundle savedInstanceState) {
+        if (savedInstanceState == null) {
+            return;
+        }
+        ArrayList<String> stopTexts = savedInstanceState.getStringArrayList(STATE_STOP_TEXTS);
+        if (stopTexts == null) {
+            return;
+        }
+        ArrayList<String> selectedNames = savedInstanceState.getStringArrayList(STATE_STOP_SELECTED_NAMES);
+        double[] selectedLats = savedInstanceState.getDoubleArray(STATE_STOP_SELECTED_LATS);
+        double[] selectedLons = savedInstanceState.getDoubleArray(STATE_STOP_SELECTED_LONS);
+        int restoreCount = Math.min(stopTexts.size(), stopControllers.size());
+        AppLogger.i(TAG, "Restoring stop row values count=" + restoreCount);
+        for (int i = 0; i < restoreCount; i++) {
+            PoiInputController controller = stopControllers.get(i);
+            String selectedName = selectedNames != null && i < selectedNames.size() ? selectedNames.get(i) : null;
+            double selectedLat = selectedLats != null && i < selectedLats.length ? selectedLats[i] : Double.NaN;
+            double selectedLon = selectedLons != null && i < selectedLons.length ? selectedLons[i] : Double.NaN;
+            if (selectedName != null && !selectedName.isEmpty()
+                    && !Double.isNaN(selectedLat)
+                    && !Double.isNaN(selectedLon)) {
+                controller.restorePoi(new com.vibenavigator.poi.Poi(selectedName, selectedLat, selectedLon));
+                continue;
+            }
+
+            String text = stopTexts.get(i);
+            if (text != null && !text.isEmpty()) {
+                controller.restoreText(text);
+            }
         }
     }
 
     void saveState(@NonNull Bundle outState) {
         ArrayList<String> stopTexts = new ArrayList<>();
+        ArrayList<String> selectedNames = new ArrayList<>();
+        double[] selectedLats = new double[stopControllers.size()];
+        double[] selectedLons = new double[stopControllers.size()];
+        int index = 0;
         for (PoiInputController controller : stopControllers) {
             stopTexts.add(controller.getRawText());
+            com.vibenavigator.poi.Poi selectedPoi = controller.getSelectedPoi();
+            if (selectedPoi != null) {
+                selectedNames.add(selectedPoi.name);
+                selectedLats[index] = selectedPoi.lat;
+                selectedLons[index] = selectedPoi.lon;
+            } else {
+                selectedNames.add("");
+                selectedLats[index] = Double.NaN;
+                selectedLons[index] = Double.NaN;
+            }
+            index++;
         }
         outState.putStringArrayList(STATE_STOP_TEXTS, stopTexts);
+        outState.putStringArrayList(STATE_STOP_SELECTED_NAMES, selectedNames);
+        outState.putDoubleArray(STATE_STOP_SELECTED_LATS, selectedLats);
+        outState.putDoubleArray(STATE_STOP_SELECTED_LONS, selectedLons);
         AppLogger.d(TAG, "Saved instance state stopCount=" + stopTexts.size());
     }
 
