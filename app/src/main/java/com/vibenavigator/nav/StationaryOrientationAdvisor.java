@@ -87,13 +87,14 @@ final class StationaryOrientationAdvisor {
         if (sample == null || nowElapsedRealtimeMs - sample.elapsedRealtimeMs > MAX_SAMPLE_AGE_MS) {
             return Evaluation.of(Outcome.WAITING_FOR_SENSOR);
         }
-        if (!sample.isAccuracyHighEnough()) {
-            return Evaluation.of(Outcome.WAITING_FOR_CALIBRATION);
-        }
-
         double signedTurnDegrees = normalizeSignedDegrees(routeBearingDegrees - sample.headingDegrees);
-        if (Math.abs(signedTurnDegrees) < MIN_NOTIFICATION_TURN_DEGREES) {
+        double absoluteTurnDegrees = Math.abs(signedTurnDegrees);
+        if (absoluteTurnDegrees < MIN_NOTIFICATION_TURN_DEGREES) {
             return Evaluation.of(Outcome.ALIGNED);
+        }
+        if (!sample.isAccuracyHighEnough()
+                || !sample.isHeadingAccuracyHighEnough(absoluteTurnDegrees, MIN_NOTIFICATION_TURN_DEGREES)) {
+            return Evaluation.of(Outcome.WAITING_FOR_CALIBRATION);
         }
         return Evaluation.notify(new Decision(signedTurnDegrees));
     }

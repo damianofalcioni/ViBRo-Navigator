@@ -22,7 +22,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 10.0,
-                sample(350.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 5_500L),
+                sample(350.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -38,7 +38,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 2_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 2_500L),
+                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 2_500L),
                 6_000L
         );
 
@@ -52,7 +52,7 @@ public class StationaryOrientationAdvisorTest {
                 1.2f,
                 1_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 5_500L),
+                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -66,7 +66,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM, 5_500L),
+                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM, 3.0, 5_500L),
                 6_000L
         );
 
@@ -80,7 +80,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 90.0,
-                sample(20.0, 30.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 5_500L),
+                sample(20.0, 30.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -94,7 +94,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 12.0,
-                sample(2.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 5_500L),
+                sample(2.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -102,11 +102,40 @@ public class StationaryOrientationAdvisorTest {
         assertNull(evaluation.decision);
     }
 
+    @Test
+    public void evaluate_waitsWhenHeadingAccuracyEstimateMakesTurnAmbiguous() {
+        StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
+                0.0f,
+                1_000L,
+                90.0,
+                sample(70.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 10.0, 5_500L),
+                6_000L
+        );
+
+        assertEquals(StationaryOrientationAdvisor.Outcome.WAITING_FOR_CALIBRATION, evaluation.outcome);
+        assertNull(evaluation.decision);
+    }
+
+    @Test
+    public void evaluate_fallsBackToCalibrationStatusWhenHeadingAccuracyEstimateIsUnavailable() {
+        StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
+                0.0f,
+                1_000L,
+                90.0,
+                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, null, 5_500L),
+                6_000L
+        );
+
+        assertEquals(StationaryOrientationAdvisor.Outcome.NOTIFY, evaluation.outcome);
+        assertNotNull(evaluation.decision);
+    }
+
     private static GeomagneticOrientationMonitor.Sample sample(
             double headingDegrees,
             double pitchDegrees,
             double rollDegrees,
             int accuracy,
+            Double headingAccuracyDegrees,
             long elapsedRealtimeMs
     ) {
         return new GeomagneticOrientationMonitor.Sample(
@@ -114,6 +143,7 @@ public class StationaryOrientationAdvisorTest {
                 pitchDegrees,
                 rollDegrees,
                 accuracy,
+                headingAccuracyDegrees,
                 elapsedRealtimeMs
         );
     }
