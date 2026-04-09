@@ -9,12 +9,18 @@ import com.vibenavigator.geo.GeoMath;
 import com.vibenavigator.nav.kalman.LatLonKalmanFilter;
 import com.vibenavigator.util.AppLogger;
 
+import java.util.ArrayDeque;
+
 final class NavigationSessionLocationState {
 
     private static final String TAG = "NavSessionLocation";
+    private static final float MAX_STATIONARY_REPORTED_SPEED_MPS = 0.35f;
+    private static final long RECENT_MOTION_WINDOW_MS = 3_000L;
+    private static final double MAX_STATIONARY_RECENT_DISTANCE_METERS = 0.8;
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
+    private final ArrayDeque<Location> recentFilteredLocations = new ArrayDeque<>();
 
     @Nullable
     private Location lastFiltered;
@@ -27,6 +33,7 @@ final class NavigationSessionLocationState {
         previousFiltered = null;
         locationUpdateCount = 0;
         liveLocationCoordinator.reset();
+        recentFilteredLocations.clear();
     }
 
     void onProviderDisabled(@NonNull String provider) {
@@ -63,11 +70,42 @@ final class NavigationSessionLocationState {
 
         previousFiltered = lastFiltered;
         lastFiltered = filtered;
+        rememberFilteredLocation(filtered);
         locationUpdateCount++;
         AppLogger.d(TAG, "Location update #" + locationUpdateCount
                 + " raw=" + formatLocation(selected)
                 + " filtered=" + formatLocation(filtered));
         return Update.accepted(filtered);
+    }
+
+    boolean isLikelyStationary() {
+        if (lastFiltered == null) {
+            return false;
+        }
+        if (speedMps(lastFiltered) > MAX_STATIONARY_REPORTED_SPEED_MPS) {
+            return false;
+        }
+        pruneRecentFilteredLocations(lastFiltered.getTime());
+        if (recentFilteredLocations.size() < 2) {
+            return true;
+        }
+        Location previous = null;
+        double cumulativeDistanceMeters = 0.0;
+        for (Location sample : recentFilteredLocations) {
+            if (previous != null) {
+                cumulativeDistanceMeters += GeoMath.distanceMeters(
+                        previous.getLatitude(),
+                        previous.getLongitude(),
+                        sample.getLatitude(),
+                        sample.getLongitude()
+                );
+                if (cumulativeDistanceMeters > MAX_STATIONARY_RECENT_DISTANCE_METERS) {
+                    return false;
+                }
+            }
+            previous = sample;
+        }
+        return true;
     }
 
     float speedMps(@NonNull Location location) {
@@ -172,5 +210,19 @@ final class NavigationSessionLocationState {
         }
         sb.append(" time=").append(location.getTime());
         return sb.toString();
+    }
+
+    private void rememberFilteredLocation(@NonNull Location filtered) {
+        recentFilteredLocations.addLast(new Location(filtered));
+        pruneRecentFilteredLocations(filtered.getTime());
+    }
+
+    private void pruneRecentFilteredLocations(long newestTimeMs) {
+        long cutoffTimeMs = newestTimeMs - RECENT_MOTION_WINDOW_MS;
+        while (recentFilteredLocations.size() > 1
+                && recentFilteredLocations.peekFirst() != null
+                && recentFilteredLocations.peekFirst().getTime() < cutoffTimeMs) {
+            recentFilteredLocations.removeFirst();
+        }
     }
 }

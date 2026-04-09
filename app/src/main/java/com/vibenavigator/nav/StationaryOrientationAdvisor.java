@@ -55,7 +55,7 @@ final class StationaryOrientationAdvisor {
 
     private static final long REQUIRED_STATIONARY_DURATION_MS = 5_000L;
     private static final long MAX_SAMPLE_AGE_MS = 5_000L;
-    private static final float MAX_STATIONARY_SPEED_MPS = 0.75f;
+    private static final float MAX_STATIONARY_SPEED_MPS = 0.35f;
     private static final double MIN_NOTIFICATION_TURN_DEGREES = 15.0;
 
     boolean isStationary(float speedMps) {

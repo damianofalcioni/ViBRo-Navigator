@@ -14,4 +14,11 @@ public class NavigationServiceTest {
         assertFalse(NavigationService.shouldDispatchCompassUi(true, false, true));
         assertFalse(NavigationService.shouldDispatchCompassUi(true, true, false));
     }
+
+    @Test
+    public void shouldEvaluateStationaryOrientationRequiresActiveRouteAndNoReroute() {
+        assertTrue(NavigationService.shouldEvaluateStationaryOrientation(true, false));
+        assertFalse(NavigationService.shouldEvaluateStationaryOrientation(false, false));
+        assertFalse(NavigationService.shouldEvaluateStationaryOrientation(true, true));
+    }
 }

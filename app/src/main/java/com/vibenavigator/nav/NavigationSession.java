@@ -70,6 +70,14 @@ final class NavigationSession {
         return lastFiltered == null ? 0f : locationState.speedMps(lastFiltered);
     }
 
+    boolean isLikelyStationaryForOrientation() {
+        return locationState.isLikelyStationary();
+    }
+
+    boolean isRouteCalculationInProgress() {
+        return routeRequestManager.isRouteCalculationInProgress();
+    }
+
     @Nullable
     Double currentRouteBearingDegrees() {
         return routeState.currentSegmentBearingDegrees(locationState.getLastFilteredLocation());

@@ -304,12 +304,16 @@ public class NavigationService extends Service implements LocationListener {
         if (foregroundController == null || geomagneticOrientationMonitor == null) {
             return;
         }
-        if (!navigationSession.hasActiveRoute()) {
+        if (!shouldEvaluateStationaryOrientation(
+                navigationSession.hasActiveRoute(),
+                navigationSession.isRouteCalculationInProgress()
+        )) {
+            resetStationaryOrientationEpisode();
             return;
         }
 
         float speedMps = navigationSession.lastFilteredSpeedMps();
-        if (!stationaryOrientationAdvisor.isStationary(speedMps)) {
+        if (!navigationSession.isLikelyStationaryForOrientation()) {
             resetStationaryOrientationEpisode();
             return;
         }
@@ -392,6 +396,13 @@ public class NavigationService extends Service implements LocationListener {
             boolean screenInteractive
     ) {
         return hasActiveRoute && navigationUiVisible && screenInteractive;
+    }
+
+    static boolean shouldEvaluateStationaryOrientation(
+            boolean hasActiveRoute,
+            boolean routeCalculationInProgress
+    ) {
+        return hasActiveRoute && !routeCalculationInProgress;
     }
 
     private boolean isScreenInteractive() {
