@@ -107,6 +107,7 @@ final class NavigationSession {
         NavigationSessionRouteState.Evaluation evaluation = routeState.evaluateLocation(
                 filtered,
                 locationState.speedMps(filtered),
+                locationState.isLikelyStationary(),
                 locationState.accuracyMeters(filtered),
                 locationState.trustedActualBearingDegreesForReroute(filtered),
                 nowMs,
@@ -151,7 +152,16 @@ final class NavigationSession {
         warmupController.onRouteApplied();
         Location lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
-        return routeState.applyRouteResult(context, currentRequest, snapshot, newRoute, lastFiltered, speedMps, beganAt);
+        return routeState.applyRouteResult(
+                context,
+                currentRequest,
+                snapshot,
+                newRoute,
+                lastFiltered,
+                speedMps,
+                locationState.isLikelyStationary(),
+                beganAt
+        );
     }
 
     void applyRouteFailure(

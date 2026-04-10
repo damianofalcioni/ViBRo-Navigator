@@ -190,7 +190,9 @@ The app must monitor user position:
 
 - The app must estimate the distance left to the next direction
 - The live remaining distance to the next direction should be derived from the user's current matched position along the active route geometry
-- Current speed should be used to estimate maneuver time only for the still-untraveled portion of the user's current matched route segment, and only when a trustworthy live speed estimate is available
+- A trustworthy live speed estimate for ETA purposes should come from recent smoothed forward movement rather than from a single raw instantaneous speed sample
+- That smoothed live speed should remain usable for slow walking and hiking speeds when recent progress shows genuine forward motion, and should not require a cycling-style speed threshold
+- Smoothed live speed should be used to estimate maneuver time only for the still-untraveled portion of the user's current matched route segment, and only when that smoothed movement estimate is trustworthy
 - When trustworthy live speed is not available for the remaining current-segment portion, the app should estimate that remaining current-segment time from BRouter route timing data when possible
 - For any maneuver beyond the current matched route segment, the app should add BRouter-derived time for all following route segments between the end of the current segment and that maneuver
 - When BRouter GeoJSON per-track timing metadata such as the `times` array is available, it should be the preferred source for those BRouter-derived segment times
@@ -260,7 +262,7 @@ The navigation UI must show the following in large text:
 - At the top: the next two directions
 - Each must include emoji, text, distance left, and time left
 - The first upcoming direction must show distance and time from the user's current matched position
-- If the first upcoming direction still lies on the current matched route segment, its displayed time left should use live speed when trustworthy and otherwise fall back to BRouter-derived timing for the remaining current-segment portion when available
+- If the first upcoming direction still lies on the current matched route segment, its displayed time left should use trustworthy smoothed live speed when available and otherwise fall back to BRouter-derived timing for the remaining current-segment portion when available
 - If the first upcoming direction lies beyond the current matched route segment, its displayed time left should combine the remaining current-segment time with BRouter-derived time for all following route segments up to that maneuver
 - The second upcoming direction must show distance left and time left relative to the first upcoming direction rather than relative to the current position
 - The second upcoming direction's relative time should be derived from BRouter timing between the first and second maneuver points when available
@@ -304,7 +306,7 @@ The navigation UI must show the following in large text:
 #### 4.5.3 Secondary progress/detail line
 
 - Below the compass, the UI must first show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
-- The destination progress line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing: trustworthy live speed only for the remaining current-segment portion, plus BRouter-derived time for later segments
+- The destination progress line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing: trustworthy smoothed live speed only for the remaining current-segment portion, plus BRouter-derived time for later segments
 - Below the destination progress line, the UI must use a single shared secondary text line instead of separate stop-progress and generic-message areas
 - When an intermediate stop is still ahead on the route and there is no higher-priority notice to show, that secondary line must show the distance left, time left, and arrival time for only the next intermediate stop ahead
 - The next intermediate stop line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing and destination progress

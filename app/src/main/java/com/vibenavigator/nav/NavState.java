@@ -180,13 +180,60 @@ public final class NavState {
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
-        List<String> directionLines = buildDirectionLines(
+        return from(
                 route,
                 index,
                 alongTrackMeters,
                 nextHintIdx,
                 currentSegmentIndex,
                 speedMps,
+                speedMps,
+                likelyStationary,
+                accuracyMeters,
+                currentLocation,
+                fixedSatelliteCount,
+                headingDegrees,
+                headingAccuracyDegrees,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                targets,
+                context
+        );
+    }
+
+    @NonNull
+    public static NavState from(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int nextHintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            float etaSpeedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @NonNull Location currentLocation,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @NonNull List<NavTarget> targets,
+            @NonNull Context context
+    ) {
+        List<String> directionLines = buildDirectionLines(
+                route,
+                index,
+                alongTrackMeters,
+                nextHintIdx,
+                currentSegmentIndex,
+                etaSpeedMps,
                 accuracyMeters,
                 context
         );
@@ -197,7 +244,7 @@ public final class NavState {
                 index,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps,
+                etaSpeedMps,
                 nowMs,
                 targets,
                 context
@@ -207,7 +254,7 @@ public final class NavState {
                 index,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps,
+                etaSpeedMps,
                 nowMs,
                 targets,
                 context

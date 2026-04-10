@@ -36,6 +36,9 @@ final class NavigationSessionRouteState {
     private static final long DIRECTION_PROGRESS_WINDOW_MS = 3_000L;
     private static final long MAX_DIRECTION_PROGRESS_SAMPLE_AGE_MS = 10_000L;
     private static final double MIN_DIRECTION_PROGRESS_METERS = 4.0;
+    private static final long MIN_ETA_SPEED_SAMPLE_AGE_MS = 2_000L;
+    private static final double MIN_ETA_PROGRESS_METERS = 1.0;
+    private static final float MIN_TRUSTED_ETA_SPEED_MPS = 0.5f;
 
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
@@ -92,6 +95,27 @@ final class NavigationSessionRouteState {
             long nowMs,
             long fastChecksUntilMs
     ) {
+        return evaluateLocation(
+                filtered,
+                speedMps,
+                false,
+                accuracyMeters,
+                actualBearingDegrees,
+                nowMs,
+                fastChecksUntilMs
+        );
+    }
+
+    @NonNull
+    Evaluation evaluateLocation(
+            @NonNull Location filtered,
+            float speedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @Nullable Double actualBearingDegrees,
+            long nowMs,
+            long fastChecksUntilMs
+    ) {
         if (route == null || polylineIndex == null || route.track.isEmpty()) {
             AppLogger.i(TAG, "No active route loaded, requesting route calculation");
             return Evaluation.requestRecalculation(null);
@@ -108,6 +132,7 @@ final class NavigationSessionRouteState {
         lastSegmentIndex = match.segmentIndex;
         double expectedBearingDegrees = expectedBearingDegrees(match);
         double smoothedAccuracyMeters = rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
+        float etaSpeedMps = resolveEtaSpeedMps(filtered, match.alongTrackMeters, accuracyMeters, likelyStationary);
         DirectionOfProgressAssessment directionOfProgress = assessDirectionOfProgress(
                 match.alongTrackMeters,
                 nowMs
@@ -130,7 +155,7 @@ final class NavigationSessionRouteState {
                         polylineIndex,
                         match.alongTrackMeters,
                         match.segmentIndex,
-                        speedMps,
+                        etaSpeedMps,
                         accuracyMeters,
                         nowMs,
                         fastChecksUntilMs
@@ -146,7 +171,7 @@ final class NavigationSessionRouteState {
                         polylineIndex,
                         match.alongTrackMeters,
                         match.segmentIndex,
-                        speedMps,
+                        etaSpeedMps,
                         accuracyMeters,
                         nowMs,
                         fastChecksUntilMs
@@ -170,7 +195,7 @@ final class NavigationSessionRouteState {
                     polylineIndex,
                     match.alongTrackMeters,
                     match.segmentIndex,
-                    speedMps,
+                    etaSpeedMps,
                     accuracyMeters,
                     nowMs,
                     fastChecksUntilMs
@@ -201,7 +226,7 @@ final class NavigationSessionRouteState {
                 polylineIndex,
                 match.alongTrackMeters,
                 match.segmentIndex,
-                speedMps,
+                etaSpeedMps,
                 accuracyMeters,
                 nowMs,
                 fastChecksUntilMs
@@ -249,6 +274,29 @@ final class NavigationSessionRouteState {
             float speedMps,
             long beganAt
     ) {
+        return applyRouteResult(
+                context,
+                request,
+                snapshot,
+                newRoute,
+                lastFiltered,
+                speedMps,
+                false,
+                beganAt
+        );
+    }
+
+    @NonNull
+    List<NavigationSession.TurnEvent> applyRouteResult(
+            @NonNull Context context,
+            @NonNull NavigationRequest request,
+            @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+            @NonNull GeoJsonRoute newRoute,
+            @Nullable Location lastFiltered,
+            float speedMps,
+            boolean likelyStationary,
+            long beganAt
+    ) {
         route = newRoute;
         polylineIndex = new PolylineIndex(newRoute.track);
         lastSegmentIndex = -1;
@@ -258,9 +306,10 @@ final class NavigationSessionRouteState {
         clearPendingDeviation();
         recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
+        float etaSpeedMps = 0f;
 
         List<NavigationSession.TurnEvent> turnEvents =
-                turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, speedMps, accuracyOf(lastFiltered));
+                turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, etaSpeedMps, accuracyOf(lastFiltered));
         AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
                 + " trackPoints=" + newRoute.track.size()
@@ -334,6 +383,7 @@ final class NavigationSessionRouteState {
             return NavState.withGpsStatus(NavState.waiting(context), gpsStatusLine);
         }
 
+        float etaSpeedMps = resolveEtaSpeedMps(lastFiltered, match.alongTrackMeters, accuracyMeters, likelyStationary);
         NavState state = NavState.from(
                 route,
                 polylineIndex,
@@ -341,6 +391,7 @@ final class NavigationSessionRouteState {
                 turnState.getNextHintIdx(),
                 match.segmentIndex,
                 speedMps,
+                etaSpeedMps,
                 likelyStationary,
                 accuracyMeters,
                 lastFiltered,
@@ -363,6 +414,42 @@ final class NavigationSessionRouteState {
             );
         }
         return state;
+    }
+
+    private float resolveEtaSpeedMps(
+            @Nullable Location location,
+            double alongTrackMeters,
+            float accuracyMeters,
+            boolean likelyStationary
+    ) {
+        if (location == null || likelyStationary) {
+            return 0f;
+        }
+        pruneAlongTrackSamples(location.getTime());
+        AlongTrackSample anchor = null;
+        for (AlongTrackSample candidate : recentAlongTrackSamples) {
+            if (location.getTime() - candidate.timeMs >= MIN_ETA_SPEED_SAMPLE_AGE_MS) {
+                anchor = candidate;
+                break;
+            }
+        }
+        if (anchor == null) {
+            return 0f;
+        }
+        double alongTrackDeltaMeters = alongTrackMeters - anchor.alongTrackMeters;
+        double minimumProgressMeters = Math.max(
+                MIN_ETA_PROGRESS_METERS,
+                Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters * 0.25 : 0.0
+        );
+        if (alongTrackDeltaMeters < minimumProgressMeters) {
+            return 0f;
+        }
+        double elapsedSeconds = (location.getTime() - anchor.timeMs) / 1000.0;
+        if (elapsedSeconds <= 0.0) {
+            return 0f;
+        }
+        float smoothedSpeedMps = (float) (alongTrackDeltaMeters / elapsedSeconds);
+        return smoothedSpeedMps >= MIN_TRUSTED_ETA_SPEED_MPS ? smoothedSpeedMps : 0f;
     }
 
     @NonNull

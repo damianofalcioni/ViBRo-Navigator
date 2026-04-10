@@ -71,6 +71,71 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void buildState_usesSmoothedSlowProgressForEtaOnCurrentSegment() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        Location startLocation = locationWithSpeed(0.0, 0.0, 1_000L, 0.4f);
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                new GeoJsonRoute(
+                        Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.001)),
+                        Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                        10.0,
+                        111.0
+                ),
+                startLocation,
+                0.4f,
+                false,
+                500L
+        );
+
+        state.evaluateLocation(
+                locationWithSpeed(0.0, 0.000003, 1_500L, 0.4f),
+                0.4f,
+                false,
+                5f,
+                90.0,
+                1_500L,
+                0L
+        );
+        Location progressedLocation = locationWithSpeed(0.0, 0.000015, 4_000L, 0.4f);
+        state.evaluateLocation(
+                progressedLocation,
+                0.4f,
+                false,
+                5f,
+                90.0,
+                4_000L,
+                0L
+        );
+        NavState navState = state.buildState(
+                context,
+                progressedLocation,
+                0.4f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                4_000L,
+                false,
+                null
+        );
+
+        assertTrue(navState.nextLine.contains("min"));
+        assertFalse(navState.nextLine.contains("10 s"));
+    }
+
+    @Test
     public void evaluateLocation_surfacesOffTrackRerouteNotice() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
