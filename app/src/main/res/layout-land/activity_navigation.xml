@@ -7,17 +7,18 @@
     android:orientation="horizontal"
     android:padding="16dp">
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="16dp"
         android:layout_weight="1"
-        android:orientation="vertical">
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/gpsStatusText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
             android:maxLines="1"
             android:text=""
             android:textColor="@color/white"
@@ -27,6 +28,7 @@
             android:id="@+id/nextDirectionText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/gpsStatusText"
             android:layout_marginTop="18dp"
             android:text="@string/nav_no_route"
             android:textColor="@color/white"
@@ -36,6 +38,7 @@
             android:id="@+id/afterNextDirectionText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/nextDirectionText"
             android:layout_marginTop="10dp"
             android:text=""
             android:textColor="@color/white"
@@ -45,6 +48,7 @@
             android:id="@+id/destinationText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/afterNextDirectionText"
             android:layout_marginTop="16dp"
             android:text=""
             android:textColor="@color/white"
@@ -54,21 +58,19 @@
             android:id="@+id/stopProgressText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@id/destinationText"
             android:layout_marginTop="10dp"
             android:text=""
             android:textColor="@color/white"
             android:textSize="18sp" />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
 
         <Button
             android:id="@+id/blockedRoadButton"
             style="@style/Widget.VibeNavigator.Button.Secondary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_above="@id/stopNavButton"
+            android:layout_marginBottom="12dp"
             android:text="@string/action_blocked_road" />
 
         <Button
@@ -76,9 +78,9 @@
             style="@style/Widget.VibeNavigator.Button.Danger"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_alignParentBottom="true"
             android:text="@string/action_stop_navigation" />
-    </LinearLayout>
+    </RelativeLayout>
 
     <FrameLayout
         android:layout_width="0dp"

@@ -1,10 +1,12 @@
 package com.vibenavigator;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,6 +19,8 @@ import android.text.style.ForegroundColorSpan;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -61,6 +65,8 @@ public class NavigationActivity extends Activity {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private final NavigationStartupCoordinator startupCoordinator =
             new NavigationStartupCoordinator(new NavigationStartupHost());
+    @Nullable
+    private OnBackInvokedCallback backInvokedCallback;
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
@@ -100,6 +106,7 @@ public class NavigationActivity extends Activity {
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
+        registerPredictiveBackCallbackIfSupported();
 
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
@@ -188,6 +195,12 @@ public class NavigationActivity extends Activity {
             bound = false;
             navBinder = null;
         }
+    }
+
+    @Override
+    protected void onDestroy() {
+        unregisterPredictiveBackCallbackIfNeeded();
+        super.onDestroy();
     }
 
     private void render(@NonNull NavState state) {
@@ -280,8 +293,19 @@ public class NavigationActivity extends Activity {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
+    @SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
+        handleBackAction(true);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
+        startupCoordinator.onRequestPermissionsResult(requestCode);
+    }
+
+    private void handleBackAction(boolean legacyBackPress) {
         NavigationLifecyclePolicy.BackPressAction action = lifecyclePolicy.onNavigationBackPressed();
         if (action == NavigationLifecyclePolicy.BackPressAction.MOVE_TASK_TO_BACKGROUND) {
             AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
@@ -290,14 +314,30 @@ public class NavigationActivity extends Activity {
             }
             return;
         }
-        super.onBackPressed();
+        if (legacyBackPress) {
+            super.onBackPressed();
+        } else {
+            finish();
+        }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
-        startupCoordinator.onRequestPermissionsResult(requestCode);
+    private void registerPredictiveBackCallbackIfSupported() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || backInvokedCallback != null) {
+            return;
+        }
+        backInvokedCallback = () -> handleBackAction(false);
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                backInvokedCallback
+        );
+    }
+
+    private void unregisterPredictiveBackCallbackIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || backInvokedCallback == null) {
+            return;
+        }
+        getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backInvokedCallback);
+        backInvokedCallback = null;
     }
 
     @NonNull

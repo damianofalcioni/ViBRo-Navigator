@@ -7,10 +7,11 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 - Single-module Android app at `app/`
 - Language: Java only
 - UI base: platform `Activity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
-- Gradle: `8.2`
-- Android Gradle Plugin: `8.2.2`
+- Keep navigation back handling compatible with predictive back using platform callbacks; do not migrate the app shell to `ComponentActivity` unless explicitly requested
+- Gradle: `9.3.1`
+- Android Gradle Plugin: `9.1.0`
 - Java toolchain: `17`
-- SDKs in repo today: `compileSdk 34`, `targetSdk 34`, `minSdk 21`
+- SDKs in repo today: `compileSdk 36`, `targetSdk 36`, `minSdk 21`
 - Runtime dependencies are intentionally minimal: `androidx.core`
 - Do not add Google Play Services or other heavy dependencies unless explicitly requested
 
@@ -30,6 +31,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation.
 - `MapPickerActivity` owns manual map-based point picking for destination and stop fields. Keep it dependency-light: use the existing local WebView asset approach for OpenStreetMap raster tiles instead of introducing a native map SDK unless explicitly requested.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
+- `NavigationActivity` must remain a platform `Activity`. If back behavior changes, preserve the current combination of legacy `onBackPressed()` handling plus platform predictive-back registration for API 33+ instead of switching the screen to `ComponentActivity`.
 - The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
 - Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw geomagnetic heading available for non-UI orientation logic such as stationary turn-to-face-route advice.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.

@@ -32,25 +32,27 @@
         android:textColor="@color/white"
         android:textSize="18sp" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_weight="1"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
+        android:gravity="center_horizontal">
 
         <com.vibenavigator.NavigationCompassView
             android:id="@+id/navigationCompassView"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_height="match_parent"
+            android:layout_above="@id/destinationText"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="12dp" />
 
         <TextView
             android:id="@+id/destinationText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_above="@id/stopProgressText"
+            android:layout_marginBottom="10dp"
             android:gravity="center"
             android:text=""
             android:textColor="@color/white"
@@ -60,12 +62,12 @@
             android:id="@+id/stopProgressText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
+            android:layout_alignParentBottom="true"
             android:gravity="center"
             android:text=""
             android:textColor="@color/white"
             android:textSize="18sp" />
-    </LinearLayout>
+    </RelativeLayout>
 
     <Button
         android:id="@+id/blockedRoadButton"

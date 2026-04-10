@@ -14,6 +14,7 @@ Core product constraints:
 - Avoid dependencies as much as possible, including Google Play Services
 - Keep generated and maintained code minimal while still implementing the features
 - Target the latest practical Android SDK while keeping `minSdk 21`
+- The current repository baseline is `compileSdk 36` and `targetSdk 36` while keeping `minSdk 21`
 - Use a black theme
 - Do not hardcode user-facing text in code
 - Support both portrait and landscape orientations
@@ -357,6 +358,7 @@ The navigation UI must show the following in large text:
 - Pressing the system back button while the navigation UI is open must move the whole app task to the background
 - Pressing back during navigation must not reveal the main UI underneath the navigation UI
 - Navigation must continue running after this backgrounding action as long as the foreground service remains active
+- On Android versions that use predictive back, the navigation screen must keep the same backgrounding behavior through the platform back-dispatch path instead of relying only on legacy `onBackPressed()` callbacks
 
 ### 4.6 Background behavior
 

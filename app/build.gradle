@@ -28,12 +28,12 @@ if (googleMapsApiKey == null) {
 
 android {
     namespace "com.vibenavigator"
-    compileSdk 34
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.vibenavigator"
         minSdk 21
-        targetSdk 34
+        targetSdk 36
         versionCode 1
         versionName "0.1.0"
 
