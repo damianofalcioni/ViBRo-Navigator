@@ -105,6 +105,17 @@ public class NavigationLocationControllerTest {
         ));
     }
 
+    @Test
+    public void countSatellitesUsedInFix_countsOnlyTrueFlags() {
+        assertEquals(3, NavigationLocationController.countSatellitesUsedInFix(
+                true,
+                false,
+                true,
+                false,
+                true
+        ));
+    }
+
     private static Location location(String provider, long timeMs, float accuracyMeters) {
         Location location = new Location(provider);
         location.setLatitude(48.2082d);

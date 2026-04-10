@@ -430,6 +430,7 @@ public class NavigationService extends Service implements LocationListener {
                 this,
                 locationController.getNextEvaluationDeadlineElapsedMs(),
                 System.currentTimeMillis(),
+                locationController.getFixedSatelliteCount(),
                 currentDisplayHeadingDegrees(),
                 currentDisplayHeadingAccuracyDegrees()
         );

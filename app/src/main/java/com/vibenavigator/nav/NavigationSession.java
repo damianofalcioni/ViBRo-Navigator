@@ -171,6 +171,7 @@ final class NavigationSession {
             @NonNull Context context,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
+            @Nullable Integer fixedSatelliteCount,
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees
     ) {
@@ -193,6 +194,7 @@ final class NavigationSession {
                 speedMps,
                 locationState.isLikelyStationary(),
                 accuracyMeters,
+                fixedSatelliteCount,
                 headingDegrees,
                 headingAccuracyDegrees,
                 nextEvaluationDeadlineElapsedMs,

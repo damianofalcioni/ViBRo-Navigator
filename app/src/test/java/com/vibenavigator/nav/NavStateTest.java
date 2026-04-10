@@ -53,6 +53,7 @@ public class NavStateTest {
                 false,
                 20f,
                 locationAt(0.0, 0.0),
+                null,
                 45.0,
                 null,
                 null,
@@ -89,6 +90,7 @@ public class NavStateTest {
                 false,
                 5f,
                 locationAt(48.2000, 16.3600),
+                null,
                 90.0,
                 8.0f,
                 null,
@@ -135,6 +137,7 @@ public class NavStateTest {
                 false,
                 5f,
                 locationAt(0.0, 0.0013),
+                null,
                 0.0,
                 null,
                 null,
@@ -173,6 +176,7 @@ public class NavStateTest {
                 true,
                 5f,
                 locationAt(0.0, 0.0),
+                null,
                 0.0,
                 null,
                 null,
@@ -212,6 +216,7 @@ public class NavStateTest {
                 true,
                 5f,
                 locationAt(0.0, 0.0),
+                null,
                 0.0,
                 null,
                 null,
@@ -231,6 +236,7 @@ public class NavStateTest {
                 false,
                 5f,
                 locationAt(0.0, 0.0),
+                null,
                 0.0,
                 null,
                 stationaryState.compassState.visibleRadiusMeters,
@@ -274,6 +280,7 @@ public class NavStateTest {
                 true,
                 5f,
                 locationAt(0.0, 0.0),
+                null,
                 0.0,
                 null,
                 null,
@@ -286,6 +293,45 @@ public class NavStateTest {
 
         assertNotNull(state.compassState);
         assertEquals(1.0f, state.compassState.referenceSpeedMps, 0.01f);
+    }
+
+    @Test
+    public void from_formatsGpsStatusWithSpeedElevationAccuracyAndSatelliteCount() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.2000, 16.3600),
+                        new LatLon(48.2010, 16.3610)
+                ),
+                Collections.emptyList(),
+                120.0,
+                140.0
+        );
+        android.location.Location location = locationAt(48.2000, 16.3600);
+        location.setAltitude(245.4d);
+        location.setBearing(182.2f);
+        location.setBearingAccuracyDegrees(9.4f);
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                -1,
+                4.5f,
+                false,
+                5.2f,
+                location,
+                7,
+                90.0,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 140.0)),
+                context
+        );
+
+        assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7)", state.gpsStatusLine);
     }
 
     @NonNull

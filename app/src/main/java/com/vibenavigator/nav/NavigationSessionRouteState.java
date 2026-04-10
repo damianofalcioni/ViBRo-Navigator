@@ -176,6 +176,7 @@ final class NavigationSessionRouteState {
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,
+            @Nullable Integer fixedSatelliteCount,
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             long nextEvaluationDeadlineElapsedMs,
@@ -183,30 +184,46 @@ final class NavigationSessionRouteState {
             boolean routeCalculationInProgress,
             @Nullable Throwable lastRouteFailure
     ) {
+        String gpsStatusLine = NavState.buildGpsStatusLine(
+                lastFiltered == null ? Float.NaN : speedMps,
+                lastFiltered,
+                lastFiltered == null ? Float.NaN : accuracyMeters,
+                fixedSatelliteCount,
+                context
+        );
         if (lastFiltered == null) {
             if (lastRouteFailure != null) {
-                return NavState.routeUnavailable(
+                return NavState.withGpsStatus(NavState.routeUnavailable(
                         context,
                         NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
                         nextEvaluationDeadlineElapsedMs
-                );
+                ), gpsStatusLine);
             }
-            return NavState.waitingForLocation(context, nextEvaluationDeadlineElapsedMs);
+            return NavState.withGpsStatus(
+                    NavState.waitingForLocation(context, nextEvaluationDeadlineElapsedMs),
+                    gpsStatusLine
+            );
         }
 
         if (routeCalculationInProgress) {
-            return NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
+            return NavState.withGpsStatus(
+                    NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
+                    gpsStatusLine
+            );
         }
 
         if (route == null || polylineIndex == null) {
             if (lastRouteFailure != null) {
-                return NavState.routeUnavailable(
+                return NavState.withGpsStatus(NavState.routeUnavailable(
                         context,
                         NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
                         nextEvaluationDeadlineElapsedMs
-                );
+                ), gpsStatusLine);
             }
-            return NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
+            return NavState.withGpsStatus(
+                    NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
+                    gpsStatusLine
+            );
         }
 
         PolylineIndex.Match match = polylineIndex.match(
@@ -214,7 +231,7 @@ final class NavigationSessionRouteState {
                 lastSegmentIndex
         );
         if (match == null) {
-            return NavState.waiting(context);
+            return NavState.withGpsStatus(NavState.waiting(context), gpsStatusLine);
         }
 
         NavState state = NavState.from(
@@ -226,6 +243,7 @@ final class NavigationSessionRouteState {
                 likelyStationary,
                 accuracyMeters,
                 lastFiltered,
+                fixedSatelliteCount,
                 headingDegrees,
                 headingAccuracyDegrees,
                 lastCompassVisibleRadiusMeters,

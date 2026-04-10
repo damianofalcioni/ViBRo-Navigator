@@ -1,6 +1,7 @@
 package com.vibenavigator.nav;
 
 import android.content.Context;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,7 +35,7 @@ public final class NavState {
     @NonNull
     public final String stopProgressBlock;
     @NonNull
-    public final String accuracyLine;
+    public final String gpsStatusLine;
     public final long nextEvaluationDeadlineElapsedMs;
     @NonNull
     public final String detailBlock;
@@ -45,7 +46,7 @@ public final class NavState {
                      @NonNull String afterNextLine,
                      @NonNull String destinationLine,
                      @NonNull String stopProgressBlock,
-                     @NonNull String accuracyLine,
+                     @NonNull String gpsStatusLine,
                      long nextEvaluationDeadlineElapsedMs,
                      @NonNull String detailBlock,
                      @Nullable NavCompassState compassState) {
@@ -53,7 +54,7 @@ public final class NavState {
         this.afterNextLine = afterNextLine;
         this.destinationLine = destinationLine;
         this.stopProgressBlock = stopProgressBlock;
-        this.accuracyLine = accuracyLine;
+        this.gpsStatusLine = gpsStatusLine;
         this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
         this.detailBlock = detailBlock;
         this.compassState = compassState;
@@ -62,7 +63,7 @@ public final class NavState {
     @NonNull
     public static NavState waiting(@NonNull Context context) {
         String noRoute = context.getString(R.string.nav_no_route);
-        return new NavState(noRoute, "", "", "", "", NO_DEADLINE, noRoute, null);
+        return new NavState(noRoute, "", "", "", defaultGpsStatusLine(context), NO_DEADLINE, noRoute, null);
     }
 
     @NonNull
@@ -77,7 +78,7 @@ public final class NavState {
                 "",
                 "",
                 "",
-                "",
+                defaultGpsStatusLine(context),
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.nav_waiting_for_location_body),
                 null
@@ -96,7 +97,7 @@ public final class NavState {
                 "",
                 "",
                 "",
-                "",
+                defaultGpsStatusLine(context),
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.nav_calculating_route_body),
                 null
@@ -117,7 +118,7 @@ public final class NavState {
                 "",
                 "",
                 "",
-                "",
+                defaultGpsStatusLine(context),
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.format_nav_route_unavailable_body, detail),
                 null
@@ -137,9 +138,23 @@ public final class NavState {
                 base.afterNextLine,
                 base.destinationLine,
                 base.stopProgressBlock,
-                base.accuracyLine,
+                base.gpsStatusLine,
                 base.nextEvaluationDeadlineElapsedMs,
                 detail,
+                base.compassState
+        );
+    }
+
+    @NonNull
+    public static NavState withGpsStatus(@NonNull NavState base, @NonNull String gpsStatusLine) {
+        return new NavState(
+                base.nextLine,
+                base.afterNextLine,
+                base.destinationLine,
+                base.stopProgressBlock,
+                gpsStatusLine,
+                base.nextEvaluationDeadlineElapsedMs,
+                base.detailBlock,
                 base.compassState
         );
     }
@@ -154,6 +169,7 @@ public final class NavState {
             boolean likelyStationary,
             float accuracyMeters,
             @NonNull Location currentLocation,
+            @Nullable Integer fixedSatelliteCount,
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
@@ -176,7 +192,7 @@ public final class NavState {
         String afterNext = directionLines.size() > 1 ? directionLines.get(1) : "";
         String destination = buildDestinationLine(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
         String stopProgress = buildStopProgress(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
-        String accuracy = buildAccuracyLine(accuracyMeters, context);
+        String gpsStatus = buildGpsStatusLine(speedMps, currentLocation, accuracyMeters, fixedSatelliteCount, context);
         NavCompassState compassState = buildCompassState(
                 route,
                 index,
@@ -195,7 +211,7 @@ public final class NavState {
                 afterNext,
                 destination,
                 stopProgress,
-                accuracy,
+                gpsStatus,
                 nextEvaluationDeadlineElapsedMs,
                 "",
                 compassState
@@ -203,11 +219,38 @@ public final class NavState {
     }
 
     @NonNull
-    private static String buildAccuracyLine(float accuracyMeters, @NonNull Context context) {
-        if (!Float.isFinite(accuracyMeters) || accuracyMeters <= 0f) {
-            return context.getString(R.string.nav_status_unavailable);
-        }
-        return context.getString(R.string.format_nav_accuracy_value, accuracyMeters);
+    static String buildGpsStatusLine(
+            float speedMps,
+            @Nullable Location currentLocation,
+            float accuracyMeters,
+            @Nullable Integer fixedSatelliteCount,
+            @NonNull Context context
+    ) {
+        Double elevationMeters = currentLocation != null && currentLocation.hasAltitude()
+                ? currentLocation.getAltitude()
+                : null;
+        Float bearingDegrees = currentLocation != null && currentLocation.hasBearing()
+                ? currentLocation.getBearing()
+                : null;
+        Float bearingAccuracyDegrees = currentLocation != null
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
+                && currentLocation.hasBearingAccuracy()
+                ? currentLocation.getBearingAccuracyDegrees()
+                : null;
+        return NavigationTextFormatter.formatGpsStatus(
+                context,
+                speedMps,
+                elevationMeters,
+                accuracyMeters,
+                bearingDegrees,
+                bearingAccuracyDegrees,
+                fixedSatelliteCount
+        );
+    }
+
+    @NonNull
+    private static String defaultGpsStatusLine(@NonNull Context context) {
+        return buildGpsStatusLine(Float.NaN, null, Float.NaN, null, context);
     }
 
     @NonNull

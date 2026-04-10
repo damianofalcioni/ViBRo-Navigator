@@ -12,6 +12,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.util.TypedValue;
 import android.text.style.ForegroundColorSpan;
 import android.widget.Button;
 import android.widget.TextView;
@@ -21,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.TextViewCompat;
 
 import com.vibenavigator.nav.NavState;
 import com.vibenavigator.nav.NavigationLifecyclePolicy;
@@ -30,11 +32,16 @@ import com.vibenavigator.nav.NavigationService;
 import com.vibenavigator.nav.NavigationStartupCoordinator;
 import com.vibenavigator.util.AppLogger;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class NavigationActivity extends Activity {
 
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
 
     private static final String TAG = "NavigationActivity";
+    private static final Pattern GPS_ACCURACY_HIGHLIGHT_PATTERN =
+            Pattern.compile("• ([^ ]+ [^ ]+) ([^•]+) •");
 
     private TextView next;
     private TextView afterNext;
@@ -57,7 +64,7 @@ public class NavigationActivity extends Activity {
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
-            renderCountdown();
+            renderGpsStatus();
             uiHandler.postDelayed(this, 1000L);
         }
     };
@@ -100,6 +107,14 @@ public class NavigationActivity extends Activity {
         stopProgress = findViewById(R.id.stopProgressText);
         compass = findViewById(R.id.navigationCompassView);
         gpsStatus = findViewById(R.id.gpsStatusText);
+        gpsStatus.setMaxLines(1);
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                gpsStatus,
+                8,
+                16,
+                1,
+                TypedValue.COMPLEX_UNIT_SP
+        );
         blocked = findViewById(R.id.blockedRoadButton);
         stop = findViewById(R.id.stopNavButton);
 
@@ -183,8 +198,8 @@ public class NavigationActivity extends Activity {
         String secondaryText = !state.detailBlock.isEmpty() ? state.detailBlock : state.stopProgressBlock;
         stopProgress.setText(secondaryText);
         compass.setCompassState(state.compassState);
-        renderCountdown();
-        String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.accuracyLine
+        renderGpsStatus();
+        String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.gpsStatusLine
                 + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.destinationLine
                 + "|" + state.stopProgressBlock
                 + "|" + state.detailBlock
@@ -194,7 +209,7 @@ public class NavigationActivity extends Activity {
             lastRenderedStateKey = stateKey;
             AppLogger.d(TAG, "Rendered state next=" + state.nextLine
                     + " afterNext=" + state.afterNextLine
-                    + " accuracy=" + state.accuracyLine
+                    + " gpsStatus=" + state.gpsStatusLine
                     + " nextEvalDeadline=" + state.nextEvaluationDeadlineElapsedMs
                     + " destination=" + state.destinationLine
                     + " stops=" + state.stopProgressBlock
@@ -204,12 +219,15 @@ public class NavigationActivity extends Activity {
         }
     }
 
-    private void renderCountdown() {
+    private void renderGpsStatus() {
+        String statusText;
         if (currentState == null) {
-            gpsStatus.setText(buildGpsStatusText(
-                    getString(R.string.nav_status_unavailable),
+            statusText = getString(
+                    R.string.format_nav_gps_status_with_countdown,
+                    NavState.waiting(this).gpsStatusLine,
                     getString(R.string.nav_status_unavailable)
-            ));
+            );
+            gpsStatus.setText(statusText);
             return;
         }
         String nextEvaluationValue = getString(R.string.nav_status_unavailable);
@@ -218,23 +236,40 @@ public class NavigationActivity extends Activity {
             long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
             nextEvaluationValue = getString(R.string.format_nav_next_position_check_value, remainingSeconds);
         }
-        gpsStatus.setText(buildGpsStatusText(currentState.accuracyLine, nextEvaluationValue));
+        statusText = getString(
+                R.string.format_nav_gps_status_with_countdown,
+                currentState.gpsStatusLine,
+                nextEvaluationValue
+        );
+        gpsStatus.setText(styleGpsStatus(statusText));
     }
 
     @NonNull
-    private CharSequence buildGpsStatusText(@NonNull String accuracyValue, @NonNull String nextEvaluationValue) {
-        String statusText = getString(R.string.format_nav_gps_status, accuracyValue, nextEvaluationValue);
-        SpannableString styledStatusText = new SpannableString(statusText);
-        int accuracyStart = statusText.indexOf(accuracyValue);
-        if (accuracyStart >= 0 && !accuracyValue.isEmpty()) {
-            styledStatusText.setSpan(
-                    new ForegroundColorSpan(ContextCompat.getColor(this, R.color.compass_accent)),
-                    accuracyStart,
-                    accuracyStart + accuracyValue.length(),
+    private CharSequence styleGpsStatus(@NonNull String statusText) {
+        SpannableString styledText = new SpannableString(statusText);
+        Matcher matcher = GPS_ACCURACY_HIGHLIGHT_PATTERN.matcher(statusText);
+        if (!matcher.find()) {
+            return styledText;
+        }
+        String unavailable = getString(R.string.nav_status_unavailable);
+        int accentColor = ContextCompat.getColor(this, R.color.compass_accent);
+        if (!unavailable.equals(matcher.group(1).trim())) {
+            styledText.setSpan(
+                    new ForegroundColorSpan(accentColor),
+                    matcher.start(1),
+                    matcher.end(1),
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
             );
         }
-        return styledStatusText;
+        if (!unavailable.equals(matcher.group(2).trim())) {
+            styledText.setSpan(
+                    new ForegroundColorSpan(accentColor),
+                    matcher.start(2),
+                    matcher.end(2),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+        }
+        return styledText;
     }
 
     private void ensureReadyThenStart() {

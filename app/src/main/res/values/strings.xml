@@ -111,9 +111,15 @@
     <string name="format_time_s">%1$d s</string>
     <string name="format_time_min">%1$d min</string>
     <string name="format_eta_hm">%1$02d:%2$02d</string>
-    <string name="format_nav_accuracy_value">%1$.0f m</string>
+    <string name="format_nav_speed_value">%1$.0f km/h</string>
+    <string name="format_nav_elevation_value">%1$.0f m</string>
+    <string name="format_nav_accuracy_value">±%1$.0f m</string>
+    <string name="format_nav_bearing_value">%1$.0f°</string>
+    <string name="format_nav_bearing_accuracy_value">%1$.0f°</string>
     <string name="format_nav_next_position_check_value">%1$d s</string>
-    <string name="format_nav_gps_status">GPS Status: %1$s • %2$s</string>
+    <string name="format_nav_satellite_count_value">%1$d</string>
+    <string name="format_nav_gps_status">%1$s ↑%2$s %3$s • %4$s %5$s • (%6$s)</string>
+    <string name="format_nav_gps_status_with_countdown">%1$s • %2$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>
     <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
     <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>

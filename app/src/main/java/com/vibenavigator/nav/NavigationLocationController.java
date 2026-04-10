@@ -1,11 +1,14 @@
 package com.vibenavigator.nav;
 
 import android.content.Context;
+import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
@@ -39,6 +42,10 @@ final class NavigationLocationController {
     @Nullable
     private CancellationSignal networkCurrentLocationCancellation;
     private long nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+    @Nullable
+    private GnssStatus.Callback gnssStatusCallback;
+    @Nullable
+    private Integer fixedSatelliteCount;
 
     NavigationLocationController(@NonNull Context context, @NonNull LocationListener listener) {
         this.context = context;
@@ -51,12 +58,16 @@ final class NavigationLocationController {
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+        fixedSatelliteCount = null;
         cancelPendingCurrentLocationRequests();
+        stopGnssStatusTracking();
     }
 
     void stopTracking() {
         cancelPendingCurrentLocationRequests();
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+        fixedSatelliteCount = null;
+        stopGnssStatusTracking();
         try {
             if (locationManager != null) {
                 locationManager.removeUpdates(listener);
@@ -82,6 +93,8 @@ final class NavigationLocationController {
             String providerSummary = joinProviders(providers);
             if (providers.isEmpty()) {
                 nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+                fixedSatelliteCount = null;
+                stopGnssStatusTracking();
                 if (lastRequestedProvider != null) {
                     locationManager.removeUpdates(listener);
                     lastRequestedLocationMinTimeMs = -1L;
@@ -89,6 +102,12 @@ final class NavigationLocationController {
                 }
                 AppLogger.w(TAG, "No enabled location provider available for updates " + describeAvailability());
                 return;
+            }
+            if (providers.contains(LocationManager.GPS_PROVIDER)) {
+                ensureGnssStatusTracking();
+            } else {
+                fixedSatelliteCount = null;
+                stopGnssStatusTracking();
             }
             nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
             if (shouldReuseActiveLocationRequest(
@@ -140,6 +159,11 @@ final class NavigationLocationController {
 
     long getNextEvaluationDeadlineElapsedMs() {
         return nextEvaluationDeadlineElapsedMs;
+    }
+
+    @Nullable
+    Integer getFixedSatelliteCount() {
+        return fixedSatelliteCount;
     }
 
     @Nullable
@@ -278,6 +302,55 @@ final class NavigationLocationController {
         }
     }
 
+    private void ensureGnssStatusTracking() {
+        if (locationManager == null
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+                || gnssStatusCallback != null) {
+            return;
+        }
+        GnssStatus.Callback callback = new GnssStatus.Callback() {
+            @Override
+            public void onStarted() {
+                fixedSatelliteCount = 0;
+            }
+
+            @Override
+            public void onStopped() {
+                fixedSatelliteCount = 0;
+            }
+
+            @Override
+            public void onSatelliteStatusChanged(@NonNull GnssStatus status) {
+                fixedSatelliteCount = countSatellitesUsedInFix(status);
+            }
+        };
+        try {
+            locationManager.registerGnssStatusCallback(callback, new Handler(Looper.getMainLooper()));
+            gnssStatusCallback = callback;
+            AppLogger.d(TAG, "Registered GNSS status callback");
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while registering GNSS status callback", e);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to register GNSS status callback", e);
+        }
+    }
+
+    private void stopGnssStatusTracking() {
+        if (locationManager == null
+                || Build.VERSION.SDK_INT < Build.VERSION_CODES.N
+                || gnssStatusCallback == null) {
+            return;
+        }
+        try {
+            locationManager.unregisterGnssStatusCallback(gnssStatusCallback);
+            AppLogger.d(TAG, "Unregistered GNSS status callback");
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to unregister GNSS status callback", e);
+        } finally {
+            gnssStatusCallback = null;
+        }
+    }
+
     @Nullable
     private Location getLastKnownLocationQuietly(@NonNull String provider) {
         if (locationManager == null) {
@@ -311,6 +384,24 @@ final class NavigationLocationController {
 
     private static float accuracyMeters(@NonNull Location location) {
         return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    static int countSatellitesUsedInFix(boolean... usedInFixFlags) {
+        int fixedCount = 0;
+        for (boolean usedInFix : usedInFixFlags) {
+            if (usedInFix) {
+                fixedCount++;
+            }
+        }
+        return fixedCount;
+    }
+
+    private static int countSatellitesUsedInFix(@NonNull GnssStatus status) {
+        boolean[] usedInFixFlags = new boolean[status.getSatelliteCount()];
+        for (int i = 0; i < status.getSatelliteCount(); i++) {
+            usedInFixFlags[i] = status.usedInFix(i);
+        }
+        return countSatellitesUsedInFix(usedInFixFlags);
     }
 
     static boolean shouldReuseActiveLocationRequest(
