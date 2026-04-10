@@ -27,41 +27,41 @@ if (googleMapsApiKey == null) {
 }
 
 android {
-    namespace "com.vibenavigator"
-    compileSdk 36
+    namespace = "com.vibenavigator"
+    compileSdk = 36
 
     defaultConfig {
-        applicationId "com.vibenavigator"
-        minSdk 21
-        targetSdk 36
-        versionCode 1
-        versionName "0.1.0"
+        applicationId = "com.vibenavigator"
+        minSdk = 21
+        targetSdk = 36
+        versionCode = 1
+        versionName = "0.1.0"
 
         buildConfigField "String", "GOOGLE_MAPS_API_KEY", "\"${googleMapsApiKey}\""
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         debug {
-            applicationIdSuffix ".debug"
+            applicationIdSuffix = ".debug"
         }
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            signingConfig signingConfigs.debug
+            signingConfig = signingConfigs.debug
         }
     }
 
     buildFeatures {
-        buildConfig true
-        aidl true
+        buildConfig = true
+        aidl = true
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     testOptions {
@@ -70,9 +70,9 @@ android {
 }
 
 dependencies {
-    implementation "androidx.core:core:1.12.0"
+    implementation "androidx.core:core:1.17.0"
 
     testImplementation "junit:junit:4.13.2"
-    testImplementation "androidx.test:core:1.5.0"
-    testImplementation "org.robolectric:robolectric:4.11.1"
+    testImplementation "androidx.test:core:1.7.0"
+    testImplementation "org.robolectric:robolectric:4.16.1"
 }

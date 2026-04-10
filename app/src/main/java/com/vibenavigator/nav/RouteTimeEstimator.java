@@ -10,7 +10,7 @@ import java.util.List;
 
 final class RouteTimeEstimator {
 
-    private static final double MIN_LIVE_SPEED_METERS_PER_SECOND = 0.5;
+    static final double MIN_LIVE_SPEED_METERS_PER_SECOND = 0.5;
 
     private RouteTimeEstimator() {
     }

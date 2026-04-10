@@ -162,6 +162,10 @@ final class TurnEventPlanner {
         if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
             return null;
         }
+        if (speedMps < RouteTimeEstimator.MIN_LIVE_SPEED_METERS_PER_SECOND
+                && isHintInCurrentSegment(polylineIndex, currentSegmentIndex, hintDistMeters)) {
+            return TurnSignal.initial(next, distanceToNextMeters, Double.NaN);
+        }
         Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
                 route,
                 polylineIndex,
@@ -183,5 +187,16 @@ final class TurnEventPlanner {
                 : 0.0;
         double minTrustedDistanceMeters = Math.max(MIN_TRUSTED_TURN_DISTANCE_METERS, safeAccuracyMeters);
         return distanceToNextMeters > minTrustedDistanceMeters;
+    }
+
+    private boolean isHintInCurrentSegment(
+            @NonNull PolylineIndex polylineIndex,
+            int currentSegmentIndex,
+            double hintDistMeters
+    ) {
+        if (currentSegmentIndex < 0) {
+            return false;
+        }
+        return hintDistMeters <= polylineIndex.distanceAtPointIndex(currentSegmentIndex + 1);
     }
 }

@@ -36,6 +36,11 @@ public final class NavigationSettingsLauncher {
             @NonNull Intent intent,
             @NonNull String label
     ) {
+        if (intent.resolveActivity(activity.getPackageManager()) == null) {
+            AppLogger.w(TAG, "No activity resolves " + label + " settings intent action=" + intent.getAction()
+                    + " data=" + String.valueOf(intent.getData()));
+            return false;
+        }
         try {
             activity.startActivity(intent);
             AppLogger.i(TAG, "Opened " + label + " settings intent action=" + intent.getAction()

@@ -181,7 +181,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private void registerGnssStatusCallback() {
-        if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N || gnssStatusCallback != null) {
+        if (locationManager == null || gnssStatusCallback != null) {
             return;
         }
         GnssStatus.Callback callback = new GnssStatus.Callback() {

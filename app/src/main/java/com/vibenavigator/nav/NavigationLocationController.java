@@ -303,7 +303,6 @@ final class NavigationLocationController {
     @RequiresApi(Build.VERSION_CODES.N)
     private void ensureGnssStatusTracking() {
         if (locationManager == null
-                || Build.VERSION.SDK_INT < Build.VERSION_CODES.N
                 || gnssStatusCallback != null) {
             return;
         }
