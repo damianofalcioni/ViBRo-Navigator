@@ -270,9 +270,9 @@ public final class NavState {
         if (route.voiceHints.isEmpty() || hintIdx < 0 || hintIdx >= route.voiceHints.size()) {
             return new ArrayList<>();
         }
-        List<String> lines = new ArrayList<>(2);
+        List<UpcomingHint> upcomingHints = new ArrayList<>(2);
         double minReliableDistanceMeters = minimumReliableTurnDistanceMeters(accuracyMeters);
-        for (int i = hintIdx; i < route.voiceHints.size() && lines.size() < 2; i++) {
+        for (int i = hintIdx; i < route.voiceHints.size() && upcomingHints.size() < 2; i++) {
             VoiceHint hint = route.voiceHints.get(i);
             double hintDist = index.distanceAtPointIndex(hint.indexInTrack);
             double dist = Math.max(0.0, hintDist - alongTrackMeters);
@@ -287,11 +287,38 @@ public final class NavState {
                     hint.indexInTrack,
                     speedMps
             );
-            lines.add(NavigationTextFormatter.formatTurnNotification(
-                    context,
+            upcomingHints.add(new UpcomingHint(
                     hint,
                     dist,
                     timeSeconds != null ? timeSeconds : Double.NaN
+            ));
+        }
+        List<String> lines = new ArrayList<>(upcomingHints.size());
+        if (upcomingHints.isEmpty()) {
+            return lines;
+        }
+        UpcomingHint nextHint = upcomingHints.get(0);
+        lines.add(NavigationTextFormatter.formatTurnNotification(
+                context,
+                nextHint.hint,
+                nextHint.distanceMeters,
+                nextHint.timeSeconds
+        ));
+        if (upcomingHints.size() > 1) {
+            UpcomingHint afterNextHint = upcomingHints.get(1);
+            double relativeDistanceMeters = Math.max(
+                    0.0,
+                    afterNextHint.distanceMeters - nextHint.distanceMeters
+            );
+            double relativeTimeSeconds = Double.isFinite(nextHint.timeSeconds)
+                    && Double.isFinite(afterNextHint.timeSeconds)
+                    ? Math.max(0.0, afterNextHint.timeSeconds - nextHint.timeSeconds)
+                    : resolveRelativeHintTimeSeconds(route, index, nextHint, afterNextHint, speedMps);
+            lines.add(NavigationTextFormatter.formatTurnNotification(
+                    context,
+                    afterNextHint.hint,
+                    relativeDistanceMeters,
+                    relativeTimeSeconds
             ));
         }
         return lines;
@@ -302,6 +329,22 @@ public final class NavState {
                 ? accuracyMeters
                 : 0.0;
         return Math.max(5.0, safeAccuracyMeters);
+    }
+
+    private static double resolveRelativeHintTimeSeconds(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull UpcomingHint nextHint,
+            @NonNull UpcomingHint afterNextHint,
+            float speedMps
+    ) {
+        Double estimatedSeconds = RouteTimeEstimator.estimateSecondsBetweenTrackPoints(
+                route,
+                index,
+                nextHint.hint.indexInTrack,
+                afterNextHint.hint.indexInTrack
+        );
+        return estimatedSeconds != null ? estimatedSeconds : Double.NaN;
     }
 
     @NonNull
@@ -644,6 +687,19 @@ public final class NavState {
             this.routePoints = routePoints;
             this.hintPoints = hintPoints;
             this.furthestDistanceMeters = furthestDistanceMeters;
+        }
+    }
+
+    private static final class UpcomingHint {
+        @NonNull
+        final VoiceHint hint;
+        final double distanceMeters;
+        final double timeSeconds;
+
+        private UpcomingHint(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
+            this.hint = hint;
+            this.distanceMeters = distanceMeters;
+            this.timeSeconds = timeSeconds;
         }
     }
 }

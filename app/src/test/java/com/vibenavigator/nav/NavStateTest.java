@@ -67,7 +67,53 @@ public class NavStateTest {
         );
 
         assertTrue(state.nextLine.contains("111 m"));
-        assertTrue(state.afterNextLine.contains("222 m"));
+        assertTrue(state.afterNextLine.contains("111 m"));
+    }
+
+    @Test
+    public void from_formatsSecondHintRelativeToFirstHint() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002),
+                        new LatLon(0.0, 0.003)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 2, 0, 0.0, 0),
+                        new VoiceHint(2, 3, 0, 0.0, 0)
+                ),
+                Arrays.asList(0.0, 20.0, 45.0, 75.0),
+                75.0,
+                333.0
+        );
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                0,
+                0,
+                0f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 333.0)),
+                context
+        );
+
+        assertTrue(state.nextLine.contains("111 m"));
+        assertTrue(state.nextLine.contains("20 s"));
+        assertTrue(state.afterNextLine.contains("111 m"));
+        assertTrue(state.afterNextLine.contains("25 s"));
     }
 
     @Test
@@ -105,7 +151,7 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.nextLine.contains("--"));
+        assertTrue(state.nextLine.contains("45 s"));
     }
 
     @Test

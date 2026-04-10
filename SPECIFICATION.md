@@ -190,10 +190,12 @@ The app must monitor user position:
 
 - The app must estimate the distance left to the next direction
 - The live remaining distance to the next direction should be derived from the user's current matched position along the active route geometry
-- Current speed should be used to estimate the time left to the next direction only when that direction still lies on the user's current matched route segment and a trustworthy live speed estimate is available
-- When the next direction lies beyond the current matched route segment, the app should estimate the time left to that direction from BRouter GeoJSON route timing metadata such as the per-track `times` array if available
-- When the next direction lies on the current matched route segment but trustworthy live speed is not available, the app must treat that maneuver time as unavailable and must show `--` instead of inventing a placeholder speed-based estimate
-- When the next direction lies beyond the current matched route segment and route timing metadata is unavailable, the app must treat that maneuver time as unavailable and must show `--`
+- Current speed should be used to estimate maneuver time only for the still-untraveled portion of the user's current matched route segment, and only when a trustworthy live speed estimate is available
+- When trustworthy live speed is not available for the remaining current-segment portion, the app should estimate that remaining current-segment time from BRouter route timing data when possible
+- For any maneuver beyond the current matched route segment, the app should add BRouter-derived time for all following route segments between the end of the current segment and that maneuver
+- When BRouter GeoJSON per-track timing metadata such as the `times` array is available, it should be the preferred source for those BRouter-derived segment times
+- When per-track timing metadata is unavailable, the app may fall back to another BRouter-derived route time model for those segments rather than inventing a placeholder live-speed estimate for the whole remaining route
+- When neither trustworthy live speed nor any BRouter-derived timing model can produce a maneuver ETA, the app must show `--`
 - BRouter voice-hint distance metadata may be parsed and retained, but it must not be treated as the primary source of the user's live remaining distance to the next direction
 - The app must treat very short maneuver distances as unreliable whenever they fall inside the current location uncertainty radius
 - A next-direction distance that is less than or equal to the current trusted uncertainty radius must not be presented as a trustworthy instruction
@@ -257,8 +259,11 @@ The navigation UI must show the following in large text:
 
 - At the top: the next two directions
 - Each must include emoji, text, distance left, and time left
-- If the next direction still lies on the current matched route segment, the displayed time left should use live speed when trustworthy and otherwise show `--`
-- If the next direction lies beyond the current matched route segment, the displayed time left should use BRouter route timing metadata when available and otherwise show `--`
+- The first upcoming direction must show distance and time from the user's current matched position
+- If the first upcoming direction still lies on the current matched route segment, its displayed time left should use live speed when trustworthy and otherwise fall back to BRouter-derived timing for the remaining current-segment portion when available
+- If the first upcoming direction lies beyond the current matched route segment, its displayed time left should combine the remaining current-segment time with BRouter-derived time for all following route segments up to that maneuver
+- The second upcoming direction must show distance left and time left relative to the first upcoming direction rather than relative to the current position
+- The second upcoming direction's relative time should be derived from BRouter timing between the first and second maneuver points when available
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
 

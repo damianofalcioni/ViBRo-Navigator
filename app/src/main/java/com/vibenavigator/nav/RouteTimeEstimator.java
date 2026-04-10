@@ -28,14 +28,128 @@ final class RouteTimeEstimator {
             return null;
         }
 
+        if (isOnCurrentSegment(currentSegmentIndex, trackPointIndex)) {
+            return estimateCurrentSegmentSeconds(
+                    route,
+                    polylineIndex,
+                    alongTrackMeters,
+                    trackPointIndex,
+                    speedMps
+            );
+        }
+
+        int currentSegmentEndPointIndex = currentSegmentIndex + 1;
+        if (currentSegmentEndPointIndex > 0
+                && currentSegmentEndPointIndex < route.track.size()
+                && speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND) {
+            Double currentSegmentSeconds = estimateLiveSecondsToTrackPoint(
+                    polylineIndex,
+                    alongTrackMeters,
+                    currentSegmentEndPointIndex,
+                    speedMps
+            );
+            Double laterSegmentsSeconds = estimateSecondsBetweenTrackPoints(
+                    route,
+                    polylineIndex,
+                    currentSegmentEndPointIndex,
+                    trackPointIndex
+            );
+            if (currentSegmentSeconds != null && laterSegmentsSeconds != null) {
+                return currentSegmentSeconds + laterSegmentsSeconds;
+            }
+        }
+        return estimateSecondsUsingRouteModel(route, polylineIndex, alongTrackMeters, trackPointIndex);
+    }
+
+    @Nullable
+    static Double estimateSecondsBetweenTrackPoints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            int startTrackPointIndex,
+            int endTrackPointIndex
+    ) {
+        if (startTrackPointIndex < 0
+                || endTrackPointIndex < startTrackPointIndex
+                || endTrackPointIndex >= route.track.size()) {
+            return null;
+        }
+
+        List<Double> timesSeconds = route.timesSeconds;
+        if (timesSeconds.size() == route.track.size()) {
+            double startTimeSeconds = timesSeconds.get(startTrackPointIndex);
+            double endTimeSeconds = timesSeconds.get(endTrackPointIndex);
+            if (Double.isFinite(startTimeSeconds) && Double.isFinite(endTimeSeconds)) {
+                return Math.max(0.0, endTimeSeconds - startTimeSeconds);
+            }
+        }
+
+        double startMeters = polylineIndex.distanceAtPointIndex(startTrackPointIndex);
+        double endMeters = polylineIndex.distanceAtPointIndex(endTrackPointIndex);
+        double remainingMeters = Math.max(0.0, endMeters - startMeters);
+        return estimateSecondsForDistance(route, polylineIndex, remainingMeters);
+    }
+
+    @Nullable
+    private static Double estimateCurrentSegmentSeconds(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            double alongTrackMeters,
+            int trackPointIndex,
+            float speedMps
+    ) {
+        if (speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND) {
+            return estimateLiveSecondsToTrackPoint(polylineIndex, alongTrackMeters, trackPointIndex, speedMps);
+        }
+        return estimateSecondsUsingRouteModel(route, polylineIndex, alongTrackMeters, trackPointIndex);
+    }
+
+    @Nullable
+    private static Double estimateLiveSecondsToTrackPoint(
+            @NonNull PolylineIndex polylineIndex,
+            double alongTrackMeters,
+            int trackPointIndex,
+            float speedMps
+    ) {
         double targetAlongTrackMeters = polylineIndex.distanceAtPointIndex(trackPointIndex);
         double remainingMeters = Math.max(0.0, targetAlongTrackMeters - alongTrackMeters);
-        if (isOnCurrentSegment(currentSegmentIndex, trackPointIndex)) {
-            return speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND
-                    ? remainingMeters / speedMps
-                    : null;
+        return speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND
+                ? remainingMeters / speedMps
+                : null;
+    }
+
+    @Nullable
+    private static Double estimateSecondsUsingRouteModel(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            double alongTrackMeters,
+            int targetTrackPointIndex
+    ) {
+        Double trackTimeSeconds = estimateSecondsFromTrackTimes(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                targetTrackPointIndex
+        );
+        if (trackTimeSeconds != null) {
+            return trackTimeSeconds;
         }
-        return estimateSecondsFromTrackTimes(route, polylineIndex, alongTrackMeters, trackPointIndex);
+
+        double targetAlongTrackMeters = polylineIndex.distanceAtPointIndex(targetTrackPointIndex);
+        double remainingMeters = Math.max(0.0, targetAlongTrackMeters - alongTrackMeters);
+        return estimateSecondsForDistance(route, polylineIndex, remainingMeters);
+    }
+
+    @Nullable
+    private static Double estimateSecondsForDistance(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            double remainingMeters
+    ) {
+        double totalLengthMeters = polylineIndex.totalLengthMeters();
+        if (route.totalTimeSeconds > 0.0 && totalLengthMeters > 0.0) {
+            return route.totalTimeSeconds * (remainingMeters / totalLengthMeters);
+        }
+        return null;
     }
 
     private static boolean isOnCurrentSegment(int currentSegmentIndex, int trackPointIndex) {
