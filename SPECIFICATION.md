@@ -137,10 +137,13 @@ The app must monitor user position:
 
 #### 4.4.1 Off-track reroute
 
-- The route must be recalculated whenever the user position differs by 10 meters plus the GPS error distance from the current track
+- The route must be recalculated whenever the user position differs from the current track by more than an off-track threshold derived from recent location confidence
 - Off-track distance must be measured against the nearest matched point on the active route geometry
+- The off-track threshold should use a short-window smoothed location-accuracy estimate rather than a single raw fix accuracy so one bad GPS sample does not immediately widen the tolerance
+- The off-track threshold must currently be `max(smoothedAccuracy + 8 meters, 10 meters)`
 - Off-track reroutes should require confirmation across consecutive samples when the miss only slightly exceeds the threshold, to avoid single-fix GPS spikes causing unnecessary reroutes
 - Clearly large misses beyond the threshold may reroute immediately without waiting for a second confirmation sample
+- The size of that immediate-reroute margin may shrink at higher travel speeds so driving-style use reacts faster without making low-speed walking reroutes twitchy
 
 #### 4.4.2 Wrong-direction reroute
 

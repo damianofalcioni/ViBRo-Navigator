@@ -101,7 +101,7 @@ public class NavigationSessionRouteStateTest {
 
         assertTrue(evaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, evaluation.rerouteNotice.reason);
-        assertEquals(15.0, evaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
+        assertEquals(13.0, evaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
     }
 
     @Test
@@ -200,6 +200,87 @@ public class NavigationSessionRouteStateTest {
         assertFalse(firstEvaluation.isStableOnRouteSample());
         assertTrue(secondEvaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, secondEvaluation.rerouteNotice.reason);
+    }
+
+    @Test
+    public void evaluateLocation_usesMedianAccuracyInsteadOfSingleGpsSpikeForOffTrackThreshold() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                1.0f,
+                500L
+        );
+
+        state.evaluateLocation(location(0.0, 0.00005, 2_000L), 1.0f, 5f, 90.0, 2_000L, 0L);
+        state.evaluateLocation(location(0.0, 0.00010, 3_000L), 1.0f, 5f, 90.0, 3_000L, 0L);
+        state.evaluateLocation(location(0.0, 0.00015, 4_000L), 1.0f, 5f, 90.0, 4_000L, 0L);
+
+        NavigationSessionRouteState.Evaluation firstEvaluation = state.evaluateLocation(
+                location(0.00018, 0.00012, 5_000L, 30f),
+                1.0f,
+                30f,
+                90.0,
+                5_000L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation secondEvaluation = state.evaluateLocation(
+                location(0.00018, 0.00017, 6_000L, 30f),
+                1.0f,
+                30f,
+                90.0,
+                6_000L,
+                0L
+        );
+
+        assertFalse(firstEvaluation.shouldRecalculateRoute());
+        assertTrue(secondEvaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, secondEvaluation.rerouteNotice.reason);
+        assertEquals(13.0, secondEvaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
+    }
+
+    @Test
+    public void evaluateLocation_allowsFasterImmediateOffTrackRerouteAtHigherSpeed() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                10f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.00018, 0.0, 2_000L),
+                10f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertTrue(evaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, evaluation.rerouteNotice.reason);
+        assertEquals(13.0, evaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
     }
 
     @Test
@@ -578,11 +659,16 @@ public class NavigationSessionRouteStateTest {
 
     @NonNull
     private static Location location(double lat, double lon, long timeMs) {
+        return location(lat, lon, timeMs, 5f);
+    }
+
+    @NonNull
+    private static Location location(double lat, double lon, long timeMs, float accuracyMeters) {
         Location location = new Location("gps");
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(timeMs);
-        location.setAccuracy(5f);
+        location.setAccuracy(accuracyMeters);
         return location;
     }
 }

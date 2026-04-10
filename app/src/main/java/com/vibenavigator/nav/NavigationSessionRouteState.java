@@ -25,7 +25,12 @@ final class NavigationSessionRouteState {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
     private static final int DEVIATION_CONFIRMATION_SAMPLES = 2;
-    private static final double IMMEDIATE_OFF_TRACK_MARGIN_METERS = 12.0;
+    private static final long MAX_ACCURACY_SAMPLE_AGE_MS = 5_000L;
+    private static final float WALKING_SPEED_MPS = 2.0f;
+    private static final float FAST_TRAVEL_SPEED_MPS = 8.0f;
+    private static final double LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 12.0;
+    private static final double MEDIUM_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 8.0;
+    private static final double HIGH_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 5.0;
     private static final double EXPECTED_BEARING_LOOKAHEAD_METERS = 20.0;
     private static final double MIN_EXPECTED_BEARING_BASELINE_METERS = 3.0;
     private static final long DIRECTION_PROGRESS_WINDOW_MS = 3_000L;
@@ -35,6 +40,7 @@ final class NavigationSessionRouteState {
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
     private final NavigationTurnState turnState = new NavigationTurnState();
+    private final ArrayDeque<AccuracySample> recentAccuracySamples = new ArrayDeque<>();
     private final ArrayDeque<AlongTrackSample> recentAlongTrackSamples = new ArrayDeque<>();
 
     @Nullable
@@ -59,6 +65,7 @@ final class NavigationSessionRouteState {
         lastCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         clearPendingDeviation();
+        recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
         blockedRouteState.reset();
         turnState.reset();
@@ -97,6 +104,7 @@ final class NavigationSessionRouteState {
         }
         lastSegmentIndex = match.segmentIndex;
         double expectedBearingDegrees = expectedBearingDegrees(match);
+        double smoothedAccuracyMeters = rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
         DirectionOfProgressAssessment directionOfProgress = assessDirectionOfProgress(
                 match.alongTrackMeters,
                 nowMs
@@ -104,7 +112,7 @@ final class NavigationSessionRouteState {
 
         RouteDeviationPolicy.Decision deviationDecision = routeDeviationPolicy.evaluate(
                 match.distanceToTrackMeters,
-                accuracyMeters,
+                smoothedAccuracyMeters,
                 actualBearingDegrees,
                 expectedBearingDegrees
         );
@@ -143,7 +151,7 @@ final class NavigationSessionRouteState {
         }
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.NONE) {
             clearPendingDeviation();
-        } else if (!isConfirmedDeviation(deviationDecision)) {
+        } else if (!isConfirmedDeviation(deviationDecision, speedMps)) {
             AppLogger.i(TAG, "Tentative deviation detected reason=" + deviationDecision.reason
                     + " distance=" + match.distanceToTrackMeters
                     + " threshold=" + deviationDecision.offTrackThresholdMeters
@@ -241,6 +249,7 @@ final class NavigationSessionRouteState {
         lastCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         clearPendingDeviation();
+        recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
 
         List<NavigationSession.TurnEvent> turnEvents =
@@ -456,9 +465,10 @@ final class NavigationSessionRouteState {
         }
     }
 
-    private boolean isConfirmedDeviation(@NonNull RouteDeviationPolicy.Decision decision) {
+    private boolean isConfirmedDeviation(@NonNull RouteDeviationPolicy.Decision decision, float speedMps) {
         if (decision.reason == RouteDeviationPolicy.Reason.OFF_TRACK
-                && decision.distanceToTrackMeters >= decision.offTrackThresholdMeters + IMMEDIATE_OFF_TRACK_MARGIN_METERS) {
+                && decision.distanceToTrackMeters >= decision.offTrackThresholdMeters
+                + immediateOffTrackMarginMeters(speedMps)) {
             return true;
         }
         if (pendingDeviationReason != decision.reason) {
@@ -473,6 +483,47 @@ final class NavigationSessionRouteState {
     private void clearPendingDeviation() {
         pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
         pendingDeviationSampleCount = 0;
+    }
+
+    private double rememberAndResolveSmoothedAccuracyMeters(float accuracyMeters, long nowMs) {
+        if (Float.isFinite(accuracyMeters) && accuracyMeters > 0f) {
+            recentAccuracySamples.addLast(new AccuracySample(accuracyMeters, nowMs));
+        }
+        pruneAccuracySamples(nowMs);
+        if (recentAccuracySamples.isEmpty()) {
+            return accuracyMeters;
+        }
+
+        double[] samples = new double[recentAccuracySamples.size()];
+        int idx = 0;
+        for (AccuracySample sample : recentAccuracySamples) {
+            samples[idx++] = sample.accuracyMeters;
+        }
+        java.util.Arrays.sort(samples);
+        int middle = samples.length / 2;
+        if ((samples.length & 1) == 1) {
+            return samples[middle];
+        }
+        return (samples[middle - 1] + samples[middle]) / 2.0;
+    }
+
+    private void pruneAccuracySamples(long nowMs) {
+        long cutoffMs = nowMs - MAX_ACCURACY_SAMPLE_AGE_MS;
+        while (recentAccuracySamples.size() > 1
+                && recentAccuracySamples.peekFirst() != null
+                && recentAccuracySamples.peekFirst().timeMs < cutoffMs) {
+            recentAccuracySamples.removeFirst();
+        }
+    }
+
+    private double immediateOffTrackMarginMeters(float speedMps) {
+        if (speedMps >= FAST_TRAVEL_SPEED_MPS) {
+            return HIGH_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
+        }
+        if (speedMps >= WALKING_SPEED_MPS) {
+            return MEDIUM_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
+        }
+        return LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
     }
 
     @NonNull
@@ -559,6 +610,16 @@ final class NavigationSessionRouteState {
 
         private AlongTrackSample(double alongTrackMeters, long timeMs) {
             this.alongTrackMeters = alongTrackMeters;
+            this.timeMs = timeMs;
+        }
+    }
+
+    private static final class AccuracySample {
+        final double accuracyMeters;
+        final long timeMs;
+
+        private AccuracySample(double accuracyMeters, long timeMs) {
+            this.accuracyMeters = accuracyMeters;
             this.timeMs = timeMs;
         }
     }

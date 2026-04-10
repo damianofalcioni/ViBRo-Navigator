@@ -17,7 +17,7 @@ public class RouteDeviationPolicyTest {
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, decision.reason);
         assertTrue(decision.shouldRecalculateRoute());
         assertEquals(25.5, decision.distanceToTrackMeters, 0.0);
-        assertEquals(20.0, decision.offTrackThresholdMeters, 0.0);
+        assertEquals(18.0, decision.offTrackThresholdMeters, 0.0);
     }
 
     @Test
@@ -38,7 +38,7 @@ public class RouteDeviationPolicyTest {
 
         assertEquals(RouteDeviationPolicy.Reason.NONE, decision.reason);
         assertFalse(decision.shouldRecalculateRoute());
-        assertEquals(35.0, decision.offTrackThresholdMeters, 0.0);
+        assertEquals(33.0, decision.offTrackThresholdMeters, 0.0);
         assertEquals(180.0, decision.actualBearingDegrees, 0.0);
     }
 
@@ -48,7 +48,7 @@ public class RouteDeviationPolicyTest {
 
         assertEquals(RouteDeviationPolicy.Reason.NONE, decision.reason);
         assertFalse(decision.shouldRecalculateRoute());
-        assertEquals(15.0, decision.offTrackThresholdMeters, 0.0);
+        assertEquals(13.0, decision.offTrackThresholdMeters, 0.0);
         assertEquals(10.0, decision.bearingDiffDegrees, 0.0);
     }
 }

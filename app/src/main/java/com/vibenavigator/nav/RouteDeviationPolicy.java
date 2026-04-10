@@ -6,7 +6,8 @@ import com.vibenavigator.geo.GeoMath;
 
 final class RouteDeviationPolicy {
 
-    private static final double BASE_OFF_TRACK_THRESHOLD_METERS = 10.0;
+    private static final double MIN_OFF_TRACK_THRESHOLD_METERS = 10.0;
+    private static final double OFF_TRACK_ACCURACY_SLACK_METERS = 8.0;
     private static final double DEFAULT_ACCURACY_METERS = 20.0;
     private static final double BEARING_MISMATCH_THRESHOLD_DEGREES = 60.0;
     private static final double MAX_TRUSTED_BEARING_ACCURACY_METERS = 15.0;
@@ -50,12 +51,15 @@ final class RouteDeviationPolicy {
 
     Decision evaluate(
             double distanceToTrackMeters,
-            float accuracyMeters,
+            double accuracyMeters,
             @Nullable Double actualBearingDegrees,
             double expectedBearingDegrees
     ) {
-        double safeAccuracyMeters = accuracyMeters > 0f ? accuracyMeters : DEFAULT_ACCURACY_METERS;
-        double offTrackThresholdMeters = BASE_OFF_TRACK_THRESHOLD_METERS + safeAccuracyMeters;
+        double safeAccuracyMeters = accuracyMeters > 0.0 ? accuracyMeters : DEFAULT_ACCURACY_METERS;
+        double offTrackThresholdMeters = Math.max(
+                safeAccuracyMeters + OFF_TRACK_ACCURACY_SLACK_METERS,
+                MIN_OFF_TRACK_THRESHOLD_METERS
+        );
         if (distanceToTrackMeters > offTrackThresholdMeters) {
             return new Decision(
                     Reason.OFF_TRACK,
