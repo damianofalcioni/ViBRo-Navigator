@@ -165,6 +165,7 @@ public final class NavState {
             @NonNull PolylineIndex index,
             double alongTrackMeters,
             int nextHintIdx,
+            int currentSegmentIndex,
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,
@@ -184,6 +185,7 @@ public final class NavState {
                 index,
                 alongTrackMeters,
                 nextHintIdx,
+                currentSegmentIndex,
                 speedMps,
                 accuracyMeters,
                 context
@@ -259,6 +261,7 @@ public final class NavState {
             @NonNull PolylineIndex index,
             double alongTrackMeters,
             int hintIdx,
+            int currentSegmentIndex,
             float speedMps,
             float accuracyMeters,
             @NonNull Context context
@@ -275,8 +278,20 @@ public final class NavState {
             if (dist <= minReliableDistanceMeters) {
                 continue;
             }
-            double time = dist / Math.max(1.0, speedMps);
-            lines.add(NavigationTextFormatter.formatTurnNotification(context, hint, dist, time));
+            Double timeSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+                    route,
+                    index,
+                    alongTrackMeters,
+                    currentSegmentIndex,
+                    hint.indexInTrack,
+                    speedMps
+            );
+            lines.add(NavigationTextFormatter.formatTurnNotification(
+                    context,
+                    hint,
+                    dist,
+                    timeSeconds != null ? timeSeconds : Double.NaN
+            ));
         }
         return lines;
     }

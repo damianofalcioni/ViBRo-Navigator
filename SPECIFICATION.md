@@ -116,6 +116,7 @@ The implementation must use BRouter integration compatible with these references
 
 - The app must request BRouter GeoJSON output using the Android-service parameters that produce a GeoJSON `FeatureCollection`
 - The app must request BRouter native turn-instruction mode `9` so GeoJSON `voicehints` preserve distinct exit-left, exit-right, and beeline commands
+- When BRouter includes per-track GeoJSON `times`, the app must parse and retain them as route timing metadata that can be reused for maneuver-time estimation when live speed is not yet trustworthy or not yet available
 
 #### 4.4 Navigation update loop
 
@@ -124,7 +125,7 @@ The app must monitor user position:
 - Every 1 second while startup route lock is still stabilizing, for at most the first 60 seconds after navigation starts
 - Startup fast polling may end earlier once the app has gathered 5 consecutive accurate on-route updates after a route is active
 - An accurate warmup update means an on-route evaluation with location accuracy of 25 meters or better
-- Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance to that direction
+- Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance when the next maneuver still lies on the current matched route segment and live speed is available, or route timing metadata when the next maneuver lies beyond the current matched route segment
 - When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 1 second
 - Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
 - The post-warmup dynamic interval must be snapped to a small fixed bucket set instead of continuously varying on every update
@@ -161,7 +162,10 @@ The app must monitor user position:
 
 - The app must estimate the distance left to the next direction
 - The live remaining distance to the next direction should be derived from the user's current matched position along the active route geometry
-- Current speed should be used to estimate the time left to that direction
+- Current speed should be used to estimate the time left to the next direction only when that direction still lies on the user's current matched route segment and a trustworthy live speed estimate is available
+- When the next direction lies beyond the current matched route segment, the app should estimate the time left to that direction from BRouter GeoJSON route timing metadata such as the per-track `times` array if available
+- When the next direction lies on the current matched route segment but trustworthy live speed is not available, the app must treat that maneuver time as unavailable and must show `--` instead of inventing a placeholder speed-based estimate
+- When the next direction lies beyond the current matched route segment and route timing metadata is unavailable, the app must treat that maneuver time as unavailable and must show `--`
 - BRouter voice-hint distance metadata may be parsed and retained, but it must not be treated as the primary source of the user's live remaining distance to the next direction
 - The app must treat very short maneuver distances as unreliable whenever they fall inside the current location uncertainty radius
 - A next-direction distance that is less than or equal to the current trusted uncertainty radius must not be presented as a trustworthy instruction
@@ -225,6 +229,8 @@ The navigation UI must show the following in large text:
 
 - At the top: the next two directions
 - Each must include emoji, text, distance left, and time left
+- If the next direction still lies on the current matched route segment, the displayed time left should use live speed when trustworthy and otherwise show `--`
+- If the next direction lies beyond the current matched route segment, the displayed time left should use BRouter route timing metadata when available and otherwise show `--`
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
 

@@ -33,7 +33,7 @@ public final class NavigationTextFormatter {
                 R.string.format_turn_notification,
                 direction.emoji,
                 formatDistance(context, distanceMeters),
-                formatTimeSeconds(context, (int) Math.round(timeSeconds)),
+                formatTimeSeconds(context, timeSeconds),
                 directionText
         );
     }
@@ -91,6 +91,14 @@ public final class NavigationTextFormatter {
             return context.getString(R.string.format_time_min, (int) Math.round(seconds / 60.0));
         }
         return context.getString(R.string.format_time_s, Math.max(0, seconds));
+    }
+
+    @NonNull
+    public static String formatTimeSeconds(@NonNull Context context, double seconds) {
+        if (!Double.isFinite(seconds) || seconds < 0.0) {
+            return context.getString(R.string.nav_status_unavailable);
+        }
+        return formatTimeSeconds(context, (int) Math.round(seconds));
     }
 
     @NonNull

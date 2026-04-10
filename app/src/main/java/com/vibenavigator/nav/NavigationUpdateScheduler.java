@@ -3,6 +3,7 @@ package com.vibenavigator.nav;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.nav.route.VoiceHint;
 
@@ -23,33 +24,41 @@ final class NavigationUpdateScheduler {
             30000L,
             60000L
     };
-    private static final double SPEED_FLOOR_METERS_PER_SECOND = 1.0;
     private static final double DISTANCE_TO_INTERVAL_FACTOR = 250.0;
     private static final double VERY_IMMINENT_HINT_THRESHOLD_SECONDS = 8.0;
 
     long suggestUpdateInterval(
             long nowMs,
             long fastChecksUntilMs,
-            @Nullable List<VoiceHint> voiceHints,
+            @Nullable GeoJsonRoute route,
             @Nullable PolylineIndex polylineIndex,
             int nextHintIdx,
             double alongTrackMeters,
+            int currentSegmentIndex,
             float speedMps
     ) {
         long nextMinTimeMs = MIN_UPDATE_INTERVAL_MS;
         if (nowMs <= fastChecksUntilMs
                 || polylineIndex == null
-                || voiceHints == null
-                || voiceHints.isEmpty()
+                || route == null
+                || route.voiceHints.isEmpty()
                 || nextHintIdx < 0
-                || nextHintIdx >= voiceHints.size()) {
+                || nextHintIdx >= route.voiceHints.size()) {
             return nextMinTimeMs;
         }
 
-        VoiceHint next = voiceHints.get(nextHintIdx);
-        double hintDistMeters = polylineIndex.distanceAtPointIndex(next.indexInTrack);
-        double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
-        double timeToNextSeconds = distanceToNextMeters / Math.max(SPEED_FLOOR_METERS_PER_SECOND, speedMps);
+        VoiceHint next = route.voiceHints.get(nextHintIdx);
+        Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                currentSegmentIndex,
+                next.indexInTrack,
+                speedMps
+        );
+        if (timeToNextSeconds == null) {
+            return nextMinTimeMs;
+        }
         if (timeToNextSeconds <= VERY_IMMINENT_HINT_THRESHOLD_SECONDS) {
             return MIN_UPDATE_INTERVAL_MS;
         }

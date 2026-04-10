@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.nav.route.VoiceHint;
+import com.vibenavigator.nav.route.GeoJsonRoute;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -72,15 +73,17 @@ final class TurnEventPlanner {
 
     @NonNull
     Progress advance(
-            @NonNull List<VoiceHint> hints,
+            @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             int nextHintIdx,
             boolean notified10,
             boolean notified5,
             double alongTrackMeters,
+            int currentSegmentIndex,
             float speedMps,
             float accuracyMeters
     ) {
+        List<VoiceHint> hints = route.voiceHints;
         if (hints.isEmpty() || nextHintIdx >= hints.size()) {
             return new Progress(nextHintIdx, notified10, notified5, Collections.emptyList());
         }
@@ -113,7 +116,17 @@ final class TurnEventPlanner {
         if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
             return new Progress(updatedHintIdx, updatedNotified10, updatedNotified5, signals);
         }
-        double timeToNextSeconds = distanceToNextMeters / Math.max(MIN_SPEED_METERS_PER_SECOND, speedMps);
+        Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                currentSegmentIndex,
+                next.indexInTrack,
+                speedMps
+        );
+        if (timeToNextSeconds == null) {
+            return new Progress(updatedHintIdx, updatedNotified10, updatedNotified5, signals);
+        }
 
         if (!updatedNotified5 && timeToNextSeconds <= VERY_IMMINENT_THRESHOLD_SECONDS) {
             updatedNotified5 = true;
@@ -129,14 +142,16 @@ final class TurnEventPlanner {
 
     @Nullable
     TurnSignal buildInitialSignal(
-            @NonNull List<VoiceHint> hints,
+            @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             int nextHintIdx,
             boolean initialTurnNotificationSent,
             double alongTrackMeters,
+            int currentSegmentIndex,
             float speedMps,
             float accuracyMeters
     ) {
+        List<VoiceHint> hints = route.voiceHints;
         if (initialTurnNotificationSent || hints.isEmpty() || nextHintIdx < 0 || nextHintIdx >= hints.size()) {
             return null;
         }
@@ -147,8 +162,19 @@ final class TurnEventPlanner {
         if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
             return null;
         }
-        double timeToNextSeconds = distanceToNextMeters / Math.max(MIN_SPEED_METERS_PER_SECOND, speedMps);
-        return TurnSignal.initial(next, distanceToNextMeters, timeToNextSeconds);
+        Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                currentSegmentIndex,
+                next.indexInTrack,
+                speedMps
+        );
+        return TurnSignal.initial(
+                next,
+                distanceToNextMeters,
+                timeToNextSeconds != null ? timeToNextSeconds : Double.NaN
+        );
     }
 
     private boolean isTurnDistanceReliable(double distanceToNextMeters, float accuracyMeters) {

@@ -24,7 +24,7 @@ public class NavigationTextFormatterTest {
                 )
         );
 
-        assertEquals("Off-track detected. Distance 25 m, threshold 18 m. Recalculating route.", message);
+        assertEquals("Off-track detected. Distance 25 m, threshold 16 m. Recalculating route.", message);
     }
 
     @Test

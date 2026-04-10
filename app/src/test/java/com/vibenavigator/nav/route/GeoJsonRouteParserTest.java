@@ -18,6 +18,7 @@ public class GeoJsonRouteParserTest {
                 + "\"properties\":{"
                 + "\"track-length\":\"1234\","
                 + "\"total-time\":\"321\","
+                + "\"times\":[0,60,120,180,240,300],"
                 + "\"voicehints\":[[5,17,0,42.0,-10,\" (0)(0)\"]]"
                 + "},"
                 + "\"geometry\":{"
@@ -36,5 +37,7 @@ public class GeoJsonRouteParserTest {
         assertEquals(0, route.voiceHints.get(0).exitNumber);
         assertEquals(42.0, route.voiceHints.get(0).distanceToNextMeters, 0.0);
         assertEquals(-10, route.voiceHints.get(0).angleDegrees);
+        assertEquals(6, route.timesSeconds.size());
+        assertEquals(300.0, route.timesSeconds.get(5), 0.0);
     }
 }

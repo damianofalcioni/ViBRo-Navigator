@@ -32,6 +32,7 @@ public final class GeoJsonRouteParser {
             JSONObject props = trackFeature.optJSONObject("properties");
             double totalTime = parseDouble(props != null ? props.optString("total-time", "0") : "0");
             double trackLen = parseDouble(props != null ? props.optString("track-length", "0") : "0");
+            List<Double> timesSeconds = parseTimes(props != null ? props.optJSONArray("times") : null);
 
             List<VoiceHint> voiceHints = new ArrayList<>();
             if (props != null) {
@@ -75,10 +76,27 @@ public final class GeoJsonRouteParser {
                 }
             }
 
-            return new GeoJsonRoute(track, voiceHints, totalTime, trackLen);
+            return new GeoJsonRoute(track, voiceHints, timesSeconds, totalTime, trackLen);
         } catch (JSONException ignored) {
             return new GeoJsonRoute(new ArrayList<>(), new ArrayList<>(), 0, 0);
         }
+    }
+
+    @NonNull
+    private static List<Double> parseTimes(JSONArray timesArray) {
+        List<Double> out = new ArrayList<>();
+        if (timesArray == null) {
+            return out;
+        }
+        for (int i = 0; i < timesArray.length(); i++) {
+            Object raw = timesArray.opt(i);
+            double parsed = parseDouble(String.valueOf(raw));
+            if (!Double.isFinite(parsed)) {
+                continue;
+            }
+            out.add(parsed);
+        }
+        return out;
     }
 
     private static double parseDouble(@NonNull String s) {

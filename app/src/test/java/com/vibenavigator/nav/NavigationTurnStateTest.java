@@ -36,6 +36,7 @@ public class NavigationTurnStateTest {
                 route,
                 polylineIndex,
                 120.0,
+                0,
                 5f,
                 5f,
                 1_000L,

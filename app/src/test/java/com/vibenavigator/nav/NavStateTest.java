@@ -49,6 +49,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 0,
+                0,
                 1f,
                 false,
                 20f,
@@ -69,6 +70,117 @@ public class NavStateTest {
     }
 
     @Test
+    public void from_showsUnavailableHintTimeWhenSameSegmentSpeedIsUnavailable() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                Arrays.asList(0.0, 45.0),
+                45.0,
+                111.0
+        );
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                0,
+                0,
+                0f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 111.0)),
+                context
+        );
+
+        assertTrue(state.nextLine.contains("--"));
+    }
+
+    @Test
+    public void from_usesRouteTrackTimesWhenHintIsAfterCurrentSegment() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.singletonList(new VoiceHint(2, 2, 0, 0.0, 0)),
+                Arrays.asList(0.0, 20.0, 45.0),
+                45.0,
+                222.0
+        );
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                0,
+                0,
+                0f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 222.0)),
+                context
+        );
+
+        assertTrue(state.nextLine.contains("45 s"));
+    }
+
+    @Test
+    public void from_showsUnavailableHintTimeWhenNoSpeedAndNoTrackTimesExist() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                0.0,
+                111.0
+        );
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                0,
+                0,
+                0f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 111.0)),
+                context
+        );
+
+        assertTrue(state.nextLine.contains("--"));
+    }
+
+    @Test
     public void from_buildsCompassStateAroundCurrentLocation() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
@@ -86,6 +198,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
+                0,
                 1f,
                 false,
                 5f,
@@ -133,6 +246,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 140.0,
                 -1,
+                1,
                 2f,
                 false,
                 5f,
@@ -172,6 +286,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
+                0,
                 0f,
                 true,
                 5f,
@@ -212,6 +327,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
+                0,
                 0f,
                 true,
                 5f,
@@ -232,6 +348,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
+                0,
                 2f,
                 false,
                 5f,
@@ -276,6 +393,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
+                0,
                 0.4f,
                 true,
                 5f,
@@ -316,6 +434,7 @@ public class NavStateTest {
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
+                0,
                 4.5f,
                 false,
                 5.2f,

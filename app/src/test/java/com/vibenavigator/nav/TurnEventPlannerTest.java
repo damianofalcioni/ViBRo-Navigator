@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.vibenavigator.geo.LatLon;
+import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.nav.route.VoiceHint;
 
@@ -21,21 +22,29 @@ public class TurnEventPlannerTest {
 
     @Test
     public void advance_marksPassedHintsAndResetsImminentFlags() {
-        PolylineIndex index = new PolylineIndex(Arrays.asList(
-                new LatLon(0.0, 0.0),
-                new LatLon(0.0, 0.001),
-                new LatLon(0.0, 0.002)
-        ));
-        VoiceHint first = new VoiceHint(1, 0, 0, 0.0, 0);
-        VoiceHint second = new VoiceHint(2, 0, 0, 0.0, 0);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 0, 0, 0.0, 0),
+                        new VoiceHint(2, 0, 0, 0.0, 0)
+                ),
+                240.0,
+                222.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
 
         TurnEventPlanner.Progress progress = planner.advance(
-                Arrays.asList(first, second),
+                route,
                 index,
                 0,
                 true,
                 true,
                 120.0,
+                1,
                 5f,
                 5f
         );
@@ -49,19 +58,25 @@ public class TurnEventPlannerTest {
 
     @Test
     public void advance_emitsOnlyMostUrgentSignalWhenAlreadyWithinFiveSeconds() {
-        PolylineIndex index = new PolylineIndex(Arrays.asList(
-                new LatLon(0.0, 0.0),
-                new LatLon(0.0, 0.001)
-        ));
-        VoiceHint hint = new VoiceHint(1, 0, 0, 0.0, 0);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                30.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
 
         TurnEventPlanner.Progress progress = planner.advance(
-                Collections.singletonList(hint),
+                route,
                 index,
                 0,
                 false,
                 false,
                 90.0,
+                0,
                 5f,
                 5f
         );
@@ -73,18 +88,24 @@ public class TurnEventPlannerTest {
 
     @Test
     public void buildInitialSignal_usesCurrentDistanceToNextHint() {
-        PolylineIndex index = new PolylineIndex(Arrays.asList(
-                new LatLon(0.0, 0.0),
-                new LatLon(0.0, 0.001)
-        ));
-        VoiceHint hint = new VoiceHint(1, 0, 0, 0.0, 0);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                30.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
 
         TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
-                Collections.singletonList(hint),
+                route,
                 index,
                 0,
                 false,
                 55.0,
+                0,
                 5f,
                 5f
         );
@@ -96,17 +117,24 @@ public class TurnEventPlannerTest {
 
     @Test
     public void buildInitialSignal_returnsNullWhenAlreadySent() {
-        PolylineIndex index = new PolylineIndex(Arrays.asList(
-                new LatLon(0.0, 0.0),
-                new LatLon(0.0, 0.001)
-        ));
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                60.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
 
         TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
-                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                route,
                 index,
                 0,
                 true,
                 0.0,
+                0,
                 0f,
                 0f
         );
@@ -116,19 +144,25 @@ public class TurnEventPlannerTest {
 
     @Test
     public void advance_suppressesImminentSignalInsideAccuracyRadius() {
-        PolylineIndex index = new PolylineIndex(Arrays.asList(
-                new LatLon(0.0, 0.0),
-                new LatLon(0.0, 0.001)
-        ));
-        VoiceHint hint = new VoiceHint(1, 0, 0, 0.0, 0);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                60.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
 
         TurnEventPlanner.Progress progress = planner.advance(
-                Collections.singletonList(hint),
+                route,
                 index,
                 0,
                 false,
                 false,
                 100.0,
+                0,
                 5f,
                 20f
         );
@@ -138,21 +172,115 @@ public class TurnEventPlannerTest {
 
     @Test
     public void buildInitialSignal_returnsNullWhenTurnDistanceIsNotReliable() {
-        PolylineIndex index = new PolylineIndex(Arrays.asList(
-                new LatLon(0.0, 0.0),
-                new LatLon(0.0, 0.001)
-        ));
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                60.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
 
         TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
-                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                route,
                 index,
                 0,
                 false,
                 100.0,
+                0,
                 5f,
                 20f
         );
 
         assertNull(signal);
+    }
+
+    @Test
+    public void buildInitialSignal_marksTimeUnavailableWhenSameSegmentSpeedIsUnavailable() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                Arrays.asList(0.0, 42.0),
+                42.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
+                route,
+                index,
+                0,
+                false,
+                0.0,
+                0,
+                0f,
+                5f
+        );
+
+        assertNotNull(signal);
+        assertTrue(Double.isNaN(signal.timeSeconds));
+    }
+
+    @Test
+    public void buildInitialSignal_marksTimeUnavailableWhenSpeedAndTrackTimesAreUnavailable() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                0.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
+                route,
+                index,
+                0,
+                false,
+                0.0,
+                0,
+                0f,
+                5f
+        );
+
+        assertNotNull(signal);
+        assertTrue(Double.isNaN(signal.timeSeconds));
+    }
+
+    @Test
+    public void buildInitialSignal_usesRouteTrackTimesWhenHintIsAfterCurrentSegment() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.singletonList(new VoiceHint(2, 0, 0, 0.0, 0)),
+                Arrays.asList(0.0, 20.0, 42.0),
+                42.0,
+                222.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.TurnSignal signal = planner.buildInitialSignal(
+                route,
+                index,
+                0,
+                false,
+                0.0,
+                0,
+                0f,
+                5f
+        );
+
+        assertNotNull(signal);
+        assertEquals(42.0, signal.timeSeconds, 0.0);
     }
 }

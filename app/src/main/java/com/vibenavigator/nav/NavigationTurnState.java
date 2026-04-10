@@ -40,18 +40,20 @@ final class NavigationTurnState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             double alongTrackMeters,
+            int currentSegmentIndex,
             float speedMps,
             float accuracyMeters,
             long nowMs,
             long fastChecksUntilMs
     ) {
         TurnEventPlanner.Progress progress = turnEventPlanner.advance(
-                route.voiceHints,
+                route,
                 polylineIndex,
                 nextHintIdx,
                 notified10,
                 notified5,
                 alongTrackMeters,
+                currentSegmentIndex,
                 speedMps,
                 accuracyMeters
         );
@@ -61,10 +63,11 @@ final class NavigationTurnState {
         long suggestedUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
                 nowMs,
                 fastChecksUntilMs,
-                route.voiceHints,
+                route,
                 polylineIndex,
                 nextHintIdx,
                 alongTrackMeters,
+                currentSegmentIndex,
                 speedMps
         );
         return new Progress(toTurnEvents(progress.signals), suggestedUpdateIntervalMs);
@@ -102,6 +105,7 @@ final class NavigationTurnState {
         }
 
         double alongTrackMeters = 0.0;
+        int currentSegmentIndex = -1;
         if (lastFiltered != null) {
             PolylineIndex.Match match = polylineIndex.match(
                     new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
@@ -109,15 +113,17 @@ final class NavigationTurnState {
             );
             if (match != null) {
                 alongTrackMeters = match.alongTrackMeters;
+                currentSegmentIndex = match.segmentIndex;
             }
         }
 
         TurnEventPlanner.TurnSignal initialSignal = turnEventPlanner.buildInitialSignal(
-                hints,
+                route,
                 polylineIndex,
                 nextHintIdx,
                 initialTurnNotificationSent,
                 alongTrackMeters,
+                currentSegmentIndex,
                 speedMps,
                 accuracyMeters
         );
