@@ -5,8 +5,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
@@ -22,11 +26,15 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
     private final SensorManager sensorManager;
     @Nullable
     private final Sensor geomagneticRotationVectorSensor;
+    @Nullable
+    private GnssStatus.Callback gnssStatusCallback;
 
     @Nullable
     private float[] latestGeomagneticVector;
     private int latestGeomagneticAccuracy = SensorManager.SENSOR_STATUS_UNRELIABLE;
     private long latestGeomagneticElapsedRealtimeMs = -1L;
+    @Nullable
+    private Integer latestFixedSatelliteCount;
     private boolean started;
 
     AboutSensorStatusFormatter(@NonNull Context context) {
@@ -39,16 +47,21 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
     }
 
     void start() {
-        if (started || sensorManager == null || geomagneticRotationVectorSensor == null) {
+        if (started) {
             return;
         }
-        started = sensorManager.registerListener(this, geomagneticRotationVectorSensor, SensorManager.SENSOR_DELAY_UI);
+        boolean sensorStarted = sensorManager != null
+                && geomagneticRotationVectorSensor != null
+                && sensorManager.registerListener(this, geomagneticRotationVectorSensor, SensorManager.SENSOR_DELAY_UI);
+        registerGnssStatusCallback();
+        started = sensorStarted || gnssStatusCallback != null;
     }
 
     void stop() {
         if (sensorManager != null && started) {
             sensorManager.unregisterListener(this);
         }
+        unregisterGnssStatusCallback();
         started = false;
     }
 
@@ -128,7 +141,11 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         if (location == null) {
             return "value=none";
         }
+        return describeLocationValue(location, latestFixedSatelliteCount);
+    }
 
+    @NonNull
+    static String describeLocationValue(@NonNull Location location, @Nullable Integer fixedSatelliteCount) {
         StringBuilder sb = new StringBuilder("value=");
         sb.append(String.format(
                 Locale.US,
@@ -139,15 +156,68 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         if (location.hasAccuracy()) {
             sb.append(String.format(Locale.US, " acc=%.1fm", location.getAccuracy()));
         }
+        if (location.hasAltitude()) {
+            sb.append(String.format(Locale.US, " alt=%.1fm", location.getAltitude()));
+        }
         if (location.hasSpeed()) {
-            sb.append(String.format(Locale.US, " speed=%.1fm/s", location.getSpeed()));
+            sb.append(String.format(Locale.US, " speed=%.1fkm/h", location.getSpeed() * 3.6f));
         }
         if (location.hasBearing()) {
             sb.append(String.format(Locale.US, " bearing=%.0fdeg", location.getBearing()));
         }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
+            sb.append(String.format(Locale.US, " bearingAcc=%.0fdeg", location.getBearingAccuracyDegrees()));
+        }
+        if (fixedSatelliteCount != null && fixedSatelliteCount >= 0) {
+            sb.append(" sats=").append(fixedSatelliteCount);
+        }
         long ageSeconds = Math.max(0L, (System.currentTimeMillis() - location.getTime()) / 1000L);
         sb.append(" age=").append(ageSeconds).append("s");
         return sb.toString();
+    }
+
+    private void registerGnssStatusCallback() {
+        if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N || gnssStatusCallback != null) {
+            return;
+        }
+        GnssStatus.Callback callback = new GnssStatus.Callback() {
+            @Override
+            public void onStarted() {
+                latestFixedSatelliteCount = 0;
+            }
+
+            @Override
+            public void onStopped() {
+                latestFixedSatelliteCount = null;
+            }
+
+            @Override
+            public void onSatelliteStatusChanged(@NonNull GnssStatus status) {
+                latestFixedSatelliteCount = countSatellitesUsedInFix(status);
+            }
+        };
+        try {
+            locationManager.registerGnssStatusCallback(callback, new Handler(Looper.getMainLooper()));
+            gnssStatusCallback = callback;
+        } catch (SecurityException ignored) {
+            latestFixedSatelliteCount = null;
+        } catch (Exception ignored) {
+            latestFixedSatelliteCount = null;
+        }
+    }
+
+    private void unregisterGnssStatusCallback() {
+        if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N || gnssStatusCallback == null) {
+            return;
+        }
+        try {
+            locationManager.unregisterGnssStatusCallback(gnssStatusCallback);
+        } catch (Exception ignored) {
+            // Best effort only for developer diagnostics.
+        } finally {
+            gnssStatusCallback = null;
+            latestFixedSatelliteCount = null;
+        }
     }
 
     private int describeGeomagneticRotationVectorStatus(@NonNull Context context) {
@@ -232,6 +302,16 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    private static int countSatellitesUsedInFix(@NonNull GnssStatus status) {
+        int fixedCount = 0;
+        for (int i = 0; i < status.getSatelliteCount(); i++) {
+            if (status.usedInFix(i)) {
+                fixedCount++;
+            }
+        }
+        return fixedCount;
     }
 
     @Override
