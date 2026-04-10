@@ -486,6 +486,87 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void buildState_afterStationaryPauseReusesLastReliableMovingCompassRadius() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.09),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                new GeoJsonRoute(
+                        Arrays.asList(
+                                new LatLon(0.0, 0.0),
+                                new LatLon(0.0, 0.03),
+                                new LatLon(0.0, 0.06),
+                                new LatLon(0.0, 0.09)
+                        ),
+                        Collections.emptyList(),
+                        6_000.0,
+                        9_999.0
+                ),
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                500L
+        );
+
+        NavState movingState = state.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null
+        );
+        NavState stationaryState = state.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 2_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null
+        );
+        NavState resumedState = state.buildState(
+                context,
+                location(0.0, 0.0005, 3_000L),
+                20f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null
+        );
+
+        assertTrue(stationaryState.compassState.visibleRadiusMeters > movingState.compassState.visibleRadiusMeters);
+        assertEquals(
+                movingState.compassState.visibleRadiusMeters,
+                resumedState.compassState.visibleRadiusMeters,
+                0.01f
+        );
+    }
+
+    @Test
     public void buildState_withoutActiveRouteShowsFriendlyNoRouteMessage() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -660,6 +741,13 @@ public class NavigationSessionRouteStateTest {
     @NonNull
     private static Location location(double lat, double lon, long timeMs) {
         return location(lat, lon, timeMs, 5f);
+    }
+
+    @NonNull
+    private static Location locationWithSpeed(double lat, double lon, long timeMs, float speedMetersPerSecond) {
+        Location location = location(lat, lon, timeMs, 5f);
+        location.setSpeed(speedMetersPerSecond);
+        return location;
     }
 
     @NonNull

@@ -58,6 +58,7 @@ public class NavStateTest {
                 45.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
@@ -94,6 +95,7 @@ public class NavStateTest {
                 locationAt(0.0, 0.0),
                 null,
                 45.0,
+                null,
                 null,
                 null,
                 0L,
@@ -134,6 +136,7 @@ public class NavStateTest {
                 45.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
@@ -170,6 +173,7 @@ public class NavStateTest {
                 45.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
@@ -192,6 +196,8 @@ public class NavStateTest {
                 180.0,
                 130.0
         );
+        android.location.Location movingLocation = locationAt(48.2000, 16.3600);
+        movingLocation.setSpeed(2.5f);
 
         NavState state = NavState.from(
                 route,
@@ -199,13 +205,14 @@ public class NavStateTest {
                 0.0,
                 -1,
                 0,
-                1f,
+                2.5f,
                 false,
                 5f,
-                locationAt(48.2000, 16.3600),
+                movingLocation,
                 null,
                 90.0,
                 8.0f,
+                null,
                 null,
                 0L,
                 NavState.NO_DEADLINE,
@@ -255,6 +262,7 @@ public class NavStateTest {
                 0.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
@@ -295,6 +303,7 @@ public class NavStateTest {
                 0.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
@@ -309,17 +318,17 @@ public class NavStateTest {
     }
 
     @Test
-    public void from_whenMovingUsesSmoothedSixtySecondRadius() {
+    public void from_whenMovingUsesSmoothedSixtySecondRadiusWithoutUpperCap() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
-                        new LatLon(0.0, 0.003),
-                        new LatLon(0.0, 0.006),
-                        new LatLon(0.0, 0.009)
+                        new LatLon(0.0, 0.03),
+                        new LatLon(0.0, 0.06),
+                        new LatLon(0.0, 0.09)
                 ),
                 Collections.emptyList(),
-                600.0,
-                999.0
+                6_000.0,
+                9_999.0
         );
 
         NavState stationaryState = NavState.from(
@@ -336,36 +345,40 @@ public class NavStateTest {
                 0.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 999.0)),
+                Collections.singletonList(new NavTarget("Destination", 9_999.0)),
                 context
         );
 
+        android.location.Location movingLocation = locationAt(0.0, 0.0);
+        movingLocation.setSpeed(20f);
         NavState movingState = NavState.from(
                 route,
                 new com.vibenavigator.nav.route.PolylineIndex(route.track),
                 0.0,
                 -1,
                 0,
-                2f,
+                20f,
                 false,
                 5f,
-                locationAt(0.0, 0.0),
+                movingLocation,
                 null,
                 0.0,
                 null,
                 stationaryState.compassState.visibleRadiusMeters,
+                null,
                 1_000L,
                 NavState.NO_DEADLINE,
                 1_000L,
-                Collections.singletonList(new NavTarget("Destination", 999.0)),
+                Collections.singletonList(new NavTarget("Destination", 9_999.0)),
                 context
         );
 
         assertNotNull(movingState.compassState);
-        assertTrue(movingState.compassState.visibleRadiusMeters > 120f);
+        assertTrue(movingState.compassState.visibleRadiusMeters > 600f);
         assertTrue(movingState.compassState.visibleRadiusMeters < stationaryState.compassState.visibleRadiusMeters);
         assertFalse(movingState.compassState.destinationWithinRadius);
         assertEquals(
@@ -402,6 +415,7 @@ public class NavStateTest {
                 0.0,
                 null,
                 null,
+                null,
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
@@ -411,6 +425,46 @@ public class NavStateTest {
 
         assertNotNull(state.compassState);
         assertEquals(1.0f, state.compassState.referenceSpeedMps, 0.01f);
+    }
+
+    @Test
+    public void from_whenMovingWithoutReliableSpeedReusesPreviousReliableMovingRadius() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.01),
+                        new LatLon(0.0, 0.02)
+                ),
+                Collections.emptyList(),
+                2_000.0,
+                2_222.0
+        );
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                -1,
+                0,
+                3f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                0.0,
+                null,
+                null,
+                240f,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 2_222.0)),
+                context
+        );
+
+        assertNotNull(state.compassState);
+        assertEquals(240f, state.compassState.visibleRadiusMeters, 0.01f);
+        assertEquals(4.0f, state.compassState.referenceSpeedMps, 0.01f);
     }
 
     @Test
@@ -441,6 +495,7 @@ public class NavStateTest {
                 location,
                 7,
                 90.0,
+                null,
                 null,
                 null,
                 0L,

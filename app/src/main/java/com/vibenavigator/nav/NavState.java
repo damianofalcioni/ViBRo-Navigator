@@ -22,7 +22,6 @@ public final class NavState {
     public static final long NO_DEADLINE = -1L;
     private static final float COMPASS_MOVING_LOOKAHEAD_SECONDS = 60f;
     private static final float COMPASS_MIN_VISIBLE_RADIUS_METERS = 90f;
-    private static final float COMPASS_MAX_MOVING_VISIBLE_RADIUS_METERS = 600f;
     private static final long COMPASS_RADIUS_SMOOTHING_TIME_CONSTANT_MS = 1_200L;
     private static final int MAX_COMPASS_ROUTE_POINTS = 240;
 
@@ -174,6 +173,7 @@ public final class NavState {
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
             long compassRadiusUpdateDeltaMs,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
@@ -206,6 +206,7 @@ public final class NavState {
                 headingDegrees,
                 headingAccuracyDegrees,
                 previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
                 compassRadiusUpdateDeltaMs
         );
         return new NavState(
@@ -374,6 +375,7 @@ public final class NavState {
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
             long compassRadiusUpdateDeltaMs
     ) {
         if (route.track.isEmpty()) {
@@ -394,18 +396,37 @@ public final class NavState {
                 COMPASS_MIN_VISIBLE_RADIUS_METERS,
                 furthestDistanceMeters * 1.15
         );
-        float movingVisibleRadiusMeters = resolveMovingVisibleRadiusMeters(speedMps);
-        float targetVisibleRadiusMeters = likelyStationary
-                ? fullRouteVisibleRadiusMeters
-                : Math.min(fullRouteVisibleRadiusMeters, movingVisibleRadiusMeters);
-        float visibleRadiusMeters = smoothVisibleRadiusMeters(
-                targetVisibleRadiusMeters,
-                previousCompassVisibleRadiusMeters,
-                compassRadiusUpdateDeltaMs
-        );
-        float referenceSpeedMps = likelyStationary
-                ? sanitizeReferenceSpeedMps(speedMps)
-                : resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters);
+        boolean reliableMovingSpeed = hasReliableMovingSpeed(currentLocation, likelyStationary);
+        boolean hasReusableMovingRadius = previousReliableMovingCompassVisibleRadiusMeters != null
+                && Float.isFinite(previousReliableMovingCompassVisibleRadiusMeters)
+                && previousReliableMovingCompassVisibleRadiusMeters > 0f;
+        float targetVisibleRadiusMeters;
+        if (likelyStationary) {
+            targetVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
+        } else if (reliableMovingSpeed) {
+            targetVisibleRadiusMeters = Math.min(
+                    fullRouteVisibleRadiusMeters,
+                    resolveMovingVisibleRadiusMeters(speedMps)
+            );
+        } else if (hasReusableMovingRadius) {
+            targetVisibleRadiusMeters = Math.min(
+                    fullRouteVisibleRadiusMeters,
+                    previousReliableMovingCompassVisibleRadiusMeters
+            );
+        } else {
+            targetVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
+        }
+        float visibleRadiusMeters = hasReusableMovingRadius && !reliableMovingSpeed && !likelyStationary
+                ? targetVisibleRadiusMeters
+                : smoothVisibleRadiusMeters(
+                        targetVisibleRadiusMeters,
+                        previousCompassVisibleRadiusMeters,
+                        compassRadiusUpdateDeltaMs
+                );
+        boolean usingMovingScale = !likelyStationary && (reliableMovingSpeed || hasReusableMovingRadius);
+        float referenceSpeedMps = usingMovingScale
+                ? resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters)
+                : sanitizeReferenceSpeedMps(speedMps);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return new NavCompassState(
                 resolvedHeading,
@@ -532,10 +553,17 @@ public final class NavState {
     private static float resolveMovingVisibleRadiusMeters(float speedMps) {
         float safeSpeedMps = Float.isFinite(speedMps) && speedMps > 0f ? speedMps : 0f;
         float targetRadiusMeters = safeSpeedMps * COMPASS_MOVING_LOOKAHEAD_SECONDS;
-        return Math.max(
-                COMPASS_MIN_VISIBLE_RADIUS_METERS,
-                Math.min(COMPASS_MAX_MOVING_VISIBLE_RADIUS_METERS, targetRadiusMeters)
-        );
+        return Math.max(COMPASS_MIN_VISIBLE_RADIUS_METERS, targetRadiusMeters);
+    }
+
+    static boolean hasReliableMovingSpeed(
+            @NonNull Location currentLocation,
+            boolean likelyStationary
+    ) {
+        return !likelyStationary
+                && currentLocation.hasSpeed()
+                && Float.isFinite(currentLocation.getSpeed())
+                && currentLocation.getSpeed() > 0f;
     }
 
     private static float smoothVisibleRadiusMeters(

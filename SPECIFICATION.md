@@ -244,8 +244,12 @@ The navigation UI must show the following in large text:
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
-- When the user is moving, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
-- Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly
+- When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
+- That moving 60-second radius must not be capped to a smaller fixed maximum such as 600 meters
+- When the user is moving but the current native speed reading is not yet reliable, the compass should prefer reusing the last reliable moving zoom radius if one exists instead of jumping back and forth between zoom modes
+- When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
+- When the user stops and the compass expands back to the full-route overview, the last reliable moving zoom radius should be preserved so it can be restored when movement resumes before speed confidence has recovered
+- Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line

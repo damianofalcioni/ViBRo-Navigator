@@ -52,6 +52,8 @@ final class NavigationSessionRouteState {
     private List<NavTarget> targets = new ArrayList<>();
     @Nullable
     private Float lastCompassVisibleRadiusMeters;
+    @Nullable
+    private Float lastReliableMovingCompassVisibleRadiusMeters;
     private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
     private RouteDeviationPolicy.Reason pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
@@ -63,6 +65,7 @@ final class NavigationSessionRouteState {
         lastSegmentIndex = -1;
         targets = new ArrayList<>();
         lastCompassVisibleRadiusMeters = null;
+        lastReliableMovingCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         clearPendingDeviation();
         recentAccuracySamples.clear();
@@ -345,13 +348,14 @@ final class NavigationSessionRouteState {
                 headingDegrees,
                 headingAccuracyDegrees,
                 lastCompassVisibleRadiusMeters,
+                lastReliableMovingCompassVisibleRadiusMeters,
                 resolveCompassRadiusUpdateDeltaMs(nowMs),
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 targets,
                 context
         );
-        rememberCompassVisibleRadius(state, nowMs);
+        rememberCompassState(state, nowMs, lastFiltered, likelyStationary);
         if (lastRouteFailure != null) {
             return NavState.withNotice(
                     state,
@@ -389,12 +393,20 @@ final class NavigationSessionRouteState {
         return nowMs - lastCompassRadiusUpdateTimeMs;
     }
 
-    private void rememberCompassVisibleRadius(@NonNull NavState state, long nowMs) {
+    private void rememberCompassState(
+            @NonNull NavState state,
+            long nowMs,
+            @Nullable Location lastFiltered,
+            boolean likelyStationary
+    ) {
         if (state.compassState == null) {
             return;
         }
         lastCompassVisibleRadiusMeters = state.compassState.visibleRadiusMeters;
         lastCompassRadiusUpdateTimeMs = nowMs;
+        if (lastFiltered != null && NavState.hasReliableMovingSpeed(lastFiltered, likelyStationary)) {
+            lastReliableMovingCompassVisibleRadiusMeters = state.compassState.visibleRadiusMeters;
+        }
     }
 
     private double expectedBearingDegrees(@NonNull PolylineIndex.Match match) {
