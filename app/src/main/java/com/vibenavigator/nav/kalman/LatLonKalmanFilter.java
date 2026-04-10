@@ -16,6 +16,12 @@ public final class LatLonKalmanFilter {
     private long lastTimeMs;
     private double refLat;
 
+    public void reset() {
+        initialized = false;
+        lastTimeMs = 0L;
+        refLat = 0.0;
+    }
+
     @Nullable
     public Location update(@NonNull Location in) {
         long t = in.getTime();

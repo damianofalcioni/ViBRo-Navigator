@@ -98,10 +98,13 @@ final class NavigationBlockedRouteState {
     }
 
     private void replaceNearbyBlockedPoints(@NonNull LatLon anchor) {
-        blocked.removeIf(existing ->
-                GeoMath.distanceMeters(existing.lat, existing.lon, anchor.lat, anchor.lon)
-                        <= BLOCKED_QUICK_REPEAT_NEARBY_METERS
-        );
+        for (int i = blocked.size() - 1; i >= 0; i--) {
+            NogoPoint existing = blocked.get(i);
+            if (GeoMath.distanceMeters(existing.lat, existing.lon, anchor.lat, anchor.lon)
+                    <= BLOCKED_QUICK_REPEAT_NEARBY_METERS) {
+                blocked.remove(i);
+            }
+        }
     }
 
     private int blockedPointCountForLevel(int level) {

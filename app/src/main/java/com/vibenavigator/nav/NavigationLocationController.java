@@ -1,6 +1,9 @@
 package com.vibenavigator.nav;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,6 +16,7 @@ import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 import androidx.core.content.ContextCompat;
 
 import com.vibenavigator.util.AppLogger;
@@ -83,6 +87,10 @@ final class NavigationLocationController {
                 AppLogger.w(TAG, "LocationManager unavailable, cannot request updates");
                 return;
             }
+            if (!hasLocationPermission()) {
+                AppLogger.w(TAG, "Location permission unavailable, cannot request updates");
+                return;
+            }
             List<String> providers = new ArrayList<>(2);
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
                 providers.add(LocationManager.GPS_PROVIDER);
@@ -103,7 +111,8 @@ final class NavigationLocationController {
                 AppLogger.w(TAG, "No enabled location provider available for updates " + describeAvailability());
                 return;
             }
-            if (providers.contains(LocationManager.GPS_PROVIDER)) {
+            if (providers.contains(LocationManager.GPS_PROVIDER)
+                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 ensureGnssStatusTracking();
             } else {
                 fixedSatelliteCount = null;
@@ -237,17 +246,6 @@ final class NavigationLocationController {
                 + ", lastNetwork=" + formatLocation(getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER));
     }
 
-    private void requestProviderUpdates(@NonNull String provider, long minTimeMs) {
-        if (locationManager == null) {
-            return;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, locationCallbackExecutor, listener);
-        } else {
-            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, listener);
-        }
-    }
-
     @Nullable
     private CancellationSignal requestCurrentLocationSeed(@NonNull String provider) {
         if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
@@ -302,6 +300,7 @@ final class NavigationLocationController {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private void ensureGnssStatusTracking() {
         if (locationManager == null
                 || Build.VERSION.SDK_INT < Build.VERSION_CODES.N
@@ -396,12 +395,32 @@ final class NavigationLocationController {
         return fixedCount;
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private static int countSatellitesUsedInFix(@NonNull GnssStatus status) {
         boolean[] usedInFixFlags = new boolean[status.getSatelliteCount()];
         for (int i = 0; i < status.getSatelliteCount(); i++) {
             usedInFixFlags[i] = status.usedInFix(i);
         }
         return countSatellitesUsedInFix(usedInFixFlags);
+    }
+
+    private boolean hasLocationPermission() {
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    @SuppressLint("MissingPermission")
+    private void requestProviderUpdates(@NonNull String provider, long minTimeMs) {
+        if (locationManager == null) {
+            return;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, locationCallbackExecutor, listener);
+        } else {
+            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, listener);
+        }
     }
 
     static boolean shouldReuseActiveLocationRequest(

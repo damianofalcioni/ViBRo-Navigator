@@ -36,6 +36,7 @@ final class NavigationSessionLocationState {
     private int locationUpdateCount;
 
     void reset() {
+        kalman.reset();
         lastFiltered = null;
         previousFiltered = null;
         locationUpdateCount = 0;

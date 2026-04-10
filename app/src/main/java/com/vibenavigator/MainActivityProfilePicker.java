@@ -119,10 +119,13 @@ final class MainActivityProfilePicker {
             AppLogger.w(TAG, "Profiles folder picker returned without URI");
             return;
         }
-        int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try {
-            activity.getContentResolver().takePersistableUriPermission(uri, flags);
-            AppLogger.i(TAG, "Persisted profiles folder permission uri=" + uri);
+            if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+                activity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                AppLogger.i(TAG, "Persisted profiles folder permission uri=" + uri);
+            } else {
+                AppLogger.w(TAG, "Profiles folder picker returned without persistable read grant uri=" + uri);
+            }
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Failed to persist profiles folder permission uri=" + uri, e);
         }
@@ -142,10 +145,13 @@ final class MainActivityProfilePicker {
             controller.onCustomProfilePickerCancelled();
             return;
         }
-        int flags = data.getFlags() & (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
         try {
-            activity.getContentResolver().takePersistableUriPermission(uri, flags);
-            AppLogger.i(TAG, "Persisted custom profile permission uri=" + uri);
+            if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+                activity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                AppLogger.i(TAG, "Persisted custom profile permission uri=" + uri);
+            } else {
+                AppLogger.w(TAG, "Custom profile picker returned without persistable read grant uri=" + uri);
+            }
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Failed to persist custom profile permission uri=" + uri, e);
         }

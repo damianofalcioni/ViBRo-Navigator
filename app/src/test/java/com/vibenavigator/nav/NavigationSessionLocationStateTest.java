@@ -61,6 +61,24 @@ public class NavigationSessionLocationStateTest {
         assertEquals(84.0, bearingDegrees, 0.0);
     }
 
+    @Test
+    public void reset_reinitializesKalmanFilterOnNextLocation() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 5_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f));
+        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082600, 16.3738000, 1.0f));
+
+        state.reset();
+
+        Location restartLocation = location(baseTimeMs + 2_000L, 48.2100000, 16.3800000, 0.5f);
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(restartLocation);
+        Location filtered = accepted.getFilteredLocation();
+
+        assertEquals(restartLocation.getLatitude(), filtered.getLatitude(), 0.0);
+        assertEquals(restartLocation.getLongitude(), filtered.getLongitude(), 0.0);
+    }
+
     private static Location location(long timeMs, double lat, double lon, float speedMps) {
         Location location = new Location(LocationManager.GPS_PROVIDER);
         location.setLatitude(lat);

@@ -15,6 +15,7 @@ import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import java.util.Locale;
 
@@ -53,7 +54,9 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         boolean sensorStarted = sensorManager != null
                 && geomagneticRotationVectorSensor != null
                 && sensorManager.registerListener(this, geomagneticRotationVectorSensor, SensorManager.SENSOR_DELAY_UI);
-        registerGnssStatusCallback();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            registerGnssStatusCallback();
+        }
         started = sensorStarted || gnssStatusCallback != null;
     }
 
@@ -176,6 +179,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         return sb.toString();
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private void registerGnssStatusCallback() {
         if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.N || gnssStatusCallback != null) {
             return;
@@ -304,6 +308,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         return sb.toString();
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private static int countSatellitesUsedInFix(@NonNull GnssStatus status) {
         int fixedCount = 0;
         for (int i = 0; i < status.getSatelliteCount(); i++) {

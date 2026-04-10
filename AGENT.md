@@ -17,9 +17,11 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 Verified commands from the repository root:
 
 - `.\gradlew.bat test`
+- `.\gradlew.bat testDebugUnitTest`
 - `.\gradlew.bat assembleDebug`
 - `.\gradlew.bat assembleRelease`
 - `.\gradlew.bat lint`
+- `.\gradlew.bat lintDebug`
 
 CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release APK builds.
 
@@ -65,6 +67,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, shared search dispatch, and history behavior for externally opened locations.
 - If you change logging, keep the shared `buildLogPrefix`/`appendBlock` style intact so formatting and file-rotation behavior stay consistent.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
+- After any code update, always run `.\gradlew.bat testDebugUnitTest` and `.\gradlew.bat lintDebug` before closing the task.
 - At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
 
 ## Local config
