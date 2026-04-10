@@ -69,6 +69,19 @@ Below the routing-profile selector, the app must show an input field for searchi
 - Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again
 - After a portrait/landscape layout change or other activity recreation, restoring a previously selected destination or stop must keep that resolved selection and must not reopen suggestions unless the user edits the restored text
 
+#### 2.4 Destination map picker
+
+- Next to the destination text field, the app must show a map-picker icon button instead of a text-labelled map button
+- Pressing that button must open a separate picker `Activity`
+- The picker must remain dependency-light and must not use an external native map library
+- The picker must render OpenStreetMap raster tiles through the app's own implementation
+- If the destination field already resolves to coordinates, the picker must open centered on that destination and must apply a predefined zoom level
+- If the destination field does not yet resolve to coordinates, the picker must open centered on the current device location when available, and otherwise fall back gracefully
+- The picker must let the user select a point directly from the map and return that point as the destination
+- The picker must support icon-only controls for confirm, cancel, current location, zoom in, and zoom out
+- The picker must not show extra top or bottom banners; controls should remain overlaid directly on the map
+- Rotating the device while the picker is open must preserve the currently selected point and keep it visible on the map after recreation
+
 ### 3. Intermediate stops
 
 Below the destination input, the app must show a centered plus button.
@@ -77,11 +90,26 @@ Below the destination input, the app must show a centered plus button.
 
 - Pressing the plus button must add a new input field for an intermediate POI
 - Each intermediate input must have the same behavior and capabilities as the destination field
+- Each intermediate row must also include a map-picker icon button with the same map-selection capabilities as the destination field
 
 #### 3.2 Remove stop field
 
 - Each added stop row must include an `X` button on the right
 - Pressing that button must remove both the stop input field and the button itself
+
+#### 3.3 Map-picker interaction parity
+
+- Opening the picker for an intermediate stop that already has coordinates must center the map on that stop and apply the predefined zoom level
+- Opening the picker for an empty intermediate stop must center on the current device location when available
+- Selecting the current location from inside the picker must also apply the current-location zoom level
+- The picker must preserve the selected stop location across portrait/landscape recreation in the same way as the destination picker
+
+#### 3.4 Map gestures and controls
+
+- The picker must support one-finger drag panning
+- The picker must support one-finger tap selection
+- The picker must support two-finger pinch zoom in and out
+- Completing a pinch gesture must not accidentally change the currently selected point because of finger release being misinterpreted as a tap
 
 ### 4. Start navigation
 

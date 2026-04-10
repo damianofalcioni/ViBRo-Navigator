@@ -3,7 +3,6 @@ package com.vibenavigator;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
@@ -54,7 +53,9 @@ public class MainActivityStopControllerTest {
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient
+                searchClient,
+                (stopIndex, initialPoi) -> {
+                }
         );
         original.addStopRow(null);
         Poi selected = new Poi("Stop A", 48.2082d, 16.3738d);
@@ -68,7 +69,9 @@ public class MainActivityStopControllerTest {
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient
+                searchClient,
+                (stopIndex, initialPoi) -> {
+                }
         );
         restored.restoreRows(state);
         restored.restoreValues(state);
@@ -95,7 +98,9 @@ public class MainActivityStopControllerTest {
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient
+                searchClient,
+                (stopIndex, initialPoi) -> {
+                }
         );
         original.addStopRow(null);
         PoiInputController originalController = original.getStopControllers().get(0);
@@ -108,7 +113,9 @@ public class MainActivityStopControllerTest {
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient
+                searchClient,
+                (stopIndex, initialPoi) -> {
+                }
         );
         restored.restoreRows(state);
         restored.restoreValues(state);

@@ -50,16 +50,32 @@
             android:text="@string/label_destination"
             android:textColor="@color/white" />
 
-        <EditText
-            android:id="@+id/destinationEdit"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:hint="@string/hint_search_destination"
-            android:imeOptions="actionDone"
-            android:inputType="text"
-            android:textColor="@color/white"
-            android:textColorHint="@color/gray_700" />
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/destinationEdit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="@string/hint_search_destination"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                android:textColor="@color/white"
+                android:textColorHint="@color/gray_700" />
+
+            <ImageButton
+                android:id="@+id/destinationMapButton"
+                style="@style/Widget.VibeNavigator.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/action_open_map"
+                android:src="@drawable/ic_map_picker" />
+        </LinearLayout>
 
         <LinearLayout
             android:id="@+id/stopsContainer"

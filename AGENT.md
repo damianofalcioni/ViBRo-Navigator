@@ -28,6 +28,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 ## Architecture
 
 - `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation.
+- `MapPickerActivity` owns manual map-based point picking for destination and stop fields. Keep it dependency-light: use the existing local WebView asset approach for OpenStreetMap raster tiles instead of introducing a native map SDK unless explicitly requested.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
 - The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
 - Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw geomagnetic heading available for non-UI orientation logic such as stationary turn-to-face-route advice.
@@ -38,6 +39,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - `NavigationTextFormatter` owns shared user-visible navigation/notification formatting.
 - `brouter/` owns BRouter service integration, routing params, profile discovery, and GeoJSON route requests. Preserve the current `timode=9` voice-hint contract unless there is a deliberate product change.
 - `poi/`, `poi/search/`, and `poi/ui/` own POI parsing, history, provider-backed search, and shared suggestion UI. Keep search execution shared across inputs.
+- `app/src/main/assets/map_picker.html` is the current map-rendering implementation for destination/stop selection. Preserve tap-to-select, drag-to-pan, pinch-to-zoom, button-based zoom/current-location controls, and safe gesture handling so pinch release does not mutate the selected point.
 - `nav/route/`, `nav/directions/`, and `nav/kalman/` hold route parsing/matching, voice-hint mapping, and location smoothing.
 - `util/AppLogger` is the shared file logger. Single-line and multiline writes should continue to use the same formatting and append path.
 
@@ -65,6 +67,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - If you change startup permission/settings/battery-optimization flow, keep `NavigationActivity` thin and update the startup/lifecycle tests.
 - If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect both `brouter/` and `nav/route/` paths together and keep mode-9 coverage aligned.
 - If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, shared search dispatch, and history behavior for externally opened locations.
+- If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout.
 - If you change logging, keep the shared `buildLogPrefix`/`appendBlock` style intact so formatting and file-rotation behavior stay consistent.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
 - After any code update, always run `.\gradlew.bat testDebugUnitTest` and `.\gradlew.bat lintDebug` before closing the task.
@@ -75,12 +78,14 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Optional Google key: define `GOOGLE_MAPS_API_KEY` in `local.properties` or the environment
 - BRouter must be installed on the device as `btools.routingapp`
 - The app may use a user-selected document tree for external custom `.brf` profiles
+- Destination/stop map picking currently requires only platform WebView plus network access to `tile.openstreetmap.org`; do not replace it with an external map dependency unless explicitly requested
 
 ## Practical review checklist
 
 - Does the change keep the app dependency-light?
 - Are new strings localized through `strings.xml`?
 - Does the change preserve offline-first behavior when no Google key is present?
+- Does the change keep the destination/stop map picker dependency-free and working in both portrait and landscape?
 - Does navigation still work in background and with screen off?
 - Are permissions/settings prompts still reachable for location, notifications, and battery optimization?
 - Are BRouter profile selection and route calculation still intact?

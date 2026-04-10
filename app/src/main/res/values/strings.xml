@@ -16,6 +16,12 @@
     <string name="action_pick_file">Pick .brf file</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_save">Save</string>
+    <string name="action_open_map">Map</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_use_selected_point">Use selected point</string>
+    <string name="action_zoom_in">+</string>
+    <string name="action_zoom_out">-</string>
+    <string name="action_current_location">Current location</string>
 
     <string name="label_vehicle_profile">Vehicle</string>
     <string name="label_destination">Destination</string>
@@ -48,9 +54,16 @@
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_developer_mode_enabled">You are now in developer mode.</string>
     <string name="msg_developer_mode_already_enabled">Developer mode is already enabled.</string>
+    <string name="msg_map_tap_to_select">Tap on the map to select a point.</string>
+    <string name="msg_map_location_searching">Looking up current location...</string>
+    <string name="msg_map_location_unavailable">Current location is unavailable.</string>
+    <string name="msg_map_selection_required">Select a point on the map first.</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
     <string name="title_edit_destination_name">Edit destination name</string>
+    <string name="title_map_picker_destination">Pick destination on map</string>
+    <string name="title_map_picker_stop">Pick stop %1$d on map</string>
+    <string name="label_selected_point">Selected point</string>
 
     <string name="nav_next">Next</string>
     <string name="nav_after_next">After that</string>

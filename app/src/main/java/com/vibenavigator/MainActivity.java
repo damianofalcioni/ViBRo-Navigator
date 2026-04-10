@@ -24,6 +24,8 @@ import com.vibenavigator.util.AppLogger;
 public class MainActivity extends Activity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
+    private static final int REQ_PICK_DESTINATION_ON_MAP = 2001;
+    private static final int REQ_PICK_STOP_ON_MAP_BASE = 3000;
     private static final String STATE_DESTINATION_TEXT = "destinationText";
     private static final String STATE_DESTINATION_SELECTED_NAME = "destinationSelectedName";
     private static final String STATE_DESTINATION_SELECTED_LAT = "destinationSelectedLat";
@@ -52,6 +54,7 @@ public class MainActivity extends Activity {
 
         Spinner profileSpinner = findViewById(R.id.profileSpinner);
         EditText destinationEdit = findViewById(R.id.destinationEdit);
+        ImageButton destinationMapButton = findViewById(R.id.destinationMapButton);
         LinearLayout stopsContainer = findViewById(R.id.stopsContainer);
         Button addStopButton = findViewById(R.id.addStopButton);
         Button startNavButton = findViewById(R.id.startNavButton);
@@ -83,7 +86,15 @@ public class MainActivity extends Activity {
                 poi -> {
                 }
         );
-        stopController = new MainActivityStopController(this, stopsContainer, historyStore, searchClient);
+        stopController = new MainActivityStopController(
+                this,
+                stopsContainer,
+                historyStore,
+                searchClient,
+                this::openStopMapPicker
+        );
+
+        destinationMapButton.setOnClickListener(v -> openDestinationMapPicker());
 
         addStopButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "Add stop requested");
@@ -186,6 +197,13 @@ public class MainActivity extends Activity {
         if (profilePicker != null && profilePicker.handleActivityResult(requestCode, resultCode, data)) {
             return;
         }
+        if (requestCode == REQ_PICK_DESTINATION_ON_MAP) {
+            handleDestinationMapResult(resultCode, data);
+            return;
+        }
+        if (requestCode >= REQ_PICK_STOP_ON_MAP_BASE && requestCode < REQ_PICK_STOP_ON_MAP_BASE + 1000) {
+            handleStopMapResult(requestCode - REQ_PICK_STOP_ON_MAP_BASE, resultCode, data);
+        }
     }
 
     private void restoreDestinationState(@NonNull Bundle savedInstanceState) {
@@ -207,5 +225,66 @@ public class MainActivity extends Activity {
             destinationController.restoreText(destinationText);
             AppLogger.i(TAG, "Restored destination text=" + destinationText);
         }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void openDestinationMapPicker() {
+        AppLogger.i(TAG, "Opening map picker for destination");
+        startActivityForResult(
+                MapPickerActivity.createIntent(
+                        this,
+                        getString(R.string.title_map_picker_destination),
+                        resolveInitialPoi(destinationController)
+                ),
+                REQ_PICK_DESTINATION_ON_MAP
+        );
+    }
+
+    @SuppressWarnings("deprecation")
+    private void openStopMapPicker(int stopIndex, @Nullable com.vibenavigator.poi.Poi initialPoi) {
+        AppLogger.i(TAG, "Opening map picker for stop index=" + stopIndex);
+        startActivityForResult(
+                MapPickerActivity.createIntent(
+                        this,
+                        getString(R.string.title_map_picker_stop, stopIndex + 1),
+                        initialPoi
+                ),
+                REQ_PICK_STOP_ON_MAP_BASE + stopIndex
+        );
+    }
+
+    private void handleDestinationMapResult(int resultCode, @Nullable Intent data) {
+        if (resultCode != RESULT_OK || destinationController == null) {
+            return;
+        }
+        com.vibenavigator.poi.Poi poi = MapPickerActivity.parseResult(this, data);
+        if (poi == null) {
+            AppLogger.w(TAG, "Destination map picker returned without POI");
+            return;
+        }
+        destinationController.setPoi(poi);
+        AppLogger.i(TAG, "Destination selected from map=" + poi.displayLabel());
+    }
+
+    private void handleStopMapResult(int stopIndex, int resultCode, @Nullable Intent data) {
+        if (resultCode != RESULT_OK || stopController == null) {
+            return;
+        }
+        com.vibenavigator.poi.Poi poi = MapPickerActivity.parseResult(this, data);
+        if (poi == null) {
+            AppLogger.w(TAG, "Stop map picker returned without POI index=" + stopIndex);
+            return;
+        }
+        stopController.setStopPoi(stopIndex, poi);
+        AppLogger.i(TAG, "Stop selected from map index=" + stopIndex + " poi=" + poi.displayLabel());
+    }
+
+    @Nullable
+    private static com.vibenavigator.poi.Poi resolveInitialPoi(@NonNull PoiInputController controller) {
+        com.vibenavigator.poi.Poi selectedPoi = controller.getSelectedPoi();
+        if (selectedPoi != null) {
+            return selectedPoi;
+        }
+        return controller.parseCurrentPoi();
     }
 }

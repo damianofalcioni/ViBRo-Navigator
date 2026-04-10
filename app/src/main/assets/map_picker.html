@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #map {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #111;
+        }
+
+        #tiles, #overlay {
+            position: absolute;
+            inset: 0;
+        }
+
+        .tile {
+            position: absolute;
+            width: 256px;
+            height: 256px;
+            image-rendering: auto;
+        }
+
+        #marker {
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            margin-left: -9px;
+            margin-top: -9px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            background: #e14646;
+            box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45);
+            display: none;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<div id="map">
+    <div id="tiles"></div>
+    <div id="overlay">
+        <div id="marker"></div>
+    </div>
+</div>
+<script>
+    (function () {
+        const TILE_SIZE = 256;
+        const MIN_ZOOM = 1;
+        const MAX_ZOOM = 19;
+
+        const map = document.getElementById("map");
+        const tiles = document.getElementById("tiles");
+        const marker = document.getElementById("marker");
+
+        let centerLat = 20;
+        let centerLon = 0;
+        let zoom = 2;
+        let selectedLat = null;
+        let selectedLon = null;
+        let activePointers = new Map();
+        let gestureState = null;
+        let suppressTapSelection = false;
+
+        function clamp(value, min, max) {
+            return Math.min(max, Math.max(min, value));
+        }
+
+        function wrapTileX(x, worldTiles) {
+            return ((x % worldTiles) + worldTiles) % worldTiles;
+        }
+
+        function project(lat, lon, currentZoom) {
+            const boundedLat = clamp(lat, -85.05112878, 85.05112878);
+            const sinLat = Math.sin(boundedLat * Math.PI / 180);
+            const scale = TILE_SIZE * Math.pow(2, currentZoom);
+            return {
+                x: (lon + 180) / 360 * scale,
+                y: (0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI)) * scale
+            };
+        }
+
+        function unproject(x, y, currentZoom) {
+            const scale = TILE_SIZE * Math.pow(2, currentZoom);
+            const lon = x / scale * 360 - 180;
+            const n = Math.PI - 2 * Math.PI * y / scale;
+            const lat = 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+            return { lat, lon };
+        }
+
+        function getViewport() {
+            return {
+                width: map.clientWidth || 1,
+                height: map.clientHeight || 1
+            };
+        }
+
+        function setSelection(lat, lon, notifyAndroid) {
+            selectedLat = lat;
+            selectedLon = lon;
+            render();
+            if (notifyAndroid && window.AndroidBridge && window.AndroidBridge.onSelectionChanged) {
+                window.AndroidBridge.onSelectionChanged(lat, lon);
+            }
+        }
+
+        function render() {
+            const viewport = getViewport();
+            const centerWorld = project(centerLat, centerLon, zoom);
+            const topLeftX = centerWorld.x - viewport.width / 2;
+            const topLeftY = centerWorld.y - viewport.height / 2;
+            const worldTiles = Math.pow(2, zoom);
+
+            tiles.innerHTML = "";
+            const startTileX = Math.floor(topLeftX / TILE_SIZE);
+            const endTileX = Math.floor((topLeftX + viewport.width) / TILE_SIZE);
+            const startTileY = Math.floor(topLeftY / TILE_SIZE);
+            const endTileY = Math.floor((topLeftY + viewport.height) / TILE_SIZE);
+
+            for (let tileX = startTileX; tileX <= endTileX; tileX += 1) {
+                for (let tileY = startTileY; tileY <= endTileY; tileY += 1) {
+                    if (tileY < 0 || tileY >= worldTiles) {
+                        continue;
+                    }
+                    const img = document.createElement("img");
+                    img.className = "tile";
+                    img.draggable = false;
+                    img.alt = "";
+                    img.src = "https://tile.openstreetmap.org/" + zoom + "/" + wrapTileX(tileX, worldTiles) + "/" + tileY + ".png";
+                    img.style.left = (tileX * TILE_SIZE - topLeftX) + "px";
+                    img.style.top = (tileY * TILE_SIZE - topLeftY) + "px";
+                    tiles.appendChild(img);
+                }
+            }
+
+            if (selectedLat === null || selectedLon === null) {
+                marker.style.display = "none";
+                return;
+            }
+            const selectedWorld = project(selectedLat, selectedLon, zoom);
+            marker.style.display = "block";
+            marker.style.left = (selectedWorld.x - topLeftX) + "px";
+            marker.style.top = (selectedWorld.y - topLeftY) + "px";
+        }
+
+        function zoomAround(newZoom, focusX, focusY) {
+            const nextZoom = clamp(newZoom, MIN_ZOOM, MAX_ZOOM);
+            if (nextZoom === zoom) {
+                return;
+            }
+            const viewport = getViewport();
+            const currentCenterWorld = project(centerLat, centerLon, zoom);
+            const currentFocusWorldX = currentCenterWorld.x - viewport.width / 2 + focusX;
+            const currentFocusWorldY = currentCenterWorld.y - viewport.height / 2 + focusY;
+            const focusLatLon = unproject(currentFocusWorldX, currentFocusWorldY, zoom);
+            const nextFocusWorld = project(focusLatLon.lat, focusLatLon.lon, nextZoom);
+            const nextCenterWorld = {
+                x: nextFocusWorld.x - focusX + viewport.width / 2,
+                y: nextFocusWorld.y - focusY + viewport.height / 2
+            };
+            const nextCenter = unproject(nextCenterWorld.x, nextCenterWorld.y, nextZoom);
+            centerLat = nextCenter.lat;
+            centerLon = nextCenter.lon;
+            zoom = nextZoom;
+            render();
+        }
+
+        function pointerValues() {
+            return Array.from(activePointers.values());
+        }
+
+        function midpoint(first, second) {
+            return {
+                x: (first.x + second.x) / 2,
+                y: (first.y + second.y) / 2
+            };
+        }
+
+        function distance(first, second) {
+            const dx = first.x - second.x;
+            const dy = first.y - second.y;
+            return Math.hypot(dx, dy);
+        }
+
+        function beginSinglePointerDrag(pointer) {
+            gestureState = {
+                mode: "drag",
+                pointerId: pointer.id,
+                startX: pointer.x,
+                startY: pointer.y,
+                centerWorld: project(centerLat, centerLon, zoom),
+                moved: false
+            };
+        }
+
+        function beginPinchGesture() {
+            const pointers = pointerValues();
+            if (pointers.length < 2) {
+                return;
+            }
+            const first = pointers[0];
+            const second = pointers[1];
+            const focus = midpoint(first, second);
+            gestureState = {
+                mode: "pinch",
+                initialDistance: Math.max(1, distance(first, second)),
+                initialZoom: zoom,
+                initialCenterWorld: project(centerLat, centerLon, zoom),
+                focusX: focus.x,
+                focusY: focus.y
+            };
+            suppressTapSelection = true;
+        }
+
+        function handlePointerDown(event) {
+            activePointers.set(event.pointerId, {
+                id: event.pointerId,
+                x: event.clientX,
+                y: event.clientY
+            });
+            map.setPointerCapture(event.pointerId);
+            if (activePointers.size === 1) {
+                beginSinglePointerDrag(pointerValues()[0]);
+                return;
+            }
+            if (activePointers.size === 2) {
+                beginPinchGesture();
+            }
+        }
+
+        function handlePointerMove(event) {
+            if (!activePointers.has(event.pointerId)) {
+                return;
+            }
+            activePointers.set(event.pointerId, {
+                id: event.pointerId,
+                x: event.clientX,
+                y: event.clientY
+            });
+
+            if (!gestureState) {
+                return;
+            }
+
+            if (gestureState.mode === "drag") {
+                if (gestureState.pointerId !== event.pointerId) {
+                    return;
+                }
+                const deltaX = event.clientX - gestureState.startX;
+                const deltaY = event.clientY - gestureState.startY;
+                if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+                    gestureState.moved = true;
+                }
+                const nextCenter = unproject(
+                    gestureState.centerWorld.x - deltaX,
+                    gestureState.centerWorld.y - deltaY,
+                    zoom
+                );
+                centerLat = nextCenter.lat;
+                centerLon = nextCenter.lon;
+                render();
+                return;
+            }
+
+            if (gestureState.mode === "pinch") {
+                const pointers = pointerValues();
+                if (pointers.length < 2) {
+                    return;
+                }
+                const first = pointers[0];
+                const second = pointers[1];
+                const currentDistance = Math.max(1, distance(first, second));
+                const scaleRatio = currentDistance / gestureState.initialDistance;
+                const zoomDelta = Math.log2(scaleRatio);
+                const nextZoom = clamp(
+                    Math.round(gestureState.initialZoom + zoomDelta),
+                    MIN_ZOOM,
+                    MAX_ZOOM
+                );
+                if (nextZoom === zoom) {
+                    return;
+                }
+                centerLat = unproject(
+                    gestureState.initialCenterWorld.x,
+                    gestureState.initialCenterWorld.y,
+                    gestureState.initialZoom
+                ).lat;
+                centerLon = unproject(
+                    gestureState.initialCenterWorld.x,
+                    gestureState.initialCenterWorld.y,
+                    gestureState.initialZoom
+                ).lon;
+                zoom = gestureState.initialZoom;
+                zoomAround(nextZoom, gestureState.focusX, gestureState.focusY);
+            }
+        }
+
+        function handlePointerUp(event) {
+            const pointer = activePointers.get(event.pointerId);
+            const shouldTapSelect = gestureState
+                && gestureState.mode === "drag"
+                && gestureState.pointerId === event.pointerId
+                && !gestureState.moved
+                && !suppressTapSelection;
+
+            if (shouldTapSelect && pointer) {
+                const rect = map.getBoundingClientRect();
+                const viewport = getViewport();
+                const centerWorld = project(centerLat, centerLon, zoom);
+                const tapWorldX = centerWorld.x - viewport.width / 2 + (pointer.x - rect.left);
+                const tapWorldY = centerWorld.y - viewport.height / 2 + (pointer.y - rect.top);
+                const latLon = unproject(tapWorldX, tapWorldY, zoom);
+                setSelection(latLon.lat, latLon.lon, true);
+            }
+
+            if (activePointers.has(event.pointerId)) {
+                activePointers.delete(event.pointerId);
+            }
+            try {
+                map.releasePointerCapture(event.pointerId);
+            } catch (error) {
+                // Ignore release errors for already-released pointers.
+            }
+
+            if (activePointers.size >= 2) {
+                beginPinchGesture();
+            } else if (activePointers.size === 1) {
+                beginSinglePointerDrag(pointerValues()[0]);
+            } else {
+                gestureState = null;
+                suppressTapSelection = false;
+            }
+        }
+
+        map.addEventListener("pointerdown", handlePointerDown);
+        map.addEventListener("pointermove", handlePointerMove);
+        map.addEventListener("pointerup", handlePointerUp);
+        map.addEventListener("pointercancel", handlePointerUp);
+        window.addEventListener("resize", render);
+
+        window.mapPicker = {
+            initialize: function (lat, lon, initialZoom, markerLat, markerLon) {
+                centerLat = lat;
+                centerLon = lon;
+                zoom = clamp(initialZoom, MIN_ZOOM, MAX_ZOOM);
+                if (markerLat !== null && markerLon !== null) {
+                    selectedLat = markerLat;
+                    selectedLon = markerLon;
+                }
+                render();
+            },
+            zoomIn: function () {
+                const viewport = getViewport();
+                zoomAround(zoom + 1, viewport.width / 2, viewport.height / 2);
+            },
+            zoomOut: function () {
+                const viewport = getViewport();
+                zoomAround(zoom - 1, viewport.width / 2, viewport.height / 2);
+            },
+            centerOn: function (lat, lon, nextZoom, selectPoint) {
+                centerLat = lat;
+                centerLon = lon;
+                zoom = clamp(nextZoom, MIN_ZOOM, MAX_ZOOM);
+                if (selectPoint) {
+                    setSelection(lat, lon, false);
+                } else {
+                    render();
+                }
+            }
+        };
+    })();
+</script>
+</body>
+</html>

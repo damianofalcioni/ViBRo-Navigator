@@ -17,6 +17,15 @@
         android:textColorHint="@color/gray_700" />
 
     <ImageButton
+        android:id="@+id/stopMapButton"
+        style="@style/Widget.VibeNavigator.IconButton"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="@string/action_open_map"
+        android:src="@drawable/ic_map_picker" />
+
+    <ImageButton
         android:id="@+id/removeStopButton"
         style="@style/Widget.VibeNavigator.IconButton"
         android:layout_width="44dp"

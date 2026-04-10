@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <WebView
+        android:id="@+id/mapWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:layout_margin="16dp"
+        android:orientation="vertical">
+
+        <ImageButton
+            android:id="@+id/mapUseSelectionButton"
+            style="@style/Widget.VibeNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_use_selected_point"
+            android:src="@drawable/ic_map_confirm" />
+
+        <ImageButton
+            android:id="@+id/mapCancelButton"
+            style="@style/Widget.VibeNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/action_cancel"
+            android:src="@drawable/ic_close" />
+
+        <ImageButton
+            android:id="@+id/mapCurrentLocationButton"
+            style="@style/Widget.VibeNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/action_current_location"
+            android:src="@drawable/ic_current_location" />
+
+        <ImageButton
+            android:id="@+id/mapZoomInButton"
+            style="@style/Widget.VibeNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/action_zoom_in"
+            android:src="@drawable/ic_plus" />
+
+        <ImageButton
+            android:id="@+id/mapZoomOutButton"
+            style="@style/Widget.VibeNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginTop="8dp"
+            android:contentDescription="@string/action_zoom_out"
+            android:src="@drawable/ic_minus" />
+    </LinearLayout>
+</FrameLayout>

@@ -21,6 +21,10 @@ import java.util.List;
 
 final class MainActivityStopController {
 
+    interface MapPickListener {
+        void onPickStopFromMap(int stopIndex, @Nullable com.vibenavigator.poi.Poi initialPoi);
+    }
+
     private static final String STATE_STOP_TEXTS = "stopTexts";
     private static final String STATE_STOP_SELECTED_NAMES = "stopSelectedNames";
     private static final String STATE_STOP_SELECTED_LATS = "stopSelectedLats";
@@ -36,18 +40,22 @@ final class MainActivityStopController {
     @NonNull
     private final PoiSearchClient searchClient;
     @NonNull
+    private final MapPickListener mapPickListener;
+    @NonNull
     private final List<PoiInputController> stopControllers = new ArrayList<>();
 
     MainActivityStopController(
             @NonNull Activity activity,
             @NonNull LinearLayout stopsContainer,
             @NonNull PoiHistoryStore historyStore,
-            @NonNull PoiSearchClient searchClient
+            @NonNull PoiSearchClient searchClient,
+            @NonNull MapPickListener mapPickListener
     ) {
         this.activity = activity;
         this.stopsContainer = stopsContainer;
         this.historyStore = historyStore;
         this.searchClient = searchClient;
+        this.mapPickListener = mapPickListener;
     }
 
     void restoreRows(@Nullable Bundle savedInstanceState) {
@@ -126,6 +134,7 @@ final class MainActivityStopController {
     void addStopRow(@Nullable String initialText) {
         View row = activity.getLayoutInflater().inflate(R.layout.item_stop_row, stopsContainer, false);
         EditText stopEdit = row.findViewById(R.id.stopEdit);
+        ImageButton mapButton = row.findViewById(R.id.stopMapButton);
         ImageButton remove = row.findViewById(R.id.removeStopButton);
 
         PoiInputController controller = new PoiInputController(
@@ -143,6 +152,14 @@ final class MainActivityStopController {
         }
         AppLogger.i(TAG, "Added stop row initialText=" + safe(initialText) + " totalStops=" + stopControllers.size());
 
+        mapButton.setOnClickListener(v -> {
+            int index = stopControllers.indexOf(controller);
+            if (index < 0) {
+                AppLogger.w(TAG, "Stop map request ignored because controller is no longer attached");
+                return;
+            }
+            mapPickListener.onPickStopFromMap(index, resolveInitialPoi(controller));
+        });
         remove.setOnClickListener(v -> removeStopRow(row, controller));
 
         stopsContainer.addView(row);
@@ -165,6 +182,14 @@ final class MainActivityStopController {
         return Collections.unmodifiableList(stopControllers);
     }
 
+    void setStopPoi(int index, @NonNull com.vibenavigator.poi.Poi poi) {
+        if (index < 0 || index >= stopControllers.size()) {
+            AppLogger.w(TAG, "Ignoring stop selection for invalid index=" + index);
+            return;
+        }
+        stopControllers.get(index).setPoi(poi);
+    }
+
     private void removeStopRow(@NonNull View row, @NonNull PoiInputController controller) {
         controller.dispose();
         stopControllers.remove(controller);
@@ -175,5 +200,14 @@ final class MainActivityStopController {
     @NonNull
     private static String safe(@Nullable String value) {
         return value == null ? "null" : value;
+    }
+
+    @Nullable
+    private static com.vibenavigator.poi.Poi resolveInitialPoi(@NonNull PoiInputController controller) {
+        com.vibenavigator.poi.Poi selectedPoi = controller.getSelectedPoi();
+        if (selectedPoi != null) {
+            return selectedPoi;
+        }
+        return controller.parseCurrentPoi();
     }
 }
