@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
 import android.provider.Settings;
@@ -93,20 +94,24 @@ public final class NavigationPreflight {
 
     @NonNull
     public static Intent newNotificationSettingsIntent(@NonNull Activity activity) {
-        Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            return intent.putExtra(Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
+            return new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                    .putExtra(Settings.EXTRA_APP_PACKAGE, activity.getPackageName());
         }
 
         ApplicationInfo applicationInfo = activity.getApplicationInfo();
-        return intent
+        return new Intent("android.settings.APP_NOTIFICATION_SETTINGS")
                 .putExtra(LEGACY_EXTRA_APP_PACKAGE, activity.getPackageName())
                 .putExtra(LEGACY_EXTRA_APP_UID, applicationInfo.uid);
     }
 
     @NonNull
     public static Intent newBatteryOptimizationIntent(@NonNull Activity activity) {
-        return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+        }
+        return new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.fromParts("package", activity.getPackageName(), null));
     }
 
     @NonNull

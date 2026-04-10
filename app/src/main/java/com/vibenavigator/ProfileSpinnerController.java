@@ -1,6 +1,7 @@
 package com.vibenavigator;
 
 import android.content.Context;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -49,7 +50,17 @@ final class ProfileSpinnerController {
         this.adapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
         this.spinner.setAdapter(adapter);
         this.spinner.setOnTouchListener((v, event) -> {
-            selectionUserInitiated = true;
+            if (event == null) {
+                return false;
+            }
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                selectionUserInitiated = true;
+                return false;
+            }
+            if (event.getAction() == MotionEvent.ACTION_UP) {
+                selectionUserInitiated = true;
+                return v.performClick();
+            }
             return false;
         });
         this.spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {

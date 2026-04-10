@@ -3,6 +3,8 @@ package com.vibenavigator.brouter;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Locale;
+
 public final class BRouterRouteException extends Exception {
 
     public enum Reason {
@@ -32,7 +34,7 @@ public final class BRouterRouteException extends Exception {
     @NonNull
     public static BRouterRouteException fromTextResponse(@Nullable String rawMessage) {
         String sanitized = sanitize(rawMessage);
-        String normalized = sanitized.toLowerCase();
+        String normalized = sanitized.toLowerCase(Locale.ROOT);
         if (normalized.isEmpty()) {
             return new BRouterRouteException(Reason.MALFORMED_RESPONSE, "BRouter returned an empty route response");
         }

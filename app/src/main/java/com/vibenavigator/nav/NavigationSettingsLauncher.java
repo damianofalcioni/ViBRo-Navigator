@@ -3,7 +3,6 @@ package com.vibenavigator.nav;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.provider.Settings;
 
@@ -37,12 +36,6 @@ public final class NavigationSettingsLauncher {
             @NonNull Intent intent,
             @NonNull String label
     ) {
-        PackageManager packageManager = activity.getPackageManager();
-        if (intent.resolveActivity(packageManager) == null) {
-            AppLogger.w(TAG, "Unresolvable " + label + " settings intent action=" + intent.getAction()
-                    + " data=" + String.valueOf(intent.getData()));
-            return false;
-        }
         try {
             activity.startActivity(intent);
             AppLogger.i(TAG, "Opened " + label + " settings intent action=" + intent.getAction()

@@ -13,6 +13,5 @@
     <color name="compass_accent">#F28A35</color>
     <color name="compass_route">#E14646</color>
     <color name="compass_route_passed">#80E14646</color>
-    <color name="compass_route_glow">#66E14646</color>
     <color name="compass_center">#F8F8F8</color>
 </resources>

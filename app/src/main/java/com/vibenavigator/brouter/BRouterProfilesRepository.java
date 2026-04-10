@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.zip.ZipEntry;
@@ -257,7 +258,7 @@ public final class BRouterProfilesRepository {
         if (slash >= 0 && slash + 1 < name.length()) {
             name = name.substring(slash + 1);
         }
-        if (!name.toLowerCase().endsWith(".brf")) {
+        if (!name.toLowerCase(Locale.ROOT).endsWith(".brf")) {
             return null;
         }
         String base = name.substring(0, name.length() - 4).trim();

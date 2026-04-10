@@ -11,9 +11,7 @@
     </item>
 
     <item
-        android:width="20dp"
-        android:height="20dp"
         android:drawable="@drawable/ic_chevron_down"
-        android:end="16dp"
-        android:gravity="end|center_vertical" />
+        android:gravity="end|center_vertical"
+        android:right="16dp" />
 </layer-list>

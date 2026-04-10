@@ -11,6 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:hint="@string/hint_search_stop"
+        android:importantForAutofill="no"
         android:imeOptions="actionDone"
         android:inputType="text"
         android:textColor="@color/white"

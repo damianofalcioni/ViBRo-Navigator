@@ -12,6 +12,7 @@ final class NavigationWakeLockController {
 
     private static final String TAG = "NavWakeLock";
     private static final String WAKE_LOCK_TAG = "VibeNavigator:Nav";
+    private static final long WAKE_LOCK_TIMEOUT_MS = 10 * 60 * 1000L;
 
     private final Context context;
     @Nullable
@@ -33,7 +34,7 @@ final class NavigationWakeLockController {
                 return;
             }
             wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, WAKE_LOCK_TAG);
-            wakeLock.acquire();
+            wakeLock.acquire(WAKE_LOCK_TIMEOUT_MS);
             AppLogger.i(TAG, "Wake lock acquired");
         } catch (Exception e) {
             AppLogger.w(TAG, "Failed to acquire wake lock", e);

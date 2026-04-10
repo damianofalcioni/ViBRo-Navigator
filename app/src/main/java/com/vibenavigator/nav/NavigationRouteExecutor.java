@@ -17,6 +17,7 @@ import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.util.AppLogger;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -202,7 +203,7 @@ final class NavigationRouteExecutor {
             }
             String message = current.getMessage();
             if (message != null) {
-                String normalized = message.trim().toLowerCase();
+                String normalized = message.trim().toLowerCase(Locale.ROOT);
                 if (normalized.contains("brouter service not available")
                         || normalized.contains("brouter is not connected")
                         || normalized.contains("brouter binding died")
