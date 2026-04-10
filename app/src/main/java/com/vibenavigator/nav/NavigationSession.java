@@ -108,7 +108,7 @@ final class NavigationSession {
                 filtered,
                 locationState.speedMps(filtered),
                 locationState.accuracyMeters(filtered),
-                locationState.actualBearingDegrees(filtered),
+                locationState.trustedActualBearingDegreesForReroute(filtered),
                 nowMs,
                 warmupController.getFastChecksUntilMs()
         );

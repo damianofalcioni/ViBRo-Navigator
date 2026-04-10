@@ -1,10 +1,13 @@
 package com.vibenavigator.nav;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.location.Location;
 import android.location.LocationManager;
+import android.os.Build;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +40,25 @@ public class NavigationSessionLocationStateTest {
         state.onRawLocationChanged(location(baseTimeMs + 3_000L, 48.2082003, 16.3738000, 0.03f));
 
         assertTrue(state.isLikelyStationary());
+    }
+
+    @Test
+    public void trustedActualBearingDegreesForReroute_acceptsAccurateWalkingSpeedGpsBearing() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 3_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        Location update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
+        update.setBearing(84f);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            update.setBearingAccuracyDegrees(12f);
+        }
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+
+        Double bearingDegrees = state.trustedActualBearingDegreesForReroute(accepted.getFilteredLocation());
+
+        assertNotNull(bearingDegrees);
+        assertEquals(84.0, bearingDegrees, 0.0);
     }
 
     private static Location location(long timeMs, double lat, double lon, float speedMps) {

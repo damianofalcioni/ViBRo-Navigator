@@ -31,6 +31,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw geomagnetic heading available for non-UI orientation logic such as stationary turn-to-face-route advice.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.
 - `NavigationSession` is the session-level coordinator. Keep filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle split across dedicated state/policy classes instead of collapsing them back together.
+- Keep reroute heuristics split between bearing-source trust, route-deviation policy, and route-state progress confirmation. Wrong-direction detection should continue to use forward-looking route bearing plus along-track direction-of-progress evidence instead of relying on a raw matched-segment bearing alone.
 - `NavigationRequest` owns the shared navigation extras contract used by activities, the service, and resume notifications.
 - `NavigationTextFormatter` owns shared user-visible navigation/notification formatting.
 - `brouter/` owns BRouter service integration, routing params, profile discovery, and GeoJSON route requests. Preserve the current `timode=9` voice-hint contract unless there is a deliberate product change.
@@ -57,7 +58,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Keep background route computation separated from main-thread state mutation. Preserve `NavigationRouteExecutor` rather than inlining thread management back into `NavigationService`.
 - Keep Android service concerns delegated through the existing foreground/location/wakelock/dispatch/broadcast helpers, and keep `NavigationSession` as a coordinator over focused session collaborators.
 - If you change reroute thresholds, polling cadence, turn-alert timing, blocked-road escalation, or route-request lifecycle behavior, update the corresponding `nav/` tests.
-- If you change guidance confidence rules, keep map-free use in mind and update tests around bearing trust, turn suppression, and duplicate/imminent alert behavior.
+- If you change guidance confidence rules, keep map-free use in mind and update tests around bearing trust, forward-look route bearing, direction-of-progress, turn suppression, and duplicate/imminent alert behavior.
 - If you change navigation intent extras, update `NavigationRequest` first and keep resume/start flows serialized through it instead of hand-copying extras.
 - If you change startup permission/settings/battery-optimization flow, keep `NavigationActivity` thin and update the startup/lifecycle tests.
 - If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect both `brouter/` and `nav/route/` paths together and keep mode-9 coverage aligned.

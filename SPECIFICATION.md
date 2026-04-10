@@ -138,13 +138,21 @@ The app must monitor user position:
 #### 4.4.1 Off-track reroute
 
 - The route must be recalculated whenever the user position differs by 10 meters plus the GPS error distance from the current track
+- Off-track distance must be measured against the nearest matched point on the active route geometry
+- Off-track reroutes should require confirmation across consecutive samples when the miss only slightly exceeds the threshold, to avoid single-fix GPS spikes causing unnecessary reroutes
+- Clearly large misses beyond the threshold may reroute immediately without waiting for a second confirmation sample
 
 #### 4.4.2 Wrong-direction reroute
 
 - The route must also be recalculated when the user is still on the track but is moving in the wrong direction
 - Wrong direction is defined as bearing difference greater than 60 degrees
-- Bearing-based wrong-direction detection must only be trusted when the current fix is accurate enough and movement-derived heading is credible for the current speed/displacement
+- Bearing-based wrong-direction detection must only be trusted when the current fix is accurate enough and the heading source is credible for the current speed and displacement
+- When GPS bearing accuracy is available, the app should prefer GPS bearing only when that reported bearing accuracy is good enough for walking and cycling use cases; low-speed walking use must remain supported and must not be excluded by a cycling-only speed gate
+- When GPS bearing is not trustworthy enough, the app should fall back to a movement-derived course computed from recent filtered route progress rather than from a single noisy fix pair
 - Low-confidence bearing estimates must not trigger reroutes on their own
+- The expected route bearing for wrong-direction checks should be forward-looking, derived from a short lookahead along the matched route geometry rather than only from the single currently matched segment
+- Bearing mismatch alone should not be enough to reroute while the user is still making clear forward progress along the route
+- Wrong-direction reroutes should be confirmed across consecutive samples, and should be supported by direction-of-progress evidence such as backward or stalled along-route progress over time
 
 #### 4.4.3 Direction distance estimation
 
@@ -170,7 +178,7 @@ The app must monitor user position:
 - Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
 - A stationary orientation notification must be emitted only after a short stationary dwell, must require both low recent movement speed and negligible recent filtered displacement, must require a fresh geomagnetic heading sample with good coarse calibration, and when the sensor exposes a per-sample heading accuracy estimate it must suppress the notification unless the required turn still clearly exceeds that uncertainty margin
 - Geomagnetic stationary-orientation monitoring must remain available during background and screen-off navigation so those advisory notifications still work without the navigation UI being open
-- Stationary orientation notifications are advisory turn-to-face-the-route prompts and must not change wrong-direction reroute behavior, which remains gated by movement-derived heading confidence
+- Stationary orientation notifications are advisory turn-to-face-the-route prompts and must not change wrong-direction reroute behavior, which remains gated by trusted movement heading, route-progress confirmation, and reroute confidence rules
 - Stationary orientation notifications must be suppressed while a route recalculation is in progress so the app does not emit contradictory off-route and turn-yourself prompts at the same time
 - Each notification message must contain:
   - A direction arrow emoji
@@ -376,7 +384,7 @@ The navigation UI must show the following in large text:
 - Keep `NavigationService` focused on Android lifecycle and orchestration, with notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn-event fan-out isolated in focused collaborators.
 - Keep background route computation asynchronous while all shared navigation-state mutation remains serialized on the main thread.
 - Keep `NavigationSession` split across focused collaborators for filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle handling rather than collapsing that logic into one class.
-- Keep heuristics such as reroute thresholds, polling cadence, and turn-alert timing in small policy/planner helpers, and keep POI search execution shared across destination and stop fields.
+- Keep heuristics such as reroute thresholds, bearing trust rules, forward-look route bearing, direction-of-progress checks, polling cadence, and turn-alert timing in small policy/planner helpers, and keep POI search execution shared across destination and stop fields.
 - Keep the navigation-intent extras contract owned by `NavigationRequest` so activities, the foreground service, and resume notifications serialize the same request shape.
 - Prefer extending the existing `AppLogger` coverage when touching startup, permissions, routing, background execution, or network search behavior.
 
@@ -385,6 +393,6 @@ The navigation UI must show the following in large text:
 - Prefer JVM regression coverage, with Robolectric for Android lifecycle behavior where practical.
 - The core automated suite should not require an emulator or real device, though some foreground-service and OEM notification behaviors may still need manual verification.
 - Keep lifecycle decisions, heuristics, planners, and policy thresholds in small helpers when practical so they remain directly unit-testable.
-- Maintain coverage for navigation-request serialization, startup/preflight flow, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting.
+- Maintain coverage for navigation-request serialization, startup/preflight flow, reroute heuristics, bearing trust, route-progress confirmation, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting.
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including user-visible direction symbols.
 - Refactors that only move unchanged wiring into helpers do not require new tests by default. Behavior changes in helper-owned flows should add or update focused JVM or Robolectric coverage.

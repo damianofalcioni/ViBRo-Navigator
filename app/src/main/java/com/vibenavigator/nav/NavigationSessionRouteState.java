@@ -8,11 +8,13 @@ import androidx.annotation.Nullable;
 
 import com.vibenavigator.R;
 import com.vibenavigator.brouter.NogoPoint;
+import com.vibenavigator.geo.GeoMath;
 import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.PolylineIndex;
 import com.vibenavigator.util.AppLogger;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -22,10 +24,18 @@ final class NavigationSessionRouteState {
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
+    private static final int DEVIATION_CONFIRMATION_SAMPLES = 2;
+    private static final double IMMEDIATE_OFF_TRACK_MARGIN_METERS = 12.0;
+    private static final double EXPECTED_BEARING_LOOKAHEAD_METERS = 20.0;
+    private static final double MIN_EXPECTED_BEARING_BASELINE_METERS = 3.0;
+    private static final long DIRECTION_PROGRESS_WINDOW_MS = 3_000L;
+    private static final long MAX_DIRECTION_PROGRESS_SAMPLE_AGE_MS = 10_000L;
+    private static final double MIN_DIRECTION_PROGRESS_METERS = 4.0;
 
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
     private final NavigationTurnState turnState = new NavigationTurnState();
+    private final ArrayDeque<AlongTrackSample> recentAlongTrackSamples = new ArrayDeque<>();
 
     @Nullable
     private GeoJsonRoute route;
@@ -37,6 +47,9 @@ final class NavigationSessionRouteState {
     @Nullable
     private Float lastCompassVisibleRadiusMeters;
     private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
+    @NonNull
+    private RouteDeviationPolicy.Reason pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
+    private int pendingDeviationSampleCount;
 
     void reset() {
         route = null;
@@ -45,6 +58,8 @@ final class NavigationSessionRouteState {
         targets = new ArrayList<>();
         lastCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
+        clearPendingDeviation();
+        recentAlongTrackSamples.clear();
         blockedRouteState.reset();
         turnState.reset();
     }
@@ -81,25 +96,92 @@ final class NavigationSessionRouteState {
             return Evaluation.requestRecalculation(null);
         }
         lastSegmentIndex = match.segmentIndex;
+        double expectedBearingDegrees = expectedBearingDegrees(match);
+        DirectionOfProgressAssessment directionOfProgress = assessDirectionOfProgress(
+                match.alongTrackMeters,
+                nowMs
+        );
 
         RouteDeviationPolicy.Decision deviationDecision = routeDeviationPolicy.evaluate(
                 match.distanceToTrackMeters,
                 accuracyMeters,
                 actualBearingDegrees,
-                match.segmentBearingDegrees
+                expectedBearingDegrees
         );
+        if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
+            if (directionOfProgress.status == DirectionOfProgressStatus.FORWARD) {
+                AppLogger.i(TAG, "Ignoring bearing mismatch because along-track progress is forward delta="
+                        + directionOfProgress.alongTrackDeltaMeters);
+                clearPendingDeviation();
+                rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+                NavigationTurnState.Progress progress = turnState.evaluate(
+                        route,
+                        polylineIndex,
+                        match.alongTrackMeters,
+                        speedMps,
+                        accuracyMeters,
+                        nowMs,
+                        fastChecksUntilMs
+                );
+                return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, true);
+            }
+            if (directionOfProgress.status == DirectionOfProgressStatus.UNKNOWN) {
+                AppLogger.i(TAG, "Holding bearing mismatch until direction-of-progress is known");
+                clearPendingDeviation();
+                rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+                NavigationTurnState.Progress progress = turnState.evaluate(
+                        route,
+                        polylineIndex,
+                        match.alongTrackMeters,
+                        speedMps,
+                        accuracyMeters,
+                        nowMs,
+                        fastChecksUntilMs
+                );
+                return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, false);
+            }
+        }
+        if (deviationDecision.reason == RouteDeviationPolicy.Reason.NONE) {
+            clearPendingDeviation();
+        } else if (!isConfirmedDeviation(deviationDecision)) {
+            AppLogger.i(TAG, "Tentative deviation detected reason=" + deviationDecision.reason
+                    + " distance=" + match.distanceToTrackMeters
+                    + " threshold=" + deviationDecision.offTrackThresholdMeters
+                    + " bearingDiff=" + deviationDecision.bearingDiffDegrees
+                    + " direction=" + directionOfProgress.status
+                    + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters
+                    + " samples=" + pendingDeviationSampleCount);
+            rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+            NavigationTurnState.Progress progress = turnState.evaluate(
+                    route,
+                    polylineIndex,
+                    match.alongTrackMeters,
+                    speedMps,
+                    accuracyMeters,
+                    nowMs,
+                    fastChecksUntilMs
+            );
+            return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, false);
+        }
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.OFF_TRACK) {
             AppLogger.w(TAG, "Off-track detected distance=" + match.distanceToTrackMeters
                     + " threshold=" + deviationDecision.offTrackThresholdMeters);
+            clearPendingDeviation();
+            rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
         }
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
             AppLogger.w(TAG, "Bearing mismatch detected diff=" + deviationDecision.bearingDiffDegrees
-                    + " expected=" + match.segmentBearingDegrees
-                    + " actual=" + actualBearingDegrees);
+                    + " expected=" + expectedBearingDegrees
+                    + " actual=" + actualBearingDegrees
+                    + " direction=" + directionOfProgress.status
+                    + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters);
+            clearPendingDeviation();
+            rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
         }
 
+        rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         NavigationTurnState.Progress progress = turnState.evaluate(
                 route,
                 polylineIndex,
@@ -109,7 +191,7 @@ final class NavigationSessionRouteState {
                 nowMs,
                 fastChecksUntilMs
         );
-        return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs);
+        return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, true);
     }
 
     @Nullable
@@ -121,7 +203,7 @@ final class NavigationSessionRouteState {
                 new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
                 lastSegmentIndex
         );
-        return match == null ? null : match.segmentBearingDegrees;
+        return match == null ? null : expectedBearingDegrees(match);
     }
 
     @NonNull
@@ -158,6 +240,8 @@ final class NavigationSessionRouteState {
         targets = buildTargets(context, request.stops, polylineIndex);
         lastCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
+        clearPendingDeviation();
+        recentAlongTrackSamples.clear();
 
         List<NavigationSession.TurnEvent> turnEvents =
                 turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, speedMps, accuracyOf(lastFiltered));
@@ -299,6 +383,29 @@ final class NavigationSessionRouteState {
         lastCompassRadiusUpdateTimeMs = nowMs;
     }
 
+    private double expectedBearingDegrees(@NonNull PolylineIndex.Match match) {
+        if (polylineIndex == null) {
+            return match.segmentBearingDegrees;
+        }
+        LatLon current = polylineIndex.pointAtDistance(match.alongTrackMeters);
+        if (current == null) {
+            return match.segmentBearingDegrees;
+        }
+        double lookaheadAlongTrackMeters = Math.min(
+                polylineIndex.totalLengthMeters(),
+                match.alongTrackMeters + EXPECTED_BEARING_LOOKAHEAD_METERS
+        );
+        LatLon ahead = polylineIndex.pointAtDistance(lookaheadAlongTrackMeters);
+        if (ahead == null) {
+            return match.segmentBearingDegrees;
+        }
+        double baselineMeters = GeoMath.distanceMeters(current.lat, current.lon, ahead.lat, ahead.lon);
+        if (baselineMeters < MIN_EXPECTED_BEARING_BASELINE_METERS) {
+            return match.segmentBearingDegrees;
+        }
+        return GeoMath.bearingDegrees(current.lat, current.lon, ahead.lat, ahead.lon);
+    }
+
     static final class Evaluation {
         private final boolean shouldRecalculateRoute;
         private final boolean stableOnRouteSample;
@@ -330,9 +437,10 @@ final class NavigationSessionRouteState {
         @NonNull
         static Evaluation keepRoute(
                 @NonNull List<NavigationSession.TurnEvent> turnEvents,
-                long suggestedUpdateIntervalMs
+                long suggestedUpdateIntervalMs,
+                boolean stableOnRouteSample
         ) {
-            return new Evaluation(false, true, suggestedUpdateIntervalMs, null, turnEvents);
+            return new Evaluation(false, stableOnRouteSample, suggestedUpdateIntervalMs, null, turnEvents);
         }
 
         boolean shouldRecalculateRoute() {
@@ -345,6 +453,113 @@ final class NavigationSessionRouteState {
 
         long getSuggestedUpdateIntervalMs() {
             return suggestedUpdateIntervalMs;
+        }
+    }
+
+    private boolean isConfirmedDeviation(@NonNull RouteDeviationPolicy.Decision decision) {
+        if (decision.reason == RouteDeviationPolicy.Reason.OFF_TRACK
+                && decision.distanceToTrackMeters >= decision.offTrackThresholdMeters + IMMEDIATE_OFF_TRACK_MARGIN_METERS) {
+            return true;
+        }
+        if (pendingDeviationReason != decision.reason) {
+            pendingDeviationReason = decision.reason;
+            pendingDeviationSampleCount = 1;
+            return false;
+        }
+        pendingDeviationSampleCount++;
+        return pendingDeviationSampleCount >= DEVIATION_CONFIRMATION_SAMPLES;
+    }
+
+    private void clearPendingDeviation() {
+        pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
+        pendingDeviationSampleCount = 0;
+    }
+
+    @NonNull
+    private DirectionOfProgressAssessment assessDirectionOfProgress(double alongTrackMeters, long nowMs) {
+        pruneAlongTrackSamples(nowMs);
+        AlongTrackSample anchor = null;
+        for (AlongTrackSample candidate : recentAlongTrackSamples) {
+            if (nowMs - candidate.timeMs >= DIRECTION_PROGRESS_WINDOW_MS) {
+                anchor = candidate;
+                break;
+            }
+        }
+        if (anchor == null) {
+            return DirectionOfProgressAssessment.unknown();
+        }
+        double deltaMeters = alongTrackMeters - anchor.alongTrackMeters;
+        if (deltaMeters >= MIN_DIRECTION_PROGRESS_METERS) {
+            return DirectionOfProgressAssessment.forward(deltaMeters);
+        }
+        if (deltaMeters <= -MIN_DIRECTION_PROGRESS_METERS) {
+            return DirectionOfProgressAssessment.backward(deltaMeters);
+        }
+        return DirectionOfProgressAssessment.stalled(deltaMeters);
+    }
+
+    private void rememberAlongTrackSample(double alongTrackMeters, long nowMs) {
+        recentAlongTrackSamples.addLast(new AlongTrackSample(alongTrackMeters, nowMs));
+        pruneAlongTrackSamples(nowMs);
+    }
+
+    private void pruneAlongTrackSamples(long nowMs) {
+        long cutoffMs = nowMs - MAX_DIRECTION_PROGRESS_SAMPLE_AGE_MS;
+        while (recentAlongTrackSamples.size() > 1
+                && recentAlongTrackSamples.peekFirst() != null
+                && recentAlongTrackSamples.peekFirst().timeMs < cutoffMs) {
+            recentAlongTrackSamples.removeFirst();
+        }
+    }
+
+    private enum DirectionOfProgressStatus {
+        UNKNOWN,
+        FORWARD,
+        BACKWARD,
+        STALLED
+    }
+
+    private static final class DirectionOfProgressAssessment {
+        @NonNull
+        final DirectionOfProgressStatus status;
+        final double alongTrackDeltaMeters;
+
+        private DirectionOfProgressAssessment(
+                @NonNull DirectionOfProgressStatus status,
+                double alongTrackDeltaMeters
+        ) {
+            this.status = status;
+            this.alongTrackDeltaMeters = alongTrackDeltaMeters;
+        }
+
+        @NonNull
+        static DirectionOfProgressAssessment unknown() {
+            return new DirectionOfProgressAssessment(DirectionOfProgressStatus.UNKNOWN, 0.0);
+        }
+
+        @NonNull
+        static DirectionOfProgressAssessment forward(double alongTrackDeltaMeters) {
+            return new DirectionOfProgressAssessment(DirectionOfProgressStatus.FORWARD, alongTrackDeltaMeters);
+        }
+
+        @NonNull
+        static DirectionOfProgressAssessment backward(double alongTrackDeltaMeters) {
+            return new DirectionOfProgressAssessment(DirectionOfProgressStatus.BACKWARD, alongTrackDeltaMeters);
+        }
+
+        @NonNull
+        static DirectionOfProgressAssessment stalled(double alongTrackDeltaMeters) {
+            return new DirectionOfProgressAssessment(DirectionOfProgressStatus.STALLED, alongTrackDeltaMeters);
+        }
+    }
+
+    private static final class AlongTrackSample {
+        final double alongTrackMeters;
+        final long timeMs;
+
+        private AlongTrackSample(double alongTrackMeters, long timeMs) {
+            this.alongTrackMeters = alongTrackMeters;
+            this.timeMs = timeMs;
         }
     }
 }

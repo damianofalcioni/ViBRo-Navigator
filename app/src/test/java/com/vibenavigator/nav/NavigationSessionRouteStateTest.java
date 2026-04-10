@@ -124,20 +124,211 @@ public class NavigationSessionRouteStateTest {
                 500L
         );
 
-        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
-                location(0.0, 0.0001, 2_000L),
+        NavigationSessionRouteState.Evaluation seedEvaluation = state.evaluateLocation(
+                location(0.0, 0.00035, 2_000L),
                 5f,
                 5f,
-                180.0,
+                90.0,
                 2_000L,
                 0L
         );
+        NavigationSessionRouteState.Evaluation firstMismatchEvaluation = state.evaluateLocation(
+                location(0.0, 0.00018, 5_500L),
+                5f,
+                5f,
+                270.0,
+                5_500L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation secondMismatchEvaluation = state.evaluateLocation(
+                location(0.0, 0.00008, 6_500L),
+                5f,
+                5f,
+                270.0,
+                6_500L,
+                0L
+        );
 
-        assertTrue(evaluation.shouldRecalculateRoute());
-        assertEquals(RouteDeviationPolicy.Reason.BEARING_MISMATCH, evaluation.rerouteNotice.reason);
-        assertEquals(90.0, evaluation.rerouteNotice.bearingDiffDegrees, 0.0);
-        assertEquals(90.0, evaluation.rerouteNotice.expectedBearingDegrees, 0.0);
-        assertEquals(180.0, evaluation.rerouteNotice.actualBearingDegrees, 0.0);
+        assertFalse(seedEvaluation.shouldRecalculateRoute());
+        assertFalse(firstMismatchEvaluation.shouldRecalculateRoute());
+        assertFalse(firstMismatchEvaluation.isStableOnRouteSample());
+        assertTrue(secondMismatchEvaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.BEARING_MISMATCH, secondMismatchEvaluation.rerouteNotice.reason);
+        assertEquals(180.0, secondMismatchEvaluation.rerouteNotice.bearingDiffDegrees, 0.0);
+        assertEquals(90.0, secondMismatchEvaluation.rerouteNotice.expectedBearingDegrees, 0.0);
+        assertEquals(270.0, secondMismatchEvaluation.rerouteNotice.actualBearingDegrees, 0.0);
+    }
+
+    @Test
+    public void evaluateLocation_requiresConfirmationForNearThresholdOffTrackSamples() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation firstEvaluation = state.evaluateLocation(
+                location(0.00018, 0.0001, 2_000L),
+                5f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation secondEvaluation = state.evaluateLocation(
+                location(0.00018, 0.00015, 3_000L),
+                5f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
+
+        assertFalse(firstEvaluation.shouldRecalculateRoute());
+        assertFalse(firstEvaluation.isStableOnRouteSample());
+        assertTrue(secondEvaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, secondEvaluation.rerouteNotice.reason);
+    }
+
+    @Test
+    public void evaluateLocation_usesForwardLookaheadBearingNearTurns() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.00018, 0.00018),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithSharpTurn(),
+                location(0.0, 0.0, 1_000L),
+                1.4f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.00016, 2_000L),
+                1.4f,
+                5f,
+                0.0,
+                2_000L,
+                0L
+        );
+        Double routeBearingDegrees = state.currentSegmentBearingDegrees(location(0.0, 0.00016, 2_000L));
+
+        assertFalse(evaluation.shouldRecalculateRoute());
+        assertTrue(evaluation.isStableOnRouteSample());
+        assertEquals(0.0, routeBearingDegrees, 20.0);
+    }
+
+    @Test
+    public void evaluateLocation_doesNotRerouteOnBearingMismatchWhenAlongTrackProgressIsForward() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                1.2f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation seedEvaluation = state.evaluateLocation(
+                location(0.0, 0.00008, 2_000L),
+                1.2f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation mismatchEvaluation = state.evaluateLocation(
+                location(0.0, 0.00018, 5_500L),
+                1.2f,
+                5f,
+                180.0,
+                5_500L,
+                0L
+        );
+
+        assertFalse(seedEvaluation.shouldRecalculateRoute());
+        assertFalse(mismatchEvaluation.shouldRecalculateRoute());
+        assertTrue(mismatchEvaluation.isStableOnRouteSample());
+    }
+
+    @Test
+    public void evaluateLocation_reroutesOnBearingMismatchWhenAlongTrackProgressIsBackward() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                1.2f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation seedEvaluation = state.evaluateLocation(
+                location(0.0, 0.00035, 2_000L),
+                1.2f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation firstMismatchEvaluation = state.evaluateLocation(
+                location(0.0, 0.00018, 5_500L),
+                1.2f,
+                5f,
+                270.0,
+                5_500L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation secondMismatchEvaluation = state.evaluateLocation(
+                location(0.0, 0.00008, 6_500L),
+                1.2f,
+                5f,
+                270.0,
+                6_500L,
+                0L
+        );
+
+        assertFalse(seedEvaluation.shouldRecalculateRoute());
+        assertFalse(firstMismatchEvaluation.shouldRecalculateRoute());
+        assertFalse(firstMismatchEvaluation.isStableOnRouteSample());
+        assertTrue(secondMismatchEvaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.BEARING_MISMATCH, secondMismatchEvaluation.rerouteNotice.reason);
     }
 
     @Test
@@ -368,6 +559,20 @@ public class NavigationSessionRouteStateTest {
                 Collections.emptyList(),
                 180.0,
                 333.0
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute routeWithSharpTurn() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.00018),
+                        new LatLon(0.00018, 0.00018)
+                ),
+                Collections.emptyList(),
+                40.0,
+                40.0
         );
     }
 

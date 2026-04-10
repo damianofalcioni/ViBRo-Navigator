@@ -1,6 +1,7 @@
 package com.vibenavigator.nav;
 
 import android.location.Location;
+import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +18,12 @@ final class NavigationSessionLocationState {
     private static final float MAX_STATIONARY_REPORTED_SPEED_MPS = 0.35f;
     private static final long RECENT_MOTION_WINDOW_MS = 3_000L;
     private static final double MAX_STATIONARY_RECENT_DISTANCE_METERS = 0.8;
+    private static final float MIN_RAW_BEARING_SPEED_MPS = 1.0f;
+    private static final float MIN_TRUSTED_GPS_BEARING_SPEED_MPS = 0.8f;
+    private static final float MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS = 1.5f;
+    private static final float MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES = 25f;
+    private static final long MIN_MOVEMENT_BEARING_ELAPSED_MS = 2_000L;
+    private static final double MIN_MOVEMENT_BEARING_DISTANCE_METERS = 3.0;
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
@@ -127,27 +134,19 @@ final class NavigationSessionLocationState {
 
     @Nullable
     Double actualBearingDegrees(@NonNull Location location) {
-        if (location.hasBearing() && speedMps(location) > 1.0f) {
+        if (location.hasBearing() && speedMps(location) > MIN_RAW_BEARING_SPEED_MPS) {
             return (double) location.getBearing();
         }
-        if (previousFiltered != null) {
-            double distanceMeters = GeoMath.distanceMeters(
-                    previousFiltered.getLatitude(),
-                    previousFiltered.getLongitude(),
-                    location.getLatitude(),
-                    location.getLongitude()
-            );
-            if (distanceMeters < 3.0) {
-                return null;
-            }
-            return GeoMath.bearingDegrees(
-                    previousFiltered.getLatitude(),
-                    previousFiltered.getLongitude(),
-                    location.getLatitude(),
-                    location.getLongitude()
-            );
+        return resolveMovementBearingDegrees(location);
+    }
+
+    @Nullable
+    Double trustedActualBearingDegreesForReroute(@NonNull Location location) {
+        Double gpsBearingDegrees = trustedGpsBearingDegrees(location);
+        if (gpsBearingDegrees != null) {
+            return gpsBearingDegrees;
         }
-        return null;
+        return resolveMovementBearingDegrees(location);
     }
 
     float accuracyMeters(@NonNull Location location) {
@@ -224,5 +223,55 @@ final class NavigationSessionLocationState {
                 && recentFilteredLocations.peekFirst().getTime() < cutoffTimeMs) {
             recentFilteredLocations.removeFirst();
         }
+    }
+
+    @Nullable
+    private Double trustedGpsBearingDegrees(@NonNull Location location) {
+        if (!location.hasBearing()) {
+            return null;
+        }
+        float speedMps = speedMps(location);
+        if (speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
+            return null;
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
+            float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
+            if (Float.isFinite(bearingAccuracyDegrees)
+                    && bearingAccuracyDegrees >= 0f
+                    && bearingAccuracyDegrees <= MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES) {
+                return (double) location.getBearing();
+            }
+            return null;
+        }
+        return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
+                ? (double) location.getBearing()
+                : null;
+    }
+
+    @Nullable
+    private Double resolveMovementBearingDegrees(@NonNull Location location) {
+        pruneRecentFilteredLocations(location.getTime());
+        for (Location sample : recentFilteredLocations) {
+            long elapsedMs = location.getTime() - sample.getTime();
+            if (elapsedMs < MIN_MOVEMENT_BEARING_ELAPSED_MS) {
+                continue;
+            }
+            double distanceMeters = GeoMath.distanceMeters(
+                    sample.getLatitude(),
+                    sample.getLongitude(),
+                    location.getLatitude(),
+                    location.getLongitude()
+            );
+            if (distanceMeters < MIN_MOVEMENT_BEARING_DISTANCE_METERS) {
+                continue;
+            }
+            return GeoMath.bearingDegrees(
+                    sample.getLatitude(),
+                    sample.getLongitude(),
+                    location.getLatitude(),
+                    location.getLongitude()
+            );
+        }
+        return null;
     }
 }
