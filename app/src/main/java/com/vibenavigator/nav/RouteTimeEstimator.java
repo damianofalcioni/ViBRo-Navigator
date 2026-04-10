@@ -27,38 +27,14 @@ final class RouteTimeEstimator {
         if (trackPointIndex < 0 || trackPointIndex >= route.track.size()) {
             return null;
         }
-
-        if (isOnCurrentSegment(currentSegmentIndex, trackPointIndex)) {
-            return estimateCurrentSegmentSeconds(
-                    route,
-                    polylineIndex,
-                    alongTrackMeters,
-                    trackPointIndex,
-                    speedMps
-            );
-        }
-
-        int currentSegmentEndPointIndex = currentSegmentIndex + 1;
-        if (currentSegmentEndPointIndex > 0
-                && currentSegmentEndPointIndex < route.track.size()
-                && speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND) {
-            Double currentSegmentSeconds = estimateLiveSecondsToTrackPoint(
-                    polylineIndex,
-                    alongTrackMeters,
-                    currentSegmentEndPointIndex,
-                    speedMps
-            );
-            Double laterSegmentsSeconds = estimateSecondsBetweenTrackPoints(
-                    route,
-                    polylineIndex,
-                    currentSegmentEndPointIndex,
-                    trackPointIndex
-            );
-            if (currentSegmentSeconds != null && laterSegmentsSeconds != null) {
-                return currentSegmentSeconds + laterSegmentsSeconds;
-            }
-        }
-        return estimateSecondsUsingRouteModel(route, polylineIndex, alongTrackMeters, trackPointIndex);
+        return estimateSecondsToAlongTrack(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                currentSegmentIndex,
+                polylineIndex.distanceAtPointIndex(trackPointIndex),
+                speedMps
+        );
     }
 
     @Nullable
@@ -73,70 +49,113 @@ final class RouteTimeEstimator {
                 || endTrackPointIndex >= route.track.size()) {
             return null;
         }
-
-        List<Double> timesSeconds = route.timesSeconds;
-        if (timesSeconds.size() == route.track.size()) {
-            double startTimeSeconds = timesSeconds.get(startTrackPointIndex);
-            double endTimeSeconds = timesSeconds.get(endTrackPointIndex);
-            if (Double.isFinite(startTimeSeconds) && Double.isFinite(endTimeSeconds)) {
-                return Math.max(0.0, endTimeSeconds - startTimeSeconds);
-            }
-        }
-
-        double startMeters = polylineIndex.distanceAtPointIndex(startTrackPointIndex);
-        double endMeters = polylineIndex.distanceAtPointIndex(endTrackPointIndex);
-        double remainingMeters = Math.max(0.0, endMeters - startMeters);
-        return estimateSecondsForDistance(route, polylineIndex, remainingMeters);
+        return estimateSecondsBetweenAlongTrack(
+                route,
+                polylineIndex,
+                polylineIndex.distanceAtPointIndex(startTrackPointIndex),
+                polylineIndex.distanceAtPointIndex(endTrackPointIndex)
+        );
     }
 
     @Nullable
-    private static Double estimateCurrentSegmentSeconds(
+    static Double estimateSecondsToAlongTrack(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             double alongTrackMeters,
-            int trackPointIndex,
+            int currentSegmentIndex,
+            double targetAlongTrackMeters,
             float speedMps
     ) {
-        if (speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND) {
-            return estimateLiveSecondsToTrackPoint(polylineIndex, alongTrackMeters, trackPointIndex, speedMps);
+        double totalLengthMeters = polylineIndex.totalLengthMeters();
+        double clampedAlongTrackMeters = clampAlongTrackMeters(alongTrackMeters, totalLengthMeters);
+        double clampedTargetAlongTrackMeters = clampAlongTrackMeters(targetAlongTrackMeters, totalLengthMeters);
+        if (clampedTargetAlongTrackMeters <= clampedAlongTrackMeters) {
+            return 0.0;
         }
-        return estimateSecondsUsingRouteModel(route, polylineIndex, alongTrackMeters, trackPointIndex);
+
+        Double routeModelSeconds = estimateSecondsBetweenAlongTrack(
+                route,
+                polylineIndex,
+                clampedAlongTrackMeters,
+                clampedTargetAlongTrackMeters
+        );
+        double currentSegmentEndAlongTrackMeters = resolveCurrentSegmentEndAlongTrackMeters(
+                polylineIndex,
+                currentSegmentIndex,
+                totalLengthMeters
+        );
+        if (currentSegmentEndAlongTrackMeters <= clampedAlongTrackMeters
+                || speedMps < MIN_LIVE_SPEED_METERS_PER_SECOND) {
+            return routeModelSeconds;
+        }
+
+        double liveSegmentTargetAlongTrackMeters = Math.min(
+                clampedTargetAlongTrackMeters,
+                currentSegmentEndAlongTrackMeters
+        );
+        double currentSegmentSeconds = (liveSegmentTargetAlongTrackMeters - clampedAlongTrackMeters) / speedMps;
+        if (clampedTargetAlongTrackMeters <= currentSegmentEndAlongTrackMeters) {
+            return Math.max(0.0, currentSegmentSeconds);
+        }
+
+        Double laterSegmentsSeconds = estimateSecondsBetweenAlongTrack(
+                route,
+                polylineIndex,
+                currentSegmentEndAlongTrackMeters,
+                clampedTargetAlongTrackMeters
+        );
+        if (laterSegmentsSeconds != null) {
+            return Math.max(0.0, currentSegmentSeconds) + laterSegmentsSeconds;
+        }
+        return routeModelSeconds;
     }
 
     @Nullable
-    private static Double estimateLiveSecondsToTrackPoint(
-            @NonNull PolylineIndex polylineIndex,
-            double alongTrackMeters,
-            int trackPointIndex,
-            float speedMps
-    ) {
-        double targetAlongTrackMeters = polylineIndex.distanceAtPointIndex(trackPointIndex);
-        double remainingMeters = Math.max(0.0, targetAlongTrackMeters - alongTrackMeters);
-        return speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND
-                ? remainingMeters / speedMps
-                : null;
-    }
-
-    @Nullable
-    private static Double estimateSecondsUsingRouteModel(
+    private static Double estimateSecondsBetweenAlongTrack(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            double alongTrackMeters,
-            int targetTrackPointIndex
+            double startAlongTrackMeters,
+            double endAlongTrackMeters
     ) {
+        double totalLengthMeters = polylineIndex.totalLengthMeters();
+        double clampedStartAlongTrackMeters = clampAlongTrackMeters(startAlongTrackMeters, totalLengthMeters);
+        double clampedEndAlongTrackMeters = clampAlongTrackMeters(endAlongTrackMeters, totalLengthMeters);
+        if (clampedEndAlongTrackMeters <= clampedStartAlongTrackMeters) {
+            return 0.0;
+        }
+
         Double trackTimeSeconds = estimateSecondsFromTrackTimes(
                 route,
                 polylineIndex,
-                alongTrackMeters,
-                targetTrackPointIndex
+                clampedStartAlongTrackMeters,
+                clampedEndAlongTrackMeters
         );
         if (trackTimeSeconds != null) {
             return trackTimeSeconds;
         }
+        return estimateSecondsForDistance(
+                route,
+                polylineIndex,
+                clampedEndAlongTrackMeters - clampedStartAlongTrackMeters
+        );
+    }
 
-        double targetAlongTrackMeters = polylineIndex.distanceAtPointIndex(targetTrackPointIndex);
-        double remainingMeters = Math.max(0.0, targetAlongTrackMeters - alongTrackMeters);
-        return estimateSecondsForDistance(route, polylineIndex, remainingMeters);
+    private static double clampAlongTrackMeters(double alongTrackMeters, double totalLengthMeters) {
+        return Math.max(0.0, Math.min(alongTrackMeters, totalLengthMeters));
+    }
+
+    private static double resolveCurrentSegmentEndAlongTrackMeters(
+            @NonNull PolylineIndex polylineIndex,
+            int currentSegmentIndex,
+            double totalLengthMeters
+    ) {
+        if (currentSegmentIndex < 0) {
+            return -1.0;
+        }
+        return clampAlongTrackMeters(
+                polylineIndex.distanceAtPointIndex(currentSegmentIndex + 1),
+                totalLengthMeters
+        );
     }
 
     @Nullable
@@ -152,30 +171,24 @@ final class RouteTimeEstimator {
         return null;
     }
 
-    private static boolean isOnCurrentSegment(int currentSegmentIndex, int trackPointIndex) {
-        return currentSegmentIndex >= 0 && trackPointIndex <= currentSegmentIndex + 1;
-    }
-
     @Nullable
     private static Double estimateSecondsFromTrackTimes(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            double alongTrackMeters,
-            int targetTrackPointIndex
+            double startAlongTrackMeters,
+            double endAlongTrackMeters
     ) {
         List<Double> timesSeconds = route.timesSeconds;
-        if (timesSeconds.size() != route.track.size()
-                || targetTrackPointIndex < 0
-                || targetTrackPointIndex >= timesSeconds.size()) {
+        if (timesSeconds.size() != route.track.size()) {
             return null;
         }
 
-        double currentTimeSeconds = interpolateTimeAtAlongTrack(polylineIndex, timesSeconds, alongTrackMeters);
-        double targetTimeSeconds = timesSeconds.get(targetTrackPointIndex);
-        if (!Double.isFinite(currentTimeSeconds) || !Double.isFinite(targetTimeSeconds)) {
+        double startTimeSeconds = interpolateTimeAtAlongTrack(polylineIndex, timesSeconds, startAlongTrackMeters);
+        double endTimeSeconds = interpolateTimeAtAlongTrack(polylineIndex, timesSeconds, endAlongTrackMeters);
+        if (!Double.isFinite(startTimeSeconds) || !Double.isFinite(endTimeSeconds)) {
             return null;
         }
-        return Math.max(0.0, targetTimeSeconds - currentTimeSeconds);
+        return Math.max(0.0, endTimeSeconds - startTimeSeconds);
     }
 
     private static double interpolateTimeAtAlongTrack(

@@ -62,4 +62,30 @@ public class RouteTimeEstimatorTest {
 
         assertEquals(25.56, seconds, 0.25);
     }
+
+    @Test
+    public void estimateSecondsToAlongTrack_combinesLiveCurrentSegmentWithBrouterLaterSegments() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.0001),
+                        new LatLon(0.0, 0.001)
+                ),
+                Arrays.asList(),
+                Arrays.asList(0.0, 10.0, 30.0),
+                30.0,
+                111.0
+        );
+
+        Double seconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
+                route,
+                new PolylineIndex(route.track),
+                0.0,
+                0,
+                111.0,
+                2f
+        );
+
+        assertEquals(25.56, seconds, 0.25);
+    }
 }

@@ -192,8 +192,26 @@ public final class NavState {
         );
         String next = directionLines.isEmpty() ? "" : directionLines.get(0);
         String afterNext = directionLines.size() > 1 ? directionLines.get(1) : "";
-        String destination = buildDestinationLine(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
-        String stopProgress = buildStopProgress(route, index, alongTrackMeters, speedMps, nowMs, targets, context);
+        String destination = buildDestinationLine(
+                route,
+                index,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                nowMs,
+                targets,
+                context
+        );
+        String stopProgress = buildStopProgress(
+                route,
+                index,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                nowMs,
+                targets,
+                context
+        );
         String gpsStatus = buildGpsStatusLine(speedMps, currentLocation, accuracyMeters, fixedSatelliteCount, context);
         NavCompassState compassState = buildCompassState(
                 route,
@@ -352,6 +370,7 @@ public final class NavState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             double alongTrackMeters,
+            int currentSegmentIndex,
             float speedMps,
             long nowMs,
             @NonNull List<NavTarget> targets,
@@ -361,17 +380,16 @@ public final class NavState {
             return "";
         }
         NavTarget destination = targets.get(targets.size() - 1);
-        double total = index.totalLengthMeters();
         double distTo = Math.max(0.0, destination.alongTrackMeters - alongTrackMeters);
-        double secTo = estimateSeconds(route, total, distTo, speedMps);
-        return context.getString(
-                R.string.format_progress_line,
-                destination.label,
-                NavigationTextFormatter.formatDistance(context, distTo),
-                NavigationTextFormatter.formatTimeSeconds(context, (int) Math.round(secTo)),
-                context.getString(R.string.nav_eta),
-                NavigationTextFormatter.formatEta(nowMs + (long) (secTo * 1000))
+        Double secTo = RouteTimeEstimator.estimateSecondsToAlongTrack(
+                route,
+                index,
+                alongTrackMeters,
+                currentSegmentIndex,
+                destination.alongTrackMeters,
+                speedMps
         );
+        return buildProgressLine(context, destination.label, distTo, secTo, nowMs);
     }
 
     @NonNull
@@ -379,13 +397,12 @@ public final class NavState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             double alongTrackMeters,
+            int currentSegmentIndex,
             float speedMps,
             long nowMs,
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
-        double total = index.totalLengthMeters();
-
         int lastStopIndex = Math.max(0, targets.size() - 1);
         for (int i = 0; i < lastStopIndex; i++) {
             NavTarget t = targets.get(i);
@@ -393,17 +410,42 @@ public final class NavState {
             if (distTo <= 0.0) {
                 continue;
             }
-            double secTo = estimateSeconds(route, total, distTo, speedMps);
-            return context.getString(
-                    R.string.format_progress_line,
-                    t.label,
-                    NavigationTextFormatter.formatDistance(context, distTo),
-                    NavigationTextFormatter.formatTimeSeconds(context, (int) Math.round(secTo)),
-                    context.getString(R.string.nav_eta),
-                    NavigationTextFormatter.formatEta(nowMs + (long) (secTo * 1000))
+            Double secTo = RouteTimeEstimator.estimateSecondsToAlongTrack(
+                    route,
+                    index,
+                    alongTrackMeters,
+                    currentSegmentIndex,
+                    t.alongTrackMeters,
+                    speedMps
             );
+            return buildProgressLine(context, t.label, distTo, secTo, nowMs);
         }
         return "";
+    }
+
+    @NonNull
+    private static String buildProgressLine(
+            @NonNull Context context,
+            @NonNull String label,
+            double distanceMeters,
+            @Nullable Double seconds,
+            long nowMs
+    ) {
+        String timeText = NavigationTextFormatter.formatTimeSeconds(
+                context,
+                seconds != null ? seconds : Double.NaN
+        );
+        String etaText = seconds != null && Double.isFinite(seconds)
+                ? NavigationTextFormatter.formatEta(nowMs + (long) (seconds * 1000))
+                : context.getString(R.string.nav_status_unavailable);
+        return context.getString(
+                R.string.format_progress_line,
+                label,
+                NavigationTextFormatter.formatDistance(context, distanceMeters),
+                timeText,
+                context.getString(R.string.nav_eta),
+                etaText
+        );
     }
 
     @Nullable
@@ -656,16 +698,6 @@ public final class NavState {
             normalized += 360.0;
         }
         return (float) normalized;
-    }
-
-    private static double estimateSeconds(@NonNull GeoJsonRoute route, double totalMeters, double remainingMeters, float speedMps) {
-        if (speedMps >= 1.0f) {
-            return remainingMeters / speedMps;
-        }
-        if (route.totalTimeSeconds > 0.0 && totalMeters > 0.0) {
-            return route.totalTimeSeconds * (remainingMeters / totalMeters);
-        }
-        return 0.0;
     }
 
     private static final class CompassTrackSample {

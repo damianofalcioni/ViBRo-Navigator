@@ -304,8 +304,10 @@ The navigation UI must show the following in large text:
 #### 4.5.3 Secondary progress/detail line
 
 - Below the compass, the UI must first show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
+- The destination progress line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing: trustworthy live speed only for the remaining current-segment portion, plus BRouter-derived time for later segments
 - Below the destination progress line, the UI must use a single shared secondary text line instead of separate stop-progress and generic-message areas
 - When an intermediate stop is still ahead on the route and there is no higher-priority notice to show, that secondary line must show the distance left, time left, and arrival time for only the next intermediate stop ahead
+- The next intermediate stop line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing and destination progress
 - When the current next intermediate stop is passed, the secondary line must switch to the following intermediate stop if one remains
 - The UI must not list all remaining intermediate stops at once in that secondary line
 - When a navigation detail or notice needs to be surfaced in that area, such as route-unavailable detail or blocked-road reroute feedback, that detail must take precedence over intermediate-stop progress on the shared secondary line
