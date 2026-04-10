@@ -142,6 +142,21 @@ final class NavigationSessionLocationState {
     }
 
     @Nullable
+    HeadingEstimate preferredCompassHeading(@NonNull Location location, boolean likelyStationary) {
+        if (likelyStationary) {
+            return null;
+        }
+        Double gpsBearingDegrees = trustedGpsBearingDegrees(location);
+        if (gpsBearingDegrees != null) {
+            return new HeadingEstimate(gpsBearingDegrees, currentBearingAccuracyDegrees(location));
+        }
+        Double movementBearingDegrees = resolveMovementBearingDegrees(location);
+        return movementBearingDegrees == null
+                ? null
+                : new HeadingEstimate(movementBearingDegrees, null);
+    }
+
+    @Nullable
     Double trustedActualBearingDegreesForReroute(@NonNull Location location) {
         Double gpsBearingDegrees = trustedGpsBearingDegrees(location);
         if (gpsBearingDegrees != null) {
@@ -184,6 +199,17 @@ final class NavigationSessionLocationState {
                 throw new IllegalStateException("Filtered location is unavailable for a dropped update");
             }
             return filteredLocation;
+        }
+    }
+
+    static final class HeadingEstimate {
+        final double headingDegrees;
+        @Nullable
+        final Float headingAccuracyDegrees;
+
+        private HeadingEstimate(double headingDegrees, @Nullable Float headingAccuracyDegrees) {
+            this.headingDegrees = headingDegrees;
+            this.headingAccuracyDegrees = headingAccuracyDegrees;
         }
     }
 
@@ -246,6 +272,17 @@ final class NavigationSessionLocationState {
         }
         return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
                 ? (double) location.getBearing()
+                : null;
+    }
+
+    @Nullable
+    private Float currentBearingAccuracyDegrees(@NonNull Location location) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !location.hasBearingAccuracy()) {
+            return null;
+        }
+        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
+        return Float.isFinite(bearingAccuracyDegrees) && bearingAccuracyDegrees >= 0f
+                ? bearingAccuracyDegrees
                 : null;
     }
 

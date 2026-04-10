@@ -3,6 +3,7 @@ package com.vibenavigator.nav;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.location.Location;
@@ -59,6 +60,67 @@ public class NavigationSessionLocationStateTest {
 
         assertNotNull(bearingDegrees);
         assertEquals(84.0, bearingDegrees, 0.0);
+    }
+
+    @Test
+    public void preferredCompassHeading_prefersTrustedGpsBearingWhileMoving() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 3_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        Location update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
+        update.setBearing(84f);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            update.setBearingAccuracyDegrees(12f);
+        }
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+
+        NavigationSessionLocationState.HeadingEstimate headingEstimate =
+                state.preferredCompassHeading(accepted.getFilteredLocation(), false);
+
+        assertNotNull(headingEstimate);
+        assertEquals(84.0, headingEstimate.headingDegrees, 0.0);
+        assertEquals(12.0f, headingEstimate.headingAccuracyDegrees, 0.0f);
+    }
+
+    @Test
+    public void preferredCompassHeading_fallsBackToMovementCourseWhenGpsBearingAccuracyIsLow() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 4_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        Location update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 1.2f);
+        update.setBearing(84f);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            update.setBearingAccuracyDegrees(40f);
+        }
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+
+        NavigationSessionLocationState.HeadingEstimate headingEstimate =
+                state.preferredCompassHeading(accepted.getFilteredLocation(), false);
+
+        assertNotNull(headingEstimate);
+        assertEquals(0.0, headingEstimate.headingDegrees, 15.0);
+        assertNull(headingEstimate.headingAccuracyDegrees);
+    }
+
+    @Test
+    public void preferredCompassHeading_ignoresMovingSourcesWhileStationary() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 3_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0f));
+        Location update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
+        update.setBearing(84f);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            update.setBearingAccuracyDegrees(12f);
+        }
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+
+        NavigationSessionLocationState.HeadingEstimate headingEstimate =
+                state.preferredCompassHeading(accepted.getFilteredLocation(), true);
+
+        assertNull(headingEstimate);
     }
 
     @Test

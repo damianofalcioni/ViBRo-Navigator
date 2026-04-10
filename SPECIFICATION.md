@@ -152,7 +152,7 @@ The app must monitor user position:
 - Wrong direction is defined as bearing difference greater than 60 degrees
 - Bearing-based wrong-direction detection must only be trusted when the current fix is accurate enough and the heading source is credible for the current speed and displacement
 - When GPS bearing accuracy is available, the app should prefer GPS bearing only when that reported bearing accuracy is good enough for walking and cycling use cases; low-speed walking use must remain supported and must not be excluded by a cycling-only speed gate
-- When GPS bearing is not trustworthy enough, the app should fall back to a movement-derived course computed from recent filtered route progress rather than from a single noisy fix pair
+- When GPS bearing is not trustworthy enough, wrong-direction detection and moving compass-heading selection should fall back to a movement-derived course computed from recent filtered route progress rather than from a single noisy fix pair
 - Low-confidence bearing estimates must not trigger reroutes on their own
 - The expected route bearing for wrong-direction checks should be forward-looking, derived from a short lookahead along the matched route geometry rather than only from the single currently matched segment
 - Bearing mismatch alone should not be enough to reroute while the user is still making clear forward progress along the route
@@ -239,7 +239,9 @@ The navigation UI must show the following in large text:
 - In the center: a map-free compass canvas showing the active route relative to the current position
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
+- While the user is moving, the displayed compass heading should prefer the trusted GPS/course heading to reduce jitter, and should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees
+- When the user is stationary, or when neither trusted GPS/course heading nor movement-derived course is available, the displayed compass heading may fall back to the live geomagnetic heading
 - Live geomagnetic compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
@@ -253,7 +255,7 @@ The navigation UI must show the following in large text:
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line
-- When the displayed heading comes from a geomagnetic sample that exposes a heading-accuracy estimate, the compass must show two semi-transparent white straight guide lines, using the same visual treatment as the fixed top heading guide, from the center to the outer distance ring at the negative and positive angular error bounds around the fixed top heading guide
+- When the displayed heading source exposes a heading-accuracy estimate, the compass must show two semi-transparent white straight guide lines, using the same visual treatment as the fixed top heading guide, from the center to the outer distance ring at the negative and positive angular error bounds around the fixed top heading guide
 - Each distance ring should show a semi-transparent distance label on the right side and a matching travel-time label on the left side
 - In moving mode, the top visible distance ring is the primary horizon reference for those labels; inner-ring distance and time labels must scale from that top visible ring rather than from the hidden compass edge
 - When heading accuracy is zero or unavailable, those labels should stay aligned with the short vertical-guide tick at the top ring intersection

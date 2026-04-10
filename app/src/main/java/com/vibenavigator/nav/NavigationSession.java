@@ -177,11 +177,24 @@ final class NavigationSession {
     ) {
         Location lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
+        boolean likelyStationary = locationState.isLikelyStationary();
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
                 : Float.MAX_VALUE;
-        Double headingDegrees = displayHeadingDegrees;
-        Float headingAccuracyDegrees = displayHeadingAccuracyDegrees;
+        Double headingDegrees = null;
+        Float headingAccuracyDegrees = null;
+        if (lastFiltered != null) {
+            NavigationSessionLocationState.HeadingEstimate preferredCompassHeading =
+                    locationState.preferredCompassHeading(lastFiltered, likelyStationary);
+            if (preferredCompassHeading != null) {
+                headingDegrees = preferredCompassHeading.headingDegrees;
+                headingAccuracyDegrees = preferredCompassHeading.headingAccuracyDegrees;
+            }
+        }
+        if (headingDegrees == null) {
+            headingDegrees = displayHeadingDegrees;
+            headingAccuracyDegrees = displayHeadingAccuracyDegrees;
+        }
         if (headingDegrees == null) {
             headingDegrees = lastFiltered != null
                     ? locationState.actualBearingDegrees(lastFiltered)
@@ -192,7 +205,7 @@ final class NavigationSession {
                 context,
                 lastFiltered,
                 speedMps,
-                locationState.isLikelyStationary(),
+                likelyStationary,
                 accuracyMeters,
                 fixedSatelliteCount,
                 headingDegrees,
