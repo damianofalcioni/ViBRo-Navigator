@@ -1,6 +1,7 @@
 package com.vibenavigator;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.vibenavigator.brouter.BRouterInstallLauncher;
 import com.vibenavigator.brouter.BRouterProfilesRepository;
 import com.vibenavigator.nav.NavigationRequest;
 import com.vibenavigator.poi.PoiHistoryStore;
@@ -71,8 +73,8 @@ public class MainActivity extends Activity {
 
         boolean brouterInstalled = profilesRepository.isBRouterInstalled(this);
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
-        if (!brouterInstalled) {
-            Toast.makeText(this, R.string.msg_brouter_not_found, Toast.LENGTH_LONG).show();
+        if (!brouterInstalled && savedInstanceState == null) {
+            showBRouterInstallPrompt();
         }
 
         historyStore = new PoiHistoryStore(this);
@@ -105,7 +107,11 @@ public class MainActivity extends Activity {
 
         stopController.restoreRows(savedInstanceState);
 
-        profilePicker.refreshProfiles();
+        if (brouterInstalled) {
+            profilePicker.refreshProfiles();
+        } else {
+            profileSpinnerController.refresh();
+        }
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
             return;
         }
@@ -286,5 +292,23 @@ public class MainActivity extends Activity {
             return selectedPoi;
         }
         return controller.parseCurrentPoi();
+    }
+
+    private void showBRouterInstallPrompt() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.title_brouter_not_found)
+                .setMessage(R.string.msg_brouter_install_prompt)
+                .setPositiveButton(R.string.action_open_play_store, (dialog, which) -> {
+                    if (!BRouterInstallLauncher.launchPlayStore(this)) {
+                        Toast.makeText(this, R.string.msg_open_brouter_store_failed, Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setNeutralButton(R.string.action_open_fdroid, (dialog, which) -> {
+                    if (!BRouterInstallLauncher.launchFdroid(this)) {
+                        Toast.makeText(this, R.string.msg_open_brouter_store_failed, Toast.LENGTH_LONG).show();
+                    }
+                })
+                .setNegativeButton(R.string.action_cancel, null)
+                .show();
     }
 }

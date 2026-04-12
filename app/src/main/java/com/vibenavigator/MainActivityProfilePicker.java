@@ -45,10 +45,6 @@ final class MainActivityProfilePicker {
     void refreshProfiles() {
         ProfileSpinnerController controller = requireProfileSpinnerController();
         controller.refresh();
-        if (controller.shouldPromptForProfilesFolder()) {
-            AppLogger.w(TAG, "No routing profiles found");
-            maybePromptProfilesFolder();
-        }
     }
 
     void maybePromptProfilesFolder() {

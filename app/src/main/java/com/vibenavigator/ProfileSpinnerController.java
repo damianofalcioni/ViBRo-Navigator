@@ -58,6 +58,12 @@ final class ProfileSpinnerController {
                 return false;
             }
             if (event.getAction() == MotionEvent.ACTION_UP) {
+                if (shouldOpenCustomPickerFromSpinnerTap()) {
+                    selectionUserInitiated = false;
+                    AppLogger.i(TAG, "Opening custom profile picker from spinner tap");
+                    listener.onCustomProfilePickerRequested();
+                    return true;
+                }
                 selectionUserInitiated = true;
                 return v.performClick();
             }
@@ -100,7 +106,8 @@ final class ProfileSpinnerController {
     }
 
     boolean shouldPromptForProfilesFolder() {
-        return profiles.isEmpty()
+        return profilesRepository.isBRouterInstalled(context)
+                && profiles.isEmpty()
                 && profilesRepository.getCustomProfileName(context) == null
                 && profilesRepository.getProfilesTreeUri(context) == null;
     }
@@ -119,6 +126,10 @@ final class ProfileSpinnerController {
 
     @Nullable
     String resolveSelectedProfile() {
+        if (!profilesRepository.isBRouterInstalled(context)) {
+            Toast.makeText(context, R.string.msg_brouter_not_found, Toast.LENGTH_SHORT).show();
+            return null;
+        }
         int position = spinner.getSelectedItemPosition();
         if (position < 0 || position >= options.size()) {
             Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
@@ -154,6 +165,22 @@ final class ProfileSpinnerController {
         selectionUserInitiated = false;
         AppLogger.i(TAG, "Custom profile entry selected");
         listener.onCustomProfilePickerRequested();
+    }
+
+    private boolean shouldOpenCustomPickerFromSpinnerTap() {
+        if (!profilesRepository.isBRouterInstalled(context)) {
+            return false;
+        }
+        int position = spinner.getSelectedItemPosition();
+        if (position < 0 || position >= options.size()) {
+            return false;
+        }
+        ProfileOption option = options.get(position);
+        if (!option.isCustom()) {
+            return false;
+        }
+        String customProfile = profilesRepository.getCustomProfileName(context);
+        return customProfile == null || customProfile.trim().isEmpty();
     }
 
     @Nullable

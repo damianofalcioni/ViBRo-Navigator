@@ -16,6 +16,8 @@
     <string name="action_save">Save</string>
     <string name="action_open_map">Map</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_open_play_store">Play Store</string>
+    <string name="action_open_fdroid">F-Droid</string>
     <string name="action_use_selected_point">Use selected point</string>
     <string name="action_zoom_in">+</string>
     <string name="action_zoom_out">-</string>
@@ -33,6 +35,8 @@
     <string name="msg_invalid_coordinates">Select a place with coordinates</string>
     <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
+    <string name="title_brouter_not_found">BRouter required</string>
+    <string name="msg_brouter_install_prompt">BRouter is not installed. Open its app page in Play Store or F-Droid?</string>
     <string name="msg_location_disabled">Location is disabled. Enable it to navigate.</string>
     <string name="msg_permission_required">Permission required</string>
     <string name="msg_permission_location_rationale">VibeNavigator needs location access to navigate and vibrate directions.</string>
@@ -40,6 +44,7 @@
     <string name="msg_enable_notifications">Enable notifications for turn alerts.</string>
     <string name="msg_battery_opt_rationale">For reliable background navigation, allow VibeNavigator to ignore battery optimizations.</string>
     <string name="msg_open_settings_failed">Could not open settings on this device.</string>
+    <string name="msg_open_brouter_store_failed">Could not open a BRouter store page on this device.</string>
     <string name="msg_select_brouter_profiles_folder_title">Select BRouter profile source</string>
     <string name="msg_select_brouter_profiles_folder_body">Select a specific BRouter .brf file or a folder that contains BRouter profiles.\n\nCommon paths:\nMemory card/Android/data/btools.routingapp/files/brouter/profiles2\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\n\nNewer BRouter versions may bundle default profiles internally, so these folders may not exist.</string>
     <string name="msg_intent_unrecognized">Shared location not recognized</string>

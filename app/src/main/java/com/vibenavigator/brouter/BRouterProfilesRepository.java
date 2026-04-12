@@ -30,15 +30,18 @@ import java.util.zip.ZipInputStream;
 
 public final class BRouterProfilesRepository {
 
+    public static final String BROUTER_PACKAGE_NAME = "btools.routingapp";
+
     private static final String PREFS = "vibenavigator_brouter";
     private static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
     private static final String KEY_CUSTOM_PROFILE_URI = "custom_profile_uri";
     private static final String KEY_CUSTOM_PROFILE_NAME = "custom_profile_name";
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
-    private static final String BROUTER_PACKAGE = "btools.routingapp";
     private static final String BROUTER_PROFILES_ZIP = "assets/profiles2.zip";
     private static final String EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY = "com.android.externalstorage.documents";
-    private static final String PROFILES_RELATIVE_DOCUMENT_PATH =
+    private static final String MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH =
+            "Android/media/btools.routingapp/brouter/profiles2";
+    private static final String LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH =
             "Android/data/btools.routingapp/files/brouter/profiles2";
     private static final String TAG = "BRouterProfiles";
 
@@ -123,9 +126,10 @@ public final class BRouterProfilesRepository {
         if (customUri != null) {
             return customUri;
         }
+        String documentId = resolveExistingProfilesDocumentId(context);
         return DocumentsContract.buildTreeDocumentUri(
                 EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
-                getPreferredProfilesDocumentId(context)
+                documentId
         );
     }
 
@@ -133,21 +137,55 @@ public final class BRouterProfilesRepository {
     public Uri getCustomProfilePickerInitialUri(@NonNull Context context) {
         Uri customUri = getCustomProfileUri(context);
         if (customUri != null) {
+            Uri parentUri = toParentDocumentUri(customUri);
+            if (parentUri != null) {
+                return parentUri;
+            }
             return customUri;
         }
         Uri treeUri = getProfilesTreeUri(context);
         if (treeUri != null) {
-            return treeUri;
+            return DocumentsContract.buildDocumentUriUsingTree(
+                    treeUri,
+                    DocumentsContract.getTreeDocumentId(treeUri)
+            );
         }
-        return DocumentsContract.buildDocumentUri(
+        String documentId = resolveExistingProfilesDocumentId(context);
+        Uri defaultTreeUri = DocumentsContract.buildTreeDocumentUri(
                 EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
-                getPreferredProfilesDocumentId(context)
+                documentId
         );
+        return DocumentsContract.buildDocumentUriUsingTree(
+                defaultTreeUri,
+                documentId
+        );
+    }
+
+    @Nullable
+    private Uri toParentDocumentUri(@NonNull Uri documentUri) {
+        try {
+            if (!EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY.equals(documentUri.getAuthority())) {
+                return null;
+            }
+            String documentId = DocumentsContract.getDocumentId(documentUri);
+            int slash = documentId.lastIndexOf('/');
+            if (slash <= 0) {
+                return null;
+            }
+            String parentDocumentId = documentId.substring(0, slash);
+            return DocumentsContract.buildDocumentUri(
+                    EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
+                    parentDocumentId
+            );
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to derive parent document URI from custom profile uri=" + documentUri, e);
+            return null;
+        }
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
         try {
-            context.getPackageManager().getPackageInfo(BROUTER_PACKAGE, 0);
+            context.getPackageManager().getPackageInfo(BROUTER_PACKAGE_NAME, 0);
             AppLogger.d(TAG, "BRouter package detected");
             return true;
         } catch (PackageManager.NameNotFoundException e) {
@@ -210,7 +248,7 @@ public final class BRouterProfilesRepository {
     @NonNull
     private List<String> listBundledProfiles(@NonNull Context context) {
         try {
-            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(BROUTER_PACKAGE, 0);
+            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(BROUTER_PACKAGE_NAME, 0);
             try (ZipFile apk = new ZipFile(appInfo.sourceDir)) {
                 ZipEntry profilesZipEntry = apk.getEntry(BROUTER_PROFILES_ZIP);
                 if (profilesZipEntry == null) {
@@ -266,25 +304,72 @@ public final class BRouterProfilesRepository {
     }
 
     @NonNull
-    private String getPreferredProfilesDocumentId(@NonNull Context context) {
+    private String resolveExistingProfilesDocumentId(@NonNull Context context) {
+        for (String documentId : getProfilesDocumentIdCandidates(context)) {
+            if (documentExists(context, documentId)) {
+                AppLogger.d(TAG, "Using detected profiles path documentId=" + documentId);
+                return documentId;
+            }
+        }
+        String fallback = getFallbackProfilesDocumentId();
+        AppLogger.d(TAG, "Using fallback profiles path documentId=" + fallback);
+        return fallback;
+    }
+
+    @NonNull
+    private List<String> getProfilesDocumentIdCandidates(@NonNull Context context) {
+        List<String> candidates = new ArrayList<>();
+        addDocumentIdCandidate(candidates, "primary", MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
+        addDocumentIdCandidate(candidates, "primary", LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             StorageManager storageManager = context.getSystemService(StorageManager.class);
             if (storageManager != null) {
                 for (StorageVolume volume : storageManager.getStorageVolumes()) {
-                    if (!volume.isRemovable()) {
+                    String uuid = volume.getUuid();
+                    if (uuid == null || uuid.trim().isEmpty()) {
                         continue;
                     }
-                    String uuid = volume.getUuid();
-                    if (uuid != null && !uuid.trim().isEmpty()) {
-                        String documentId = uuid + ":" + PROFILES_RELATIVE_DOCUMENT_PATH;
-                        AppLogger.d(TAG, "Using removable storage profiles path documentId=" + documentId);
-                        return documentId;
-                    }
+                    addDocumentIdCandidate(candidates, uuid, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
+                    addDocumentIdCandidate(candidates, uuid, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
                 }
             }
         }
-        String documentId = "primary:" + PROFILES_RELATIVE_DOCUMENT_PATH;
-        AppLogger.d(TAG, "Using primary storage profiles path documentId=" + documentId);
-        return documentId;
+        return candidates;
+    }
+
+    private void addDocumentIdCandidate(
+            @NonNull List<String> candidates,
+            @NonNull String rootId,
+            @NonNull String relativePath
+    ) {
+        String documentId = rootId + ":" + relativePath;
+        if (!candidates.contains(documentId)) {
+            candidates.add(documentId);
+        }
+    }
+
+    private boolean documentExists(@NonNull Context context, @NonNull String documentId) {
+        Uri treeUri = DocumentsContract.buildTreeDocumentUri(EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY, documentId);
+        Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
+        try (Cursor cursor = context.getContentResolver().query(
+                documentUri,
+                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID},
+                null,
+                null,
+                null
+        )) {
+            return cursor != null && cursor.moveToFirst();
+        } catch (Exception e) {
+            AppLogger.d(TAG, "Profiles path not accessible documentId=" + documentId + " error=" + e.getClass().getSimpleName());
+            return false;
+        }
+    }
+
+    @NonNull
+    private String getFallbackProfilesDocumentId() {
+        String relativePath = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R
+                ? MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH
+                : LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH;
+        return "primary:" + relativePath;
     }
 }

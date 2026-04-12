@@ -17,7 +17,8 @@ It keeps routing offline (via the installed BRouter app), and communicates direc
 ## Requirements
 
 - Android 5.0+ (minSdk 21)
-- BRouter installed (`btools.routingapp`); bundled profiles are detected automatically, and custom external profiles can still be selected from a `profiles2` folder when present
+- BRouter installed (`btools.routingapp`); bundled profiles are detected automatically, and custom external profiles can still be selected from an accessible `profiles2` folder when present
+- When BRouter is not installed, the app should immediately tell the user that routing is unavailable and offer a direct link to the BRouter Play Store or F-Droid page instead of opening profile-file or profile-folder pickers
 
 ## POI search
 
@@ -52,10 +53,15 @@ VibeNavigator will prompt you to enable what it needs, when it needs it:
 ## Using BRouter profiles
 
 VibeNavigator first tries to list bundled profiles directly from the installed BRouter app.
+That bundled-profile fallback keeps normal routing working even when no external profile folder is selected or accessible.
 If you use custom external `*.brf` profiles, you can still select a `profiles2` folder manually.
-Legacy/example path (device-dependent, may not exist on newer BRouter builds):
+When BRouter itself is missing, VibeNavigator must not prompt for a `profiles2` folder on app open or when starting navigation; it should only surface the missing-BRouter prompt.
+For custom profile browsing, VibeNavigator probes multiple common `profiles2` locations and prefers one that actually exists on the device. Common locations include:
 
-`/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
+- `/storage/emulated/0/Android/media/btools.routingapp/brouter/profiles2`
+- `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
+
+Some devices or BRouter builds may only expose one of those locations, while others rely mainly on bundled internal profiles.
 
 ## Releases / CI
 

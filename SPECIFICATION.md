@@ -36,10 +36,15 @@ The main UI must include a routing-profile selector at the top.
 #### 1.1 Routing profiles
 
 - The selector items must be the BRouter profile names
-- Profiles are the filenames with `.brf` extension available in the BRouter `profiles2` folder
+- Profiles may come from bundled BRouter internal profiles or from user-accessible `.brf` files in an external `profiles2` folder
 - The selector is profile-based, not a separate vehicle-type toggle
 - Profile handling must remain compatible with both bundled BRouter profiles and user-selected external `profiles2` folders
-- Example legacy path:
+- If BRouter is not installed, the app must not immediately open a profile-file or profile-folder picker during main-screen startup
+- If BRouter is not installed, any profile-source prompt must be suppressed until BRouter is available
+- If no external `profiles2` folder is selected or accessible, the app must still list and use bundled BRouter internal profiles for normal routing
+- When trying to open a custom profile source, the app should probe multiple plausible BRouter `profiles2` locations and prefer one that actually exists instead of assuming a single path from Android version alone
+- Common example paths:
+  `/storage/emulated/0/Android/media/btools.routingapp/brouter/profiles2`
   `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
 
 ### 2. Destination input
@@ -127,6 +132,13 @@ Pressing the button must:
 - Include any intermediate stops in the route calculation
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 
+#### 4.1 Missing BRouter handling
+
+- If BRouter is not installed, the main screen must clearly tell the user that BRouter is required instead of behaving as if profile files are merely missing
+- On first main-screen open without BRouter installed, the app should offer direct install options for the BRouter app page, including Play Store and F-Droid targets when those intents are available
+- If no install target can be opened on the device, the app must fail gracefully with a short user-visible message rather than crashing
+- When BRouter is not installed, pressing start navigation must stop before profile resolution and must show a missing-BRouter message instead of opening the custom-profile picker or the profiles-folder picker
+
 #### 4.3 BRouter integration
 
 The implementation must use BRouter integration compatible with these references:
@@ -143,6 +155,8 @@ The implementation must use BRouter integration compatible with these references
 - Route calculations must send the selected BRouter `profile` explicitly
 - The app must not force a separate `v` vehicle-mode parameter when an explicit profile is supplied
 - The selected `.brf` file is the source of routing behavior for walk, bike, or car use cases
+- Bundled internal BRouter profiles must remain usable even when no external profile folder has been selected
+- Custom external profile browsing should target a real accessible `profiles2` folder when one can be found, but normal routing must not depend on that folder existing
 
 #### 4.3.4 GeoJSON output
 
