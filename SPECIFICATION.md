@@ -413,7 +413,13 @@ The navigation UI must show the following in large text:
   - `geo:` map intents
   - `google.navigation:` intents
   - shared `text/plain` payloads
-  - common Google Maps and OpenStreetMap `http(s)` links that contain a destination or coordinates
+  - `http(s)` map links for:
+    - `maps.google.com`
+    - `google.com/maps`
+    - `www.google.com/maps`
+    - `openstreetmap.org`
+    - `www.openstreetmap.org`
+- The app must not register itself as a generic handler for arbitrary web URLs or for non-map `google.com` and `www.google.com` pages such as search results or article links
 - Incoming coordinate or address intents must open the app without crashing on any supported Android version
 - Parsing of incoming locations must be compatible with the app's minimum supported Android API level
 - Invalid or malformed incoming coordinate payloads must fail gracefully instead of crashing or silently redirecting to placeholder coordinates

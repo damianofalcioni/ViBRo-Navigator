@@ -27,6 +27,13 @@ It keeps routing offline (via the installed BRouter app), and communicates direc
 - Saved destination history entries can be renamed or deleted from the dropdown.
 - Selecting a saved destination closes the dropdown and does not immediately reopen suggestions unless you change the text again.
 
+## Incoming links and shares
+
+- Accepts `geo:` and `google.navigation:` intents.
+- Accepts shared `text/plain` payloads containing coordinates, addresses, or supported map links.
+- Accepts `http(s)` map links from `maps.google.com`, `google.com/maps`, `www.google.com/maps`, `openstreetmap.org`, and `www.openstreetmap.org`.
+- Does not register itself as a generic handler for arbitrary web pages or normal `google.com` search URLs.
+
 ## Permissions
 
 VibeNavigator will prompt you to enable what it needs, when it needs it:
