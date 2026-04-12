@@ -30,9 +30,12 @@
 
         .tile {
             position: absolute;
+            left: 0;
+            top: 0;
             width: 256px;
             height: 256px;
             image-rendering: auto;
+            will-change: transform;
         }
 
         #marker {
@@ -62,6 +65,10 @@
         const TILE_SIZE = 256;
         const MIN_ZOOM = 1;
         const MAX_ZOOM = 19;
+        const TILE_BUFFER = 1;
+        const PRELOAD_DELAY_MS = 160;
+        const PRELOAD_TILE_BUFFER = 0;
+        const MAX_PRELOADED_TILES = 192;
 
         const map = document.getElementById("map");
         const tiles = document.getElementById("tiles");
@@ -73,6 +80,9 @@
         let selectedLat = null;
         let selectedLon = null;
         let activePointers = new Map();
+        let renderedTiles = new Map();
+        let preloadedTiles = new Map();
+        let preloadTimer = null;
         let gestureState = null;
         let suppressTapSelection = false;
 
@@ -118,34 +128,124 @@
             }
         }
 
-        function render() {
-            const viewport = getViewport();
-            const centerWorld = project(centerLat, centerLon, zoom);
+        function positionTile(tile, screenX, screenY) {
+            tile.style.transform = "translate3d(" + screenX + "px, " + screenY + "px, 0)";
+        }
+
+        function tileKey(currentZoom, tileX, tileY) {
+            return currentZoom + ":" + tileX + ":" + tileY;
+        }
+
+        function tileUrl(currentZoom, tileX, tileY) {
+            const worldTiles = Math.pow(2, currentZoom);
+            return "https://tile.openstreetmap.org/"
+                + currentZoom + "/" + wrapTileX(tileX, worldTiles) + "/" + tileY + ".png";
+        }
+
+        function getTileBounds(currentZoom, viewport, buffer) {
+            const centerWorld = project(centerLat, centerLon, currentZoom);
             const topLeftX = centerWorld.x - viewport.width / 2;
             const topLeftY = centerWorld.y - viewport.height / 2;
-            const worldTiles = Math.pow(2, zoom);
+            return {
+                worldTiles: Math.pow(2, currentZoom),
+                topLeftX,
+                topLeftY,
+                startTileX: Math.floor((topLeftX - buffer * TILE_SIZE) / TILE_SIZE),
+                endTileX: Math.floor((topLeftX + viewport.width + buffer * TILE_SIZE) / TILE_SIZE),
+                startTileY: Math.floor((topLeftY - buffer * TILE_SIZE) / TILE_SIZE),
+                endTileY: Math.floor((topLeftY + viewport.height + buffer * TILE_SIZE) / TILE_SIZE)
+            };
+        }
 
-            tiles.innerHTML = "";
-            const startTileX = Math.floor(topLeftX / TILE_SIZE);
-            const endTileX = Math.floor((topLeftX + viewport.width) / TILE_SIZE);
-            const startTileY = Math.floor(topLeftY / TILE_SIZE);
-            const endTileY = Math.floor((topLeftY + viewport.height) / TILE_SIZE);
+        function rememberPreloadedTile(url, image) {
+            if (preloadedTiles.has(url)) {
+                preloadedTiles.delete(url);
+            }
+            preloadedTiles.set(url, image);
+            while (preloadedTiles.size > MAX_PRELOADED_TILES) {
+                const oldest = preloadedTiles.keys().next().value;
+                if (oldest === undefined) {
+                    break;
+                }
+                preloadedTiles.delete(oldest);
+            }
+        }
 
-            for (let tileX = startTileX; tileX <= endTileX; tileX += 1) {
-                for (let tileY = startTileY; tileY <= endTileY; tileY += 1) {
-                    if (tileY < 0 || tileY >= worldTiles) {
+        function preloadTile(url) {
+            if (preloadedTiles.has(url)) {
+                const image = preloadedTiles.get(url);
+                rememberPreloadedTile(url, image);
+                return;
+            }
+            const image = new Image();
+            image.decoding = "async";
+            image.loading = "eager";
+            image.src = url;
+            rememberPreloadedTile(url, image);
+        }
+
+        function preloadZoomLevel(currentZoom, viewport) {
+            if (currentZoom < MIN_ZOOM || currentZoom > MAX_ZOOM) {
+                return;
+            }
+            const bounds = getTileBounds(currentZoom, viewport, PRELOAD_TILE_BUFFER);
+            for (let tileX = bounds.startTileX; tileX <= bounds.endTileX; tileX += 1) {
+                for (let tileY = bounds.startTileY; tileY <= bounds.endTileY; tileY += 1) {
+                    if (tileY < 0 || tileY >= bounds.worldTiles) {
                         continue;
                     }
-                    const img = document.createElement("img");
-                    img.className = "tile";
-                    img.draggable = false;
-                    img.alt = "";
-                    img.src = "https://tile.openstreetmap.org/" + zoom + "/" + wrapTileX(tileX, worldTiles) + "/" + tileY + ".png";
-                    img.style.left = (tileX * TILE_SIZE - topLeftX) + "px";
-                    img.style.top = (tileY * TILE_SIZE - topLeftY) + "px";
-                    tiles.appendChild(img);
+                    preloadTile(tileUrl(currentZoom, tileX, tileY));
                 }
             }
+        }
+
+        function scheduleAdjacentZoomPreload() {
+            if (preloadTimer !== null) {
+                clearTimeout(preloadTimer);
+            }
+            preloadTimer = setTimeout(function () {
+                preloadTimer = null;
+                const viewport = getViewport();
+                preloadZoomLevel(zoom - 1, viewport);
+                preloadZoomLevel(zoom + 1, viewport);
+            }, PRELOAD_DELAY_MS);
+        }
+
+        function render() {
+            const viewport = getViewport();
+            const bounds = getTileBounds(zoom, viewport, TILE_BUFFER);
+            const topLeftX = bounds.topLeftX;
+            const topLeftY = bounds.topLeftY;
+            const nextRenderedTiles = new Map();
+
+            for (let tileX = bounds.startTileX; tileX <= bounds.endTileX; tileX += 1) {
+                for (let tileY = bounds.startTileY; tileY <= bounds.endTileY; tileY += 1) {
+                    if (tileY < 0 || tileY >= bounds.worldTiles) {
+                        continue;
+                    }
+                    const key = tileKey(zoom, tileX, tileY);
+                    let img = renderedTiles.get(key);
+                    if (!img) {
+                        img = document.createElement("img");
+                        img.className = "tile";
+                        img.draggable = false;
+                        img.alt = "";
+                        img.decoding = "async";
+                        img.src = tileUrl(zoom, tileX, tileY);
+                        tiles.appendChild(img);
+                    }
+                    positionTile(img, tileX * TILE_SIZE - topLeftX, tileY * TILE_SIZE - topLeftY);
+                    nextRenderedTiles.set(key, img);
+                }
+            }
+
+            renderedTiles.forEach(function (img, key) {
+                if (!nextRenderedTiles.has(key)) {
+                    img.remove();
+                }
+            });
+            renderedTiles = nextRenderedTiles;
+            scheduleAdjacentZoomPreload();
 
             if (selectedLat === null || selectedLon === null) {
                 marker.style.display = "none";
