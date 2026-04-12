@@ -14,6 +14,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public final class PoiHistoryStore {
@@ -56,6 +57,29 @@ public final class PoiHistoryStore {
             return new ArrayList<>();
         }
         return out;
+    }
+
+    @NonNull
+    public List<Poi> search(@NonNull String query, int limit) {
+        List<Poi> matches = new ArrayList<>();
+        if (limit <= 0) {
+            return matches;
+        }
+
+        String normalizedQuery = normalize(query);
+        if (normalizedQuery.isEmpty()) {
+            return matches;
+        }
+
+        for (Poi poi : list()) {
+            if (matches.size() >= limit) {
+                break;
+            }
+            if (matches(poi, normalizedQuery)) {
+                matches.add(poi);
+            }
+        }
+        return matches;
     }
 
     public void addOrPromote(@NonNull Poi poi) {
@@ -127,5 +151,15 @@ public final class PoiHistoryStore {
         }
         prefs.edit().putString(KEY_ITEMS, arr.toString()).apply();
         AppLogger.d(TAG, "Persisted POI history count=" + count);
+    }
+
+    private static boolean matches(@NonNull Poi poi, @NonNull String normalizedQuery) {
+        return normalize(poi.displayLabel()).contains(normalizedQuery)
+                || normalize(poi.stableKey()).contains(normalizedQuery);
+    }
+
+    @NonNull
+    private static String normalize(@NonNull String value) {
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 }

@@ -57,7 +57,10 @@ Below the routing-profile selector, the app must show an input field for searchi
 
 #### 2.2 Search after 3+ characters
 
+- Typed destination and stop queries must first check the saved history entries from the first typed character and preserve their recency order
+- When one or more history entries match the typed query, the dropdown must show those history matches instead of online provider results
 - On every typed character, but only once the query length is greater than 3, the app must retrieve matching POIs
+- Online provider search must only run when the typed query has no matching history entries and the query length is greater than 3
 - Each result must include the POI full name and coordinates
 - The data source must be Google Maps REST APIs when a Google API key is defined
 - If the Google API key is not defined, the app must use OpenStreetMap APIs

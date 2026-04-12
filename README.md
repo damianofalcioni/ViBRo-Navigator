@@ -21,6 +21,7 @@ It keeps routing offline (via the installed BRouter app), and communicates direc
 
 ## POI search
 
+- Typed destination and stop queries check saved history from the first typed character; only if history has no matches does the app fall back to the online provider search after 3 characters.
 - If a Google API key is provided, searches using Google’s REST APIs.
 - Otherwise uses OpenStreetMap (Nominatim).
 - You can always paste coordinates directly (e.g. `45.4642, 9.1900`).

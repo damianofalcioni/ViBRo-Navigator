@@ -34,6 +34,8 @@ import java.util.concurrent.Future;
 
 public final class PoiInputController {
 
+    private static final int MAX_SUGGESTIONS = 10;
+
     public interface Listener {
         void onPoiSelected(@NonNull Poi poi);
     }
@@ -308,6 +310,18 @@ public final class PoiInputController {
             return;
         }
 
+        List<PoiSuggestion> historySuggestions = matchingHistorySuggestions(query);
+        if (!historySuggestions.isEmpty()) {
+            cancelInFlightSearch();
+            AppLogger.d(logTag, "Showing matching history query=" + query
+                    + " items=" + historySuggestions.size());
+            adapter.setItems(historySuggestions);
+            if (editText.hasFocus()) {
+                showPopupIfPossible("history-search-results");
+            }
+            return;
+        }
+
         if (query.length() <= 3) {
             cancelInFlightSearch();
             if (query.isEmpty()) {
@@ -339,7 +353,7 @@ public final class PoiInputController {
         inFlight = PoiSearchDispatcher.submit(() -> {
             try {
                 AppLogger.i(logTag, "Running search query=" + query);
-                List<Poi> results = searchClient.search(query, 10);
+                List<Poi> results = searchClient.search(query, MAX_SUGGESTIONS);
                 List<PoiSuggestion> suggestions = new ArrayList<>();
                 for (Poi p : results) {
                     suggestions.add(new PoiSuggestion(p, false));
@@ -417,5 +431,27 @@ public final class PoiInputController {
         List<PoiSuggestion> items = new ArrayList<>();
         items.add(new PoiSuggestion(poi, deletable));
         return items;
+    }
+
+    @NonNull
+    private List<PoiSuggestion> matchingHistorySuggestions(@NonNull String query) {
+        List<PoiSuggestion> items = new ArrayList<>();
+        for (Poi poi : history.search(query, MAX_SUGGESTIONS)) {
+            items.add(new PoiSuggestion(poi, true));
+        }
+        return items;
+    }
+
+    int getSuggestionCountForTesting() {
+        return adapter.getCount();
+    }
+
+    @Nullable
+    String getSuggestionLabelForTesting(int position) {
+        if (position < 0 || position >= adapter.getCount()) {
+            return null;
+        }
+        PoiSuggestion suggestion = (PoiSuggestion) adapter.getItem(position);
+        return suggestion.poi.displayLabel();
     }
 }
