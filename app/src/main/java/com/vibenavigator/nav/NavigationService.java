@@ -148,6 +148,10 @@ public class NavigationService extends Service implements LocationListener {
         }
 
         public void addBlockedWaypoint() {
+            if (navigationSession.isPaused()) {
+                AppLogger.w(TAG, "Blocked waypoint requested while navigation is paused");
+                return;
+            }
             Location loc = navigationSession.getLastFilteredLocation();
             if (loc == null) {
                 AppLogger.w(TAG, "Blocked waypoint requested without a current filtered location");
@@ -168,10 +172,25 @@ public class NavigationService extends Service implements LocationListener {
             stopNavigation();
             stopSelf();
         }
+
+        public void pause() {
+            NavigationService.this.pauseNavigation();
+        }
+
+        public void resume() {
+            NavigationService.this.resumeNavigation();
+        }
+
+        public boolean isPaused() {
+            return navigationSession.isPaused();
+        }
     }
 
     private void promoteToForeground() {
-        foregroundController.promoteToForeground(navigationSession.currentNavigationRequest());
+        foregroundController.promoteToForeground(
+                navigationSession.currentNavigationRequest(),
+                navigationSession.isPaused()
+        );
         foregroundCoordinator.startMonitoring();
     }
 
@@ -205,6 +224,31 @@ public class NavigationService extends Service implements LocationListener {
         }
     }
 
+    private void pauseNavigation() {
+        if (!navigationSession.pause()) {
+            return;
+        }
+        locationController.stopTracking();
+        stopOrientationMonitoring();
+        promoteToForeground();
+        emitState();
+        AppLogger.i(TAG, "Navigation paused");
+    }
+
+    private void resumeNavigation() {
+        if (!navigationSession.resume()) {
+            return;
+        }
+        locationController.requestLocationUpdates(
+                locationController.getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
+        );
+        locationController.requestCurrentLocationSeeds();
+        ensureOrientationMonitoring();
+        promoteToForeground();
+        emitState();
+        AppLogger.i(TAG, "Navigation resumed");
+    }
+
     private void stopNavigation() {
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
@@ -218,6 +262,10 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
+        if (navigationSession.isPaused()) {
+            AppLogger.d(TAG, "Ignoring location update while navigation is paused");
+            return;
+        }
         NavigationSession.LocationUpdateResult result =
                 navigationSession.onRawLocationChanged(this, location, System.currentTimeMillis());
         if (result.isDropped()) {
@@ -235,6 +283,10 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onProviderEnabled(@NonNull String provider) {
+        if (navigationSession.isPaused()) {
+            AppLogger.d(TAG, "Ignoring provider enabled while navigation is paused provider=" + provider);
+            return;
+        }
         AppLogger.i(TAG, "Location provider enabled provider=" + provider);
         locationController.onProviderEnabled(provider, DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         emitState();
@@ -242,6 +294,10 @@ public class NavigationService extends Service implements LocationListener {
 
     @Override
     public void onProviderDisabled(@NonNull String provider) {
+        if (navigationSession.isPaused()) {
+            AppLogger.d(TAG, "Ignoring provider disabled while navigation is paused provider=" + provider);
+            return;
+        }
         AppLogger.w(TAG, "Location provider disabled provider=" + provider);
         navigationSession.onProviderDisabled(provider);
         locationController.requestLocationUpdates(
@@ -274,7 +330,7 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private void dispatchTurnEvents(@NonNull List<NavigationSession.TurnEvent> turnEvents) {
-        if (turnEventDispatcher != null) {
+        if (!navigationSession.isPaused() && turnEventDispatcher != null) {
             turnEventDispatcher.dispatch(turnEvents);
         }
     }

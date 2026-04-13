@@ -24,6 +24,8 @@ final class NavigationSession {
     private final NavigationSessionRouteState routeState = new NavigationSessionRouteState();
     private final NavigationWarmupController warmupController = new NavigationWarmupController();
     private final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
+    private boolean started;
+    private boolean paused;
 
     @NonNull
     private NavigationRequest currentRequest = new NavigationRequest(null, null, null, Collections.emptyList());
@@ -34,6 +36,8 @@ final class NavigationSession {
     }
 
     boolean start(@NonNull Context context, long nowMs) {
+        started = false;
+        paused = false;
         locationState.reset();
         routeState.reset();
         warmupController.reset(nowMs);
@@ -45,11 +49,34 @@ final class NavigationSession {
                     + currentRequest.describe(), null);
             return false;
         }
+        started = true;
         return true;
     }
 
     void stop() {
+        started = false;
+        paused = false;
         routeRequestManager.stop();
+    }
+
+    boolean pause() {
+        if (!started || paused) {
+            return false;
+        }
+        paused = true;
+        return true;
+    }
+
+    boolean resume() {
+        if (!started || !paused) {
+            return false;
+        }
+        paused = false;
+        return true;
+    }
+
+    boolean isPaused() {
+        return paused;
     }
 
     boolean hasActiveRoute() {
@@ -185,6 +212,7 @@ final class NavigationSession {
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees
     ) {
+        NavState baseState;
         Location lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         boolean likelyStationary = locationState.isLikelyStationary();
@@ -211,7 +239,7 @@ final class NavigationSession {
                     : null;
             headingAccuracyDegrees = null;
         }
-        return routeState.buildState(
+        baseState = routeState.buildState(
                 context,
                 lastFiltered,
                 speedMps,
@@ -225,6 +253,7 @@ final class NavigationSession {
                 routeRequestManager.isRouteCalculationInProgress(),
                 routeRequestManager.getLastRouteFailure()
         );
+        return NavState.withPauseState(context, baseState, paused);
     }
 
     static final class LocationUpdateResult {

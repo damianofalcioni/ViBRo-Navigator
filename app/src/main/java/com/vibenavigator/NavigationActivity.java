@@ -54,6 +54,7 @@ public class NavigationActivity extends Activity {
     private NavigationCompassView compass;
     private TextView gpsStatus;
     private Button blocked;
+    private Button pauseResume;
     private Button stop;
 
     private NavigationService.LocalBinder navBinder;
@@ -123,6 +124,7 @@ public class NavigationActivity extends Activity {
                 TypedValue.COMPLEX_UNIT_SP
         );
         blocked = findViewById(R.id.blockedRoadButton);
+        pauseResume = findViewById(R.id.pauseResumeNavButton);
         stop = findViewById(R.id.stopNavButton);
 
         render(NavState.waiting(this));
@@ -142,6 +144,20 @@ public class NavigationActivity extends Activity {
                 navBinder.stop();
             }
             finish();
+        });
+
+        pauseResume.setOnClickListener(v -> {
+            if (navBinder == null) {
+                AppLogger.w(TAG, "Pause/resume tapped before service binding completed");
+                return;
+            }
+            if (navBinder.isPaused()) {
+                AppLogger.i(TAG, "Resume navigation requested from UI");
+                navBinder.resume();
+            } else {
+                AppLogger.i(TAG, "Pause navigation requested from UI");
+                navBinder.pause();
+            }
         });
 
         ensureReadyThenStart();
@@ -211,11 +227,15 @@ public class NavigationActivity extends Activity {
         String secondaryText = !state.detailBlock.isEmpty() ? state.detailBlock : state.stopProgressBlock;
         stopProgress.setText(secondaryText);
         compass.setCompassState(state.compassState);
+        blocked.setEnabled(!state.paused);
+        pauseResume.setEnabled(navBinder != null);
+        pauseResume.setText(state.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation);
         renderGpsStatus();
         String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.gpsStatusLine
                 + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.destinationLine
                 + "|" + state.stopProgressBlock
                 + "|" + state.detailBlock
+                + "|" + state.paused
                 + "|" + (state.compassState == null ? "no-compass"
                 : state.compassState.routePoints.size() + ":" + state.compassState.headingDegrees);
         if (!stateKey.equals(lastRenderedStateKey)) {
@@ -226,6 +246,7 @@ public class NavigationActivity extends Activity {
                     + " nextEvalDeadline=" + state.nextEvaluationDeadlineElapsedMs
                     + " destination=" + state.destinationLine
                     + " stops=" + state.stopProgressBlock
+                    + " paused=" + state.paused
                     + " compass=" + (state.compassState == null ? "none"
                     : ("points=" + state.compassState.routePoints.size() + " heading=" + state.compassState.headingDegrees))
                     + " detail=" + state.detailBlock);

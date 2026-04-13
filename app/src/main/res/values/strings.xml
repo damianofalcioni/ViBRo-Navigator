@@ -4,6 +4,8 @@
 
     <string name="action_about">About</string>
     <string name="action_start_navigation">Start navigation</string>
+    <string name="action_pause_navigation">Pause navigation</string>
+    <string name="action_resume_navigation">Resume navigation</string>
     <string name="action_stop_navigation">Stop navigation</string>
     <string name="action_add_stop">Add stop</string>
     <string name="action_remove_stop">Remove stop</string>
@@ -79,12 +81,15 @@
     <string name="nav_route_notice_invalid_profile">Routing profile is invalid.</string>
     <string name="nav_route_notice_update_failed_keep_current">Could not update the route. Keeping current route.</string>
     <string name="nav_route_notice_unavailable">Could not calculate a route.</string>
+    <string name="nav_paused_notice">Navigation is paused. Tap Resume navigation to continue live guidance.</string>
 
     <string name="notification_channel_nav">Navigation</string>
     <string name="notification_channel_turn_left">Turn (left)</string>
     <string name="notification_channel_turn_right">Turn (right)</string>
     <string name="notification_nav_running">Navigation running</string>
     <string name="notification_nav_running_text">VibeNavigator is navigating in the background</string>
+    <string name="notification_nav_paused">Navigation paused</string>
+    <string name="notification_nav_paused_text">VibeNavigator navigation is paused</string>
     <string name="notification_off_route_title">Off route</string>
 
     <string name="direction_continue">Continue</string>

@@ -31,10 +31,12 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation.
 - `MapPickerActivity` owns manual map-based point picking for destination and stop fields. Keep it dependency-light: use the existing local WebView asset approach for OpenStreetMap raster tiles instead of introducing a native map SDK unless explicitly requested.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
+- Treat pause/resume as real navigation-session state, not as a UI-only toggle. `NavigationActivity` should only render and invoke binder actions; the paused/running behavior must stay owned by `NavigationService` and `NavigationSession`.
 - `NavigationActivity` must remain a platform `Activity`. If back behavior changes, preserve the current combination of legacy `onBackPressed()` handling plus platform predictive-back registration for API 33+ instead of switching the screen to `ComponentActivity`.
 - The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
 - Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw geomagnetic heading available for non-UI orientation logic such as stationary turn-to-face-route advice.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.
+- If pause/resume behavior changes, preserve the current contract that pausing retains the active request/route while suspending live location, reroute, and turn-notification processing until resume.
 - Long-lived navigation reliability should come from the location foreground service and ongoing location callbacks, not from a session-long CPU wake lock.
 - Any partial wake lock used by navigation must stay short, explicit, and owned by the collaborator performing the critical burst of work, such as route or reroute calculation.
 - `NavigationSession` is the session-level coordinator. Keep filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle split across dedicated state/policy classes instead of collapsing them back together.
@@ -53,6 +55,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Do not add emulator/device requirements to the core automated suite unless explicitly requested.
 - Keep lifecycle rules, heuristics, planners, and policy thresholds in small helpers when practical so they stay directly unit-testable.
 - Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
+- Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
 - Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
 
 ## Project rules

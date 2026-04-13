@@ -40,6 +40,7 @@ public final class NavState {
     public final String detailBlock;
     @Nullable
     public final NavCompassState compassState;
+    public final boolean paused;
 
     private NavState(@NonNull String nextLine,
                      @NonNull String afterNextLine,
@@ -48,7 +49,8 @@ public final class NavState {
                      @NonNull String gpsStatusLine,
                      long nextEvaluationDeadlineElapsedMs,
                      @NonNull String detailBlock,
-                     @Nullable NavCompassState compassState) {
+                     @Nullable NavCompassState compassState,
+                     boolean paused) {
         this.nextLine = nextLine;
         this.afterNextLine = afterNextLine;
         this.destinationLine = destinationLine;
@@ -57,12 +59,13 @@ public final class NavState {
         this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
         this.detailBlock = detailBlock;
         this.compassState = compassState;
+        this.paused = paused;
     }
 
     @NonNull
     public static NavState waiting(@NonNull Context context) {
         String noRoute = context.getString(R.string.nav_no_route);
-        return new NavState(noRoute, "", "", "", defaultGpsStatusLine(context), NO_DEADLINE, noRoute, null);
+        return new NavState(noRoute, "", "", "", defaultGpsStatusLine(context), NO_DEADLINE, noRoute, null, false);
     }
 
     @NonNull
@@ -80,7 +83,8 @@ public final class NavState {
                 defaultGpsStatusLine(context),
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.nav_waiting_for_location_body),
-                null
+                null,
+                false
         );
     }
 
@@ -99,7 +103,8 @@ public final class NavState {
                 defaultGpsStatusLine(context),
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.nav_calculating_route_body),
-                null
+                null,
+                false
         );
     }
 
@@ -120,7 +125,8 @@ public final class NavState {
                 defaultGpsStatusLine(context),
                 nextEvaluationDeadlineElapsedMs,
                 context.getString(R.string.format_nav_route_unavailable_body, detail),
-                null
+                null,
+                false
         );
     }
 
@@ -140,7 +146,8 @@ public final class NavState {
                 base.gpsStatusLine,
                 base.nextEvaluationDeadlineElapsedMs,
                 detail,
-                base.compassState
+                base.compassState,
+                base.paused
         );
     }
 
@@ -154,7 +161,28 @@ public final class NavState {
                 gpsStatusLine,
                 base.nextEvaluationDeadlineElapsedMs,
                 base.detailBlock,
-                base.compassState
+                base.compassState,
+                base.paused
+        );
+    }
+
+    @NonNull
+    public static NavState withPauseState(@NonNull Context context, @NonNull NavState base, boolean paused) {
+        String detail = base.detailBlock;
+        if (paused) {
+            String pauseNotice = context.getString(R.string.nav_paused_notice);
+            detail = detail.isEmpty() ? pauseNotice : pauseNotice + "\n" + detail;
+        }
+        return new NavState(
+                base.nextLine,
+                base.afterNextLine,
+                base.destinationLine,
+                base.stopProgressBlock,
+                base.gpsStatusLine,
+                base.nextEvaluationDeadlineElapsedMs,
+                detail,
+                base.compassState,
+                paused
         );
     }
 
@@ -282,7 +310,8 @@ public final class NavState {
                 gpsStatus,
                 nextEvaluationDeadlineElapsedMs,
                 "",
-                compassState
+                compassState,
+                false
         );
     }
 

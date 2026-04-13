@@ -69,10 +69,10 @@ final class NavigationForegroundController {
         AppLogger.i(TAG, "Notification channels ensured");
     }
 
-    void promoteToForeground(@NonNull NavigationRequest request) {
+    void promoteToForeground(@NonNull NavigationRequest request, boolean paused) {
         service.startForeground(
                 NavigationService.NOTIFICATION_ID_ONGOING,
-                buildOngoingNotification(request)
+                buildOngoingNotification(request, paused)
         );
     }
 
@@ -168,7 +168,7 @@ final class NavigationForegroundController {
     }
 
     @NonNull
-    private Notification buildOngoingNotification(@NonNull NavigationRequest request) {
+    private Notification buildOngoingNotification(@NonNull NavigationRequest request, boolean paused) {
         Intent stopNavigationIntent = new Intent(service, NavigationService.class);
         stopNavigationIntent.setAction(NavigationService.ACTION_STOP);
         PendingIntent stopNavigationPendingIntent = PendingIntent.getService(
@@ -194,8 +194,12 @@ final class NavigationForegroundController {
 
         return new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_NAV)
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(service.getString(R.string.notification_nav_running))
-                .setContentText(service.getString(R.string.notification_nav_running_text))
+                .setContentTitle(service.getString(
+                        paused ? R.string.notification_nav_paused : R.string.notification_nav_running
+                ))
+                .setContentText(service.getString(
+                        paused ? R.string.notification_nav_paused_text : R.string.notification_nav_running_text
+                ))
                 .setOngoing(true)
                 .setDeleteIntent(stopNavigationPendingIntent)
                 .setContentIntent(openNavigationPendingIntent)

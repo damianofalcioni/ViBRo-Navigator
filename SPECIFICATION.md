@@ -181,6 +181,8 @@ The app must monitor user position:
 - Re-requesting location updates must reuse the active listener registration when the requested interval bucket and enabled provider set are unchanged, so the app does not continuously tear down and rebuild subscriptions
 - Position handling must use a Kalman filter
 - Any asynchronous route calculation must apply its resulting shared navigation state in a single serialized path so stale background results cannot overwrite newer navigation state
+- The navigation session must support an explicit paused mode that preserves the current request and loaded route while temporarily suspending live guidance processing
+- While paused, the app must stop live location/orientation-driven navigation updates, suppress turn and reroute handling, and resume from the same session state when the user continues navigation
 
 #### 4.4.1 Off-track reroute
 
@@ -343,6 +345,7 @@ The navigation UI must show the following in large text:
 #### 4.5.4 Blocked road button
 
 - Below the progress section and centered: a `blocked road` button
+- The blocked-road action must be unavailable while navigation is paused so the app does not queue reroute changes against a suspended guidance session
 
 ##### 4.5.4.1 Blocked no-go memory
 
@@ -364,13 +367,21 @@ The navigation UI must show the following in large text:
   - the no-go radius applied to those points
 - The blocked-road behavior should be tuned primarily for walking and cycling, with cars treated as a secondary use case
 
-#### 4.5.5 Stop navigation button
+#### 4.5.5 Pause/resume navigation button
+
+- Above the stop-navigation button, the navigation UI must show a button that toggles between pause and resume for the current navigation session
+- Pressing pause must keep the current route, destination, and intermediate-stop progress in memory while suspending live guidance updates
+- While paused, the navigation UI must clearly indicate that the session is paused and the button label must switch to resume
+- Pressing resume must continue the existing navigation session instead of starting a fresh route-planning flow
+- Portrait and landscape layouts must both expose the pause/resume action alongside the blocked-road and stop-navigation actions
+
+#### 4.5.6 Stop navigation button
 
 - At the bottom: a button to stop navigation
 - Pressing it must return to the previous UI
 - Destination and intermediate stops must be kept
 
-#### 4.5.6 Back button behavior during navigation
+#### 4.5.7 Back button behavior during navigation
 
 - Pressing the system back button while the navigation UI is open must move the whole app task to the background
 - Pressing back during navigation must not reveal the main UI underneath the navigation UI
@@ -390,6 +401,7 @@ The navigation UI must show the following in large text:
 #### 4.6.1 Foreground service lifecycle
 
 - Active navigation must run through a foreground service with an ongoing notification
+- When navigation is paused but not stopped, the foreground service must remain alive and its ongoing notification must reflect that the session is paused
 - If the app task is removed from recents, navigation must stop and the foreground service must be terminated
 - If the foreground notification is removed while navigation is still running, reopening the app from recents must restore the foreground notification immediately when the navigation UI reconnects to the running service
 - The app should treat removal of its own ongoing navigation notification as a stop signal when the Android device delivers that removal event to the app
