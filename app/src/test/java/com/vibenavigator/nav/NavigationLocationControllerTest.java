@@ -116,6 +116,34 @@ public class NavigationLocationControllerTest {
         ));
     }
 
+    @Test
+    public void canUseProvider_requiresFinePermissionForGps() {
+        assertFalse(NavigationLocationController.canUseProvider(
+                LocationManager.GPS_PROVIDER,
+                false,
+                true
+        ));
+        assertTrue(NavigationLocationController.canUseProvider(
+                LocationManager.GPS_PROVIDER,
+                true,
+                false
+        ));
+    }
+
+    @Test
+    public void canUseProvider_allowsNetworkWithCoarsePermission() {
+        assertTrue(NavigationLocationController.canUseProvider(
+                LocationManager.NETWORK_PROVIDER,
+                false,
+                true
+        ));
+        assertTrue(NavigationLocationController.canUseProvider(
+                LocationManager.PASSIVE_PROVIDER,
+                false,
+                true
+        ));
+    }
+
     private static Location location(String provider, long timeMs, float accuracyMeters) {
         Location location = new Location(provider);
         location.setLatitude(48.2082d);

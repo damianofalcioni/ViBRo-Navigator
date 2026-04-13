@@ -117,12 +117,12 @@ public final class NavigationPreflight {
     @NonNull
     private static List<String> collectMissingPermissions(@NonNull Activity activity) {
         List<String> permissions = new ArrayList<>();
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+        boolean fineGranted = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        boolean coarseGranted = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+        if (!hasAnyLocationPermission(fineGranted, coarseGranted)) {
             permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
-        }
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
             permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
         }
         if (Build.VERSION.SDK_INT >= 33
@@ -143,6 +143,10 @@ public final class NavigationPreflight {
             }
         }
         return false;
+    }
+
+    static boolean hasAnyLocationPermission(boolean fineGranted, boolean coarseGranted) {
+        return fineGranted || coarseGranted;
     }
 
     private static boolean isLocationEnabled(@NonNull Activity activity) {

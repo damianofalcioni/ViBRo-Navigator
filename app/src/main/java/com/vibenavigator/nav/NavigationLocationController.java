@@ -82,71 +82,78 @@ final class NavigationLocationController {
     }
 
     void requestLocationUpdates(long minTimeMs) {
-        try {
-            if (locationManager == null) {
-                AppLogger.w(TAG, "LocationManager unavailable, cannot request updates");
-                return;
-            }
-            if (!hasLocationPermission()) {
-                AppLogger.w(TAG, "Location permission unavailable, cannot request updates");
-                return;
-            }
-            List<String> providers = new ArrayList<>(2);
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                providers.add(LocationManager.GPS_PROVIDER);
-            }
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                providers.add(LocationManager.NETWORK_PROVIDER);
-            }
-            String providerSummary = joinProviders(providers);
-            if (providers.isEmpty()) {
-                nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
-                fixedSatelliteCount = null;
-                stopGnssStatusTracking();
-                if (lastRequestedProvider != null) {
-                    locationManager.removeUpdates(listener);
-                    lastRequestedLocationMinTimeMs = -1L;
-                    lastRequestedProvider = null;
-                }
-                AppLogger.w(TAG, "No enabled location provider available for updates " + describeAvailability());
-                return;
-            }
-            if (providers.contains(LocationManager.GPS_PROVIDER)
-                    && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                ensureGnssStatusTracking();
-            } else {
-                fixedSatelliteCount = null;
-                stopGnssStatusTracking();
-            }
-            nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
-            if (shouldReuseActiveLocationRequest(
-                    minTimeMs,
-                    providerSummary,
-                    lastRequestedLocationMinTimeMs,
-                    lastRequestedProvider
-            )) {
-                return;
-            }
-            locationManager.removeUpdates(listener);
-            for (String provider : providers) {
-                requestProviderUpdates(provider, minTimeMs);
-            }
-            lastRequestedLocationMinTimeMs = minTimeMs;
-            lastRequestedProvider = providerSummary;
-            AppLogger.i(TAG, "Requested location updates provider=" + providerSummary + " minTimeMs=" + minTimeMs);
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Permission denied while requesting location updates", e);
+        if (locationManager == null) {
+            AppLogger.w(TAG, "LocationManager unavailable, cannot request updates");
+            return;
         }
+        boolean fineGranted = hasFineLocationPermission();
+        boolean coarseGranted = hasCoarseLocationPermission();
+        if (!hasAnyLocationPermission(fineGranted, coarseGranted)) {
+            AppLogger.w(TAG, "Location permission unavailable, cannot request updates");
+            return;
+        }
+
+        List<String> providers = new ArrayList<>(2);
+        addEnabledProviderIfPermitted(providers, LocationManager.GPS_PROVIDER, fineGranted, coarseGranted);
+        addEnabledProviderIfPermitted(providers, LocationManager.NETWORK_PROVIDER, fineGranted, coarseGranted);
+        String providerSummary = joinProviders(providers);
+        if (providers.isEmpty()) {
+            clearActiveLocationRequest();
+            AppLogger.w(TAG, "No enabled location provider available for updates " + describeAvailability());
+            return;
+        }
+        if (shouldReuseActiveLocationRequest(
+                minTimeMs,
+                providerSummary,
+                lastRequestedLocationMinTimeMs,
+                lastRequestedProvider
+        )) {
+            return;
+        }
+
+        try {
+            locationManager.removeUpdates(listener);
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while resetting location updates", e);
+        }
+
+        List<String> requestedProviders = new ArrayList<>(providers.size());
+        for (String provider : providers) {
+            if (requestProviderUpdates(provider, minTimeMs)) {
+                requestedProviders.add(provider);
+            }
+        }
+        if (requestedProviders.isEmpty()) {
+            clearActiveLocationRequest();
+            AppLogger.w(TAG, "Failed to request location updates from permitted providers " + describeAvailability());
+            return;
+        }
+
+        String requestedProviderSummary = joinProviders(requestedProviders);
+        if (requestedProviders.contains(LocationManager.GPS_PROVIDER)
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ensureGnssStatusTracking();
+        } else {
+            fixedSatelliteCount = null;
+            stopGnssStatusTracking();
+        }
+        nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+        lastRequestedLocationMinTimeMs = minTimeMs;
+        lastRequestedProvider = requestedProviderSummary;
+        AppLogger.i(TAG, "Requested location updates provider=" + requestedProviderSummary + " minTimeMs=" + minTimeMs);
     }
 
     void requestCurrentLocationSeeds() {
         if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
             return;
         }
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+        boolean fineGranted = hasFineLocationPermission();
+        boolean coarseGranted = hasCoarseLocationPermission();
+        if (fineGranted && isProviderEnabled(LocationManager.GPS_PROVIDER)) {
             gpsCurrentLocationCancellation = requestCurrentLocationSeed(LocationManager.GPS_PROVIDER);
         }
-        if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+        if (hasAnyLocationPermission(fineGranted, coarseGranted)
+                && isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
             networkCurrentLocationCancellation = requestCurrentLocationSeed(LocationManager.NETWORK_PROVIDER);
         }
     }
@@ -177,19 +184,21 @@ final class NavigationLocationController {
 
     @Nullable
     Location getBestStartupLastKnownLocation() {
-        try {
-            if (locationManager == null) {
-                return null;
-            }
-            Location gps = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Location network = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            Location best = selectBestStartupLastKnownLocation(gps, network, System.currentTimeMillis());
-            AppLogger.d(TAG, "Best last known location=" + formatLocation(best));
-            return best;
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Permission denied while reading last known location", e);
+        if (locationManager == null) {
             return null;
         }
+        boolean fineGranted = hasFineLocationPermission();
+        boolean coarseGranted = hasCoarseLocationPermission();
+        if (!hasAnyLocationPermission(fineGranted, coarseGranted)) {
+            return null;
+        }
+        Location gps = fineGranted ? getLastKnownLocationQuietly(LocationManager.GPS_PROVIDER) : null;
+        Location network = hasAnyLocationPermission(fineGranted, coarseGranted)
+                ? getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER)
+                : null;
+        Location best = selectBestStartupLastKnownLocation(gps, network, System.currentTimeMillis());
+        AppLogger.d(TAG, "Best last known location=" + formatLocation(best));
+        return best;
     }
 
     @Nullable
@@ -228,22 +237,22 @@ final class NavigationLocationController {
         if (locationManager == null) {
             return "locationManager=null";
         }
+        boolean fineGranted = hasFineLocationPermission();
+        boolean coarseGranted = hasCoarseLocationPermission();
         boolean gpsEnabled = false;
         boolean networkEnabled = false;
-        try {
-            gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to read GPS provider state", e);
-        }
-        try {
-            networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to read network provider state", e);
-        }
-        return "gpsEnabled=" + gpsEnabled
+        gpsEnabled = isProviderEnabled(LocationManager.GPS_PROVIDER);
+        networkEnabled = isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        return "fineGranted=" + fineGranted
+                + ", coarseGranted=" + coarseGranted
+                + ", gpsEnabled=" + gpsEnabled
                 + ", networkEnabled=" + networkEnabled
-                + ", lastGps=" + formatLocation(getLastKnownLocationQuietly(LocationManager.GPS_PROVIDER))
-                + ", lastNetwork=" + formatLocation(getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER));
+                + ", lastGps=" + formatLocation(fineGranted
+                ? getLastKnownLocationQuietly(LocationManager.GPS_PROVIDER)
+                : null)
+                + ", lastNetwork=" + formatLocation(hasAnyLocationPermission(fineGranted, coarseGranted)
+                ? getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER)
+                : null);
     }
 
     @Nullable
@@ -403,22 +412,85 @@ final class NavigationLocationController {
         return countSatellitesUsedInFix(usedInFixFlags);
     }
 
-    private boolean hasLocationPermission() {
+    private void clearActiveLocationRequest() {
+        nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+        lastRequestedLocationMinTimeMs = -1L;
+        lastRequestedProvider = null;
+        fixedSatelliteCount = null;
+        stopGnssStatusTracking();
+        try {
+            if (locationManager != null) {
+                locationManager.removeUpdates(listener);
+            }
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while clearing location updates", e);
+        }
+    }
+
+    private void addEnabledProviderIfPermitted(
+            @NonNull List<String> providers,
+            @NonNull String provider,
+            boolean fineGranted,
+            boolean coarseGranted
+    ) {
+        if (canUseProvider(provider, fineGranted, coarseGranted)
+                && isProviderEnabled(provider)) {
+            providers.add(provider);
+        }
+    }
+
+    private boolean hasFineLocationPermission() {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
-    @SuppressLint("MissingPermission")
-    private void requestProviderUpdates(@NonNull String provider, long minTimeMs) {
-        if (locationManager == null) {
-            return;
+    private boolean hasCoarseLocationPermission() {
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private static boolean hasAnyLocationPermission(boolean fineGranted, boolean coarseGranted) {
+        return fineGranted || coarseGranted;
+    }
+
+    static boolean canUseProvider(@NonNull String provider, boolean fineGranted, boolean coarseGranted) {
+        if (LocationManager.GPS_PROVIDER.equals(provider)) {
+            return fineGranted;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, locationCallbackExecutor, listener);
-        } else {
-            locationManager.requestLocationUpdates(provider, minTimeMs, 0f, listener);
+        if (LocationManager.NETWORK_PROVIDER.equals(provider)
+                || LocationManager.PASSIVE_PROVIDER.equals(provider)) {
+            return hasAnyLocationPermission(fineGranted, coarseGranted);
+        }
+        return hasAnyLocationPermission(fineGranted, coarseGranted);
+    }
+
+    private boolean isProviderEnabled(@NonNull String provider) {
+        if (locationManager == null) {
+            return false;
+        }
+        try {
+            return locationManager.isProviderEnabled(provider);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to read provider state provider=" + provider, e);
+            return false;
+        }
+    }
+
+    @SuppressLint("MissingPermission")
+    private boolean requestProviderUpdates(@NonNull String provider, long minTimeMs) {
+        if (locationManager == null) {
+            return false;
+        }
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                locationManager.requestLocationUpdates(provider, minTimeMs, 0f, locationCallbackExecutor, listener);
+            } else {
+                locationManager.requestLocationUpdates(provider, minTimeMs, 0f, listener);
+            }
+            return true;
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while requesting location updates provider=" + provider, e);
+            return false;
         }
     }
 

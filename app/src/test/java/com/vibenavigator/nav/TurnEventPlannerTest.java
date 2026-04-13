@@ -198,7 +198,7 @@ public class TurnEventPlannerTest {
     }
 
     @Test
-    public void buildInitialSignal_marksTimeUnavailableWhenSameSegmentSpeedIsUnavailable() {
+    public void buildInitialSignal_usesRouteTrackTimesWhenSameSegmentSpeedIsUnavailable() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -223,7 +223,7 @@ public class TurnEventPlannerTest {
         );
 
         assertNotNull(signal);
-        assertTrue(Double.isNaN(signal.timeSeconds));
+        assertEquals(42.0, signal.timeSeconds, 0.0);
     }
 
     @Test

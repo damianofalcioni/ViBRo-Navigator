@@ -136,6 +136,39 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void applyRouteResult_initialTurnEventUsesRouteTimingWhenLiveEtaSpeedIsUnavailable() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+
+        List<NavigationSession.TurnEvent> turnEvents = state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                new GeoJsonRoute(
+                        Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.001)),
+                        Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                        Arrays.asList(0.0, 42.0),
+                        42.0,
+                        111.0
+                ),
+                location(0.0, 0.0, 1_000L),
+                0f,
+                false,
+                500L
+        );
+
+        assertEquals(1, turnEvents.size());
+        assertEquals(NavigationSession.TurnEvent.Type.INITIAL, turnEvents.get(0).type);
+        assertEquals(42.0, turnEvents.get(0).timeSeconds, 0.0);
+    }
+
+    @Test
     public void evaluateLocation_surfacesOffTrackRerouteNotice() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
