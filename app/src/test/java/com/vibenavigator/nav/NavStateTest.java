@@ -10,6 +10,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
+import com.vibenavigator.R;
 import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.route.GeoJsonRoute;
 import com.vibenavigator.nav.route.VoiceHint;
@@ -638,6 +639,139 @@ public class NavStateTest {
         );
 
         assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7)", state.gpsStatusLine);
+    }
+
+    @Test
+    public void displayStatusBlock_prefersNoticeOverProgressContent() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.emptyList(),
+                Arrays.asList(0.0, 15.0, 30.0),
+                30.0,
+                222.0
+        );
+
+        NavState baseState = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                -1,
+                0,
+                2f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Arrays.asList(
+                        new NavTarget("Stop 1", 111.0),
+                        new NavTarget("Destination", 222.0)
+                ),
+                context
+        );
+
+        NavState state = NavState.withNotice(baseState, "Rerouting around blockage");
+
+        assertEquals("Rerouting around blockage", state.displayStatusBlock());
+    }
+
+    @Test
+    public void displayStatusBlock_combinesDestinationAndStopProgress() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.emptyList(),
+                Arrays.asList(0.0, 15.0, 30.0),
+                30.0,
+                222.0
+        );
+
+        NavState baseState = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                -1,
+                0,
+                2f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Arrays.asList(
+                        new NavTarget("Stop 1", 111.0),
+                        new NavTarget("Destination", 222.0)
+                ),
+                context
+        );
+
+        assertEquals(
+                baseState.destinationLine + "\n" + baseState.stopProgressBlock,
+                baseState.displayStatusBlock()
+        );
+    }
+
+    @Test
+    public void displayStatusBlock_showsPauseNoticeInsteadOfCombinedProgress() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.emptyList(),
+                Arrays.asList(0.0, 15.0, 30.0),
+                30.0,
+                222.0
+        );
+
+        NavState baseState = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                -1,
+                0,
+                2f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Arrays.asList(
+                        new NavTarget("Stop 1", 111.0),
+                        new NavTarget("Destination", 222.0)
+                ),
+                context
+        );
+
+        NavState state = NavState.withPauseState(context, baseState, true);
+
+        assertEquals(context.getString(R.string.nav_paused_notice), state.displayStatusBlock());
     }
 
     @NonNull

@@ -17,6 +17,7 @@ import android.text.Spanned;
 import android.util.TypedValue;
 import android.text.style.ForegroundColorSpan;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.window.OnBackInvokedCallback;
@@ -50,12 +51,11 @@ public class NavigationActivity extends Activity {
     private TextView next;
     private TextView afterNext;
     private TextView destination;
-    private TextView stopProgress;
     private NavigationCompassView compass;
     private TextView gpsStatus;
     private Button blocked;
-    private Button pauseResume;
-    private Button stop;
+    private ImageButton pauseResume;
+    private ImageButton stop;
 
     private NavigationService.LocalBinder navBinder;
     private boolean bound;
@@ -112,7 +112,6 @@ public class NavigationActivity extends Activity {
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
         destination = findViewById(R.id.destinationText);
-        stopProgress = findViewById(R.id.stopProgressText);
         compass = findViewById(R.id.navigationCompassView);
         gpsStatus = findViewById(R.id.gpsStatusText);
         gpsStatus.setMaxLines(1);
@@ -223,13 +222,14 @@ public class NavigationActivity extends Activity {
         currentState = state;
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
-        destination.setText(state.destinationLine);
-        String secondaryText = !state.detailBlock.isEmpty() ? state.detailBlock : state.stopProgressBlock;
-        stopProgress.setText(secondaryText);
+        destination.setText(state.displayStatusBlock());
         compass.setCompassState(state.compassState);
         blocked.setEnabled(!state.paused);
         pauseResume.setEnabled(navBinder != null);
-        pauseResume.setText(state.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation);
+        pauseResume.setImageResource(state.paused ? R.drawable.ic_play : R.drawable.ic_pause);
+        pauseResume.setContentDescription(getString(
+                state.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
+        ));
         renderGpsStatus();
         String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.gpsStatusLine
                 + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.destinationLine

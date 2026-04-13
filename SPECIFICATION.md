@@ -275,11 +275,11 @@ The navigation UI must show the following in large text:
 - On phone-sized screens in landscape orientation, the navigation UI must switch to a two-column layout
 - In that landscape layout, the left column must contain all navigation text content and both action buttons
 - In that landscape layout, the right column must contain only the compass route view
-- The landscape layout must keep the blocked-road and stop-navigation buttons in the left column instead of placing them under the compass
+- In that landscape layout, the left column must keep the blocked-road action at the top and the pause/resume plus stop actions at the bottom instead of placing them under the compass
 
 #### 4.5.1 Next two directions
 
-- At the top: the next two directions
+- Near the top, below the GPS status line and blocked-road button: the next two directions
 - Each must include emoji, text, distance left, and time left
 - The first upcoming direction must show distance and time from the user's current matched position
 - If the first upcoming direction still lies on the current matched route segment, its displayed time left should use trustworthy smoothed live speed when available and otherwise fall back to BRouter-derived timing for the remaining current-segment portion when available
@@ -323,16 +323,15 @@ The navigation UI must show the following in large text:
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
 - The destination endpoint must only be shown when it falls within the currently visible compass radius; if it lies outside the visible radius, it should not be clamped back onto the compass edge as a detached marker
 
-#### 4.5.3 Secondary progress/detail line
+#### 4.5.3 Shared status block
 
-- Below the compass, the UI must first show the final destination progress as a dedicated single line using a destination icon instead of the literal `Destination` label
-- The destination progress line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing: trustworthy smoothed live speed only for the remaining current-segment portion, plus BRouter-derived time for later segments
-- Below the destination progress line, the UI must use a single shared secondary text line instead of separate stop-progress and generic-message areas
-- When an intermediate stop is still ahead on the route and there is no higher-priority notice to show, that secondary line must show the distance left, time left, and arrival time for only the next intermediate stop ahead
-- The next intermediate stop line's time-left and ETA values should use the same segment-aware hybrid estimator as maneuver timing and destination progress
-- When the current next intermediate stop is passed, the secondary line must switch to the following intermediate stop if one remains
-- The UI must not list all remaining intermediate stops at once in that secondary line
-- When a navigation detail or notice needs to be surfaced in that area, such as route-unavailable detail or blocked-road reroute feedback, that detail must take precedence over intermediate-stop progress on the shared secondary line
+- Below the compass, the UI must use a single shared status text block instead of separate destination-progress and secondary-detail text areas
+- When no higher-priority notice is active, that shared status block must show the final destination progress and, if an intermediate stop is still ahead, the next intermediate-stop progress in the same text area
+- The destination progress portion should use the same segment-aware hybrid estimator as maneuver timing: trustworthy smoothed live speed only for the remaining current-segment portion, plus BRouter-derived time for later segments
+- The next intermediate-stop portion should use the same segment-aware hybrid estimator as maneuver timing and destination progress
+- When the current next intermediate stop is passed, the shared status block must switch to the following intermediate stop if one remains
+- The UI must not list all remaining intermediate stops at once in that shared status block
+- When a navigation detail or notice needs to be surfaced in that area, such as route-unavailable detail, blocked-road reroute feedback, or paused-state messaging, that detail must take precedence over progress content in the shared status block
 
 #### 4.5.3.1 GPS status line
 
@@ -344,7 +343,7 @@ The navigation UI must show the following in large text:
 
 #### 4.5.4 Blocked road button
 
-- Below the progress section and centered: a `blocked road` button
+- Near the top of the screen, above the direction lines: a full-width `blocked road` button
 - The blocked-road action must be unavailable while navigation is paused so the app does not queue reroute changes against a suspended guidance session
 
 ##### 4.5.4.1 Blocked no-go memory
@@ -369,15 +368,17 @@ The navigation UI must show the following in large text:
 
 #### 4.5.5 Pause/resume navigation button
 
-- Above the stop-navigation button, the navigation UI must show a button that toggles between pause and resume for the current navigation session
+- At the bottom action row, the navigation UI must show an icon-only circular button that toggles between pause and resume for the current navigation session
 - Pressing pause must keep the current route, destination, and intermediate-stop progress in memory while suspending live guidance updates
-- While paused, the navigation UI must clearly indicate that the session is paused and the button label must switch to resume
+- While paused, the navigation UI must clearly indicate that the session is paused and the button icon must switch to resume/play
 - Pressing resume must continue the existing navigation session instead of starting a fresh route-planning flow
 - Portrait and landscape layouts must both expose the pause/resume action alongside the blocked-road and stop-navigation actions
+- In the bottom action row, the pause/resume button must sit on the left side with matching edge and center spacing relative to the stop button
 
 #### 4.5.6 Stop navigation button
 
-- At the bottom: a button to stop navigation
+- At the bottom action row: an icon-only circular button to stop navigation
+- In that bottom action row, the stop button must sit on the right side with matching edge and center spacing relative to the pause/resume button
 - Pressing it must return to the previous UI
 - Destination and intermediate stops must be kept
 

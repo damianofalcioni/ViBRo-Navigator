@@ -24,11 +24,20 @@
             android:textColor="@color/white"
             android:textSize="16sp" />
 
+        <Button
+            android:id="@+id/blockedRoadButton"
+            style="@style/Widget.VibeNavigator.Button.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/gpsStatusText"
+            android:layout_marginTop="12dp"
+            android:text="@string/action_blocked_road" />
+
         <TextView
             android:id="@+id/nextDirectionText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/gpsStatusText"
+            android:layout_below="@id/blockedRoadButton"
             android:layout_marginTop="18dp"
             android:text="@string/nav_no_route"
             android:textColor="@color/white"
@@ -50,45 +59,55 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/afterNextDirectionText"
             android:layout_marginTop="16dp"
+            android:layout_above="@id/navigationActionRow"
+            android:layout_marginBottom="16dp"
+            android:gravity="center"
             android:text=""
+            android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="18sp" />
 
-        <TextView
-            android:id="@+id/stopProgressText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/destinationText"
-            android:layout_marginTop="10dp"
-            android:text=""
-            android:textColor="@color/white"
-            android:textSize="18sp" />
-
-        <Button
-            android:id="@+id/blockedRoadButton"
-            style="@style/Widget.VibeNavigator.Button.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/pauseResumeNavButton"
-            android:layout_marginBottom="12dp"
-            android:text="@string/action_blocked_road" />
-
-        <Button
-            android:id="@+id/pauseResumeNavButton"
-            style="@style/Widget.VibeNavigator.Button.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_above="@id/stopNavButton"
-            android:layout_marginBottom="12dp"
-            android:text="@string/action_pause_navigation" />
-
-        <Button
-            android:id="@+id/stopNavButton"
-            style="@style/Widget.VibeNavigator.Button.Danger"
+        <LinearLayout
+            android:id="@+id/navigationActionRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:text="@string/action_stop_navigation" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <ImageButton
+                android:id="@+id/pauseResumeNavButton"
+                style="@style/Widget.VibeNavigator.IconButton.Circle"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="@string/action_pause_navigation"
+                android:src="@drawable/ic_pause"
+                android:tint="@null" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="2" />
+
+            <ImageButton
+                android:id="@+id/stopNavButton"
+                style="@style/Widget.VibeNavigator.IconButton.Circle"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:contentDescription="@string/action_stop_navigation"
+                android:src="@drawable/ic_stop"
+                android:tint="@null" />
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+        </LinearLayout>
     </RelativeLayout>
 
     <FrameLayout

@@ -51,6 +51,13 @@
         <item name="android:stateListAnimator">@null</item>
     </style>
 
+    <style name="Widget.VibeNavigator.IconButton.Circle" parent="@style/Widget.VibeNavigator.IconButton">
+        <item name="android:background">@drawable/bg_button_circle</item>
+        <item name="android:minWidth">56dp</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:padding">14dp</item>
+    </style>
+
     <style name="Widget.VibeNavigator.Spinner" parent="@android:style/Widget.Material.Spinner">
         <item name="android:background">@drawable/bg_spinner_field</item>
         <item name="android:popupBackground">@drawable/bg_spinner_popup</item>

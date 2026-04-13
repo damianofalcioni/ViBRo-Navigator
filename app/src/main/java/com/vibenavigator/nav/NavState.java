@@ -63,6 +63,20 @@ public final class NavState {
     }
 
     @NonNull
+    public String displayStatusBlock() {
+        if (!detailBlock.isEmpty()) {
+            return detailBlock;
+        }
+        if (destinationLine.isEmpty()) {
+            return stopProgressBlock;
+        }
+        if (stopProgressBlock.isEmpty()) {
+            return destinationLine;
+        }
+        return destinationLine + "\n" + stopProgressBlock;
+    }
+
+    @NonNull
     public static NavState waiting(@NonNull Context context) {
         String noRoute = context.getString(R.string.nav_no_route);
         return new NavState(noRoute, "", "", "", defaultGpsStatusLine(context), NO_DEADLINE, noRoute, null, false);
