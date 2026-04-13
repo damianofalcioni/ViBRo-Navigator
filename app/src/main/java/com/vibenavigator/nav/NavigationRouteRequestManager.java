@@ -26,6 +26,8 @@ final class NavigationRouteRequestManager {
     private boolean pendingRecalculation;
     @Nullable
     private Exception lastRouteFailure;
+    @Nullable
+    private String inProgressNotice;
 
     void reset(long nowMs) {
         routeRequestToken++;
@@ -34,12 +36,14 @@ final class NavigationRouteRequestManager {
         routeCalculationInProgress = false;
         pendingRecalculation = false;
         lastRouteFailure = null;
+        inProgressNotice = null;
     }
 
     void stop() {
         routeRequestToken++;
         routeCalculationInProgress = false;
         pendingRecalculation = false;
+        inProgressNotice = null;
     }
 
     boolean isRouteCalculationInProgress() {
@@ -49,6 +53,11 @@ final class NavigationRouteRequestManager {
     @Nullable
     Exception getLastRouteFailure() {
         return lastRouteFailure;
+    }
+
+    @Nullable
+    String getInProgressNotice() {
+        return inProgressNotice;
     }
 
     void clearRouteFailure() {
@@ -71,7 +80,8 @@ final class NavigationRouteRequestManager {
             long nowMs,
             @NonNull NavigationRequest request,
             @Nullable Location lastFiltered,
-            @NonNull List<NogoPoint> blocked
+            @NonNull List<NogoPoint> blocked,
+            @Nullable String inProgressNotice
     ) {
         if (routeCalculationInProgress) {
             pendingRecalculation = true;
@@ -101,6 +111,7 @@ final class NavigationRouteRequestManager {
         );
         routeCalculationInProgress = true;
         lastRouteFailure = null;
+        this.inProgressNotice = sanitizeNotice(inProgressNotice);
         AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
                 + " force=" + force
                 + " start=" + formatLatLon(snapshot.start)
@@ -117,6 +128,7 @@ final class NavigationRouteRequestManager {
         }
         routeCalculationInProgress = false;
         lastRouteFailure = null;
+        inProgressNotice = null;
         return true;
     }
 
@@ -131,6 +143,7 @@ final class NavigationRouteRequestManager {
         }
         routeCalculationInProgress = false;
         lastRouteFailure = error;
+        inProgressNotice = null;
         AppLogger.e(TAG, "Route recalculation #" + snapshot.requestNumber + " failed", error);
         AppLogger.w(TAG, "Route recalculation #" + snapshot.requestNumber + " failure summary="
                 + NavigationRouteFailureFormatter.format(context, error, false));
@@ -142,5 +155,14 @@ final class NavigationRouteRequestManager {
             return "null";
         }
         return value.lat + "," + value.lon;
+    }
+
+    @Nullable
+    private static String sanitizeNotice(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

@@ -331,6 +331,7 @@ final class NavigationSessionRouteState {
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             boolean routeCalculationInProgress,
+            @Nullable String routeCalculationNotice,
             @Nullable Throwable lastRouteFailure
     ) {
         String gpsStatusLine = NavState.buildGpsStatusLine(
@@ -355,10 +356,11 @@ final class NavigationSessionRouteState {
         }
 
         if (routeCalculationInProgress) {
-            return NavState.withGpsStatus(
-                    NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
-                    gpsStatusLine
-            );
+            NavState calculatingState = NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
+            if (routeCalculationNotice != null && !routeCalculationNotice.trim().isEmpty()) {
+                calculatingState = NavState.withNotice(calculatingState, routeCalculationNotice);
+            }
+            return NavState.withGpsStatus(calculatingState, gpsStatusLine);
         }
 
         if (route == null || polylineIndex == null) {

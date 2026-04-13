@@ -14,12 +14,11 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.util.TypedValue;
 import android.text.style.ForegroundColorSpan;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.util.TypedValue;
 import android.window.OnBackInvokedCallback;
 import android.window.OnBackInvokedDispatcher;
 
@@ -53,7 +52,7 @@ public class NavigationActivity extends Activity {
     private TextView destination;
     private NavigationCompassView compass;
     private TextView gpsStatus;
-    private Button blocked;
+    private ImageButton blocked;
     private ImageButton pauseResume;
     private ImageButton stop;
 
@@ -114,6 +113,20 @@ public class NavigationActivity extends Activity {
         destination = findViewById(R.id.destinationText);
         compass = findViewById(R.id.navigationCompassView);
         gpsStatus = findViewById(R.id.gpsStatusText);
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                next,
+                10,
+                22,
+                1,
+                TypedValue.COMPLEX_UNIT_SP
+        );
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                afterNext,
+                12,
+                18,
+                1,
+                TypedValue.COMPLEX_UNIT_SP
+        );
         gpsStatus.setMaxLines(1);
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 gpsStatus,

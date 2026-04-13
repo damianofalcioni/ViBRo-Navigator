@@ -19,6 +19,7 @@ import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import com.vibenavigator.R;
 import com.vibenavigator.brouter.NogoPoint;
 import com.vibenavigator.util.AppLogger;
 
@@ -164,7 +165,7 @@ public class NavigationService extends Service implements LocationListener {
             }
             AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
                     + " location=" + formatLocation(loc));
-            requestRouteRecalc(true, null);
+            requestRouteRecalc(true, null, getString(R.string.nav_route_notice_blocked_road_recalculating));
         }
 
         public void stop() {
@@ -313,8 +314,16 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private void requestRouteRecalc(boolean force, @Nullable NavigationRerouteNotice rerouteNotice) {
+        requestRouteRecalc(force, rerouteNotice, null);
+    }
+
+    private void requestRouteRecalc(
+            boolean force,
+            @Nullable NavigationRerouteNotice rerouteNotice,
+            @Nullable String inProgressNotice
+    ) {
         NavigationSession.RouteRequestSnapshot snapshot =
-                navigationSession.prepareRouteRequest(force, System.currentTimeMillis());
+                navigationSession.prepareRouteRequest(force, System.currentTimeMillis(), inProgressNotice);
         if (snapshot == null) {
             return;
         }

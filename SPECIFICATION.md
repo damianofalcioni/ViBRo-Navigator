@@ -275,11 +275,11 @@ The navigation UI must show the following in large text:
 - On phone-sized screens in landscape orientation, the navigation UI must switch to a two-column layout
 - In that landscape layout, the left column must contain all navigation text content and both action buttons
 - In that landscape layout, the right column must contain only the compass route view
-- In that landscape layout, the left column must keep the blocked-road action at the top and the pause/resume plus stop actions at the bottom instead of placing them under the compass
+- In that landscape layout, the left column must keep the turn-instruction block near the top and the blocked-road, stop, and pause/resume actions together in the bottom action row instead of placing them under the compass
 
 #### 4.5.1 Next two directions
 
-- Near the top, below the GPS status line and blocked-road button: the next two directions
+- Near the top, below the GPS status line: the next two directions
 - Each must include emoji, text, distance left, and time left
 - The first upcoming direction must show distance and time from the user's current matched position
 - If the first upcoming direction still lies on the current matched route segment, its displayed time left should use trustworthy smoothed live speed when available and otherwise fall back to BRouter-derived timing for the remaining current-segment portion when available
@@ -288,6 +288,8 @@ The navigation UI must show the following in large text:
 - The second upcoming direction's relative time should be derived from BRouter timing between the first and second maneuver points when available
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
+- The first upcoming direction must keep the full available instruction row width
+- Both direction lines must stay on a single line and should reduce text size as needed before falling back to end-ellipsis truncation
 
 #### 4.5.2 Compass route view
 
@@ -332,6 +334,7 @@ The navigation UI must show the following in large text:
 - When the current next intermediate stop is passed, the shared status block must switch to the following intermediate stop if one remains
 - The UI must not list all remaining intermediate stops at once in that shared status block
 - When a navigation detail or notice needs to be surfaced in that area, such as route-unavailable detail, blocked-road reroute feedback, or paused-state messaging, that detail must take precedence over progress content in the shared status block
+- When the user explicitly triggers the blocked-road action and a reroute request starts, the shared status block should surface a specific blocked-road reroute-progress notice such as `Blocked road added. Recalculating route.` instead of only showing the generic route-calculation body text
 
 #### 4.5.3.1 GPS status line
 
@@ -343,7 +346,9 @@ The navigation UI must show the following in large text:
 
 #### 4.5.4 Blocked road button
 
-- Near the top of the screen, above the direction lines: a full-width `blocked road` button
+- Near the top of the screen: an icon-only circular blocked-road button
+- The blocked-road icon should use a simple no-go / forbidden-sign style glyph that remains legible at button size
+- The blocked-road button must live in the same bottom action row as the stop and pause/resume actions
 - The blocked-road action must be unavailable while navigation is paused so the app does not queue reroute changes against a suspended guidance session
 
 ##### 4.5.4.1 Blocked no-go memory
@@ -373,12 +378,12 @@ The navigation UI must show the following in large text:
 - While paused, the navigation UI must clearly indicate that the session is paused and the button icon must switch to resume/play
 - Pressing resume must continue the existing navigation session instead of starting a fresh route-planning flow
 - Portrait and landscape layouts must both expose the pause/resume action alongside the blocked-road and stop-navigation actions
-- In the bottom action row, the pause/resume button must sit on the left side with matching edge and center spacing relative to the stop button
+- In the bottom action row, the action order must be blocked-road, stop, then pause/resume from left to right, with matching spacing around the three circular buttons
 
 #### 4.5.6 Stop navigation button
 
 - At the bottom action row: an icon-only circular button to stop navigation
-- In that bottom action row, the stop button must sit on the right side with matching edge and center spacing relative to the pause/resume button
+- In that bottom action row, the stop button must sit between the blocked-road button and the pause/resume button
 - Pressing it must return to the previous UI
 - Destination and intermediate stops must be kept
 

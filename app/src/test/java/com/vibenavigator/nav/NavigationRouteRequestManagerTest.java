@@ -33,14 +33,16 @@ public class NavigationRouteRequestManagerTest {
                 10_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 10_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
         NavigationSession.RouteRequestSnapshot second = manager.prepare(
                 false,
                 11_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 11_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
 
         assertNotNull(first);
@@ -58,14 +60,16 @@ public class NavigationRouteRequestManagerTest {
                 2_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 2_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
         NavigationSession.RouteRequestSnapshot second = manager.prepare(
                 false,
                 3_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 3_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
 
         assertNotNull(first);
@@ -85,14 +89,16 @@ public class NavigationRouteRequestManagerTest {
                 2_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 2_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
         manager.prepare(
                 false,
                 3_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 3_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
 
         assertTrue(manager.onRouteApplied(first));
@@ -111,7 +117,8 @@ public class NavigationRouteRequestManagerTest {
                 2_000L,
                 navigationRequest(),
                 location(0.0, 0.0, 2_000L),
-                Collections.emptyList()
+                Collections.emptyList(),
+                null
         );
 
         manager.onRouteFailure(
@@ -123,6 +130,25 @@ public class NavigationRouteRequestManagerTest {
         assertFalse(manager.isRouteCalculationInProgress());
         assertNotNull(manager.getLastRouteFailure());
         assertEquals("route failed because blocked", manager.getLastRouteFailure().getCause().getMessage().replace('\n', ' '));
+    }
+
+    @Test
+    public void prepare_tracksInProgressNoticeUntilCompletion() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset(1_000L);
+
+        NavigationSession.RouteRequestSnapshot snapshot = manager.prepare(
+                true,
+                2_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 2_000L),
+                Collections.emptyList(),
+                "Blocked road added. Recalculating route."
+        );
+
+        assertEquals("Blocked road added. Recalculating route.", manager.getInProgressNotice());
+        assertTrue(manager.onRouteApplied(snapshot));
+        assertNull(manager.getInProgressNotice());
     }
 
     @NonNull

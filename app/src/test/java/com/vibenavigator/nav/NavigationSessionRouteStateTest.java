@@ -60,6 +60,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
+                null,
                 null
         );
 
@@ -128,6 +129,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 4_000L,
                 false,
+                null,
                 null
         );
 
@@ -575,6 +577,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
+                null,
                 BRouterRouteException.fromTextResponse("no track found at pass=0")
         );
 
@@ -625,6 +628,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
+                null,
                 null
         );
         NavState stationaryState = state.buildState(
@@ -639,6 +643,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 2_000L,
                 false,
+                null,
                 null
         );
         NavState resumedState = state.buildState(
@@ -653,6 +658,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 3_000L,
                 false,
+                null,
                 null
         );
 
@@ -681,6 +687,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
+                null,
                 BRouterRouteException.fromTextResponse("no track found at pass=0")
         );
 
@@ -721,6 +728,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
+                null,
                 null
         );
 
@@ -761,6 +769,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 1_000L,
                 false,
+                null,
                 null
         );
         NavState afterFirstStop = state.buildState(
@@ -775,6 +784,7 @@ public class NavigationSessionRouteStateTest {
                 NavState.NO_DEADLINE,
                 2_000L,
                 false,
+                null,
                 null
         );
 
@@ -782,6 +792,32 @@ public class NavigationSessionRouteStateTest {
         assertFalse(beforeFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
         assertTrue(afterFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
         assertFalse(afterFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+    }
+
+    @Test
+    public void buildState_showsBlockedRoadNoticeWhileRouteRecalculationIsRunning() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        Location currentLocation = location(0.0, 0.0, 1_000L);
+
+        NavState navState = state.buildState(
+                context,
+                currentLocation,
+                5f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                true,
+                context.getString(R.string.nav_route_notice_blocked_road_recalculating),
+                null
+        );
+
+        assertTrue(navState.detailBlock.contains(context.getString(R.string.nav_route_notice_blocked_road_recalculating)));
+        assertTrue(navState.detailBlock.contains(context.getString(R.string.nav_calculating_route_body)));
     }
 
     @NonNull

@@ -157,12 +157,18 @@ final class NavigationSession {
 
     @Nullable
     RouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs) {
+        return prepareRouteRequest(force, nowMs, null);
+    }
+
+    @Nullable
+    RouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs, @Nullable String inProgressNotice) {
         return routeRequestManager.prepare(
                 force,
                 nowMs,
                 currentRequest,
                 locationState.getLastFilteredLocation(),
-                routeState.copyBlockedPoints()
+                routeState.copyBlockedPoints(),
+                inProgressNotice
         );
     }
 
@@ -251,6 +257,7 @@ final class NavigationSession {
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 routeRequestManager.isRouteCalculationInProgress(),
+                routeRequestManager.getInProgressNotice(),
                 routeRequestManager.getLastRouteFailure()
         );
         return NavState.withPauseState(context, baseState, paused);

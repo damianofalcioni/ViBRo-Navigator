@@ -81,6 +81,7 @@
     <string name="nav_route_notice_invalid_profile">Routing profile is invalid.</string>
     <string name="nav_route_notice_update_failed_keep_current">Could not update the route. Keeping current route.</string>
     <string name="nav_route_notice_unavailable">Could not calculate a route.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Blocked road added. Recalculating route.</string>
     <string name="nav_paused_notice">Navigation is paused. Tap Resume navigation to continue live guidance.</string>
 
     <string name="notification_channel_nav">Navigation</string>
