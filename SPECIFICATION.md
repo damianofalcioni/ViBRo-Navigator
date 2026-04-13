@@ -381,7 +381,11 @@ The navigation UI must show the following in large text:
 
 - Navigation functionality must remain active in the background
 - Navigation functionality must remain active when the screen is off
+- Background and screen-off navigation reliability must be provided primarily by the location foreground service and ongoing location callbacks rather than by holding a session-long CPU wake lock
+- Partial wake locks may be used only as short, focused guards around critical work such as startup bootstrap, route calculation, or reroute calculation, and each acquisition must use an explicit timeout and be released by the same flow that acquired it
+- The app must not rely on continuously renewing or indefinitely holding a partial wake lock for the full navigation session
 - Screen-off or background navigation may suspend compass UI updates, but geomagnetic monitoring needed for stationary-orientation notifications must continue
+- If the platform cannot deliver the required geomagnetic samples while the device is asleep without a session-long wake lock, stationary-orientation notifications may degrade to best-effort while core location tracking and route guidance continue
 
 #### 4.6.1 Foreground service lifecycle
 
@@ -459,6 +463,7 @@ The navigation UI must show the following in large text:
 - Keep `MainActivity` and `NavigationActivity` thin. Input validation, incoming-intent handling, startup/preflight checks, and navigation startup orchestration should stay in dedicated helpers.
 - Keep navigation text formatting shared between on-screen state and notifications.
 - Keep `NavigationService` focused on Android lifecycle and orchestration, with notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn-event fan-out isolated in focused collaborators.
+- Keep wake-lock ownership narrow and task-scoped. Long-lived navigation reliability should come from the foreground location service, while any partial wake lock should be acquired only by the collaborator performing the short critical section that needs it.
 - Keep background route computation asynchronous while all shared navigation-state mutation remains serialized on the main thread.
 - Keep `NavigationSession` split across focused collaborators for filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle handling rather than collapsing that logic into one class.
 - Keep heuristics such as reroute thresholds, bearing trust rules, forward-look route bearing, direction-of-progress checks, polling cadence, and turn-alert timing in small policy/planner helpers, and keep POI search execution shared across destination and stop fields.

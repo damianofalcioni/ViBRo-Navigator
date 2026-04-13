@@ -56,13 +56,12 @@ public class NavigationService extends Service implements LocationListener {
                     FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS,
                     new ForegroundHost()
             );
-    private final NavigationRouteExecutor routeExecutor =
-            NavigationRouteExecutor.createDefault(new Handler(Looper.getMainLooper()));
+    @Nullable
+    private NavigationRouteExecutor routeExecutor;
     private final NavigationRouteExecutor.Callback routeCallback = new NavigationRouteCallback();
     private final StationaryOrientationAdvisor stationaryOrientationAdvisor = new StationaryOrientationAdvisor();
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
-    private NavigationWakeLockController wakeLockController;
     private NavigationTurnEventDispatcher turnEventDispatcher;
     private GeomagneticOrientationMonitor geomagneticOrientationMonitor;
     private long stationarySinceElapsedRealtimeMs;
@@ -90,7 +89,7 @@ public class NavigationService extends Service implements LocationListener {
         super.onCreate();
         foregroundController = new NavigationForegroundController(this);
         locationController = new NavigationLocationController(this, this);
-        wakeLockController = new NavigationWakeLockController(this);
+        routeExecutor = NavigationRouteExecutor.createDefault(this, notificationMonitorHandler);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
         geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, this::onGeomagneticSampleUpdated);
         screenInteractive = isScreenInteractive();
@@ -189,7 +188,6 @@ public class NavigationService extends Service implements LocationListener {
             return;
         }
 
-        wakeLockController.acquire();
         locationController.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         locationController.requestCurrentLocationSeeds();
         ensureOrientationMonitoring();
@@ -213,7 +211,6 @@ public class NavigationService extends Service implements LocationListener {
         navigationSession.stop();
         foregroundCoordinator.stopMonitoring();
         locationController.stopTracking();
-        wakeLockController.release();
         stopOrientationMonitoring();
         stateBroadcaster.clear();
         foregroundController.stopForegroundService();
@@ -268,6 +265,10 @@ public class NavigationService extends Service implements LocationListener {
         emitState();
         if (rerouteNotice != null) {
             foregroundController.sendOffRouteNotification(rerouteNotice);
+        }
+        if (routeExecutor == null) {
+            AppLogger.w(TAG, "Route executor unavailable, cannot calculate route");
+            return;
         }
         routeExecutor.requestRoute(this, snapshot, routeCallback);
     }
@@ -522,7 +523,10 @@ public class NavigationService extends Service implements LocationListener {
         AppLogger.i(TAG, "Service destroyed");
         stopNavigation();
         unregisterReceiver(screenInteractiveReceiver);
-        routeExecutor.shutdown();
+        if (routeExecutor != null) {
+            routeExecutor.shutdown();
+            routeExecutor = null;
+        }
         super.onDestroy();
     }
 

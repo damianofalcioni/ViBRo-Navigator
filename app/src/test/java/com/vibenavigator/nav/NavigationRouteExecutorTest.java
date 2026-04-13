@@ -370,6 +370,63 @@ public class NavigationRouteExecutorTest {
         assertEquals(1, closeCount.get());
     }
 
+    @Test
+    public void requestRouteRunsCalculationInsideConfiguredGuard() throws Exception {
+        AtomicInteger guardRuns = new AtomicInteger();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                (context, start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
+                        Arrays.asList(start, destination),
+                        Collections.emptyList(),
+                        42.0,
+                        120.0
+                ),
+                Executors.newSingleThreadExecutor(),
+                Runnable::run,
+                routeCalculation -> {
+                    guardRuns.incrementAndGet();
+                    return routeCalculation.call();
+                },
+                0,
+                0L,
+                delayMs -> {
+                }
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        try {
+            executor.requestRoute(
+                    ApplicationProvider.getApplicationContext(),
+                    routeSnapshot(),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationSession.RouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationSession.RouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            failure.set(error);
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
+            assertNull(failure.get());
+            assertEquals(1, guardRuns.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
     private static NavigationSession.RouteRequestSnapshot routeSnapshot() {
         return new NavigationSession.RouteRequestSnapshot(
                 1,

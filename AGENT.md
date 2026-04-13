@@ -35,6 +35,8 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
 - Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw geomagnetic heading available for non-UI orientation logic such as stationary turn-to-face-route advice.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.
+- Long-lived navigation reliability should come from the location foreground service and ongoing location callbacks, not from a session-long CPU wake lock.
+- Any partial wake lock used by navigation must stay short, explicit, and owned by the collaborator performing the critical burst of work, such as route or reroute calculation.
 - `NavigationSession` is the session-level coordinator. Keep filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle split across dedicated state/policy classes instead of collapsing them back together.
 - Keep reroute heuristics split between bearing-source trust, route-deviation policy, and route-state progress confirmation. Wrong-direction detection should continue to use forward-looking route bearing plus along-track direction-of-progress evidence instead of relying on a raw matched-segment bearing alone.
 - `NavigationRequest` owns the shared navigation extras contract used by activities, the service, and resume notifications.
@@ -63,6 +65,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 - Add or update tests when you change navigation state, rerouting, route parsing, voice-hint mapping, geometry helpers, or user-visible behavior.
 - Keep background route computation separated from main-thread state mutation. Preserve `NavigationRouteExecutor` rather than inlining thread management back into `NavigationService`.
 - Keep Android service concerns delegated through the existing foreground/location/wakelock/dispatch/broadcast helpers, and keep `NavigationSession` as a coordinator over focused session collaborators.
+- Do not add a wake-lock renewal loop or reintroduce a session-lifetime wake lock to keep navigation alive; if a path needs a wake lock, scope it to the shortest critical section that actually needs CPU residency.
 - If you change reroute thresholds, polling cadence, turn-alert timing, blocked-road escalation, or route-request lifecycle behavior, update the corresponding `nav/` tests.
 - If you change guidance confidence rules, keep map-free use in mind and update tests around bearing trust, forward-look route bearing, direction-of-progress, turn suppression, and duplicate/imminent alert behavior.
 - If you change navigation intent extras, update `NavigationRequest` first and keep resume/start flows serialized through it instead of hand-copying extras.

@@ -18,6 +18,7 @@ import com.vibenavigator.util.AppLogger;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
@@ -59,13 +60,23 @@ final class NavigationRouteExecutor {
         void post(@NonNull Runnable runnable);
     }
 
+    @VisibleForTesting
+    interface RouteCalculationGuard {
+        @NonNull
+        GeoJsonRoute run(@NonNull Callable<GeoJsonRoute> routeCalculation) throws Exception;
+    }
+
     private static final String TAG = "NavRouteExecutor";
+    private static final String ROUTE_WAKE_LOCK_TAG =
+            "com.vibenavigator.nav.NavigationRouteExecutor:route";
+    private static final long ROUTE_WAKE_LOCK_TIMEOUT_MS = 60_000L;
     private static final int DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES = 2;
     private static final long DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS = 400L;
 
     private final RouteCalculator routeCalculator;
     private final ExecutorService executorService;
     private final MainThreadPoster mainThreadPoster;
+    private final RouteCalculationGuard routeCalculationGuard;
     private final int maxTransientRouteRetries;
     private final long transientRouteRetryDelayMs;
     private final Sleeper sleeper;
@@ -79,6 +90,7 @@ final class NavigationRouteExecutor {
                 routeCalculator,
                 executorService,
                 mainThreadPoster,
+                noWakeLockGuard(),
                 DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES,
                 DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS,
                 Thread::sleep
@@ -94,20 +106,51 @@ final class NavigationRouteExecutor {
             long transientRouteRetryDelayMs,
             @NonNull Sleeper sleeper
     ) {
+        this(
+                routeCalculator,
+                executorService,
+                mainThreadPoster,
+                noWakeLockGuard(),
+                maxTransientRouteRetries,
+                transientRouteRetryDelayMs,
+                sleeper
+        );
+    }
+
+    @VisibleForTesting
+    NavigationRouteExecutor(
+            @NonNull RouteCalculator routeCalculator,
+            @NonNull ExecutorService executorService,
+            @NonNull MainThreadPoster mainThreadPoster,
+            @NonNull RouteCalculationGuard routeCalculationGuard,
+            int maxTransientRouteRetries,
+            long transientRouteRetryDelayMs,
+            @NonNull Sleeper sleeper
+    ) {
         this.routeCalculator = routeCalculator;
         this.executorService = executorService;
         this.mainThreadPoster = mainThreadPoster;
+        this.routeCalculationGuard = routeCalculationGuard;
         this.maxTransientRouteRetries = Math.max(0, maxTransientRouteRetries);
         this.transientRouteRetryDelayMs = Math.max(0L, transientRouteRetryDelayMs);
         this.sleeper = sleeper;
     }
 
     @NonNull
-    static NavigationRouteExecutor createDefault(@NonNull Handler handler) {
+    static NavigationRouteExecutor createDefault(@NonNull Context context, @NonNull Handler handler) {
+        NavigationWakeLockController wakeLockController = new NavigationWakeLockController(context);
         return new NavigationRouteExecutor(
                 new BRouterRouteCalculator(),
                 Executors.newSingleThreadExecutor(),
-                new HandlerPoster(handler)
+                new HandlerPoster(handler),
+                routeCalculation -> wakeLockController.runWithWakeLock(
+                        ROUTE_WAKE_LOCK_TAG,
+                        ROUTE_WAKE_LOCK_TIMEOUT_MS,
+                        routeCalculation
+                ),
+                DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES,
+                DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS,
+                Thread::sleep
         );
     }
 
@@ -121,7 +164,9 @@ final class NavigationRouteExecutor {
             executorService.submit(() -> {
                 long beganAt = System.currentTimeMillis();
                 try {
-                    GeoJsonRoute newRoute = calculateRouteWithRetry(appContext, snapshot);
+                    GeoJsonRoute newRoute = routeCalculationGuard.run(
+                            () -> calculateRouteWithRetry(appContext, snapshot)
+                    );
                     if (newRoute.track.isEmpty()) {
                         throw new IllegalStateException("BRouter returned an empty route");
                     }
@@ -247,6 +292,11 @@ final class NavigationRouteExecutor {
         } catch (Exception e) {
             AppLogger.w(TAG, "Failed to close route calculator cleanly", e);
         }
+    }
+
+    @NonNull
+    private static RouteCalculationGuard noWakeLockGuard() {
+        return routeCalculation -> routeCalculation.call();
     }
 
     private static final class BRouterRouteCalculator implements RouteCalculator, AutoCloseable {
