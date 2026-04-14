@@ -145,9 +145,9 @@
     <string name="format_coordinates">%1$.6f, %2$.6f</string>
     <string name="symbol_plus">+</string>
 
-    <string name="about_title">About VibeNavigator</string>
+    <string name="about_title">VibeNavigator</string>
     <string name="format_version">Version %1$s</string>
-    <string name="about_body">VibeNavigator is a lightweight, battery-efficient, and offline-first, GPS navigation app that only vibrate directions, built around BRouter (and yes, also vibe-coded).</string>
+    <string name="about_body">A lightweight, battery-efficient, and offline-first, GPS navigation app that vibrate directions, built around BRouter (and yes, also vibe-coded).</string>
     <string name="about_sensor_status_title">Used sensors</string>
     <string name="label_sensor_gps_provider">GPS provider</string>
     <string name="label_sensor_network_provider">Network provider</string>
