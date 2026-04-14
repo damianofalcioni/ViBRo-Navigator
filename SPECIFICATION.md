@@ -308,7 +308,10 @@ The navigation UI must show the following in large text:
 - When the user is moving but the current native speed reading is not yet reliable, the compass should prefer reusing the last reliable moving zoom radius if one exists instead of jumping back and forth between zoom modes
 - When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
 - When the user stops and the compass expands back to the full-route overview, the last reliable moving zoom radius should be preserved so it can be restored when movement resumes before speed confidence has recovered
+- The compass route geometry and hint-marker geometry should be sampled once per active route and reused across UI updates instead of rebuilding full projected route lists on every heading or location refresh
+- Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
 - Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash
+- The transition from moving zoom to the stationary full-route overview must complete in a fixed duration of about 2 seconds regardless of the total route length or overview radius delta
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line

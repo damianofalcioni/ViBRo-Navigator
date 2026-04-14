@@ -25,7 +25,7 @@
     <string name="action_zoom_out">-</string>
     <string name="action_current_location">Current location</string>
 
-    <string name="label_vehicle_profile">Vehicle</string>
+    <string name="label_vehicle_profile">BRouter Profile</string>
     <string name="label_destination">Destination</string>
     <string name="format_stop_label">Stop %1$d</string>
 

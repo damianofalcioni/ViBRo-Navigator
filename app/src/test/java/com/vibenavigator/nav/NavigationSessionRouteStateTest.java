@@ -662,12 +662,213 @@ public class NavigationSessionRouteStateTest {
                 null
         );
 
-        assertTrue(stationaryState.compassState.visibleRadiusMeters > movingState.compassState.visibleRadiusMeters);
+        assertTrue(stationaryState.compassState.visibleRadiusMeters >= movingState.compassState.visibleRadiusMeters);
         assertEquals(
                 movingState.compassState.visibleRadiusMeters,
                 resumedState.compassState.visibleRadiusMeters,
                 0.01f
         );
+    }
+
+    @Test
+    public void buildState_stationaryOverviewTransitionUsesFixedTwoSecondDurationAcrossRouteLengths() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        NavigationSessionRouteState shortRouteState = new NavigationSessionRouteState();
+        NavigationRequest shortRouteRequest = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.018),
+                Collections.emptyList()
+        );
+        shortRouteState.applyRouteResult(
+                context,
+                shortRouteRequest,
+                snapshot(shortRouteRequest),
+                new GeoJsonRoute(
+                        Arrays.asList(
+                                new LatLon(0.0, 0.0),
+                                new LatLon(0.0, 0.006),
+                                new LatLon(0.0, 0.012),
+                                new LatLon(0.0, 0.018)
+                        ),
+                        Collections.emptyList(),
+                        2_000.0,
+                        1_999.0
+                ),
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                500L
+        );
+
+        NavigationSessionRouteState longRouteState = new NavigationSessionRouteState();
+        NavigationRequest longRouteRequest = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.18),
+                Collections.emptyList()
+        );
+        longRouteState.applyRouteResult(
+                context,
+                longRouteRequest,
+                snapshot(longRouteRequest),
+                new GeoJsonRoute(
+                        Arrays.asList(
+                                new LatLon(0.0, 0.0),
+                                new LatLon(0.0, 0.06),
+                                new LatLon(0.0, 0.12),
+                                new LatLon(0.0, 0.18)
+                        ),
+                        Collections.emptyList(),
+                        20_000.0,
+                        19_998.0
+                ),
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                500L
+        );
+
+        NavState shortMovingState = shortRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null,
+                null
+        );
+        NavState longMovingState = longRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null,
+                null
+        );
+
+        shortRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 2_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null,
+                null
+        );
+        longRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 2_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null,
+                null
+        );
+
+        NavState shortMidTransitionState = shortRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 3_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null,
+                null
+        );
+        NavState longMidTransitionState = longRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 3_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null,
+                null
+        );
+        NavState shortSettledOverviewState = shortRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 4_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                4_000L,
+                false,
+                null,
+                null
+        );
+        NavState longSettledOverviewState = longRouteState.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 4_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                4_000L,
+                false,
+                null,
+                null
+        );
+
+        float shortProgress = normalizedTransitionProgress(
+                shortMovingState.compassState.visibleRadiusMeters,
+                shortMidTransitionState.compassState.visibleRadiusMeters,
+                shortSettledOverviewState.compassState.visibleRadiusMeters
+        );
+        float longProgress = normalizedTransitionProgress(
+                longMovingState.compassState.visibleRadiusMeters,
+                longMidTransitionState.compassState.visibleRadiusMeters,
+                longSettledOverviewState.compassState.visibleRadiusMeters
+        );
+
+        assertEquals(0.5f, shortProgress, 0.08f);
+        assertEquals(0.5f, longProgress, 0.08f);
+        assertEquals(shortProgress, longProgress, 0.05f);
+        assertTrue(shortSettledOverviewState.compassState.visibleRadiusMeters
+                > shortMovingState.compassState.visibleRadiusMeters);
+        assertTrue(longSettledOverviewState.compassState.visibleRadiusMeters
+                > longMovingState.compassState.visibleRadiusMeters);
     }
 
     @Test
@@ -892,5 +1093,12 @@ public class NavigationSessionRouteStateTest {
         location.setTime(timeMs);
         location.setAccuracy(accuracyMeters);
         return location;
+    }
+
+    private static float normalizedTransitionProgress(float start, float current, float end) {
+        if (Math.abs(end - start) < 0.01f) {
+            return 1f;
+        }
+        return (current - start) / (end - start);
     }
 }

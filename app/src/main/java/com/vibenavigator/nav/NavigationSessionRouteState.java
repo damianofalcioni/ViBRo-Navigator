@@ -50,6 +50,8 @@ final class NavigationSessionRouteState {
     private GeoJsonRoute route;
     @Nullable
     private PolylineIndex polylineIndex;
+    @Nullable
+    private CompassRouteGeometry compassRouteGeometry;
     private int lastSegmentIndex = -1;
     @NonNull
     private List<NavTarget> targets = new ArrayList<>();
@@ -59,17 +61,21 @@ final class NavigationSessionRouteState {
     private Float lastReliableMovingCompassVisibleRadiusMeters;
     private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
+    private final CompassRadiusTransition compassRadiusTransition = new CompassRadiusTransition(2_000L);
+    @NonNull
     private RouteDeviationPolicy.Reason pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
     private int pendingDeviationSampleCount;
 
     void reset() {
         route = null;
         polylineIndex = null;
+        compassRouteGeometry = null;
         lastSegmentIndex = -1;
         targets = new ArrayList<>();
         lastCompassVisibleRadiusMeters = null;
         lastReliableMovingCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
+        compassRadiusTransition.reset();
         clearPendingDeviation();
         recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
@@ -299,10 +305,12 @@ final class NavigationSessionRouteState {
     ) {
         route = newRoute;
         polylineIndex = new PolylineIndex(newRoute.track);
+        compassRouteGeometry = NavState.buildCompassRouteGeometry(newRoute, polylineIndex);
         lastSegmentIndex = -1;
         targets = buildTargets(context, request.stops, polylineIndex);
         lastCompassVisibleRadiusMeters = null;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
+        compassRadiusTransition.reset();
         clearPendingDeviation();
         recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
@@ -403,6 +411,8 @@ final class NavigationSessionRouteState {
                 lastCompassVisibleRadiusMeters,
                 lastReliableMovingCompassVisibleRadiusMeters,
                 resolveCompassRadiusUpdateDeltaMs(nowMs),
+                compassRouteGeometry,
+                compassRadiusTransition,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 targets,

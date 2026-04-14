@@ -24,6 +24,7 @@ public final class NavState {
     private static final float COMPASS_MIN_VISIBLE_RADIUS_METERS = 90f;
     private static final long COMPASS_RADIUS_SMOOTHING_TIME_CONSTANT_MS = 1_200L;
     private static final int MAX_COMPASS_ROUTE_POINTS = 240;
+    private static final int MAX_COMPASS_HINT_POINTS = 48;
 
     @NonNull
     public final String nextLine;
@@ -239,6 +240,8 @@ public final class NavState {
                 previousCompassVisibleRadiusMeters,
                 previousReliableMovingCompassVisibleRadiusMeters,
                 compassRadiusUpdateDeltaMs,
+                null,
+                null,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 targets,
@@ -264,6 +267,57 @@ public final class NavState {
             @Nullable Float previousCompassVisibleRadiusMeters,
             @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
             long compassRadiusUpdateDeltaMs,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @NonNull List<NavTarget> targets,
+            @NonNull Context context
+    ) {
+        return from(
+                route,
+                index,
+                alongTrackMeters,
+                nextHintIdx,
+                currentSegmentIndex,
+                speedMps,
+                speedMps,
+                likelyStationary,
+                accuracyMeters,
+                currentLocation,
+                fixedSatelliteCount,
+                headingDegrees,
+                headingAccuracyDegrees,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                null,
+                null,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                targets,
+                context
+        );
+    }
+
+    @NonNull
+    static NavState from(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int nextHintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            float etaSpeedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @NonNull Location currentLocation,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            @Nullable CompassRouteGeometry compassRouteGeometry,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @NonNull List<NavTarget> targets,
@@ -314,7 +368,10 @@ public final class NavState {
                 headingAccuracyDegrees,
                 previousCompassVisibleRadiusMeters,
                 previousReliableMovingCompassVisibleRadiusMeters,
-                compassRadiusUpdateDeltaMs
+                compassRadiusUpdateDeltaMs,
+                compassRouteGeometry,
+                compassRadiusTransition,
+                nowMs
         );
         return new NavState(
                 next,
@@ -327,6 +384,43 @@ public final class NavState {
                 compassState,
                 false
         );
+    }
+
+    @NonNull
+    static CompassRouteGeometry buildCompassRouteGeometry(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index
+    ) {
+        List<CompassRouteGeometry.SamplePoint> routeSamplePoints = new ArrayList<>();
+        if (!route.track.isEmpty()) {
+            if (route.track.size() == 1) {
+                routeSamplePoints.add(new CompassRouteGeometry.SamplePoint(route.track.get(0), 0.0));
+            } else {
+                double totalLengthMeters = index.totalLengthMeters();
+                double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
+                addSampledRoutePoints(index, 0.0, totalLengthMeters, stepMeters, routeSamplePoints);
+            }
+        }
+
+        List<LatLon> hintSamplePoints = new ArrayList<>();
+        if (!route.voiceHints.isEmpty()) {
+            if (route.voiceHints.size() <= MAX_COMPASS_HINT_POINTS) {
+                addHintSamplePoints(route, index, 0, route.voiceHints.size() - 1, hintSamplePoints);
+            } else {
+                double hintStep = (route.voiceHints.size() - 1d) / (MAX_COMPASS_HINT_POINTS - 1d);
+                int lastSelectedIndex = -1;
+                for (int i = 0; i < MAX_COMPASS_HINT_POINTS; i++) {
+                    int selectedIndex = (int) Math.round(i * hintStep);
+                    selectedIndex = Math.min(route.voiceHints.size() - 1, Math.max(0, selectedIndex));
+                    if (selectedIndex == lastSelectedIndex) {
+                        continue;
+                    }
+                    addHintSamplePoints(route, index, selectedIndex, selectedIndex, hintSamplePoints);
+                    lastSelectedIndex = selectedIndex;
+                }
+            }
+        }
+        return new CompassRouteGeometry(routeSamplePoints, hintSamplePoints);
     }
 
     @NonNull
@@ -551,7 +645,10 @@ public final class NavState {
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
             @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
-            long compassRadiusUpdateDeltaMs
+            long compassRadiusUpdateDeltaMs,
+            @Nullable CompassRouteGeometry compassRouteGeometry,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
+            long nowMs
     ) {
         if (route.track.isEmpty()) {
             return null;
@@ -559,13 +656,18 @@ public final class NavState {
 
         double currentLat = currentLocation.getLatitude();
         double currentLon = currentLocation.getLongitude();
-        CompassTrackSample trackSample = sampleCompassTrack(route, index, alongTrackMeters, currentLat, currentLon);
+        CompassRouteGeometry routeGeometry = compassRouteGeometry != null
+                ? compassRouteGeometry
+                : buildCompassRouteGeometry(route, index);
 
         LatLon routeEndPoint = route.track.get(route.track.size() - 1);
         float destinationEastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, routeEndPoint.lat, routeEndPoint.lon);
         float destinationNorthMeters = (float) GeoMath.northMeters(currentLat, routeEndPoint.lat);
         double destinationDistanceMeters = Math.hypot(destinationEastMeters, destinationNorthMeters);
-        double furthestDistanceMeters = Math.max(trackSample.furthestDistanceMeters, destinationDistanceMeters);
+        double furthestDistanceMeters = Math.max(
+                resolveFurthestRouteSampleDistanceMeters(routeGeometry, currentLat, currentLon),
+                destinationDistanceMeters
+        );
 
         float fullRouteVisibleRadiusMeters = (float) Math.max(
                 COMPASS_MIN_VISIBLE_RADIUS_METERS,
@@ -591,13 +693,34 @@ public final class NavState {
         } else {
             targetVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
         }
-        float visibleRadiusMeters = hasReusableMovingRadius && !reliableMovingSpeed && !likelyStationary
-                ? targetVisibleRadiusMeters
-                : smoothVisibleRadiusMeters(
-                        targetVisibleRadiusMeters,
-                        previousCompassVisibleRadiusMeters,
-                        compassRadiusUpdateDeltaMs
-                );
+        boolean fullRouteOverview = likelyStationary
+                || (!reliableMovingSpeed && !hasReusableMovingRadius);
+        float visibleRadiusMeters;
+        if (fullRouteOverview) {
+            visibleRadiusMeters = compassRadiusTransition == null
+                    ? fullRouteVisibleRadiusMeters
+                    : compassRadiusTransition.resolve(
+                            previousCompassVisibleRadiusMeters != null
+                                    ? previousCompassVisibleRadiusMeters
+                                    : fullRouteVisibleRadiusMeters,
+                            fullRouteVisibleRadiusMeters,
+                            previousCompassVisibleRadiusMeters != null
+                                    && Float.isFinite(previousCompassVisibleRadiusMeters)
+                                    && previousCompassVisibleRadiusMeters > 0f,
+                            nowMs
+                    );
+        } else {
+            if (compassRadiusTransition != null) {
+                compassRadiusTransition.reset();
+            }
+            visibleRadiusMeters = hasReusableMovingRadius && !reliableMovingSpeed
+                    ? targetVisibleRadiusMeters
+                    : smoothVisibleRadiusMeters(
+                            targetVisibleRadiusMeters,
+                            previousCompassVisibleRadiusMeters,
+                            compassRadiusUpdateDeltaMs
+                    );
+        }
         boolean usingMovingScale = !likelyStationary && (reliableMovingSpeed || hasReusableMovingRadius);
         float referenceSpeedMps = usingMovingScale
                 ? resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters)
@@ -609,120 +732,71 @@ public final class NavState {
                 referenceSpeedMps,
                 visibleRadiusMeters,
                 sanitizeAccuracyMeters(accuracyMeters),
-                trackSample.passedRoutePoints,
-                trackSample.routePoints,
-                trackSample.hintPoints,
+                routeGeometry,
+                currentLat,
+                currentLon,
+                routeGeometry.passedRoutePointCount(alongTrackMeters),
                 destinationEastMeters,
                 destinationNorthMeters,
                 destinationDistanceMeters <= visibleRadiusMeters
         );
     }
 
-    @NonNull
-    private static CompassTrackSample sampleCompassTrack(
-            @NonNull GeoJsonRoute route,
+    private static void addSampledRoutePoints(
             @NonNull PolylineIndex index,
-            double alongTrackMeters,
-            double currentLat,
-            double currentLon
-    ) {
-        List<NavCompassState.RoutePoint> points = new ArrayList<>();
-        List<NavCompassState.RoutePoint> passedPoints = new ArrayList<>();
-        List<NavCompassState.RoutePoint> hintPoints = new ArrayList<>();
-        double furthestDistanceMeters = 0.0;
-
-        if (route.track.size() == 1) {
-            LatLon onlyPoint = route.track.get(0);
-            points.add(projectRoutePoint(currentLat, currentLon, onlyPoint));
-        } else {
-            double totalLengthMeters = index.totalLengthMeters();
-            double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
-            double clampedAlongTrackMeters = Math.max(0.0, Math.min(alongTrackMeters, totalLengthMeters));
-            furthestDistanceMeters = addSampledRoutePoints(
-                    index,
-                    currentLat,
-                    currentLon,
-                    0.0,
-                    clampedAlongTrackMeters,
-                    stepMeters,
-                    passedPoints,
-                    furthestDistanceMeters
-            );
-            furthestDistanceMeters = addSampledRoutePoints(
-                    index,
-                    currentLat,
-                    currentLon,
-                    clampedAlongTrackMeters,
-                    totalLengthMeters,
-                    stepMeters,
-                    points,
-                    furthestDistanceMeters
-            );
-        }
-
-        for (VoiceHint hint : route.voiceHints) {
-            LatLon hintPoint = index.pointAtDistance(index.distanceAtPointIndex(hint.indexInTrack));
-            if (hintPoint == null) {
-                continue;
-            }
-            hintPoints.add(projectRoutePoint(currentLat, currentLon, hintPoint));
-        }
-
-        return new CompassTrackSample(passedPoints, points, hintPoints, furthestDistanceMeters);
-    }
-
-    private static double addSampledRoutePoints(
-            @NonNull PolylineIndex index,
-            double currentLat,
-            double currentLon,
             double startMeters,
             double endMeters,
             double stepMeters,
-            @NonNull List<NavCompassState.RoutePoint> target,
-            double furthestDistanceMeters
+            @NonNull List<CompassRouteGeometry.SamplePoint> target
     ) {
         if (endMeters < startMeters) {
-            return furthestDistanceMeters;
+            return;
         }
         for (double distance = startMeters; distance < endMeters; distance += stepMeters) {
             LatLon point = index.pointAtDistance(distance);
             if (point == null) {
                 continue;
             }
-            furthestDistanceMeters = addProjectedRoutePoint(currentLat, currentLon, point, target, furthestDistanceMeters);
+            target.add(new CompassRouteGeometry.SamplePoint(point, distance));
         }
         LatLon endPoint = index.pointAtDistance(endMeters);
         if (endPoint != null) {
-            furthestDistanceMeters = addProjectedRoutePoint(currentLat, currentLon, endPoint, target, furthestDistanceMeters);
+            target.add(new CompassRouteGeometry.SamplePoint(endPoint, endMeters));
+        }
+    }
+
+    private static void addHintSamplePoints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            int startHintIndex,
+            int endHintIndex,
+            @NonNull List<LatLon> target
+    ) {
+        for (int i = startHintIndex; i <= endHintIndex; i++) {
+            VoiceHint hint = route.voiceHints.get(i);
+            LatLon hintPoint = index.pointAtDistance(index.distanceAtPointIndex(hint.indexInTrack));
+            if (hintPoint != null) {
+                target.add(hintPoint);
+            }
+        }
+    }
+
+    private static double resolveFurthestRouteSampleDistanceMeters(
+            @NonNull CompassRouteGeometry routeGeometry,
+            double currentLat,
+            double currentLon
+    ) {
+        double furthestDistanceMeters = 0.0;
+        for (int i = 0; i < routeGeometry.routeSamplePointCount(); i++) {
+            LatLon point = routeGeometry.routeSamplePointAt(i);
+            if (point == null) {
+                continue;
+            }
+            double eastMeters = GeoMath.eastMeters(currentLat, currentLon, point.lat, point.lon);
+            double northMeters = GeoMath.northMeters(currentLat, point.lat);
+            furthestDistanceMeters = Math.max(furthestDistanceMeters, Math.hypot(eastMeters, northMeters));
         }
         return furthestDistanceMeters;
-    }
-
-    private static double addProjectedRoutePoint(
-            double currentLat,
-            double currentLon,
-            @NonNull LatLon point,
-            @NonNull List<NavCompassState.RoutePoint> target,
-            double furthestDistanceMeters
-    ) {
-        NavCompassState.RoutePoint routePoint = projectRoutePoint(currentLat, currentLon, point);
-        target.add(routePoint);
-        return Math.max(
-                furthestDistanceMeters,
-                Math.hypot(routePoint.eastMeters, routePoint.northMeters)
-        );
-    }
-
-    @NonNull
-    private static NavCompassState.RoutePoint projectRoutePoint(
-            double currentLat,
-            double currentLon,
-            @NonNull LatLon point
-    ) {
-        return new NavCompassState.RoutePoint(
-                (float) GeoMath.eastMeters(currentLat, currentLon, point.lat, point.lon),
-                (float) GeoMath.northMeters(currentLat, point.lat)
-        );
     }
 
     private static float resolveMovingVisibleRadiusMeters(float speedMps) {
@@ -788,28 +862,6 @@ public final class NavState {
             normalized += 360.0;
         }
         return (float) normalized;
-    }
-
-    private static final class CompassTrackSample {
-        @NonNull
-        final List<NavCompassState.RoutePoint> passedRoutePoints;
-        @NonNull
-        final List<NavCompassState.RoutePoint> routePoints;
-        @NonNull
-        final List<NavCompassState.RoutePoint> hintPoints;
-        final double furthestDistanceMeters;
-
-        private CompassTrackSample(
-                @NonNull List<NavCompassState.RoutePoint> passedRoutePoints,
-                @NonNull List<NavCompassState.RoutePoint> routePoints,
-                @NonNull List<NavCompassState.RoutePoint> hintPoints,
-                double furthestDistanceMeters
-        ) {
-            this.passedRoutePoints = passedRoutePoints;
-            this.routePoints = routePoints;
-            this.hintPoints = hintPoints;
-            this.furthestDistanceMeters = furthestDistanceMeters;
-        }
     }
 
     private static final class UpcomingHint {

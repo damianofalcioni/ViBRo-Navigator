@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import com.vibenavigator.geo.GeoMath;
+import com.vibenavigator.geo.LatLon;
 import com.vibenavigator.nav.NavCompassState;
 import com.vibenavigator.nav.NavigationTextFormatter;
 
@@ -59,6 +61,9 @@ public final class NavigationCompassView extends View {
     private final Path compassClipPath = new Path();
     private final Path routePath = new Path();
     private final RectF arcBounds = new RectF();
+    private final PlotPoint projectedPoint = new PlotPoint();
+    private final PlotPoint auxiliaryPoint = new PlotPoint();
+    private final PlotPoint destinationPoint = new PlotPoint();
 
     public NavigationCompassView(Context context) {
         super(context);
@@ -263,8 +268,67 @@ public final class NavigationCompassView extends View {
         }
 
         float scale = routeRadius / compassState.visibleRadiusMeters;
+        if (compassState.hasRouteGeometry()) {
+            drawRouteGeometrySegment(
+                    canvas,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    0,
+                    compassState.passedRouteSamplePointCount(),
+                    passedRoutePaint
+            );
+            drawRouteGeometrySegment(
+                    canvas,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    compassState.remainingRouteStartSamplePointIndex(),
+                    compassState.routeSamplePointCount(),
+                    routePaint
+            );
+            return;
+        }
         drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint);
         drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint);
+    }
+
+    private void drawRouteGeometrySegment(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            int startIndex,
+            int endIndex,
+            @NonNull Paint strokePaint
+    ) {
+        if (compassState == null || startIndex < 0 || endIndex <= startIndex) {
+            return;
+        }
+
+        routePath.reset();
+        boolean started = false;
+        for (int i = startIndex; i < endIndex; i++) {
+            LatLon point = compassState.routeSamplePointAt(i);
+            if (point == null) {
+                continue;
+            }
+            projectRoutePoint(point, headingDegrees, projectedPoint);
+            float x = cx + projectedPoint.x * scale;
+            float y = cy - projectedPoint.y * scale;
+            if (!started) {
+                routePath.moveTo(x, y);
+                started = true;
+            } else {
+                routePath.lineTo(x, y);
+            }
+        }
+        if (started) {
+            canvas.drawPath(routePath, strokePaint);
+        }
     }
 
     private void drawRouteSegment(
@@ -283,9 +347,9 @@ public final class NavigationCompassView extends View {
         routePath.reset();
         boolean started = false;
         for (NavCompassState.RoutePoint point : points) {
-            float[] projected = projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees);
-            float x = cx + projected[0] * scale;
-            float y = cy - projected[1] * scale;
+            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
+            float x = cx + projectedPoint.x * scale;
+            float y = cy - projectedPoint.y * scale;
             if (!started) {
                 routePath.moveTo(x, y);
                 started = true;
@@ -349,16 +413,32 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawHintMarkers(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.hintPoints.isEmpty() || compassState.visibleRadiusMeters <= 0f) {
+        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
             return;
         }
 
         float scale = routeRadius / compassState.visibleRadiusMeters;
         float markerRadius = dp(ROUTE_MARKER_RADIUS_DP);
+        if (compassState.hasRouteGeometry()) {
+            for (int i = 0; i < compassState.hintSamplePointCount(); i++) {
+                LatLon point = compassState.hintSamplePointAt(i);
+                if (point == null) {
+                    continue;
+                }
+                projectRoutePoint(point, headingDegrees, projectedPoint);
+                float x = cx + projectedPoint.x * scale;
+                float y = cy - projectedPoint.y * scale;
+                canvas.drawCircle(x, y, markerRadius, routeMarkerPaint);
+            }
+            return;
+        }
+        if (compassState.hintPoints.isEmpty()) {
+            return;
+        }
         for (NavCompassState.RoutePoint point : compassState.hintPoints) {
-            float[] projected = projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees);
-            float x = cx + projected[0] * scale;
-            float y = cy - projected[1] * scale;
+            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
+            float x = cx + projectedPoint.x * scale;
+            float y = cy - projectedPoint.y * scale;
             canvas.drawCircle(x, y, markerRadius, routeMarkerPaint);
         }
     }
@@ -373,10 +453,10 @@ public final class NavigationCompassView extends View {
             return;
         }
         float scale = routeRadius / compassState.visibleRadiusMeters;
-        float[] projected = projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees);
+        projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
         canvas.drawCircle(
-                cx + projected[0] * scale,
-                cy - projected[1] * scale,
+                cx + projectedPoint.x * scale,
+                cy - projectedPoint.y * scale,
                 dp(ROUTE_MARKER_RADIUS_DP),
                 routeMarkerPaint
         );
@@ -386,6 +466,21 @@ public final class NavigationCompassView extends View {
     private NavCompassState.RoutePoint resolveVisibleStartPoint() {
         if (compassState == null) {
             return null;
+        }
+        if (compassState.hasRouteGeometry()) {
+            LatLon point = compassState.routeSamplePointAt(0);
+            if (point == null) {
+                return null;
+            }
+            return new NavCompassState.RoutePoint(
+                    (float) GeoMath.eastMeters(
+                            compassState.currentLatitude(),
+                            compassState.currentLongitude(),
+                            point.lat,
+                            point.lon
+                    ),
+                    (float) GeoMath.northMeters(compassState.currentLatitude(), point.lat)
+            );
         }
         if (!compassState.passedRoutePoints.isEmpty()) {
             return compassState.passedRoutePoints.get(0);
@@ -403,11 +498,11 @@ public final class NavigationCompassView extends View {
             return;
         }
 
-        float[] position = resolveDestinationPosition(cx, cy, routeRadius, headingDegrees);
+        PlotPoint position = resolveDestinationPosition(cx, cy, routeRadius, headingDegrees);
         if (position == null) {
             return;
         }
-        canvas.drawCircle(position[0], position[1], dp(DESTINATION_MARKER_RADIUS_DP), destinationPaint);
+        canvas.drawCircle(position.x, position.y, dp(DESTINATION_MARKER_RADIUS_DP), destinationPaint);
     }
 
     private void drawDistanceLegend(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -426,13 +521,13 @@ public final class NavigationCompassView extends View {
             String secondsLabel = formatRingTimeLabel(ringDistanceMeters);
             if (visibleHeadingAccuracyDegrees != null) {
                 drawHeadingAccuracyArc(canvas, cx, cy, radius * ringScale, visibleHeadingAccuracyDegrees);
-                float[] rightAnchor = resolveHeadingAccuracyRingIntersection(
+                PlotPoint rightAnchor = resolveHeadingAccuracyRingIntersection(
                         cx,
                         cy,
                         radius * ringScale,
                         -90f + visibleHeadingAccuracyDegrees
                 );
-                float[] leftAnchor = resolveHeadingAccuracyRingIntersection(
+                PlotPoint leftAnchor = resolveHeadingAccuracyRingIntersection(
                         cx,
                         cy,
                         radius * ringScale,
@@ -440,14 +535,14 @@ public final class NavigationCompassView extends View {
                 );
                 canvas.drawText(
                         distanceLabel,
-                        rightAnchor[0] + dp(DISTANCE_LABEL_OFFSET_DP),
-                        rightAnchor[1] + labelBaselineOffset,
+                        rightAnchor.x + dp(DISTANCE_LABEL_OFFSET_DP),
+                        rightAnchor.y + labelBaselineOffset,
                         distanceLegendRightPaint
                 );
                 canvas.drawText(
                         secondsLabel,
-                        leftAnchor[0] - dp(DISTANCE_LABEL_OFFSET_DP),
-                        leftAnchor[1] + labelBaselineOffset,
+                        leftAnchor.x - dp(DISTANCE_LABEL_OFFSET_DP),
+                        leftAnchor.y + labelBaselineOffset,
                         distanceLegendLeftPaint
                 );
             } else {
@@ -503,21 +598,22 @@ public final class NavigationCompassView extends View {
     }
 
     @NonNull
-    private float[] resolveHeadingAccuracyRingIntersection(
+    private PlotPoint resolveHeadingAccuracyRingIntersection(
             float cx,
             float cy,
             float ringRadius,
             float angleDegrees
     ) {
         double radians = Math.toRadians(angleDegrees);
-        return new float[]{
+        auxiliaryPoint.set(
                 cx + (float) Math.cos(radians) * ringRadius,
                 cy + (float) Math.sin(radians) * ringRadius
-        };
+        );
+        return auxiliaryPoint;
     }
 
     @Nullable
-    private float[] resolveDestinationPosition(
+    private PlotPoint resolveDestinationPosition(
             float cx,
             float cy,
             float routeRadius,
@@ -533,14 +629,17 @@ public final class NavigationCompassView extends View {
         }
 
         float scale = routeRadius / Math.max(1f, compassState.visibleRadiusMeters);
-        float[] projected = projectHeadingUp(
+        projectHeadingUp(
                 compassState.destinationEastMeters,
                 compassState.destinationNorthMeters,
-                headingDegrees
+                headingDegrees,
+                destinationPoint
         );
-        float x = cx + projected[0] * scale;
-        float y = cy - projected[1] * scale;
-        return new float[]{x, y};
+        destinationPoint.set(
+                cx + destinationPoint.x * scale,
+                cy - destinationPoint.y * scale
+        );
+        return destinationPoint;
     }
 
     @NonNull
@@ -575,11 +674,40 @@ public final class NavigationCompassView extends View {
         return Math.round(dp((float) value));
     }
 
-    @NonNull
-    private float[] projectHeadingUp(float eastMeters, float northMeters, float headingDegrees) {
+    private void projectHeadingUp(
+            float eastMeters,
+            float northMeters,
+            float headingDegrees,
+            @NonNull PlotPoint out
+    ) {
         double radians = Math.toRadians(headingDegrees);
         float rotatedEast = (float) (eastMeters * Math.cos(radians) - northMeters * Math.sin(radians));
         float rotatedNorth = (float) (eastMeters * Math.sin(radians) + northMeters * Math.cos(radians));
-        return new float[]{rotatedEast, rotatedNorth};
+        out.set(rotatedEast, rotatedNorth);
+    }
+
+    private void projectRoutePoint(@NonNull LatLon point, float headingDegrees, @NonNull PlotPoint out) {
+        if (compassState == null) {
+            out.set(0f, 0f);
+            return;
+        }
+        float eastMeters = (float) GeoMath.eastMeters(
+                compassState.currentLatitude(),
+                compassState.currentLongitude(),
+                point.lat,
+                point.lon
+        );
+        float northMeters = (float) GeoMath.northMeters(compassState.currentLatitude(), point.lat);
+        projectHeadingUp(eastMeters, northMeters, headingDegrees, out);
+    }
+
+    private static final class PlotPoint {
+        float x;
+        float y;
+
+        void set(float x, float y) {
+            this.x = x;
+            this.y = y;
+        }
     }
 }
