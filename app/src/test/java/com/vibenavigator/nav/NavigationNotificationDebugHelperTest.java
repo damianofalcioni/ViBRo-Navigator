@@ -28,7 +28,7 @@ public class NavigationNotificationDebugHelperTest {
                 ApplicationProvider.getApplicationContext()
         );
 
-        assertEquals("⬆️ ⬅️ ↖️ ⤺ ➡️ ↗️ ⤻ ↩️ ↪️ ⬇️ ⚠️ 🔄 🎯 🏁 ❓ 42°", summary);
+        assertEquals("⬆ ← ↖ <← → ↗ →> U↙ U↘ U↓ !!× ○>3 ◉ ■ ? 42°", summary);
     }
 
     @Test
@@ -37,21 +37,21 @@ public class NavigationNotificationDebugHelperTest {
                 ApplicationProvider.getApplicationContext()
         );
 
-        assertTrue(message.contains("⬆️ Continue"));
-        assertTrue(message.contains("⬅️ Turn left"));
-        assertTrue(message.contains("↖️ Slight left"));
-        assertTrue(message.contains("⤺ Sharp left"));
-        assertTrue(message.contains("➡️ Turn right"));
-        assertTrue(message.contains("↗️ Slight right"));
-        assertTrue(message.contains("⤻ Sharp right"));
-        assertTrue(message.contains("↩️ U-turn left"));
-        assertTrue(message.contains("↪️ U-turn right"));
-        assertTrue(message.contains("⬇️ U-turn"));
-        assertTrue(message.contains("⚠️ Off route"));
-        assertTrue(message.contains("🔄 Roundabout, exit 3"));
-        assertTrue(message.contains("🎯 Beeline"));
-        assertTrue(message.contains("🏁 Arrive"));
-        assertTrue(message.contains("❓ Unknown direction"));
+        assertTrue(message.contains("⬆ Continue"));
+        assertTrue(message.contains("← Turn left"));
+        assertTrue(message.contains("↖ Slight left"));
+        assertTrue(message.contains("<← Sharp left"));
+        assertTrue(message.contains("→ Turn right"));
+        assertTrue(message.contains("↗ Slight right"));
+        assertTrue(message.contains("→> Sharp right"));
+        assertTrue(message.contains("U↙ U-turn left"));
+        assertTrue(message.contains("U↘ U-turn right"));
+        assertTrue(message.contains("U↓ U-turn"));
+        assertTrue(message.contains("!!× Off route"));
+        assertTrue(message.contains("○>3 Roundabout, exit 3"));
+        assertTrue(message.contains("◉ Beeline"));
+        assertTrue(message.contains("■ Arrive"));
+        assertTrue(message.contains("? Unknown direction"));
         assertTrue(message.contains("42° bearing sample"));
     }
 
@@ -74,7 +74,7 @@ public class NavigationNotificationDebugHelperTest {
                 notification.extras.getString(Notification.EXTRA_TITLE)
         );
         assertEquals(
-                "⬆️ ⬅️ ↖️ ⤺ ➡️ ↗️ ⤻ ↩️ ↪️ ⬇️ ⚠️ 🔄 🎯 🏁 ❓ 42°",
+                "⬆ ← ↖ <← → ↗ →> U↙ U↘ U↓ !!× ○>3 ◉ ■ ? 42°",
                 notification.extras.getString(Notification.EXTRA_TEXT)
         );
     }

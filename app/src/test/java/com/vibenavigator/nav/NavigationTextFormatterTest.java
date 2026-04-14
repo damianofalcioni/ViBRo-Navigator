@@ -6,6 +6,8 @@ import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import com.vibenavigator.nav.route.VoiceHint;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -50,5 +52,17 @@ public class NavigationTextFormatterTest {
         );
 
         assertEquals("Turn yourself 42° left to face the route.", message);
+    }
+
+    @Test
+    public void formatTurnNotification_includesRoundaboutExitNumberInSymbolAndText() {
+        String message = NavigationTextFormatter.formatTurnNotification(
+                context,
+                new VoiceHint(0, 13, 3, 0, 0),
+                120.0,
+                8.0
+        );
+
+        assertEquals("○>3 120 m - 8 s - Roundabout, exit 3", message);
     }
 }

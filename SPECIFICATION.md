@@ -240,11 +240,11 @@ The app must monitor user position:
 - Stationary orientation notifications are advisory turn-to-face-the-route prompts and must not change wrong-direction reroute behavior, which remains gated by trusted movement heading, route-progress confirmation, and reroute confidence rules
 - Stationary orientation notifications must be suppressed while a route recalculation is in progress so the app does not emit contradictory off-route and turn-yourself prompts at the same time
 - Each notification message must contain:
-  - A direction arrow emoji
+  - A direction/status symbol
   - The distance left
   - The time left
   - The direction text
-  - The exit number for roundabouts when applicable
+  - The exit number for roundabouts when applicable, including alongside the roundabout symbol as well as in the direction text
   - Hyphen (`-`) separators between fields instead of the bullet character
 
 #### 4.4.4.1 Guidance vibration patterns
@@ -265,6 +265,7 @@ The app must monitor user position:
   - `16` beeline
   - `17` exit left
   - `18` exit right
+- User-visible maneuver and notification symbols should favor simple smartband-safe glyphs over ornate emoji presentation so mirrored wearables can render them consistently
 - Unknown or unsupported voice-hint commands must fall back to a neutral unknown-direction presentation instead of pretending to be a normal continue instruction
 
 ### 4.5 Navigation UI
@@ -282,7 +283,8 @@ The navigation UI must show the following in large text:
 #### 4.5.1 Next two directions
 
 - Near the top, below the GPS status line: the next two directions
-- Each must include emoji, text, distance left, and time left
+- Each must include the mapped direction symbol, text, distance left, and time left
+- For roundabouts, the mapped direction symbol should also include the exit number while the text continues to spell out the exit number
 - The first upcoming direction must show distance and time from the user's current matched position
 - If the first upcoming direction still lies on the current matched route segment, its displayed time left should use trustworthy smoothed live speed when available and otherwise fall back to BRouter-derived timing for the remaining current-segment portion when available
 - If the first upcoming direction lies beyond the current matched route segment, its displayed time left should combine the remaining current-segment time with BRouter-derived time for all following route segments up to that maneuver
@@ -455,6 +457,7 @@ The navigation UI must show the following in large text:
 - When developer mode is enabled, the about page must also show a developer-only action to send a notification-symbol test
 - Triggering that action must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
 - That test notification must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
+- Those test symbols should remain simple enough to render on generic smart bands rather than assuming full emoji support
 
 ### 6. Shared/opened coordinates and addresses
 

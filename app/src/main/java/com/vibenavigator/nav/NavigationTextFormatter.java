@@ -31,11 +31,19 @@ public final class NavigationTextFormatter {
                 : context.getString(direction.labelRes);
         return context.getString(
                 R.string.format_turn_notification,
-                direction.emoji,
+                formatDirectionSymbol(direction),
                 formatDistance(context, distanceMeters),
                 formatTimeSeconds(context, timeSeconds),
                 directionText
         );
+    }
+
+    @NonNull
+    public static String formatDirectionSymbol(@NonNull DirectionInfo direction) {
+        if (direction.exitNumber > 0) {
+            return direction.emoji + direction.exitNumber;
+        }
+        return direction.emoji;
     }
 
     @NonNull

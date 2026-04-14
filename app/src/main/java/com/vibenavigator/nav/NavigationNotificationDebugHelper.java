@@ -66,7 +66,7 @@ public final class NavigationNotificationDebugHelper {
             if (summary.length() > 0) {
                 summary.append(' ');
             }
-            summary.append(directionInfo.emoji);
+            summary.append(NavigationTextFormatter.formatDirectionSymbol(directionInfo));
         }
         summary.append(' ')
                 .append(NavigationTextFormatter.formatBearingDegrees(context, 42.0));
@@ -80,7 +80,7 @@ public final class NavigationNotificationDebugHelper {
             if (message.length() > 0) {
                 message.append('\n');
             }
-            message.append(directionInfo.emoji)
+            message.append(NavigationTextFormatter.formatDirectionSymbol(directionInfo))
                     .append(' ')
                     .append(directionLabel(context, directionInfo));
         }
