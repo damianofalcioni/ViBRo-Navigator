@@ -390,7 +390,9 @@ The navigation UI must show the following in large text:
 
 - At the bottom action row: an icon-only circular button to stop navigation
 - In that bottom action row, the stop button must sit between the blocked-road button and the pause/resume button
-- Pressing it must return to the previous UI
+- Pressing it must first show a confirmation dialog before stopping the active navigation session
+- Confirming the dialog must stop navigation and return to the previous UI
+- Canceling the dialog must leave the current navigation session running and keep the navigation UI open
 - Destination and intermediate stops must be kept
 
 #### 4.5.7 Back button behavior during navigation

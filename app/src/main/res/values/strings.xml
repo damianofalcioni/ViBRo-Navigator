@@ -38,9 +38,11 @@
     <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
     <string name="title_brouter_not_found">BRouter required</string>
+    <string name="title_stop_navigation_confirm">Stop navigation?</string>
     <string name="msg_brouter_install_prompt">BRouter is not installed. Open its app page in Play Store or F-Droid?</string>
     <string name="msg_location_disabled">Location is disabled. Enable it to navigate.</string>
     <string name="msg_permission_required">Permission required</string>
+    <string name="msg_stop_navigation_confirm">Do you want to stop navigation and close this screen?</string>
     <string name="msg_permission_location_rationale">VibeNavigator needs location access to navigate and vibrate directions.</string>
     <string name="msg_permission_notifications_rationale">Notifications are used to alert upcoming turns.</string>
     <string name="msg_enable_notifications">Enable notifications for turn alerts.</string>

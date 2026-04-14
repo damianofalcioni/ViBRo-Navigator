@@ -151,11 +151,7 @@ public class NavigationActivity extends Activity {
         });
 
         stop.setOnClickListener(v -> {
-            if (navBinder != null) {
-                AppLogger.i(TAG, "Stop navigation requested from UI");
-                navBinder.stop();
-            }
-            finish();
+            showStopNavigationConfirmation();
         });
 
         pauseResume.setOnClickListener(v -> {
@@ -289,6 +285,23 @@ public class NavigationActivity extends Activity {
                 nextEvaluationValue
         );
         gpsStatus.setText(styleGpsStatus(statusText));
+    }
+
+    private void showStopNavigationConfirmation() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.title_stop_navigation_confirm)
+                .setMessage(R.string.msg_stop_navigation_confirm)
+                .setPositiveButton(R.string.action_stop_navigation, (dialog, which) -> {
+                    if (navBinder != null) {
+                        AppLogger.i(TAG, "Stop navigation requested from UI");
+                        navBinder.stop();
+                    } else {
+                        AppLogger.w(TAG, "Stop navigation confirmed before service binding completed");
+                    }
+                    finish();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
     }
 
     @NonNull
