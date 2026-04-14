@@ -24,6 +24,8 @@ import com.vibenavigator.util.AppLogger;
 final class NavigationForegroundController {
 
     private static final String TAG = "NavForeground";
+    private static final String LEGACY_CHANNEL_ID_TURN_LEFT = "vibenavigator.turn.left";
+    private static final String LEGACY_CHANNEL_ID_TURN_RIGHT = "vibenavigator.turn.right";
 
     private final Service service;
 
@@ -41,13 +43,26 @@ final class NavigationForegroundController {
             return;
         }
 
+        deleteObsoleteChannels(notificationManager);
+
         NotificationChannel navChannel = new NotificationChannel(
                 NavigationService.CHANNEL_ID_NAV,
                 service.getString(R.string.notification_channel_nav),
                 NotificationManager.IMPORTANCE_LOW
         );
         navChannel.enableVibration(false);
+        navChannel.setSound(null, null);
         notificationManager.createNotificationChannel(navChannel);
+
+        NotificationChannel alertChannel = new NotificationChannel(
+                NavigationService.CHANNEL_ID_ALERT,
+                service.getString(R.string.notification_channel_alert),
+                NotificationManager.IMPORTANCE_HIGH
+        );
+        alertChannel.enableVibration(true);
+        alertChannel.setVibrationPattern(genericAlertVibrationPattern());
+        alertChannel.setSound(null, null);
+        notificationManager.createNotificationChannel(alertChannel);
 
         NotificationChannel leftChannel = new NotificationChannel(
                 NavigationService.CHANNEL_ID_TURN_LEFT,
@@ -56,6 +71,7 @@ final class NavigationForegroundController {
         );
         leftChannel.enableVibration(true);
         leftChannel.setVibrationPattern(leftVibrationPattern());
+        leftChannel.setSound(null, null);
         notificationManager.createNotificationChannel(leftChannel);
 
         NotificationChannel rightChannel = new NotificationChannel(
@@ -65,6 +81,7 @@ final class NavigationForegroundController {
         );
         rightChannel.enableVibration(true);
         rightChannel.setVibrationPattern(rightVibrationPattern());
+        rightChannel.setSound(null, null);
         notificationManager.createNotificationChannel(rightChannel);
         AppLogger.i(TAG, "Notification channels ensured");
     }
@@ -114,9 +131,8 @@ final class NavigationForegroundController {
                 ? NavigationService.CHANNEL_ID_TURN_LEFT
                 : (directionInfo.kind == DirectionKind.RIGHT
                 ? NavigationService.CHANNEL_ID_TURN_RIGHT
-                : NavigationService.CHANNEL_ID_NAV);
-        boolean vibrate = directionInfo.kind == DirectionKind.LEFT || directionInfo.kind == DirectionKind.RIGHT;
-        sendTurnNotification(hint, distanceMeters, timeSeconds, channelId, vibrate);
+                : NavigationService.CHANNEL_ID_ALERT);
+        sendTurnNotification(hint, distanceMeters, timeSeconds, channelId);
     }
 
     void sendStationaryOrientationNotification(@NonNull StationaryOrientationAdvisor.Decision decision) {
@@ -149,13 +165,17 @@ final class NavigationForegroundController {
     void sendOffRouteNotification(@NonNull NavigationRerouteNotice rerouteNotice) {
         String title = service.getString(R.string.notification_off_route_title);
         String message = NavigationTextFormatter.formatOffRouteNotification(service, rerouteNotice);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_NAV)
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_ALERT)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setVibrate(genericAlertVibrationPattern());
+        }
 
         NotificationManager notificationManager =
                 (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
@@ -165,6 +185,20 @@ final class NavigationForegroundController {
         }
         notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
         AppLogger.i(TAG, "Sent off-route notification reason=" + rerouteNotice.reason + " message=" + message);
+    }
+
+    private void deleteObsoleteChannels(@NonNull NotificationManager notificationManager) {
+        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_LEFT);
+        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_RIGHT);
+    }
+
+    private void deleteChannelIfPresent(
+            @NonNull NotificationManager notificationManager,
+            @NonNull String channelId
+    ) {
+        if (notificationManager.getNotificationChannel(channelId) != null) {
+            notificationManager.deleteNotificationChannel(channelId);
+        }
     }
 
     @NonNull
@@ -210,8 +244,7 @@ final class NavigationForegroundController {
             @NonNull VoiceHint hint,
             double distanceMeters,
             double timeSeconds,
-            @NonNull String channelId,
-            boolean vibrate
+            @NonNull String channelId
     ) {
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
         String message = NavigationTextFormatter.formatTurnNotification(service, hint, distanceMeters, timeSeconds);
@@ -224,11 +257,13 @@ final class NavigationForegroundController {
                 .setAutoCancel(true)
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O && vibrate) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             if (directionInfo.kind == DirectionKind.LEFT) {
                 builder.setVibrate(leftVibrationPattern());
             } else if (directionInfo.kind == DirectionKind.RIGHT) {
                 builder.setVibrate(rightVibrationPattern());
+            } else {
+                builder.setVibrate(genericAlertVibrationPattern());
             }
         }
 
@@ -239,9 +274,13 @@ final class NavigationForegroundController {
         }
         notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
         AppLogger.d(TAG, "Sent turn notification channel=" + channelId
-                + " vibrate=" + vibrate
                 + " notificationId=" + NavigationService.NOTIFICATION_ID_TURN
                 + " message=" + message);
+    }
+
+    @NonNull
+    private static long[] genericAlertVibrationPattern() {
+        return new long[]{0, 140, 90, 140};
     }
 
     @NonNull

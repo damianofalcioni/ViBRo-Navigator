@@ -247,9 +247,11 @@ The app must monitor user position:
   - The exit number for roundabouts when applicable
   - Hyphen (`-`) separators between fields instead of the bullet character
 
-#### 4.4.4.1 Imminent turn vibration patterns
+#### 4.4.4.1 Guidance vibration patterns
 
 - The notification imminent to the next direction must use different vibration patterns for left and right directions
+- Guidance notifications that are not classified as left or right, such as straight-ahead or other neutral alerts, must use a third vibration pattern that is distinct from both the left and right patterns
+- Off-route or reroute alert notifications that use the generic guidance alert path must use that same generic third vibration pattern rather than reusing the left or right directional patterns
 
 #### 4.4.4.2 Voice hints
 

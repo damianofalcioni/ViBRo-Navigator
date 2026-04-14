@@ -43,8 +43,9 @@ public class NavigationService extends Service implements LocationListener {
     public static final int NOTIFICATION_ID_ONGOING = 1;
     public static final int NOTIFICATION_ID_TURN = 2;
     public static final String CHANNEL_ID_NAV = "vibenavigator.navigation";
-    public static final String CHANNEL_ID_TURN_LEFT = "vibenavigator.turn.left";
-    public static final String CHANNEL_ID_TURN_RIGHT = "vibenavigator.turn.right";
+    public static final String CHANNEL_ID_ALERT = "vibenavigator.alerts.v1";
+    public static final String CHANNEL_ID_TURN_LEFT = "vibenavigator.turn.left.v2";
+    public static final String CHANNEL_ID_TURN_RIGHT = "vibenavigator.turn.right.v2";
 
     private final IBinder binder = new LocalBinder();
     private final NavigationSession navigationSession = new NavigationSession();

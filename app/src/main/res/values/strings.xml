@@ -87,6 +87,7 @@
     <string name="nav_paused_notice">Navigation is paused. Tap Resume navigation to continue live guidance.</string>
 
     <string name="notification_channel_nav">Navigation</string>
+    <string name="notification_channel_alert">Guidance alerts</string>
     <string name="notification_channel_turn_left">Turn (left)</string>
     <string name="notification_channel_turn_right">Turn (right)</string>
     <string name="notification_nav_running">Navigation running</string>
