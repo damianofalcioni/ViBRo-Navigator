@@ -492,6 +492,15 @@ The navigation UI must show the following in large text:
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
 - Robustness for map-free guidance: the product should favor conservative, high-confidence navigation prompts over aggressive but error-prone updates
 
+## Distribution and release expectations
+
+- The repository should remain suitable for official F-Droid inclusion.
+- Upstream app-store metadata should be maintained in the source repository using the `fastlane/metadata/android/en-US/...` layout so F-Droid can reuse the app description, changelog, icon, and screenshots directly from upstream.
+- The repository should provide maintainer-facing submission documentation for official F-Droid inclusion. That documentation is an operator runbook for project maintainers and should not be treated as end-user product documentation.
+- GitHub Actions may automate F-Droid readiness checks and preparation of a `fdroiddata` merge request, but the specification should assume that official publication still requires F-Droid maintainer review and F-Droid-side rebuild/sign/publish steps.
+- Release builds intended for upstream verification and F-Droid consumption must be unsigned by default in CI unless an explicit maintainer-controlled signing flow is being used outside the F-Droid path.
+- Machine-specific local development configuration, such as SDK paths or local API keys in `local.properties`, must not be required for release validation or F-Droid builds.
+
 ## Implementation guidance
 
 - Keep `MainActivity` and `NavigationActivity` thin. Input validation, incoming-intent handling, startup/preflight checks, and navigation startup orchestration should stay in dedicated helpers.

@@ -1,0 +1,89 @@
+name: F-Droid Readiness
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Ensure gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Verify F-Droid metadata and tag version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version_name="$(sed -n 's/.*versionName = "\(.*\)"/\1/p' app/build.gradle | head -n1)"
+          version_code="$(sed -n 's/.*versionCode = \(.*\)/\1/p' app/build.gradle | head -n1)"
+
+          test -n "$version_name"
+          test -n "$version_code"
+
+          required_files=(
+            fastlane/metadata/android/en-US/title.txt
+            fastlane/metadata/android/en-US/short_description.txt
+            fastlane/metadata/android/en-US/full_description.txt
+            "fastlane/metadata/android/en-US/changelogs/${version_code}.txt"
+          )
+
+          for path in "${required_files[@]}"; do
+            test -f "$path" || { echo "Missing required file: $path"; exit 1; }
+          done
+
+          screenshot_count="$(find fastlane/metadata/android/en-US/images/phoneScreenshots -maxdepth 1 -type f | wc -l)"
+          if [ "$screenshot_count" -lt 2 ]; then
+            echo "Expected at least 2 phone screenshots for store metadata"
+            exit 1
+          fi
+
+          if [[ "${GITHUB_REF_TYPE:-}" == "tag" ]]; then
+            if [[ "${GITHUB_REF_NAME}" != "v${version_name}" && "${GITHUB_REF_NAME}" != "${version_name}" ]]; then
+              echo "Tag ${GITHUB_REF_NAME} does not match versionName ${version_name}"
+              exit 1
+            fi
+          fi
+
+      - name: Run lint and tests
+        run: ./gradlew lint test
+
+      - name: Build unsigned release APK
+        run: ./gradlew assembleRelease
+
+      - name: Verify unsigned release artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls app/build/outputs/apk/release/
+          test -f app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fdroid-release-apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk

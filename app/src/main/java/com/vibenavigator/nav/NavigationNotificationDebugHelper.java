@@ -126,6 +126,8 @@ public final class NavigationNotificationDebugHelper {
             int exitNumber
     ) {
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(new VoiceHint(0, command, exitNumber, 0.0, 0));
-        directions.putIfAbsent(directionInfo.emoji, directionInfo);
+        if (!directions.containsKey(directionInfo.emoji)) {
+            directions.put(directionInfo.emoji, directionInfo);
+        }
     }
 }

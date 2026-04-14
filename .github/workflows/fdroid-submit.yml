@@ -1,0 +1,235 @@
+name: Submit F-Droid Metadata
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: "Release tag or commit to use in fdroiddata, for example v0.1.0"
+        required: true
+        default: "v0.1.0"
+      fdroiddata_branch:
+        description: "Branch name in your GitLab fdroiddata fork"
+        required: true
+        default: "com.vibenavigator"
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    env:
+      APP_ID: com.vibenavigator
+      TARGET_PROJECT: fdroid/fdroiddata
+      TARGET_BRANCH: master
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate required secrets
+        shell: bash
+        env:
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "${GITLAB_NAMESPACE}" || { echo "Missing secret: GITLAB_NAMESPACE"; exit 1; }
+          test -n "${GITLAB_TOKEN}" || { echo "Missing secret: GITLAB_TOKEN"; exit 1; }
+
+      - name: Validate requested release ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rev-parse --verify "${{ inputs.release_ref }}^{commit}" >/dev/null
+
+      - name: Render fdroiddata metadata
+        id: render
+        shell: bash
+        env:
+          RELEASE_REF: ${{ inputs.release_ref }}
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          build_gradle = Path("app/build.gradle").read_text(encoding="utf-8")
+          version_name_match = re.search(r'versionName = "([^"]+)"', build_gradle)
+          version_code_match = re.search(r'versionCode = (\d+)', build_gradle)
+          if not version_name_match or not version_code_match:
+              raise SystemExit("Unable to parse versionName/versionCode from app/build.gradle")
+
+          version_name = version_name_match.group(1)
+          version_code = version_code_match.group(1)
+          repo = os.environ["GITHUB_REPOSITORY"]
+          repo_url = f"https://github.com/{repo}"
+          release_ref = os.environ["RELEASE_REF"]
+
+          text = Path("fdroid/com.vibenavigator.yml").read_text(encoding="utf-8")
+          replacements = {
+              r"^WebSite: .*$": f"WebSite: {repo_url}",
+              r"^SourceCode: .*$": f"SourceCode: {repo_url}",
+              r"^IssueTracker: .*$": f"IssueTracker: {repo_url}/issues",
+              r"^Repo: .*$": f"Repo: {repo_url}.git",
+              r'^  - versionName: ".*"$': f'  - versionName: "{version_name}"',
+              r"^    versionCode: \d+$": f"    versionCode: {version_code}",
+              r"^    commit: .*$": f"    commit: {release_ref}",
+              r'^CurrentVersion: ".*"$': f'CurrentVersion: "{version_name}"',
+              r"^CurrentVersionCode: \d+$": f"CurrentVersionCode: {version_code}",
+          }
+          for pattern, replacement in replacements.items():
+              text, count = re.subn(pattern, replacement, text, flags=re.MULTILINE)
+              if count != 1:
+                  raise SystemExit(f"Expected exactly one match for pattern: {pattern}")
+
+          if "REPLACE_WITH_" in text:
+              raise SystemExit("Rendered metadata still contains placeholder values")
+
+          output_path = Path(os.environ["RUNNER_TEMP"]) / "com.vibenavigator.yml"
+          output_path.write_text(text, encoding="utf-8")
+
+          github_output = Path(os.environ["GITHUB_OUTPUT"])
+          with github_output.open("a", encoding="utf-8") as fh:
+              fh.write(f"version_name={version_name}\n")
+              fh.write(f"version_code={version_code}\n")
+              fh.write(f"metadata_path={output_path}\n")
+          PY
+
+      - name: Push metadata to fdroiddata fork
+        id: push
+        shell: bash
+        env:
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          FDROIDDATA_BRANCH: ${{ inputs.fdroiddata_branch }}
+          METADATA_PATH: ${{ steps.render.outputs.metadata_path }}
+          VERSION_NAME: ${{ steps.render.outputs.version_name }}
+          VERSION_CODE: ${{ steps.render.outputs.version_code }}
+        run: |
+          set -euo pipefail
+
+          repo_url="https://oauth2:${GITLAB_TOKEN}@gitlab.com/${GITLAB_NAMESPACE}/fdroiddata.git"
+          workdir="${RUNNER_TEMP}/fdroiddata"
+
+          git clone "${repo_url}" "${workdir}"
+          cd "${workdir}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin "${FDROIDDATA_BRANCH}" >/dev/null 2>&1; then
+            git fetch origin "${FDROIDDATA_BRANCH}"
+            git checkout -B "${FDROIDDATA_BRANCH}" "origin/${FDROIDDATA_BRANCH}"
+          else
+            git fetch origin "${TARGET_BRANCH}"
+            git checkout -B "${FDROIDDATA_BRANCH}" "origin/${TARGET_BRANCH}"
+          fi
+
+          cp "${METADATA_PATH}" "metadata/${APP_ID}.yml"
+
+          if git diff --quiet -- "metadata/${APP_ID}.yml"; then
+            echo "changed=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          git add "metadata/${APP_ID}.yml"
+          git commit -m "Update ${APP_ID} to ${VERSION_NAME} (${VERSION_CODE})"
+          git push origin "${FDROIDDATA_BRANCH}"
+
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Create or reuse merge request
+        if: success()
+        shell: bash
+        env:
+          GITLAB_NAMESPACE: ${{ secrets.GITLAB_NAMESPACE }}
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+          FDROIDDATA_BRANCH: ${{ inputs.fdroiddata_branch }}
+          RELEASE_REF: ${{ inputs.release_ref }}
+          VERSION_NAME: ${{ steps.render.outputs.version_name }}
+          VERSION_CODE: ${{ steps.render.outputs.version_code }}
+          CHANGED: ${{ steps.push.outputs.changed }}
+        run: |
+          set -euo pipefail
+
+          python <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.parse
+          import urllib.request
+
+          token = os.environ["GITLAB_TOKEN"]
+          namespace = os.environ["GITLAB_NAMESPACE"]
+          branch = os.environ["FDROIDDATA_BRANCH"]
+          target_project = os.environ["TARGET_PROJECT"]
+          target_branch = os.environ["TARGET_BRANCH"]
+          app_id = os.environ["APP_ID"]
+          version_name = os.environ["VERSION_NAME"]
+          version_code = os.environ["VERSION_CODE"]
+          changed = os.environ.get("CHANGED", "")
+
+          def api(method, path, data=None):
+              url = "https://gitlab.com/api/v4" + path
+              headers = {"PRIVATE-TOKEN": token}
+              body = None
+              if data is not None:
+                  body = urllib.parse.urlencode(data).encode("utf-8")
+                  headers["Content-Type"] = "application/x-www-form-urlencoded"
+              req = urllib.request.Request(url, data=body, method=method, headers=headers)
+              with urllib.request.urlopen(req) as response:
+                  return json.loads(response.read().decode("utf-8"))
+
+          source_project_path = urllib.parse.quote(f"{namespace}/fdroiddata", safe="")
+          target_project_path = urllib.parse.quote(target_project, safe="")
+
+          source_project = api("GET", f"/projects/{source_project_path}")
+          target_project_info = api("GET", f"/projects/{target_project_path}")
+
+          existing = api(
+              "GET",
+              "/projects/{}/merge_requests?{}".format(
+                  source_project["id"],
+                  urllib.parse.urlencode(
+                      {
+                          "state": "opened",
+                          "source_branch": branch,
+                          "target_branch": target_branch,
+                          "target_project_id": target_project_info["id"],
+                      }
+                  ),
+              ),
+          )
+
+          if existing:
+              print(f"Existing merge request: {existing[0]['web_url']}")
+              sys.exit(0)
+
+          title = f"New App: {app_id}" if changed == "true" else f"Update {app_id} to {version_name} ({version_code})"
+          description = (
+              "Automated metadata sync from GitHub Actions.\n\n"
+              f"Upstream app id: `{app_id}`\n"
+              f"Requested release ref: `{os.environ['RELEASE_REF']}`\n"
+              f"App version: `{version_name}` ({version_code})\n\n"
+              "Please review metadata/build details before merge."
+          )
+
+          created = api(
+              "POST",
+              f"/projects/{source_project['id']}/merge_requests",
+              {
+                  "source_branch": branch,
+                  "target_branch": target_branch,
+                  "target_project_id": target_project_info["id"],
+                  "title": title,
+                  "description": description,
+                  "remove_source_branch": "false",
+              },
+          )
+          print(f"Created merge request: {created['web_url']}")
+          PY

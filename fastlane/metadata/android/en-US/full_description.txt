@@ -1,0 +1,20 @@
+VibeNavigator is a lightweight navigation app built around BRouter.
+
+It keeps route calculation offline through the installed BRouter app and
+communicates turns through vibration patterns instead of voice prompts.
+
+Features:
+
+* Offline routing via BRouter
+* Minimal on-screen guidance with background navigation support
+* Vibration alerts for turns
+* Destination history with rename and delete support
+* Coordinate pasting and map-link handling
+* Online place lookup through OpenStreetMap Nominatim by default
+* Optional Google geocoding support when a developer-supplied API key is configured
+
+Important notes:
+
+* BRouter must be installed separately for route calculation.
+* The app works without Google services.
+* If no Google API key is configured, place search uses OpenStreetMap Nominatim.

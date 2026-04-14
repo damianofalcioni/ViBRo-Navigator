@@ -6,6 +6,7 @@ import android.content.Context;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 
 import com.vibenavigator.R;
 import com.vibenavigator.util.AppLogger;
@@ -87,11 +88,13 @@ final class NavigationNotificationChannels {
         return new long[]{0, 220, 80, 80};
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private static void deleteObsoleteChannels(@NonNull NotificationManager notificationManager) {
         deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_LEFT);
         deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_RIGHT);
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private static void deleteChannelIfPresent(
             @NonNull NotificationManager notificationManager,
             @NonNull String channelId

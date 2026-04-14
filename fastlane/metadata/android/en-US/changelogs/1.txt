@@ -1,0 +1,4 @@
+Initial public release.
+
+Includes offline BRouter navigation, vibration turn alerts, destination history,
+background navigation support, and fallback POI search via OpenStreetMap Nominatim.
