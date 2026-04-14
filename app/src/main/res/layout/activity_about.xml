@@ -55,5 +55,13 @@
             android:textColor="@color/gray_700"
             android:textSize="14sp"
             android:visibility="gone" />
+
+        <Button
+            android:id="@+id/aboutSymbolTestButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/action_send_symbol_test_notification"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>

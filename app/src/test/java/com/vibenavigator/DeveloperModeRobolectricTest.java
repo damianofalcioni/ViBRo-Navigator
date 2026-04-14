@@ -5,7 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
+import android.app.NotificationManager;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -107,14 +109,17 @@ public class DeveloperModeRobolectricTest {
         View root = activity.findViewById(R.id.aboutRoot);
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
+        Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
 
         assertEquals(View.GONE, sensorStatusTitle.getVisibility());
         assertEquals(View.GONE, sensorStatusBody.getVisibility());
+        assertEquals(View.GONE, symbolTestButton.getVisibility());
 
         performDeveloperUnlockGesture(root);
 
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
         assertTrue(sensorStatusBody.getText().toString().contains(
                 activity.getString(R.string.label_sensor_gps_provider)
         ));
@@ -125,6 +130,25 @@ public class DeveloperModeRobolectricTest {
                 activity.getString(R.string.label_sensor_geomagnetic_rotation_vector)
         ));
         assertTrue(sensorStatusBody.getText().toString().contains("value="));
+    }
+
+    @Test
+    public void aboutPageCanSendSymbolTestNotificationInDeveloperMode() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        View root = activity.findViewById(R.id.aboutRoot);
+        Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
+        NotificationManager notificationManager = activity.getSystemService(NotificationManager.class);
+
+        assertEquals(View.GONE, symbolTestButton.getVisibility());
+
+        performDeveloperUnlockGesture(root);
+        symbolTestButton.performClick();
+
+        assertEquals(
+                activity.getString(R.string.msg_symbol_test_notification_sent),
+                ShadowToast.getTextOfLatestToast()
+        );
+        assertTrue(notificationManager.getActiveNotifications().length > 0);
     }
 
     private static void performDeveloperUnlockGesture(View view) {

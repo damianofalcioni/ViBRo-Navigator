@@ -452,6 +452,9 @@ The navigation UI must show the following in large text:
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, and sample age when available
 - Geomagnetic rotation-vector details should include the latest available heading/orientation-derived values and sample age when available
+- When developer mode is enabled, the about page must also show a developer-only action to send a notification-symbol test
+- Triggering that action must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
+- That test notification must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
 
 ### 6. Shared/opened coordinates and addresses
 

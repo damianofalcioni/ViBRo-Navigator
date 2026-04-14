@@ -1,7 +1,6 @@
 package com.vibenavigator.nav;
 
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -24,8 +23,6 @@ import com.vibenavigator.util.AppLogger;
 final class NavigationForegroundController {
 
     private static final String TAG = "NavForeground";
-    private static final String LEGACY_CHANNEL_ID_TURN_LEFT = "vibenavigator.turn.left";
-    private static final String LEGACY_CHANNEL_ID_TURN_RIGHT = "vibenavigator.turn.right";
 
     private final Service service;
 
@@ -34,56 +31,7 @@ final class NavigationForegroundController {
     }
 
     void ensureChannels() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            return;
-        }
-        NotificationManager notificationManager = service.getSystemService(NotificationManager.class);
-        if (notificationManager == null) {
-            AppLogger.w(TAG, "NotificationManager unavailable while creating channels");
-            return;
-        }
-
-        deleteObsoleteChannels(notificationManager);
-
-        NotificationChannel navChannel = new NotificationChannel(
-                NavigationService.CHANNEL_ID_NAV,
-                service.getString(R.string.notification_channel_nav),
-                NotificationManager.IMPORTANCE_LOW
-        );
-        navChannel.enableVibration(false);
-        navChannel.setSound(null, null);
-        notificationManager.createNotificationChannel(navChannel);
-
-        NotificationChannel alertChannel = new NotificationChannel(
-                NavigationService.CHANNEL_ID_ALERT,
-                service.getString(R.string.notification_channel_alert),
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        alertChannel.enableVibration(true);
-        alertChannel.setVibrationPattern(genericAlertVibrationPattern());
-        alertChannel.setSound(null, null);
-        notificationManager.createNotificationChannel(alertChannel);
-
-        NotificationChannel leftChannel = new NotificationChannel(
-                NavigationService.CHANNEL_ID_TURN_LEFT,
-                service.getString(R.string.notification_channel_turn_left),
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        leftChannel.enableVibration(true);
-        leftChannel.setVibrationPattern(leftVibrationPattern());
-        leftChannel.setSound(null, null);
-        notificationManager.createNotificationChannel(leftChannel);
-
-        NotificationChannel rightChannel = new NotificationChannel(
-                NavigationService.CHANNEL_ID_TURN_RIGHT,
-                service.getString(R.string.notification_channel_turn_right),
-                NotificationManager.IMPORTANCE_HIGH
-        );
-        rightChannel.enableVibration(true);
-        rightChannel.setVibrationPattern(rightVibrationPattern());
-        rightChannel.setSound(null, null);
-        notificationManager.createNotificationChannel(rightChannel);
-        AppLogger.i(TAG, "Notification channels ensured");
+        NavigationNotificationChannels.ensure(service);
     }
 
     void promoteToForeground(@NonNull NavigationRequest request, boolean paused) {
@@ -150,7 +98,9 @@ final class NavigationForegroundController {
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setVibrate(decision.turnRight() ? rightVibrationPattern() : leftVibrationPattern());
+            builder.setVibrate(decision.turnRight()
+                    ? NavigationNotificationChannels.rightVibrationPattern()
+                    : NavigationNotificationChannels.leftVibrationPattern());
         }
 
         NotificationManager notificationManager = (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
@@ -174,7 +124,7 @@ final class NavigationForegroundController {
                 .setPriority(NotificationCompat.PRIORITY_HIGH);
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            builder.setVibrate(genericAlertVibrationPattern());
+            builder.setVibrate(NavigationNotificationChannels.genericAlertVibrationPattern());
         }
 
         NotificationManager notificationManager =
@@ -185,20 +135,6 @@ final class NavigationForegroundController {
         }
         notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
         AppLogger.i(TAG, "Sent off-route notification reason=" + rerouteNotice.reason + " message=" + message);
-    }
-
-    private void deleteObsoleteChannels(@NonNull NotificationManager notificationManager) {
-        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_LEFT);
-        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_RIGHT);
-    }
-
-    private void deleteChannelIfPresent(
-            @NonNull NotificationManager notificationManager,
-            @NonNull String channelId
-    ) {
-        if (notificationManager.getNotificationChannel(channelId) != null) {
-            notificationManager.deleteNotificationChannel(channelId);
-        }
     }
 
     @NonNull
@@ -259,11 +195,11 @@ final class NavigationForegroundController {
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             if (directionInfo.kind == DirectionKind.LEFT) {
-                builder.setVibrate(leftVibrationPattern());
+                builder.setVibrate(NavigationNotificationChannels.leftVibrationPattern());
             } else if (directionInfo.kind == DirectionKind.RIGHT) {
-                builder.setVibrate(rightVibrationPattern());
+                builder.setVibrate(NavigationNotificationChannels.rightVibrationPattern());
             } else {
-                builder.setVibrate(genericAlertVibrationPattern());
+                builder.setVibrate(NavigationNotificationChannels.genericAlertVibrationPattern());
             }
         }
 
@@ -278,18 +214,4 @@ final class NavigationForegroundController {
                 + " message=" + message);
     }
 
-    @NonNull
-    private static long[] genericAlertVibrationPattern() {
-        return new long[]{0, 140, 90, 140};
-    }
-
-    @NonNull
-    private static long[] leftVibrationPattern() {
-        return new long[]{0, 80, 80, 220};
-    }
-
-    @NonNull
-    private static long[] rightVibrationPattern() {
-        return new long[]{0, 220, 80, 80};
-    }
 }

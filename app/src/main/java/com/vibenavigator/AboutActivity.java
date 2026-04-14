@@ -6,9 +6,11 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.vibenavigator.nav.NavigationNotificationDebugHelper;
 import com.vibenavigator.util.AppLogger;
 
 public class AboutActivity extends Activity {
@@ -29,6 +31,7 @@ public class AboutActivity extends Activity {
     private AboutSensorStatusFormatter sensorStatusFormatter;
     private TextView sensorStatusTitle;
     private TextView sensorStatusBody;
+    private Button symbolTestButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +45,9 @@ public class AboutActivity extends Activity {
         TextView body = findViewById(R.id.aboutBody);
         sensorStatusTitle = findViewById(R.id.aboutSensorStatusTitle);
         sensorStatusBody = findViewById(R.id.aboutSensorStatusBody);
+        symbolTestButton = findViewById(R.id.aboutSymbolTestButton);
         sensorStatusFormatter = new AboutSensorStatusFormatter(this);
+        symbolTestButton.setOnClickListener(v -> sendSymbolTestNotification());
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
         renderDeveloperSection();
@@ -101,6 +106,7 @@ public class AboutActivity extends Activity {
         int visibility = developerModeEnabled ? View.VISIBLE : View.GONE;
         sensorStatusTitle.setVisibility(visibility);
         sensorStatusBody.setVisibility(visibility);
+        symbolTestButton.setVisibility(visibility);
         if (developerModeEnabled) {
             sensorStatusFormatter.start();
             sensorStatusBody.setText(sensorStatusFormatter.build(this));
@@ -114,5 +120,10 @@ public class AboutActivity extends Activity {
         for (int i = 0; i < developerTapTimes.length; i++) {
             developerTapTimes[i] = 0L;
         }
+    }
+
+    private void sendSymbolTestNotification() {
+        NavigationNotificationDebugHelper.postSymbolTestNotification(this);
+        Toast.makeText(this, R.string.msg_symbol_test_notification_sent, Toast.LENGTH_SHORT).show();
     }
 }

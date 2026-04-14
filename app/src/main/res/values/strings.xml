@@ -21,6 +21,7 @@
     <string name="action_open_play_store">Play Store</string>
     <string name="action_open_fdroid">F-Droid</string>
     <string name="action_use_selected_point">Use selected point</string>
+    <string name="action_send_symbol_test_notification">Send symbol test notification</string>
     <string name="action_zoom_in">+</string>
     <string name="action_zoom_out">-</string>
     <string name="action_current_location">Current location</string>
@@ -56,6 +57,7 @@
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_developer_mode_enabled">You are now in developer mode.</string>
     <string name="msg_developer_mode_already_enabled">Developer mode is already enabled.</string>
+    <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>
     <string name="msg_map_selection_required">Select a point on the map first.</string>
@@ -95,6 +97,7 @@
     <string name="notification_nav_paused">Navigation paused</string>
     <string name="notification_nav_paused_text">VibeNavigator navigation is paused</string>
     <string name="notification_off_route_title">Off route</string>
+    <string name="notification_symbol_test_title">Smartband symbol test</string>
 
     <string name="direction_continue">Continue</string>
     <string name="direction_keep_left">Keep left</string>
@@ -137,6 +140,7 @@
     <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
     <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>
     <string name="format_startup_orientation_notification">Turn yourself %1$s %2$s to face the route.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s bearing sample</string>
     <string name="format_progress_line">%1$s: %2$s • %3$s • %4$s %5$s</string>
     <string name="format_coordinates">%1$.6f, %2$.6f</string>
     <string name="symbol_plus">+</string>
