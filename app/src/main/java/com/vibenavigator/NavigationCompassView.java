@@ -37,6 +37,8 @@ public final class NavigationCompassView extends View {
     private static final float DESTINATION_MARKER_RADIUS_DP = 4f;
     private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
     private static final float ROUTE_STROKE_WIDTH_DP = 3f;
+    private static final int ROUTE_THRESHOLD_ALPHA = 51;
+    private static final int ROUTE_DEFAULT_ALPHA = 255;
 
     @Nullable
     private NavCompassState compassState;
@@ -269,6 +271,7 @@ public final class NavigationCompassView extends View {
         }
 
         routePaint.setStrokeWidth(resolveRouteStrokeWidthPx(routeRadius));
+        routePaint.setAlpha(resolveRoutePaintAlpha());
         passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         float scale = routeRadius / compassState.visibleRadiusMeters;
         if (compassState.hasRouteGeometry()) {
@@ -314,6 +317,15 @@ public final class NavigationCompassView extends View {
                 baseStrokeWidthPx,
                 Math.min(routeRadius * 2f, projectedThresholdWidthPx)
         );
+    }
+
+    private int resolveRoutePaintAlpha() {
+        if (compassState == null
+                || !compassState.movingScaleActive
+                || compassState.routeThresholdMeters <= 0f) {
+            return ROUTE_DEFAULT_ALPHA;
+        }
+        return ROUTE_THRESHOLD_ALPHA;
     }
 
     private void drawRouteGeometrySegment(

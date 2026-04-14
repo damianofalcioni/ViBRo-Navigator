@@ -127,6 +127,50 @@ public class NavigationCompassViewTest {
         assertEquals(expectedBaseWidth, invokeResolveRouteStrokeWidthPx(view, 100f), 0.01f);
     }
 
+    @Test
+    public void routeThresholdUsesEightyPercentTransparencyInMovingMode() throws Exception {
+        NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
+        view.setCompassState(new NavCompassState(
+                0f,
+                null,
+                1f,
+                150f,
+                0f,
+                true,
+                15f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        ));
+
+        assertEquals(51, invokeResolveRoutePaintAlpha(view));
+    }
+
+    @Test
+    public void routeKeepsOpaqueAlphaInFullRouteOverview() throws Exception {
+        NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
+        view.setCompassState(new NavCompassState(
+                0f,
+                null,
+                1f,
+                150f,
+                0f,
+                false,
+                15f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        ));
+
+        assertEquals(255, invokeResolveRoutePaintAlpha(view));
+    }
+
     private static Object invokeResolveDestinationPosition(NavigationCompassView view) throws Exception {
         Method method = NavigationCompassView.class.getDeclaredMethod(
                 "resolveDestinationPosition",
@@ -155,5 +199,11 @@ public class NavigationCompassViewTest {
         );
         method.setAccessible(true);
         return (float) method.invoke(view, routeRadius);
+    }
+
+    private static int invokeResolveRoutePaintAlpha(NavigationCompassView view) throws Exception {
+        Method method = NavigationCompassView.class.getDeclaredMethod("resolveRoutePaintAlpha");
+        method.setAccessible(true);
+        return (int) method.invoke(view);
     }
 }
