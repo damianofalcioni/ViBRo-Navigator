@@ -28,6 +28,8 @@ public final class NavCompassState {
     public final float referenceSpeedMps;
     public final float visibleRadiusMeters;
     public final float accuracyRadiusMeters;
+    public final boolean movingScaleActive;
+    public final float routeThresholdMeters;
     @NonNull
     public final List<RoutePoint> passedRoutePoints;
     @NonNull
@@ -57,11 +59,45 @@ public final class NavCompassState {
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
+        this(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                visibleRadiusMeters,
+                accuracyRadiusMeters,
+                false,
+                0f,
+                passedRoutePoints,
+                routePoints,
+                hintPoints,
+                destinationEastMeters,
+                destinationNorthMeters,
+                destinationWithinRadius
+        );
+    }
+
+    public NavCompassState(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float visibleRadiusMeters,
+            float accuracyRadiusMeters,
+            boolean movingScaleActive,
+            float routeThresholdMeters,
+            @NonNull List<RoutePoint> passedRoutePoints,
+            @NonNull List<RoutePoint> routePoints,
+            @NonNull List<RoutePoint> hintPoints,
+            float destinationEastMeters,
+            float destinationNorthMeters,
+            boolean destinationWithinRadius
+    ) {
         this.headingDegrees = headingDegrees;
         this.headingAccuracyDegrees = headingAccuracyDegrees;
         this.referenceSpeedMps = referenceSpeedMps;
         this.visibleRadiusMeters = visibleRadiusMeters;
         this.accuracyRadiusMeters = accuracyRadiusMeters;
+        this.movingScaleActive = movingScaleActive;
+        this.routeThresholdMeters = routeThresholdMeters;
         this.passedRoutePoints = Collections.unmodifiableList(passedRoutePoints);
         this.routePoints = Collections.unmodifiableList(routePoints);
         this.hintPoints = Collections.unmodifiableList(hintPoints);
@@ -81,6 +117,8 @@ public final class NavCompassState {
             float referenceSpeedMps,
             float visibleRadiusMeters,
             float accuracyRadiusMeters,
+            boolean movingScaleActive,
+            float routeThresholdMeters,
             @NonNull CompassRouteGeometry routeGeometry,
             double currentLatitude,
             double currentLongitude,
@@ -94,6 +132,8 @@ public final class NavCompassState {
         this.referenceSpeedMps = referenceSpeedMps;
         this.visibleRadiusMeters = visibleRadiusMeters;
         this.accuracyRadiusMeters = accuracyRadiusMeters;
+        this.movingScaleActive = movingScaleActive;
+        this.routeThresholdMeters = routeThresholdMeters;
         this.routeGeometry = routeGeometry;
         this.currentLatitude = currentLatitude;
         this.currentLongitude = currentLongitude;

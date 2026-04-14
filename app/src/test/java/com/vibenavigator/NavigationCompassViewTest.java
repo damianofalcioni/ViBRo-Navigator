@@ -4,6 +4,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
+import android.util.TypedValue;
+
 import androidx.test.core.app.ApplicationProvider;
 
 import com.vibenavigator.nav.NavCompassState;
@@ -80,6 +82,51 @@ public class NavigationCompassViewTest {
         assertEquals(20.49f, invokeResolveLegendRingDistanceMeters(view, 0.28f), 0.01f);
     }
 
+    @Test
+    public void routeStrokeWidthRepresentsThresholdWhenMoving() throws Exception {
+        NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
+        view.setCompassState(new NavCompassState(
+                0f,
+                null,
+                1f,
+                150f,
+                0f,
+                true,
+                15f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        ));
+
+        assertEquals(20f, invokeResolveRouteStrokeWidthPx(view, 100f), 0.01f);
+    }
+
+    @Test
+    public void routeStrokeWidthFallsBackToBaseWidthInFullRouteOverview() throws Exception {
+        NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
+        view.setCompassState(new NavCompassState(
+                0f,
+                null,
+                1f,
+                150f,
+                0f,
+                false,
+                15f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        ));
+
+        float expectedBaseWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, view.getResources().getDisplayMetrics());
+        assertEquals(expectedBaseWidth, invokeResolveRouteStrokeWidthPx(view, 100f), 0.01f);
+    }
+
     private static Object invokeResolveDestinationPosition(NavigationCompassView view) throws Exception {
         Method method = NavigationCompassView.class.getDeclaredMethod(
                 "resolveDestinationPosition",
@@ -99,5 +146,14 @@ public class NavigationCompassViewTest {
         );
         method.setAccessible(true);
         return (float) method.invoke(view, ringScale);
+    }
+
+    private static float invokeResolveRouteStrokeWidthPx(NavigationCompassView view, float routeRadius) throws Exception {
+        Method method = NavigationCompassView.class.getDeclaredMethod(
+                "resolveRouteStrokeWidthPx",
+                float.class
+        );
+        method.setAccessible(true);
+        return (float) method.invoke(view, routeRadius);
     }
 }

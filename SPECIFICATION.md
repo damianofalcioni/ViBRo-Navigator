@@ -323,6 +323,9 @@ The navigation UI must show the following in large text:
 - Small semi-transparent white point markers must be shown on the route at the visible start position and at each visible hint position
 - The route must be rendered as a continuous line, not as discrete dots
 - The route ahead of the current matched position must keep the normal route red styling
+- In moving mode, the red route-ahead stroke width must visualize the current off-track threshold derived from recent smoothed location accuracy, so the red line acts as the allowed route corridor rather than a purely decorative fixed-width line
+- That moving-mode route corridor width should reflect the full threshold span around the route centerline, not only a one-sided offset
+- In the stationary full-route overview, the red route line must keep a fixed visual stroke width instead of scaling to the off-track threshold
 - The already passed part of the currently active route must be shown as the same red with about 50 percent transparency
 - When a reroute is applied, the passed-route overlay must be rebuilt from the new active route geometry and must not retain passed geometry from the previous route
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge

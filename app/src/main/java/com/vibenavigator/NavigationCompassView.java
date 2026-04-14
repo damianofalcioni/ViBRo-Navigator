@@ -36,6 +36,7 @@ public final class NavigationCompassView extends View {
     private static final float ROUTE_MARKER_RADIUS_DP = 2.5f;
     private static final float DESTINATION_MARKER_RADIUS_DP = 4f;
     private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
+    private static final float ROUTE_STROKE_WIDTH_DP = 3f;
 
     @Nullable
     private NavCompassState compassState;
@@ -111,13 +112,13 @@ public final class NavigationCompassView extends View {
         cardinalPaint.setFakeBoldText(false);
 
         routePaint.setStyle(Paint.Style.STROKE);
-        routePaint.setStrokeWidth(dp(3f));
+        routePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         routePaint.setStrokeJoin(Paint.Join.ROUND);
         routePaint.setStrokeCap(Paint.Cap.ROUND);
         routePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route));
 
         passedRoutePaint.setStyle(Paint.Style.STROKE);
-        passedRoutePaint.setStrokeWidth(dp(3f));
+        passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         passedRoutePaint.setStrokeJoin(Paint.Join.ROUND);
         passedRoutePaint.setStrokeCap(Paint.Cap.ROUND);
         passedRoutePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route_passed));
@@ -267,6 +268,8 @@ public final class NavigationCompassView extends View {
             return;
         }
 
+        routePaint.setStrokeWidth(resolveRouteStrokeWidthPx(routeRadius));
+        passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         float scale = routeRadius / compassState.visibleRadiusMeters;
         if (compassState.hasRouteGeometry()) {
             drawRouteGeometrySegment(
@@ -293,6 +296,24 @@ public final class NavigationCompassView extends View {
         }
         drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint);
         drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint);
+    }
+
+    private float resolveRouteStrokeWidthPx(float routeRadius) {
+        float baseStrokeWidthPx = dp(ROUTE_STROKE_WIDTH_DP);
+        if (compassState == null
+                || !compassState.movingScaleActive
+                || compassState.visibleRadiusMeters <= 0f
+                || compassState.routeThresholdMeters <= 0f) {
+            return baseStrokeWidthPx;
+        }
+
+        // The route sits at the center of the allowed corridor, so the full stroke spans both sides.
+        float projectedThresholdWidthPx =
+                (2f * compassState.routeThresholdMeters / compassState.visibleRadiusMeters) * routeRadius;
+        return Math.max(
+                baseStrokeWidthPx,
+                Math.min(routeRadius * 2f, projectedThresholdWidthPx)
+        );
     }
 
     private void drawRouteGeometrySegment(

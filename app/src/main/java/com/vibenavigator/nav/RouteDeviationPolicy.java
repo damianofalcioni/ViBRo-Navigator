@@ -56,10 +56,7 @@ final class RouteDeviationPolicy {
             double expectedBearingDegrees
     ) {
         double safeAccuracyMeters = accuracyMeters > 0.0 ? accuracyMeters : DEFAULT_ACCURACY_METERS;
-        double offTrackThresholdMeters = Math.max(
-                safeAccuracyMeters + OFF_TRACK_ACCURACY_SLACK_METERS,
-                MIN_OFF_TRACK_THRESHOLD_METERS
-        );
+        double offTrackThresholdMeters = resolveOffTrackThresholdMeters(safeAccuracyMeters);
         if (distanceToTrackMeters > offTrackThresholdMeters) {
             return new Decision(
                     Reason.OFF_TRACK,
@@ -110,6 +107,14 @@ final class RouteDeviationPolicy {
                 expectedBearingDegrees,
                 actualBearingDegrees,
                 bearingDiffDegrees
+        );
+    }
+
+    static double resolveOffTrackThresholdMeters(double accuracyMeters) {
+        double safeAccuracyMeters = accuracyMeters > 0.0 ? accuracyMeters : DEFAULT_ACCURACY_METERS;
+        return Math.max(
+                safeAccuracyMeters + OFF_TRACK_ACCURACY_SLACK_METERS,
+                MIN_OFF_TRACK_THRESHOLD_METERS
         );
     }
 }
