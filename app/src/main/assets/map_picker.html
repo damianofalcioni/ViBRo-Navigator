@@ -51,6 +51,25 @@
             display: none;
             pointer-events: none;
         }
+
+        #attribution {
+            position: absolute;
+            right: calc(8px + env(safe-area-inset-right));
+            bottom: calc(8px + env(safe-area-inset-bottom));
+            z-index: 2;
+            padding: 4px 6px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.72);
+            color: rgba(255, 255, 255, 0.92);
+            font: 11px/1.2 sans-serif;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+            pointer-events: auto;
+        }
+
+        #attribution a {
+            color: inherit;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -58,6 +77,10 @@
     <div id="tiles"></div>
     <div id="overlay">
         <div id="marker"></div>
+    </div>
+    <div id="attribution">
+        Map data from
+        <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>
     </div>
 </div>
 <script>
