@@ -4,8 +4,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
-import android.util.TypedValue;
-
 import androidx.test.core.app.ApplicationProvider;
 
 import com.vibenavigator.nav.NavCompassState;
@@ -83,14 +81,14 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void routeStrokeWidthRepresentsThresholdWhenMoving() throws Exception {
+    public void routeThresholdStrokeWidthRepresentsThresholdWhenMoving() throws Exception {
         NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
         view.setCompassState(new NavCompassState(
                 0f,
                 null,
                 1f,
-                150f,
-                0f,
+                100f,
+                7f,
                 true,
                 15f,
                 Collections.emptyList(),
@@ -101,11 +99,11 @@ public class NavigationCompassViewTest {
                 true
         ));
 
-        assertEquals(20f, invokeResolveRouteStrokeWidthPx(view, 100f), 0.01f);
+        assertEquals(16f, invokeResolveRouteThresholdStrokeWidthPx(view, 100f), 0.01f);
     }
 
     @Test
-    public void routeStrokeWidthFallsBackToBaseWidthInFullRouteOverview() throws Exception {
+    public void routeThresholdOverlayIsDisabledInFullRouteOverview() throws Exception {
         NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
         view.setCompassState(new NavCompassState(
                 0f,
@@ -123,8 +121,30 @@ public class NavigationCompassViewTest {
                 true
         ));
 
-        float expectedBaseWidth = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 3f, view.getResources().getDisplayMetrics());
-        assertEquals(expectedBaseWidth, invokeResolveRouteStrokeWidthPx(view, 100f), 0.01f);
+        assertEquals(false, invokeShouldDrawRouteThresholdOverlay(view));
+    }
+
+    @Test
+    public void routeThresholdOverlayIsDisabledWhenAccuracyAlreadyCoversThreshold() throws Exception {
+        NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
+        view.setCompassState(new NavCompassState(
+                0f,
+                null,
+                1f,
+                150f,
+                15f,
+                true,
+                15f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        ));
+
+        assertEquals(false, invokeShouldDrawRouteThresholdOverlay(view));
+        assertEquals(0f, invokeResolveRouteThresholdStrokeWidthPx(view, 100f), 0.01f);
     }
 
     @Test
@@ -146,11 +166,11 @@ public class NavigationCompassViewTest {
                 true
         ));
 
-        assertEquals(51, invokeResolveRoutePaintAlpha(view));
+        assertEquals(51, invokeResolveRouteThresholdPaintAlpha(view));
     }
 
     @Test
-    public void routeKeepsOpaqueAlphaInFullRouteOverview() throws Exception {
+    public void routeKeepsOpaqueBaseAlphaInMovingMode() throws Exception {
         NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
         view.setCompassState(new NavCompassState(
                 0f,
@@ -158,7 +178,7 @@ public class NavigationCompassViewTest {
                 1f,
                 150f,
                 0f,
-                false,
+                true,
                 15f,
                 Collections.emptyList(),
                 Collections.emptyList(),
@@ -192,9 +212,9 @@ public class NavigationCompassViewTest {
         return (float) method.invoke(view, ringScale);
     }
 
-    private static float invokeResolveRouteStrokeWidthPx(NavigationCompassView view, float routeRadius) throws Exception {
+    private static float invokeResolveRouteThresholdStrokeWidthPx(NavigationCompassView view, float routeRadius) throws Exception {
         Method method = NavigationCompassView.class.getDeclaredMethod(
-                "resolveRouteStrokeWidthPx",
+                "resolveRouteThresholdStrokeWidthPx",
                 float.class
         );
         method.setAccessible(true);
@@ -205,5 +225,17 @@ public class NavigationCompassViewTest {
         Method method = NavigationCompassView.class.getDeclaredMethod("resolveRoutePaintAlpha");
         method.setAccessible(true);
         return (int) method.invoke(view);
+    }
+
+    private static int invokeResolveRouteThresholdPaintAlpha(NavigationCompassView view) throws Exception {
+        Method method = NavigationCompassView.class.getDeclaredMethod("resolveRouteThresholdPaintAlpha");
+        method.setAccessible(true);
+        return (int) method.invoke(view);
+    }
+
+    private static boolean invokeShouldDrawRouteThresholdOverlay(NavigationCompassView view) throws Exception {
+        Method method = NavigationCompassView.class.getDeclaredMethod("shouldDrawRouteThresholdOverlay");
+        method.setAccessible(true);
+        return (boolean) method.invoke(view);
     }
 }

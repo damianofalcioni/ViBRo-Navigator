@@ -84,6 +84,8 @@ Below the routing-profile selector, the app must show an input field for searchi
 - Pressing that button must open a separate picker `Activity`
 - The picker must remain dependency-light and must not use an external native map library
 - The picker must render OpenStreetMap raster tiles through the app's own implementation
+- The picker must show a lower-right attribution overlay reading `Map data from OpenStreetMap`
+- In that overlay, `OpenStreetMap` must link to `https://www.openstreetmap.org/copyright`
 - If the destination field already resolves to coordinates, the picker must open centered on that destination and must apply a predefined zoom level
 - If the destination field does not yet resolve to coordinates, the picker must open centered on the current device location when available, and otherwise fall back gracefully
 - The picker must let the user select a point directly from the map and return that point as the destination
@@ -327,8 +329,9 @@ The navigation UI must show the following in large text:
 - Small semi-transparent white point markers must be shown on the route at the visible start position and at each visible hint position
 - The route must be rendered as a continuous line, not as discrete dots
 - The route ahead of the current matched position must keep the normal route red styling
-- In moving mode, the red route-ahead stroke width must visualize the current off-track threshold derived from recent smoothed location accuracy, so the red line acts as the allowed route corridor rather than a purely decorative fixed-width line
-- That moving-mode route corridor width should reflect the full threshold span around the route centerline, not only a one-sided offset
+- In moving mode, the route ahead must be rendered in two red layers: the original opaque route centerline plus a wider semi-transparent threshold overlay behind it
+- That wider moving-mode threshold overlay must visualize the current off-track threshold derived from recent smoothed location accuracy, so it acts as the allowed route corridor rather than a purely decorative fixed-width line
+- That moving-mode threshold overlay width should reflect the full threshold span around the route centerline excluding the GPS accuracy, not only a one-sided offset. This way when the compass show that the orange circle overlap the red corridor it means that the user is still on track, while when they do not overlap means the user is offtrack 
 - In the stationary full-route overview, the red route line must keep a fixed visual stroke width instead of scaling to the off-track threshold
 - The already passed part of the currently active route must be shown as the same red with about 50 percent transparency
 - When a reroute is applied, the passed-route overlay must be rebuilt from the new active route geometry and must not retain passed geometry from the previous route
@@ -432,6 +435,7 @@ The navigation UI must show the following in large text:
 - The about page must contain:
   - The app version
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
+  - API/data-source attribution stating that POI search uses OpenStreetMap Nominatim and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
 
 #### 5.1 Hidden developer mode
 

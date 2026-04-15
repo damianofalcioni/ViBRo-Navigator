@@ -59,6 +59,7 @@ final class NavigationSessionRouteState {
     private Float lastCompassVisibleRadiusMeters;
     @Nullable
     private Float lastReliableMovingCompassVisibleRadiusMeters;
+    private float lastSmoothedAccuracyMeters = Float.NaN;
     private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
     private final CompassRadiusTransition compassRadiusTransition = new CompassRadiusTransition(2_000L);
@@ -74,6 +75,7 @@ final class NavigationSessionRouteState {
         targets = new ArrayList<>();
         lastCompassVisibleRadiusMeters = null;
         lastReliableMovingCompassVisibleRadiusMeters = null;
+        lastSmoothedAccuracyMeters = Float.NaN;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         compassRadiusTransition.reset();
         clearPendingDeviation();
@@ -138,6 +140,7 @@ final class NavigationSessionRouteState {
         lastSegmentIndex = match.segmentIndex;
         double expectedBearingDegrees = expectedBearingDegrees(match);
         double smoothedAccuracyMeters = rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
+        lastSmoothedAccuracyMeters = (float) smoothedAccuracyMeters;
         float etaSpeedMps = resolveEtaSpeedMps(filtered, match.alongTrackMeters, accuracyMeters, likelyStationary);
         DirectionOfProgressAssessment directionOfProgress = assessDirectionOfProgress(
                 match.alongTrackMeters,
@@ -309,6 +312,7 @@ final class NavigationSessionRouteState {
         lastSegmentIndex = -1;
         targets = buildTargets(context, request.stops, polylineIndex);
         lastCompassVisibleRadiusMeters = null;
+        lastSmoothedAccuracyMeters = Float.NaN;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         compassRadiusTransition.reset();
         clearPendingDeviation();
@@ -394,6 +398,7 @@ final class NavigationSessionRouteState {
         }
 
         float etaSpeedMps = resolveEtaSpeedMps(lastFiltered, match.alongTrackMeters, accuracyMeters, likelyStationary);
+        float compassAccuracyMeters = resolveCompassAccuracyMeters(accuracyMeters);
         NavState state = NavState.from(
                 route,
                 polylineIndex,
@@ -404,6 +409,7 @@ final class NavigationSessionRouteState {
                 etaSpeedMps,
                 likelyStationary,
                 accuracyMeters,
+                compassAccuracyMeters,
                 lastFiltered,
                 fixedSatelliteCount,
                 headingDegrees,
@@ -426,6 +432,15 @@ final class NavigationSessionRouteState {
             );
         }
         return state;
+    }
+
+    private float resolveCompassAccuracyMeters(float fallbackAccuracyMeters) {
+        if (Float.isFinite(lastSmoothedAccuracyMeters) && lastSmoothedAccuracyMeters > 0f) {
+            return lastSmoothedAccuracyMeters;
+        }
+        return Float.isFinite(fallbackAccuracyMeters) && fallbackAccuracyMeters > 0f
+                ? fallbackAccuracyMeters
+                : 0f;
     }
 
     private float resolveEtaSpeedMps(

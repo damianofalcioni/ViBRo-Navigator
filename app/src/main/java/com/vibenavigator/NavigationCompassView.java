@@ -50,6 +50,7 @@ public final class NavigationCompassView extends View {
     private final Paint accentTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint cardinalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint routeThresholdPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint centerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -118,6 +119,10 @@ public final class NavigationCompassView extends View {
         routePaint.setStrokeJoin(Paint.Join.ROUND);
         routePaint.setStrokeCap(Paint.Cap.ROUND);
         routePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route));
+        routePaint.setAlpha(ROUTE_DEFAULT_ALPHA);
+
+        routeThresholdPaint.set(routePaint);
+        routeThresholdPaint.setAlpha(ROUTE_THRESHOLD_ALPHA);
 
         passedRoutePaint.setStyle(Paint.Style.STROKE);
         passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
@@ -270,11 +275,22 @@ public final class NavigationCompassView extends View {
             return;
         }
 
-        routePaint.setStrokeWidth(resolveRouteStrokeWidthPx(routeRadius));
+        routePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         routePaint.setAlpha(resolveRoutePaintAlpha());
+        routeThresholdPaint.setStrokeWidth(resolveRouteThresholdStrokeWidthPx(routeRadius));
+        routeThresholdPaint.setAlpha(resolveRouteThresholdPaintAlpha());
         passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         float scale = routeRadius / compassState.visibleRadiusMeters;
         if (compassState.hasRouteGeometry()) {
+            drawRouteThresholdGeometrySegment(
+                    canvas,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    compassState.remainingRouteStartSamplePointIndex(),
+                    compassState.routeSamplePointCount()
+            );
             drawRouteGeometrySegment(
                     canvas,
                     cx,
@@ -298,10 +314,11 @@ public final class NavigationCompassView extends View {
             return;
         }
         drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint);
+        drawRouteThresholdSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints);
         drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint);
     }
 
-    private float resolveRouteStrokeWidthPx(float routeRadius) {
+    private float resolveRouteThresholdStrokeWidthPx(float routeRadius) {
         float baseStrokeWidthPx = dp(ROUTE_STROKE_WIDTH_DP);
         if (compassState == null
                 || !compassState.movingScaleActive
@@ -310,22 +327,75 @@ public final class NavigationCompassView extends View {
             return baseStrokeWidthPx;
         }
 
-        // The route sits at the center of the allowed corridor, so the full stroke spans both sides.
+        float corridorHalfWidthMeters = Math.max(
+                0f,
+                compassState.routeThresholdMeters - compassState.accuracyRadiusMeters
+        );
+        if (corridorHalfWidthMeters <= 0f) {
+            return 0f;
+        }
+
+        // The threshold overlay only represents the extra tolerance beyond the orange accuracy circle.
         float projectedThresholdWidthPx =
-                (2f * compassState.routeThresholdMeters / compassState.visibleRadiusMeters) * routeRadius;
+                (2f * corridorHalfWidthMeters / compassState.visibleRadiusMeters) * routeRadius;
         return Math.max(
-                baseStrokeWidthPx,
+                0f,
                 Math.min(routeRadius * 2f, projectedThresholdWidthPx)
         );
     }
 
     private int resolveRoutePaintAlpha() {
-        if (compassState == null
-                || !compassState.movingScaleActive
-                || compassState.routeThresholdMeters <= 0f) {
-            return ROUTE_DEFAULT_ALPHA;
+        return ROUTE_DEFAULT_ALPHA;
+    }
+
+    private int resolveRouteThresholdPaintAlpha() {
+        return shouldDrawRouteThresholdOverlay() ? ROUTE_THRESHOLD_ALPHA : ROUTE_DEFAULT_ALPHA;
+    }
+
+    private boolean shouldDrawRouteThresholdOverlay() {
+        return compassState != null
+                && compassState.movingScaleActive
+                && compassState.routeThresholdMeters > compassState.accuracyRadiusMeters
+                && compassState.routeThresholdMeters > 0f
+                && compassState.visibleRadiusMeters > 0f;
+    }
+
+    private void drawRouteThresholdGeometrySegment(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            int startIndex,
+            int endIndex
+    ) {
+        if (!shouldDrawRouteThresholdOverlay()) {
+            return;
         }
-        return ROUTE_THRESHOLD_ALPHA;
+        drawRouteGeometrySegment(
+                canvas,
+                cx,
+                cy,
+                scale,
+                headingDegrees,
+                startIndex,
+                endIndex,
+                routeThresholdPaint
+        );
+    }
+
+    private void drawRouteThresholdSegment(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            @NonNull List<NavCompassState.RoutePoint> points
+    ) {
+        if (!shouldDrawRouteThresholdOverlay()) {
+            return;
+        }
+        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, points, routeThresholdPaint);
     }
 
     private void drawRouteGeometrySegment(

@@ -233,6 +233,7 @@ public final class NavState {
                 speedMps,
                 likelyStationary,
                 accuracyMeters,
+                accuracyMeters,
                 currentLocation,
                 fixedSatelliteCount,
                 headingDegrees,
@@ -279,8 +280,9 @@ public final class NavState {
                 nextHintIdx,
                 currentSegmentIndex,
                 speedMps,
-                speedMps,
+                etaSpeedMps,
                 likelyStationary,
+                accuracyMeters,
                 accuracyMeters,
                 currentLocation,
                 fixedSatelliteCount,
@@ -309,6 +311,7 @@ public final class NavState {
             float etaSpeedMps,
             boolean likelyStationary,
             float accuracyMeters,
+            float compassAccuracyMeters,
             @NonNull Location currentLocation,
             @Nullable Integer fixedSatelliteCount,
             @Nullable Double headingDegrees,
@@ -363,7 +366,7 @@ public final class NavState {
                 currentLocation,
                 speedMps,
                 likelyStationary,
-                accuracyMeters,
+                compassAccuracyMeters,
                 headingDegrees,
                 headingAccuracyDegrees,
                 previousCompassVisibleRadiusMeters,
@@ -640,7 +643,7 @@ public final class NavState {
             @NonNull Location currentLocation,
             float speedMps,
             boolean likelyStationary,
-            float accuracyMeters,
+            float compassAccuracyMeters,
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
@@ -726,7 +729,7 @@ public final class NavState {
                 ? resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters)
                 : sanitizeReferenceSpeedMps(speedMps);
         float routeThresholdMeters = usingMovingScale
-                ? (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters)
+                ? (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters)
                 : 0f;
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return new NavCompassState(
@@ -734,7 +737,7 @@ public final class NavState {
                 sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
                 referenceSpeedMps,
                 visibleRadiusMeters,
-                sanitizeAccuracyMeters(accuracyMeters),
+                sanitizeAccuracyMeters(compassAccuracyMeters),
                 usingMovingScale,
                 routeThresholdMeters,
                 routeGeometry,

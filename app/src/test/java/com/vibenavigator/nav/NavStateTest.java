@@ -370,6 +370,52 @@ public class NavStateTest {
     }
 
     @Test
+    public void from_usesProvidedCompassAccuracyForCompassOverlayAndThreshold() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.2000, 16.3600),
+                        new LatLon(48.2005, 16.3600),
+                        new LatLon(48.2010, 16.3605)
+                ),
+                Collections.emptyList(),
+                180.0,
+                130.0
+        );
+        android.location.Location movingLocation = locationAt(48.2000, 16.3600);
+        movingLocation.setSpeed(2.5f);
+
+        NavState state = NavState.from(
+                route,
+                new com.vibenavigator.nav.route.PolylineIndex(route.track),
+                0.0,
+                -1,
+                0,
+                2.5f,
+                2.5f,
+                false,
+                5f,
+                9f,
+                movingLocation,
+                null,
+                90.0,
+                8.0f,
+                null,
+                null,
+                0L,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget("Destination", 130.0)),
+                context
+        );
+
+        assertNotNull(state.compassState);
+        assertEquals(9f, state.compassState.accuracyRadiusMeters, 0.01f);
+        assertEquals(17f, state.compassState.routeThresholdMeters, 0.01f);
+    }
+
+    @Test
     public void from_afterProgressSplitsPassedAndUpcomingCompassRoute() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
