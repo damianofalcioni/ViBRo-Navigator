@@ -148,7 +148,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="www.openstreetmap.org" />
+                    android:host="www.openstreetmap.org"
+                    android:path="/" />
             </intent-filter>
 
             <intent-filter
@@ -159,7 +160,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="http"
-                    android:host="www.openstreetmap.org" />
+                    android:host="www.openstreetmap.org"
+                    android:path="/" />
             </intent-filter>
 
             <intent-filter
@@ -170,7 +172,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="https"
-                    android:host="openstreetmap.org" />
+                    android:host="openstreetmap.org"
+                    android:path="/" />
             </intent-filter>
 
             <intent-filter
@@ -181,7 +184,8 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data
                     android:scheme="http"
-                    android:host="openstreetmap.org" />
+                    android:host="openstreetmap.org"
+                    android:path="/" />
             </intent-filter>
 
             <intent-filter>

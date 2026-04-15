@@ -20,7 +20,7 @@ Core product constraints:
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
-- Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app that only vibrates directions
+- Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app based on BRouter, that vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
 - Treat map-free use as a primary product mode: navigation guidance must be trustworthy enough that a user who does not see the map can rely on the next direction without visual confirmation
 - When the current position or heading confidence is too weak, prefer delaying or suppressing a direction update over presenting a misleading one
