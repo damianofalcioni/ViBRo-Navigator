@@ -8,11 +8,19 @@
 
 ---
 
-<p align="center">
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/01-main-ui.png" alt="Main UI" width="200" style="margin: 0 10px;"/>
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/02-poi-selection-map.png" alt="Main UI" width="200" style="margin: 0 10px;"/>
-  <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/03-navigation-ui.png" alt="Main UI" width="200" style="margin: 0 10px;"/>
-</p>
+<table align="center">
+  <tr>
+    <td align="center" width="220">
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/01-main-ui.png" alt="Main UI" width="200"/>
+    </td>
+    <td align="center" width="220">
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/02-poi-selection-map.png" alt="POI Selection on Map" width="200"/>
+    </td>
+    <td align="center" width="220">
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/03-navigation-ui.png" alt="Navigation UI" width="200"/>
+    </td>
+  </tr>
+</table>
 
 ## ✨ Key Features
 
