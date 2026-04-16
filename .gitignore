@@ -16,3 +16,6 @@ Desktop.ini
 
 # Logs
 *.log
+
+#keystore
+release-keystore.jks
