@@ -25,7 +25,7 @@
 ## ✨ Key Features
 
 * **Vibration-based navigation**
-  Clear directional feedback without relying on visual maps.
+  Clear directional feedback without relying on visual maps. Navigation directions are provided as notifications with different vibration patterns. Best in combination with a smartwatch or smartband that show them.
 
 * **Offline-first routing**
   Uses BRouter for fully offline route calculation.
@@ -47,6 +47,9 @@
 
 * **Dynamic navigation updates**
   Adaptive polling, rerouting, and turn estimation based on real-time conditions.
+
+* **Pause and blocked road support**
+  Navigation can be paused and rerouted to avoid a blocked street.
 
 * **Background navigation**
   Works with screen off via a foreground service.
