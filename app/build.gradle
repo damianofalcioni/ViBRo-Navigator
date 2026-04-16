@@ -27,11 +27,11 @@ if (googleMapsApiKey == null) {
 }
 
 android {
-    namespace = "com.vibenavigator"
+    namespace = "vibro.navigator"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.vibenavigator"
+        applicationId = "vibro.navigator"
         minSdk = 21
         targetSdk = 36
         versionCode = 1

@@ -1,4 +1,4 @@
-VibeNavigator is a lightweight navigation app built around BRouter.
+ViBRo Navigator is a lightweight navigation app built around BRouter.
 
 It keeps route calculation offline through the installed BRouter app and
 communicates turns through vibration patterns instead of voice prompts.

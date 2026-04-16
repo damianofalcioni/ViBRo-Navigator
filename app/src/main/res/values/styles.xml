@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Widget.VibeNavigator.Button" parent="@android:style/Widget.Button">
+    <style name="Widget.ViBRoNavigator.Button" parent="@android:style/Widget.Button">
         <item name="android:minWidth">0dp</item>
         <item name="android:minHeight">52dp</item>
         <item name="android:paddingStart">22dp</item>
@@ -16,22 +16,22 @@
         <item name="android:stateListAnimator">@null</item>
     </style>
 
-    <style name="Widget.VibeNavigator.Button.Primary" parent="@style/Widget.VibeNavigator.Button">
+    <style name="Widget.ViBRoNavigator.Button.Primary" parent="@style/Widget.ViBRoNavigator.Button">
         <item name="android:background">@drawable/bg_button_secondary</item>
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="Widget.VibeNavigator.Button.Secondary" parent="@style/Widget.VibeNavigator.Button">
+    <style name="Widget.ViBRoNavigator.Button.Secondary" parent="@style/Widget.ViBRoNavigator.Button">
         <item name="android:background">@drawable/bg_button_secondary</item>
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="Widget.VibeNavigator.Button.Danger" parent="@style/Widget.VibeNavigator.Button">
+    <style name="Widget.ViBRoNavigator.Button.Danger" parent="@style/Widget.ViBRoNavigator.Button">
         <item name="android:background">@drawable/bg_button_secondary</item>
         <item name="android:textColor">@color/danger</item>
     </style>
 
-    <style name="Widget.VibeNavigator.Button.Fab" parent="@style/Widget.VibeNavigator.Button">
+    <style name="Widget.ViBRoNavigator.Button.Fab" parent="@style/Widget.ViBRoNavigator.Button">
         <item name="android:minWidth">56dp</item>
         <item name="android:minHeight">56dp</item>
         <item name="android:paddingStart">0dp</item>
@@ -41,7 +41,7 @@
         <item name="android:textSize">26sp</item>
     </style>
 
-    <style name="Widget.VibeNavigator.IconButton" parent="@android:style/Widget.ImageButton">
+    <style name="Widget.ViBRoNavigator.IconButton" parent="@android:style/Widget.ImageButton">
         <item name="android:background">@drawable/bg_button_icon</item>
         <item name="android:minWidth">44dp</item>
         <item name="android:minHeight">44dp</item>
@@ -51,14 +51,14 @@
         <item name="android:stateListAnimator">@null</item>
     </style>
 
-    <style name="Widget.VibeNavigator.IconButton.Circle" parent="@style/Widget.VibeNavigator.IconButton">
+    <style name="Widget.ViBRoNavigator.IconButton.Circle" parent="@style/Widget.ViBRoNavigator.IconButton">
         <item name="android:background">@drawable/bg_button_circle</item>
         <item name="android:minWidth">56dp</item>
         <item name="android:minHeight">56dp</item>
         <item name="android:padding">14dp</item>
     </style>
 
-    <style name="Widget.VibeNavigator.Spinner" parent="@android:style/Widget.Material.Spinner">
+    <style name="Widget.ViBRoNavigator.Spinner" parent="@android:style/Widget.Material.Spinner">
         <item name="android:background">@drawable/bg_spinner_field</item>
         <item name="android:popupBackground">@drawable/bg_spinner_popup</item>
         <item name="android:dropDownSelector">@drawable/bg_spinner_dropdown_item</item>

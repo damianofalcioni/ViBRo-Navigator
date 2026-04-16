@@ -1,0 +1,31 @@
+Categories:
+  - Navigation
+License: MIT
+AuthorName: Damiano Falcioni
+Summary: Offline-first BRouter navigation with vibration-based turn guidance
+
+# Replace these with the final public GitHub URLs before submitting to fdroiddata.
+WebSite: https://github.com/damianofalcioni/ViBRo-Navigator
+SourceCode: https://github.com/damianofalcioni/ViBRo-Navigator
+IssueTracker: https://github.com/damianofalcioni/ViBRo-Navigator/issues
+RepoType: git
+Repo: https://github.com/damianofalcioni/ViBRo-Navigator.git
+
+Builds:
+  - versionName: "0.1.0"
+    versionCode: 1
+    # Prefer the release tag once it exists, e.g. v0.1.0.
+    # A fixed commit hash also works for the initial submission.
+    commit: REPLACE_WITH_RELEASE_TAG_OR_COMMIT
+    rm: local.properties
+    gradle:
+      - yes
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags ^v?[0-9]+\.[0-9]+\.[0-9]+$
+UpdateCheckData: app/build.gradle|versionCode = (\d+)|.|versionName = "([^"]+)"
+CurrentVersion: "0.1.0"
+CurrentVersionCode: 1
+
+# Optional once you publish a signed upstream APK and want F-Droid to verify it:
+# AllowedAPKSigningKeys: REPLACE_WITH_APKSIGNER_SHA256_FINGERPRINT

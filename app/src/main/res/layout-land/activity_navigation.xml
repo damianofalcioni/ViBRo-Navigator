@@ -83,7 +83,7 @@
 
             <ImageButton
                 android:id="@+id/blockedRoadButton"
-                style="@style/Widget.VibeNavigator.IconButton.Circle"
+                style="@style/Widget.ViBRoNavigator.IconButton.Circle"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:contentDescription="@string/action_blocked_road"
@@ -98,7 +98,7 @@
 
             <ImageButton
                 android:id="@+id/stopNavButton"
-                style="@style/Widget.VibeNavigator.IconButton.Circle"
+                style="@style/Widget.ViBRoNavigator.IconButton.Circle"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:contentDescription="@string/action_stop_navigation"
@@ -112,7 +112,7 @@
 
             <ImageButton
                 android:id="@+id/pauseResumeNavButton"
-                style="@style/Widget.VibeNavigator.IconButton.Circle"
+                style="@style/Widget.ViBRoNavigator.IconButton.Circle"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:contentDescription="@string/action_pause_navigation"
@@ -132,7 +132,7 @@
         android:layout_weight="1"
         android:foregroundGravity="center">
 
-        <com.vibenavigator.NavigationCompassView
+        <vibro.navigator.NavigationCompassView
             android:id="@+id/navigationCompassView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

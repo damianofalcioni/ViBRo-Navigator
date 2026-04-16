@@ -1,12 +1,12 @@
-# VibeNavigator Specification
+# ViBRo Navigator Specification
 
 ## Source
 
-This specification is derived from the original project-generation prompt and captures the intended product requirements for VibeNavigator.
+This specification is derived from the original project-generation prompt and captures the intended product requirements for ViBRo Navigator.
 
 ## Product summary
 
-VibeNavigator is a lightweight Android navigation app based on BRouter.
+ViBRo Navigator is a lightweight Android navigation app based on BRouter.
 
 Core product constraints:
 
@@ -20,7 +20,7 @@ Core product constraints:
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
-- Provide a README describing VibeNavigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app based on BRouter, that vibrates directions
+- Provide a README describing ViBRo Navigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app based on BRouter, that vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
 - Treat map-free use as a primary product mode: navigation guidance must be trustworthy enough that a user who does not see the map can rely on the next direction without visual confirmation
 - When the current position or heading confidence is too weak, prefer delaying or suppressing a direction update over presenting a misleading one
@@ -444,7 +444,7 @@ The navigation UI must show the following in large text:
 - The app must start with developer mode disabled on every app launch
 - Developer mode must apply only after it is enabled from the about page during the current app run
 - The app must write its log file only when developer mode is enabled
-- When developer mode is enabled for the first time, the app must create a new log file named `vibe-navigator-log-yyyymmddhhmm.txt` using the current local date and time
+- When developer mode is enabled for the first time, the app must create a new log file named `vibro-navigator-log-yyyymmddhhmm.txt` using the current local date and time
 - When developer mode is enabled again after a later app restart, the app must start a fresh log session by recreating that run's target log file before writing new entries
 - Repeating the five-tap developer-mode gesture while developer mode is already enabled must not restart logging and must instead show a popup that developer mode is already enabled
 - When developer mode is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
@@ -482,7 +482,7 @@ The navigation UI must show the following in large text:
 - Incoming coordinate or address intents must open the app without crashing on any supported Android version
 - Parsing of incoming locations must be compatible with the app's minimum supported Android API level
 - Invalid or malformed incoming coordinate payloads must fail gracefully instead of crashing or silently redirecting to placeholder coordinates
-- On devices where multiple apps can handle the same map/share intent, the system chooser may appear before the user selects VibeNavigator
+- On devices where multiple apps can handle the same map/share intent, the system chooser may appear before the user selects ViBRo Navigator
 
 ## Non-functional expectations
 

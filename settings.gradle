@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VibeNavigator"
+rootProject.name = "ViBRo-Navigator"
 include(":app")

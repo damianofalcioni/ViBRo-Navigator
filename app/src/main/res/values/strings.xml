@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VibeNavigator</string>
+    <string name="app_name">ViBRo Navigator</string>
 
     <string name="action_about">About</string>
     <string name="action_start_navigation">Start navigation</string>
@@ -44,10 +44,10 @@
     <string name="msg_location_disabled">Location is disabled. Enable it to navigate.</string>
     <string name="msg_permission_required">Permission required</string>
     <string name="msg_stop_navigation_confirm">Do you want to stop navigation and close this screen?</string>
-    <string name="msg_permission_location_rationale">VibeNavigator needs location access to navigate and vibrate directions.</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator needs location access to navigate and vibrate directions.</string>
     <string name="msg_permission_notifications_rationale">Notifications are used to alert upcoming turns.</string>
     <string name="msg_enable_notifications">Enable notifications for turn alerts.</string>
-    <string name="msg_battery_opt_rationale">For reliable background navigation, allow VibeNavigator to ignore battery optimizations.</string>
+    <string name="msg_battery_opt_rationale">For reliable background navigation, allow ViBRo Navigator to ignore battery optimizations.</string>
     <string name="msg_open_settings_failed">Could not open settings on this device.</string>
     <string name="msg_open_brouter_store_failed">Could not open a BRouter store page on this device.</string>
     <string name="msg_select_brouter_profiles_folder_title">Select BRouter profile source</string>
@@ -93,9 +93,9 @@
     <string name="notification_channel_turn_left">Turn (left)</string>
     <string name="notification_channel_turn_right">Turn (right)</string>
     <string name="notification_nav_running">Navigation running</string>
-    <string name="notification_nav_running_text">VibeNavigator is navigating in the background</string>
+    <string name="notification_nav_running_text">ViBRo Navigator is navigating in the background</string>
     <string name="notification_nav_paused">Navigation paused</string>
-    <string name="notification_nav_paused_text">VibeNavigator navigation is paused</string>
+    <string name="notification_nav_paused_text">ViBRo Navigator navigation is paused</string>
     <string name="notification_off_route_title">Off route</string>
     <string name="notification_symbol_test_title">Smartband symbol test</string>
 
@@ -145,7 +145,7 @@
     <string name="format_coordinates">%1$.6f, %2$.6f</string>
     <string name="symbol_plus">+</string>
 
-    <string name="about_title">VibeNavigator</string>
+    <string name="about_title">ViBRo Navigator</string>
     <string name="format_version">Version %1$s</string>
     <string name="about_body">A lightweight, battery-efficient, and offline-first GPS navigation app that vibrates directions, built around BRouter (and yes, also vibe-coded).
 

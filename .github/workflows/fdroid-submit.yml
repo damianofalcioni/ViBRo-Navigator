@@ -10,7 +10,7 @@ on:
       fdroiddata_branch:
         description: "Branch name in your GitLab fdroiddata fork"
         required: true
-        default: "com.vibenavigator"
+        default: "vibro.navigator"
 
 jobs:
   submit:
@@ -19,7 +19,7 @@ jobs:
       contents: read
 
     env:
-      APP_ID: com.vibenavigator
+      APP_ID: vibro.navigator
       TARGET_PROJECT: fdroid/fdroiddata
       TARGET_BRANCH: master
 
@@ -70,7 +70,7 @@ jobs:
           repo_url = f"https://github.com/{repo}"
           release_ref = os.environ["RELEASE_REF"]
 
-          text = Path("fdroid/com.vibenavigator.yml").read_text(encoding="utf-8")
+          text = Path("fdroid/vibro.navigator.yml").read_text(encoding="utf-8")
           replacements = {
               r"^WebSite: .*$": f"WebSite: {repo_url}",
               r"^SourceCode: .*$": f"SourceCode: {repo_url}",
@@ -90,7 +90,7 @@ jobs:
           if "REPLACE_WITH_" in text:
               raise SystemExit("Rendered metadata still contains placeholder values")
 
-          output_path = Path(os.environ["RUNNER_TEMP"]) / "com.vibenavigator.yml"
+          output_path = Path(os.environ["RUNNER_TEMP"]) / "vibro.navigator.yml"
           output_path.write_text(text, encoding="utf-8")
 
           github_output = Path(os.environ["GITHUB_OUTPUT"])

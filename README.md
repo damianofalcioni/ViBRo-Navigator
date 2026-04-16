@@ -1,6 +1,6 @@
-# VibeNavigator
+# ViBRo Navigator
 
-**VibeNavigator** is a lightweight, battery-efficient Android navigation app built on top of BRouter. It is designed for **map-free navigation**, delivering directions exclusively through **vibrations and minimal on-screen guidance**, enabling distraction-free and screen-off usage.
+**ViBRo Navigator** is a lightweight, battery-efficient Android navigation app built on top of BRouter. It is designed for **map-free navigation**, delivering directions exclusively through **vibrations and minimal on-screen guidance**, enabling distraction-free and screen-off usage.
 
 ---
 
@@ -49,7 +49,7 @@
      * Minimal text directions
      * Notifications (smartband-friendly)
 
-VibeNavigator prioritizes **high-confidence guidance**—when accuracy is low, it delays instructions instead of risking incorrect directions.
+ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low, it delays instructions instead of risking incorrect directions.
 
 ---
 
@@ -88,5 +88,5 @@ MIT
 
 ## 🚀 Vision
 
-VibeNavigator rethinks navigation:
+ViBRo Navigator rethinks navigation:
 **no maps, no noise — just reliable, intuitive guidance you can feel.**
