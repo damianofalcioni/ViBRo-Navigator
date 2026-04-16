@@ -8,7 +8,7 @@
 
 ---
 
-<table align="center">
+<table align="center" cellspacing="0" cellpadding="0" border="0">
   <tr>
     <td align="center" width="220">
       <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/01-main-ui.png" alt="Main UI" width="200"/>
