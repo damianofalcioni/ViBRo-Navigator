@@ -31,7 +31,7 @@
   Uses BRouter for fully offline route calculation.
 
 * **Minimal & dependency-light**
-  Built in pure Java with minimal external dependencies.
+  Built in pure Java with minimal external dependencies. APK size is ~250Kb !!
 
 * **Smart POI search**
 
