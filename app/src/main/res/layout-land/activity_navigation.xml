@@ -4,6 +4,7 @@
     android:layout_height="match_parent"
     android:baselineAligned="false"
     android:gravity="center_vertical"
+    android:keepScreenOn="true"
     android:orientation="horizontal"
     android:padding="16dp">
 
