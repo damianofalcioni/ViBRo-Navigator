@@ -81,6 +81,18 @@ public class BRouterProfilesRepositoryTest {
     }
 
     @Test
+    public void buildFallbackPickerDocumentIdCandidates_prefersPrimaryBeforeSecondaryRoots() {
+        List<String> candidates = BRouterProfilesRepository.buildFallbackPickerDocumentIdCandidates(
+                Collections.singletonList("0000-0000")
+        );
+
+        assertEquals(MEDIA_PROFILES_DIR_ID, candidates.get(0));
+        assertEquals(LEGACY_PROFILES_DIR_ID, candidates.get(1));
+        assertEquals("0000-0000:" + MEDIA_PROFILES_DIR_ID.substring("primary:".length()), candidates.get(2));
+        assertEquals("0000-0000:" + LEGACY_PROFILES_DIR_ID.substring("primary:".length()), candidates.get(3));
+    }
+
+    @Test
     public void listProfiles_mergesDiscoveredExternalTreesWithBundledProfiles() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         TestRepository repository = new TestRepository();

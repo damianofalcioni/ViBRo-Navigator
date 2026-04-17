@@ -38,6 +38,7 @@ public class BRouterProfilesRepository {
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
     private static final String BROUTER_PROFILES_ZIP = "assets/profiles2.zip";
     private static final String EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY = "com.android.externalstorage.documents";
+    private static final String PRIMARY_ROOT_ID = "primary";
     private static final String MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH =
             "Android/media/btools.routingapp/brouter/profiles2";
     private static final String LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH =
@@ -161,7 +162,7 @@ public class BRouterProfilesRepository {
         if (existing != null) {
             return existing;
         }
-        List<String> fallbackCandidates = buildLikelyPickerDocumentIdCandidates(
+        List<String> fallbackCandidates = buildFallbackPickerDocumentIdCandidates(
                 getSecondaryStorageRootIds(context)
         );
         if (fallbackCandidates.isEmpty()) {
@@ -333,11 +334,25 @@ public class BRouterProfilesRepository {
     static List<String> buildLikelyPickerDocumentIdCandidates(@NonNull List<String> secondaryRootIds) {
         List<String> candidates = new ArrayList<>();
         List<String> rootIds = new ArrayList<>(secondaryRootIds);
-        rootIds.add("primary");
+        rootIds.add(PRIMARY_ROOT_ID);
         for (String rootId : rootIds) {
             addDocumentIdCandidate(candidates, rootId, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
         }
         for (String rootId : rootIds) {
+            addDocumentIdCandidate(candidates, rootId, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
+        }
+        return candidates;
+    }
+
+    @NonNull
+    static List<String> buildFallbackPickerDocumentIdCandidates(@NonNull List<String> secondaryRootIds) {
+        List<String> candidates = new ArrayList<>();
+        addDocumentIdCandidate(candidates, PRIMARY_ROOT_ID, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
+        addDocumentIdCandidate(candidates, PRIMARY_ROOT_ID, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
+        for (String rootId : secondaryRootIds) {
+            addDocumentIdCandidate(candidates, rootId, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
+        }
+        for (String rootId : secondaryRootIds) {
             addDocumentIdCandidate(candidates, rootId, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
         }
         return candidates;

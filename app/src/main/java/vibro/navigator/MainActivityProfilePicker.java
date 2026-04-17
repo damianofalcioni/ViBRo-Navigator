@@ -52,13 +52,14 @@ final class MainActivityProfilePicker {
         intent.setType("*/*");
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        Uri initialUri = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+            initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
             if (initialUri != null) {
                 intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
             }
         }
-        AppLogger.i(TAG, "Launching custom profile picker");
+        AppLogger.i(TAG, "Launching custom profile picker initialUri=" + safe(initialUri));
         activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE);
     }
 
@@ -137,5 +138,10 @@ final class MainActivityProfilePicker {
     @NonNull
     private static String safe(@Nullable String value) {
         return value == null ? "null" : value;
+    }
+
+    @NonNull
+    private static String safe(@Nullable Uri value) {
+        return value == null ? "null" : value.toString();
     }
 }
