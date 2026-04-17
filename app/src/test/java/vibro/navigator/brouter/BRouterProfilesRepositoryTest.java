@@ -69,6 +69,17 @@ public class BRouterProfilesRepositoryTest {
     }
 
     @Test
+    public void saveProfilesTreeUri_roundTripsSavedValue() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        BRouterProfilesRepository repository = new BRouterProfilesRepository();
+        Uri treeUri = DocumentsContract.buildTreeDocumentUri(AUTHORITY, MEDIA_PROFILES_DIR_ID);
+
+        repository.saveProfilesTreeUri(activity, treeUri);
+
+        assertEquals(treeUri, repository.getProfilesTreeUri(activity));
+    }
+
+    @Test
     public void buildLikelyPickerDocumentIdCandidates_checksMediaAndDataForAllRootsWithoutSdkSwitch() {
         List<String> candidates = BRouterProfilesRepository.buildLikelyPickerDocumentIdCandidates(
                 Collections.singletonList("B4DD-C8AC")

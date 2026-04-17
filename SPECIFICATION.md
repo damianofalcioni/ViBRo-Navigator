@@ -47,7 +47,12 @@ The main UI must include a routing-profile selector at the top.
 - When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show a single custom-profile entry so the user can pick a `.brf` file manually
 - The selector must continue to behave like a normal dropdown even when a custom profile is currently selected
 - The selector must include a single custom-profile entry; when the user chooses that custom entry from the opened dropdown, the app must open the custom `.brf` picker even if that same custom entry is already the current selection
+- The first time the user chooses the custom-profile entry and no persisted directory access exists yet, the app must first request Storage Access Framework directory access to the BRouter `profiles2` folder, then continue to the `.brf` file picker
+- After the app has a persisted readable `profiles2` tree grant, subsequent custom-profile selections should continue directly to the `.brf` file picker while reusing that granted tree for external-profile discovery and picker startup
+- The one-time directory-access step is additive only: it must not change normal spinner behavior, selected-profile persistence, or the way routing uses the chosen BRouter profile name
 - When trying to open a custom profile source, the app should probe multiple plausible BRouter `profiles2` locations across both internal and removable storage, and across both `Android/media/...` and legacy `Android/data/...` layouts, instead of assuming a single path from Android version alone
+- On Android 11 and later, the app should prefer `Android/media/.../profiles2` for user-granted directory access because SAF tree access to `Android/data/...` is restricted, while legacy `Android/data/...` probing may remain as a non-granted fallback hint only
+- If no candidate path can be verified, the picker-startup fallback should prefer the primary internal `Android/media/.../profiles2` location before removable-storage candidates
 - Common example paths:
   `/storage/emulated/0/Android/media/btools.routingapp/brouter/profiles2`
   `/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2`
@@ -168,6 +173,8 @@ The implementation must use BRouter integration compatible with these references
 - Custom external profile browsing should target a real accessible `profiles2` folder when one can be found, but normal routing must not depend on that folder existing
 - The picker-initial-location logic for custom external profiles must use the same version-agnostic multi-path probing strategy as the profile-discovery logic, rather than switching candidate path sets solely by Android version
 - External-profile discovery for selector population and picker startup must share the same version-agnostic candidate set and the same internal-versus-removable storage coverage
+- A persisted SAF tree grant for `profiles2` must be treated as the highest-priority source for external-profile discovery and picker initial location, ahead of unguided path probing
+- A single-file SAF grant obtained from picking one `.brf` file must not be assumed to provide sibling-folder enumeration rights; folder enumeration must rely on a tree grant or on separately accessible autodiscovered paths
 
 #### 4.3.4 GeoJSON output
 

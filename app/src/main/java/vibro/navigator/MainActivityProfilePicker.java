@@ -18,6 +18,7 @@ import vibro.navigator.util.AppLogger;
 final class MainActivityProfilePicker {
 
     private static final int REQ_PICK_CUSTOM_PROFILE = 1001;
+    private static final int REQ_PICK_CUSTOM_PROFILE_TREE = 1002;
     private static final String TAG = "MainProfilePicker";
 
     @NonNull
@@ -47,6 +48,31 @@ final class MainActivityProfilePicker {
 
     @SuppressWarnings("deprecation")
     void startCustomProfilePicker() {
+        if (!profilesRepository.hasPersistedProfilesTreeAccess(activity)) {
+            startProfilesTreePicker();
+            return;
+        }
+        startCustomProfileDocumentPicker();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void startProfilesTreePicker() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+        Uri initialUri = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+            if (initialUri != null) {
+                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
+            }
+        }
+        AppLogger.i(TAG, "Launching profiles tree picker initialUri=" + safe(initialUri));
+        activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE_TREE);
+    }
+
+    @SuppressWarnings("deprecation")
+    private void startCustomProfileDocumentPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
         intent.setType("*/*");
@@ -59,16 +85,51 @@ final class MainActivityProfilePicker {
                 intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
             }
         }
-        AppLogger.i(TAG, "Launching custom profile picker initialUri=" + safe(initialUri));
+        AppLogger.i(TAG, "Launching custom profile document picker initialUri=" + safe(initialUri));
         activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE);
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQ_PICK_CUSTOM_PROFILE_TREE) {
+            handleProfilesTreePickerResult(resultCode, data);
+            return true;
+        }
         if (requestCode == REQ_PICK_CUSTOM_PROFILE) {
             handleCustomProfilePickerResult(resultCode, data);
             return true;
         }
         return false;
+    }
+
+    private void handleProfilesTreePickerResult(int resultCode, @Nullable Intent data) {
+        ProfileSpinnerController controller = requireProfileSpinnerController();
+        if (resultCode != Activity.RESULT_OK || data == null) {
+            controller.onCustomProfilePickerCancelled();
+            return;
+        }
+        Uri uri = data.getData();
+        if (uri == null) {
+            AppLogger.w(TAG, "Profiles tree picker returned without URI");
+            controller.onCustomProfilePickerCancelled();
+            return;
+        }
+        try {
+            if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
+                activity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                AppLogger.i(TAG, "Persisted profiles tree permission uri=" + uri);
+            } else {
+                AppLogger.w(TAG, "Profiles tree picker returned without persistable read grant uri=" + uri);
+                controller.onCustomProfilePickerCancelled();
+                return;
+            }
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Failed to persist profiles tree permission uri=" + uri, e);
+            controller.onCustomProfilePickerCancelled();
+            return;
+        }
+        profilesRepository.saveProfilesTreeUri(activity, uri);
+        controller.refresh();
+        startCustomProfileDocumentPicker();
     }
 
     private void handleCustomProfilePickerResult(int resultCode, @Nullable Intent data) {

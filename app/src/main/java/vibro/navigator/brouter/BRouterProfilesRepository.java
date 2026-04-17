@@ -3,6 +3,7 @@ package vibro.navigator.brouter;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.UriPermission;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -35,6 +36,7 @@ public class BRouterProfilesRepository {
     private static final String PREFS = "vibenavigator_brouter";
     private static final String KEY_CUSTOM_PROFILE_URI = "custom_profile_uri";
     private static final String KEY_CUSTOM_PROFILE_NAME = "custom_profile_name";
+    private static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
     private static final String BROUTER_PROFILES_ZIP = "assets/profiles2.zip";
     private static final String EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY = "com.android.externalstorage.documents";
@@ -80,6 +82,29 @@ public class BRouterProfilesRepository {
     }
 
     @Nullable
+    public Uri getProfilesTreeUri(@NonNull Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        String raw = prefs.getString(KEY_PROFILES_TREE_URI, null);
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Uri.parse(raw);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to parse saved profiles tree URI raw=" + raw, e);
+            return null;
+        }
+    }
+
+    public void saveProfilesTreeUri(@NonNull Context context, @NonNull Uri treeUri) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        prefs.edit()
+                .putString(KEY_PROFILES_TREE_URI, treeUri.toString())
+                .apply();
+        AppLogger.i(TAG, "Saved profiles tree uri=" + treeUri);
+    }
+
+    @Nullable
     public String getSelectedProfileKey(@NonNull Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         String raw = prefs.getString(KEY_SELECTED_PROFILE, null);
@@ -97,6 +122,14 @@ public class BRouterProfilesRepository {
 
     @Nullable
     public Uri getCustomProfilePickerInitialUri(@NonNull Context context) {
+        Uri profilesTreeUri = getProfilesTreeUri(context);
+        if (hasPersistedReadPermission(context, profilesTreeUri)) {
+            Uri treeDocumentUri = toTreeDocumentUri(profilesTreeUri);
+            if (treeDocumentUri != null) {
+                return treeDocumentUri;
+            }
+            return profilesTreeUri;
+        }
         Uri customUri = getCustomProfileUri(context);
         if (customUri != null) {
             Uri parentUri = toParentDocumentUri(customUri);
@@ -111,6 +144,10 @@ public class BRouterProfilesRepository {
             return null;
         }
         return buildExternalStorageDocumentUri(documentId);
+    }
+
+    public boolean hasPersistedProfilesTreeAccess(@NonNull Context context) {
+        return hasPersistedReadPermission(context, getProfilesTreeUri(context));
     }
 
     @Nullable
@@ -154,6 +191,20 @@ public class BRouterProfilesRepository {
                 EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
                 documentId
         );
+    }
+
+    @Nullable
+    private Uri toTreeDocumentUri(@Nullable Uri treeUri) {
+        if (treeUri == null) {
+            return null;
+        }
+        try {
+            String treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri);
+            return DocumentsContract.buildDocumentUriUsingTree(treeUri, treeDocumentId);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to derive document URI from tree uri=" + treeUri, e);
+            return null;
+        }
     }
 
     @Nullable
@@ -202,6 +253,10 @@ public class BRouterProfilesRepository {
     @NonNull
     List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
         List<Uri> out = new ArrayList<>();
+        Uri savedTreeUri = getProfilesTreeUri(context);
+        if (hasPersistedReadPermission(context, savedTreeUri)) {
+            addDiscoveryTreeUri(out, savedTreeUri);
+        }
         for (String documentId : getProfilesDocumentIdCandidates(context)) {
             if (!documentExists(context, documentId)) {
                 continue;
@@ -387,6 +442,21 @@ public class BRouterProfilesRepository {
         if (!candidates.contains(documentId)) {
             candidates.add(documentId);
         }
+    }
+
+    private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
+        if (uri == null) {
+            return false;
+        }
+        for (UriPermission permission : context.getContentResolver().getPersistedUriPermissions()) {
+            if (!permission.isReadPermission()) {
+                continue;
+            }
+            if (uri.equals(permission.getUri())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean documentExists(@NonNull Context context, @NonNull String documentId) {
