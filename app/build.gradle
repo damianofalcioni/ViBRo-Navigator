@@ -53,10 +53,15 @@ android {
             }
         }
     }
+    
+    buildFeatures {
+        resValues = true
+    }
 
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
+            resValue "string", "app_name", "ViBRo Debug"
         }
         release {
             if (System.getenv("ANDROID_KEYSTORE_PATH")) {
