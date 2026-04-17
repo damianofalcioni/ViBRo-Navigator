@@ -1,7 +1,6 @@
 package vibro.navigator;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -18,8 +17,7 @@ import vibro.navigator.util.AppLogger;
 
 final class MainActivityProfilePicker {
 
-    private static final int REQ_PICK_PROFILES_FOLDER = 1001;
-    private static final int REQ_PICK_CUSTOM_PROFILE = 1002;
+    private static final int REQ_PICK_CUSTOM_PROFILE = 1001;
     private static final String TAG = "MainProfilePicker";
 
     @NonNull
@@ -47,36 +45,6 @@ final class MainActivityProfilePicker {
         controller.refresh();
     }
 
-    void maybePromptProfilesFolder() {
-        if (profilesRepository.getProfilesTreeUri(activity) != null) {
-            AppLogger.d(TAG, "Profiles folder prompt skipped because a folder is already saved");
-            return;
-        }
-        AppLogger.i(TAG, "Prompting user to select profiles folder");
-        new AlertDialog.Builder(activity)
-                .setTitle(R.string.msg_select_brouter_profiles_folder_title)
-                .setMessage(R.string.msg_select_brouter_profiles_folder_body)
-                .setPositiveButton(R.string.action_pick_file, (d, w) -> startCustomProfilePicker())
-                .setNeutralButton(R.string.action_pick_folder, (d, w) -> startProfilesFolderPicker())
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
-    @SuppressWarnings("deprecation")
-    void startProfilesFolderPicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            intent.putExtra(
-                    DocumentsContract.EXTRA_INITIAL_URI,
-                    profilesRepository.getProfilesFolderPickerInitialUri(activity)
-            );
-        }
-        AppLogger.i(TAG, "Launching profiles folder picker");
-        activity.startActivityForResult(intent, REQ_PICK_PROFILES_FOLDER);
-    }
-
     @SuppressWarnings("deprecation")
     void startCustomProfilePicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -85,48 +53,21 @@ final class MainActivityProfilePicker {
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            intent.putExtra(
-                    DocumentsContract.EXTRA_INITIAL_URI,
-                    profilesRepository.getCustomProfilePickerInitialUri(activity)
-            );
+            Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+            if (initialUri != null) {
+                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
+            }
         }
         AppLogger.i(TAG, "Launching custom profile picker");
         activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE);
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQ_PICK_PROFILES_FOLDER) {
-            handleProfilesFolderPickerResult(resultCode, data);
-            return true;
-        }
         if (requestCode == REQ_PICK_CUSTOM_PROFILE) {
             handleCustomProfilePickerResult(resultCode, data);
             return true;
         }
         return false;
-    }
-
-    private void handleProfilesFolderPickerResult(int resultCode, @Nullable Intent data) {
-        if (resultCode != Activity.RESULT_OK || data == null) {
-            return;
-        }
-        Uri uri = data.getData();
-        if (uri == null) {
-            AppLogger.w(TAG, "Profiles folder picker returned without URI");
-            return;
-        }
-        try {
-            if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
-                activity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                AppLogger.i(TAG, "Persisted profiles folder permission uri=" + uri);
-            } else {
-                AppLogger.w(TAG, "Profiles folder picker returned without persistable read grant uri=" + uri);
-            }
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Failed to persist profiles folder permission uri=" + uri, e);
-        }
-        profilesRepository.saveProfilesTreeUri(activity, uri);
-        refreshProfiles();
     }
 
     private void handleCustomProfilePickerResult(int resultCode, @Nullable Intent data) {
@@ -162,9 +103,6 @@ final class MainActivityProfilePicker {
         }
         profilesRepository.saveCustomProfile(activity, uri, profileName);
         controller.onCustomProfileSaved();
-        if (controller.shouldPromptForProfilesFolder()) {
-            maybePromptProfilesFolder();
-        }
     }
 
     @Nullable

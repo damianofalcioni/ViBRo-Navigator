@@ -12,7 +12,6 @@
     <string name="action_blocked_road">Blocked road</string>
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
-    <string name="action_pick_folder">Pick folder</string>
     <string name="action_pick_file">Pick .brf file</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_save">Save</string>
@@ -50,8 +49,6 @@
     <string name="msg_battery_opt_rationale">For reliable background navigation, allow ViBRo Navigator to ignore battery optimizations.</string>
     <string name="msg_open_settings_failed">Could not open settings on this device.</string>
     <string name="msg_open_brouter_store_failed">Could not open a BRouter store page on this device.</string>
-    <string name="msg_select_brouter_profiles_folder_title">Select BRouter profile source</string>
-    <string name="msg_select_brouter_profiles_folder_body">Select a specific BRouter .brf file or a folder that contains BRouter profiles.\n\nCommon paths:\nMemory card/Android/data/btools.routingapp/files/brouter/profiles2\n/storage/emulated/0/Android/data/btools.routingapp/files/brouter/profiles2\n\nNewer BRouter versions may bundle default profiles internally, so these folders may not exist.</string>
     <string name="msg_intent_unrecognized">Shared location not recognized</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>

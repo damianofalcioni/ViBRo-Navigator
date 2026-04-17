@@ -37,7 +37,7 @@
             android:text="@string/label_vehicle_profile"
             android:textColor="@color/white" />
 
-        <Spinner
+        <vibro.navigator.RepeatSelectSpinner
             android:id="@+id/profileSpinner"
             style="@style/Widget.ViBRoNavigator.Spinner"
             android:layout_width="match_parent"
