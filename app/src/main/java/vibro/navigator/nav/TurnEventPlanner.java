@@ -113,7 +113,7 @@ final class TurnEventPlanner {
         VoiceHint next = hints.get(updatedHintIdx);
         double hintDistMeters = polylineIndex.distanceAtPointIndex(next.indexInTrack);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
-        if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
+        if (!isImminentTurnDistanceReliable(distanceToNextMeters)) {
             return new Progress(updatedHintIdx, updatedNotified10, updatedNotified5, signals);
         }
         Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
@@ -159,7 +159,7 @@ final class TurnEventPlanner {
         VoiceHint next = hints.get(nextHintIdx);
         double hintDistMeters = polylineIndex.distanceAtPointIndex(next.indexInTrack);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
-        if (!isTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
+        if (!isInitialTurnDistanceReliable(distanceToNextMeters, accuracyMeters)) {
             return null;
         }
         Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
@@ -177,12 +177,16 @@ final class TurnEventPlanner {
         );
     }
 
-    private boolean isTurnDistanceReliable(double distanceToNextMeters, float accuracyMeters) {
+    private boolean isInitialTurnDistanceReliable(double distanceToNextMeters, float accuracyMeters) {
         double safeAccuracyMeters = Float.isFinite(accuracyMeters) && accuracyMeters > 0f
                 ? accuracyMeters
                 : 0.0;
         double minTrustedDistanceMeters = Math.max(MIN_TRUSTED_TURN_DISTANCE_METERS, safeAccuracyMeters);
         return distanceToNextMeters > minTrustedDistanceMeters;
+    }
+
+    private boolean isImminentTurnDistanceReliable(double distanceToNextMeters) {
+        return distanceToNextMeters > MIN_TRUSTED_TURN_DISTANCE_METERS;
     }
 
 }

@@ -143,7 +143,7 @@ public class TurnEventPlannerTest {
     }
 
     @Test
-    public void advance_suppressesImminentSignalInsideAccuracyRadius() {
+    public void advance_allowsImminentSignalWithCoarseAccuracyWhenTurnIsStillAhead() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -161,7 +161,37 @@ public class TurnEventPlannerTest {
                 0,
                 false,
                 false,
-                100.0,
+                104.0,
+                0,
+                5f,
+                20f
+        );
+
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified5);
+    }
+
+    @Test
+    public void advance_suppressesImminentSignalWhenAlreadyTooCloseToTurn() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                60.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                108.0,
                 0,
                 5f,
                 20f

@@ -238,10 +238,13 @@ The app must monitor user position:
 - The app must send notifications:
   - When navigation starts and the first route has been calculated, for the first upcoming direction even if the user is not moving yet
 - When the user has remained stationary for several seconds during navigation, recent filtered fixes show only negligible displacement, and the app has a sufficiently trustworthy geomagnetic heading sample that shows the user is not already facing the route
-  - When the previous direction has just been passed, only if advancing guidance requires surfacing a new actionable upcoming instruction rather than replaying the just-passed maneuver
-  - When 10 seconds remain to the next direction
-  - When 5 seconds remain to the next direction
-- The app must suppress or delay turn notifications whose remaining distance is not trustworthy relative to current location accuracy
+  - When the previous direction has just been passed, only if advancing guidance requires surfacing a new actionable upcoming instruction rather than replaying the just-passed maneuver; if route-matched progress is stable, the app may surface that next actionable instruction immediately
+  - When 10 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
+  - When 5 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
+- The app must suppress or delay turn notifications when the user's route progress is not trustworthy enough to identify the next actionable maneuver
+- For the initial startup notification, remaining maneuver distance must be trustworthy relative to current location accuracy before the notification is emitted
+- For in-route imminent maneuver notifications, the app may rely primarily on stable route-matched progress rather than raw horizontal accuracy alone, so coarse GPS accuracy does not by itself suppress a 10-second or 5-second alert
+- In-route imminent maneuver notifications must still be suppressed when the remaining maneuver distance is already too small to be actionable or when route matching is unstable
 - The app must not emit a passed-turn notification whose displayed remaining distance or time would collapse to zero; in that case it should suppress the passed maneuver and move on to the next actionable instruction
 - When the user is already inside the most urgent threshold, the app should emit only the single most urgent imminent-turn notification instead of stacking multiple near-identical alerts
 - When the user's current filtered position enters the destination-reached radius around the final destination point, the app must emit a destination-reached guidance notification instead of silently ending maneuver alerts
