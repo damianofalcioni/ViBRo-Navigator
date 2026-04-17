@@ -75,15 +75,15 @@ jobs:
       - name: Build unsigned release APK
         run: ./gradlew assembleRelease
 
-      - name: Verify unsigned release artifact
+      - name: Verify signed release artifact
         shell: bash
         run: |
           set -euo pipefail
           ls app/build/outputs/apk/release/
-          test -f app/build/outputs/apk/release/app-release-unsigned.apk
+          test -f app/build/outputs/apk/release/app-release.apk
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: fdroid-release-apk
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-release.apk
