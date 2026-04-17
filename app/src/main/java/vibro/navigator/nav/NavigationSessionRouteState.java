@@ -39,6 +39,7 @@ final class NavigationSessionRouteState {
     private static final long MIN_ETA_SPEED_SAMPLE_AGE_MS = 2_000L;
     private static final double MIN_ETA_PROGRESS_METERS = 1.0;
     private static final float MIN_TRUSTED_ETA_SPEED_MPS = 0.5f;
+    private static final double MIN_DESTINATION_REACHED_RADIUS_METERS = 5.0;
 
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
@@ -146,6 +147,11 @@ final class NavigationSessionRouteState {
                 match.alongTrackMeters,
                 nowMs
         );
+        if (isWithinDestinationReachedRadius(filtered, accuracyMeters)) {
+            clearPendingDeviation();
+            rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+            return Evaluation.keepRoute(turnState.onDestinationReached(route), NO_SUGGESTED_INTERVAL, true);
+        }
 
         RouteDeviationPolicy.Decision deviationDecision = routeDeviationPolicy.evaluate(
                 match.distanceToTrackMeters,
@@ -320,8 +326,10 @@ final class NavigationSessionRouteState {
         recentAlongTrackSamples.clear();
         float etaSpeedMps = 0f;
 
-        List<NavigationSession.TurnEvent> turnEvents =
-                turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, etaSpeedMps, accuracyOf(lastFiltered));
+        List<NavigationSession.TurnEvent> turnEvents = lastFiltered != null
+                && isWithinDestinationReachedRadius(lastFiltered, accuracyOf(lastFiltered))
+                ? turnState.onDestinationReached(newRoute)
+                : turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, etaSpeedMps, accuracyOf(lastFiltered));
         AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
                 + " trackPoints=" + newRoute.track.size()
@@ -421,6 +429,7 @@ final class NavigationSessionRouteState {
                 compassRadiusTransition,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
+                turnState.isDestinationReached(),
                 targets,
                 context
         );
@@ -498,6 +507,24 @@ final class NavigationSessionRouteState {
 
     private float accuracyOf(@Nullable Location location) {
         return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    private boolean isWithinDestinationReachedRadius(@NonNull Location location, float accuracyMeters) {
+        if (route == null || route.track.isEmpty()) {
+            return false;
+        }
+        LatLon destination = route.track.get(route.track.size() - 1);
+        double destinationDistanceMeters = GeoMath.distanceMeters(
+                location.getLatitude(),
+                location.getLongitude(),
+                destination.lat,
+                destination.lon
+        );
+        double destinationReachedRadiusMeters = Math.max(
+                MIN_DESTINATION_REACHED_RADIUS_METERS,
+                Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0.0
+        );
+        return destinationDistanceMeters <= destinationReachedRadiusMeters;
     }
 
     private long resolveCompassRadiusUpdateDeltaMs(long nowMs) {

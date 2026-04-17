@@ -114,7 +114,7 @@
     <string name="direction_exit_left">Exit left</string>
     <string name="direction_exit_right">Exit right</string>
     <string name="direction_offroute">Off route</string>
-    <string name="direction_arrive">Arrive</string>
+    <string name="direction_arrive">Destination reached</string>
     <string name="direction_unknown">Unknown direction</string>
     <string name="direction_side_left">left</string>
     <string name="direction_side_right">right</string>
@@ -141,6 +141,7 @@
     <string name="format_progress_line">%1$s: %2$s • %3$s • %4$s %5$s</string>
     <string name="format_coordinates">%1$.6f, %2$.6f</string>
     <string name="symbol_plus">+</string>
+    <string name="nav_destination_reached">Destination reached</string>
 
     <string name="about_title">ViBRo Navigator</string>
     <string name="format_version">Version %1$s</string>

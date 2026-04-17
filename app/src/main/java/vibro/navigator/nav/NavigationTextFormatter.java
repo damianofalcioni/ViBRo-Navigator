@@ -29,6 +29,14 @@ public final class NavigationTextFormatter {
         String directionText = direction.exitNumber > 0
                 ? context.getString(direction.labelRes, direction.exitNumber)
                 : context.getString(direction.labelRes);
+        if (hint.command == 100) {
+            return String.format(
+                    Locale.getDefault(),
+                    "%s %s",
+                    formatDirectionSymbol(direction),
+                    directionText
+            );
+        }
         return context.getString(
                 R.string.format_turn_notification,
                 formatDirectionSymbol(direction),

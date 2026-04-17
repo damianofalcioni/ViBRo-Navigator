@@ -245,6 +245,7 @@ public final class NavState {
                 null,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
+                false,
                 targets,
                 context
         );
@@ -295,6 +296,7 @@ public final class NavState {
                 null,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
+                false,
                 targets,
                 context
         );
@@ -323,6 +325,7 @@ public final class NavState {
             @Nullable CompassRadiusTransition compassRadiusTransition,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
+            boolean destinationReached,
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
@@ -334,6 +337,7 @@ public final class NavState {
                 currentSegmentIndex,
                 etaSpeedMps,
                 accuracyMeters,
+                destinationReached,
                 context
         );
         String next = directionLines.isEmpty() ? "" : directionLines.get(0);
@@ -345,6 +349,7 @@ public final class NavState {
                 currentSegmentIndex,
                 etaSpeedMps,
                 nowMs,
+                destinationReached,
                 targets,
                 context
         );
@@ -355,6 +360,7 @@ public final class NavState {
                 currentSegmentIndex,
                 etaSpeedMps,
                 nowMs,
+                destinationReached,
                 targets,
                 context
         );
@@ -470,8 +476,19 @@ public final class NavState {
             int currentSegmentIndex,
             float speedMps,
             float accuracyMeters,
+            boolean destinationReached,
             @NonNull Context context
     ) {
+        if (destinationReached) {
+            return new ArrayList<>(java.util.Collections.singletonList(
+                    NavigationTextFormatter.formatTurnNotification(
+                            context,
+                            new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0),
+                            0.0,
+                            0.0
+                    )
+            ));
+        }
         if (route.voiceHints.isEmpty() || hintIdx < 0 || hintIdx >= route.voiceHints.size()) {
             return new ArrayList<>();
         }
@@ -560,9 +577,13 @@ public final class NavState {
             int currentSegmentIndex,
             float speedMps,
             long nowMs,
+            boolean destinationReached,
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
+        if (destinationReached) {
+            return context.getString(R.string.nav_destination_reached);
+        }
         if (targets.isEmpty()) {
             return "";
         }
@@ -587,9 +608,13 @@ public final class NavState {
             int currentSegmentIndex,
             float speedMps,
             long nowMs,
+            boolean destinationReached,
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
+        if (destinationReached) {
+            return "";
+        }
         int lastStopIndex = Math.max(0, targets.size() - 1);
         for (int i = 0; i < lastStopIndex; i++) {
             NavTarget t = targets.get(i);

@@ -407,6 +407,7 @@ public class NavStateTest {
                 null,
                 NavState.NO_DEADLINE,
                 0L,
+                false,
                 Collections.singletonList(new NavTarget("Destination", 130.0)),
                 context
         );

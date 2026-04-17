@@ -72,6 +72,102 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void evaluateLocation_emitsArrivalEventAndReachedStateInsideDestinationRadius() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation arrivalEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation repeatedEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 3_000L),
+                0f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
+        NavState navState = state.buildState(
+                context,
+                location(0.0, 0.001, 3_000L),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null,
+                null
+        );
+
+        assertFalse(arrivalEvaluation.shouldRecalculateRoute());
+        assertEquals(1, arrivalEvaluation.turnEvents.size());
+        assertEquals(NavigationSession.TurnEvent.Type.IMMINENT, arrivalEvaluation.turnEvents.get(0).type);
+        assertEquals(100, arrivalEvaluation.turnEvents.get(0).hint.command);
+        assertTrue(repeatedEvaluation.turnEvents.isEmpty());
+        assertEquals("■ Destination reached", navState.nextLine);
+        assertEquals(context.getString(R.string.nav_destination_reached), navState.destinationLine);
+        assertTrue(navState.stopProgressBlock.isEmpty());
+    }
+
+    @Test
+    public void evaluateLocation_prefersArrivalOverOffTrackRerouteWhenInsideDestinationRadius() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.00018, 0.001, 2_000L, 30f),
+                1f,
+                30f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertFalse(evaluation.shouldRecalculateRoute());
+        assertEquals(1, evaluation.turnEvents.size());
+        assertEquals(100, evaluation.turnEvents.get(0).hint.command);
+    }
+
+    @Test
     public void buildState_usesSmoothedSlowProgressForEtaOnCurrentSegment() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

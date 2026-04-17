@@ -23,16 +23,22 @@ final class NavigationTurnState {
     private boolean notified10;
     private boolean notified5;
     private boolean initialTurnNotificationSent;
+    private boolean destinationReached;
 
     void reset() {
         nextHintIdx = 0;
         notified10 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
+        destinationReached = false;
     }
 
     int getNextHintIdx() {
         return nextHintIdx;
+    }
+
+    boolean isDestinationReached() {
+        return destinationReached;
     }
 
     @NonNull
@@ -85,7 +91,22 @@ final class NavigationTurnState {
         notified10 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
+        destinationReached = false;
         return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps, accuracyMeters);
+    }
+
+    @NonNull
+    List<NavigationSession.TurnEvent> onDestinationReached(@NonNull GeoJsonRoute route) {
+        if (destinationReached || route.track.isEmpty()) {
+            return Collections.emptyList();
+        }
+        nextHintIdx = route.voiceHints.size();
+        notified10 = false;
+        notified5 = false;
+        initialTurnNotificationSent = true;
+        destinationReached = true;
+        VoiceHint arrivalHint = new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0);
+        return Collections.singletonList(NavigationSession.TurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 
     @NonNull

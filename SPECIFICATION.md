@@ -244,6 +244,8 @@ The app must monitor user position:
 - The app must suppress or delay turn notifications whose remaining distance is not trustworthy relative to current location accuracy
 - The app must not emit a passed-turn notification whose displayed remaining distance or time would collapse to zero; in that case it should suppress the passed maneuver and move on to the next actionable instruction
 - When the user is already inside the most urgent threshold, the app should emit only the single most urgent imminent-turn notification instead of stacking multiple near-identical alerts
+- When the user's current filtered position enters the destination-reached radius around the final destination point, the app must emit a destination-reached guidance notification instead of silently ending maneuver alerts
+- That destination-reached radius must be based on the final destination point and should be at least the current trusted location-accuracy radius, with a small non-zero minimum floor so arrival still works with very accurate fixes
 - Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
 - Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
 - A stationary orientation notification must be emitted only after a short stationary dwell, must require both low recent movement speed and negligible recent filtered displacement, must require a fresh geomagnetic heading sample with good coarse calibration, and when the sensor exposes a per-sample heading accuracy estimate it must suppress the notification unless the required turn still clearly exceeds that uncertainty margin
@@ -276,6 +278,7 @@ The app must monitor user position:
   - `16` beeline
   - `17` exit left
   - `18` exit right
+- The app must also support the arrival command `100` and map it to a distinct destination-reached presentation rather than treating it as a normal turn maneuver
 - User-visible maneuver and notification symbols should favor simple smartband-safe glyphs over ornate emoji presentation so mirrored wearables can render them consistently
 - Unknown or unsupported voice-hint commands must fall back to a neutral unknown-direction presentation instead of pretending to be a normal continue instruction
 
@@ -304,6 +307,8 @@ The navigation UI must show the following in large text:
 - The second upcoming direction's relative time should be derived from BRouter timing between the first and second maneuver points when available
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
+- Once the user is inside the destination-reached radius, the primary next-direction line must switch to a destination-reached message using the mapped arrival symbol instead of remaining blank
+- That destination-reached presentation should omit misleading `0 m` or `0 s` countdown fields and behave as a terminal guidance state rather than as another ordinary turn
 - The first upcoming direction must keep the full available instruction row width
 - Both direction lines must stay on a single line and should reduce text size as needed before falling back to end-ellipsis truncation
 
@@ -358,6 +363,7 @@ The navigation UI must show the following in large text:
 - The UI must not list all remaining intermediate stops at once in that shared status block
 - When a navigation detail or notice needs to be surfaced in that area, such as route-unavailable detail, blocked-road reroute feedback, or paused-state messaging, that detail must take precedence over progress content in the shared status block
 - When the user explicitly triggers the blocked-road action and a reroute request starts, the shared status block should surface a specific blocked-road reroute-progress notice such as `Blocked road added. Recalculating route.` instead of only showing the generic route-calculation body text
+- After the user enters the destination-reached radius, the shared status block should switch from live destination progress to a destination-reached message unless a higher-priority detail notice is active
 
 #### 4.5.3.1 GPS status line
 

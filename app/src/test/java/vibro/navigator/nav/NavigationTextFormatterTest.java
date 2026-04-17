@@ -65,4 +65,16 @@ public class NavigationTextFormatterTest {
 
         assertEquals("○>3 120 m - 8 s - Roundabout, exit 3", message);
     }
+
+    @Test
+    public void formatTurnNotification_formatsArrivalWithoutDistanceAndCountdown() {
+        String message = NavigationTextFormatter.formatTurnNotification(
+                context,
+                new VoiceHint(1, 100, 0, 0.0, 0),
+                0.0,
+                0.0
+        );
+
+        assertEquals("■ Destination reached", message);
+    }
 }
