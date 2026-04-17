@@ -26,7 +26,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
     @Nullable
     private final SensorManager sensorManager;
     @Nullable
-    private final Sensor geomagneticRotationVectorSensor;
+    private final Sensor headingSensor;
     @Nullable
     private GnssStatus.Callback gnssStatusCallback;
 
@@ -42,9 +42,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         Context appContext = context.getApplicationContext();
         locationManager = (LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);
         sensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
-        geomagneticRotationVectorSensor = sensorManager == null
-                ? null
-                : sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+        headingSensor = HeadingSensorSupport.findBestSensor(sensorManager);
     }
 
     void start() {
@@ -52,8 +50,8 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
             return;
         }
         boolean sensorStarted = sensorManager != null
-                && geomagneticRotationVectorSensor != null
-                && sensorManager.registerListener(this, geomagneticRotationVectorSensor, SensorManager.SENSOR_DELAY_UI);
+                && headingSensor != null
+                && sensorManager.registerListener(this, headingSensor, SensorManager.SENSOR_DELAY_UI);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             registerGnssStatusCallback();
         }
@@ -88,7 +86,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         appendLine(
                 context,
                 sb,
-                R.string.label_sensor_geomagnetic_rotation_vector,
+                HeadingSensorSupport.labelResIdForSensor(headingSensor),
                 describeGeomagneticRotationVectorStatus(context),
                 describeGeomagneticValue()
         );
@@ -228,15 +226,15 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         if (sensorManager == null) {
             return R.string.sensor_status_unavailable;
         }
-        return geomagneticRotationVectorSensor == null
+        return headingSensor == null
                 ? R.string.sensor_status_unavailable
                 : R.string.sensor_status_available;
     }
 
     @NonNull
     private String describeGeomagneticValue() {
-        if (geomagneticRotationVectorSensor == null) {
-            return "value=none";
+        if (headingSensor == null) {
+            return "value=unavailable";
         }
         if (latestGeomagneticVector == null || latestGeomagneticElapsedRealtimeMs < 0L) {
             return "value=waiting for sample";
@@ -321,7 +319,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
 
     @Override
     public void onSensorChanged(@NonNull SensorEvent event) {
-        if (event.sensor.getType() != Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR) {
+        if (!HeadingSensorSupport.matchesSelectedSensor(headingSensor, event.sensor.getType())) {
             return;
         }
         latestGeomagneticVector = event.values.clone();
@@ -330,7 +328,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(@NonNull Sensor sensor, int accuracy) {
-        if (sensor.getType() == Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR) {
+        if (HeadingSensorSupport.matchesSelectedSensor(headingSensor, sensor.getType())) {
             latestGeomagneticAccuracy = accuracy;
         }
     }

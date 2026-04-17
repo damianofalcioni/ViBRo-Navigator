@@ -10,6 +10,7 @@ import android.os.SystemClock;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.HeadingSensorSupport;
 import vibro.navigator.util.AppLogger;
 
 final class GeomagneticOrientationMonitor implements SensorEventListener {
@@ -75,9 +76,7 @@ final class GeomagneticOrientationMonitor implements SensorEventListener {
 
     GeomagneticOrientationMonitor(@NonNull Context context, @Nullable Callback callback) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        orientationSensor = sensorManager == null
-                ? null
-                : sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+        orientationSensor = HeadingSensorSupport.findBestSensor(sensorManager);
         this.callback = callback;
     }
 
@@ -86,8 +85,11 @@ final class GeomagneticOrientationMonitor implements SensorEventListener {
             return orientationSensor != null;
         }
         if (sensorManager == null || orientationSensor == null) {
-            AppLogger.w(TAG, "Geomagnetic rotation vector sensor unavailable");
+            AppLogger.w(TAG, "Heading sensor unavailable");
             return false;
+        }
+        if (orientationSensor.getType() != Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR) {
+            AppLogger.i(TAG, "Using " + HeadingSensorSupport.describeSensor(orientationSensor) + " fallback");
         }
         started = sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_UI);
         if (!started) {
@@ -112,7 +114,7 @@ final class GeomagneticOrientationMonitor implements SensorEventListener {
 
     @Override
     public void onSensorChanged(@NonNull SensorEvent event) {
-        if (event.sensor.getType() != Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR) {
+        if (!HeadingSensorSupport.matchesSelectedSensor(orientationSensor, event.sensor.getType())) {
             return;
         }
         float[] rotationMatrix = new float[9];
@@ -144,7 +146,7 @@ final class GeomagneticOrientationMonitor implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(@NonNull Sensor sensor, int accuracy) {
-        if (sensor.getType() == Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR) {
+        if (HeadingSensorSupport.matchesSelectedSensor(orientationSensor, sensor.getType())) {
             lastAccuracy = accuracy;
         }
     }

@@ -244,7 +244,7 @@ The app must monitor user position:
 
 - The app must send notifications:
   - When navigation starts and the first route has been calculated, for the first upcoming direction even if the user is not moving yet
-- When the user has remained stationary for several seconds during navigation, recent filtered fixes show only negligible displacement, and the app has a sufficiently trustworthy geomagnetic heading sample that shows the user is not already facing the route
+- When the user has remained stationary for several seconds during navigation, recent filtered fixes show only negligible displacement, and the app has a sufficiently trustworthy live heading sample from the preferred heading sensor path that shows the user is not already facing the route
   - When the previous direction has just been passed, only if advancing guidance requires surfacing a new actionable upcoming instruction rather than replaying the just-passed maneuver; if route-matched progress is stable, the app may surface that next actionable instruction immediately
   - When 10 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
   - When 5 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
@@ -258,8 +258,8 @@ The app must monitor user position:
 - That destination-reached radius must be based on the final destination point and should be at least the current trusted location-accuracy radius, with a small non-zero minimum floor so arrival still works with very accurate fixes
 - Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
 - Replacing a direction notification in the notification list must still be compatible with smart bands or similar devices that mirror notifications as they arrive
-- A stationary orientation notification must be emitted only after a short stationary dwell, must require both low recent movement speed and negligible recent filtered displacement, must require a fresh geomagnetic heading sample with good coarse calibration, and when the sensor exposes a per-sample heading accuracy estimate it must suppress the notification unless the required turn still clearly exceeds that uncertainty margin
-- Geomagnetic stationary-orientation monitoring must remain available during background and screen-off navigation so those advisory notifications still work without the navigation UI being open
+- A stationary orientation notification must be emitted only after a short stationary dwell, must require both low recent movement speed and negligible recent filtered displacement, must require a fresh heading sample from the preferred heading sensor path with good coarse calibration when that concept exists for the selected sensor, and when the sensor exposes a per-sample heading accuracy estimate it must suppress the notification unless the required turn still clearly exceeds that uncertainty margin
+- Stationary-orientation monitoring via the preferred heading sensor path must remain available during background and screen-off navigation so those advisory notifications still work without the navigation UI being open
 - Stationary orientation notifications are advisory turn-to-face-the-route prompts and must not change wrong-direction reroute behavior, which remains gated by trusted movement heading, route-progress confirmation, and reroute confidence rules
 - Stationary orientation notifications must be suppressed while a route recalculation is in progress so the app does not emit contradictory off-route and turn-yourself prompts at the same time
 - Each notification message must contain:
@@ -329,8 +329,9 @@ The navigation UI must show the following in large text:
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
 - While the user is moving, the displayed compass heading should prefer the trusted GPS/course heading to reduce jitter, and should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees
-- When the user is stationary, or when neither trusted GPS/course heading nor movement-derived course is available, the displayed compass heading may fall back to the live geomagnetic heading
-- Live geomagnetic compass rotation is only required while the navigation UI is visible and the screen is interactive
+- When the user is stationary, or when neither trusted GPS/course heading nor movement-derived course is available, the displayed compass heading may fall back to the live heading from the preferred heading sensor path
+- The preferred heading sensor path must use the geomagnetic rotation vector when the platform exposes it and may fall back to the standard rotation vector when that is the only available fused heading sensor
+- Live heading-sensor-driven compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
@@ -442,8 +443,8 @@ The navigation UI must show the following in large text:
 - Background and screen-off navigation reliability must be provided primarily by the location foreground service and ongoing location callbacks rather than by holding a session-long CPU wake lock
 - Partial wake locks may be used only as short, focused guards around critical work such as startup bootstrap, route calculation, or reroute calculation, and each acquisition must use an explicit timeout and be released by the same flow that acquired it
 - The app must not rely on continuously renewing or indefinitely holding a partial wake lock for the full navigation session
-- Screen-off or background navigation may suspend compass UI updates, but geomagnetic monitoring needed for stationary-orientation notifications must continue
-- If the platform cannot deliver the required geomagnetic samples while the device is asleep without a session-long wake lock, stationary-orientation notifications may degrade to best-effort while core location tracking and route guidance continue
+- Screen-off or background navigation may suspend compass UI updates, but heading-sensor monitoring needed for stationary-orientation notifications must continue
+- If the platform cannot deliver the required heading-sensor samples while the device is asleep without a session-long wake lock, stationary-orientation notifications may degrade to best-effort while core location tracking and route guidance continue
 
 #### 4.6.1 Foreground service lifecycle
 
@@ -479,11 +480,11 @@ The navigation UI must show the following in large text:
 - That diagnostics block must currently list the app's used live inputs:
   - GPS provider
   - network provider
-  - geomagnetic rotation vector
+  - the selected heading sensor, preferring geomagnetic rotation vector and otherwise falling back to rotation vector when that is the available fused heading source
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, and sample age when available
-- Geomagnetic rotation-vector details should include the latest available heading/orientation-derived values and sample age when available
+- Heading-sensor details should include the selected sensor type plus the latest available heading/orientation-derived values and sample age when available
 - When developer mode is enabled, the about page must also show a developer-only action to send a notification-symbol test
 - Triggering that action must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
 - That test notification must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
