@@ -26,7 +26,11 @@ public final class NavCompassState {
     @Nullable
     public final Float headingAccuracyDegrees;
     public final float referenceSpeedMps;
+    public final float fullRouteReferenceSpeedMps;
+    public final float sixtySecondReferenceSpeedMps;
     public final float visibleRadiusMeters;
+    public final float fullRouteVisibleRadiusMeters;
+    public final float sixtySecondVisibleRadiusMeters;
     public final float accuracyRadiusMeters;
     public final boolean movingScaleActive;
     public final float routeThresholdMeters;
@@ -63,6 +67,10 @@ public final class NavCompassState {
                 headingDegrees,
                 headingAccuracyDegrees,
                 referenceSpeedMps,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                visibleRadiusMeters,
+                visibleRadiusMeters,
                 visibleRadiusMeters,
                 accuracyRadiusMeters,
                 false,
@@ -91,10 +99,54 @@ public final class NavCompassState {
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
+        this(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                visibleRadiusMeters,
+                visibleRadiusMeters,
+                visibleRadiusMeters,
+                accuracyRadiusMeters,
+                movingScaleActive,
+                routeThresholdMeters,
+                passedRoutePoints,
+                routePoints,
+                hintPoints,
+                destinationEastMeters,
+                destinationNorthMeters,
+                destinationWithinRadius
+        );
+    }
+
+    public NavCompassState(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float fullRouteReferenceSpeedMps,
+            float sixtySecondReferenceSpeedMps,
+            float visibleRadiusMeters,
+            float fullRouteVisibleRadiusMeters,
+            float sixtySecondVisibleRadiusMeters,
+            float accuracyRadiusMeters,
+            boolean movingScaleActive,
+            float routeThresholdMeters,
+            @NonNull List<RoutePoint> passedRoutePoints,
+            @NonNull List<RoutePoint> routePoints,
+            @NonNull List<RoutePoint> hintPoints,
+            float destinationEastMeters,
+            float destinationNorthMeters,
+            boolean destinationWithinRadius
+    ) {
         this.headingDegrees = headingDegrees;
         this.headingAccuracyDegrees = headingAccuracyDegrees;
         this.referenceSpeedMps = referenceSpeedMps;
+        this.fullRouteReferenceSpeedMps = fullRouteReferenceSpeedMps;
+        this.sixtySecondReferenceSpeedMps = sixtySecondReferenceSpeedMps;
         this.visibleRadiusMeters = visibleRadiusMeters;
+        this.fullRouteVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
+        this.sixtySecondVisibleRadiusMeters = sixtySecondVisibleRadiusMeters;
         this.accuracyRadiusMeters = accuracyRadiusMeters;
         this.movingScaleActive = movingScaleActive;
         this.routeThresholdMeters = routeThresholdMeters;
@@ -115,7 +167,11 @@ public final class NavCompassState {
             float headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,
+            float fullRouteReferenceSpeedMps,
+            float sixtySecondReferenceSpeedMps,
             float visibleRadiusMeters,
+            float fullRouteVisibleRadiusMeters,
+            float sixtySecondVisibleRadiusMeters,
             float accuracyRadiusMeters,
             boolean movingScaleActive,
             float routeThresholdMeters,
@@ -130,7 +186,11 @@ public final class NavCompassState {
         this.headingDegrees = headingDegrees;
         this.headingAccuracyDegrees = headingAccuracyDegrees;
         this.referenceSpeedMps = referenceSpeedMps;
+        this.fullRouteReferenceSpeedMps = fullRouteReferenceSpeedMps;
+        this.sixtySecondReferenceSpeedMps = sixtySecondReferenceSpeedMps;
         this.visibleRadiusMeters = visibleRadiusMeters;
+        this.fullRouteVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
+        this.sixtySecondVisibleRadiusMeters = sixtySecondVisibleRadiusMeters;
         this.accuracyRadiusMeters = accuracyRadiusMeters;
         this.movingScaleActive = movingScaleActive;
         this.routeThresholdMeters = routeThresholdMeters;
@@ -171,6 +231,62 @@ public final class NavCompassState {
         this.destinationEastMeters = destinationEastMeters;
         this.destinationNorthMeters = destinationNorthMeters;
         this.destinationWithinRadius = destinationWithinRadius;
+    }
+
+    @NonNull
+    public NavCompassState withDisplayMode(boolean sixtySecondView) {
+        if (movingScaleActive == sixtySecondView) {
+            return this;
+        }
+        float targetVisibleRadiusMeters = sixtySecondView
+                ? sixtySecondVisibleRadiusMeters
+                : fullRouteVisibleRadiusMeters;
+        float targetReferenceSpeedMps = sixtySecondView
+                ? sixtySecondReferenceSpeedMps
+                : fullRouteReferenceSpeedMps;
+        boolean targetDestinationWithinRadius = Math.hypot(destinationEastMeters, destinationNorthMeters)
+                <= targetVisibleRadiusMeters;
+        if (routeGeometry != null) {
+            return new NavCompassState(
+                    headingDegrees,
+                    headingAccuracyDegrees,
+                    targetReferenceSpeedMps,
+                    fullRouteReferenceSpeedMps,
+                    sixtySecondReferenceSpeedMps,
+                    targetVisibleRadiusMeters,
+                    fullRouteVisibleRadiusMeters,
+                    sixtySecondVisibleRadiusMeters,
+                    accuracyRadiusMeters,
+                    sixtySecondView,
+                    routeThresholdMeters,
+                    routeGeometry,
+                    currentLatitude,
+                    currentLongitude,
+                    passedRouteSamplePointCount,
+                    destinationEastMeters,
+                    destinationNorthMeters,
+                    targetDestinationWithinRadius
+            );
+        }
+        return new NavCompassState(
+                headingDegrees,
+                headingAccuracyDegrees,
+                targetReferenceSpeedMps,
+                fullRouteReferenceSpeedMps,
+                sixtySecondReferenceSpeedMps,
+                targetVisibleRadiusMeters,
+                fullRouteVisibleRadiusMeters,
+                sixtySecondVisibleRadiusMeters,
+                accuracyRadiusMeters,
+                sixtySecondView,
+                routeThresholdMeters,
+                passedRoutePoints,
+                routePoints,
+                hintPoints,
+                destinationEastMeters,
+                destinationNorthMeters,
+                targetDestinationWithinRadius
+        );
     }
 
     public boolean hasRouteGeometry() {

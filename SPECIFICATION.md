@@ -336,10 +336,13 @@ The navigation UI must show the following in large text:
 - The inner circles must remain stable visual distance references for the route
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
 - When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
+- A single tap on the compass route view must toggle the currently displayed zoom mode between the stationary full-route overview and the moving 60-second view
 - That moving 60-second radius must not be capped to a smaller fixed maximum such as 600 meters
 - When the user is moving but the current native speed reading is not yet reliable, the compass should prefer reusing the last reliable moving zoom radius if one exists instead of jumping back and forth between zoom modes
 - When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
 - When the user stops and the compass expands back to the full-route overview, the last reliable moving zoom radius should be preserved so it can be restored when movement resumes before speed confidence has recovered
+- That tap-driven zoom toggle must be only a UI override layered on top of the existing automatic behavior, so stationary navigation still defaults to the full-route overview and moving navigation still defaults to the 60-second view whenever no temporary override is active
+- If the user taps the compass while moving and the currently displayed 60-second view is active, the compass must switch to the full-route overview temporarily and then automatically restore the moving 60-second view after about 5 seconds
 - The compass route geometry and hint-marker geometry should be sampled once per active route and reused across UI updates instead of rebuilding full projected route lists on every heading or location refresh
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
 - Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash

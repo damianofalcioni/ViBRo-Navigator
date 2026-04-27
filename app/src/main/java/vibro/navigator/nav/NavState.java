@@ -705,6 +705,12 @@ public final class NavState {
         boolean hasReusableMovingRadius = previousReliableMovingCompassVisibleRadiusMeters != null
                 && Float.isFinite(previousReliableMovingCompassVisibleRadiusMeters)
                 && previousReliableMovingCompassVisibleRadiusMeters > 0f;
+        float sixtySecondVisibleRadiusMeters = Math.min(
+                fullRouteVisibleRadiusMeters,
+                hasReusableMovingRadius
+                        ? previousReliableMovingCompassVisibleRadiusMeters
+                        : resolveMovingVisibleRadiusMeters(speedMps)
+        );
         float targetVisibleRadiusMeters;
         if (likelyStationary) {
             targetVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
@@ -750,9 +756,11 @@ public final class NavState {
                     );
         }
         boolean usingMovingScale = !likelyStationary && (reliableMovingSpeed || hasReusableMovingRadius);
+        float fullRouteReferenceSpeedMps = sanitizeReferenceSpeedMps(speedMps);
+        float sixtySecondReferenceSpeedMps = resolveMovingLegendReferenceSpeedMps(sixtySecondVisibleRadiusMeters);
         float referenceSpeedMps = usingMovingScale
                 ? resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters)
-                : sanitizeReferenceSpeedMps(speedMps);
+                : fullRouteReferenceSpeedMps;
         float routeThresholdMeters =
                 (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
@@ -760,7 +768,11 @@ public final class NavState {
                 resolvedHeading,
                 sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
                 referenceSpeedMps,
+                fullRouteReferenceSpeedMps,
+                sixtySecondReferenceSpeedMps,
                 visibleRadiusMeters,
+                fullRouteVisibleRadiusMeters,
+                sixtySecondVisibleRadiusMeters,
                 sanitizeAccuracyMeters(compassAccuracyMeters),
                 usingMovingScale,
                 routeThresholdMeters,

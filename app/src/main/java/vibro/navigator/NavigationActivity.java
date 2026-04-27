@@ -29,6 +29,8 @@ import androidx.core.content.ContextCompat;
 import androidx.core.widget.TextViewCompat;
 
 import vibro.navigator.nav.NavState;
+import vibro.navigator.nav.NavCompassState;
+import vibro.navigator.nav.NavigationCompassModeController;
 import vibro.navigator.nav.NavigationLifecyclePolicy;
 import vibro.navigator.nav.NavigationRequest;
 import vibro.navigator.nav.NavigationSettingsLauncher;
@@ -63,6 +65,7 @@ public class NavigationActivity extends Activity {
     private NavState currentState;
     private String lastRenderedStateKey = "";
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final NavigationCompassModeController compassModeController = new NavigationCompassModeController();
     private final NavigationStartupCoordinator startupCoordinator =
             new NavigationStartupCoordinator(new NavigationStartupHost());
     @Nullable
@@ -140,6 +143,11 @@ public class NavigationActivity extends Activity {
         stop = findViewById(R.id.stopNavButton);
 
         render(NavState.waiting(this));
+
+        compass.setOnClickListener(v -> {
+            compassModeController.onCompassTapped(currentState == null ? null : currentState.compassState);
+            renderCompassState();
+        });
 
         blocked.setOnClickListener(v -> {
             if (navBinder != null) {
@@ -232,7 +240,7 @@ public class NavigationActivity extends Activity {
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
         destination.setText(state.displayStatusBlock());
-        compass.setCompassState(state.compassState);
+        renderCompassState();
         blocked.setEnabled(!state.paused);
         pauseResume.setEnabled(navBinder != null);
         pauseResume.setImageResource(state.paused ? R.drawable.ic_play : R.drawable.ic_pause);
@@ -260,6 +268,11 @@ public class NavigationActivity extends Activity {
                     : ("points=" + state.compassState.routePoints.size() + " heading=" + state.compassState.headingDegrees))
                     + " detail=" + state.detailBlock);
         }
+    }
+
+    private void renderCompassState() {
+        @Nullable NavCompassState compassState = currentState == null ? null : currentState.compassState;
+        compass.setCompassState(compassModeController.resolve(compassState));
     }
 
     private void renderGpsStatus() {
