@@ -44,16 +44,12 @@ public class MainActivityStopControllerTest {
 
     @Test
     public void restoreValues_preservesSelectedStopWithoutTriggeringSuggestions() {
-        AtomicInteger searchCalls = new AtomicInteger();
-        PoiSearchClient searchClient = (query, limit) -> {
-            searchCalls.incrementAndGet();
-            return Collections.emptyList();
-        };
+        PoiSearchClient originalSearchClient = (query, limit) -> Collections.emptyList();
         MainActivityStopController original = new MainActivityStopController(
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient,
+                originalSearchClient,
                 (stopIndex, initialPoi) -> {
                 }
         );
@@ -65,11 +61,16 @@ public class MainActivityStopControllerTest {
         Bundle state = new Bundle();
         original.saveState(state);
 
+        AtomicInteger restoredSearchCalls = new AtomicInteger();
+        PoiSearchClient restoredSearchClient = (query, limit) -> {
+            restoredSearchCalls.incrementAndGet();
+            return Collections.emptyList();
+        };
         MainActivityStopController restored = new MainActivityStopController(
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient,
+                restoredSearchClient,
                 (stopIndex, initialPoi) -> {
                 }
         );
@@ -79,7 +80,7 @@ public class MainActivityStopControllerTest {
 
         assertEquals(1, restored.getStopControllers().size());
         PoiInputController restoredController = restored.getStopControllers().get(0);
-        assertEquals(0, searchCalls.get());
+        assertEquals(0, restoredSearchCalls.get());
         assertEquals("Stop A", restoredController.getRawText());
         assertNotNull(restoredController.getSelectedPoi());
         assertEquals(selected.name, restoredController.getSelectedPoi().name);
@@ -89,16 +90,12 @@ public class MainActivityStopControllerTest {
 
     @Test
     public void restoreValues_preservesManualStopTextWithoutTriggeringSuggestions() {
-        AtomicInteger searchCalls = new AtomicInteger();
-        PoiSearchClient searchClient = (query, limit) -> {
-            searchCalls.incrementAndGet();
-            return Collections.emptyList();
-        };
+        PoiSearchClient originalSearchClient = (query, limit) -> Collections.emptyList();
         MainActivityStopController original = new MainActivityStopController(
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient,
+                originalSearchClient,
                 (stopIndex, initialPoi) -> {
                 }
         );
@@ -109,11 +106,16 @@ public class MainActivityStopControllerTest {
         Bundle state = new Bundle();
         original.saveState(state);
 
+        AtomicInteger restoredSearchCalls = new AtomicInteger();
+        PoiSearchClient restoredSearchClient = (query, limit) -> {
+            restoredSearchCalls.incrementAndGet();
+            return Collections.emptyList();
+        };
         MainActivityStopController restored = new MainActivityStopController(
                 activity,
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
-                searchClient,
+                restoredSearchClient,
                 (stopIndex, initialPoi) -> {
                 }
         );
@@ -123,7 +125,7 @@ public class MainActivityStopControllerTest {
 
         assertEquals(1, restored.getStopControllers().size());
         PoiInputController restoredController = restored.getStopControllers().get(0);
-        assertEquals(0, searchCalls.get());
+        assertEquals(0, restoredSearchCalls.get());
         assertEquals("Cafe Central", restoredController.getRawText());
         assertNull(restoredController.getSelectedPoi());
     }
