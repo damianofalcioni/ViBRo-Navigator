@@ -103,7 +103,7 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void routeThresholdOverlayIsDisabledInFullRouteOverview() throws Exception {
+    public void routeThresholdOverlayIsEnabledInFullRouteOverview() throws Exception {
         NavigationCompassView view = new NavigationCompassView(ApplicationProvider.getApplicationContext());
         view.setCompassState(new NavCompassState(
                 0f,
@@ -121,7 +121,7 @@ public class NavigationCompassViewTest {
                 true
         ));
 
-        assertEquals(false, invokeShouldDrawRouteThresholdOverlay(view));
+        assertEquals(true, invokeShouldDrawRouteThresholdOverlay(view));
     }
 
     @Test

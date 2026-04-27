@@ -321,7 +321,6 @@ public final class NavigationCompassView extends View {
     private float resolveRouteThresholdStrokeWidthPx(float routeRadius) {
         float baseStrokeWidthPx = dp(ROUTE_STROKE_WIDTH_DP);
         if (compassState == null
-                || !compassState.movingScaleActive
                 || compassState.visibleRadiusMeters <= 0f
                 || compassState.routeThresholdMeters <= 0f) {
             return baseStrokeWidthPx;
@@ -354,7 +353,6 @@ public final class NavigationCompassView extends View {
 
     private boolean shouldDrawRouteThresholdOverlay() {
         return compassState != null
-                && compassState.movingScaleActive
                 && compassState.routeThresholdMeters > compassState.accuracyRadiusMeters
                 && compassState.routeThresholdMeters > 0f
                 && compassState.visibleRadiusMeters > 0f;

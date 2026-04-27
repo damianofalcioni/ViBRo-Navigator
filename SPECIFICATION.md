@@ -355,10 +355,10 @@ The navigation UI must show the following in large text:
 - Small semi-transparent white point markers must be shown on the route at the visible start position and at each visible hint position
 - The route must be rendered as a continuous line, not as discrete dots
 - The route ahead of the current matched position must keep the normal route red styling
-- In moving mode, the route ahead must be rendered in two red layers: the original opaque route centerline plus a wider semi-transparent threshold overlay behind it
-- That wider moving-mode threshold overlay must visualize the current off-track threshold derived from recent smoothed location accuracy, so it acts as the allowed route corridor rather than a purely decorative fixed-width line
-- That moving-mode threshold overlay width should reflect the full threshold span around the route centerline excluding the GPS accuracy, not only a one-sided offset. This way when the compass show that the orange circle overlap the red corridor it means that the user is still on track, while when they do not overlap means the user is offtrack 
-- In the stationary full-route overview, the red route line must keep a fixed visual stroke width instead of scaling to the off-track threshold
+- In moving mode and in the stationary full-route overview, the route ahead must be rendered in two red layers whenever the current off-track threshold extends beyond the current GPS accuracy radius: the original opaque route centerline plus a wider semi-transparent threshold overlay behind it
+- That wider threshold overlay must visualize the current off-track threshold derived from recent smoothed location accuracy, so it acts as the allowed route corridor rather than a purely decorative fixed-width line
+- That threshold overlay width should reflect the full threshold span around the route centerline excluding the GPS accuracy radius, not only a one-sided offset. This way, when the orange accuracy circle overlaps the red corridor, the user is still on track; when they no longer overlap, the user is off track
+- In the stationary full-route overview, the red route centerline itself must keep a fixed visual stroke width instead of scaling to the off-track threshold, even though the threshold overlay remains visible
 - The already passed part of the currently active route must be shown as the same red with about 50 percent transparency
 - When a reroute is applied, the passed-route overlay must be rebuilt from the new active route geometry and must not retain passed geometry from the previous route
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge

@@ -753,9 +753,8 @@ public final class NavState {
         float referenceSpeedMps = usingMovingScale
                 ? resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters)
                 : sanitizeReferenceSpeedMps(speedMps);
-        float routeThresholdMeters = usingMovingScale
-                ? (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters)
-                : 0f;
+        float routeThresholdMeters =
+                (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return new NavCompassState(
                 resolvedHeading,

@@ -498,7 +498,7 @@ public class NavStateTest {
         assertTrue(state.compassState.visibleRadiusMeters > 1_000f);
         assertTrue(state.compassState.destinationWithinRadius);
         assertFalse(state.compassState.movingScaleActive);
-        assertEquals(0f, state.compassState.routeThresholdMeters, 0.01f);
+        assertEquals(13f, state.compassState.routeThresholdMeters, 0.01f);
         assertTrue(state.compassState.routePoints.size() >= 4);
     }
 
