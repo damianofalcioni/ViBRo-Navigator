@@ -12,7 +12,6 @@
     <string name="action_blocked_road">Blocked road</string>
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
-    <string name="action_pick_file">Pick .brf file</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_save">Save</string>
     <string name="action_open_map">Map</string>

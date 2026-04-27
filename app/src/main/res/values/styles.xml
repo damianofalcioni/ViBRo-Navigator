@@ -21,16 +21,6 @@
         <item name="android:textColor">@color/white</item>
     </style>
 
-    <style name="Widget.ViBRoNavigator.Button.Secondary" parent="@style/Widget.ViBRoNavigator.Button">
-        <item name="android:background">@drawable/bg_button_secondary</item>
-        <item name="android:textColor">@color/white</item>
-    </style>
-
-    <style name="Widget.ViBRoNavigator.Button.Danger" parent="@style/Widget.ViBRoNavigator.Button">
-        <item name="android:background">@drawable/bg_button_secondary</item>
-        <item name="android:textColor">@color/danger</item>
-    </style>
-
     <style name="Widget.ViBRoNavigator.Button.Fab" parent="@style/Widget.ViBRoNavigator.Button">
         <item name="android:minWidth">56dp</item>
         <item name="android:minHeight">56dp</item>

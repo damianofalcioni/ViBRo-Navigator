@@ -55,6 +55,8 @@ final class ProfileSpinnerController {
             }
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 selectionUserInitiated = true;
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                v.performClick();
             }
             return false;
         });
