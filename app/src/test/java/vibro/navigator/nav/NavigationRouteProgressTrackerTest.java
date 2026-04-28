@@ -1,0 +1,95 @@
+package vibro.navigator.nav;
+
+import static org.junit.Assert.assertEquals;
+
+import android.location.Location;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+
+@RunWith(RobolectricTestRunner.class)
+public class NavigationRouteProgressTrackerTest {
+
+    @Test
+    public void rememberAndResolveSmoothedAccuracyMeters_returnsMedianOfRecentSamples() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+
+        tracker.rememberAndResolveSmoothedAccuracyMeters(5f, 1_000L);
+        tracker.rememberAndResolveSmoothedAccuracyMeters(30f, 2_000L);
+        double smoothed = tracker.rememberAndResolveSmoothedAccuracyMeters(5f, 3_000L);
+
+        assertEquals(5.0, smoothed, 0.0);
+    }
+
+    @Test
+    public void rememberAndResolveSmoothedAccuracyMeters_prunesOldSamplesButKeepsLatest() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+
+        tracker.rememberAndResolveSmoothedAccuracyMeters(5f, 1_000L);
+        double smoothed = tracker.rememberAndResolveSmoothedAccuracyMeters(30f, 7_000L);
+
+        assertEquals(30.0, smoothed, 0.0);
+    }
+
+    @Test
+    public void resolveEtaSpeedMps_usesRecentAlongTrackProgress() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+
+        float speedMps = tracker.resolveEtaSpeedMps(location(4_000L), 19.0, 2f, false);
+
+        assertEquals(3.0f, speedMps, 0.0f);
+    }
+
+    @Test
+    public void resolveEtaSpeedMps_returnsZeroWhenLikelyStationary() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+
+        float speedMps = tracker.resolveEtaSpeedMps(location(4_000L), 19.0, 2f, true);
+
+        assertEquals(0.0f, speedMps, 0.0f);
+    }
+
+    @Test
+    public void assessDirection_reportsForwardBackwardAndStalledProgress() {
+        NavigationRouteProgressTracker forwardTracker = new NavigationRouteProgressTracker();
+        forwardTracker.rememberAlongTrackSample(10.0, 1_000L);
+        NavigationRouteProgressTracker.DirectionAssessment forward =
+                forwardTracker.assessDirection(15.0, 4_000L);
+
+        NavigationRouteProgressTracker backwardTracker = new NavigationRouteProgressTracker();
+        backwardTracker.rememberAlongTrackSample(10.0, 1_000L);
+        NavigationRouteProgressTracker.DirectionAssessment backward =
+                backwardTracker.assessDirection(5.0, 4_000L);
+
+        NavigationRouteProgressTracker stalledTracker = new NavigationRouteProgressTracker();
+        stalledTracker.rememberAlongTrackSample(10.0, 1_000L);
+        NavigationRouteProgressTracker.DirectionAssessment stalled =
+                stalledTracker.assessDirection(12.0, 4_000L);
+
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.FORWARD, forward.status);
+        assertEquals(5.0, forward.alongTrackDeltaMeters, 0.0);
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.BACKWARD, backward.status);
+        assertEquals(-5.0, backward.alongTrackDeltaMeters, 0.0);
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.STALLED, stalled.status);
+        assertEquals(2.0, stalled.alongTrackDeltaMeters, 0.0);
+    }
+
+    @Test
+    public void assessDirection_reportsUnknownUntilSampleWindowIsAvailable() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+
+        NavigationRouteProgressTracker.DirectionAssessment assessment = tracker.assessDirection(15.0, 3_000L);
+
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.UNKNOWN, assessment.status);
+    }
+
+    private static Location location(long timeMs) {
+        Location location = new Location("gps");
+        location.setTime(timeMs);
+        return location;
+    }
+}

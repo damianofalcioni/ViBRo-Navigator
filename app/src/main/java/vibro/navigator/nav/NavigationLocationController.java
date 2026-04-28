@@ -29,8 +29,6 @@ import java.util.function.Consumer;
 final class NavigationLocationController {
 
     private static final String TAG = "NavLocation";
-    private static final long STARTUP_LAST_KNOWN_MAX_AGE_MS = 15_000L;
-    private static final float STARTUP_LAST_KNOWN_MAX_ACCURACY_METERS = 50f;
 
     private final Context context;
     private final LocationListener listener;
@@ -196,40 +194,9 @@ final class NavigationLocationController {
         Location network = hasAnyLocationPermission(fineGranted, coarseGranted)
                 ? getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER)
                 : null;
-        Location best = selectBestStartupLastKnownLocation(gps, network, System.currentTimeMillis());
+        Location best = NavigationStartupLocationSelector.selectBest(gps, network, System.currentTimeMillis());
         AppLogger.d(TAG, "Best last known location=" + formatLocation(best));
         return best;
-    }
-
-    @Nullable
-    static Location selectBestStartupLastKnownLocation(
-            @Nullable Location gps,
-            @Nullable Location network,
-            long nowMs
-    ) {
-        Location best = null;
-        if (isUsableStartupLastKnownLocation(gps, nowMs)) {
-            best = gps;
-        }
-        if (isUsableStartupLastKnownLocation(network, nowMs)
-                && (best == null
-                || network.getTime() > best.getTime()
-                || (network.getTime() == best.getTime()
-                && accuracyMeters(network) < accuracyMeters(best)))) {
-            best = network;
-        }
-        return best == null ? null : new Location(best);
-    }
-
-    static boolean isUsableStartupLastKnownLocation(@Nullable Location location, long nowMs) {
-        if (location == null) {
-            return false;
-        }
-        long ageMs = Math.max(0L, nowMs - location.getTime());
-        if (ageMs > STARTUP_LAST_KNOWN_MAX_AGE_MS) {
-            return false;
-        }
-        return accuracyMeters(location) <= STARTUP_LAST_KNOWN_MAX_ACCURACY_METERS;
     }
 
     @NonNull
@@ -387,10 +354,6 @@ final class NavigationLocationController {
             sb.append(providers.get(i));
         }
         return sb.toString();
-    }
-
-    private static float accuracyMeters(@NonNull Location location) {
-        return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 
     static int countSatellitesUsedInFix(boolean... usedInFixFlags) {

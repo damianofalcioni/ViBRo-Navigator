@@ -33,7 +33,6 @@ public class NavigationService extends Service implements LocationListener {
     private static final String TAG = "NavigationService";
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
     private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS = 1_000L;
-    private static final long MAX_COMPASS_HEADING_SAMPLE_AGE_MS = 5_000L;
     private static final long MIN_COMPASS_UI_UPDATE_INTERVAL_MS = 100L;
 
     public interface Listener {
@@ -461,70 +460,26 @@ public class NavigationService extends Service implements LocationListener {
 
     @Nullable
     private Double currentDisplayHeadingDegrees() {
-        GeomagneticOrientationMonitor.Sample sample = currentDisplayHeadingSample();
-        if (sample == null) {
-            return null;
-        }
-        return remapHeadingDegreesForDisplayRotation(sample.headingDegrees, currentDisplayRotation());
+        return NavigationDisplayHeading.headingDegrees(
+                latestHeadingSample(),
+                orientationMonitoringActive,
+                android.os.SystemClock.elapsedRealtime(),
+                currentDisplayRotation()
+        );
     }
 
     @Nullable
     private Float currentDisplayHeadingAccuracyDegrees() {
-        GeomagneticOrientationMonitor.Sample sample = currentDisplayHeadingSample();
-        if (sample == null) {
-            return null;
-        }
-        if (sample.headingAccuracyDegrees != null) {
-            return sample.headingAccuracyDegrees.floatValue();
-        }
-        switch (sample.accuracy) {
-            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-                return 10f;
-            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
-                return 20f;
-            case android.hardware.SensorManager.SENSOR_STATUS_ACCURACY_LOW:
-                return 35f;
-            case android.hardware.SensorManager.SENSOR_STATUS_UNRELIABLE:
-            default:
-                return null;
-        }
+        return NavigationDisplayHeading.headingAccuracyDegrees(
+                latestHeadingSample(),
+                orientationMonitoringActive,
+                android.os.SystemClock.elapsedRealtime()
+        );
     }
 
     @Nullable
-    private GeomagneticOrientationMonitor.Sample currentDisplayHeadingSample() {
-        if (!orientationMonitoringActive || geomagneticOrientationMonitor == null) {
-            return null;
-        }
-        GeomagneticOrientationMonitor.Sample sample = geomagneticOrientationMonitor.getLatestSample();
-        if (sample == null) {
-            return null;
-        }
-        long ageMs = android.os.SystemClock.elapsedRealtime() - sample.elapsedRealtimeMs;
-        if (ageMs > MAX_COMPASS_HEADING_SAMPLE_AGE_MS) {
-            return null;
-        }
-        return sample;
-    }
-
-    static double remapHeadingDegreesForDisplayRotation(double headingDegrees, int displayRotation) {
-        double rotationOffsetDegrees;
-        switch (displayRotation) {
-            case Surface.ROTATION_90:
-                rotationOffsetDegrees = 90.0;
-                break;
-            case Surface.ROTATION_180:
-                rotationOffsetDegrees = 180.0;
-                break;
-            case Surface.ROTATION_270:
-                rotationOffsetDegrees = 270.0;
-                break;
-            case Surface.ROTATION_0:
-            default:
-                rotationOffsetDegrees = 0.0;
-                break;
-        }
-        double normalized = (headingDegrees + rotationOffsetDegrees) % 360.0;
-        return normalized < 0.0 ? normalized + 360.0 : normalized;
+    private GeomagneticOrientationMonitor.Sample latestHeadingSample() {
+        return geomagneticOrientationMonitor == null ? null : geomagneticOrientationMonitor.getLatestSample();
     }
 
     private int currentDisplayRotation() {
