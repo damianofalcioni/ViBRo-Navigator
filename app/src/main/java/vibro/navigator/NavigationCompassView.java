@@ -68,6 +68,8 @@ public final class NavigationCompassView extends View {
     private final PlotPoint projectedPoint = new PlotPoint();
     private final PlotPoint auxiliaryPoint = new PlotPoint();
     private final PlotPoint destinationPoint = new PlotPoint();
+    private final PlotPoint routeSegmentStartPoint = new PlotPoint();
+    private final PlotPoint routeSegmentEndPoint = new PlotPoint();
 
     public NavigationCompassView(Context context) {
         super(context);
@@ -411,23 +413,49 @@ public final class NavigationCompassView extends View {
         }
 
         routePath.reset();
-        boolean started = false;
+        boolean havePrevious = false;
+        boolean activeSubpath = false;
+        boolean hasVisibleSegment = false;
+        float visibleRadiusMeters = compassState.visibleRadiusMeters;
+        float drawPaddingMeters = resolveRouteDrawPaddingMeters();
+        float drawBoundsMeters = visibleRadiusMeters + drawPaddingMeters;
         for (int i = startIndex; i < endIndex; i++) {
             LatLon point = compassState.routeSamplePointAt(i);
             if (point == null) {
                 continue;
             }
-            projectRoutePoint(point, headingDegrees, projectedPoint);
-            float x = cx + projectedPoint.x * scale;
-            float y = cy - projectedPoint.y * scale;
-            if (!started) {
-                routePath.moveTo(x, y);
-                started = true;
-            } else {
-                routePath.lineTo(x, y);
+            projectRoutePoint(point, headingDegrees, routeSegmentEndPoint);
+            if (!havePrevious) {
+                routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
+                havePrevious = true;
+                continue;
             }
+            if (isRouteSegmentNearVisibleArea(
+                    routeSegmentStartPoint.x,
+                    routeSegmentStartPoint.y,
+                    routeSegmentEndPoint.x,
+                    routeSegmentEndPoint.y,
+                    visibleRadiusMeters,
+                    drawPaddingMeters
+            )) {
+                float startX = cx + clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
+                float startY = cy - clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
+                float endX = cx + clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
+                float endY = cy - clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
+                if (!activeSubpath) {
+                    routePath.moveTo(startX, startY);
+                    activeSubpath = true;
+                } else {
+                    routePath.lineTo(startX, startY);
+                }
+                routePath.lineTo(endX, endY);
+                hasVisibleSegment = true;
+            } else {
+                activeSubpath = false;
+            }
+            routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
         }
-        if (started) {
+        if (hasVisibleSegment) {
             canvas.drawPath(routePath, strokePaint);
         }
     }
@@ -446,22 +474,99 @@ public final class NavigationCompassView extends View {
         }
 
         routePath.reset();
-        boolean started = false;
+        boolean havePrevious = false;
+        boolean activeSubpath = false;
+        boolean hasVisibleSegment = false;
+        float visibleRadiusMeters = compassState == null ? 0f : compassState.visibleRadiusMeters;
+        float drawPaddingMeters = resolveRouteDrawPaddingMeters();
+        float drawBoundsMeters = visibleRadiusMeters + drawPaddingMeters;
         for (NavCompassState.RoutePoint point : points) {
-            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
-            float x = cx + projectedPoint.x * scale;
-            float y = cy - projectedPoint.y * scale;
-            if (!started) {
-                routePath.moveTo(x, y);
-                started = true;
-            } else {
-                routePath.lineTo(x, y);
+            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, routeSegmentEndPoint);
+            if (!havePrevious) {
+                routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
+                havePrevious = true;
+                continue;
             }
+            if (isRouteSegmentNearVisibleArea(
+                    routeSegmentStartPoint.x,
+                    routeSegmentStartPoint.y,
+                    routeSegmentEndPoint.x,
+                    routeSegmentEndPoint.y,
+                    visibleRadiusMeters,
+                    drawPaddingMeters
+            )) {
+                float startX = cx + clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
+                float startY = cy - clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
+                float endX = cx + clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
+                float endY = cy - clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
+                if (!activeSubpath) {
+                    routePath.moveTo(startX, startY);
+                    activeSubpath = true;
+                } else {
+                    routePath.lineTo(startX, startY);
+                }
+                routePath.lineTo(endX, endY);
+                hasVisibleSegment = true;
+            } else {
+                activeSubpath = false;
+            }
+            routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
         }
-        if (!started) {
-            return;
+        if (hasVisibleSegment) {
+            canvas.drawPath(routePath, strokePaint);
         }
-        canvas.drawPath(routePath, strokePaint);
+    }
+
+    private float resolveRouteDrawPaddingMeters() {
+        if (compassState == null) {
+            return 0f;
+        }
+        float thresholdPaddingMeters = Math.max(compassState.routeThresholdMeters, compassState.accuracyRadiusMeters);
+        return Math.max(24f, thresholdPaddingMeters);
+    }
+
+    static boolean isRouteSegmentNearVisibleArea(
+            float startX,
+            float startY,
+            float endX,
+            float endY,
+            float visibleRadiusMeters,
+            float paddingMeters
+    ) {
+        if (!Float.isFinite(startX)
+                || !Float.isFinite(startY)
+                || !Float.isFinite(endX)
+                || !Float.isFinite(endY)
+                || !Float.isFinite(visibleRadiusMeters)
+                || visibleRadiusMeters <= 0f) {
+            return false;
+        }
+        float drawRadiusMeters = visibleRadiusMeters + Math.max(0f, paddingMeters);
+        if (Math.hypot(startX, startY) <= drawRadiusMeters
+                || Math.hypot(endX, endY) <= drawRadiusMeters) {
+            return true;
+        }
+        float dx = endX - startX;
+        float dy = endY - startY;
+        float lengthSquared = dx * dx + dy * dy;
+        if (lengthSquared <= 0f || !Float.isFinite(lengthSquared)) {
+            return false;
+        }
+        float t = -((startX * dx) + (startY * dy)) / lengthSquared;
+        t = Math.max(0f, Math.min(1f, t));
+        float closestX = startX + dx * t;
+        float closestY = startY + dy * t;
+        return Math.hypot(closestX, closestY) <= drawRadiusMeters;
+    }
+
+    static float clampRouteCoordinate(float coordinateMeters, float drawBoundsMeters) {
+        if (!Float.isFinite(coordinateMeters)) {
+            return 0f;
+        }
+        if (!Float.isFinite(drawBoundsMeters) || drawBoundsMeters <= 0f) {
+            return coordinateMeters;
+        }
+        return Math.max(-drawBoundsMeters, Math.min(drawBoundsMeters, coordinateMeters));
     }
 
     private void drawHeadingGuide(@NonNull Canvas canvas, float cx, float cy, float radius) {

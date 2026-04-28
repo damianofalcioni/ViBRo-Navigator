@@ -345,6 +345,7 @@ The navigation UI must show the following in large text:
 - If the user taps the compass while moving and the currently displayed 60-second view is active, the compass must switch to the full-route overview temporarily and then automatically restore the moving 60-second view after about 5 seconds
 - The compass route geometry and hint-marker geometry should be sampled once per active route and reused across UI updates instead of rebuilding full projected route lists on every heading or location refresh
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
+- In the moving 60-second view, including after a tap from the full-route overview, the red route centerline and wider threshold overlay must remain continuously visible for the route portion crossing the compass instead of flickering or disappearing while off-screen route geometry is clipped
 - Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash
 - The transition from moving zoom to the stationary full-route overview must complete in a fixed duration of about 2 seconds regardless of the total route length or overview radius delta
 - The current-position marker should be shown as a small center dot

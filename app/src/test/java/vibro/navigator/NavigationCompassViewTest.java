@@ -3,6 +3,8 @@ package vibro.navigator;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -189,6 +191,37 @@ public class NavigationCompassViewTest {
         ));
 
         assertEquals(255, invokeResolveRoutePaintAlpha(view));
+    }
+
+    @Test
+    public void routeSegmentNearVisibleAreaIncludesCrossingOffscreenSegments() {
+        assertTrue(NavigationCompassView.isRouteSegmentNearVisibleArea(
+                -1_000f,
+                0f,
+                1_000f,
+                0f,
+                90f,
+                24f
+        ));
+    }
+
+    @Test
+    public void routeSegmentNearVisibleAreaExcludesDistantSegments() {
+        assertFalse(NavigationCompassView.isRouteSegmentNearVisibleArea(
+                1_000f,
+                1_000f,
+                2_000f,
+                1_000f,
+                90f,
+                24f
+        ));
+    }
+
+    @Test
+    public void routeCoordinateClampLimitsOffscreenCanvasPathCoordinates() {
+        assertEquals(114f, NavigationCompassView.clampRouteCoordinate(1_000f, 114f), 0.01f);
+        assertEquals(-114f, NavigationCompassView.clampRouteCoordinate(-1_000f, 114f), 0.01f);
+        assertEquals(40f, NavigationCompassView.clampRouteCoordinate(40f, 114f), 0.01f);
     }
 
     private static Object invokeResolveDestinationPosition(NavigationCompassView view) throws Exception {
