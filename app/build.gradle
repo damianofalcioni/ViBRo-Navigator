@@ -34,7 +34,7 @@ pmd {
     ruleSets = []
 }
 
-def complexityBaselineViolations = 2
+def complexityBaselineViolations = 0
 
 tasks.register("complexityCheck", Pmd) {
     group = "verification"
