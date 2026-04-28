@@ -2,6 +2,7 @@ import java.util.Properties
 
 plugins {
     id "com.android.application"
+    id "pmd"
 }
 
 configurations.configureEach {
@@ -24,6 +25,37 @@ if (localPropsFile.exists()) {
 def googleMapsApiKey = System.getenv("GOOGLE_MAPS_API_KEY")
 if (googleMapsApiKey == null) {
     googleMapsApiKey = localProps.getProperty("GOOGLE_MAPS_API_KEY", "")
+}
+
+pmd {
+    consoleOutput = true
+    toolVersion = "7.24.0"
+    ruleSetFiles = files("$rootDir/config/pmd/complexity-ruleset.xml")
+    ruleSets = []
+}
+
+def complexityBaselineViolations = 2
+
+tasks.register("complexityCheck", Pmd) {
+    group = "verification"
+    description = "Runs PMD cyclomatic and cognitive complexity checks on production Java sources."
+
+    source = fileTree("src/main/java") {
+        include "**/*.java"
+    }
+    ruleSetFiles = files("$rootDir/config/pmd/complexity-ruleset.xml")
+    ruleSets = []
+    ignoreFailures = false
+    maxFailures = complexityBaselineViolations
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+tasks.named("check").configure {
+    dependsOn("complexityCheck")
 }
 
 android {

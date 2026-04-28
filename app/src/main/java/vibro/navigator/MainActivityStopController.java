@@ -87,22 +87,46 @@ final class MainActivityStopController {
         int restoreCount = Math.min(stopTexts.size(), stopControllers.size());
         AppLogger.i(TAG, "Restoring stop row values count=" + restoreCount);
         for (int i = 0; i < restoreCount; i++) {
-            PoiInputController controller = stopControllers.get(i);
-            String selectedName = selectedNames != null && i < selectedNames.size() ? selectedNames.get(i) : null;
-            double selectedLat = selectedLats != null && i < selectedLats.length ? selectedLats[i] : Double.NaN;
-            double selectedLon = selectedLons != null && i < selectedLons.length ? selectedLons[i] : Double.NaN;
-            if (selectedName != null && !selectedName.isEmpty()
-                    && !Double.isNaN(selectedLat)
-                    && !Double.isNaN(selectedLon)) {
-                controller.restorePoi(new Poi(selectedName, selectedLat, selectedLon));
-                continue;
-            }
-
-            String text = stopTexts.get(i);
-            if (text != null && !text.isEmpty()) {
-                controller.restoreText(text);
-            }
+            restoreValue(stopControllers.get(i), stopTexts, selectedNames, selectedLats, selectedLons, i);
         }
+    }
+
+    private static void restoreValue(
+            @NonNull PoiInputController controller,
+            @NonNull ArrayList<String> stopTexts,
+            @Nullable ArrayList<String> selectedNames,
+            @Nullable double[] selectedLats,
+            @Nullable double[] selectedLons,
+            int index
+    ) {
+        String selectedName = stringAt(selectedNames, index);
+        double selectedLat = doubleAt(selectedLats, index);
+        double selectedLon = doubleAt(selectedLons, index);
+        if (isRestorablePoi(selectedName, selectedLat, selectedLon)) {
+            controller.restorePoi(new Poi(selectedName, selectedLat, selectedLon));
+            return;
+        }
+
+        String text = stopTexts.get(index);
+        if (text != null && !text.isEmpty()) {
+            controller.restoreText(text);
+        }
+    }
+
+    private static boolean isRestorablePoi(@Nullable String name, double lat, double lon) {
+        return name != null
+                && !name.isEmpty()
+                && !Double.isNaN(lat)
+                && !Double.isNaN(lon);
+    }
+
+    @Nullable
+    private static String stringAt(@Nullable ArrayList<String> values, int index) {
+        return values != null && index < values.size() ? values.get(index) : null;
+    }
+
+    private static double doubleAt(@Nullable double[] values, int index) {
+        return values != null && index < values.length ? values[index] : Double.NaN;
     }
 
     void saveState(@NonNull Bundle outState) {

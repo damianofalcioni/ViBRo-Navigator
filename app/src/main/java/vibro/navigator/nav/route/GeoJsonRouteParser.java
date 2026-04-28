@@ -21,65 +21,91 @@ public final class GeoJsonRouteParser {
             JSONObject root = new JSONObject(geoJson);
             JSONArray features = root.optJSONArray("features");
             if (features == null || features.length() == 0) {
-                return new GeoJsonRoute(new ArrayList<>(), new ArrayList<>(), 0, 0);
+                return emptyRoute();
             }
 
             JSONObject trackFeature = features.optJSONObject(0);
             if (trackFeature == null) {
-                return new GeoJsonRoute(new ArrayList<>(), new ArrayList<>(), 0, 0);
+                return emptyRoute();
             }
 
             JSONObject props = trackFeature.optJSONObject("properties");
-            double totalTime = parseDouble(props != null ? props.optString("total-time", "0") : "0");
-            double trackLen = parseDouble(props != null ? props.optString("track-length", "0") : "0");
-            List<Double> timesSeconds = parseTimes(props != null ? props.optJSONArray("times") : null);
-
-            List<VoiceHint> voiceHints = new ArrayList<>();
-            if (props != null) {
-                JSONArray vh = props.optJSONArray("voicehints");
-                if (vh != null) {
-                    for (int i = 0; i < vh.length(); i++) {
-                        JSONArray hint = vh.optJSONArray(i);
-                        if (hint == null || hint.length() < 5) {
-                            continue;
-                        }
-                        int indexInTrack = hint.optInt(0, -1);
-                        int cmd = hint.optInt(1, 0);
-                        int exit = hint.optInt(2, 0);
-                        double distNext = hint.optDouble(3, 0);
-                        int angle = hint.optInt(4, 0);
-                        if (indexInTrack < 0) {
-                            continue;
-                        }
-                        voiceHints.add(new VoiceHint(indexInTrack, cmd, exit, distNext, angle));
-                    }
-                }
-            }
-
-            JSONObject geom = trackFeature.optJSONObject("geometry");
-            List<LatLon> track = new ArrayList<>();
-            if (geom != null) {
-                JSONArray coords = geom.optJSONArray("coordinates");
-                if (coords != null) {
-                    for (int i = 0; i < coords.length(); i++) {
-                        JSONArray p = coords.optJSONArray(i);
-                        if (p == null || p.length() < 2) {
-                            continue;
-                        }
-                        double lon = p.optDouble(0, Double.NaN);
-                        double lat = p.optDouble(1, Double.NaN);
-                        if (Double.isNaN(lat) || Double.isNaN(lon)) {
-                            continue;
-                        }
-                        track.add(new LatLon(lat, lon));
-                    }
-                }
-            }
-
-            return new GeoJsonRoute(track, voiceHints, timesSeconds, totalTime, trackLen);
+            return new GeoJsonRoute(
+                    parseTrack(trackFeature.optJSONObject("geometry")),
+                    parseVoiceHints(props),
+                    parseTimes(props != null ? props.optJSONArray("times") : null),
+                    parseDouble(props != null ? props.optString("total-time", "0") : "0"),
+                    parseDouble(props != null ? props.optString("track-length", "0") : "0")
+            );
         } catch (JSONException ignored) {
-            return new GeoJsonRoute(new ArrayList<>(), new ArrayList<>(), 0, 0);
+            return emptyRoute();
         }
+    }
+
+    @NonNull
+    private static GeoJsonRoute emptyRoute() {
+        return new GeoJsonRoute(new ArrayList<>(), new ArrayList<>(), 0, 0);
+    }
+
+    @NonNull
+    private static List<VoiceHint> parseVoiceHints(JSONObject props) {
+        List<VoiceHint> voiceHints = new ArrayList<>();
+        JSONArray rawHints = props != null ? props.optJSONArray("voicehints") : null;
+        if (rawHints == null) {
+            return voiceHints;
+        }
+        for (int i = 0; i < rawHints.length(); i++) {
+            VoiceHint voiceHint = parseVoiceHint(rawHints.optJSONArray(i));
+            if (voiceHint != null) {
+                voiceHints.add(voiceHint);
+            }
+        }
+        return voiceHints;
+    }
+
+    private static VoiceHint parseVoiceHint(JSONArray hint) {
+        if (hint == null || hint.length() < 5) {
+            return null;
+        }
+        int indexInTrack = hint.optInt(0, -1);
+        if (indexInTrack < 0) {
+            return null;
+        }
+        return new VoiceHint(
+                indexInTrack,
+                hint.optInt(1, 0),
+                hint.optInt(2, 0),
+                hint.optDouble(3, 0),
+                hint.optInt(4, 0)
+        );
+    }
+
+    @NonNull
+    private static List<LatLon> parseTrack(JSONObject geom) {
+        List<LatLon> track = new ArrayList<>();
+        JSONArray coords = geom != null ? geom.optJSONArray("coordinates") : null;
+        if (coords == null) {
+            return track;
+        }
+        for (int i = 0; i < coords.length(); i++) {
+            LatLon point = parseTrackPoint(coords.optJSONArray(i));
+            if (point != null) {
+                track.add(point);
+            }
+        }
+        return track;
+    }
+
+    private static LatLon parseTrackPoint(JSONArray point) {
+        if (point == null || point.length() < 2) {
+            return null;
+        }
+        double lon = point.optDouble(0, Double.NaN);
+        double lat = point.optDouble(1, Double.NaN);
+        if (Double.isNaN(lat) || Double.isNaN(lon)) {
+            return null;
+        }
+        return new LatLon(lat, lon);
     }
 
     @NonNull

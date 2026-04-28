@@ -21,6 +21,7 @@ Verified commands from the repository root:
 - `.\gradlew.bat testDebugUnitTest`
 - `.\gradlew.bat assembleDebug`
 - `.\gradlew.bat assembleRelease`
+- `.\gradlew.bat complexityCheck`
 - `.\gradlew.bat lint`
 - `.\gradlew.bat lintDebug`
 
@@ -28,7 +29,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 
 Distribution-related workflows:
 
-- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, lint/tests, and unsigned release APK generation.
+- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, lint/complexity/tests, and unsigned release APK generation.
 - `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that renders `fdroid/navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
 - `fdroid/navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
@@ -63,6 +64,7 @@ Distribution-related workflows:
 - Keep lifecycle rules, heuristics, planners, and policy thresholds in small helpers when practical so they stay directly unit-testable.
 - Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
 - Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
+- `.\gradlew.bat complexityCheck` runs PMD cyclomatic and cognitive complexity thresholds over production Java sources. The task carries a current-debt baseline and should fail when the violation count grows; treat reported violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes.
 - Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
 
 ## Project rules
@@ -86,7 +88,7 @@ Distribution-related workflows:
 - If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout.
 - If you change logging, keep the shared `buildLogPrefix`/`appendBlock` style intact so formatting and file-rotation behavior stay consistent.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
-- After any code update, always run `.\gradlew.bat testDebugUnitTest` and `.\gradlew.bat lintDebug` before closing the task.
+- After any code update, always run `.\gradlew.bat testDebugUnitTest`, `.\gradlew.bat complexityCheck`, and `.\gradlew.bat lintDebug` before closing the task.
 - At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
 
 ## Local config

@@ -26,6 +26,25 @@ public final class NavState {
     private static final int MAX_COMPASS_ROUTE_POINTS = 240;
     private static final int MAX_COMPASS_HINT_POINTS = 48;
 
+    private static final class CompassRadiusState {
+        final float fullRouteVisibleRadiusMeters;
+        final float visibleRadiusMeters;
+        final float sixtySecondVisibleRadiusMeters;
+        final boolean usingMovingScale;
+
+        CompassRadiusState(
+                float fullRouteVisibleRadiusMeters,
+                float visibleRadiusMeters,
+                float sixtySecondVisibleRadiusMeters,
+                boolean usingMovingScale
+        ) {
+            this.fullRouteVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
+            this.visibleRadiusMeters = visibleRadiusMeters;
+            this.sixtySecondVisibleRadiusMeters = sixtySecondVisibleRadiusMeters;
+            this.usingMovingScale = usingMovingScale;
+        }
+    }
+
     @NonNull
     public final String nextLine;
     @NonNull
@@ -696,70 +715,23 @@ public final class NavState {
                 resolveFurthestRouteSampleDistanceMeters(routeGeometry, currentLat, currentLon),
                 destinationDistanceMeters
         );
-
-        float fullRouteVisibleRadiusMeters = (float) Math.max(
-                COMPASS_MIN_VISIBLE_RADIUS_METERS,
-                furthestDistanceMeters * 1.15
+        CompassRadiusState radiusState = resolveCompassRadiusState(
+                furthestDistanceMeters,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                compassRadiusTransition,
+                nowMs
         );
-        boolean reliableMovingSpeed = hasReliableMovingSpeed(currentLocation, likelyStationary);
-        boolean hasReusableMovingRadius = previousReliableMovingCompassVisibleRadiusMeters != null
-                && Float.isFinite(previousReliableMovingCompassVisibleRadiusMeters)
-                && previousReliableMovingCompassVisibleRadiusMeters > 0f;
-        float sixtySecondVisibleRadiusMeters = Math.min(
-                fullRouteVisibleRadiusMeters,
-                hasReusableMovingRadius
-                        ? previousReliableMovingCompassVisibleRadiusMeters
-                        : resolveMovingVisibleRadiusMeters(speedMps)
-        );
-        float targetVisibleRadiusMeters;
-        if (likelyStationary) {
-            targetVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
-        } else if (reliableMovingSpeed) {
-            targetVisibleRadiusMeters = Math.min(
-                    fullRouteVisibleRadiusMeters,
-                    resolveMovingVisibleRadiusMeters(speedMps)
-            );
-        } else if (hasReusableMovingRadius) {
-            targetVisibleRadiusMeters = Math.min(
-                    fullRouteVisibleRadiusMeters,
-                    previousReliableMovingCompassVisibleRadiusMeters
-            );
-        } else {
-            targetVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
-        }
-        boolean fullRouteOverview = likelyStationary
-                || (!reliableMovingSpeed && !hasReusableMovingRadius);
-        float visibleRadiusMeters;
-        if (fullRouteOverview) {
-            visibleRadiusMeters = compassRadiusTransition == null
-                    ? fullRouteVisibleRadiusMeters
-                    : compassRadiusTransition.resolve(
-                            previousCompassVisibleRadiusMeters != null
-                                    ? previousCompassVisibleRadiusMeters
-                                    : fullRouteVisibleRadiusMeters,
-                            fullRouteVisibleRadiusMeters,
-                            previousCompassVisibleRadiusMeters != null
-                                    && Float.isFinite(previousCompassVisibleRadiusMeters)
-                                    && previousCompassVisibleRadiusMeters > 0f,
-                            nowMs
-                    );
-        } else {
-            if (compassRadiusTransition != null) {
-                compassRadiusTransition.reset();
-            }
-            visibleRadiusMeters = hasReusableMovingRadius && !reliableMovingSpeed
-                    ? targetVisibleRadiusMeters
-                    : smoothVisibleRadiusMeters(
-                            targetVisibleRadiusMeters,
-                            previousCompassVisibleRadiusMeters,
-                            compassRadiusUpdateDeltaMs
-                    );
-        }
-        boolean usingMovingScale = !likelyStationary && (reliableMovingSpeed || hasReusableMovingRadius);
         float fullRouteReferenceSpeedMps = sanitizeReferenceSpeedMps(speedMps);
-        float sixtySecondReferenceSpeedMps = resolveMovingLegendReferenceSpeedMps(sixtySecondVisibleRadiusMeters);
-        float referenceSpeedMps = usingMovingScale
-                ? resolveMovingLegendReferenceSpeedMps(visibleRadiusMeters)
+        float sixtySecondReferenceSpeedMps = resolveMovingLegendReferenceSpeedMps(
+                radiusState.sixtySecondVisibleRadiusMeters
+        );
+        float referenceSpeedMps = radiusState.usingMovingScale
+                ? resolveMovingLegendReferenceSpeedMps(radiusState.visibleRadiusMeters)
                 : fullRouteReferenceSpeedMps;
         float routeThresholdMeters =
                 (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
@@ -770,11 +742,11 @@ public final class NavState {
                 referenceSpeedMps,
                 fullRouteReferenceSpeedMps,
                 sixtySecondReferenceSpeedMps,
-                visibleRadiusMeters,
-                fullRouteVisibleRadiusMeters,
-                sixtySecondVisibleRadiusMeters,
+                radiusState.visibleRadiusMeters,
+                radiusState.fullRouteVisibleRadiusMeters,
+                radiusState.sixtySecondVisibleRadiusMeters,
                 sanitizeAccuracyMeters(compassAccuracyMeters),
-                usingMovingScale,
+                radiusState.usingMovingScale,
                 routeThresholdMeters,
                 routeGeometry,
                 currentLat,
@@ -782,7 +754,146 @@ public final class NavState {
                 routeGeometry.passedRoutePointCount(alongTrackMeters),
                 destinationEastMeters,
                 destinationNorthMeters,
-                destinationDistanceMeters <= visibleRadiusMeters
+                destinationDistanceMeters <= radiusState.visibleRadiusMeters
+        );
+    }
+
+    @NonNull
+    private static CompassRadiusState resolveCompassRadiusState(
+            double furthestDistanceMeters,
+            @NonNull Location currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
+            long nowMs
+    ) {
+        float fullRouteVisibleRadiusMeters = (float) Math.max(
+                COMPASS_MIN_VISIBLE_RADIUS_METERS,
+                furthestDistanceMeters * 1.15
+        );
+        boolean reliableMovingSpeed = hasReliableMovingSpeed(currentLocation, likelyStationary);
+        boolean hasReusableMovingRadius = isReusableMovingRadius(previousReliableMovingCompassVisibleRadiusMeters);
+        float targetVisibleRadiusMeters = resolveTargetVisibleRadiusMeters(
+                fullRouteVisibleRadiusMeters,
+                speedMps,
+                likelyStationary,
+                reliableMovingSpeed,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                hasReusableMovingRadius
+        );
+        boolean fullRouteOverview = likelyStationary
+                || (!reliableMovingSpeed && !hasReusableMovingRadius);
+        float visibleRadiusMeters = resolveVisibleRadiusMeters(
+                fullRouteVisibleRadiusMeters,
+                targetVisibleRadiusMeters,
+                reliableMovingSpeed,
+                hasReusableMovingRadius,
+                previousCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                compassRadiusTransition,
+                fullRouteOverview,
+                nowMs
+        );
+        return new CompassRadiusState(
+                fullRouteVisibleRadiusMeters,
+                visibleRadiusMeters,
+                resolveSixtySecondVisibleRadiusMeters(
+                        fullRouteVisibleRadiusMeters,
+                        speedMps,
+                        previousReliableMovingCompassVisibleRadiusMeters,
+                        hasReusableMovingRadius
+                ),
+                !likelyStationary && (reliableMovingSpeed || hasReusableMovingRadius)
+        );
+    }
+
+    private static boolean isReusableMovingRadius(@Nullable Float radiusMeters) {
+        return radiusMeters != null && Float.isFinite(radiusMeters) && radiusMeters > 0f;
+    }
+
+    private static float resolveTargetVisibleRadiusMeters(
+            float fullRouteVisibleRadiusMeters,
+            float speedMps,
+            boolean likelyStationary,
+            boolean reliableMovingSpeed,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            boolean hasReusableMovingRadius
+    ) {
+        if (likelyStationary) {
+            return fullRouteVisibleRadiusMeters;
+        }
+        if (reliableMovingSpeed) {
+            return Math.min(fullRouteVisibleRadiusMeters, resolveMovingVisibleRadiusMeters(speedMps));
+        }
+        if (hasReusableMovingRadius) {
+            return Math.min(fullRouteVisibleRadiusMeters, previousReliableMovingCompassVisibleRadiusMeters);
+        }
+        return fullRouteVisibleRadiusMeters;
+    }
+
+    private static float resolveSixtySecondVisibleRadiusMeters(
+            float fullRouteVisibleRadiusMeters,
+            float speedMps,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            boolean hasReusableMovingRadius
+    ) {
+        float movingRadiusMeters = hasReusableMovingRadius
+                ? previousReliableMovingCompassVisibleRadiusMeters
+                : resolveMovingVisibleRadiusMeters(speedMps);
+        return Math.min(fullRouteVisibleRadiusMeters, movingRadiusMeters);
+    }
+
+    private static float resolveVisibleRadiusMeters(
+            float fullRouteVisibleRadiusMeters,
+            float targetVisibleRadiusMeters,
+            boolean reliableMovingSpeed,
+            boolean hasReusableMovingRadius,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
+            boolean fullRouteOverview,
+            long nowMs
+    ) {
+        if (fullRouteOverview) {
+            return resolveFullRouteOverviewRadius(
+                    fullRouteVisibleRadiusMeters,
+                    previousCompassVisibleRadiusMeters,
+                    compassRadiusTransition,
+                    nowMs
+            );
+        }
+        if (compassRadiusTransition != null) {
+            compassRadiusTransition.reset();
+        }
+        if (hasReusableMovingRadius && !reliableMovingSpeed) {
+            return targetVisibleRadiusMeters;
+        }
+        return smoothVisibleRadiusMeters(
+                targetVisibleRadiusMeters,
+                previousCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs
+        );
+    }
+
+    private static float resolveFullRouteOverviewRadius(
+            float fullRouteVisibleRadiusMeters,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
+            long nowMs
+    ) {
+        if (compassRadiusTransition == null) {
+            return fullRouteVisibleRadiusMeters;
+        }
+        return compassRadiusTransition.resolve(
+                previousCompassVisibleRadiusMeters != null
+                        ? previousCompassVisibleRadiusMeters
+                        : fullRouteVisibleRadiusMeters,
+                fullRouteVisibleRadiusMeters,
+                isReusableMovingRadius(previousCompassVisibleRadiusMeters),
+                nowMs
         );
     }
 

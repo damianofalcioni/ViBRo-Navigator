@@ -69,8 +69,8 @@ jobs:
             fi
           fi
 
-      - name: Run lint and tests
-        run: ./gradlew lint test
+      - name: Run lint, complexity checks, and tests
+        run: ./gradlew lint complexityCheck test
 
       - name: Decode keystore
         run: |
