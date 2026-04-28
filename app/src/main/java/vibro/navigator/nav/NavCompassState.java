@@ -12,6 +12,8 @@ import java.util.List;
 
 public final class NavCompassState {
 
+    private static final float COMPASS_MOVING_LOOKAHEAD_SECONDS = 60f;
+
     public static final class RoutePoint {
         public final float eastMeters;
         public final float northMeters;
@@ -235,14 +237,24 @@ public final class NavCompassState {
 
     @NonNull
     public NavCompassState withDisplayMode(boolean sixtySecondView) {
-        if (movingScaleActive == sixtySecondView) {
-            return this;
-        }
         float targetVisibleRadiusMeters = sixtySecondView
                 ? sixtySecondVisibleRadiusMeters
                 : fullRouteVisibleRadiusMeters;
+        return withDisplayMode(sixtySecondView, targetVisibleRadiusMeters);
+    }
+
+    @NonNull
+    NavCompassState withDisplayMode(boolean sixtySecondView, float visibleRadiusMeters) {
+        float targetVisibleRadiusMeters = sanitizeVisibleRadiusMeters(
+                visibleRadiusMeters,
+                sixtySecondView ? sixtySecondVisibleRadiusMeters : fullRouteVisibleRadiusMeters
+        );
+        if (movingScaleActive == sixtySecondView
+                && Math.abs(this.visibleRadiusMeters - targetVisibleRadiusMeters) <= 0.01f) {
+            return this;
+        }
         float targetReferenceSpeedMps = sixtySecondView
-                ? sixtySecondReferenceSpeedMps
+                ? resolveMovingLegendReferenceSpeedMps(targetVisibleRadiusMeters)
                 : fullRouteReferenceSpeedMps;
         boolean targetDestinationWithinRadius = Math.hypot(destinationEastMeters, destinationNorthMeters)
                 <= targetVisibleRadiusMeters;
@@ -287,6 +299,19 @@ public final class NavCompassState {
                 destinationNorthMeters,
                 targetDestinationWithinRadius
         );
+    }
+
+    private static float sanitizeVisibleRadiusMeters(float visibleRadiusMeters, float fallbackVisibleRadiusMeters) {
+        return Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
+                ? visibleRadiusMeters
+                : fallbackVisibleRadiusMeters;
+    }
+
+    private static float resolveMovingLegendReferenceSpeedMps(float visibleRadiusMeters) {
+        float safeRadiusMeters = Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
+                ? visibleRadiusMeters
+                : 0f;
+        return Math.max(1f, safeRadiusMeters / COMPASS_MOVING_LOOKAHEAD_SECONDS);
     }
 
     public boolean hasRouteGeometry() {

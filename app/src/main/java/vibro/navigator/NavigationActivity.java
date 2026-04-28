@@ -46,6 +46,7 @@ public class NavigationActivity extends Activity {
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
 
     private static final String TAG = "NavigationActivity";
+    private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
     private static final Pattern GPS_ACCURACY_HIGHLIGHT_PATTERN =
             Pattern.compile("• ([^ ]+ [^ ]+) ([^•]+) •");
 
@@ -75,6 +76,12 @@ public class NavigationActivity extends Activity {
         public void run() {
             renderGpsStatus();
             uiHandler.postDelayed(this, 1000L);
+        }
+    };
+    private final Runnable compassTransitionTicker = new Runnable() {
+        @Override
+        public void run() {
+            renderCompassState();
         }
     };
 
@@ -214,6 +221,7 @@ public class NavigationActivity extends Activity {
         super.onStop();
         AppLogger.i(TAG, "onStop bound=" + bound);
         uiHandler.removeCallbacks(countdownTicker);
+        uiHandler.removeCallbacks(compassTransitionTicker);
         if (bound) {
             try {
                 if (navBinder != null) {
@@ -273,6 +281,10 @@ public class NavigationActivity extends Activity {
     private void renderCompassState() {
         @Nullable NavCompassState compassState = currentState == null ? null : currentState.compassState;
         compass.setCompassState(compassModeController.resolve(compassState));
+        uiHandler.removeCallbacks(compassTransitionTicker);
+        if (compassModeController.isTransitionInProgress()) {
+            uiHandler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
+        }
     }
 
     private void renderGpsStatus() {

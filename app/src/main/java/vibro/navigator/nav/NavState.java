@@ -859,7 +859,7 @@ public final class NavState {
                 && currentLocation.getSpeed() > 0f;
     }
 
-    private static float smoothVisibleRadiusMeters(
+    static float smoothVisibleRadiusMeters(
             float targetVisibleRadiusMeters,
             @Nullable Float previousVisibleRadiusMeters,
             long compassRadiusUpdateDeltaMs

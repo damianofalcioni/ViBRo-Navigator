@@ -14,52 +14,90 @@ import vibro.navigator.geo.LatLon;
 public class NavigationCompassModeControllerTest {
 
     @Test
-    public void tapWhileStationaryTogglesBetweenFullRouteAndSixtySecondView() {
+    public void tapWhileStationarySmoothlyTogglesBetweenFullRouteAndSixtySecondView() {
         NavigationCompassModeController controller = new NavigationCompassModeController();
         NavCompassState automaticState = stationaryState();
 
         NavCompassState initialState = controller.resolve(automaticState, 1_000L);
         controller.onCompassTapped(automaticState, 1_000L);
-        NavCompassState sixtySecondState = controller.resolve(automaticState, 1_000L);
-        controller.onCompassTapped(automaticState, 2_000L);
-        NavCompassState restoredState = controller.resolve(automaticState, 2_000L);
+        NavCompassState immediateSixtySecondState = controller.resolve(automaticState, 1_000L);
+        NavCompassState midSixtySecondState = controller.resolve(automaticState, 2_000L);
+        controller.resolve(automaticState, 7_000L);
+        NavCompassState settledSixtySecondState = controller.resolve(automaticState, 12_000L);
+        controller.onCompassTapped(automaticState, 12_000L);
+        NavCompassState immediateRestoredState = controller.resolve(automaticState, 12_000L);
+        NavCompassState midRestoredState = controller.resolve(automaticState, 13_000L);
+        controller.resolve(automaticState, 18_000L);
+        NavCompassState settledRestoredState = controller.resolve(automaticState, 23_000L);
 
         assertFalse(initialState.movingScaleActive);
         assertEquals(2_000f, initialState.visibleRadiusMeters, 0.01f);
-        assertTrue(sixtySecondState.movingScaleActive);
-        assertEquals(300f, sixtySecondState.visibleRadiusMeters, 0.01f);
-        assertFalse(restoredState.movingScaleActive);
-        assertEquals(2_000f, restoredState.visibleRadiusMeters, 0.01f);
+        assertTrue(immediateSixtySecondState.movingScaleActive);
+        assertEquals(2_000f, immediateSixtySecondState.visibleRadiusMeters, 0.01f);
+        assertTrue(midSixtySecondState.movingScaleActive);
+        assertEquals(
+                NavState.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L),
+                midSixtySecondState.visibleRadiusMeters,
+                0.01f
+        );
+        assertTrue(settledSixtySecondState.movingScaleActive);
+        assertEquals(300f, settledSixtySecondState.visibleRadiusMeters, 0.01f);
+        assertFalse(immediateRestoredState.movingScaleActive);
+        assertEquals(300f, immediateRestoredState.visibleRadiusMeters, 0.01f);
+        assertFalse(midRestoredState.movingScaleActive);
+        assertEquals(
+                NavState.smoothVisibleRadiusMeters(2_000f, 300f, 1_000L),
+                midRestoredState.visibleRadiusMeters,
+                0.01f
+        );
+        assertFalse(settledRestoredState.movingScaleActive);
+        assertEquals(2_000f, settledRestoredState.visibleRadiusMeters, 0.01f);
     }
 
     @Test
-    public void tapWhileMovingShowsFullRouteTemporarilyThenRestoresSixtySecondView() {
+    public void tapWhileMovingShowsFullRouteTemporarilyThenSmoothlyRestoresSixtySecondView() {
         NavigationCompassModeController controller = new NavigationCompassModeController();
         NavCompassState automaticState = movingState();
 
         controller.onCompassTapped(automaticState, 1_000L);
-        NavCompassState temporaryFullRouteState = controller.resolve(automaticState, 1_000L);
+        NavCompassState immediateFullRouteState = controller.resolve(automaticState, 1_000L);
         NavCompassState beforeExpiryState = controller.resolve(automaticState, 5_999L);
-        NavCompassState restoredState = controller.resolve(automaticState, 6_000L);
+        NavCompassState restoreStartState = controller.resolve(automaticState, 6_000L);
+        NavCompassState restoringState = controller.resolve(automaticState, 7_000L);
+        controller.resolve(automaticState, 12_000L);
+        NavCompassState restoredState = controller.resolve(automaticState, 17_000L);
 
-        assertFalse(temporaryFullRouteState.movingScaleActive);
-        assertEquals(2_000f, temporaryFullRouteState.visibleRadiusMeters, 0.01f);
+        assertFalse(immediateFullRouteState.movingScaleActive);
+        assertEquals(300f, immediateFullRouteState.visibleRadiusMeters, 0.01f);
         assertFalse(beforeExpiryState.movingScaleActive);
+        assertTrue(beforeExpiryState.visibleRadiusMeters > 1_900f);
+        assertTrue(restoreStartState.movingScaleActive);
+        assertTrue(restoreStartState.visibleRadiusMeters > 1_900f);
+        assertTrue(restoringState.movingScaleActive);
+        assertTrue(restoringState.visibleRadiusMeters > 300f);
+        assertTrue(restoringState.visibleRadiusMeters < restoreStartState.visibleRadiusMeters);
         assertTrue(restoredState.movingScaleActive);
         assertEquals(300f, restoredState.visibleRadiusMeters, 0.01f);
     }
 
     @Test
-    public void secondTapWhileMovingClearsTemporaryFullRouteOverrideImmediately() {
+    public void secondTapWhileMovingClearsTemporaryFullRouteOverrideWithSmoothRadiusRestore() {
         NavigationCompassModeController controller = new NavigationCompassModeController();
         NavCompassState automaticState = movingState();
 
         controller.onCompassTapped(automaticState, 1_000L);
+        NavCompassState temporaryFullRouteState = controller.resolve(automaticState, 1_500L);
         controller.onCompassTapped(automaticState, 2_000L);
-        NavCompassState resolvedState = controller.resolve(automaticState, 2_000L);
+        NavCompassState restoreStartState = controller.resolve(automaticState, 2_000L);
+        controller.resolve(automaticState, 7_000L);
+        NavCompassState restoredState = controller.resolve(automaticState, 12_000L);
 
-        assertTrue(resolvedState.movingScaleActive);
-        assertEquals(300f, resolvedState.visibleRadiusMeters, 0.01f);
+        assertFalse(temporaryFullRouteState.movingScaleActive);
+        assertTrue(temporaryFullRouteState.visibleRadiusMeters > 300f);
+        assertTrue(restoreStartState.movingScaleActive);
+        assertEquals(temporaryFullRouteState.visibleRadiusMeters, restoreStartState.visibleRadiusMeters, 0.01f);
+        assertTrue(restoredState.movingScaleActive);
+        assertEquals(300f, restoredState.visibleRadiusMeters, 0.01f);
     }
 
     @Test

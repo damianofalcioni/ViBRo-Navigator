@@ -337,6 +337,7 @@ The navigation UI must show the following in large text:
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
 - When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
 - A single tap on the compass route view must toggle the currently displayed zoom mode between the stationary full-route overview and the moving 60-second view
+- Tap-driven zoom changes must use the same smooth radius transition used when the compass switches from stationary overview to moving 60-second view
 - That moving 60-second radius must not be capped to a smaller fixed maximum such as 600 meters
 - When the user is moving but the current native speed reading is not yet reliable, the compass should prefer reusing the last reliable moving zoom radius if one exists instead of jumping back and forth between zoom modes
 - When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
