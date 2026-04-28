@@ -412,52 +412,14 @@ public final class NavigationCompassView extends View {
             return;
         }
 
-        routePath.reset();
-        boolean havePrevious = false;
-        boolean activeSubpath = false;
-        boolean hasVisibleSegment = false;
-        float visibleRadiusMeters = compassState.visibleRadiusMeters;
-        float drawPaddingMeters = resolveRouteDrawPaddingMeters();
-        float drawBoundsMeters = visibleRadiusMeters + drawPaddingMeters;
-        for (int i = startIndex; i < endIndex; i++) {
+        drawProjectedRouteSegment(canvas, cx, cy, scale, startIndex, endIndex, strokePaint, (i, out) -> {
             LatLon point = compassState.routeSamplePointAt(i);
             if (point == null) {
-                continue;
+                return false;
             }
-            projectRoutePoint(point, headingDegrees, routeSegmentEndPoint);
-            if (!havePrevious) {
-                routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
-                havePrevious = true;
-                continue;
-            }
-            if (RouteDrawingMath.isRouteSegmentNearVisibleArea(
-                    routeSegmentStartPoint.x,
-                    routeSegmentStartPoint.y,
-                    routeSegmentEndPoint.x,
-                    routeSegmentEndPoint.y,
-                    visibleRadiusMeters,
-                    drawPaddingMeters
-            )) {
-                float startX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
-                float startY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
-                float endX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
-                float endY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
-                if (!activeSubpath) {
-                    routePath.moveTo(startX, startY);
-                    activeSubpath = true;
-                } else {
-                    routePath.lineTo(startX, startY);
-                }
-                routePath.lineTo(endX, endY);
-                hasVisibleSegment = true;
-            } else {
-                activeSubpath = false;
-            }
-            routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
-        }
-        if (hasVisibleSegment) {
-            canvas.drawPath(routePath, strokePaint);
-        }
+            projectRoutePoint(point, headingDegrees, out);
+            return true;
+        });
     }
 
     private void drawRouteSegment(
@@ -473,6 +435,23 @@ public final class NavigationCompassView extends View {
             return;
         }
 
+        drawProjectedRouteSegment(canvas, cx, cy, scale, 0, points.size(), strokePaint, (i, out) -> {
+            NavCompassState.RoutePoint point = points.get(i);
+            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, out);
+            return true;
+        });
+    }
+
+    private void drawProjectedRouteSegment(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            int startIndex,
+            int endIndex,
+            @NonNull Paint strokePaint,
+            @NonNull ProjectedRoutePointSource pointSource
+    ) {
         routePath.reset();
         boolean havePrevious = false;
         boolean activeSubpath = false;
@@ -480,8 +459,10 @@ public final class NavigationCompassView extends View {
         float visibleRadiusMeters = compassState == null ? 0f : compassState.visibleRadiusMeters;
         float drawPaddingMeters = resolveRouteDrawPaddingMeters();
         float drawBoundsMeters = visibleRadiusMeters + drawPaddingMeters;
-        for (NavCompassState.RoutePoint point : points) {
-            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, routeSegmentEndPoint);
+        for (int i = startIndex; i < endIndex; i++) {
+            if (!pointSource.project(i, routeSegmentEndPoint)) {
+                continue;
+            }
             if (!havePrevious) {
                 routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
                 havePrevious = true;
@@ -893,5 +874,9 @@ public final class NavigationCompassView extends View {
             this.x = x;
             this.y = y;
         }
+    }
+
+    private interface ProjectedRoutePointSource {
+        boolean project(int index, @NonNull PlotPoint out);
     }
 }

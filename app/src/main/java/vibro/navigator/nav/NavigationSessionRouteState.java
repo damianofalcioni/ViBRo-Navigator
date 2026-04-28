@@ -165,33 +165,13 @@ final class NavigationSessionRouteState {
                         + directionOfProgress.alongTrackDeltaMeters);
                 clearPendingDeviation();
                 rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-                NavigationTurnState.Progress progress = turnState.evaluate(
-                        route,
-                        polylineIndex,
-                        match.alongTrackMeters,
-                        match.segmentIndex,
-                        etaSpeedMps,
-                        accuracyMeters,
-                        nowMs,
-                        fastChecksUntilMs
-                );
-                return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, true);
+                return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
             }
             if (directionOfProgress.status == DirectionOfProgressStatus.UNKNOWN) {
                 AppLogger.i(TAG, "Holding bearing mismatch until direction-of-progress is known");
                 clearPendingDeviation();
                 rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-                NavigationTurnState.Progress progress = turnState.evaluate(
-                        route,
-                        polylineIndex,
-                        match.alongTrackMeters,
-                        match.segmentIndex,
-                        etaSpeedMps,
-                        accuracyMeters,
-                        nowMs,
-                        fastChecksUntilMs
-                );
-                return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, false);
+                return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, false);
             }
         }
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.NONE) {
@@ -205,17 +185,7 @@ final class NavigationSessionRouteState {
                     + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters
                     + " samples=" + pendingDeviationSampleCount);
             rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            NavigationTurnState.Progress progress = turnState.evaluate(
-                    route,
-                    polylineIndex,
-                    match.alongTrackMeters,
-                    match.segmentIndex,
-                    etaSpeedMps,
-                    accuracyMeters,
-                    nowMs,
-                    fastChecksUntilMs
-            );
-            return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, false);
+            return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, false);
         }
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.OFF_TRACK) {
             AppLogger.w(TAG, "Off-track detected distance=" + match.distanceToTrackMeters
@@ -236,6 +206,18 @@ final class NavigationSessionRouteState {
         }
 
         rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+        return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
+    }
+
+    @NonNull
+    private Evaluation keepCurrentRoute(
+            @NonNull PolylineIndex.Match match,
+            float etaSpeedMps,
+            float accuracyMeters,
+            long nowMs,
+            long fastChecksUntilMs,
+            boolean stableOnRouteSample
+    ) {
         NavigationTurnState.Progress progress = turnState.evaluate(
                 route,
                 polylineIndex,
@@ -246,7 +228,7 @@ final class NavigationSessionRouteState {
                 nowMs,
                 fastChecksUntilMs
         );
-        return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, true);
+        return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, stableOnRouteSample);
     }
 
     @Nullable
