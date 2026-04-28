@@ -767,7 +767,7 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
-    public void buildState_stationaryOverviewTransitionUsesFixedTwoSecondDurationAcrossRouteLengths() {
+    public void buildState_stationaryOverviewTransitionUsesFixedOneSecondDurationAcrossRouteLengths() {
         Context context = ApplicationProvider.getApplicationContext();
 
         NavigationSessionRouteState shortRouteState = new NavigationSessionRouteState();
@@ -888,7 +888,7 @@ public class NavigationSessionRouteStateTest {
 
         NavState shortMidTransitionState = shortRouteState.buildState(
                 context,
-                locationWithSpeed(0.0, 0.0, 3_000L, 0f),
+                locationWithSpeed(0.0, 0.0, 2_500L, 0f),
                 0f,
                 true,
                 5f,
@@ -896,13 +896,28 @@ public class NavigationSessionRouteStateTest {
                 null,
                 null,
                 NavState.NO_DEADLINE,
-                3_000L,
+                2_500L,
                 false,
                 null,
                 null
         );
         NavState longMidTransitionState = longRouteState.buildState(
                 context,
+                locationWithSpeed(0.0, 0.0, 2_500L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_500L,
+                false,
+                null,
+                null
+        );
+        NavState shortSettledOverviewState = shortRouteState.buildState(
+                context,
                 locationWithSpeed(0.0, 0.0, 3_000L, 0f),
                 0f,
                 true,
@@ -916,24 +931,9 @@ public class NavigationSessionRouteStateTest {
                 null,
                 null
         );
-        NavState shortSettledOverviewState = shortRouteState.buildState(
-                context,
-                locationWithSpeed(0.0, 0.0, 4_000L, 0f),
-                0f,
-                true,
-                5f,
-                null,
-                null,
-                null,
-                NavState.NO_DEADLINE,
-                4_000L,
-                false,
-                null,
-                null
-        );
         NavState longSettledOverviewState = longRouteState.buildState(
                 context,
-                locationWithSpeed(0.0, 0.0, 4_000L, 0f),
+                locationWithSpeed(0.0, 0.0, 3_000L, 0f),
                 0f,
                 true,
                 5f,
@@ -941,7 +941,7 @@ public class NavigationSessionRouteStateTest {
                 null,
                 null,
                 NavState.NO_DEADLINE,
-                4_000L,
+                3_000L,
                 false,
                 null,
                 null

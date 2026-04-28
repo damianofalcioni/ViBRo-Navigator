@@ -63,7 +63,7 @@ final class NavigationSessionRouteState {
     private float lastSmoothedAccuracyMeters = Float.NaN;
     private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
-    private final CompassRadiusTransition compassRadiusTransition = new CompassRadiusTransition(2_000L);
+    private final CompassRadiusTransition compassRadiusTransition = new CompassRadiusTransition(1_000L);
     @NonNull
     private RouteDeviationPolicy.Reason pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
     private int pendingDeviationSampleCount;

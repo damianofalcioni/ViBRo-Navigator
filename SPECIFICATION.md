@@ -348,7 +348,7 @@ The navigation UI must show the following in large text:
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
 - In the moving 60-second view, including after a tap from the full-route overview, the red route centerline and wider threshold overlay must remain continuously visible for the route portion crossing the compass instead of flickering or disappearing while off-screen route geometry is clipped
 - Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash
-- The transition from moving zoom to the stationary full-route overview must complete in a fixed duration of about 2 seconds regardless of the total route length or overview radius delta
+- Transitions between the full-route overview and the moving 60-second view should use the same fast timing in both directions, reaching the target scale in about 1 second regardless of the total route length or overview radius delta
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line

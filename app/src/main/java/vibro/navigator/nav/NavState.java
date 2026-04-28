@@ -22,7 +22,7 @@ public final class NavState {
     public static final long NO_DEADLINE = -1L;
     private static final float COMPASS_MOVING_LOOKAHEAD_SECONDS = 60f;
     private static final float COMPASS_MIN_VISIBLE_RADIUS_METERS = 90f;
-    private static final long COMPASS_RADIUS_SMOOTHING_TIME_CONSTANT_MS = 1_200L;
+    private static final long COMPASS_RADIUS_SMOOTHING_TIME_CONSTANT_MS = 450L;
     private static final int MAX_COMPASS_ROUTE_POINTS = 240;
     private static final int MAX_COMPASS_HINT_POINTS = 48;
 

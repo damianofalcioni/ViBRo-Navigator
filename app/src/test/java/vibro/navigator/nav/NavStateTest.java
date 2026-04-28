@@ -574,6 +574,14 @@ public class NavStateTest {
     }
 
     @Test
+    public void smoothVisibleRadiusMeters_contractsTowardMovingScaleQuickly() {
+        float resolvedRadiusMeters = NavState.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L);
+
+        assertTrue(resolvedRadiusMeters > 300f);
+        assertTrue(resolvedRadiusMeters < 550f);
+    }
+
+    @Test
     public void from_whenStationaryOverviewKeepsSanitizedActualSpeedForLegend() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
