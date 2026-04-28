@@ -44,6 +44,7 @@ Distribution-related workflows:
 - The navigation screen's center visualization is a custom `NavigationCompassView` fed by lightweight navigation state. Keep route geometry preparation out of the view and keep Android drawing concerns out of the service/session logic.
 - Display-relative compass heading preparation belongs outside `NavigationCompassView`. Keep screen-rotation compensation in the heading/state pipeline, and keep raw heading-sensor output available for non-UI orientation logic such as stationary turn-to-face-route advice. Prefer geomagnetic rotation vector when the device exposes it, but support rotation-vector fallback devices too.
 - `NavigationService` is the Android lifecycle shell. Keep notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn notification fan-out delegated to focused collaborators.
+- Stationary turn-to-face-route notification episode state belongs in `StationaryOrientationNotifier`; keep `NavigationService` responsible for wiring lifecycle inputs and foreground notification sinks rather than owning the dwell/notify/reset policy directly.
 - If pause/resume behavior changes, preserve the current contract that pausing retains the active request/route while suspending live location, reroute, and turn-notification processing until resume.
 - Long-lived navigation reliability should come from the location foreground service and ongoing location callbacks, not from a session-long CPU wake lock.
 - Any partial wake lock used by navigation must stay short, explicit, and owned by the collaborator performing the critical burst of work, such as route or reroute calculation.
@@ -64,7 +65,7 @@ Distribution-related workflows:
 - Keep lifecycle rules, heuristics, planners, and policy thresholds in small helpers when practical so they stay directly unit-testable.
 - Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
 - Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
-- `.\gradlew.bat complexityCheck` runs PMD cyclomatic and cognitive complexity thresholds over production Java sources. The task carries a current-debt baseline and should fail when the violation count grows; treat reported violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes.
+- `.\gradlew.bat complexityCheck` runs PMD cyclomatic and cognitive complexity thresholds over production Java sources. The task has a zero-violation baseline and should fail on any reported violation; treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes.
 - Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
 
 ## Project rules

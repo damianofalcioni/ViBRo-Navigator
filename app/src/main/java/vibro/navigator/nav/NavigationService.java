@@ -64,13 +64,12 @@ public class NavigationService extends Service implements LocationListener {
     @Nullable
     private NavigationRouteExecutor routeExecutor;
     private final NavigationRouteExecutor.Callback routeCallback = new NavigationRouteCallback();
-    private final StationaryOrientationAdvisor stationaryOrientationAdvisor = new StationaryOrientationAdvisor();
+    private final StationaryOrientationNotifier stationaryOrientationNotifier =
+            new StationaryOrientationNotifier(new StationaryOrientationAdvisor());
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
     private NavigationTurnEventDispatcher turnEventDispatcher;
     private GeomagneticOrientationMonitor geomagneticOrientationMonitor;
-    private long stationarySinceElapsedRealtimeMs;
-    private boolean stationaryOrientationHandledForCurrentStop;
     private long lastCompassUiUpdateElapsedRealtimeMs;
     private boolean navigationUiVisible;
     private boolean screenInteractive = true;
@@ -349,7 +348,7 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private void ensureOrientationMonitoring() {
-        resetStationaryOrientationEpisode();
+        stationaryOrientationNotifier.reset();
         if (orientationMonitoringActive || geomagneticOrientationMonitor == null) {
             return;
         }
@@ -361,8 +360,7 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private void stopOrientationMonitoring() {
-        stationarySinceElapsedRealtimeMs = 0L;
-        stationaryOrientationHandledForCurrentStop = false;
+        stationaryOrientationNotifier.reset();
         lastCompassUiUpdateElapsedRealtimeMs = 0L;
         if (!orientationMonitoringActive) {
             return;
@@ -377,62 +375,16 @@ public class NavigationService extends Service implements LocationListener {
         if (foregroundController == null || geomagneticOrientationMonitor == null) {
             return;
         }
-        if (!shouldEvaluateStationaryOrientation(
+        stationaryOrientationNotifier.maybeNotify(
                 navigationSession.hasActiveRoute(),
-                navigationSession.isRouteCalculationInProgress()
-        )) {
-            resetStationaryOrientationEpisode();
-            return;
-        }
-
-        float speedMps = navigationSession.lastFilteredSpeedMps();
-        if (!navigationSession.isLikelyStationaryForOrientation()) {
-            resetStationaryOrientationEpisode();
-            return;
-        }
-
-        long nowElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime();
-        if (stationarySinceElapsedRealtimeMs <= 0L) {
-            stationarySinceElapsedRealtimeMs = nowElapsedRealtimeMs;
-            stationaryOrientationHandledForCurrentStop = false;
-        }
-        if (stationaryOrientationHandledForCurrentStop) {
-            return;
-        }
-
-        StationaryOrientationAdvisor.Evaluation evaluation = stationaryOrientationAdvisor.evaluate(
-                speedMps,
-                stationarySinceElapsedRealtimeMs,
+                navigationSession.isRouteCalculationInProgress(),
+                navigationSession.isLikelyStationaryForOrientation(),
+                navigationSession.lastFilteredSpeedMps(),
                 navigationSession.currentRouteBearingDegrees(),
                 geomagneticOrientationMonitor.getLatestSample(),
-                nowElapsedRealtimeMs
+                android.os.SystemClock.elapsedRealtime(),
+                foregroundController::sendStationaryOrientationNotification
         );
-        switch (evaluation.outcome) {
-            case ALIGNED:
-                stationaryOrientationHandledForCurrentStop = true;
-                AppLogger.i(TAG, "Stationary orientation notification skipped because the user is already aligned");
-                return;
-            case NOTIFY:
-                if (evaluation.decision != null) {
-                    foregroundController.sendStationaryOrientationNotification(evaluation.decision);
-                    stationaryOrientationHandledForCurrentStop = true;
-                }
-                return;
-            case MOVING:
-                resetStationaryOrientationEpisode();
-                return;
-            case WAITING_FOR_DWELL:
-            case WAITING_FOR_ROUTE:
-            case WAITING_FOR_SENSOR:
-            case WAITING_FOR_CALIBRATION:
-            default:
-                return;
-        }
-    }
-
-    private void resetStationaryOrientationEpisode() {
-        stationarySinceElapsedRealtimeMs = 0L;
-        stationaryOrientationHandledForCurrentStop = false;
     }
 
     private void setNavigationUiVisible(boolean visible) {
@@ -475,7 +427,7 @@ public class NavigationService extends Service implements LocationListener {
             boolean hasActiveRoute,
             boolean routeCalculationInProgress
     ) {
-        return hasActiveRoute && !routeCalculationInProgress;
+        return StationaryOrientationNotifier.shouldEvaluate(hasActiveRoute, routeCalculationInProgress);
     }
 
     private boolean isScreenInteractive() {
