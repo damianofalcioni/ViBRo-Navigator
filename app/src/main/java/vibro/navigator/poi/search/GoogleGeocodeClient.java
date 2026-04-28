@@ -5,9 +5,6 @@ import androidx.annotation.NonNull;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.util.AppLogger;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,52 +31,16 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
     @Override
     public List<Poi> search(@NonNull String query, int limit) throws IOException {
         AppLogger.i(TAG, "Searching query=" + query + " limit=" + limit);
-        String q = URLEncoder.encode(query, "UTF-8");
-        String url = String.format(Locale.US,
-                "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s",
-                q,
-                URLEncoder.encode(apiKey, "UTF-8")
-        );
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setConnectTimeout(8000);
-        conn.setReadTimeout(8000);
-        conn.setRequestProperty("Accept", "application/json");
+        HttpURLConnection conn = openConnection(buildSearchUrl(query, apiKey));
         try {
             int code = conn.getResponseCode();
             AppLogger.i(TAG, "HTTP response code=" + code);
-            InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
+            InputStream is = responseStream(conn, code);
             if (is == null) {
                 AppLogger.w(TAG, "No response stream available for query=" + query);
                 return new ArrayList<>();
             }
-            String body = readAll(is);
-            JSONObject root = new JSONObject(body);
-            JSONArray results = root.optJSONArray("results");
-            List<Poi> out = new ArrayList<>();
-            if (results == null) {
-                return out;
-            }
-            for (int i = 0; i < results.length() && out.size() < limit; i++) {
-                JSONObject r = results.optJSONObject(i);
-                if (r == null) {
-                    continue;
-                }
-                String name = r.optString("formatted_address", "");
-                JSONObject geometry = r.optJSONObject("geometry");
-                if (geometry == null) {
-                    continue;
-                }
-                JSONObject location = geometry.optJSONObject("location");
-                if (location == null) {
-                    continue;
-                }
-                double lat = location.optDouble("lat", Double.NaN);
-                double lon = location.optDouble("lng", Double.NaN);
-                if (name.isEmpty() || Double.isNaN(lat) || Double.isNaN(lon)) {
-                    continue;
-                }
-                out.add(new Poi(name, lat, lon));
-            }
+            List<Poi> out = GoogleGeocodeResponseParser.parseResults(readAll(is), limit);
             AppLogger.i(TAG, "Search completed query=" + query + " results=" + out.size());
             return out;
         } catch (Exception e) {
@@ -88,6 +49,29 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
         } finally {
             conn.disconnect();
         }
+    }
+
+    @NonNull
+    private static String buildSearchUrl(@NonNull String query, @NonNull String apiKey) throws IOException {
+        String q = URLEncoder.encode(query, "UTF-8");
+        return String.format(Locale.US,
+                "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s",
+                q,
+                URLEncoder.encode(apiKey, "UTF-8")
+        );
+    }
+
+    @NonNull
+    private static HttpURLConnection openConnection(@NonNull String url) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+        conn.setConnectTimeout(8000);
+        conn.setReadTimeout(8000);
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
+    }
+
+    private static InputStream responseStream(@NonNull HttpURLConnection conn, int code) throws IOException {
+        return code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
     }
 
     @NonNull
