@@ -35,14 +35,8 @@ final class NavigationUpdateScheduler {
             int currentSegmentIndex,
             float speedMps
     ) {
-        long nextMinTimeMs = MIN_UPDATE_INTERVAL_MS;
-        if (nowMs <= fastChecksUntilMs
-                || polylineIndex == null
-                || route == null
-                || route.voiceHints.isEmpty()
-                || nextHintIdx < 0
-                || nextHintIdx >= route.voiceHints.size()) {
-            return nextMinTimeMs;
+        if (!canEstimateNextHintTime(nowMs, fastChecksUntilMs, route, polylineIndex, nextHintIdx)) {
+            return MIN_UPDATE_INTERVAL_MS;
         }
 
         VoiceHint next = route.voiceHints.get(nextHintIdx);
@@ -55,7 +49,7 @@ final class NavigationUpdateScheduler {
                 speedMps
         );
         if (timeToNextSeconds == null) {
-            return nextMinTimeMs;
+            return MIN_UPDATE_INTERVAL_MS;
         }
         if (timeToNextSeconds <= VERY_IMMINENT_HINT_THRESHOLD_SECONDS) {
             return MIN_UPDATE_INTERVAL_MS;
@@ -65,6 +59,21 @@ final class NavigationUpdateScheduler {
                 Math.min(MAX_UPDATE_INTERVAL_MS, timeToNextSeconds * DISTANCE_TO_INTERVAL_FACTOR)
         );
         return bucketInterval(intervalMs);
+    }
+
+    private static boolean canEstimateNextHintTime(
+            long nowMs,
+            long fastChecksUntilMs,
+            @Nullable GeoJsonRoute route,
+            @Nullable PolylineIndex polylineIndex,
+            int nextHintIdx
+    ) {
+        return nowMs > fastChecksUntilMs
+                && polylineIndex != null
+                && route != null
+                && !route.voiceHints.isEmpty()
+                && nextHintIdx >= 0
+                && nextHintIdx < route.voiceHints.size();
     }
 
     @NonNull

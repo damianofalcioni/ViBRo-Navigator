@@ -125,26 +125,15 @@ final class NavigationTurnState {
             return Collections.emptyList();
         }
 
-        double alongTrackMeters = 0.0;
-        int currentSegmentIndex = -1;
-        if (lastFiltered != null) {
-            PolylineIndex.Match match = polylineIndex.match(
-                    new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
-                    -1
-            );
-            if (match != null) {
-                alongTrackMeters = match.alongTrackMeters;
-                currentSegmentIndex = match.segmentIndex;
-            }
-        }
+        RoutePosition routePosition = resolveRoutePosition(polylineIndex, lastFiltered);
 
         TurnEventPlanner.TurnSignal initialSignal = turnEventPlanner.buildInitialSignal(
                 route,
                 polylineIndex,
                 nextHintIdx,
                 initialTurnNotificationSent,
-                alongTrackMeters,
-                currentSegmentIndex,
+                routePosition.alongTrackMeters,
+                routePosition.segmentIndex,
                 speedMps,
                 accuracyMeters
         );
@@ -153,6 +142,41 @@ final class NavigationTurnState {
         }
         initialTurnNotificationSent = true;
         return Collections.singletonList(toTurnEvent(initialSignal));
+    }
+
+    @NonNull
+    private static RoutePosition resolveRoutePosition(
+            @NonNull PolylineIndex polylineIndex,
+            @Nullable Location lastFiltered
+    ) {
+        if (lastFiltered == null) {
+            return RoutePosition.unknown();
+        }
+        PolylineIndex.Match match = polylineIndex.match(
+                new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
+                -1
+        );
+        return match == null ? RoutePosition.unknown() : RoutePosition.from(match);
+    }
+
+    private static final class RoutePosition {
+        final double alongTrackMeters;
+        final int segmentIndex;
+
+        private RoutePosition(double alongTrackMeters, int segmentIndex) {
+            this.alongTrackMeters = alongTrackMeters;
+            this.segmentIndex = segmentIndex;
+        }
+
+        @NonNull
+        static RoutePosition unknown() {
+            return new RoutePosition(0.0, -1);
+        }
+
+        @NonNull
+        static RoutePosition from(@NonNull PolylineIndex.Match match) {
+            return new RoutePosition(match.alongTrackMeters, match.segmentIndex);
+        }
     }
 
     private int findNextHintIndex(

@@ -77,14 +77,13 @@ final class StationaryOrientationAdvisor {
         if (!isStationary(speedMps)) {
             return Evaluation.of(Outcome.MOVING);
         }
-        if (stationarySinceElapsedRealtimeMs <= 0L
-                || nowElapsedRealtimeMs - stationarySinceElapsedRealtimeMs < REQUIRED_STATIONARY_DURATION_MS) {
+        if (!hasCompletedStationaryDwell(stationarySinceElapsedRealtimeMs, nowElapsedRealtimeMs)) {
             return Evaluation.of(Outcome.WAITING_FOR_DWELL);
         }
         if (routeBearingDegrees == null) {
             return Evaluation.of(Outcome.WAITING_FOR_ROUTE);
         }
-        if (sample == null || nowElapsedRealtimeMs - sample.elapsedRealtimeMs > MAX_SAMPLE_AGE_MS) {
+        if (!hasFreshSample(sample, nowElapsedRealtimeMs)) {
             return Evaluation.of(Outcome.WAITING_FOR_SENSOR);
         }
         double signedTurnDegrees = normalizeSignedDegrees(routeBearingDegrees - sample.headingDegrees);
@@ -92,11 +91,33 @@ final class StationaryOrientationAdvisor {
         if (absoluteTurnDegrees < MIN_NOTIFICATION_TURN_DEGREES) {
             return Evaluation.of(Outcome.ALIGNED);
         }
-        if (!sample.isAccuracyHighEnough()
-                || !sample.isHeadingAccuracyHighEnough(absoluteTurnDegrees, MIN_NOTIFICATION_TURN_DEGREES)) {
+        if (!hasReliableAccuracy(sample, absoluteTurnDegrees)) {
             return Evaluation.of(Outcome.WAITING_FOR_CALIBRATION);
         }
         return Evaluation.notify(new Decision(signedTurnDegrees));
+    }
+
+    private static boolean hasCompletedStationaryDwell(
+            long stationarySinceElapsedRealtimeMs,
+            long nowElapsedRealtimeMs
+    ) {
+        return stationarySinceElapsedRealtimeMs > 0L
+                && nowElapsedRealtimeMs - stationarySinceElapsedRealtimeMs >= REQUIRED_STATIONARY_DURATION_MS;
+    }
+
+    private static boolean hasFreshSample(
+            @Nullable GeomagneticOrientationMonitor.Sample sample,
+            long nowElapsedRealtimeMs
+    ) {
+        return sample != null && nowElapsedRealtimeMs - sample.elapsedRealtimeMs <= MAX_SAMPLE_AGE_MS;
+    }
+
+    private static boolean hasReliableAccuracy(
+            @NonNull GeomagneticOrientationMonitor.Sample sample,
+            double absoluteTurnDegrees
+    ) {
+        return sample.isAccuracyHighEnough()
+                && sample.isHeadingAccuracyHighEnough(absoluteTurnDegrees, MIN_NOTIFICATION_TURN_DEGREES);
     }
 
     private static double normalizeSignedDegrees(double degrees) {

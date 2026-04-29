@@ -118,11 +118,26 @@ public class NavigationActivity extends Activity {
                 + " request=" + describeNavigationRequest());
         registerPredictiveBackCallbackIfSupported();
 
+        bindViews();
+        configureTextScaling();
+        render(NavState.waiting(this));
+        configureControls();
+
+        ensureReadyThenStart();
+    }
+
+    private void bindViews() {
         next = findViewById(R.id.nextDirectionText);
         afterNext = findViewById(R.id.afterNextDirectionText);
         destination = findViewById(R.id.destinationText);
         compass = findViewById(R.id.navigationCompassView);
         gpsStatus = findViewById(R.id.gpsStatusText);
+        blocked = findViewById(R.id.blockedRoadButton);
+        pauseResume = findViewById(R.id.pauseResumeNavButton);
+        stop = findViewById(R.id.stopNavButton);
+    }
+
+    private void configureTextScaling() {
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 next,
                 10,
@@ -145,45 +160,44 @@ public class NavigationActivity extends Activity {
                 1,
                 TypedValue.COMPLEX_UNIT_SP
         );
-        blocked = findViewById(R.id.blockedRoadButton);
-        pauseResume = findViewById(R.id.pauseResumeNavButton);
-        stop = findViewById(R.id.stopNavButton);
+    }
 
-        render(NavState.waiting(this));
-
+    private void configureControls() {
         compass.setOnClickListener(v -> {
             compassModeController.onCompassTapped(currentState == null ? null : currentState.compassState);
             renderCompassState();
         });
 
-        blocked.setOnClickListener(v -> {
-            if (navBinder != null) {
-                AppLogger.i(TAG, "Blocked-road reroute requested from UI");
-                navBinder.addBlockedWaypoint();
-            } else {
-                AppLogger.w(TAG, "Blocked-road button tapped before service binding completed");
-            }
-        });
+        blocked.setOnClickListener(v -> addBlockedWaypointFromUi());
 
         stop.setOnClickListener(v -> {
             showStopNavigationConfirmation();
         });
 
-        pauseResume.setOnClickListener(v -> {
-            if (navBinder == null) {
-                AppLogger.w(TAG, "Pause/resume tapped before service binding completed");
-                return;
-            }
-            if (navBinder.isPaused()) {
-                AppLogger.i(TAG, "Resume navigation requested from UI");
-                navBinder.resume();
-            } else {
-                AppLogger.i(TAG, "Pause navigation requested from UI");
-                navBinder.pause();
-            }
-        });
+        pauseResume.setOnClickListener(v -> togglePausedFromUi());
+    }
 
-        ensureReadyThenStart();
+    private void addBlockedWaypointFromUi() {
+        if (navBinder != null) {
+            AppLogger.i(TAG, "Blocked-road reroute requested from UI");
+            navBinder.addBlockedWaypoint();
+        } else {
+            AppLogger.w(TAG, "Blocked-road button tapped before service binding completed");
+        }
+    }
+
+    private void togglePausedFromUi() {
+        if (navBinder == null) {
+            AppLogger.w(TAG, "Pause/resume tapped before service binding completed");
+            return;
+        }
+        if (navBinder.isPaused()) {
+            AppLogger.i(TAG, "Resume navigation requested from UI");
+            navBinder.resume();
+        } else {
+            AppLogger.i(TAG, "Pause navigation requested from UI");
+            navBinder.pause();
+        }
     }
 
     @Override

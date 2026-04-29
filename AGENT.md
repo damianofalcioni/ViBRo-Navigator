@@ -91,6 +91,7 @@ Distribution-related workflows:
 - If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, shared search dispatch, and history behavior for externally opened locations.
 - If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout.
 - If you change logging, keep the shared `buildLogPrefix`/`appendBlock` style intact so formatting and file-rotation behavior stay consistent.
+- When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by `lintDebug`.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
 - After any code update, always run `.\gradlew.bat testDebugUnitTest`, `.\gradlew.bat complexityCheck`, and `.\gradlew.bat lintDebug` before closing the task.
 - At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.

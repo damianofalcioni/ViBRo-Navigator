@@ -84,22 +84,8 @@ public final class BRouterClient implements AutoCloseable {
                 AppLogger.d(TAG, "Requesting track from BRouter service attempt="
                         + attempt + "/" + MAX_REQUEST_ATTEMPTS);
                 return svc.getTrackFromParams(params);
-            } catch (DeadObjectException e) {
-                if (!recoverFromRouteRequestFailure(
-                        attempt,
-                        "BRouter binder died during route request",
-                        "recovering from BRouter binder death",
-                        e
-                )) {
-                    throw e;
-                }
             } catch (RemoteException e) {
-                if (!recoverFromRouteRequestFailure(
-                        attempt,
-                        "BRouter remote call failed during route request",
-                        "recovering from BRouter remote failure",
-                        e
-                )) {
+                if (!recoverFromRouteRequestFailure(attempt, e)) {
                     throw e;
                 }
             }
@@ -109,13 +95,25 @@ public final class BRouterClient implements AutoCloseable {
 
     private boolean recoverFromRouteRequestFailure(
             int attempt,
-            @NonNull String logMessage,
-            @NonNull String recoveryAction,
             @NonNull RemoteException error
     ) {
-        AppLogger.w(TAG, logMessage + " attempt="
+        AppLogger.w(TAG, routeRequestFailureLogMessage(error) + " attempt="
                 + attempt + "/" + MAX_REQUEST_ATTEMPTS, error);
-        return recoverFromRequestFailure(attempt, recoveryAction);
+        return recoverFromRequestFailure(attempt, routeRequestRecoveryAction(error));
+    }
+
+    @NonNull
+    private static String routeRequestFailureLogMessage(@NonNull RemoteException error) {
+        return error instanceof DeadObjectException
+                ? "BRouter binder died during route request"
+                : "BRouter remote call failed during route request";
+    }
+
+    @NonNull
+    private static String routeRequestRecoveryAction(@NonNull RemoteException error) {
+        return error instanceof DeadObjectException
+                ? "recovering from BRouter binder death"
+                : "recovering from BRouter remote failure";
     }
 
     private boolean hasConnectedService() {

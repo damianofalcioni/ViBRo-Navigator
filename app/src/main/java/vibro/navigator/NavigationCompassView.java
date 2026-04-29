@@ -87,13 +87,24 @@ public final class NavigationCompassView extends View {
     private void init() {
         setWillNotDraw(false);
 
+        initBasePaints();
+        initTickPaints();
+        initRoutePaints();
+        initMarkerPaints();
+        initGuidePaints();
+        initLegendPaints();
+    }
+
+    private void initBasePaints() {
         surfacePaint.setStyle(Paint.Style.FILL);
         surfacePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_surface));
 
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeWidth(dp(2f));
         ringPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_ring));
+    }
 
+    private void initTickPaints() {
         majorTickPaint.setStyle(Paint.Style.STROKE);
         majorTickPaint.setStrokeWidth(dp(2.4f));
         majorTickPaint.setStrokeCap(Paint.Cap.ROUND);
@@ -113,7 +124,9 @@ public final class NavigationCompassView extends View {
         cardinalPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
         cardinalPaint.setTextAlign(Paint.Align.CENTER);
         cardinalPaint.setFakeBoldText(false);
+    }
 
+    private void initRoutePaints() {
         routePaint.setStyle(Paint.Style.STROKE);
         routePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
         routePaint.setStrokeJoin(Paint.Join.ROUND);
@@ -129,7 +142,9 @@ public final class NavigationCompassView extends View {
         passedRoutePaint.setStrokeJoin(Paint.Join.ROUND);
         passedRoutePaint.setStrokeCap(Paint.Cap.ROUND);
         passedRoutePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route_passed));
+    }
 
+    private void initMarkerPaints() {
         centerPaint.setStyle(Paint.Style.FILL);
         centerPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_center));
 
@@ -140,7 +155,9 @@ public final class NavigationCompassView extends View {
         accuracyOverlayPaint.setStyle(Paint.Style.FILL);
         accuracyOverlayPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_accent));
         accuracyOverlayPaint.setAlpha(128);
+    }
 
+    private void initGuidePaints() {
         headingGuidePaint.setStyle(Paint.Style.STROKE);
         headingGuidePaint.setStrokeWidth(dp(1.2f));
         headingGuidePaint.setStrokeCap(Paint.Cap.ROUND);
@@ -161,7 +178,9 @@ public final class NavigationCompassView extends View {
         distanceMarkPaint.setStrokeJoin(Paint.Join.ROUND);
         distanceMarkPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
         distanceMarkPaint.setAlpha(128);
+    }
 
+    private void initLegendPaints() {
         distanceLegendRightPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
         distanceLegendRightPaint.setTextAlign(Paint.Align.LEFT);
         distanceLegendRightPaint.setTextSize(dp(10f));
@@ -240,12 +259,11 @@ public final class NavigationCompassView extends View {
             float sin = (float) Math.sin(radians);
             float outer = radius * 0.94f;
             boolean accented = i % 3 == 1;
-            boolean major = i % 6 == 0;
-            if (major) {
+            if (i % 6 == 0) {
                 continue;
             }
-            float inner = outer - (major ? radius * 0.048f : radius * 0.026f);
-            Paint paint = accented ? accentTickPaint : (major ? majorTickPaint : minorTickPaint);
+            float inner = outer - radius * 0.026f;
+            Paint paint = accented ? accentTickPaint : minorTickPaint;
             canvas.drawLine(
                     cx + inner * cos,
                     cy + inner * sin,
@@ -533,26 +551,44 @@ public final class NavigationCompassView extends View {
         float scale = routeRadius / compassState.visibleRadiusMeters;
         float markerRadius = dp(ROUTE_MARKER_RADIUS_DP);
         if (compassState.hasRouteGeometry()) {
-            for (int i = 0; i < compassState.hintSamplePointCount(); i++) {
-                LatLon point = compassState.hintSamplePointAt(i);
-                if (point == null) {
-                    continue;
-                }
-                projectRoutePoint(point, headingDegrees, projectedPoint);
-                float x = cx + projectedPoint.x * scale;
-                float y = cy - projectedPoint.y * scale;
-                canvas.drawCircle(x, y, markerRadius, routeMarkerPaint);
-            }
+            drawGeometryHintMarkers(canvas, cx, cy, scale, markerRadius, headingDegrees);
             return;
         }
         if (compassState.hintPoints.isEmpty()) {
             return;
         }
+        drawLegacyHintMarkers(canvas, cx, cy, scale, markerRadius, headingDegrees);
+    }
+
+    private void drawGeometryHintMarkers(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            float markerRadius,
+            float headingDegrees
+    ) {
+        for (int i = 0; i < compassState.hintSamplePointCount(); i++) {
+            LatLon point = compassState.hintSamplePointAt(i);
+            if (point == null) {
+                continue;
+            }
+            projectRoutePoint(point, headingDegrees, projectedPoint);
+            canvas.drawCircle(cx + projectedPoint.x * scale, cy - projectedPoint.y * scale, markerRadius, routeMarkerPaint);
+        }
+    }
+
+    private void drawLegacyHintMarkers(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float scale,
+            float markerRadius,
+            float headingDegrees
+    ) {
         for (NavCompassState.RoutePoint point : compassState.hintPoints) {
             projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
-            float x = cx + projectedPoint.x * scale;
-            float y = cy - projectedPoint.y * scale;
-            canvas.drawCircle(x, y, markerRadius, routeMarkerPaint);
+            canvas.drawCircle(cx + projectedPoint.x * scale, cy - projectedPoint.y * scale, markerRadius, routeMarkerPaint);
         }
     }
 

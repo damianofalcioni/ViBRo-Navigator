@@ -166,15 +166,23 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         if (location.hasBearing()) {
             sb.append(String.format(Locale.US, " bearing=%.0fdeg", location.getBearing()));
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
-            sb.append(String.format(Locale.US, " bearingAcc=%.0fdeg", location.getBearingAccuracyDegrees()));
-        }
-        if (fixedSatelliteCount != null && fixedSatelliteCount >= 0) {
-            sb.append(" sats=").append(fixedSatelliteCount);
-        }
+        appendBearingAccuracy(sb, location);
+        appendSatelliteCount(sb, fixedSatelliteCount);
         long ageSeconds = Math.max(0L, (System.currentTimeMillis() - location.getTime()) / 1000L);
         sb.append(" age=").append(ageSeconds).append("s");
         return sb.toString();
+    }
+
+    private static void appendBearingAccuracy(@NonNull StringBuilder sb, @NonNull Location location) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
+            sb.append(String.format(Locale.US, " bearingAcc=%.0fdeg", location.getBearingAccuracyDegrees()));
+        }
+    }
+
+    private static void appendSatelliteCount(@NonNull StringBuilder sb, @Nullable Integer fixedSatelliteCount) {
+        if (fixedSatelliteCount != null && fixedSatelliteCount >= 0) {
+            sb.append(" sats=").append(fixedSatelliteCount);
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.N)

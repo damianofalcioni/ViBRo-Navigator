@@ -31,36 +31,67 @@ final class NavCompassStateFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index
     ) {
-        List<CompassRouteGeometry.SamplePoint> routeSamplePoints = new ArrayList<>();
-        if (!route.track.isEmpty()) {
-            if (route.track.size() == 1) {
-                routeSamplePoints.add(new CompassRouteGeometry.SamplePoint(route.track.get(0), 0.0));
-            } else {
-                double totalLengthMeters = index.totalLengthMeters();
-                double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
-                addSampledRoutePoints(index, 0.0, totalLengthMeters, stepMeters, routeSamplePoints);
-            }
-        }
+        return new CompassRouteGeometry(
+                buildRouteSamplePoints(route, index),
+                buildHintSamplePoints(route, index)
+        );
+    }
 
-        List<LatLon> hintSamplePoints = new ArrayList<>();
-        if (!route.voiceHints.isEmpty()) {
-            if (route.voiceHints.size() <= MAX_COMPASS_HINT_POINTS) {
-                addHintSamplePoints(route, index, 0, route.voiceHints.size() - 1, hintSamplePoints);
-            } else {
-                double hintStep = (route.voiceHints.size() - 1d) / (MAX_COMPASS_HINT_POINTS - 1d);
-                int lastSelectedIndex = -1;
-                for (int i = 0; i < MAX_COMPASS_HINT_POINTS; i++) {
-                    int selectedIndex = (int) Math.round(i * hintStep);
-                    selectedIndex = Math.min(route.voiceHints.size() - 1, Math.max(0, selectedIndex));
-                    if (selectedIndex == lastSelectedIndex) {
-                        continue;
-                    }
-                    addHintSamplePoints(route, index, selectedIndex, selectedIndex, hintSamplePoints);
-                    lastSelectedIndex = selectedIndex;
-                }
-            }
+    @NonNull
+    private static List<CompassRouteGeometry.SamplePoint> buildRouteSamplePoints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index
+    ) {
+        List<CompassRouteGeometry.SamplePoint> routeSamplePoints = new ArrayList<>();
+        if (route.track.isEmpty()) {
+            return routeSamplePoints;
         }
-        return new CompassRouteGeometry(routeSamplePoints, hintSamplePoints);
+        if (route.track.size() == 1) {
+            routeSamplePoints.add(new CompassRouteGeometry.SamplePoint(route.track.get(0), 0.0));
+            return routeSamplePoints;
+        }
+        double totalLengthMeters = index.totalLengthMeters();
+        double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
+        addSampledRoutePoints(index, 0.0, totalLengthMeters, stepMeters, routeSamplePoints);
+        return routeSamplePoints;
+    }
+
+    @NonNull
+    private static List<LatLon> buildHintSamplePoints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index
+    ) {
+        List<LatLon> hintSamplePoints = new ArrayList<>();
+        if (route.voiceHints.isEmpty()) {
+            return hintSamplePoints;
+        }
+        if (route.voiceHints.size() <= MAX_COMPASS_HINT_POINTS) {
+            addHintSamplePoints(route, index, 0, route.voiceHints.size() - 1, hintSamplePoints);
+            return hintSamplePoints;
+        }
+        addDownsampledHintPoints(route, index, hintSamplePoints);
+        return hintSamplePoints;
+    }
+
+    private static void addDownsampledHintPoints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<LatLon> hintSamplePoints
+    ) {
+        double hintStep = (route.voiceHints.size() - 1d) / (MAX_COMPASS_HINT_POINTS - 1d);
+        int lastSelectedIndex = -1;
+        for (int i = 0; i < MAX_COMPASS_HINT_POINTS; i++) {
+            int selectedIndex = clampHintIndex(route, (int) Math.round(i * hintStep));
+            if (selectedIndex == lastSelectedIndex) {
+                continue;
+            }
+            addHintSamplePoints(route, index, selectedIndex, selectedIndex, hintSamplePoints);
+            lastSelectedIndex = selectedIndex;
+        }
+    }
+
+    private static int clampHintIndex(@NonNull GeoJsonRoute route, int selectedIndex) {
+        return Math.min(route.voiceHints.size() - 1, Math.max(0, selectedIndex));
     }
 
     @NonNull
@@ -71,26 +102,38 @@ final class NavCompassStateFactory {
             @Nullable Integer fixedSatelliteCount,
             @NonNull Context context
     ) {
-        Double elevationMeters = currentLocation != null && currentLocation.hasAltitude()
+        return NavigationTextFormatter.formatGpsStatus(
+                context,
+                speedMps,
+                elevationMeters(currentLocation),
+                accuracyMeters,
+                bearingDegrees(currentLocation),
+                bearingAccuracyDegrees(currentLocation),
+                fixedSatelliteCount
+        );
+    }
+
+    @Nullable
+    private static Double elevationMeters(@Nullable Location currentLocation) {
+        return currentLocation != null && currentLocation.hasAltitude()
                 ? currentLocation.getAltitude()
                 : null;
-        Float bearingDegrees = currentLocation != null && currentLocation.hasBearing()
+    }
+
+    @Nullable
+    private static Float bearingDegrees(@Nullable Location currentLocation) {
+        return currentLocation != null && currentLocation.hasBearing()
                 ? currentLocation.getBearing()
                 : null;
-        Float bearingAccuracyDegrees = currentLocation != null
+    }
+
+    @Nullable
+    private static Float bearingAccuracyDegrees(@Nullable Location currentLocation) {
+        return currentLocation != null
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && currentLocation.hasBearingAccuracy()
                 ? currentLocation.getBearingAccuracyDegrees()
                 : null;
-        return NavigationTextFormatter.formatGpsStatus(
-                context,
-                speedMps,
-                elevationMeters,
-                accuracyMeters,
-                bearingDegrees,
-                bearingAccuracyDegrees,
-                fixedSatelliteCount
-        );
     }
 
     @Nullable

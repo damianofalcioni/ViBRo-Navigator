@@ -103,42 +103,27 @@ public final class PolylineIndex {
             end = Math.min(pts.size() - 2, lastSegmentIndex + 200);
         }
 
-        double bestDist = Double.POSITIVE_INFINITY;
-        double bestAlong = 0;
-        double bestBearing = 0;
-        int bestSeg = -1;
+        Match best = findBestMatchInRange(p, start, end);
+        if (best == null && lastSegmentIndex >= 0) {
+            best = findBestMatchInRange(p, 0, pts.size() - 2);
+        }
+        return best;
+    }
 
+    @Nullable
+    private Match findBestMatchInRange(@NonNull LatLon p, int start, int end) {
+        Match best = null;
         for (int i = start; i <= end; i++) {
-            LatLon a = pts.get(i);
-            LatLon b = pts.get(i + 1);
-            Match m = projectToSegment(p, a, b, i);
-            if (m != null && m.distanceToTrackMeters < bestDist) {
-                bestDist = m.distanceToTrackMeters;
-                bestAlong = m.alongTrackMeters;
-                bestBearing = m.segmentBearingDegrees;
-                bestSeg = i;
+            Match candidate = projectToSegment(p, pts.get(i), pts.get(i + 1), i);
+            if (isCloserMatch(candidate, best)) {
+                best = candidate;
             }
         }
+        return best;
+    }
 
-        if (bestSeg < 0 && lastSegmentIndex >= 0) {
-            // fallback to full scan on first miss
-            for (int i = 0; i <= pts.size() - 2; i++) {
-                LatLon a = pts.get(i);
-                LatLon b = pts.get(i + 1);
-                Match m = projectToSegment(p, a, b, i);
-                if (m != null && m.distanceToTrackMeters < bestDist) {
-                    bestDist = m.distanceToTrackMeters;
-                    bestAlong = m.alongTrackMeters;
-                    bestBearing = m.segmentBearingDegrees;
-                    bestSeg = i;
-                }
-            }
-        }
-
-        if (bestSeg < 0) {
-            return null;
-        }
-        return new Match(bestDist, bestAlong, bestBearing, bestSeg);
+    private static boolean isCloserMatch(@Nullable Match candidate, @Nullable Match best) {
+        return candidate != null && (best == null || candidate.distanceToTrackMeters < best.distanceToTrackMeters);
     }
 
     @Nullable

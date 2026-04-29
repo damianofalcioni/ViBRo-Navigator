@@ -1,11 +1,13 @@
 package vibro.navigator.poi.search;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.poi.Poi;
 import vibro.navigator.util.AppLogger;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -28,46 +30,10 @@ public final class OsmNominatimClient implements PoiSearchClient {
     @Override
     public List<Poi> search(@NonNull String query, int limit) throws IOException {
         AppLogger.i(TAG, "Searching query=" + query + " limit=" + limit);
-        String q = URLEncoder.encode(query, "UTF-8");
-        String url = String.format(Locale.US,
-                "https://nominatim.openstreetmap.org/search?q=%s&format=jsonv2&addressdetails=0&limit=%d",
-                q, Math.max(1, Math.min(20, limit))
-        );
-        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
-        conn.setConnectTimeout(8000);
-        conn.setReadTimeout(8000);
-        conn.setRequestProperty("User-Agent", "VibeNavigator");
-        conn.setRequestProperty("Accept", "application/json");
+        HttpURLConnection conn = openConnection(query, limit);
         try {
-            int code = conn.getResponseCode();
-            AppLogger.i(TAG, "HTTP response code=" + code);
-            InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
-            if (is == null) {
-                AppLogger.w(TAG, "No response stream available for query=" + query);
-                return new ArrayList<>();
-            }
-            String body = readAll(is);
-            JSONArray arr = new JSONArray(body);
-            List<Poi> out = new ArrayList<>();
-            for (int i = 0; i < arr.length(); i++) {
-                JSONObject o = arr.optJSONObject(i);
-                if (o == null) {
-                    continue;
-                }
-                String display = o.optString("display_name", "");
-                String latStr = o.optString("lat", "");
-                String lonStr = o.optString("lon", "");
-                if (display.isEmpty() || latStr.isEmpty() || lonStr.isEmpty()) {
-                    continue;
-                }
-                try {
-                    double lat = Double.parseDouble(latStr);
-                    double lon = Double.parseDouble(lonStr);
-                    out.add(new Poi(display, lat, lon));
-                } catch (NumberFormatException ignored) {
-                    // ignore
-                }
-            }
+            String body = readResponseBody(conn, query);
+            List<Poi> out = body.isEmpty() ? new ArrayList<>() : parsePois(body);
             AppLogger.i(TAG, "Search completed query=" + query + " results=" + out.size());
             return out;
         } catch (Exception e) {
@@ -75,6 +41,68 @@ public final class OsmNominatimClient implements PoiSearchClient {
             throw new IOException(e);
         } finally {
             conn.disconnect();
+        }
+    }
+
+    @NonNull
+    private static HttpURLConnection openConnection(@NonNull String query, int limit) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(buildSearchUrl(query, limit)).openConnection();
+        conn.setConnectTimeout(8000);
+        conn.setReadTimeout(8000);
+        conn.setRequestProperty("User-Agent", "VibeNavigator");
+        conn.setRequestProperty("Accept", "application/json");
+        return conn;
+    }
+
+    @NonNull
+    private static String buildSearchUrl(@NonNull String query, int limit) throws IOException {
+        String q = URLEncoder.encode(query, StandardCharsets.UTF_8.name());
+        return String.format(Locale.US,
+                "https://nominatim.openstreetmap.org/search?q=%s&format=jsonv2&addressdetails=0&limit=%d",
+                q, Math.max(1, Math.min(20, limit))
+        );
+    }
+
+    @NonNull
+    private static String readResponseBody(@NonNull HttpURLConnection conn, @NonNull String query) throws IOException {
+        int code = conn.getResponseCode();
+        AppLogger.i(TAG, "HTTP response code=" + code);
+        InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
+        if (is == null) {
+            AppLogger.w(TAG, "No response stream available for query=" + query);
+            return "";
+        }
+        return readAll(is);
+    }
+
+    @NonNull
+    private static List<Poi> parsePois(@NonNull String body) throws JSONException {
+        JSONArray arr = new JSONArray(body);
+        List<Poi> out = new ArrayList<>();
+        for (int i = 0; i < arr.length(); i++) {
+            Poi poi = parsePoi(arr.optJSONObject(i));
+            if (poi != null) {
+                out.add(poi);
+            }
+        }
+        return out;
+    }
+
+    @Nullable
+    private static Poi parsePoi(@Nullable JSONObject object) {
+        if (object == null) {
+            return null;
+        }
+        String display = object.optString("display_name", "");
+        String latStr = object.optString("lat", "");
+        String lonStr = object.optString("lon", "");
+        if (display.isEmpty() || latStr.isEmpty() || lonStr.isEmpty()) {
+            return null;
+        }
+        try {
+            return new Poi(display, Double.parseDouble(latStr), Double.parseDouble(lonStr));
+        } catch (NumberFormatException ignored) {
+            return null;
         }
     }
 

@@ -5,6 +5,7 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.kalman.LatLonKalmanFilter;
@@ -262,10 +263,7 @@ final class NavigationSessionLocationState {
             return null;
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
-            float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
-            if (Float.isFinite(bearingAccuracyDegrees)
-                    && bearingAccuracyDegrees >= 0f
-                    && bearingAccuracyDegrees <= MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES) {
+            if (hasTrustedBearingAccuracy(location)) {
                 return (double) location.getBearing();
             }
             return null;
@@ -273,6 +271,14 @@ final class NavigationSessionLocationState {
         return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
                 ? (double) location.getBearing()
                 : null;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private static boolean hasTrustedBearingAccuracy(@NonNull Location location) {
+        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
+        return Float.isFinite(bearingAccuracyDegrees)
+                && bearingAccuracyDegrees >= 0f
+                && bearingAccuracyDegrees <= MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES;
     }
 
     @Nullable

@@ -243,35 +243,46 @@ public final class AppLogger {
     private static File resolvePreferredExternalFilesDir(@NonNull Context context) {
         File[] dirs = context.getExternalFilesDirs(null);
         if (dirs != null) {
-            for (File dir : dirs) {
-                if (dir == null) {
-                    continue;
-                }
-                if (android.os.Environment.isExternalStorageRemovable(dir)) {
-                    return dir;
-                }
+            File removableDir = firstRemovableExternalFilesDir(dirs);
+            if (removableDir != null) {
+                return removableDir;
             }
-            for (File dir : dirs) {
-                if (dir != null) {
-                    return dir;
-                }
+            File firstDir = firstAvailableExternalFilesDir(dirs);
+            if (firstDir != null) {
+                return firstDir;
             }
         }
         return context.getExternalFilesDir(null);
     }
 
+    @Nullable
+    private static File firstRemovableExternalFilesDir(@NonNull File[] dirs) {
+        for (File dir : dirs) {
+            if (dir != null && android.os.Environment.isExternalStorageRemovable(dir)) {
+                return dir;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static File firstAvailableExternalFilesDir(@NonNull File[] dirs) {
+        for (File dir : dirs) {
+            if (dir != null) {
+                return dir;
+            }
+        }
+        return null;
+    }
+
     private static void migrateLegacyInternalLogIfNeeded(@NonNull Context context, @NonNull File targetFile) {
-        if (targetFile.exists()) {
-            return;
-        }
-
         File legacyFile = new File(new File(context.getFilesDir(), LOG_DIR), "app-behavior.log");
-        if (!legacyFile.exists() || legacyFile.equals(targetFile)) {
+        if (!shouldMigrateLegacyLog(legacyFile, targetFile)) {
             return;
         }
 
-        File parent = targetFile.getParentFile();
-        if (parent == null || (!parent.exists() && !parent.mkdirs() && !parent.exists())) {
+        File parent = ensureParentDirectory(targetFile);
+        if (parent == null) {
             return;
         }
 
@@ -279,20 +290,8 @@ public final class AppLogger {
             return;
         }
 
-        File temp = new File(parent, targetFile.getName() + ".migrate");
-        try (RandomAccessFile source = new RandomAccessFile(legacyFile, "r");
-             FileOutputStream out = new FileOutputStream(temp, false)) {
-            byte[] buffer = new byte[8192];
-            int read;
-            while ((read = source.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
-            }
-            out.flush();
-        } catch (Exception ignored) {
-            if (temp.exists()) {
-                //noinspection ResultOfMethodCallIgnored
-                temp.delete();
-            }
+        File temp = copyLegacyLogToTemp(legacyFile, parent, targetFile.getName());
+        if (temp == null) {
             return;
         }
 
@@ -305,17 +304,61 @@ public final class AppLogger {
         legacyFile.delete();
     }
 
+    private static boolean shouldMigrateLegacyLog(@NonNull File legacyFile, @NonNull File targetFile) {
+        return !targetFile.exists() && legacyFile.exists() && !legacyFile.equals(targetFile);
+    }
+
+    @Nullable
+    private static File copyLegacyLogToTemp(
+            @NonNull File legacyFile,
+            @NonNull File parent,
+            @NonNull String targetFileName
+    ) {
+        File temp = new File(parent, targetFileName + ".migrate");
+        try (RandomAccessFile source = new RandomAccessFile(legacyFile, "r");
+             FileOutputStream out = new FileOutputStream(temp, false)) {
+            copyFile(source, out);
+            return temp;
+        } catch (Exception ignored) {
+            deleteIfExists(temp);
+            return null;
+        }
+    }
+
+    private static void copyFile(@NonNull RandomAccessFile source, @NonNull FileOutputStream out) throws IOException {
+        byte[] buffer = new byte[8192];
+        int read;
+        while ((read = source.read(buffer)) != -1) {
+            out.write(buffer, 0, read);
+        }
+        out.flush();
+    }
+
+    private static void deleteIfExists(@NonNull File file) {
+        if (file.exists()) {
+            //noinspection ResultOfMethodCallIgnored
+            file.delete();
+        }
+    }
+
+    @Nullable
+    private static File ensureParentDirectory(@NonNull File file) {
+        File parent = file.getParentFile();
+        if (parent == null || (!parent.exists() && !parent.mkdirs() && !parent.exists())) {
+            return null;
+        }
+        return parent;
+    }
+
     private static void ensureLogFileLocked(@NonNull Context context, boolean forceRefresh) {
-        File dir = resolveLogDir(context);
-        if (!dir.exists() && !dir.mkdirs() && !dir.exists()) {
+        File dir = ensureLogDir(context);
+        if (dir == null) {
             return;
         }
         String fileName = (forceRefresh || logFile == null) ? buildLogFileName(new Date()) : logFile.getName();
         File target = new File(dir, fileName);
-        if (logFile != null && logFile.equals(target)) {
-            if (forceRefresh) {
-                recreateLogFileLocked(logFile);
-            }
+        if (isCurrentLogFile(target)) {
+            refreshCurrentLogFileIfNeeded(forceRefresh);
             return;
         }
         logFile = target;
@@ -323,6 +366,22 @@ public final class AppLogger {
             recreateLogFileLocked(logFile);
         } else {
             migrateLegacyInternalLogIfNeeded(context, logFile);
+        }
+    }
+
+    @Nullable
+    private static File ensureLogDir(@NonNull Context context) {
+        File dir = resolveLogDir(context);
+        return !dir.exists() && !dir.mkdirs() && !dir.exists() ? null : dir;
+    }
+
+    private static boolean isCurrentLogFile(@NonNull File target) {
+        return logFile != null && logFile.equals(target);
+    }
+
+    private static void refreshCurrentLogFileIfNeeded(boolean forceRefresh) {
+        if (forceRefresh) {
+            recreateLogFileLocked(logFile);
         }
     }
 

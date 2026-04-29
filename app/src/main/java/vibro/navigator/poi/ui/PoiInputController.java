@@ -265,28 +265,7 @@ public final class PoiInputController {
                 .create();
         dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String updatedName = input.getText() != null ? input.getText().toString().trim() : "";
-            if (updatedName.isEmpty()) {
-                input.setError(context.getString(R.string.msg_invalid_destination_name));
-                return;
-            }
-
-            if (!history.rename(poi, updatedName)) {
-                dialog.dismiss();
-                return;
-            }
-
-            Poi renamedPoi = new Poi(updatedName, poi.lat, poi.lon);
-            if (selectedPoi != null && selectedPoi.stableKey().equals(poi.stableKey())) {
-                selectedPoi = renamedPoi;
-                if (getRawText().trim().equals(poi.displayLabel())) {
-                    programmaticChange = true;
-                    editText.setText(renamedPoi.displayLabel());
-                    editText.setSelection(editText.getText().length());
-                }
-            }
-            AppLogger.i(logTag, "Renamed history item key=" + poi.stableKey() + " newName=" + updatedName);
-            showHistory();
-            dialog.dismiss();
+            saveHistoryRename(dialog, input, poi, updatedName);
         }));
         dialog.show();
         if (dialog.getWindow() != null) {
@@ -295,10 +274,53 @@ public final class PoiInputController {
         input.requestFocus();
     }
 
+    private void saveHistoryRename(
+            @NonNull AlertDialog dialog,
+            @NonNull EditText input,
+            @NonNull Poi poi,
+            @NonNull String updatedName
+    ) {
+        if (updatedName.isEmpty()) {
+            input.setError(editText.getContext().getString(R.string.msg_invalid_destination_name));
+            return;
+        }
+        if (!history.rename(poi, updatedName)) {
+            dialog.dismiss();
+            return;
+        }
+
+        updateSelectedPoiAfterRename(poi, new Poi(updatedName, poi.lat, poi.lon));
+        AppLogger.i(logTag, "Renamed history item key=" + poi.stableKey() + " newName=" + updatedName);
+        showHistory();
+        dialog.dismiss();
+    }
+
+    private void updateSelectedPoiAfterRename(@NonNull Poi originalPoi, @NonNull Poi renamedPoi) {
+        if (selectedPoi == null || !selectedPoi.stableKey().equals(originalPoi.stableKey())) {
+            return;
+        }
+        selectedPoi = renamedPoi;
+        if (getRawText().trim().equals(originalPoi.displayLabel())) {
+            programmaticChange = true;
+            editText.setText(renamedPoi.displayLabel());
+            editText.setSelection(editText.getText().length());
+        }
+    }
+
     private void scheduleSearch(@NonNull String raw) {
         cancelPendingSearch();
 
         String query = raw.trim();
+        if (showCoordinateSuggestion(query) || showHistoryMatches(query) || handleShortQuery(query)) {
+            return;
+        }
+
+        pendingSearch = () -> runSearch(query);
+        AppLogger.d(logTag, "Scheduling search query=" + query);
+        mainHandler.postDelayed(pendingSearch, 300);
+    }
+
+    private boolean showCoordinateSuggestion(@NonNull String query) {
         Poi coords = CoordinateParser.tryParse(query, query);
         if (coords != null) {
             cancelInFlightSearch();
@@ -307,9 +329,12 @@ public final class PoiInputController {
             if (editText.hasFocus()) {
                 showPopupIfPossible("coordinate-entry");
             }
-            return;
+            return true;
         }
+        return false;
+    }
 
+    private boolean showHistoryMatches(@NonNull String query) {
         List<PoiSuggestion> historySuggestions = matchingHistorySuggestions(query);
         if (!historySuggestions.isEmpty()) {
             cancelInFlightSearch();
@@ -319,9 +344,12 @@ public final class PoiInputController {
             if (editText.hasFocus()) {
                 showPopupIfPossible("history-search-results");
             }
-            return;
+            return true;
         }
+        return false;
+    }
 
+    private boolean handleShortQuery(@NonNull String query) {
         if (query.length() <= 3) {
             cancelInFlightSearch();
             if (query.isEmpty()) {
@@ -332,12 +360,9 @@ public final class PoiInputController {
                 dismissPopup();
                 adapter.setItems(new ArrayList<>());
             }
-            return;
+            return true;
         }
-
-        pendingSearch = () -> runSearch(query);
-        AppLogger.d(logTag, "Scheduling search query=" + query);
-        mainHandler.postDelayed(pendingSearch, 300);
+        return false;
     }
 
     private void cancelPendingSearch() {
@@ -352,32 +377,46 @@ public final class PoiInputController {
         int generation = ++searchGeneration;
         inFlight = PoiSearchDispatcher.submit(() -> {
             try {
-                AppLogger.i(logTag, "Running search query=" + query);
-                List<Poi> results = searchClient.search(query, MAX_SUGGESTIONS);
-                List<PoiSuggestion> suggestions = new ArrayList<>();
-                for (Poi p : results) {
-                    suggestions.add(new PoiSuggestion(p, false));
-                }
-                mainHandler.post(() -> {
-                    if (generation != searchGeneration) {
-                        AppLogger.d(logTag, "Discarding stale search result query=" + query);
-                        return;
-                    }
-                    adapter.setItems(suggestions);
-                    AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
-                    if (!suggestions.isEmpty() && editText.hasFocus()) {
-                        showPopupIfPossible("search-results");
-                    }
-                });
+                List<PoiSuggestion> suggestions = performSearch(query);
+                mainHandler.post(() -> handleSearchSuccess(query, generation, suggestions));
             } catch (IOException e) {
                 AppLogger.e(logTag, "Search failed query=" + query, e);
-                mainHandler.post(() -> {
-                    if (generation == searchGeneration) {
-                        adapter.setItems(new ArrayList<>());
-                    }
-                });
+                mainHandler.post(() -> handleSearchFailure(generation));
             }
         });
+    }
+
+    @NonNull
+    private List<PoiSuggestion> performSearch(@NonNull String query) throws IOException {
+        AppLogger.i(logTag, "Running search query=" + query);
+        List<Poi> results = searchClient.search(query, MAX_SUGGESTIONS);
+        List<PoiSuggestion> suggestions = new ArrayList<>();
+        for (Poi p : results) {
+            suggestions.add(new PoiSuggestion(p, false));
+        }
+        return suggestions;
+    }
+
+    private void handleSearchSuccess(
+            @NonNull String query,
+            int generation,
+            @NonNull List<PoiSuggestion> suggestions
+    ) {
+        if (generation != searchGeneration) {
+            AppLogger.d(logTag, "Discarding stale search result query=" + query);
+            return;
+        }
+        adapter.setItems(suggestions);
+        AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
+        if (!suggestions.isEmpty() && editText.hasFocus()) {
+            showPopupIfPossible("search-results");
+        }
+    }
+
+    private void handleSearchFailure(int generation) {
+        if (generation == searchGeneration) {
+            adapter.setItems(new ArrayList<>());
+        }
     }
 
     private void cancelInFlightSearch() {
@@ -401,19 +440,7 @@ public final class PoiInputController {
     }
 
     private void showPopupIfPossible(@NonNull String reason) {
-        if (!editText.hasFocus()) {
-            return;
-        }
-        boolean attached = ViewCompat.isAttachedToWindow(editText);
-        boolean hasWindowToken = editText.getWindowToken() != null;
-        boolean viewVisible = editText.getVisibility() == View.VISIBLE;
-        boolean windowVisible = editText.getWindowVisibility() == View.VISIBLE;
-        if (!attached || !hasWindowToken || !viewVisible || !windowVisible) {
-            AppLogger.d(logTag, "Skipping popup show reason=" + reason
-                    + " attached=" + attached
-                    + " windowToken=" + hasWindowToken
-                    + " viewVisible=" + viewVisible
-                    + " windowVisible=" + windowVisible);
+        if (!canShowPopup(reason)) {
             return;
         }
         try {
@@ -424,6 +451,25 @@ public final class PoiInputController {
         } catch (WindowManager.BadTokenException | IllegalStateException e) {
             AppLogger.w(logTag, "Skipping popup show because anchor window is not ready reason=" + reason, e);
         }
+    }
+
+    private boolean canShowPopup(@NonNull String reason) {
+        if (!editText.hasFocus()) {
+            return false;
+        }
+        boolean attached = ViewCompat.isAttachedToWindow(editText);
+        boolean hasWindowToken = editText.getWindowToken() != null;
+        boolean viewVisible = editText.getVisibility() == View.VISIBLE;
+        boolean windowVisible = editText.getWindowVisibility() == View.VISIBLE;
+        if (attached && hasWindowToken && viewVisible && windowVisible) {
+            return true;
+        }
+        AppLogger.d(logTag, "Skipping popup show reason=" + reason
+                + " attached=" + attached
+                + " windowToken=" + hasWindowToken
+                + " viewVisible=" + viewVisible
+                + " windowVisible=" + windowVisible);
+        return false;
     }
 
     @NonNull

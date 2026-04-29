@@ -115,12 +115,7 @@ final class NavigationLocationController {
             AppLogger.w(TAG, "Permission denied while resetting location updates", e);
         }
 
-        List<String> requestedProviders = new ArrayList<>(providers.size());
-        for (String provider : providers) {
-            if (requestProviderUpdates(provider, minTimeMs)) {
-                requestedProviders.add(provider);
-            }
-        }
+        List<String> requestedProviders = requestProviderUpdates(providers, minTimeMs);
         if (requestedProviders.isEmpty()) {
             clearActiveLocationRequest();
             AppLogger.w(TAG, "Failed to request location updates from permitted providers " + describeAvailability());
@@ -128,17 +123,36 @@ final class NavigationLocationController {
         }
 
         String requestedProviderSummary = joinProviders(requestedProviders);
-        if (requestedProviders.contains(LocationManager.GPS_PROVIDER)
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        updateGnssStatusTracking(requestedProviders);
+        nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+        lastRequestedLocationMinTimeMs = minTimeMs;
+        lastRequestedProvider = requestedProviderSummary;
+        AppLogger.i(TAG, "Requested location updates provider=" + requestedProviderSummary + " minTimeMs=" + minTimeMs);
+    }
+
+    @NonNull
+    private List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
+        List<String> requestedProviders = new ArrayList<>(providers.size());
+        for (String provider : providers) {
+            if (requestProviderUpdates(provider, minTimeMs)) {
+                requestedProviders.add(provider);
+            }
+        }
+        return requestedProviders;
+    }
+
+    private void updateGnssStatusTracking(@NonNull List<String> requestedProviders) {
+        if (shouldTrackGnssStatus(requestedProviders)) {
             ensureGnssStatusTracking();
         } else {
             fixedSatelliteCount = null;
             stopGnssStatusTracking();
         }
-        nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
-        lastRequestedLocationMinTimeMs = minTimeMs;
-        lastRequestedProvider = requestedProviderSummary;
-        AppLogger.i(TAG, "Requested location updates provider=" + requestedProviderSummary + " minTimeMs=" + minTimeMs);
+    }
+
+    private static boolean shouldTrackGnssStatus(@NonNull List<String> requestedProviders) {
+        return requestedProviders.contains(LocationManager.GPS_PROVIDER)
+                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
     }
 
     void requestCurrentLocationSeeds() {

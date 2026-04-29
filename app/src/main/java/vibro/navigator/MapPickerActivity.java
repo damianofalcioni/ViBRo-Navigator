@@ -240,25 +240,61 @@ public final class MapPickerActivity extends Activity {
 
     private void initializeMap() {
         Poi centerPoi = selectedPoi != null ? selectedPoi : initialPoi;
-        double centerLat = centerPoi != null ? centerPoi.lat : DEFAULT_CENTER_LAT;
-        double centerLon = centerPoi != null ? centerPoi.lon : DEFAULT_CENTER_LON;
-        int zoom = centerPoi != null ? SELECTED_ZOOM : DEFAULT_ZOOM;
-        String selectedLat = selectedPoi != null ? formatJsDouble(selectedPoi.lat) : "null";
-        String selectedLon = selectedPoi != null ? formatJsDouble(selectedPoi.lon) : "null";
-        String script = String.format(
-                Locale.US,
-                "window.mapPicker.initialize(%s,%s,%d,%s,%s);",
-                formatJsDouble(centerLat),
-                formatJsDouble(centerLon),
-                zoom,
-                selectedLat,
-                selectedLon
-        );
+        MapInitialView initialView = MapInitialView.from(centerPoi, selectedPoi);
+        String script = initialView.toInitializeScript();
         runMapCommand(script);
-        AppLogger.i(TAG, "Initialized map centerLat=" + centerLat + " centerLon=" + centerLon
-                + " zoom=" + zoom + " hasSelection=" + (selectedPoi != null));
+        AppLogger.i(TAG, "Initialized map centerLat=" + initialView.centerLat + " centerLon=" + initialView.centerLon
+                + " zoom=" + initialView.zoom + " hasSelection=" + (selectedPoi != null));
         if (centerPoi == null) {
             centerOnCurrentLocation(false);
+        }
+    }
+
+    private static final class MapInitialView {
+        final double centerLat;
+        final double centerLon;
+        final int zoom;
+        @NonNull
+        final String selectedLat;
+        @NonNull
+        final String selectedLon;
+
+        private MapInitialView(
+                double centerLat,
+                double centerLon,
+                int zoom,
+                @NonNull String selectedLat,
+                @NonNull String selectedLon
+        ) {
+            this.centerLat = centerLat;
+            this.centerLon = centerLon;
+            this.zoom = zoom;
+            this.selectedLat = selectedLat;
+            this.selectedLon = selectedLon;
+        }
+
+        @NonNull
+        static MapInitialView from(@Nullable Poi centerPoi, @Nullable Poi selectedPoi) {
+            return new MapInitialView(
+                    centerPoi != null ? centerPoi.lat : DEFAULT_CENTER_LAT,
+                    centerPoi != null ? centerPoi.lon : DEFAULT_CENTER_LON,
+                    centerPoi != null ? SELECTED_ZOOM : DEFAULT_ZOOM,
+                    selectedPoi != null ? formatJsDouble(selectedPoi.lat) : "null",
+                    selectedPoi != null ? formatJsDouble(selectedPoi.lon) : "null"
+            );
+        }
+
+        @NonNull
+        String toInitializeScript() {
+            return String.format(
+                    Locale.US,
+                    "window.mapPicker.initialize(%s,%s,%d,%s,%s);",
+                    formatJsDouble(centerLat),
+                    formatJsDouble(centerLon),
+                    zoom,
+                    selectedLat,
+                    selectedLon
+            );
         }
     }
 
@@ -306,12 +342,8 @@ public final class MapPickerActivity extends Activity {
         }
 
         List<String> providers = new ArrayList<>();
-        if (isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            providers.add(LocationManager.GPS_PROVIDER);
-        }
-        if (isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            providers.add(LocationManager.NETWORK_PROVIDER);
-        }
+        addEnabledProvider(providers, LocationManager.GPS_PROVIDER);
+        addEnabledProvider(providers, LocationManager.NETWORK_PROVIDER);
         if (providers.isEmpty()) {
             Toast.makeText(this, R.string.msg_location_disabled, Toast.LENGTH_SHORT).show();
             return;
@@ -330,6 +362,12 @@ public final class MapPickerActivity extends Activity {
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Failed to request current location updates", e);
             Toast.makeText(this, R.string.msg_permission_required, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void addEnabledProvider(@NonNull List<String> providers, @NonNull String provider) {
+        if (isProviderEnabled(provider)) {
+            providers.add(provider);
         }
     }
 
@@ -364,7 +402,7 @@ public final class MapPickerActivity extends Activity {
                 if (candidate == null) {
                     continue;
                 }
-                if (best == null || isBetterLocation(candidate, best)) {
+                if (isBetterLastKnownLocation(candidate, best)) {
                     best = candidate;
                 }
             } catch (SecurityException e) {
@@ -372,6 +410,10 @@ public final class MapPickerActivity extends Activity {
             }
         }
         return best;
+    }
+
+    private boolean isBetterLastKnownLocation(@NonNull Location candidate, @Nullable Location best) {
+        return best == null || isBetterLocation(candidate, best);
     }
 
     private boolean isProviderEnabled(@NonNull String provider) {

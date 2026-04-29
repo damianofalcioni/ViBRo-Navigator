@@ -48,33 +48,61 @@ public final class LiveLocationCoordinator {
     public Location selectBestLiveLocation() {
         Location gps = isRecentLocation(latestGpsLocation) ? latestGpsLocation : null;
         Location network = isRecentLocation(latestNetworkLocation) ? latestNetworkLocation : null;
-        if (gps == null && network == null) {
-            return null;
-        }
+        return copyOf(resolveBestLiveLocation(gps, network));
+    }
+
+    @Nullable
+    private Location resolveBestLiveLocation(@Nullable Location gps, @Nullable Location network) {
         if (gps == null) {
-            return new Location(network);
+            return network;
         }
         if (network == null) {
-            return new Location(gps);
+            return gps;
         }
-
         long gpsAgeMs = ageMs(gps);
         long networkAgeMs = ageMs(network);
         float gpsAccuracy = accuracyMeters(gps);
         float networkAccuracy = accuracyMeters(network);
 
-        if (gpsAccuracy <= networkAccuracy + LOCATION_ACCURACY_IMPROVEMENT_METERS
-                && gpsAgeMs <= networkAgeMs + LOCATION_TIME_TOLERANCE_MS) {
+        if (isGpsPreferred(gpsAgeMs, networkAgeMs, gpsAccuracy, networkAccuracy)) {
             return new Location(gps);
         }
-        if (networkAccuracy + LOCATION_ACCURACY_BIAS_METERS < gpsAccuracy
-                && networkAgeMs <= gpsAgeMs + LOCATION_TIME_TOLERANCE_MS) {
+        if (isNetworkClearlyBetter(gpsAgeMs, networkAgeMs, gpsAccuracy, networkAccuracy)) {
             return new Location(network);
         }
-        if (Math.abs(gpsAgeMs - networkAgeMs) >= LOCATION_FRESHNESS_BIAS_MS) {
+        if (isFreshnessDecisive(gpsAgeMs, networkAgeMs)) {
             return gpsAgeMs < networkAgeMs ? new Location(gps) : new Location(network);
         }
         return new Location(gps);
+    }
+
+    private static boolean isGpsPreferred(
+            long gpsAgeMs,
+            long networkAgeMs,
+            float gpsAccuracy,
+            float networkAccuracy
+    ) {
+        return gpsAccuracy <= networkAccuracy + LOCATION_ACCURACY_IMPROVEMENT_METERS
+                && gpsAgeMs <= networkAgeMs + LOCATION_TIME_TOLERANCE_MS;
+    }
+
+    private static boolean isNetworkClearlyBetter(
+            long gpsAgeMs,
+            long networkAgeMs,
+            float gpsAccuracy,
+            float networkAccuracy
+    ) {
+        return networkAccuracy + LOCATION_ACCURACY_BIAS_METERS < gpsAccuracy
+                && networkAgeMs <= gpsAgeMs + LOCATION_TIME_TOLERANCE_MS;
+    }
+
+    private static boolean isFreshnessDecisive(long gpsAgeMs, long networkAgeMs) {
+        return Math.abs(gpsAgeMs - networkAgeMs) >= LOCATION_FRESHNESS_BIAS_MS;
+    }
+
+    @Nullable
+    private static Location copyOf(@Nullable Location location) {
+        return location == null ? null : new Location(location);
     }
 
     public boolean shouldDispatch(@NonNull Location candidate) {

@@ -36,23 +36,46 @@ final class NavigationRouteFailureFormatter {
             @NonNull BRouterRouteException error,
             boolean keepCurrentRoute
     ) {
+        return context.getString(bRouterFailureMessageId(error, keepCurrentRoute));
+    }
+
+    private static int bRouterFailureMessageId(
+            @NonNull BRouterRouteException error,
+            boolean keepCurrentRoute
+    ) {
+        if (keepCurrentRoute) {
+            return retainedRouteFailureMessageId(error);
+        }
+        return unavailableRouteFailureMessageId(error);
+    }
+
+    private static int retainedRouteFailureMessageId(@NonNull BRouterRouteException error) {
         switch (error.reason) {
             case NO_ROUTE_FOUND:
-                return context.getString(keepCurrentRoute
-                        ? R.string.nav_route_notice_no_alternative_keep_current
-                        : R.string.nav_route_notice_no_route_found);
+                return R.string.nav_route_notice_no_alternative_keep_current;
             case SERVICE_UNAVAILABLE:
-                return context.getString(keepCurrentRoute
-                        ? R.string.nav_route_notice_service_unavailable_keep_current
-                        : R.string.nav_route_notice_service_unavailable);
+                return R.string.nav_route_notice_service_unavailable_keep_current;
             case INVALID_PROFILE:
-                return context.getString(R.string.nav_route_notice_invalid_profile);
+                return R.string.nav_route_notice_invalid_profile;
             case MALFORMED_RESPONSE:
             case UNKNOWN:
             default:
-                return context.getString(keepCurrentRoute
-                        ? R.string.nav_route_notice_update_failed_keep_current
-                        : R.string.nav_route_notice_unavailable);
+                return R.string.nav_route_notice_update_failed_keep_current;
+        }
+    }
+
+    private static int unavailableRouteFailureMessageId(@NonNull BRouterRouteException error) {
+        switch (error.reason) {
+            case NO_ROUTE_FOUND:
+                return R.string.nav_route_notice_no_route_found;
+            case SERVICE_UNAVAILABLE:
+                return R.string.nav_route_notice_service_unavailable;
+            case INVALID_PROFILE:
+                return R.string.nav_route_notice_invalid_profile;
+            case MALFORMED_RESPONSE:
+            case UNKNOWN:
+            default:
+                return R.string.nav_route_notice_unavailable;
         }
     }
 

@@ -225,26 +225,12 @@ final class NavigationSession {
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
                 : Float.MAX_VALUE;
-        Double headingDegrees = null;
-        Float headingAccuracyDegrees = null;
-        if (lastFiltered != null) {
-            NavigationSessionLocationState.HeadingEstimate preferredCompassHeading =
-                    locationState.preferredCompassHeading(lastFiltered, likelyStationary);
-            if (preferredCompassHeading != null) {
-                headingDegrees = preferredCompassHeading.headingDegrees;
-                headingAccuracyDegrees = preferredCompassHeading.headingAccuracyDegrees;
-            }
-        }
-        if (headingDegrees == null) {
-            headingDegrees = displayHeadingDegrees;
-            headingAccuracyDegrees = displayHeadingAccuracyDegrees;
-        }
-        if (headingDegrees == null) {
-            headingDegrees = lastFiltered != null
-                    ? locationState.actualBearingDegrees(lastFiltered)
-                    : null;
-            headingAccuracyDegrees = null;
-        }
+        HeadingSelection heading = selectHeading(
+                lastFiltered,
+                likelyStationary,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees
+        );
         baseState = routeState.buildState(
                 context,
                 lastFiltered,
@@ -252,8 +238,8 @@ final class NavigationSession {
                 likelyStationary,
                 accuracyMeters,
                 fixedSatelliteCount,
-                headingDegrees,
-                headingAccuracyDegrees,
+                heading.headingDegrees,
+                heading.headingAccuracyDegrees,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 routeRequestManager.isRouteCalculationInProgress(),
@@ -261,6 +247,65 @@ final class NavigationSession {
                 routeRequestManager.getLastRouteFailure()
         );
         return NavState.withPauseState(context, baseState, paused);
+    }
+
+    @NonNull
+    private HeadingSelection selectHeading(
+            @Nullable Location lastFiltered,
+            boolean likelyStationary,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees
+    ) {
+        HeadingSelection compassHeading = selectCompassHeading(lastFiltered, likelyStationary);
+        if (compassHeading.hasHeading()) {
+            return compassHeading;
+        }
+        if (displayHeadingDegrees != null) {
+            return new HeadingSelection(displayHeadingDegrees, displayHeadingAccuracyDegrees);
+        }
+        return new HeadingSelection(actualBearingDegrees(lastFiltered), null);
+    }
+
+    @NonNull
+    private HeadingSelection selectCompassHeading(@Nullable Location lastFiltered, boolean likelyStationary) {
+        if (lastFiltered == null) {
+            return HeadingSelection.none();
+        }
+        NavigationSessionLocationState.HeadingEstimate preferredCompassHeading =
+                locationState.preferredCompassHeading(lastFiltered, likelyStationary);
+        if (preferredCompassHeading == null) {
+            return HeadingSelection.none();
+        }
+        return new HeadingSelection(
+                preferredCompassHeading.headingDegrees,
+                preferredCompassHeading.headingAccuracyDegrees
+        );
+    }
+
+    @Nullable
+    private Double actualBearingDegrees(@Nullable Location lastFiltered) {
+        return lastFiltered != null ? locationState.actualBearingDegrees(lastFiltered) : null;
+    }
+
+    private static final class HeadingSelection {
+        @Nullable
+        final Double headingDegrees;
+        @Nullable
+        final Float headingAccuracyDegrees;
+
+        private HeadingSelection(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees) {
+            this.headingDegrees = headingDegrees;
+            this.headingAccuracyDegrees = headingAccuracyDegrees;
+        }
+
+        @NonNull
+        static HeadingSelection none() {
+            return new HeadingSelection(null, null);
+        }
+
+        boolean hasHeading() {
+            return headingDegrees != null;
+        }
     }
 
     static final class LocationUpdateResult {
