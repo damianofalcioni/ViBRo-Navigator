@@ -63,13 +63,11 @@ public final class NavigationCompassView extends View {
     private final Paint destinationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint clipPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path compassClipPath = new Path();
-    private final Path routePath = new Path();
     private final RectF arcBounds = new RectF();
-    private final PlotPoint projectedPoint = new PlotPoint();
-    private final PlotPoint auxiliaryPoint = new PlotPoint();
-    private final PlotPoint destinationPoint = new PlotPoint();
-    private final PlotPoint routeSegmentStartPoint = new PlotPoint();
-    private final PlotPoint routeSegmentEndPoint = new PlotPoint();
+    private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
+    private final NavigationRoutePathRenderer.PlotPoint auxiliaryPoint = new NavigationRoutePathRenderer.PlotPoint();
+    private final NavigationRoutePathRenderer.PlotPoint destinationPoint = new NavigationRoutePathRenderer.PlotPoint();
+    private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
 
     public NavigationCompassView(Context context) {
         super(context);
@@ -321,27 +319,10 @@ public final class NavigationCompassView extends View {
     }
 
     private float resolveRouteThresholdStrokeWidthPx(float routeRadius) {
-        float baseStrokeWidthPx = dp(ROUTE_STROKE_WIDTH_DP);
-        if (compassState == null
-                || compassState.visibleRadiusMeters <= 0f
-                || compassState.routeThresholdMeters <= 0f) {
-            return baseStrokeWidthPx;
-        }
-
-        float corridorHalfWidthMeters = Math.max(
-                0f,
-                compassState.routeThresholdMeters - compassState.accuracyRadiusMeters
-        );
-        if (corridorHalfWidthMeters <= 0f) {
-            return 0f;
-        }
-
-        // The threshold overlay only represents the extra tolerance beyond the orange accuracy circle.
-        float projectedThresholdWidthPx =
-                (2f * corridorHalfWidthMeters / compassState.visibleRadiusMeters) * routeRadius;
-        return Math.max(
-                0f,
-                Math.min(routeRadius * 2f, projectedThresholdWidthPx)
+        return NavigationRouteThreshold.resolveStrokeWidthPx(
+                compassState,
+                routeRadius,
+                dp(ROUTE_STROKE_WIDTH_DP)
         );
     }
 
@@ -354,10 +335,7 @@ public final class NavigationCompassView extends View {
     }
 
     private boolean shouldDrawRouteThresholdOverlay() {
-        return compassState != null
-                && compassState.routeThresholdMeters > compassState.accuracyRadiusMeters
-                && compassState.routeThresholdMeters > 0f
-                && compassState.visibleRadiusMeters > 0f;
+        return NavigationRouteThreshold.shouldDrawOverlay(compassState);
     }
 
     private void drawRouteThresholdGeometrySegment(
@@ -452,50 +430,20 @@ public final class NavigationCompassView extends View {
             @NonNull Paint strokePaint,
             @NonNull ProjectedRoutePointSource pointSource
     ) {
-        routePath.reset();
-        boolean havePrevious = false;
-        boolean activeSubpath = false;
-        boolean hasVisibleSegment = false;
         float visibleRadiusMeters = compassState == null ? 0f : compassState.visibleRadiusMeters;
         float drawPaddingMeters = resolveRouteDrawPaddingMeters();
-        float drawBoundsMeters = visibleRadiusMeters + drawPaddingMeters;
-        for (int i = startIndex; i < endIndex; i++) {
-            if (!pointSource.project(i, routeSegmentEndPoint)) {
-                continue;
-            }
-            if (!havePrevious) {
-                routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
-                havePrevious = true;
-                continue;
-            }
-            if (RouteDrawingMath.isRouteSegmentNearVisibleArea(
-                    routeSegmentStartPoint.x,
-                    routeSegmentStartPoint.y,
-                    routeSegmentEndPoint.x,
-                    routeSegmentEndPoint.y,
-                    visibleRadiusMeters,
-                    drawPaddingMeters
-            )) {
-                float startX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
-                float startY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
-                float endX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
-                float endY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
-                if (!activeSubpath) {
-                    routePath.moveTo(startX, startY);
-                    activeSubpath = true;
-                } else {
-                    routePath.lineTo(startX, startY);
-                }
-                routePath.lineTo(endX, endY);
-                hasVisibleSegment = true;
-            } else {
-                activeSubpath = false;
-            }
-            routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
-        }
-        if (hasVisibleSegment) {
-            canvas.drawPath(routePath, strokePaint);
-        }
+        routePathRenderer.drawProjectedRouteSegment(
+                canvas,
+                cx,
+                cy,
+                scale,
+                startIndex,
+                endIndex,
+                visibleRadiusMeters,
+                drawPaddingMeters,
+                strokePaint,
+                pointSource::project
+        );
     }
 
     private float resolveRouteDrawPaddingMeters() {
@@ -663,7 +611,8 @@ public final class NavigationCompassView extends View {
             return;
         }
 
-        PlotPoint position = resolveDestinationPosition(cx, cy, routeRadius, headingDegrees);
+        NavigationRoutePathRenderer.PlotPoint position =
+                resolveDestinationPosition(cx, cy, routeRadius, headingDegrees);
         if (position == null) {
             return;
         }
@@ -686,13 +635,13 @@ public final class NavigationCompassView extends View {
             String secondsLabel = formatRingTimeLabel(ringDistanceMeters);
             if (visibleHeadingAccuracyDegrees != null) {
                 drawHeadingAccuracyArc(canvas, cx, cy, radius * ringScale, visibleHeadingAccuracyDegrees);
-                PlotPoint rightAnchor = resolveHeadingAccuracyRingIntersection(
+                NavigationRoutePathRenderer.PlotPoint rightAnchor = resolveHeadingAccuracyRingIntersection(
                         cx,
                         cy,
                         radius * ringScale,
                         -90f + visibleHeadingAccuracyDegrees
                 );
-                PlotPoint leftAnchor = resolveHeadingAccuracyRingIntersection(
+                NavigationRoutePathRenderer.PlotPoint leftAnchor = resolveHeadingAccuracyRingIntersection(
                         cx,
                         cy,
                         radius * ringScale,
@@ -763,7 +712,7 @@ public final class NavigationCompassView extends View {
     }
 
     @NonNull
-    private PlotPoint resolveHeadingAccuracyRingIntersection(
+    private NavigationRoutePathRenderer.PlotPoint resolveHeadingAccuracyRingIntersection(
             float cx,
             float cy,
             float ringRadius,
@@ -778,7 +727,7 @@ public final class NavigationCompassView extends View {
     }
 
     @Nullable
-    private PlotPoint resolveDestinationPosition(
+    private NavigationRoutePathRenderer.PlotPoint resolveDestinationPosition(
             float cx,
             float cy,
             float routeRadius,
@@ -843,7 +792,7 @@ public final class NavigationCompassView extends View {
             float eastMeters,
             float northMeters,
             float headingDegrees,
-            @NonNull PlotPoint out
+            @NonNull NavigationRoutePathRenderer.PlotPoint out
     ) {
         double radians = Math.toRadians(headingDegrees);
         float rotatedEast = (float) (eastMeters * Math.cos(radians) - northMeters * Math.sin(radians));
@@ -851,7 +800,11 @@ public final class NavigationCompassView extends View {
         out.set(rotatedEast, rotatedNorth);
     }
 
-    private void projectRoutePoint(@NonNull LatLon point, float headingDegrees, @NonNull PlotPoint out) {
+    private void projectRoutePoint(
+            @NonNull LatLon point,
+            float headingDegrees,
+            @NonNull NavigationRoutePathRenderer.PlotPoint out
+    ) {
         if (compassState == null) {
             out.set(0f, 0f);
             return;
@@ -866,17 +819,7 @@ public final class NavigationCompassView extends View {
         projectHeadingUp(eastMeters, northMeters, headingDegrees, out);
     }
 
-    private static final class PlotPoint {
-        float x;
-        float y;
-
-        void set(float x, float y) {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
     private interface ProjectedRoutePointSource {
-        boolean project(int index, @NonNull PlotPoint out);
+        boolean project(int index, @NonNull NavigationRoutePathRenderer.PlotPoint out);
     }
 }
