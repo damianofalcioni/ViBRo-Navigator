@@ -54,6 +54,24 @@ tasks.register("complexityCheck", Pmd) {
     }
 }
 
+tasks.register("aiMaintainabilitySweep", Pmd) {
+    group = "verification"
+    description = "Runs a stricter non-gating PMD sweep for AI-agent-friendly Java maintainability."
+
+    source = fileTree("src/main/java") {
+        include "**/*.java"
+    }
+    ruleSetFiles = files("$rootDir/config/pmd/ai-maintainability-ruleset.xml")
+    ruleSets = []
+    ignoreFailures = true
+    maxFailures = 0
+
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
 tasks.named("check").configure {
     dependsOn("complexityCheck")
 }

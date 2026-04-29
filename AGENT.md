@@ -22,6 +22,7 @@ Verified commands from the repository root:
 - `.\gradlew.bat assembleDebug`
 - `.\gradlew.bat assembleRelease`
 - `.\gradlew.bat complexityCheck`
+- `.\gradlew.bat aiMaintainabilitySweep`
 - `.\gradlew.bat lint`
 - `.\gradlew.bat lintDebug`
 
@@ -67,6 +68,7 @@ Distribution-related workflows:
 - Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
 - Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
 - `.\gradlew.bat complexityCheck` runs PMD cyclomatic and cognitive complexity thresholds over production Java sources. The task has a zero-violation baseline and should fail on any reported violation; treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes.
+- `.\gradlew.bat aiMaintainabilitySweep` runs a stricter non-gating PMD sweep over production Java sources using AI-agent-friendly maintainability rules. It is allowed to report existing violations and should be used as a refactor backlog, not as a release gate.
 - Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
 
 ## Project rules
