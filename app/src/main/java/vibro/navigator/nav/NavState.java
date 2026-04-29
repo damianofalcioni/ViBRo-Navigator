@@ -430,18 +430,53 @@ public final class NavState {
             @NonNull Context context
     ) {
         if (destinationReached) {
-            return new ArrayList<>(java.util.Collections.singletonList(
-                    NavigationTextFormatter.formatTurnNotification(
-                            context,
-                            new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0),
-                            0.0,
-                            0.0
-                    )
-            ));
+            return buildDestinationReachedDirectionLines(route, context);
         }
-        if (route.voiceHints.isEmpty() || hintIdx < 0 || hintIdx >= route.voiceHints.size()) {
+        if (hasNoUpcomingDirectionHints(route, hintIdx)) {
             return new ArrayList<>();
         }
+
+        List<UpcomingHint> upcomingHints = collectUpcomingDirectionHints(
+                route,
+                index,
+                alongTrackMeters,
+                hintIdx,
+                currentSegmentIndex,
+                speedMps,
+                accuracyMeters
+        );
+        return formatDirectionLines(route, index, upcomingHints, context);
+    }
+
+    @NonNull
+    private static List<String> buildDestinationReachedDirectionLines(
+            @NonNull GeoJsonRoute route,
+            @NonNull Context context
+    ) {
+        return new ArrayList<>(java.util.Collections.singletonList(
+                NavigationTextFormatter.formatTurnNotification(
+                        context,
+                        new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0),
+                        0.0,
+                        0.0
+                )
+        ));
+    }
+
+    private static boolean hasNoUpcomingDirectionHints(@NonNull GeoJsonRoute route, int hintIdx) {
+        return route.voiceHints.isEmpty() || hintIdx < 0 || hintIdx >= route.voiceHints.size();
+    }
+
+    @NonNull
+    private static List<UpcomingHint> collectUpcomingDirectionHints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int hintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            float accuracyMeters
+    ) {
         List<UpcomingHint> upcomingHints = new ArrayList<>(2);
         double minReliableDistanceMeters = minimumReliableTurnDistanceMeters(accuracyMeters);
         for (int i = hintIdx; i < route.voiceHints.size() && upcomingHints.size() < 2; i++) {
@@ -465,35 +500,70 @@ public final class NavState {
                     timeSeconds != null ? timeSeconds : Double.NaN
             ));
         }
+        return upcomingHints;
+    }
+
+    @NonNull
+    private static List<String> formatDirectionLines(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<UpcomingHint> upcomingHints,
+            @NonNull Context context
+    ) {
         List<String> lines = new ArrayList<>(upcomingHints.size());
         if (upcomingHints.isEmpty()) {
             return lines;
         }
-        UpcomingHint nextHint = upcomingHints.get(0);
+        addNextDirectionLine(lines, upcomingHints.get(0), context);
+        if (upcomingHints.size() > 1) {
+            addFollowingDirectionLine(route, index, lines, upcomingHints.get(0), upcomingHints.get(1), context);
+        }
+        return lines;
+    }
+
+    private static void addNextDirectionLine(
+            @NonNull List<String> lines,
+            @NonNull UpcomingHint nextHint,
+            @NonNull Context context
+    ) {
         lines.add(NavigationTextFormatter.formatTurnNotification(
                 context,
                 nextHint.hint,
                 nextHint.distanceMeters,
                 nextHint.timeSeconds
         ));
-        if (upcomingHints.size() > 1) {
-            UpcomingHint afterNextHint = upcomingHints.get(1);
-            double relativeDistanceMeters = Math.max(
-                    0.0,
-                    afterNextHint.distanceMeters - nextHint.distanceMeters
-            );
-            double relativeTimeSeconds = Double.isFinite(nextHint.timeSeconds)
-                    && Double.isFinite(afterNextHint.timeSeconds)
-                    ? Math.max(0.0, afterNextHint.timeSeconds - nextHint.timeSeconds)
-                    : resolveRelativeHintTimeSeconds(route, index, nextHint, afterNextHint);
-            lines.add(NavigationTextFormatter.formatTurnNotification(
-                    context,
-                    afterNextHint.hint,
-                    relativeDistanceMeters,
-                    relativeTimeSeconds
-            ));
-        }
-        return lines;
+    }
+
+    private static void addFollowingDirectionLine(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<String> lines,
+            @NonNull UpcomingHint nextHint,
+            @NonNull UpcomingHint afterNextHint,
+            @NonNull Context context
+    ) {
+        double relativeDistanceMeters = Math.max(
+                0.0,
+                afterNextHint.distanceMeters - nextHint.distanceMeters
+        );
+        double relativeTimeSeconds = relativeHintTimeSeconds(route, index, nextHint, afterNextHint);
+        lines.add(NavigationTextFormatter.formatTurnNotification(
+                context,
+                afterNextHint.hint,
+                relativeDistanceMeters,
+                relativeTimeSeconds
+        ));
+    }
+
+    private static double relativeHintTimeSeconds(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull UpcomingHint nextHint,
+            @NonNull UpcomingHint afterNextHint
+    ) {
+        return Double.isFinite(nextHint.timeSeconds) && Double.isFinite(afterNextHint.timeSeconds)
+                ? Math.max(0.0, afterNextHint.timeSeconds - nextHint.timeSeconds)
+                : resolveRelativeHintTimeSeconds(route, index, nextHint, afterNextHint);
     }
 
     private static double minimumReliableTurnDistanceMeters(float accuracyMeters) {

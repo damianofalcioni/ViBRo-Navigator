@@ -115,7 +115,7 @@ final class NavigationSessionRouteState {
             long nowMs,
             long fastChecksUntilMs
     ) {
-        if (route == null || polylineIndex == null || route.track.isEmpty()) {
+        if (isRouteUnavailable()) {
             AppLogger.i(TAG, "No active route loaded, requesting route calculation");
             return Evaluation.requestRecalculation(null);
         }
@@ -154,54 +154,146 @@ final class NavigationSessionRouteState {
                 actualBearingDegrees,
                 expectedBearingDegrees
         );
-        if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
-            if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.FORWARD) {
-                AppLogger.i(TAG, "Ignoring bearing mismatch because along-track progress is forward delta="
-                        + directionOfProgress.alongTrackDeltaMeters);
-                clearPendingDeviation();
-                progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-                return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
-            }
-            if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.UNKNOWN) {
-                AppLogger.i(TAG, "Holding bearing mismatch until direction-of-progress is known");
-                clearPendingDeviation();
-                progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-                return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, false);
-            }
+        Evaluation progressEvaluation = evaluateBearingMismatchProgress(
+                deviationDecision,
+                directionOfProgress,
+                match,
+                etaSpeedMps,
+                accuracyMeters,
+                nowMs,
+                fastChecksUntilMs
+        );
+        if (progressEvaluation != null) {
+            return progressEvaluation;
         }
+
+        Evaluation deviationEvaluation = evaluateDeviation(
+                deviationDecision,
+                directionOfProgress,
+                match,
+                etaSpeedMps,
+                speedMps,
+                accuracyMeters,
+                expectedBearingDegrees,
+                actualBearingDegrees,
+                nowMs,
+                fastChecksUntilMs
+        );
+        if (deviationEvaluation != null) {
+            return deviationEvaluation;
+        }
+
+        progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+        return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
+    }
+
+    @Nullable
+    private Evaluation evaluateBearingMismatchProgress(
+            @NonNull RouteDeviationPolicy.Decision deviationDecision,
+            @NonNull NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
+            @NonNull PolylineIndex.Match match,
+            float etaSpeedMps,
+            float accuracyMeters,
+            long nowMs,
+            long fastChecksUntilMs
+    ) {
+        if (deviationDecision.reason != RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
+            return null;
+        }
+        if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.FORWARD) {
+            AppLogger.i(TAG, "Ignoring bearing mismatch because along-track progress is forward delta="
+                    + directionOfProgress.alongTrackDeltaMeters);
+            return keepCurrentRouteAfterDeviationCheck(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
+        }
+        if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.UNKNOWN) {
+            AppLogger.i(TAG, "Holding bearing mismatch until direction-of-progress is known");
+            return keepCurrentRouteAfterDeviationCheck(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, false);
+        }
+        return null;
+    }
+
+    @Nullable
+    private Evaluation evaluateDeviation(
+            @NonNull RouteDeviationPolicy.Decision deviationDecision,
+            @NonNull NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
+            @NonNull PolylineIndex.Match match,
+            float etaSpeedMps,
+            float speedMps,
+            float accuracyMeters,
+            double expectedBearingDegrees,
+            @Nullable Double actualBearingDegrees,
+            long nowMs,
+            long fastChecksUntilMs
+    ) {
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.NONE) {
             clearPendingDeviation();
-        } else if (!isConfirmedDeviation(deviationDecision, speedMps)) {
-            AppLogger.i(TAG, "Tentative deviation detected reason=" + deviationDecision.reason
-                    + " distance=" + match.distanceToTrackMeters
-                    + " threshold=" + deviationDecision.offTrackThresholdMeters
-                    + " bearingDiff=" + deviationDecision.bearingDiffDegrees
-                    + " direction=" + directionOfProgress.status
-                    + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters
-                    + " samples=" + pendingDeviationSampleCount);
+            return null;
+        }
+        if (!isConfirmedDeviation(deviationDecision, speedMps)) {
+            logTentativeDeviation(deviationDecision, directionOfProgress, match);
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, false);
         }
+        return requestRouteRecalculationForDeviation(
+                deviationDecision,
+                directionOfProgress,
+                match,
+                expectedBearingDegrees,
+                actualBearingDegrees,
+                nowMs
+        );
+    }
+
+    @NonNull
+    private Evaluation keepCurrentRouteAfterDeviationCheck(
+            @NonNull PolylineIndex.Match match,
+            float etaSpeedMps,
+            float accuracyMeters,
+            long nowMs,
+            long fastChecksUntilMs,
+            boolean stableOnRouteSample
+    ) {
+        clearPendingDeviation();
+        progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+        return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, stableOnRouteSample);
+    }
+
+    private void logTentativeDeviation(
+            @NonNull RouteDeviationPolicy.Decision deviationDecision,
+            @NonNull NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
+            @NonNull PolylineIndex.Match match
+    ) {
+        AppLogger.i(TAG, "Tentative deviation detected reason=" + deviationDecision.reason
+                + " distance=" + match.distanceToTrackMeters
+                + " threshold=" + deviationDecision.offTrackThresholdMeters
+                + " bearingDiff=" + deviationDecision.bearingDiffDegrees
+                + " direction=" + directionOfProgress.status
+                + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters
+                + " samples=" + pendingDeviationSampleCount);
+    }
+
+    @NonNull
+    private Evaluation requestRouteRecalculationForDeviation(
+            @NonNull RouteDeviationPolicy.Decision deviationDecision,
+            @NonNull NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
+            @NonNull PolylineIndex.Match match,
+            double expectedBearingDegrees,
+            @Nullable Double actualBearingDegrees,
+            long nowMs
+    ) {
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.OFF_TRACK) {
             AppLogger.w(TAG, "Off-track detected distance=" + match.distanceToTrackMeters
                     + " threshold=" + deviationDecision.offTrackThresholdMeters);
-            clearPendingDeviation();
-            progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
-        }
-        if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
+        } else if (deviationDecision.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH) {
             AppLogger.w(TAG, "Bearing mismatch detected diff=" + deviationDecision.bearingDiffDegrees
                     + " expected=" + expectedBearingDegrees
                     + " actual=" + actualBearingDegrees
                     + " direction=" + directionOfProgress.status
                     + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters);
-            clearPendingDeviation();
-            progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
         }
-
+        clearPendingDeviation();
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-        return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
+        return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
     }
 
     @NonNull
@@ -224,6 +316,10 @@ final class NavigationSessionRouteState {
                 fastChecksUntilMs
         );
         return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, stableOnRouteSample);
+    }
+
+    private boolean isRouteUnavailable() {
+        return route == null || polylineIndex == null || route.track.isEmpty();
     }
 
     @Nullable
@@ -330,47 +426,17 @@ final class NavigationSessionRouteState {
             @Nullable String routeCalculationNotice,
             @Nullable Throwable lastRouteFailure
     ) {
-        String gpsStatusLine = NavState.buildGpsStatusLine(
-                lastFiltered == null ? Float.NaN : speedMps,
-                lastFiltered,
-                lastFiltered == null ? Float.NaN : accuracyMeters,
-                fixedSatelliteCount,
-                context
-        );
+        String gpsStatusLine = buildGpsStatusLine(context, lastFiltered, speedMps, accuracyMeters, fixedSatelliteCount);
         if (lastFiltered == null) {
-            if (lastRouteFailure != null) {
-                return NavState.withGpsStatus(NavState.routeUnavailable(
-                        context,
-                        NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
-                        nextEvaluationDeadlineElapsedMs
-                ), gpsStatusLine);
-            }
-            return NavState.withGpsStatus(
-                    NavState.waitingForLocation(context, nextEvaluationDeadlineElapsedMs),
-                    gpsStatusLine
-            );
+            return buildStateWithoutLocation(context, nextEvaluationDeadlineElapsedMs, lastRouteFailure, gpsStatusLine);
         }
 
         if (routeCalculationInProgress) {
-            NavState calculatingState = NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
-            if (routeCalculationNotice != null && !routeCalculationNotice.trim().isEmpty()) {
-                calculatingState = NavState.withNotice(calculatingState, routeCalculationNotice);
-            }
-            return NavState.withGpsStatus(calculatingState, gpsStatusLine);
+            return buildCalculatingState(context, nextEvaluationDeadlineElapsedMs, routeCalculationNotice, gpsStatusLine);
         }
 
-        if (route == null || polylineIndex == null) {
-            if (lastRouteFailure != null) {
-                return NavState.withGpsStatus(NavState.routeUnavailable(
-                        context,
-                        NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
-                        nextEvaluationDeadlineElapsedMs
-                ), gpsStatusLine);
-            }
-            return NavState.withGpsStatus(
-                    NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
-                    gpsStatusLine
-            );
+        if (isRouteMissing()) {
+            return buildStateWithoutRoute(context, nextEvaluationDeadlineElapsedMs, lastRouteFailure, gpsStatusLine);
         }
 
         PolylineIndex.Match match = polylineIndex.match(
@@ -415,13 +481,90 @@ final class NavigationSessionRouteState {
                 context
         );
         rememberCompassState(state, nowMs, lastFiltered, likelyStationary);
-        if (lastRouteFailure != null) {
-            return NavState.withNotice(
-                    state,
-                    NavigationRouteFailureFormatter.format(context, lastRouteFailure, true)
-            );
+        return withLastRouteFailureNotice(context, state, lastRouteFailure);
+    }
+
+    @NonNull
+    private String buildGpsStatusLine(
+            @NonNull Context context,
+            @Nullable Location lastFiltered,
+            float speedMps,
+            float accuracyMeters,
+            @Nullable Integer fixedSatelliteCount
+    ) {
+        if (lastFiltered == null) {
+            return NavState.buildGpsStatusLine(Float.NaN, null, Float.NaN, fixedSatelliteCount, context);
         }
-        return state;
+        return NavState.buildGpsStatusLine(speedMps, lastFiltered, accuracyMeters, fixedSatelliteCount, context);
+    }
+
+    private boolean isRouteMissing() {
+        return route == null || polylineIndex == null;
+    }
+
+    @NonNull
+    private NavState buildStateWithoutLocation(
+            @NonNull Context context,
+            long nextEvaluationDeadlineElapsedMs,
+            @Nullable Throwable lastRouteFailure,
+            @NonNull String gpsStatusLine
+    ) {
+        if (lastRouteFailure != null) {
+            return NavState.withGpsStatus(NavState.routeUnavailable(
+                    context,
+                    NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
+                    nextEvaluationDeadlineElapsedMs
+            ), gpsStatusLine);
+        }
+        return NavState.withGpsStatus(
+                NavState.waitingForLocation(context, nextEvaluationDeadlineElapsedMs),
+                gpsStatusLine
+        );
+    }
+
+    @NonNull
+    private NavState buildCalculatingState(
+            @NonNull Context context,
+            long nextEvaluationDeadlineElapsedMs,
+            @Nullable String routeCalculationNotice,
+            @NonNull String gpsStatusLine
+    ) {
+        NavState calculatingState = NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
+        if (routeCalculationNotice != null && !routeCalculationNotice.trim().isEmpty()) {
+            calculatingState = NavState.withNotice(calculatingState, routeCalculationNotice);
+        }
+        return NavState.withGpsStatus(calculatingState, gpsStatusLine);
+    }
+
+    @NonNull
+    private NavState buildStateWithoutRoute(
+            @NonNull Context context,
+            long nextEvaluationDeadlineElapsedMs,
+            @Nullable Throwable lastRouteFailure,
+            @NonNull String gpsStatusLine
+    ) {
+        if (lastRouteFailure != null) {
+            return NavState.withGpsStatus(NavState.routeUnavailable(
+                    context,
+                    NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
+                    nextEvaluationDeadlineElapsedMs
+            ), gpsStatusLine);
+        }
+        return NavState.withGpsStatus(
+                NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
+                gpsStatusLine
+        );
+    }
+
+    @NonNull
+    private NavState withLastRouteFailureNotice(
+            @NonNull Context context,
+            @NonNull NavState state,
+            @Nullable Throwable lastRouteFailure
+    ) {
+        return lastRouteFailure != null
+                ? NavState.withNotice(state, NavigationRouteFailureFormatter.format(context, lastRouteFailure, true))
+                : state;
     }
 
     private float resolveCompassAccuracyMeters(float fallbackAccuracyMeters) {
