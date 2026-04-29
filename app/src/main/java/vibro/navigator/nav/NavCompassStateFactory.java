@@ -11,17 +11,11 @@ import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.nav.route.VoiceHint;
-
-import java.util.ArrayList;
-import java.util.List;
 
 final class NavCompassStateFactory {
     private static final float COMPASS_MOVING_LOOKAHEAD_SECONDS = 60f;
     private static final float COMPASS_MIN_VISIBLE_RADIUS_METERS = 90f;
     private static final long COMPASS_RADIUS_SMOOTHING_TIME_CONSTANT_MS = 450L;
-    private static final int MAX_COMPASS_ROUTE_POINTS = 240;
-    private static final int MAX_COMPASS_HINT_POINTS = 48;
 
     private NavCompassStateFactory() {
     }
@@ -31,67 +25,7 @@ final class NavCompassStateFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index
     ) {
-        return new CompassRouteGeometry(
-                buildRouteSamplePoints(route, index),
-                buildHintSamplePoints(route, index)
-        );
-    }
-
-    @NonNull
-    private static List<CompassRouteGeometry.SamplePoint> buildRouteSamplePoints(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index
-    ) {
-        List<CompassRouteGeometry.SamplePoint> routeSamplePoints = new ArrayList<>();
-        if (route.track.isEmpty()) {
-            return routeSamplePoints;
-        }
-        if (route.track.size() == 1) {
-            routeSamplePoints.add(new CompassRouteGeometry.SamplePoint(route.track.get(0), 0.0));
-            return routeSamplePoints;
-        }
-        double totalLengthMeters = index.totalLengthMeters();
-        double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
-        addSampledRoutePoints(index, 0.0, totalLengthMeters, stepMeters, routeSamplePoints);
-        return routeSamplePoints;
-    }
-
-    @NonNull
-    private static List<LatLon> buildHintSamplePoints(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index
-    ) {
-        List<LatLon> hintSamplePoints = new ArrayList<>();
-        if (route.voiceHints.isEmpty()) {
-            return hintSamplePoints;
-        }
-        if (route.voiceHints.size() <= MAX_COMPASS_HINT_POINTS) {
-            addHintSamplePoints(route, index, 0, route.voiceHints.size() - 1, hintSamplePoints);
-            return hintSamplePoints;
-        }
-        addDownsampledHintPoints(route, index, hintSamplePoints);
-        return hintSamplePoints;
-    }
-
-    private static void addDownsampledHintPoints(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            @NonNull List<LatLon> hintSamplePoints
-    ) {
-        double hintStep = (route.voiceHints.size() - 1d) / (MAX_COMPASS_HINT_POINTS - 1d);
-        int lastSelectedIndex = -1;
-        for (int i = 0; i < MAX_COMPASS_HINT_POINTS; i++) {
-            int selectedIndex = clampHintIndex(route, (int) Math.round(i * hintStep));
-            if (selectedIndex == lastSelectedIndex) {
-                continue;
-            }
-            addHintSamplePoints(route, index, selectedIndex, selectedIndex, hintSamplePoints);
-            lastSelectedIndex = selectedIndex;
-        }
-    }
-
-    private static int clampHintIndex(@NonNull GeoJsonRoute route, int selectedIndex) {
-        return Math.min(route.voiceHints.size() - 1, Math.max(0, selectedIndex));
+        return CompassRouteGeometryFactory.build(route, index);
     }
 
     @NonNull
@@ -162,7 +96,7 @@ final class NavCompassStateFactory {
         double currentLon = currentLocation.getLongitude();
         CompassRouteGeometry routeGeometry = compassRouteGeometry != null
                 ? compassRouteGeometry
-                : buildCompassRouteGeometry(route, index);
+                : CompassRouteGeometryFactory.build(route, index);
 
         LatLon routeEndPoint = route.track.get(route.track.size() - 1);
         float destinationEastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, routeEndPoint.lat, routeEndPoint.lon);
@@ -240,45 +174,6 @@ final class NavCompassStateFactory {
         double alpha = 1.0 - Math.exp(-boundedDeltaMs / (double) COMPASS_RADIUS_SMOOTHING_TIME_CONSTANT_MS);
         return (float) (previousVisibleRadiusMeters
                 + (targetVisibleRadiusMeters - previousVisibleRadiusMeters) * alpha);
-    }
-
-    private static void addSampledRoutePoints(
-            @NonNull PolylineIndex index,
-            double startMeters,
-            double endMeters,
-            double stepMeters,
-            @NonNull List<CompassRouteGeometry.SamplePoint> target
-    ) {
-        if (endMeters < startMeters) {
-            return;
-        }
-        for (double distance = startMeters; distance < endMeters; distance += stepMeters) {
-            LatLon point = index.pointAtDistance(distance);
-            if (point == null) {
-                continue;
-            }
-            target.add(new CompassRouteGeometry.SamplePoint(point, distance));
-        }
-        LatLon endPoint = index.pointAtDistance(endMeters);
-        if (endPoint != null) {
-            target.add(new CompassRouteGeometry.SamplePoint(endPoint, endMeters));
-        }
-    }
-
-    private static void addHintSamplePoints(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            int startHintIndex,
-            int endHintIndex,
-            @NonNull List<LatLon> target
-    ) {
-        for (int i = startHintIndex; i <= endHintIndex; i++) {
-            VoiceHint hint = route.voiceHints.get(i);
-            LatLon hintPoint = index.pointAtDistance(index.distanceAtPointIndex(hint.indexInTrack));
-            if (hintPoint != null) {
-                target.add(hintPoint);
-            }
-        }
     }
 
     private static double resolveFurthestRouteSampleDistanceMeters(

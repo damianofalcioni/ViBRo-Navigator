@@ -8,9 +8,6 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
@@ -39,13 +36,9 @@ public class BRouterProfilesRepository {
     private static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
     private static final String BROUTER_PROFILES_ZIP = "assets/profiles2.zip";
-    private static final String EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY = "com.android.externalstorage.documents";
-    private static final String PRIMARY_ROOT_ID = "primary";
-    private static final String MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH =
-            "Android/media/btools.routingapp/brouter/profiles2";
-    private static final String LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH =
-            "Android/data/btools.routingapp/files/brouter/profiles2";
     private static final String TAG = "BRouterProfiles";
+
+    private final BRouterProfileDirectories profileDirectories = new BRouterProfileDirectories();
 
     @Nullable
     public Uri getCustomProfileUri(@NonNull Context context) {
@@ -123,105 +116,16 @@ public class BRouterProfilesRepository {
     @Nullable
     public Uri getCustomProfilePickerInitialUri(@NonNull Context context) {
         Uri profilesTreeUri = getProfilesTreeUri(context);
-        if (hasPersistedReadPermission(context, profilesTreeUri)) {
-            Uri treeDocumentUri = toTreeDocumentUri(profilesTreeUri);
-            if (treeDocumentUri != null) {
-                return treeDocumentUri;
-            }
-            return profilesTreeUri;
-        }
-        Uri customUri = getCustomProfileUri(context);
-        if (customUri != null) {
-            Uri parentUri = toParentDocumentUri(customUri);
-            if (parentUri != null) {
-                return parentUri;
-            }
-            return customUri;
-        }
-        String documentId = resolveProfilesPickerInitialDocumentId(context);
-        if (documentId == null) {
-            AppLogger.d(TAG, "No accessible profiles folder found for custom picker initial URI");
-            return null;
-        }
-        return buildExternalStorageDocumentUri(documentId);
+        return profileDirectories.getCustomProfilePickerInitialUri(
+                context,
+                profilesTreeUri,
+                hasPersistedReadPermission(context, profilesTreeUri),
+                getCustomProfileUri(context)
+        );
     }
 
     public boolean hasPersistedProfilesTreeAccess(@NonNull Context context) {
         return hasPersistedReadPermission(context, getProfilesTreeUri(context));
-    }
-
-    @Nullable
-    private Uri toParentDocumentUri(@NonNull Uri documentUri) {
-        String parentDocumentId = toParentDocumentId(documentUri);
-        if (parentDocumentId == null) {
-            return null;
-        }
-        return buildExternalStorageDocumentUri(parentDocumentId);
-    }
-
-    @Nullable
-    private String toParentDocumentId(@NonNull Uri documentUri) {
-        try {
-            if (!EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY.equals(documentUri.getAuthority())) {
-                return null;
-            }
-            String documentId = DocumentsContract.getDocumentId(documentUri);
-            int slash = documentId.lastIndexOf('/');
-            if (slash <= 0) {
-                return null;
-            }
-            return documentId.substring(0, slash);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to derive parent document URI from custom profile uri=" + documentUri, e);
-            return null;
-        }
-    }
-
-    @NonNull
-    private Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-        return DocumentsContract.buildDocumentUri(
-                EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
-                documentId
-        );
-    }
-
-    @NonNull
-    private Uri buildExternalStorageTreeUri(@NonNull String documentId) {
-        return DocumentsContract.buildTreeDocumentUri(
-                EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
-                documentId
-        );
-    }
-
-    @Nullable
-    private Uri toTreeDocumentUri(@Nullable Uri treeUri) {
-        if (treeUri == null) {
-            return null;
-        }
-        try {
-            String treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri);
-            return DocumentsContract.buildDocumentUriUsingTree(treeUri, treeDocumentId);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to derive document URI from tree uri=" + treeUri, e);
-            return null;
-        }
-    }
-
-    @Nullable
-    private String resolveProfilesPickerInitialDocumentId(@NonNull Context context) {
-        String existing = findExistingProfilesDocumentId(context);
-        if (existing != null) {
-            return existing;
-        }
-        List<String> fallbackCandidates = buildFallbackPickerDocumentIdCandidates(
-                getSecondaryStorageRootIds(context)
-        );
-        if (fallbackCandidates.isEmpty()) {
-            return null;
-        }
-        String fallback = fallbackCandidates.get(0);
-        AppLogger.d(TAG, "Using fallback profiles path documentId=" + fallback);
-        return fallback;
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
@@ -252,29 +156,12 @@ public class BRouterProfilesRepository {
 
     @NonNull
     List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
-        List<Uri> out = new ArrayList<>();
         Uri savedTreeUri = getProfilesTreeUri(context);
-        if (hasPersistedReadPermission(context, savedTreeUri)) {
-            addDiscoveryTreeUri(out, savedTreeUri);
-        }
-        for (String documentId : getProfilesDocumentIdCandidates(context)) {
-            if (!documentExists(context, documentId)) {
-                continue;
-            }
-            Uri detectedTreeUri = buildExternalStorageTreeUri(documentId);
-            addDiscoveryTreeUri(out, detectedTreeUri);
-        }
-        return out;
-    }
-
-    private void addDiscoveryTreeUri(@NonNull List<Uri> out, @NonNull Uri treeUri) {
-        String candidate = treeUri.toString();
-        for (Uri existing : out) {
-            if (candidate.equals(existing.toString())) {
-                return;
-            }
-        }
-        out.add(treeUri);
+        return profileDirectories.resolveProfilesDiscoveryTreeUris(
+                context,
+                savedTreeUri,
+                hasPersistedReadPermission(context, savedTreeUri)
+        );
     }
 
     @NonNull
@@ -368,84 +255,6 @@ public class BRouterProfilesRepository {
         return base.isEmpty() ? null : base;
     }
 
-    @Nullable
-    private String findExistingProfilesDocumentId(@NonNull Context context) {
-        for (String documentId : getProfilesDocumentIdCandidates(context)) {
-            if (documentExists(context, documentId)) {
-                AppLogger.d(TAG, "Using detected profiles path documentId=" + documentId);
-                return documentId;
-            }
-        }
-        AppLogger.d(TAG, "No accessible profiles path detected");
-        return null;
-    }
-
-    @NonNull
-    private List<String> getProfilesDocumentIdCandidates(@NonNull Context context) {
-        return buildLikelyPickerDocumentIdCandidates(getSecondaryStorageRootIds(context));
-    }
-
-    @NonNull
-    static List<String> buildLikelyPickerDocumentIdCandidates(@NonNull List<String> secondaryRootIds) {
-        List<String> candidates = new ArrayList<>();
-        List<String> rootIds = new ArrayList<>(secondaryRootIds);
-        rootIds.add(PRIMARY_ROOT_ID);
-        for (String rootId : rootIds) {
-            addDocumentIdCandidate(candidates, rootId, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
-        }
-        for (String rootId : rootIds) {
-            addDocumentIdCandidate(candidates, rootId, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
-        }
-        return candidates;
-    }
-
-    @NonNull
-    static List<String> buildFallbackPickerDocumentIdCandidates(@NonNull List<String> secondaryRootIds) {
-        List<String> candidates = new ArrayList<>();
-        addDocumentIdCandidate(candidates, PRIMARY_ROOT_ID, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
-        addDocumentIdCandidate(candidates, PRIMARY_ROOT_ID, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
-        for (String rootId : secondaryRootIds) {
-            addDocumentIdCandidate(candidates, rootId, MEDIA_PROFILES_RELATIVE_DOCUMENT_PATH);
-        }
-        for (String rootId : secondaryRootIds) {
-            addDocumentIdCandidate(candidates, rootId, LEGACY_DATA_PROFILES_RELATIVE_DOCUMENT_PATH);
-        }
-        return candidates;
-    }
-
-    @NonNull
-    private List<String> getSecondaryStorageRootIds(@NonNull Context context) {
-        List<String> rootIds = new ArrayList<>();
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return rootIds;
-        }
-        StorageManager storageManager = context.getSystemService(StorageManager.class);
-        if (storageManager == null) {
-            return rootIds;
-        }
-        for (StorageVolume volume : storageManager.getStorageVolumes()) {
-            String uuid = volume.getUuid();
-            if (uuid == null || uuid.trim().isEmpty()) {
-                continue;
-            }
-            if (!rootIds.contains(uuid)) {
-                rootIds.add(uuid);
-            }
-        }
-        return rootIds;
-    }
-
-    private static void addDocumentIdCandidate(
-            @NonNull List<String> candidates,
-            @NonNull String rootId,
-            @NonNull String relativePath
-    ) {
-        String documentId = rootId + ":" + relativePath;
-        if (!candidates.contains(documentId)) {
-            candidates.add(documentId);
-        }
-    }
-
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
         if (uri == null) {
             return false;
@@ -459,22 +268,5 @@ public class BRouterProfilesRepository {
             }
         }
         return false;
-    }
-
-    private boolean documentExists(@NonNull Context context, @NonNull String documentId) {
-        Uri treeUri = DocumentsContract.buildTreeDocumentUri(EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY, documentId);
-        Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
-        try (Cursor cursor = context.getContentResolver().query(
-                documentUri,
-                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID},
-                null,
-                null,
-                null
-        )) {
-            return cursor != null && cursor.moveToFirst();
-        } catch (Exception e) {
-            AppLogger.d(TAG, "Profiles path not accessible documentId=" + documentId + " error=" + e.getClass().getSimpleName());
-            return false;
-        }
     }
 }

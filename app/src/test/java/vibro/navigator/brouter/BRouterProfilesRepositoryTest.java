@@ -81,7 +81,7 @@ public class BRouterProfilesRepositoryTest {
 
     @Test
     public void buildLikelyPickerDocumentIdCandidates_checksMediaAndDataForAllRootsWithoutSdkSwitch() {
-        List<String> candidates = BRouterProfilesRepository.buildLikelyPickerDocumentIdCandidates(
+        List<String> candidates = BRouterProfileDirectoryCandidates.buildLikelyPickerDocumentIdCandidates(
                 Collections.singletonList("B4DD-C8AC")
         );
 
@@ -93,7 +93,7 @@ public class BRouterProfilesRepositoryTest {
 
     @Test
     public void buildFallbackPickerDocumentIdCandidates_prefersPrimaryBeforeSecondaryRoots() {
-        List<String> candidates = BRouterProfilesRepository.buildFallbackPickerDocumentIdCandidates(
+        List<String> candidates = BRouterProfileDirectoryCandidates.buildFallbackPickerDocumentIdCandidates(
                 Collections.singletonList("0000-0000")
         );
 

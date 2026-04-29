@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
-import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.View;
@@ -16,7 +15,6 @@ import androidx.core.content.ContextCompat;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.NavCompassState;
-import vibro.navigator.nav.NavigationTextFormatter;
 
 import java.util.List;
 
@@ -63,11 +61,10 @@ public final class NavigationCompassView extends View {
     private final Paint destinationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint clipPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path compassClipPath = new Path();
-    private final RectF arcBounds = new RectF();
     private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
-    private final NavigationRoutePathRenderer.PlotPoint auxiliaryPoint = new NavigationRoutePathRenderer.PlotPoint();
     private final NavigationRoutePathRenderer.PlotPoint destinationPoint = new NavigationRoutePathRenderer.PlotPoint();
     private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
+    private final NavigationCompassLegendRenderer legendRenderer = new NavigationCompassLegendRenderer();
 
     public NavigationCompassView(Context context) {
         super(context);
@@ -656,110 +653,31 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawDistanceLegend(@NonNull Canvas canvas, float cx, float cy, float radius) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
-            return;
-        }
-
-        Float visibleHeadingAccuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
-        Paint.FontMetrics fontMetrics = distanceLegendRightPaint.getFontMetrics();
-        float labelBaselineOffset = -(fontMetrics.ascent + fontMetrics.descent) / 2f;
-        float dashHalfWidth = dp(DISTANCE_MARK_WIDTH_DP) / 2f;
-        for (float ringScale : DISTANCE_RING_SCALES) {
-            float y = cy - radius * ringScale;
-            float ringDistanceMeters = resolveLegendRingDistanceMeters(ringScale);
-            String distanceLabel = formatDistanceLabel(ringDistanceMeters);
-            String secondsLabel = formatRingTimeLabel(ringDistanceMeters);
-            if (visibleHeadingAccuracyDegrees != null) {
-                drawHeadingAccuracyArc(canvas, cx, cy, radius * ringScale, visibleHeadingAccuracyDegrees);
-                NavigationRoutePathRenderer.PlotPoint rightAnchor = resolveHeadingAccuracyRingIntersection(
-                        cx,
-                        cy,
-                        radius * ringScale,
-                        -90f + visibleHeadingAccuracyDegrees
-                );
-                NavigationRoutePathRenderer.PlotPoint leftAnchor = resolveHeadingAccuracyRingIntersection(
-                        cx,
-                        cy,
-                        radius * ringScale,
-                        -90f - visibleHeadingAccuracyDegrees
-                );
-                canvas.drawText(
-                        distanceLabel,
-                        rightAnchor.x + dp(DISTANCE_LABEL_OFFSET_DP),
-                        rightAnchor.y + labelBaselineOffset,
-                        distanceLegendRightPaint
-                );
-                canvas.drawText(
-                        secondsLabel,
-                        leftAnchor.x - dp(DISTANCE_LABEL_OFFSET_DP),
-                        leftAnchor.y + labelBaselineOffset,
-                        distanceLegendLeftPaint
-                );
-            } else {
-                float labelX = cx + dashHalfWidth + dp(DISTANCE_LABEL_OFFSET_DP);
-                float secondsX = cx - dashHalfWidth - dp(DISTANCE_LABEL_OFFSET_DP);
-                canvas.drawLine(cx - dashHalfWidth, y, cx + dashHalfWidth, y, distanceMarkPaint);
-                canvas.drawText(
-                        distanceLabel,
-                        labelX,
-                        y + labelBaselineOffset,
-                        distanceLegendRightPaint
-                );
-                canvas.drawText(
-                        secondsLabel,
-                        secondsX,
-                        y + labelBaselineOffset,
-                        distanceLegendLeftPaint
-                );
-            }
-        }
-    }
-
-    @Nullable
-    private Float resolvedVisibleHeadingAccuracyDegrees() {
-        if (compassState == null || compassState.headingAccuracyDegrees == null) {
-            return null;
-        }
-        float headingAccuracyDegrees = Math.min(
-                HEADING_ACCURACY_GUIDE_MAX_DEGREES,
-                Math.max(0f, compassState.headingAccuracyDegrees)
-        );
-        if (headingAccuracyDegrees <= 0f) {
-            return null;
-        }
-        return Math.max(HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES, headingAccuracyDegrees);
-    }
-
-    private void drawHeadingAccuracyArc(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float arcRadius,
-            float visibleHeadingAccuracyDegrees
-    ) {
-        arcBounds.set(cx - arcRadius, cy - arcRadius, cx + arcRadius, cy + arcRadius);
-        canvas.drawArc(
-                arcBounds,
-                -90f - visibleHeadingAccuracyDegrees,
-                visibleHeadingAccuracyDegrees * 2f,
-                false,
+        legendRenderer.draw(
+                canvas,
+                getContext(),
+                compassState,
+                cx,
+                cy,
+                radius,
+                DISTANCE_RING_SCALES,
+                OUTER_DISTANCE_RING_SCALE,
+                dp(DISTANCE_MARK_WIDTH_DP),
+                dp(DISTANCE_LABEL_OFFSET_DP),
+                distanceMarkPaint,
+                distanceLegendRightPaint,
+                distanceLegendLeftPaint,
                 headingAccuracyGuidePaint
         );
     }
 
-    @NonNull
-    private NavigationRoutePathRenderer.PlotPoint resolveHeadingAccuracyRingIntersection(
-            float cx,
-            float cy,
-            float ringRadius,
-            float angleDegrees
-    ) {
-        double radians = Math.toRadians(angleDegrees);
-        auxiliaryPoint.set(
-                cx + (float) Math.cos(radians) * ringRadius,
-                cy + (float) Math.sin(radians) * ringRadius
+    @Nullable
+    private Float resolvedVisibleHeadingAccuracyDegrees() {
+        return NavigationCompassLegendRenderer.resolvedVisibleHeadingAccuracyDegrees(
+                compassState,
+                HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES,
+                HEADING_ACCURACY_GUIDE_MAX_DEGREES
         );
-        return auxiliaryPoint;
     }
 
     @Nullable
@@ -792,28 +710,12 @@ public final class NavigationCompassView extends View {
         return destinationPoint;
     }
 
-    @NonNull
-    private String formatDistanceLabel(float distanceMeters) {
-        if (distanceMeters >= 1000f) {
-            return getResources().getString(R.string.format_distance_km, distanceMeters / 1000f);
-        }
-        return getResources().getString(R.string.format_distance_m, distanceMeters);
-    }
-
-    @NonNull
-    private String formatRingTimeLabel(float distanceMeters) {
-        if (compassState == null) {
-            return getResources().getString(R.string.nav_status_unavailable);
-        }
-        int seconds = (int) Math.round(distanceMeters / Math.max(1f, compassState.referenceSpeedMps));
-        return NavigationTextFormatter.formatTimeSeconds(getContext(), seconds);
-    }
-
     private float resolveLegendRingDistanceMeters(float ringScale) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
-            return 0f;
-        }
-        return compassState.visibleRadiusMeters * (ringScale / OUTER_DISTANCE_RING_SCALE);
+        return NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(
+                compassState,
+                ringScale,
+                OUTER_DISTANCE_RING_SCALE
+        );
     }
 
     private float dp(float value) {
