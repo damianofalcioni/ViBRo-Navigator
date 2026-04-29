@@ -19,6 +19,19 @@ public final class IntentLocationParser {
     private static final Pattern COORDS = Pattern.compile("(?<![\\d.])(-?\\d{1,2}(?:\\.\\d+)?)\\s*,\\s*(-?\\d{1,3}(?:\\.\\d+)?)(?![\\d.])");
     private static final Pattern MAP_URL_IN_TEXT = Pattern.compile("((?:https?://|geo:|google\\.navigation:)[^\\s]+)", Pattern.CASE_INSENSITIVE);
     private static final Pattern AT_COORDS = Pattern.compile("@\\s*(-?\\d{1,2}(?:\\.\\d+)?)\\s*,\\s*(-?\\d{1,3}(?:\\.\\d+)?)");
+    private static final String QUERY_KEY_Q = "q";
+    private static final String QUERY_KEY_QUERY = "query";
+    private static final String QUERY_KEY_DESTINATION = "destination";
+    private static final String QUERY_KEY_DADDR = "daddr";
+    private static final String QUERY_KEY_LL = "ll";
+    private static final String[] GEO_QUERY_KEYS = {QUERY_KEY_Q, QUERY_KEY_QUERY};
+    private static final String[] MAP_QUERY_KEYS = {
+            QUERY_KEY_Q,
+            QUERY_KEY_QUERY,
+            QUERY_KEY_DESTINATION,
+            QUERY_KEY_DADDR,
+            QUERY_KEY_LL
+    };
 
     private IntentLocationParser() {
     }
@@ -56,6 +69,11 @@ public final class IntentLocationParser {
         }
 
         String scheme = trimmed.substring(0, schemeEnd).toLowerCase(Locale.US);
+        return parseUriByScheme(scheme, trimmed, schemeEnd);
+    }
+
+    @Nullable
+    private static String parseUriByScheme(@NonNull String scheme, @NonNull String trimmed, int schemeEnd) {
         switch (scheme) {
             case "geo":
                 return parseGeoUri(trimmed.substring(schemeEnd + 1));
@@ -100,8 +118,8 @@ public final class IntentLocationParser {
         String locationPart = queryIndex >= 0 ? schemeSpecific.substring(0, queryIndex) : schemeSpecific;
         String queryPart = queryIndex >= 0 ? schemeSpecific.substring(queryIndex + 1) : null;
 
-        if (hasAnyQueryKey(queryPart, "q", "query")) {
-            return normalizeCandidate(firstQueryValue(queryPart, "q", "query"));
+        if (hasAnyQueryKey(queryPart, GEO_QUERY_KEYS)) {
+            return normalizeCandidate(firstQueryValue(queryPart, GEO_QUERY_KEYS));
         }
         return extractCoordinates(locationPart);
     }
@@ -109,8 +127,8 @@ public final class IntentLocationParser {
     @Nullable
     private static String parseNavigationUri(@NonNull String schemeSpecific) {
         String query = stripLeadingSlashes(schemeSpecific);
-        if (hasAnyQueryKey(query, "q", "query", "destination", "daddr", "ll")) {
-            return normalizeCandidate(firstQueryValue(query, "q", "query", "destination", "daddr", "ll"));
+        if (hasAnyQueryKey(query, MAP_QUERY_KEYS)) {
+            return normalizeCandidate(firstQueryValue(query, MAP_QUERY_KEYS));
         }
         return extractCoordinates(schemeSpecific);
     }
@@ -139,8 +157,8 @@ public final class IntentLocationParser {
 
     @Nullable
     private static String parseKnownMapQuery(@Nullable String query) {
-        if (hasAnyQueryKey(query, "q", "query", "destination", "daddr", "ll")) {
-            return normalizeCandidate(firstQueryValue(query, "q", "query", "destination", "daddr", "ll"));
+        if (hasAnyQueryKey(query, MAP_QUERY_KEYS)) {
+            return normalizeCandidate(firstQueryValue(query, MAP_QUERY_KEYS));
         }
         String mlat = firstQueryValue(query, "mlat");
         String mlon = firstQueryValue(query, "mlon");
