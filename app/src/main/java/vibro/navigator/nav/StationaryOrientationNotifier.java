@@ -78,23 +78,17 @@ final class StationaryOrientationNotifier {
             @NonNull StationaryOrientationAdvisor.Evaluation evaluation,
             @NonNull Sink sink
     ) {
-        switch (evaluation.outcome) {
-            case ALIGNED:
-                handledForCurrentStop = true;
-                AppLogger.i(TAG, "Stationary orientation notification skipped because the user is already aligned");
-                return;
-            case NOTIFY:
-                notifyIfDecisionAvailable(evaluation, sink);
-                return;
-            case MOVING:
-                reset();
-                return;
-            case WAITING_FOR_DWELL:
-            case WAITING_FOR_ROUTE:
-            case WAITING_FOR_SENSOR:
-            case WAITING_FOR_CALIBRATION:
-            default:
-                return;
+        if (evaluation.outcome == StationaryOrientationAdvisor.Outcome.ALIGNED) {
+            handledForCurrentStop = true;
+            AppLogger.i(TAG, "Stationary orientation notification skipped because the user is already aligned");
+            return;
+        }
+        if (evaluation.outcome == StationaryOrientationAdvisor.Outcome.NOTIFY) {
+            notifyIfDecisionAvailable(evaluation, sink);
+            return;
+        }
+        if (evaluation.outcome == StationaryOrientationAdvisor.Outcome.MOVING) {
+            reset();
         }
     }
 

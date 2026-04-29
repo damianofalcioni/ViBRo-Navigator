@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class GeoJsonRouteParser {
+    private static final String DEFAULT_ROUTE_METRIC = "0";
+
     private GeoJsonRouteParser() {
     }
 
@@ -29,14 +31,7 @@ public final class GeoJsonRouteParser {
                 return emptyRoute();
             }
 
-            JSONObject props = trackFeature.optJSONObject("properties");
-            return new GeoJsonRoute(
-                    parseTrack(trackFeature.optJSONObject("geometry")),
-                    parseVoiceHints(props),
-                    parseTimes(props != null ? props.optJSONArray("times") : null),
-                    parseDouble(props != null ? props.optString("total-time", "0") : "0"),
-                    parseDouble(props != null ? props.optString("track-length", "0") : "0")
-            );
+            return parseRoute(trackFeature);
         } catch (JSONException ignored) {
             return emptyRoute();
         }
@@ -45,6 +40,26 @@ public final class GeoJsonRouteParser {
     @NonNull
     private static GeoJsonRoute emptyRoute() {
         return new GeoJsonRoute(new ArrayList<>(), new ArrayList<>(), 0, 0);
+    }
+
+    @NonNull
+    private static GeoJsonRoute parseRoute(@NonNull JSONObject trackFeature) {
+        JSONObject props = trackFeature.optJSONObject("properties");
+        return new GeoJsonRoute(
+                parseTrack(trackFeature.optJSONObject("geometry")),
+                parseVoiceHints(props),
+                parseTimes(props != null ? props.optJSONArray("times") : null),
+                parseDouble(routeMetric(props, "total-time")),
+                parseDouble(routeMetric(props, "track-length"))
+        );
+    }
+
+    @NonNull
+    private static String routeMetric(JSONObject props, @NonNull String key) {
+        if (props == null) {
+            return DEFAULT_ROUTE_METRIC;
+        }
+        return props.optString(key, DEFAULT_ROUTE_METRIC);
     }
 
     @NonNull

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.util.AppLogger;
 
@@ -40,17 +41,10 @@ public final class PoiHistoryStore {
         try {
             JSONArray arr = new JSONArray(raw);
             for (int i = 0; i < arr.length(); i++) {
-                JSONObject o = arr.optJSONObject(i);
-                if (o == null) {
-                    continue;
+                Poi poi = parseItem(arr.optJSONObject(i));
+                if (poi != null) {
+                    out.add(poi);
                 }
-                String name = o.optString("name", "");
-                double lat = o.optDouble("lat", Double.NaN);
-                double lon = o.optDouble("lon", Double.NaN);
-                if (name.isEmpty() || Double.isNaN(lat) || Double.isNaN(lon)) {
-                    continue;
-                }
-                out.add(new Poi(name, lat, lon));
             }
         } catch (JSONException e) {
             AppLogger.w(TAG, "Failed to parse POI history payload", e);
@@ -151,6 +145,20 @@ public final class PoiHistoryStore {
         }
         prefs.edit().putString(KEY_ITEMS, arr.toString()).apply();
         AppLogger.d(TAG, "Persisted POI history count=" + count);
+    }
+
+    @Nullable
+    private static Poi parseItem(@Nullable JSONObject item) {
+        if (item == null) {
+            return null;
+        }
+        String name = item.optString("name", "");
+        double lat = item.optDouble("lat", Double.NaN);
+        double lon = item.optDouble("lon", Double.NaN);
+        if (name.isEmpty() || Double.isNaN(lat) || Double.isNaN(lon)) {
+            return null;
+        }
+        return new Poi(name, lat, lon);
     }
 
     private static boolean matches(@NonNull Poi poi, @NonNull String normalizedQuery) {

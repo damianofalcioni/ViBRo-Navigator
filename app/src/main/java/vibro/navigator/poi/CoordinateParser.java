@@ -1,5 +1,6 @@
 package vibro.navigator.poi;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Locale;
@@ -24,16 +25,32 @@ public final class CoordinateParser {
         if (!m.find()) {
             return null;
         }
+        return parseMatch(m, fallbackName);
+    }
+
+    @Nullable
+    private static Poi parseMatch(@NonNull Matcher m, @Nullable String fallbackName) {
         try {
             double lat = Double.parseDouble(m.group(1));
             double lon = Double.parseDouble(m.group(2));
-            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+            if (!isInRange(lat, lon)) {
                 return null;
             }
-            String name = fallbackName != null ? fallbackName : String.format(Locale.US, "%.6f, %.6f", lat, lon);
-            return new Poi(name, lat, lon);
+            return new Poi(displayName(lat, lon, fallbackName), lat, lon);
         } catch (NumberFormatException ignored) {
             return null;
         }
+    }
+
+    private static boolean isInRange(double lat, double lon) {
+        return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+    }
+
+    @NonNull
+    private static String displayName(double lat, double lon, @Nullable String fallbackName) {
+        if (fallbackName != null) {
+            return fallbackName;
+        }
+        return String.format(Locale.US, "%.6f, %.6f", lat, lon);
     }
 }

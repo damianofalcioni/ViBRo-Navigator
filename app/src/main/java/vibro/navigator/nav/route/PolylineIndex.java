@@ -64,6 +64,11 @@ public final class PolylineIndex {
             return pts.get(pts.size() - 1);
         }
 
+        return interpolateInteriorPoint(alongTrackMeters);
+    }
+
+    @NonNull
+    private LatLon interpolateInteriorPoint(double alongTrackMeters) {
         for (int i = 1; i < pts.size(); i++) {
             double segmentStart = cumulative[i - 1];
             double segmentEnd = cumulative[i];
