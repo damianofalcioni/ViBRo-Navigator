@@ -24,7 +24,7 @@ public class AboutSensorStatusFormatterTest {
         location.setBearingAccuracyDegrees(9.4f);
         location.setTime(nowMs - 2_000L);
 
-        String value = AboutSensorStatusFormatter.describeLocationValue(location, 7);
+        String value = AboutSensorValueFormatter.describeLocationValue(location, 7);
 
         assertTrue(value.contains("lat=48.208200 lon=16.373800"));
         assertTrue(value.contains("acc=5.0m"));

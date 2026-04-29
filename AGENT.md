@@ -37,7 +37,7 @@ Distribution-related workflows:
 
 ## Architecture
 
-- `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation.
+- `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation. Keep routing-profile spinner option construction and restore-position logic in `ProfileSpinnerOptions`/`ProfileSpinnerOption` rather than folding that state machine back into the activity or spinner controller.
 - `MapPickerActivity` owns manual map-based point picking for destination and stop fields. Keep it dependency-light: use the existing local WebView asset approach for OpenStreetMap raster tiles instead of introducing a native map SDK unless explicitly requested.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
 - Treat pause/resume as real navigation-session state, not as a UI-only toggle. `NavigationActivity` should only render and invoke binder actions; the paused/running behavior must stay owned by `NavigationService` and `NavigationSession`.
@@ -53,12 +53,14 @@ Distribution-related workflows:
 - Keep reroute heuristics split between bearing-source trust, route-deviation policy, and route-state progress confirmation. Wrong-direction detection should continue to use forward-looking route bearing plus along-track direction-of-progress evidence instead of relying on a raw matched-segment bearing alone.
 - Startup last-known-location freshness and quality selection belongs in `NavigationStartupLocationSelector`; keep `NavigationLocationController` focused on Android location-provider wiring, subscriptions, current-location seeds, and GNSS status.
 - `NavigationRequest` owns the shared navigation extras contract used by activities, the service, and resume notifications.
-- `NavigationTextFormatter` owns shared user-visible navigation/notification formatting.
+- `NavigationTextFormatter` owns shared user-visible navigation/notification formatting. Keep GPS status field formatting and validity checks in `NavigationGpsTextFormatter` so turn/off-route copy and GPS telemetry copy remain separate.
 - `brouter/` owns BRouter service integration, routing params, profile discovery, and GeoJSON route requests. Preserve the current `timode=9` voice-hint contract unless there is a deliberate product change.
 - `poi/`, `poi/search/`, and `poi/ui/` own POI parsing, history, provider-backed search, and shared suggestion UI. Keep search execution shared across inputs.
+- Incoming shared/opened location parsing is split under `util/`: `IntentLocationParser` handles intent/shared-text orchestration, `IntentLocationUriParser` handles URI scheme dispatch, `IntentWebMapUriParser` handles Google Maps/OpenStreetMap web URLs, and the coordinate/query/decode helpers keep the parsing mechanics isolated.
 - `app/src/main/assets/map_picker.html` is the current map-rendering implementation for destination/stop selection. Preserve tap-to-select, drag-to-pan, pinch-to-zoom, button-based zoom/current-location controls, and safe gesture handling so pinch release does not mutate the selected point.
 - `nav/route/`, `nav/directions/`, and `nav/kalman/` hold route parsing/matching, voice-hint mapping, and location smoothing.
-- `util/AppLogger` is the shared file logger. Single-line and multiline writes should continue to use the same formatting and append path.
+- About-page developer diagnostics are split between `AboutSensorStatusFormatter` for status orchestration, `AboutGnssStatusTracker` for GNSS satellite tracking, and `AboutSensorValueFormatter` for pure diagnostic value formatting.
+- `util/AppLogger` is the shared logging facade. Single-line and multiline writes should continue to use the same `buildLogPrefix` formatting and `AppLogFiles` append path; keep log storage selection in `AppLogStorage` and trimming/migration/recreation in `AppLogFileMaintenance`.
 
 ## Test strategy
 
@@ -90,7 +92,7 @@ Distribution-related workflows:
 - If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect both `brouter/` and `nav/route/` paths together and keep mode-9 coverage aligned.
 - If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, shared search dispatch, and history behavior for externally opened locations.
 - If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout.
-- If you change logging, keep the shared `buildLogPrefix`/`appendBlock` style intact so formatting and file-rotation behavior stay consistent.
+- If you change logging, keep the shared `buildLogPrefix` plus `AppLogFiles.appendBlock` path intact so formatting, developer-mode gating, file-session selection, trimming, and legacy migration behavior stay consistent.
 - When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by `lintDebug`.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
 - After any code update, always run `.\gradlew.bat testDebugUnitTest`, `.\gradlew.bat complexityCheck`, and `.\gradlew.bat lintDebug` before closing the task.

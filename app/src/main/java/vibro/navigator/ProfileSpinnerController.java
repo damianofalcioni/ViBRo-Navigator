@@ -15,7 +15,6 @@ import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.util.AppLogger;
 
 import java.util.ArrayList;
-import java.util.List;
 
 final class ProfileSpinnerController {
 
@@ -29,9 +28,8 @@ final class ProfileSpinnerController {
     private final Spinner spinner;
     private final BRouterProfilesRepository profilesRepository;
     private final Listener listener;
-    private final ArrayAdapter<ProfileOption> adapter;
-    private final List<String> profiles = new ArrayList<>();
-    private final List<ProfileOption> options = new ArrayList<>();
+    private final ArrayAdapter<ProfileSpinnerOption> adapter;
+    private final ProfileSpinnerOptions options = new ProfileSpinnerOptions();
 
     private boolean suppressSelectionCallback;
     private boolean selectionUserInitiated;
@@ -77,23 +75,17 @@ final class ProfileSpinnerController {
         if (currentSelectionKey == null) {
             currentSelectionKey = profilesRepository.getSelectedProfileKey(context);
         }
-        profiles.clear();
-        profiles.addAll(profilesRepository.listProfiles(context));
         String customProfile = profilesRepository.getCustomProfileName(context);
+        options.replace(context, profilesRepository.listProfiles(context), customProfile);
         suppressSelectionCallback = true;
         adapter.clear();
-        options.clear();
-        for (String profile : profiles) {
-            options.add(new ProfileOption(profile, profile, false));
-        }
-        options.add(buildCustomOption(customProfile));
-        adapter.addAll(options);
+        adapter.addAll(options.all());
         adapter.notifyDataSetChanged();
         restoreSelection(currentSelectionKey, customProfile);
         suppressSelectionCallback = false;
-        AppLogger.i(TAG, "Loaded routing profiles count=" + profiles.size()
-                + " profiles=" + profiles
-                + " customProfile=" + safe(customProfile));
+        AppLogger.i(TAG, "Loaded routing profiles count=" + options.profilesForLog().size()
+                + " profiles=" + options.profilesForLog()
+                + " customProfile=" + ProfileSpinnerOption.safe(customProfile));
     }
 
     void onCustomProfileSaved() {
@@ -114,29 +106,44 @@ final class ProfileSpinnerController {
             Toast.makeText(context, R.string.msg_brouter_not_found, Toast.LENGTH_SHORT).show();
             return null;
         }
-        int position = spinner.getSelectedItemPosition();
-        if (position < 0 || position >= options.size()) {
-            Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
+        ProfileSpinnerOption option = getSelectedOptionOrToast();
+        if (option == null) {
             return null;
         }
-        ProfileOption option = options.get(position);
         if (!option.isCustom()) {
-            return option.profileName;
+            return option.profileName();
         }
-        String customProfile = profilesRepository.getCustomProfileName(context);
-        if (customProfile == null || customProfile.trim().isEmpty()) {
+        return resolveCustomProfile();
+    }
+
+    @Nullable
+    private ProfileSpinnerOption getSelectedOptionOrToast() {
+        ProfileSpinnerOption option = options.optionAt(spinner.getSelectedItemPosition());
+        if (option == null) {
             Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
-            listener.onCustomProfilePickerRequested();
-            return null;
         }
-        return customProfile;
+        return option;
+    }
+
+    @Nullable
+    private String resolveCustomProfile() {
+        String customProfile = profilesRepository.getCustomProfileName(context);
+        if (customProfile != null && !customProfile.trim().isEmpty()) {
+            return customProfile;
+        }
+        Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
+        listener.onCustomProfilePickerRequested();
+        return null;
     }
 
     private void handleSelection(int position) {
         if (suppressSelectionCallback || position < 0 || position >= options.size()) {
             return;
         }
-        ProfileOption option = options.get(position);
+        ProfileSpinnerOption option = options.optionAt(position);
+        if (option == null) {
+            return;
+        }
         saveSelectedOption(option);
         if (!option.isCustom()) {
             selectionUserInitiated = false;
@@ -154,55 +161,26 @@ final class ProfileSpinnerController {
     @Nullable
     private String getSelectedProfileKey() {
         int position = spinner.getSelectedItemPosition();
-        if (position < 0 || position >= options.size()) {
+        ProfileSpinnerOption option = options.optionAt(position);
+        if (option == null) {
             return null;
         }
-        return options.get(position).selectionKey();
+        return option.selectionKey();
     }
 
     private void restoreSelection(@Nullable String selectionKey, @Nullable String customProfile) {
-        int target = findProfileOptionPosition(selectionKey);
-        if (target < 0 && profiles.isEmpty() && customProfile != null) {
-            target = findCustomProfilePosition();
-        }
-        if (target < 0) {
-            target = 0;
-        }
-        setSelection(target);
+        setSelection(options.restoredPosition(selectionKey, customProfile));
     }
 
     private void selectFirstRegularProfile() {
-        if (!profiles.isEmpty()) {
-            setSelection(0);
-            return;
-        }
-        int customPosition = findCustomProfilePosition();
-        if (customPosition >= 0) {
-            setSelection(customPosition);
-        }
+        setSelection(options.firstRegularOrCustomPosition());
     }
 
     private void selectCustomProfileOption() {
-        int position = findCustomProfilePosition();
+        int position = options.findCustomPosition();
         if (position >= 0) {
             setSelection(position);
         }
-    }
-
-    private int findCustomProfilePosition() {
-        return findProfileOptionPosition(ProfileOption.CUSTOM_KEY);
-    }
-
-    private int findProfileOptionPosition(@Nullable String selectionKey) {
-        if (selectionKey == null) {
-            return -1;
-        }
-        for (int i = 0; i < options.size(); i++) {
-            if (selectionKey.equals(options.get(i).selectionKey())) {
-                return i;
-            }
-        }
-        return -1;
     }
 
     private void setSelection(int position) {
@@ -212,58 +190,13 @@ final class ProfileSpinnerController {
         suppressSelectionCallback = true;
         spinner.setSelection(position, false);
         suppressSelectionCallback = false;
-        saveSelectedOption(options.get(position));
+        ProfileSpinnerOption option = options.optionAt(position);
+        if (option != null) {
+            saveSelectedOption(option);
+        }
     }
 
-    private void saveSelectedOption(@NonNull ProfileOption option) {
+    private void saveSelectedOption(@NonNull ProfileSpinnerOption option) {
         profilesRepository.saveSelectedProfileKey(context, option.selectionKey());
-    }
-
-    @NonNull
-    private ProfileOption buildCustomOption(@Nullable String customProfile) {
-        if (customProfile == null || customProfile.trim().isEmpty()) {
-            return new ProfileOption(context.getString(R.string.label_vehicle_profile_custom), null, true);
-        }
-        return new ProfileOption(
-                context.getString(R.string.label_vehicle_profile_custom_with_name, customProfile),
-                customProfile,
-                true
-        );
-    }
-
-    @NonNull
-    private static String safe(@Nullable String value) {
-        return value == null ? "null" : value;
-    }
-
-    private static final class ProfileOption {
-        private static final String CUSTOM_KEY = "__custom__";
-
-        @NonNull
-        private final String label;
-        @Nullable
-        private final String profileName;
-        private final boolean custom;
-
-        private ProfileOption(@NonNull String label, @Nullable String profileName, boolean custom) {
-            this.label = label;
-            this.profileName = profileName;
-            this.custom = custom;
-        }
-
-        private boolean isCustom() {
-            return custom;
-        }
-
-        @NonNull
-        private String selectionKey() {
-            return custom ? CUSTOM_KEY : safe(profileName);
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return label;
-        }
     }
 }
