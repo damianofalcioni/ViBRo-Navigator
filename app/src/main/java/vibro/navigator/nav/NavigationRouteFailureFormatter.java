@@ -60,15 +60,25 @@ final class NavigationRouteFailureFormatter {
     private static String firstMessage(@Nullable Throwable throwable) {
         Throwable current = throwable;
         while (current != null) {
-            String message = current.getMessage();
-            if (message != null) {
-                String sanitized = message.replace('\r', ' ').replace('\n', ' ').trim();
-                if (!sanitized.isEmpty()) {
-                    return sanitized.length() > 120 ? sanitized.substring(0, 117) + "..." : sanitized;
-                }
+            String sanitized = sanitizeMessage(current.getMessage());
+            if (!sanitized.isEmpty()) {
+                return truncateMessage(sanitized);
             }
             current = current.getCause();
         }
         return "";
+    }
+
+    @NonNull
+    private static String sanitizeMessage(@Nullable String message) {
+        if (message == null) {
+            return "";
+        }
+        return message.replace('\r', ' ').replace('\n', ' ').trim();
+    }
+
+    @NonNull
+    private static String truncateMessage(@NonNull String message) {
+        return message.length() > 120 ? message.substring(0, 117) + "..." : message;
     }
 }

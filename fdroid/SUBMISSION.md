@@ -1,24 +1,24 @@
 # F-Droid Submission Notes
 
 This directory contains a draft `fdroiddata` metadata file for
-`navigator`.
+`vibro.navigator`.
 
 Before opening the official F-Droid merge request, complete these steps:
 
 1. Push the repository to a public GitHub URL.
 2. Commit the current F-Droid prep changes.
 3. Create and push a release tag matching `versionName`, for example `v0.1.0`.
-4. Replace the placeholders in `fdroid/navigator.yml`:
+4. Replace the placeholders in `fdroid/vibro.navigator.yml`:
    - `REPLACE_WITH_GITHUB_OWNER`
    - `REPLACE_WITH_RELEASE_TAG_OR_COMMIT`
-5. Copy `fdroid/navigator.yml` into your `fdroiddata` fork as
-   `metadata/navigator.yml`.
+5. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
+   `metadata/vibro.navigator.yml`.
 6. Run the standard validation flow in the F-Droid build container:
    - `fdroid readmeta`
-   - `fdroid rewritemeta navigator`
-   - `fdroid checkupdates --allow-dirty navigator`
-   - `fdroid lint navigator`
-   - `fdroid build navigator`
+   - `fdroid rewritemeta vibro.navigator`
+   - `fdroid checkupdates --allow-dirty vibro.navigator`
+   - `fdroid lint vibro.navigator`
+   - `fdroid build vibro.navigator`
 
 Useful repository files already prepared upstream:
 
@@ -40,7 +40,7 @@ Notes:
 The `Submit F-Droid Metadata` workflow can automate the part that is safe to
 automate:
 
-- render the final `metadata/navigator.yml`
+- render the final `metadata/vibro.navigator.yml`
 - push it to your GitLab `fdroiddata` fork
 - create or reuse a merge request against `fdroid/fdroiddata`
 
@@ -55,7 +55,7 @@ Workflow inputs:
 
 - `release_ref`: the release tag or commit to place in the F-Droid metadata
 - `fdroiddata_branch`: the branch name in your fork, normally
-  `navigator`
+  `vibro.navigator`
 
 This does not fully automate official inclusion. F-Droid maintainers still
 review the merge request and perform the final rebuild/sign/publish steps on

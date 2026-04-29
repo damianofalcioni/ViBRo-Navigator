@@ -124,16 +124,9 @@ public final class IntentLocationParser {
         String host = extractHost(base);
 
         if (isKnownMapHost(host)) {
-            if (hasAnyQueryKey(query, "q", "query", "destination", "daddr", "ll")) {
-                return normalizeCandidate(firstQueryValue(query, "q", "query", "destination", "daddr", "ll"));
-            }
-            String mlat = firstQueryValue(query, "mlat");
-            String mlon = firstQueryValue(query, "mlon");
-            if (mlat != null && mlon != null) {
-                String pair = extractCoordinates(mlat + "," + mlon);
-                if (pair != null) {
-                    return pair;
-                }
+            String mapQueryResult = parseKnownMapQuery(query);
+            if (mapQueryResult != null) {
+                return mapQueryResult;
             }
         }
 
@@ -142,6 +135,19 @@ public final class IntentLocationParser {
             return normalizeCoordinates(atMatcher.group(1), atMatcher.group(2));
         }
         return extractCoordinates(withoutFragment);
+    }
+
+    @Nullable
+    private static String parseKnownMapQuery(@Nullable String query) {
+        if (hasAnyQueryKey(query, "q", "query", "destination", "daddr", "ll")) {
+            return normalizeCandidate(firstQueryValue(query, "q", "query", "destination", "daddr", "ll"));
+        }
+        String mlat = firstQueryValue(query, "mlat");
+        String mlon = firstQueryValue(query, "mlon");
+        if (mlat == null || mlon == null) {
+            return null;
+        }
+        return extractCoordinates(mlat + "," + mlon);
     }
 
     @Nullable

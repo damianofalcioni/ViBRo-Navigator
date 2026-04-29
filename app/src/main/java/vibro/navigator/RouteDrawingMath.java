@@ -12,17 +12,13 @@ final class RouteDrawingMath {
             float visibleRadiusMeters,
             float paddingMeters
     ) {
-        if (!Float.isFinite(startX)
-                || !Float.isFinite(startY)
-                || !Float.isFinite(endX)
-                || !Float.isFinite(endY)
-                || !Float.isFinite(visibleRadiusMeters)
-                || visibleRadiusMeters <= 0f) {
+        if (!hasFiniteSegmentEndpoints(startX, startY, endX, endY)
+                || !hasUsableVisibleRadius(visibleRadiusMeters)) {
             return false;
         }
         float drawRadiusMeters = visibleRadiusMeters + Math.max(0f, paddingMeters);
-        if (Math.hypot(startX, startY) <= drawRadiusMeters
-                || Math.hypot(endX, endY) <= drawRadiusMeters) {
+        if (isPointWithinRadius(startX, startY, drawRadiusMeters)
+                || isPointWithinRadius(endX, endY, drawRadiusMeters)) {
             return true;
         }
         float dx = endX - startX;
@@ -36,6 +32,21 @@ final class RouteDrawingMath {
         float closestX = startX + dx * t;
         float closestY = startY + dy * t;
         return Math.hypot(closestX, closestY) <= drawRadiusMeters;
+    }
+
+    private static boolean hasFiniteSegmentEndpoints(float startX, float startY, float endX, float endY) {
+        return Float.isFinite(startX)
+                && Float.isFinite(startY)
+                && Float.isFinite(endX)
+                && Float.isFinite(endY);
+    }
+
+    private static boolean hasUsableVisibleRadius(float visibleRadiusMeters) {
+        return Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f;
+    }
+
+    private static boolean isPointWithinRadius(float x, float y, float radiusMeters) {
+        return Math.hypot(x, y) <= radiusMeters;
     }
 
     static float clampRouteCoordinate(float coordinateMeters, float drawBoundsMeters) {

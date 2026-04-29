@@ -46,17 +46,7 @@ final class NavigationRoutePathRenderer {
                     visibleRadiusMeters,
                     drawPaddingMeters
             )) {
-                float startX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
-                float startY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
-                float endX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
-                float endY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
-                if (!activeSubpath) {
-                    routePath.moveTo(startX, startY);
-                    activeSubpath = true;
-                } else {
-                    routePath.lineTo(startX, startY);
-                }
-                routePath.lineTo(endX, endY);
+                activeSubpath = appendVisibleSegment(cx, cy, scale, drawBoundsMeters, activeSubpath);
                 hasVisibleSegment = true;
             } else {
                 activeSubpath = false;
@@ -66,6 +56,26 @@ final class NavigationRoutePathRenderer {
         if (hasVisibleSegment) {
             canvas.drawPath(routePath, strokePaint);
         }
+    }
+
+    private boolean appendVisibleSegment(
+            float cx,
+            float cy,
+            float scale,
+            float drawBoundsMeters,
+            boolean activeSubpath
+    ) {
+        float startX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
+        float startY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
+        float endX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
+        float endY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
+        if (!activeSubpath) {
+            routePath.moveTo(startX, startY);
+        } else {
+            routePath.lineTo(startX, startY);
+        }
+        routePath.lineTo(endX, endY);
+        return true;
     }
 
     static final class PlotPoint {

@@ -47,14 +47,20 @@ public final class BRouterRouter {
                 + " profile=" + profile
                 + " intermediates=" + stops.size()
                 + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
-        Bundle params = BRouterParams.buildRouteParams(
-                start,
-                stops,
-                end,
-                profile,
-                blockedWaypoints
-        );
+        String decoded = requestRoutePayload(client, start, stops, end, profile, blockedWaypoints);
+        return parseRoutePayload(decoded);
+    }
 
+    @NonNull
+    private String requestRoutePayload(
+            @NonNull BRouterClient client,
+            @NonNull LatLon start,
+            @NonNull List<LatLon> stops,
+            @NonNull LatLon end,
+            @NonNull String profile,
+            @Nullable List<NogoPoint> blockedWaypoints
+    ) throws Exception {
+        Bundle params = BRouterParams.buildRouteParams(start, stops, end, profile, blockedWaypoints);
         String raw = client.getTrackFromParams(params);
         if (raw == null) {
             AppLogger.w(TAG, "BRouter returned null route payload");
@@ -62,6 +68,11 @@ public final class BRouterRouter {
         }
         String decoded = BRouterClient.decodeResult(raw);
         AppLogger.dMultiline(TAG, "Full BRouter response=", decoded);
+        return decoded;
+    }
+
+    @NonNull
+    private GeoJsonRoute parseRoutePayload(@NonNull String decoded) throws Exception {
         String sanitized = decoded == null ? "" : decoded.trim();
         if (!sanitized.startsWith("{")) {
             AppLogger.w(TAG, "BRouter returned non-GeoJSON payload prefix="

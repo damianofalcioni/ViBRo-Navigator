@@ -204,6 +204,14 @@ final class RouteTimeEstimator {
         }
 
         double clampedAlongTrackMeters = Math.max(0.0, Math.min(alongTrackMeters, polylineIndex.totalLengthMeters()));
+        return interpolateTimeAcrossSegments(polylineIndex, timesSeconds, clampedAlongTrackMeters);
+    }
+
+    private static double interpolateTimeAcrossSegments(
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<Double> timesSeconds,
+            double alongTrackMeters
+    ) {
         double previousDistanceMeters = 0.0;
         double previousTimeSeconds = timesSeconds.get(0);
         if (!Double.isFinite(previousTimeSeconds)) {
@@ -216,18 +224,34 @@ final class RouteTimeEstimator {
             if (!Double.isFinite(nextTimeSeconds)) {
                 return Double.NaN;
             }
-            if (clampedAlongTrackMeters <= nextDistanceMeters) {
-                double segmentDistanceMeters = nextDistanceMeters - previousDistanceMeters;
-                if (segmentDistanceMeters <= 0.0) {
-                    return nextTimeSeconds;
-                }
-                double ratio = (clampedAlongTrackMeters - previousDistanceMeters) / segmentDistanceMeters;
-                return previousTimeSeconds + ratio * (nextTimeSeconds - previousTimeSeconds);
+            if (alongTrackMeters <= nextDistanceMeters) {
+                return interpolateTimeInSegment(
+                        alongTrackMeters,
+                        previousDistanceMeters,
+                        nextDistanceMeters,
+                        previousTimeSeconds,
+                        nextTimeSeconds
+                );
             }
             previousDistanceMeters = nextDistanceMeters;
             previousTimeSeconds = nextTimeSeconds;
         }
 
         return timesSeconds.get(timesSeconds.size() - 1);
+    }
+
+    private static double interpolateTimeInSegment(
+            double alongTrackMeters,
+            double segmentStartMeters,
+            double segmentEndMeters,
+            double startTimeSeconds,
+            double endTimeSeconds
+    ) {
+        double segmentDistanceMeters = segmentEndMeters - segmentStartMeters;
+        if (segmentDistanceMeters <= 0.0) {
+            return endTimeSeconds;
+        }
+        double ratio = (alongTrackMeters - segmentStartMeters) / segmentDistanceMeters;
+        return startTimeSeconds + ratio * (endTimeSeconds - startTimeSeconds);
     }
 }

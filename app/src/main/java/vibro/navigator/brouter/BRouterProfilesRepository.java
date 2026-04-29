@@ -416,18 +416,20 @@ public class BRouterProfilesRepository {
     @NonNull
     private List<String> getSecondaryStorageRootIds(@NonNull Context context) {
         List<String> rootIds = new ArrayList<>();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            StorageManager storageManager = context.getSystemService(StorageManager.class);
-            if (storageManager != null) {
-                for (StorageVolume volume : storageManager.getStorageVolumes()) {
-                    String uuid = volume.getUuid();
-                    if (uuid == null || uuid.trim().isEmpty()) {
-                        continue;
-                    }
-                    if (!rootIds.contains(uuid)) {
-                        rootIds.add(uuid);
-                    }
-                }
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            return rootIds;
+        }
+        StorageManager storageManager = context.getSystemService(StorageManager.class);
+        if (storageManager == null) {
+            return rootIds;
+        }
+        for (StorageVolume volume : storageManager.getStorageVolumes()) {
+            String uuid = volume.getUuid();
+            if (uuid == null || uuid.trim().isEmpty()) {
+                continue;
+            }
+            if (!rootIds.contains(uuid)) {
+                rootIds.add(uuid);
             }
         }
         return rootIds;

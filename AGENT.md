@@ -8,8 +8,8 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 - Language: Java only
 - UI base: platform `Activity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
 - Keep navigation back handling compatible with predictive back using platform callbacks; do not migrate the app shell to `ComponentActivity` unless explicitly requested
-- Gradle: `9.3.1`
-- Android Gradle Plugin: `9.1.0`
+- Gradle: `9.4.1`
+- Android Gradle Plugin: `9.1.1`
 - Java toolchain: `17`
 - SDKs in repo today: `compileSdk 36`, `targetSdk 36`, `minSdk 21`
 - Runtime dependencies are intentionally minimal: `androidx.core`
@@ -31,9 +31,9 @@ CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release 
 Distribution-related workflows:
 
 - `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, lint/complexity/tests, and unsigned release APK generation.
-- `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that renders `fdroid/navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
+- `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that renders `fdroid/vibro.navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
-- `fdroid/navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
+- `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
 
 ## Architecture
 
@@ -75,7 +75,7 @@ Distribution-related workflows:
 
 - Keep repository documentation aligned with the code when relevant changes are made. Update `SPECIFICATION.md` when product behavior, requirements, or user-visible flows change. Update `AGENT.md` when architecture, guardrails, workflows, or coding expectations change. Do not make doc-only churn for code changes that do not affect those areas.
 - Keep README/about content aligned at the product-description level. `README.md` and `about_body` in `strings.xml` should stay consistent about the app's purpose and core behavior, but they do not need to be literal copies of each other.
-- When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/navigator.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
+- When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/vibro.navigator.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
 
 ## Editing guidance
 

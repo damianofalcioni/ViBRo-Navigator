@@ -240,25 +240,35 @@ final class NavigationRouteExecutor {
     private boolean isTransientBRouterFailure(@NonNull Throwable error) {
         Throwable current = error;
         while (current != null) {
-            if (current instanceof DeadObjectException || current instanceof RemoteException) {
+            if (isTransientExceptionType(current)
+                    || isTransientBRouterRouteException(current)
+                    || hasTransientBRouterMessage(current)) {
                 return true;
-            }
-            if (current instanceof BRouterRouteException) {
-                return ((BRouterRouteException) current).reason == BRouterRouteException.Reason.SERVICE_UNAVAILABLE;
-            }
-            String message = current.getMessage();
-            if (message != null) {
-                String normalized = message.trim().toLowerCase(Locale.ROOT);
-                if (normalized.contains("brouter service not available")
-                        || normalized.contains("brouter is not connected")
-                        || normalized.contains("brouter binding died")
-                        || normalized.contains("null binding")) {
-                    return true;
-                }
             }
             current = current.getCause();
         }
         return false;
+    }
+
+    private static boolean isTransientExceptionType(@NonNull Throwable error) {
+        return error instanceof DeadObjectException || error instanceof RemoteException;
+    }
+
+    private static boolean isTransientBRouterRouteException(@NonNull Throwable error) {
+        return error instanceof BRouterRouteException
+                && ((BRouterRouteException) error).reason == BRouterRouteException.Reason.SERVICE_UNAVAILABLE;
+    }
+
+    private static boolean hasTransientBRouterMessage(@NonNull Throwable error) {
+        String message = error.getMessage();
+        if (message == null) {
+            return false;
+        }
+        String normalized = message.trim().toLowerCase(Locale.ROOT);
+        return normalized.contains("brouter service not available")
+                || normalized.contains("brouter is not connected")
+                || normalized.contains("brouter binding died")
+                || normalized.contains("null binding");
     }
 
     private void sleepBeforeRetry() throws Exception {

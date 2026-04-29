@@ -43,29 +43,33 @@ public final class BRouterClient implements AutoCloseable {
             return true;
         }
         for (int attempt = 1; attempt <= MAX_CONNECT_ATTEMPTS; attempt++) {
-            disconnectCurrentConnection();
-            AppLogger.i(TAG, "Connecting to BRouter service attempt="
-                    + attempt + "/" + MAX_CONNECT_ATTEMPTS);
-            connection = BRouterServiceConnection.connect(appContext);
-            if (connection == null) {
-                AppLogger.w(TAG, "BRouter connection object was not created attempt="
-                        + attempt + "/" + MAX_CONNECT_ATTEMPTS);
-                if (!waitBeforeRetry(attempt, "retrying BRouter bind")) {
-                    break;
-                }
-                continue;
-            }
-            if (waitForConnectedService()) {
-                AppLogger.i(TAG, "BRouter service connected=true");
+            if (tryConnectAttempt(attempt)) {
                 return true;
             }
-            AppLogger.w(TAG, "Timed out waiting for BRouter service connection attempt="
-                    + attempt + "/" + MAX_CONNECT_ATTEMPTS);
             if (!waitBeforeRetry(attempt, "retrying BRouter bind")) {
                 break;
             }
         }
         AppLogger.i(TAG, "BRouter service connected=false");
+        return false;
+    }
+
+    private boolean tryConnectAttempt(int attempt) {
+        disconnectCurrentConnection();
+        AppLogger.i(TAG, "Connecting to BRouter service attempt="
+                + attempt + "/" + MAX_CONNECT_ATTEMPTS);
+        connection = BRouterServiceConnection.connect(appContext);
+        if (connection == null) {
+            AppLogger.w(TAG, "BRouter connection object was not created attempt="
+                    + attempt + "/" + MAX_CONNECT_ATTEMPTS);
+            return false;
+        }
+        if (waitForConnectedService()) {
+            AppLogger.i(TAG, "BRouter service connected=true");
+            return true;
+        }
+        AppLogger.w(TAG, "Timed out waiting for BRouter service connection attempt="
+                + attempt + "/" + MAX_CONNECT_ATTEMPTS);
         return false;
     }
 
@@ -81,20 +85,37 @@ public final class BRouterClient implements AutoCloseable {
                         + attempt + "/" + MAX_REQUEST_ATTEMPTS);
                 return svc.getTrackFromParams(params);
             } catch (DeadObjectException e) {
-                AppLogger.w(TAG, "BRouter binder died during route request attempt="
-                        + attempt + "/" + MAX_REQUEST_ATTEMPTS, e);
-                if (!recoverFromRequestFailure(attempt, "recovering from BRouter binder death")) {
+                if (!recoverFromRouteRequestFailure(
+                        attempt,
+                        "BRouter binder died during route request",
+                        "recovering from BRouter binder death",
+                        e
+                )) {
                     throw e;
                 }
             } catch (RemoteException e) {
-                AppLogger.w(TAG, "BRouter remote call failed during route request attempt="
-                        + attempt + "/" + MAX_REQUEST_ATTEMPTS, e);
-                if (!recoverFromRequestFailure(attempt, "recovering from BRouter remote failure")) {
+                if (!recoverFromRouteRequestFailure(
+                        attempt,
+                        "BRouter remote call failed during route request",
+                        "recovering from BRouter remote failure",
+                        e
+                )) {
                     throw e;
                 }
             }
         }
         return null;
+    }
+
+    private boolean recoverFromRouteRequestFailure(
+            int attempt,
+            @NonNull String logMessage,
+            @NonNull String recoveryAction,
+            @NonNull RemoteException error
+    ) {
+        AppLogger.w(TAG, logMessage + " attempt="
+                + attempt + "/" + MAX_REQUEST_ATTEMPTS, error);
+        return recoverFromRequestFailure(attempt, recoveryAction);
     }
 
     private boolean hasConnectedService() {
@@ -107,29 +128,43 @@ public final class BRouterClient implements AutoCloseable {
     private boolean waitForConnectedService() {
         long deadline = System.currentTimeMillis() + CONNECT_WAIT_TIMEOUT_MS;
         while (System.currentTimeMillis() < deadline) {
-            if (connection == null) {
-                return false;
-            }
-            if (connection.hasNullBinding()) {
-                AppLogger.w(TAG, "BRouter returned a null binding");
-                return false;
-            }
-            if (connection.hasBindingDied()) {
-                AppLogger.w(TAG, "BRouter binding died before the service became available");
+            if (connectionFailedWhileWaiting()) {
                 return false;
             }
             if (hasConnectedService()) {
                 return true;
             }
-            try {
-                Thread.sleep(CONNECT_POLL_INTERVAL_MS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                AppLogger.w(TAG, "Interrupted while waiting for BRouter service connection", e);
+            if (!sleepUntilNextConnectionPoll()) {
                 return false;
             }
         }
         return hasConnectedService();
+    }
+
+    private boolean connectionFailedWhileWaiting() {
+        if (connection == null) {
+            return true;
+        }
+        if (connection.hasNullBinding()) {
+            AppLogger.w(TAG, "BRouter returned a null binding");
+            return true;
+        }
+        if (connection.hasBindingDied()) {
+            AppLogger.w(TAG, "BRouter binding died before the service became available");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean sleepUntilNextConnectionPoll() {
+        try {
+            Thread.sleep(CONNECT_POLL_INTERVAL_MS);
+            return true;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            AppLogger.w(TAG, "Interrupted while waiting for BRouter service connection", e);
+            return false;
+        }
     }
 
     @Nullable
@@ -138,8 +173,8 @@ public final class BRouterClient implements AutoCloseable {
             AppLogger.w(TAG, "Cannot request track because BRouter is not connected");
             return null;
         }
-        IBRouterService svc = connection != null ? connection.getBrouterService() : null;
-        if (svc != null && connection != null && !connection.hasBindingDied() && !connection.hasNullBinding()) {
+        IBRouterService svc = connectedService();
+        if (svc != null) {
             return svc;
         }
         AppLogger.w(TAG, "BRouter service became unavailable before route request");
@@ -147,12 +182,20 @@ public final class BRouterClient implements AutoCloseable {
         if (!connect()) {
             return null;
         }
-        svc = connection != null ? connection.getBrouterService() : null;
-        if (svc == null || connection == null || connection.hasBindingDied() || connection.hasNullBinding()) {
+        svc = connectedService();
+        if (svc == null) {
             AppLogger.w(TAG, "BRouter service is still unavailable after reconnect");
             return null;
         }
         return svc;
+    }
+
+    @Nullable
+    private IBRouterService connectedService() {
+        if (connection == null || connection.hasBindingDied() || connection.hasNullBinding()) {
+            return null;
+        }
+        return connection.getBrouterService();
     }
 
     private boolean waitBeforeRetry(int attempt, @NonNull String action) {
