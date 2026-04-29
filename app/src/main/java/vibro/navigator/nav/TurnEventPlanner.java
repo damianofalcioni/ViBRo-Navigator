@@ -16,7 +16,6 @@ final class TurnEventPlanner {
     private static final double PASSED_HINT_BUFFER_METERS = 5.0;
     private static final double INITIAL_IMMINENT_THRESHOLD_SECONDS = 10.0;
     private static final double VERY_IMMINENT_THRESHOLD_SECONDS = 5.0;
-    private static final double MIN_SPEED_METERS_PER_SECOND = 1.0;
     private static final double MIN_TRUSTED_TURN_DISTANCE_METERS = 5.0;
 
     static final class Progress {

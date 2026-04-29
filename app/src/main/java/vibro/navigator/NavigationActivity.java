@@ -509,8 +509,4 @@ public class NavigationActivity extends Activity {
         return sb.toString();
     }
 
-    @NonNull
-    private static String safe(@Nullable String value) {
-        return value == null ? "null" : value;
-    }
 }

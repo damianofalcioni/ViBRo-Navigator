@@ -73,21 +73,21 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
                 context,
                 sb,
                 R.string.label_sensor_gps_provider,
-                describeProviderStatus(context, LocationManager.GPS_PROVIDER),
+                describeProviderStatus(LocationManager.GPS_PROVIDER),
                 describeLocationValue(LocationManager.GPS_PROVIDER)
         );
         appendLine(
                 context,
                 sb,
                 R.string.label_sensor_network_provider,
-                describeProviderStatus(context, LocationManager.NETWORK_PROVIDER),
+                describeProviderStatus(LocationManager.NETWORK_PROVIDER),
                 describeLocationValue(LocationManager.NETWORK_PROVIDER)
         );
         appendLine(
                 context,
                 sb,
                 HeadingSensorSupport.labelResIdForSensor(headingSensor),
-                describeGeomagneticRotationVectorStatus(context),
+                describeGeomagneticRotationVectorStatus(),
                 describeGeomagneticValue()
         );
         return sb.toString();
@@ -111,7 +111,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         ));
     }
 
-    private int describeProviderStatus(@NonNull Context context, @NonNull String provider) {
+    private int describeProviderStatus(@NonNull String provider) {
         if (locationManager == null) {
             return R.string.sensor_status_unavailable;
         }
@@ -222,7 +222,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         }
     }
 
-    private int describeGeomagneticRotationVectorStatus(@NonNull Context context) {
+    private int describeGeomagneticRotationVectorStatus() {
         if (sensorManager == null) {
             return R.string.sensor_status_unavailable;
         }

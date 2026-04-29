@@ -94,7 +94,7 @@ public class NavigationService extends Service implements LocationListener {
         locationController = new NavigationLocationController(this, this);
         routeExecutor = NavigationRouteExecutor.createDefault(this, notificationMonitorHandler);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
-        geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, this::onGeomagneticSampleUpdated);
+        geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, sample -> onGeomagneticSampleUpdated());
         screenInteractive = isScreenInteractive();
         IntentFilter screenInteractiveFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
         screenInteractiveFilter.addAction(Intent.ACTION_SCREEN_ON);
@@ -434,7 +434,7 @@ public class NavigationService extends Service implements LocationListener {
         return powerManager == null || powerManager.isInteractive();
     }
 
-    private void onGeomagneticSampleUpdated(@NonNull GeomagneticOrientationMonitor.Sample sample) {
+    private void onGeomagneticSampleUpdated() {
         if (!shouldDispatchCompassUi() || stateBroadcaster.size() == 0) {
             return;
         }

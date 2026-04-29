@@ -485,7 +485,7 @@ public final class NavState {
             double relativeTimeSeconds = Double.isFinite(nextHint.timeSeconds)
                     && Double.isFinite(afterNextHint.timeSeconds)
                     ? Math.max(0.0, afterNextHint.timeSeconds - nextHint.timeSeconds)
-                    : resolveRelativeHintTimeSeconds(route, index, nextHint, afterNextHint, speedMps);
+                    : resolveRelativeHintTimeSeconds(route, index, nextHint, afterNextHint);
             lines.add(NavigationTextFormatter.formatTurnNotification(
                     context,
                     afterNextHint.hint,
@@ -507,8 +507,7 @@ public final class NavState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             @NonNull UpcomingHint nextHint,
-            @NonNull UpcomingHint afterNextHint,
-            float speedMps
+            @NonNull UpcomingHint afterNextHint
     ) {
         Double estimatedSeconds = RouteTimeEstimator.estimateSecondsBetweenTrackPoints(
                 route,

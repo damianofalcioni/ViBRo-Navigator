@@ -24,7 +24,6 @@ final class NavigationSessionRouteState {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
     private static final int DEVIATION_CONFIRMATION_SAMPLES = 2;
-    private static final long MAX_ACCURACY_SAMPLE_AGE_MS = 5_000L;
     private static final float WALKING_SPEED_MPS = 2.0f;
     private static final float FAST_TRAVEL_SPEED_MPS = 8.0f;
     private static final double LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 12.0;
