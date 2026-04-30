@@ -1,15 +1,12 @@
 package vibro.navigator.nav;
 
 import android.content.Context;
-import android.os.DeadObjectException;
 import android.os.Handler;
-import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import vibro.navigator.brouter.BRouterClient;
-import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.BRouterRouter;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
@@ -17,7 +14,6 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.util.AppLogger;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -234,41 +230,7 @@ final class NavigationRouteExecutor {
     }
 
     private boolean shouldRetryTransientRouteFailure(@NonNull Exception error, int attempt) {
-        return attempt <= maxTransientRouteRetries && isTransientBRouterFailure(error);
-    }
-
-    private boolean isTransientBRouterFailure(@NonNull Throwable error) {
-        Throwable current = error;
-        while (current != null) {
-            if (isTransientExceptionType(current)
-                    || isTransientBRouterRouteException(current)
-                    || hasTransientBRouterMessage(current)) {
-                return true;
-            }
-            current = current.getCause();
-        }
-        return false;
-    }
-
-    private static boolean isTransientExceptionType(@NonNull Throwable error) {
-        return error instanceof DeadObjectException || error instanceof RemoteException;
-    }
-
-    private static boolean isTransientBRouterRouteException(@NonNull Throwable error) {
-        return error instanceof BRouterRouteException
-                && ((BRouterRouteException) error).reason == BRouterRouteException.Reason.SERVICE_UNAVAILABLE;
-    }
-
-    private static boolean hasTransientBRouterMessage(@NonNull Throwable error) {
-        String message = error.getMessage();
-        if (message == null) {
-            return false;
-        }
-        String normalized = message.trim().toLowerCase(Locale.ROOT);
-        return normalized.contains("brouter service not available")
-                || normalized.contains("brouter is not connected")
-                || normalized.contains("brouter binding died")
-                || normalized.contains("null binding");
+        return attempt <= maxTransientRouteRetries && BRouterTransientFailureClassifier.isTransient(error);
     }
 
     private void sleepBeforeRetry() throws Exception {

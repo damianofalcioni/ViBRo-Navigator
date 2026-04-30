@@ -1,10 +1,8 @@
 package vibro.navigator.nav;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.app.Service;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.location.Location;
 import android.location.LocationListener;
 import android.os.Binder;
@@ -12,7 +10,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.PowerManager;
 import android.hardware.display.DisplayManager;
 import android.view.Display;
 import android.view.Surface;
@@ -69,23 +66,11 @@ public class NavigationService extends Service implements LocationListener {
     private NavigationLocationController locationController;
     private NavigationTurnEventDispatcher turnEventDispatcher;
     private GeomagneticOrientationMonitor geomagneticOrientationMonitor;
+    private NavigationScreenInteractivityMonitor screenInteractivityMonitor;
     private long lastCompassUiUpdateElapsedRealtimeMs;
     private boolean navigationUiVisible;
     private boolean screenInteractive = true;
     private boolean orientationMonitoringActive;
-    private final BroadcastReceiver screenInteractiveReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent == null || intent.getAction() == null) {
-                return;
-            }
-            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
-                onScreenInteractiveChanged(false);
-            } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
-                onScreenInteractiveChanged(true);
-            }
-        }
-    };
 
     @Override
     public void onCreate() {
@@ -95,10 +80,9 @@ public class NavigationService extends Service implements LocationListener {
         routeExecutor = NavigationRouteExecutor.createDefault(this, notificationMonitorHandler);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
         geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, sample -> onGeomagneticSampleUpdated());
-        screenInteractive = isScreenInteractive();
-        IntentFilter screenInteractiveFilter = new IntentFilter(Intent.ACTION_SCREEN_OFF);
-        screenInteractiveFilter.addAction(Intent.ACTION_SCREEN_ON);
-        registerReceiver(screenInteractiveReceiver, screenInteractiveFilter);
+        screenInteractivityMonitor =
+                new NavigationScreenInteractivityMonitor(this, this::onScreenInteractiveChanged);
+        screenInteractive = screenInteractivityMonitor.start();
         foregroundController.ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
@@ -429,11 +413,6 @@ public class NavigationService extends Service implements LocationListener {
         return StationaryOrientationNotifier.shouldEvaluate(hasActiveRoute, routeCalculationInProgress);
     }
 
-    private boolean isScreenInteractive() {
-        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        return powerManager == null || powerManager.isInteractive();
-    }
-
     private void onGeomagneticSampleUpdated() {
         if (!shouldDispatchCompassUi() || stateBroadcaster.size() == 0) {
             return;
@@ -498,7 +477,10 @@ public class NavigationService extends Service implements LocationListener {
     public void onDestroy() {
         AppLogger.i(TAG, "Service destroyed");
         stopNavigation();
-        unregisterReceiver(screenInteractiveReceiver);
+        if (screenInteractivityMonitor != null) {
+            screenInteractivityMonitor.stop();
+            screenInteractivityMonitor = null;
+        }
         if (routeExecutor != null) {
             routeExecutor.shutdown();
             routeExecutor = null;
