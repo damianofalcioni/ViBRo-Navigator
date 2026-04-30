@@ -12,8 +12,6 @@ import java.util.List;
 
 public final class NavCompassState {
 
-    private static final float COMPASS_MOVING_LOOKAHEAD_SECONDS = 60f;
-
     public static final class RoutePoint {
         public final float eastMeters;
         public final float northMeters;
@@ -308,10 +306,7 @@ public final class NavCompassState {
     }
 
     private static float resolveMovingLegendReferenceSpeedMps(float visibleRadiusMeters) {
-        float safeRadiusMeters = Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
-                ? visibleRadiusMeters
-                : 0f;
-        return Math.max(1f, safeRadiusMeters / COMPASS_MOVING_LOOKAHEAD_SECONDS);
+        return CompassRadiusResolver.movingLegendReferenceSpeedMps(visibleRadiusMeters, 0f);
     }
 
     public boolean hasRouteGeometry() {
