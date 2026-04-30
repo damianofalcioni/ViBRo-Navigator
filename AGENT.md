@@ -38,7 +38,7 @@ Distribution-related workflows:
 ## Architecture
 
 - `MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, and navigation input validation. Keep routing-profile spinner option construction and restore-position logic in `ProfileSpinnerOptions`/`ProfileSpinnerOption` rather than folding that state machine back into the activity or spinner controller.
-- `MapPickerActivity` owns manual map-based point picking for destination and stop fields. Keep it dependency-light: use the existing local WebView asset approach for OpenStreetMap raster tiles instead of introducing a native map SDK unless explicitly requested.
+- `MapPickerActivity` owns manual map-based point picking for destination and stop fields. Keep it dependency-light: use the existing local WebView asset approach for OpenStreetMap raster tiles instead of introducing a native map SDK unless explicitly requested. Keep current-location permission/provider/fresh-fix handling in `MapPickerLocationController` so the activity stays focused on WebView map state and result selection.
 - `NavigationActivity` should stay focused on rendering, service binding, and task/back-button behavior. Startup checks belong in `NavigationStartupCoordinator`.
 - Treat pause/resume as real navigation-session state, not as a UI-only toggle. `NavigationActivity` should only render and invoke binder actions; the paused/running behavior must stay owned by `NavigationService` and `NavigationSession`.
 - `NavigationActivity` must remain a platform `Activity`. If back behavior changes, preserve the current combination of legacy `onBackPressed()` handling plus platform predictive-back registration for API 33+ instead of switching the screen to `ComponentActivity`.

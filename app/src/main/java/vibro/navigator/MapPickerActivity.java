@@ -1,18 +1,12 @@
 package vibro.navigator;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebResourceRequest;
@@ -24,21 +18,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.poi.Poi;
 import vibro.navigator.util.AppLogger;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public final class MapPickerActivity extends Activity {
 
     private static final String TAG = "MapPickerActivity";
-    private static final int REQUEST_LOCATION_PERMISSION = 4001;
-    private static final long LOCATION_TIMEOUT_MS = 10_000L;
     private static final double DEFAULT_CENTER_LAT = 20.0d;
     private static final double DEFAULT_CENTER_LON = 0.0d;
     private static final int DEFAULT_ZOOM = 2;
@@ -90,24 +79,6 @@ public final class MapPickerActivity extends Activity {
         return new Poi(name, lat, lon);
     }
 
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
-    private final Runnable locationTimeoutRunnable = () -> {
-        stopLocationUpdates();
-        Toast.makeText(this, R.string.msg_map_location_unavailable, Toast.LENGTH_SHORT).show();
-        AppLogger.w(TAG, "Timed out waiting for a current location fix");
-    };
-    private final LocationListener singleFixListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(@NonNull Location location) {
-            AppLogger.i(TAG, "Received current location provider=" + safeProvider(location)
-                    + " lat=" + location.getLatitude()
-                    + " lon=" + location.getLongitude());
-            boolean selectPoint = pendingCurrentLocationSelection;
-            stopLocationUpdates();
-            showCurrentLocation(location, selectPoint);
-        }
-    };
-
     private WebView mapWebView;
     private boolean pageLoaded;
     @Nullable
@@ -115,9 +86,7 @@ public final class MapPickerActivity extends Activity {
     @Nullable
     private Poi initialPoi;
     @Nullable
-    private LocationManager locationManager;
-    private boolean requestingLocationUpdate;
-    private boolean pendingCurrentLocationSelection = true;
+    private MapPickerLocationController locationController;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -130,7 +99,20 @@ public final class MapPickerActivity extends Activity {
         ImageButton mapCurrentLocationButton = findViewById(R.id.mapCurrentLocationButton);
         ImageButton mapCancelButton = findViewById(R.id.mapCancelButton);
         ImageButton mapUseSelectionButton = findViewById(R.id.mapUseSelectionButton);
-        locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
+        locationController = new MapPickerLocationController(
+                this,
+                new MapPickerLocationController.Callback() {
+                    @Override
+                    public void onCurrentLocation(@NonNull Location location, boolean selectPoint) {
+                        showCurrentLocation(location, selectPoint);
+                    }
+
+                    @Override
+                    public void onLocationMessage(int messageResId) {
+                        showLocationMessage(messageResId);
+                    }
+                }
+        );
 
         if (savedInstanceState != null) {
             selectedPoi = restorePoi(
@@ -175,7 +157,10 @@ public final class MapPickerActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        stopLocationUpdates();
+        if (locationController != null) {
+            locationController.stopLocationUpdates();
+            locationController = null;
+        }
         if (mapWebView != null) {
             mapWebView.removeJavascriptInterface("AndroidBridge");
             mapWebView.destroy();
@@ -197,14 +182,10 @@ public final class MapPickerActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode != REQUEST_LOCATION_PERMISSION) {
+        if (locationController != null
+                && locationController.onRequestPermissionsResult(requestCode)) {
             return;
         }
-        if (hasLocationPermission()) {
-            centerOnCurrentLocation(pendingCurrentLocationSelection);
-            return;
-        }
-        Toast.makeText(this, R.string.msg_permission_required, Toast.LENGTH_SHORT).show();
     }
 
     @SuppressLint({"SetJavaScriptEnabled", "AddJavascriptInterface"})
@@ -317,57 +298,8 @@ public final class MapPickerActivity extends Activity {
     }
 
     private void centerOnCurrentLocation(boolean selectPoint) {
-        if (!hasLocationPermission()) {
-            ActivityCompat.requestPermissions(
-                    this,
-                    new String[]{
-                            Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION
-                    },
-                    REQUEST_LOCATION_PERMISSION
-            );
-            return;
-        }
-
-        Location bestLastKnownLocation = findBestLastKnownLocation();
-        if (bestLastKnownLocation != null) {
-            AppLogger.i(TAG, "Using last known location provider=" + safeProvider(bestLastKnownLocation));
-            showCurrentLocation(bestLastKnownLocation, selectPoint);
-            return;
-        }
-
-        if (locationManager == null) {
-            Toast.makeText(this, R.string.msg_map_location_unavailable, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        List<String> providers = new ArrayList<>();
-        addEnabledProvider(providers, LocationManager.GPS_PROVIDER);
-        addEnabledProvider(providers, LocationManager.NETWORK_PROVIDER);
-        if (providers.isEmpty()) {
-            Toast.makeText(this, R.string.msg_location_disabled, Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        stopLocationUpdates();
-        try {
-            for (String provider : providers) {
-                locationManager.requestLocationUpdates(provider, 0L, 0f, singleFixListener, Looper.getMainLooper());
-            }
-            pendingCurrentLocationSelection = selectPoint;
-            requestingLocationUpdate = true;
-            mainHandler.postDelayed(locationTimeoutRunnable, LOCATION_TIMEOUT_MS);
-            Toast.makeText(this, R.string.msg_map_location_searching, Toast.LENGTH_SHORT).show();
-            AppLogger.i(TAG, "Requested fresh location from providers=" + providers);
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Failed to request current location updates", e);
-            Toast.makeText(this, R.string.msg_permission_required, Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void addEnabledProvider(@NonNull List<String> providers, @NonNull String provider) {
-        if (isProviderEnabled(provider)) {
-            providers.add(provider);
+        if (locationController != null) {
+            locationController.centerOnCurrentLocation(selectPoint);
         }
     }
 
@@ -376,72 +308,6 @@ public final class MapPickerActivity extends Activity {
             return;
         }
         mapWebView.evaluateJavascript(script, null);
-    }
-
-    private boolean hasLocationPermission() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED;
-    }
-
-    @Nullable
-    private Location findBestLastKnownLocation() {
-        if (locationManager == null || !hasLocationPermission()) {
-            return null;
-        }
-        Location best = null;
-        String[] providers = new String[]{
-                LocationManager.GPS_PROVIDER,
-                LocationManager.NETWORK_PROVIDER,
-                LocationManager.PASSIVE_PROVIDER
-        };
-        for (String provider : providers) {
-            try {
-                Location candidate = locationManager.getLastKnownLocation(provider);
-                if (candidate == null) {
-                    continue;
-                }
-                if (isBetterLastKnownLocation(candidate, best)) {
-                    best = candidate;
-                }
-            } catch (SecurityException e) {
-                AppLogger.w(TAG, "Failed to read last known location provider=" + provider, e);
-            }
-        }
-        return best;
-    }
-
-    private boolean isBetterLastKnownLocation(@NonNull Location candidate, @Nullable Location best) {
-        return best == null || isBetterLocation(candidate, best);
-    }
-
-    private boolean isProviderEnabled(@NonNull String provider) {
-        if (locationManager == null) {
-            return false;
-        }
-        try {
-            return locationManager.isProviderEnabled(provider);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to read provider state provider=" + provider, e);
-            return false;
-        }
-    }
-
-    private void stopLocationUpdates() {
-        mainHandler.removeCallbacks(locationTimeoutRunnable);
-        if (!requestingLocationUpdate || locationManager == null) {
-            requestingLocationUpdate = false;
-            pendingCurrentLocationSelection = true;
-            return;
-        }
-        try {
-            locationManager.removeUpdates(singleFixListener);
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Failed to remove location updates", e);
-        }
-        requestingLocationUpdate = false;
-        pendingCurrentLocationSelection = true;
     }
 
     private void showCurrentLocation(@NonNull Location location, boolean selectPoint) {
@@ -459,17 +325,8 @@ public final class MapPickerActivity extends Activity {
         ));
     }
 
-    private boolean isBetterLocation(@NonNull Location candidate, @NonNull Location best) {
-        if (candidate.hasAccuracy() && best.hasAccuracy()) {
-            float accuracyDelta = candidate.getAccuracy() - best.getAccuracy();
-            if (accuracyDelta < -10f) {
-                return true;
-            }
-            if (accuracyDelta > 10f) {
-                return false;
-            }
-        }
-        return candidate.getTime() > best.getTime();
+    private void showLocationMessage(int messageResId) {
+        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
     @NonNull
@@ -489,12 +346,6 @@ public final class MapPickerActivity extends Activity {
     @NonNull
     private static String formatJsDouble(double value) {
         return String.format(Locale.US, "%.8f", value);
-    }
-
-    @NonNull
-    private static String safeProvider(@NonNull Location location) {
-        String provider = location.getProvider();
-        return provider == null ? "unknown" : provider;
     }
 
     private final class MapJavascriptBridge {
