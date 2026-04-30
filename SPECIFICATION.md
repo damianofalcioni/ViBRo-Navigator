@@ -540,7 +540,7 @@ The navigation UI must show the following in large text:
 ## Implementation guidance
 
 - Keep `MainActivity` and `NavigationActivity` thin. Input validation, incoming-intent handling, startup/preflight checks, and navigation startup orchestration should stay in dedicated helpers.
-- Keep navigation text formatting shared between on-screen state and notifications.
+- Keep navigation display state separated from text assembly: `NavState` should remain the immutable display snapshot, route direction/progress line assembly should stay in a focused helper, and primitive navigation text formatting should remain shared between on-screen state and notifications.
 - Keep `NavigationService` focused on Android lifecycle and orchestration, with notification handling, location subscriptions, wake locks, route execution, listener broadcasting, and turn-event fan-out isolated in focused collaborators.
 - Keep wake-lock ownership narrow and task-scoped. Long-lived navigation reliability should come from the foreground location service, while any partial wake lock should be acquired only by the collaborator performing the short critical section that needs it.
 - Keep background route computation asynchronous while all shared navigation-state mutation remains serialized on the main thread.
