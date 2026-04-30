@@ -1,6 +1,5 @@
 package vibro.navigator.nav;
 
-import android.content.Context;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
@@ -10,9 +9,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.hardware.display.DisplayManager;
-import android.view.Display;
-import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -30,7 +26,6 @@ public class NavigationService extends Service implements LocationListener {
     private static final String TAG = "NavigationService";
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
     private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS = 1_000L;
-    private static final long MIN_COMPASS_UI_UPDATE_INTERVAL_MS = 100L;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -60,17 +55,13 @@ public class NavigationService extends Service implements LocationListener {
     @Nullable
     private NavigationRouteExecutor routeExecutor;
     private final NavigationRouteExecutor.Callback routeCallback = new NavigationRouteCallback();
-    private final StationaryOrientationNotifier stationaryOrientationNotifier =
-            new StationaryOrientationNotifier(new StationaryOrientationAdvisor());
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
     private NavigationTurnEventDispatcher turnEventDispatcher;
-    private GeomagneticOrientationMonitor geomagneticOrientationMonitor;
+    private NavigationOrientationController orientationController;
     private NavigationScreenInteractivityMonitor screenInteractivityMonitor;
-    private long lastCompassUiUpdateElapsedRealtimeMs;
     private boolean navigationUiVisible;
     private boolean screenInteractive = true;
-    private boolean orientationMonitoringActive;
 
     @Override
     public void onCreate() {
@@ -79,7 +70,11 @@ public class NavigationService extends Service implements LocationListener {
         locationController = new NavigationLocationController(this, this);
         routeExecutor = NavigationRouteExecutor.createDefault(this, notificationMonitorHandler);
         turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
-        geomagneticOrientationMonitor = new GeomagneticOrientationMonitor(this, sample -> onGeomagneticSampleUpdated());
+        orientationController = new NavigationOrientationController(
+                this,
+                notificationMonitorHandler,
+                new OrientationCompassUiState()
+        );
         screenInteractivityMonitor =
                 new NavigationScreenInteractivityMonitor(this, this::onScreenInteractiveChanged);
         screenInteractive = screenInteractivityMonitor.start();
@@ -196,7 +191,7 @@ public class NavigationService extends Service implements LocationListener {
 
         locationController.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         locationController.requestCurrentLocationSeeds();
-        ensureOrientationMonitoring();
+        orientationController.start();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
@@ -216,7 +211,7 @@ public class NavigationService extends Service implements LocationListener {
             return;
         }
         locationController.stopTracking();
-        stopOrientationMonitoring();
+        orientationController.stop();
         promoteToForeground();
         emitState();
         AppLogger.i(TAG, "Navigation paused");
@@ -230,7 +225,7 @@ public class NavigationService extends Service implements LocationListener {
                 locationController.getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
         locationController.requestCurrentLocationSeeds();
-        ensureOrientationMonitoring();
+        orientationController.start();
         promoteToForeground();
         emitState();
         AppLogger.i(TAG, "Navigation resumed");
@@ -242,7 +237,7 @@ public class NavigationService extends Service implements LocationListener {
         navigationSession.stop();
         foregroundCoordinator.stopMonitoring();
         locationController.stopTracking();
-        stopOrientationMonitoring();
+        orientationController.stop();
         stateBroadcaster.clear();
         foregroundController.stopForegroundService();
     }
@@ -264,7 +259,7 @@ public class NavigationService extends Service implements LocationListener {
             locationController.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
         }
         dispatchTurnEvents(result.turnEvents);
-        maybeSendStationaryOrientationNotification();
+        orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         emitState();
     }
 
@@ -330,46 +325,6 @@ public class NavigationService extends Service implements LocationListener {
         }
     }
 
-    private void ensureOrientationMonitoring() {
-        stationaryOrientationNotifier.reset();
-        if (orientationMonitoringActive || geomagneticOrientationMonitor == null) {
-            return;
-        }
-        if (!geomagneticOrientationMonitor.start()) {
-            AppLogger.w(TAG, "Stationary orientation monitor unavailable, skipping stationary orientation notifications");
-            return;
-        }
-        orientationMonitoringActive = true;
-    }
-
-    private void stopOrientationMonitoring() {
-        stationaryOrientationNotifier.reset();
-        lastCompassUiUpdateElapsedRealtimeMs = 0L;
-        if (!orientationMonitoringActive) {
-            return;
-        }
-        orientationMonitoringActive = false;
-        if (geomagneticOrientationMonitor != null) {
-            geomagneticOrientationMonitor.stop();
-        }
-    }
-
-    private void maybeSendStationaryOrientationNotification() {
-        if (foregroundController == null || geomagneticOrientationMonitor == null) {
-            return;
-        }
-        stationaryOrientationNotifier.maybeNotify(
-                navigationSession.hasActiveRoute(),
-                navigationSession.isRouteCalculationInProgress(),
-                navigationSession.isLikelyStationaryForOrientation(),
-                navigationSession.lastFilteredSpeedMps(),
-                navigationSession.currentRouteBearingDegrees(),
-                geomagneticOrientationMonitor.getLatestSample(),
-                android.os.SystemClock.elapsedRealtime(),
-                foregroundController::sendStationaryOrientationNotification
-        );
-    }
-
     private void setNavigationUiVisible(boolean visible) {
         if (navigationUiVisible == visible) {
             return;
@@ -391,38 +346,11 @@ public class NavigationService extends Service implements LocationListener {
     }
 
     private boolean shouldDispatchCompassUi() {
-        return shouldDispatchCompassUi(
+        return NavigationOrientationController.shouldDispatchCompassUi(
                 navigationSession.hasActiveRoute(),
                 navigationUiVisible,
                 screenInteractive
         );
-    }
-
-    static boolean shouldDispatchCompassUi(
-            boolean hasActiveRoute,
-            boolean navigationUiVisible,
-            boolean screenInteractive
-    ) {
-        return hasActiveRoute && navigationUiVisible && screenInteractive;
-    }
-
-    static boolean shouldEvaluateStationaryOrientation(
-            boolean hasActiveRoute,
-            boolean routeCalculationInProgress
-    ) {
-        return StationaryOrientationNotifier.shouldEvaluate(hasActiveRoute, routeCalculationInProgress);
-    }
-
-    private void onGeomagneticSampleUpdated() {
-        if (!shouldDispatchCompassUi() || stateBroadcaster.size() == 0) {
-            return;
-        }
-        long nowElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime();
-        if (nowElapsedRealtimeMs - lastCompassUiUpdateElapsedRealtimeMs < MIN_COMPASS_UI_UPDATE_INTERVAL_MS) {
-            return;
-        }
-        lastCompassUiUpdateElapsedRealtimeMs = nowElapsedRealtimeMs;
-        notificationMonitorHandler.post(this::emitState);
     }
 
     private void emitState() {
@@ -431,46 +359,10 @@ public class NavigationService extends Service implements LocationListener {
                 locationController.getNextEvaluationDeadlineElapsedMs(),
                 System.currentTimeMillis(),
                 locationController.getFixedSatelliteCount(),
-                currentDisplayHeadingDegrees(),
-                currentDisplayHeadingAccuracyDegrees()
+                orientationController.currentDisplayHeadingDegrees(),
+                orientationController.currentDisplayHeadingAccuracyDegrees()
         );
         stateBroadcaster.dispatch(s);
-    }
-
-    @Nullable
-    private Double currentDisplayHeadingDegrees() {
-        return NavigationDisplayHeading.headingDegrees(
-                latestHeadingSample(),
-                orientationMonitoringActive,
-                android.os.SystemClock.elapsedRealtime(),
-                currentDisplayRotation()
-        );
-    }
-
-    @Nullable
-    private Float currentDisplayHeadingAccuracyDegrees() {
-        return NavigationDisplayHeading.headingAccuracyDegrees(
-                latestHeadingSample(),
-                orientationMonitoringActive,
-                android.os.SystemClock.elapsedRealtime()
-        );
-    }
-
-    @Nullable
-    private GeomagneticOrientationMonitor.Sample latestHeadingSample() {
-        return geomagneticOrientationMonitor == null ? null : geomagneticOrientationMonitor.getLatestSample();
-    }
-
-    private int currentDisplayRotation() {
-        DisplayManager displayManager = (DisplayManager) getSystemService(Context.DISPLAY_SERVICE);
-        if (displayManager == null) {
-            return Surface.ROTATION_0;
-        }
-        Display defaultDisplay = displayManager.getDisplay(Display.DEFAULT_DISPLAY);
-        if (defaultDisplay == null) {
-            return Surface.ROTATION_0;
-        }
-        return defaultDisplay.getRotation();
     }
 
     @Override
@@ -496,6 +388,23 @@ public class NavigationService extends Service implements LocationListener {
             stopSelf();
         }
         super.onTaskRemoved(rootIntent);
+    }
+
+    private final class OrientationCompassUiState implements NavigationOrientationController.CompassUiState {
+        @Override
+        public boolean shouldDispatchCompassUi() {
+            return NavigationService.this.shouldDispatchCompassUi();
+        }
+
+        @Override
+        public boolean hasStateListeners() {
+            return stateBroadcaster.size() > 0;
+        }
+
+        @Override
+        public void requestStateRefresh() {
+            emitState();
+        }
     }
 
     private final class ForegroundHost implements NavigationForegroundCoordinator.Host {
@@ -539,7 +448,7 @@ public class NavigationService extends Service implements LocationListener {
                 long beganAt
         ) {
             dispatchTurnEvents(navigationSession.applyRouteResult(NavigationService.this, snapshot, newRoute, beganAt));
-            maybeSendStationaryOrientationNotification();
+            orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
             emitState();
             if (navigationSession.consumePendingRouteRecalculation()) {
                 AppLogger.i(TAG, "Re-running queued route recalculation after previous request finished");
