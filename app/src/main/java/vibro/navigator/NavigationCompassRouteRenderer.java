@@ -1,0 +1,302 @@
+package vibro.navigator;
+
+import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Paint;
+import android.util.TypedValue;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+
+import java.util.List;
+
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.NavCompassState;
+
+final class NavigationCompassRouteRenderer {
+
+    private static final float ROUTE_STROKE_WIDTH_DP = 3f;
+    private static final int ROUTE_THRESHOLD_ALPHA = 51;
+    private static final int ROUTE_DEFAULT_ALPHA = 255;
+
+    private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint routeThresholdPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final NavigationCompassRouteMarkerRenderer markerRenderer = new NavigationCompassRouteMarkerRenderer();
+    private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
+    private boolean initialized;
+
+    void drawRouteLayer(
+            @NonNull Canvas canvas,
+            @NonNull Context context,
+            @Nullable NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius,
+            float headingDegrees
+    ) {
+        ensurePaintsInitialized(context);
+        drawAccuracyOverlay(canvas, state, cx, cy, routeRadius);
+        drawRoute(canvas, context, state, cx, cy, routeRadius, headingDegrees);
+        markerRenderer.drawStartPoint(canvas, context, state, cx, cy, routeRadius, headingDegrees);
+        markerRenderer.drawHintMarkers(canvas, context, state, cx, cy, routeRadius, headingDegrees);
+    }
+
+    void drawDestinationPoint(
+            @NonNull Canvas canvas,
+            @NonNull Context context,
+            @Nullable NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius,
+            float headingDegrees
+    ) {
+        markerRenderer.drawDestinationPoint(canvas, context, state, cx, cy, routeRadius, headingDegrees);
+    }
+
+    float resolveRouteThresholdStrokeWidthPx(@Nullable NavCompassState state, float routeRadius, float defaultStrokeWidthPx) {
+        return NavigationRouteThreshold.resolveStrokeWidthPx(state, routeRadius, defaultStrokeWidthPx);
+    }
+
+    int resolveRoutePaintAlpha() {
+        return ROUTE_DEFAULT_ALPHA;
+    }
+
+    int resolveRouteThresholdPaintAlpha(@Nullable NavCompassState state) {
+        return shouldDrawRouteThresholdOverlay(state) ? ROUTE_THRESHOLD_ALPHA : ROUTE_DEFAULT_ALPHA;
+    }
+
+    boolean shouldDrawRouteThresholdOverlay(@Nullable NavCompassState state) {
+        return NavigationRouteThreshold.shouldDrawOverlay(state);
+    }
+
+    private void ensurePaintsInitialized(@NonNull Context context) {
+        if (initialized) {
+            return;
+        }
+        routePaint.setStyle(Paint.Style.STROKE);
+        routePaint.setStrokeWidth(dp(context, ROUTE_STROKE_WIDTH_DP));
+        routePaint.setStrokeJoin(Paint.Join.ROUND);
+        routePaint.setStrokeCap(Paint.Cap.ROUND);
+        routePaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
+        routePaint.setAlpha(ROUTE_DEFAULT_ALPHA);
+
+        routeThresholdPaint.set(routePaint);
+        routeThresholdPaint.setAlpha(ROUTE_THRESHOLD_ALPHA);
+
+        passedRoutePaint.setStyle(Paint.Style.STROKE);
+        passedRoutePaint.setStrokeWidth(dp(context, ROUTE_STROKE_WIDTH_DP));
+        passedRoutePaint.setStrokeJoin(Paint.Join.ROUND);
+        passedRoutePaint.setStrokeCap(Paint.Cap.ROUND);
+        passedRoutePaint.setColor(ContextCompat.getColor(context, R.color.compass_route_passed));
+
+        accuracyOverlayPaint.setStyle(Paint.Style.FILL);
+        accuracyOverlayPaint.setColor(ContextCompat.getColor(context, R.color.compass_accent));
+        accuracyOverlayPaint.setAlpha(128);
+        initialized = true;
+    }
+
+    private void drawAccuracyOverlay(
+            @NonNull Canvas canvas,
+            @Nullable NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius
+    ) {
+        if (state == null || state.visibleRadiusMeters <= 0f || state.accuracyRadiusMeters <= 0f) {
+            return;
+        }
+
+        float overlayRadius = routeRadius * (state.accuracyRadiusMeters / state.visibleRadiusMeters);
+        canvas.drawCircle(cx, cy, Math.min(routeRadius, overlayRadius), accuracyOverlayPaint);
+    }
+
+    private void drawRoute(
+            @NonNull Canvas canvas,
+            @NonNull Context context,
+            @Nullable NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius,
+            float headingDegrees
+    ) {
+        if (state == null || state.visibleRadiusMeters <= 0f) {
+            return;
+        }
+
+        routePaint.setStrokeWidth(dp(context, ROUTE_STROKE_WIDTH_DP));
+        routePaint.setAlpha(resolveRoutePaintAlpha());
+        routeThresholdPaint.setStrokeWidth(resolveRouteThresholdStrokeWidthPx(
+                state,
+                routeRadius,
+                dp(context, ROUTE_STROKE_WIDTH_DP)
+        ));
+        routeThresholdPaint.setAlpha(resolveRouteThresholdPaintAlpha(state));
+        passedRoutePaint.setStrokeWidth(dp(context, ROUTE_STROKE_WIDTH_DP));
+        float scale = routeRadius / state.visibleRadiusMeters;
+        if (state.hasRouteGeometry()) {
+            drawRouteThresholdGeometrySegment(
+                    canvas,
+                    state,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    state.remainingRouteStartSamplePointIndex(),
+                    state.routeSamplePointCount()
+            );
+            drawRouteGeometrySegment(
+                    canvas,
+                    state,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    0,
+                    state.passedRouteSamplePointCount(),
+                    passedRoutePaint
+            );
+            drawRouteGeometrySegment(
+                    canvas,
+                    state,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    state.remainingRouteStartSamplePointIndex(),
+                    state.routeSamplePointCount(),
+                    routePaint
+            );
+            return;
+        }
+        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.passedRoutePoints, passedRoutePaint);
+        drawRouteThresholdSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints);
+        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints, routePaint);
+    }
+
+    private void drawRouteThresholdGeometrySegment(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            int startIndex,
+            int endIndex
+    ) {
+        if (!shouldDrawRouteThresholdOverlay(state)) {
+            return;
+        }
+        drawRouteGeometrySegment(canvas, state, cx, cy, scale, headingDegrees, startIndex, endIndex, routeThresholdPaint);
+    }
+
+    private void drawRouteThresholdSegment(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            @NonNull List<NavCompassState.RoutePoint> points
+    ) {
+        if (!shouldDrawRouteThresholdOverlay(state)) {
+            return;
+        }
+        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, points, routeThresholdPaint);
+    }
+
+    private void drawRouteGeometrySegment(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            int startIndex,
+            int endIndex,
+            @NonNull Paint strokePaint
+    ) {
+        if (startIndex < 0 || endIndex <= startIndex) {
+            return;
+        }
+
+        drawProjectedRouteSegment(canvas, state, cx, cy, scale, startIndex, endIndex, strokePaint, (i, out) -> {
+            LatLon point = state.routeSamplePointAt(i);
+            if (point == null) {
+                return false;
+            }
+            NavigationCompassRouteProjector.projectRoutePoint(state, point, headingDegrees, out);
+            return true;
+        });
+    }
+
+    private void drawRouteSegment(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            @NonNull List<NavCompassState.RoutePoint> points,
+            @NonNull Paint strokePaint
+    ) {
+        if (points.isEmpty()) {
+            return;
+        }
+
+        drawProjectedRouteSegment(canvas, state, cx, cy, scale, 0, points.size(), strokePaint, (i, out) -> {
+            NavCompassState.RoutePoint point = points.get(i);
+            NavigationCompassRouteProjector.projectHeadingUp(
+                    point.eastMeters,
+                    point.northMeters,
+                    headingDegrees,
+                    out
+            );
+            return true;
+        });
+    }
+
+    private void drawProjectedRouteSegment(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float scale,
+            int startIndex,
+            int endIndex,
+            @NonNull Paint strokePaint,
+            @NonNull ProjectedRoutePointSource pointSource
+    ) {
+        routePathRenderer.drawProjectedRouteSegment(
+                canvas,
+                cx,
+                cy,
+                scale,
+                startIndex,
+                endIndex,
+                state.visibleRadiusMeters,
+                resolveRouteDrawPaddingMeters(state),
+                strokePaint,
+                pointSource::project
+        );
+    }
+
+    private float resolveRouteDrawPaddingMeters(@NonNull NavCompassState state) {
+        float thresholdPaddingMeters = Math.max(state.routeThresholdMeters, state.accuracyRadiusMeters);
+        return Math.max(24f, thresholdPaddingMeters);
+    }
+
+    private float dp(@NonNull Context context, float value) {
+        return TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                value,
+                context.getResources().getDisplayMetrics()
+        );
+    }
+
+    private interface ProjectedRoutePointSource {
+        boolean project(int index, @NonNull NavigationRoutePathRenderer.PlotPoint out);
+    }
+}

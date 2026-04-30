@@ -12,11 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import vibro.navigator.geo.GeoMath;
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.NavCompassState;
-
-import java.util.List;
 
 public final class NavigationCompassView extends View {
 
@@ -31,12 +27,7 @@ public final class NavigationCompassView extends View {
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
-    private static final float ROUTE_MARKER_RADIUS_DP = 2.5f;
-    private static final float DESTINATION_MARKER_RADIUS_DP = 4f;
     private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
-    private static final float ROUTE_STROKE_WIDTH_DP = 3f;
-    private static final int ROUTE_THRESHOLD_ALPHA = 51;
-    private static final int ROUTE_DEFAULT_ALPHA = 255;
 
     @Nullable
     private NavCompassState compassState;
@@ -47,23 +38,14 @@ public final class NavigationCompassView extends View {
     private final Paint minorTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accentTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint cardinalPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint routeThresholdPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint centerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint routeMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headingGuidePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headingAccuracyGuidePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceMarkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceLegendRightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceLegendLeftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint destinationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint clipPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path compassClipPath = new Path();
-    private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
-    private final NavigationRoutePathRenderer.PlotPoint destinationPoint = new NavigationRoutePathRenderer.PlotPoint();
-    private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
+    private final NavigationCompassRouteRenderer routeRenderer = new NavigationCompassRouteRenderer();
     private final NavigationCompassLegendRenderer legendRenderer = new NavigationCompassLegendRenderer();
 
     public NavigationCompassView(Context context) {
@@ -86,7 +68,6 @@ public final class NavigationCompassView extends View {
 
         initBasePaints();
         initTickPaints();
-        initRoutePaints();
         initMarkerPaints();
         initGuidePaints();
         initLegendPaints();
@@ -123,35 +104,9 @@ public final class NavigationCompassView extends View {
         cardinalPaint.setFakeBoldText(false);
     }
 
-    private void initRoutePaints() {
-        routePaint.setStyle(Paint.Style.STROKE);
-        routePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
-        routePaint.setStrokeJoin(Paint.Join.ROUND);
-        routePaint.setStrokeCap(Paint.Cap.ROUND);
-        routePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route));
-        routePaint.setAlpha(ROUTE_DEFAULT_ALPHA);
-
-        routeThresholdPaint.set(routePaint);
-        routeThresholdPaint.setAlpha(ROUTE_THRESHOLD_ALPHA);
-
-        passedRoutePaint.setStyle(Paint.Style.STROKE);
-        passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
-        passedRoutePaint.setStrokeJoin(Paint.Join.ROUND);
-        passedRoutePaint.setStrokeCap(Paint.Cap.ROUND);
-        passedRoutePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_route_passed));
-    }
-
     private void initMarkerPaints() {
         centerPaint.setStyle(Paint.Style.FILL);
         centerPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_center));
-
-        routeMarkerPaint.setStyle(Paint.Style.FILL);
-        routeMarkerPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
-        routeMarkerPaint.setAlpha(128);
-
-        accuracyOverlayPaint.setStyle(Paint.Style.FILL);
-        accuracyOverlayPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_accent));
-        accuracyOverlayPaint.setAlpha(128);
     }
 
     private void initGuidePaints() {
@@ -185,12 +140,6 @@ public final class NavigationCompassView extends View {
 
         distanceLegendLeftPaint.set(distanceLegendRightPaint);
         distanceLegendLeftPaint.setTextAlign(Paint.Align.RIGHT);
-
-        destinationPaint.setStyle(Paint.Style.FILL);
-        destinationPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
-
-        clipPaint.setStyle(Paint.Style.FILL);
-        clipPaint.setColor(ContextCompat.getColor(getContext(), R.color.black));
     }
 
     public void setCompassState(@Nullable NavCompassState compassState) {
@@ -227,17 +176,22 @@ public final class NavigationCompassView extends View {
         compassClipPath.reset();
         compassClipPath.addCircle(cx, cy, routeRadius, Path.Direction.CW);
         canvas.clipPath(compassClipPath);
-        drawAccuracyOverlay(canvas, cx, cy, routeRadius);
-        drawRoute(canvas, cx, cy, routeRadius, headingDegrees);
-        drawStartPoint(canvas, cx, cy, routeRadius, headingDegrees);
-        drawHintMarkers(canvas, cx, cy, routeRadius, headingDegrees);
+        routeRenderer.drawRouteLayer(
+                canvas,
+                getContext(),
+                compassState,
+                cx,
+                cy,
+                routeRadius,
+                headingDegrees
+        );
         canvas.restoreToCount(saveCount);
 
         drawHeadingGuide(canvas, cx, cy, radius);
         drawHeadingAccuracyGuides(canvas, cx, cy, radius);
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius);
-        drawDestinationPoint(canvas, cx, cy, routeRadius, headingDegrees);
+        routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
     }
 
     private void drawDistanceRings(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -285,212 +239,6 @@ public final class NavigationCompassView extends View {
         canvas.drawText(label, x, baseline, cardinalPaint);
     }
 
-    private void drawRoute(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
-            return;
-        }
-
-        routePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
-        routePaint.setAlpha(resolveRoutePaintAlpha());
-        routeThresholdPaint.setStrokeWidth(resolveRouteThresholdStrokeWidthPx(routeRadius));
-        routeThresholdPaint.setAlpha(resolveRouteThresholdPaintAlpha());
-        passedRoutePaint.setStrokeWidth(dp(ROUTE_STROKE_WIDTH_DP));
-        float scale = routeRadius / compassState.visibleRadiusMeters;
-        if (compassState.hasRouteGeometry()) {
-            drawRouteThresholdGeometrySegment(
-                    canvas,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    compassState.remainingRouteStartSamplePointIndex(),
-                    compassState.routeSamplePointCount()
-            );
-            drawRouteGeometrySegment(
-                    canvas,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    0,
-                    compassState.passedRouteSamplePointCount(),
-                    passedRoutePaint
-            );
-            drawRouteGeometrySegment(
-                    canvas,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    compassState.remainingRouteStartSamplePointIndex(),
-                    compassState.routeSamplePointCount(),
-                    routePaint
-            );
-            return;
-        }
-        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.passedRoutePoints, passedRoutePaint);
-        drawRouteThresholdSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints);
-        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, compassState.routePoints, routePaint);
-    }
-
-    private float resolveRouteThresholdStrokeWidthPx(float routeRadius) {
-        return NavigationRouteThreshold.resolveStrokeWidthPx(
-                compassState,
-                routeRadius,
-                dp(ROUTE_STROKE_WIDTH_DP)
-        );
-    }
-
-    private int resolveRoutePaintAlpha() {
-        return ROUTE_DEFAULT_ALPHA;
-    }
-
-    private int resolveRouteThresholdPaintAlpha() {
-        return shouldDrawRouteThresholdOverlay() ? ROUTE_THRESHOLD_ALPHA : ROUTE_DEFAULT_ALPHA;
-    }
-
-    private boolean shouldDrawRouteThresholdOverlay() {
-        return NavigationRouteThreshold.shouldDrawOverlay(compassState);
-    }
-
-    private void drawRouteThresholdGeometrySegment(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            int startIndex,
-            int endIndex
-    ) {
-        if (!shouldDrawRouteThresholdOverlay()) {
-            return;
-        }
-        drawRouteGeometrySegment(
-                canvas,
-                cx,
-                cy,
-                scale,
-                headingDegrees,
-                startIndex,
-                endIndex,
-                routeThresholdPaint
-        );
-    }
-
-    private void drawRouteThresholdSegment(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            @NonNull List<NavCompassState.RoutePoint> points
-    ) {
-        if (!shouldDrawRouteThresholdOverlay()) {
-            return;
-        }
-        drawRouteSegment(canvas, cx, cy, scale, headingDegrees, points, routeThresholdPaint);
-    }
-
-    private void drawRouteGeometrySegment(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            int startIndex,
-            int endIndex,
-            @NonNull Paint strokePaint
-    ) {
-        if (compassState == null || startIndex < 0 || endIndex <= startIndex) {
-            return;
-        }
-
-        drawProjectedRouteSegment(canvas, cx, cy, scale, startIndex, endIndex, strokePaint, (i, out) -> {
-            LatLon point = compassState.routeSamplePointAt(i);
-            if (point == null) {
-                return false;
-            }
-            projectRoutePoint(point, headingDegrees, out);
-            return true;
-        });
-    }
-
-    private void drawRouteSegment(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            @NonNull List<NavCompassState.RoutePoint> points,
-            @NonNull Paint strokePaint
-    ) {
-        if (points.isEmpty()) {
-            return;
-        }
-
-        drawProjectedRouteSegment(canvas, cx, cy, scale, 0, points.size(), strokePaint, (i, out) -> {
-            NavCompassState.RoutePoint point = points.get(i);
-            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, out);
-            return true;
-        });
-    }
-
-    private void drawProjectedRouteSegment(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            int startIndex,
-            int endIndex,
-            @NonNull Paint strokePaint,
-            @NonNull ProjectedRoutePointSource pointSource
-    ) {
-        float visibleRadiusMeters = compassState == null ? 0f : compassState.visibleRadiusMeters;
-        float drawPaddingMeters = resolveRouteDrawPaddingMeters();
-        routePathRenderer.drawProjectedRouteSegment(
-                canvas,
-                cx,
-                cy,
-                scale,
-                startIndex,
-                endIndex,
-                visibleRadiusMeters,
-                drawPaddingMeters,
-                strokePaint,
-                pointSource::project
-        );
-    }
-
-    private float resolveRouteDrawPaddingMeters() {
-        if (compassState == null) {
-            return 0f;
-        }
-        float thresholdPaddingMeters = Math.max(compassState.routeThresholdMeters, compassState.accuracyRadiusMeters);
-        return Math.max(24f, thresholdPaddingMeters);
-    }
-
-    static boolean isRouteSegmentNearVisibleArea(
-            float startX,
-            float startY,
-            float endX,
-            float endY,
-            float visibleRadiusMeters,
-            float paddingMeters
-    ) {
-        return RouteDrawingMath.isRouteSegmentNearVisibleArea(
-                startX,
-                startY,
-                endX,
-                endY,
-                visibleRadiusMeters,
-                paddingMeters
-        );
-    }
-
-    static float clampRouteCoordinate(float coordinateMeters, float drawBoundsMeters) {
-        return RouteDrawingMath.clampRouteCoordinate(coordinateMeters, drawBoundsMeters);
-    }
-
     private void drawHeadingGuide(@NonNull Canvas canvas, float cx, float cy, float radius) {
         float arrowTipY = cy - radius * HEADING_GUIDE_TOP_SCALE;
         float arrowHalfWidth = dp(HEADING_GUIDE_ARROW_WIDTH_DP) / 2f;
@@ -529,129 +277,6 @@ public final class NavigationCompassView extends View {
         canvas.drawCircle(cx, cy, markerDotRadius, centerPaint);
     }
 
-    private void drawAccuracyOverlay(@NonNull Canvas canvas, float cx, float cy, float routeRadius) {
-        if (compassState == null
-                || compassState.visibleRadiusMeters <= 0f
-                || compassState.accuracyRadiusMeters <= 0f) {
-            return;
-        }
-
-        float overlayRadius = routeRadius * (compassState.accuracyRadiusMeters / compassState.visibleRadiusMeters);
-        canvas.drawCircle(cx, cy, Math.min(routeRadius, overlayRadius), accuracyOverlayPaint);
-    }
-
-    private void drawHintMarkers(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
-            return;
-        }
-
-        float scale = routeRadius / compassState.visibleRadiusMeters;
-        float markerRadius = dp(ROUTE_MARKER_RADIUS_DP);
-        if (compassState.hasRouteGeometry()) {
-            drawGeometryHintMarkers(canvas, cx, cy, scale, markerRadius, headingDegrees);
-            return;
-        }
-        if (compassState.hintPoints.isEmpty()) {
-            return;
-        }
-        drawLegacyHintMarkers(canvas, cx, cy, scale, markerRadius, headingDegrees);
-    }
-
-    private void drawGeometryHintMarkers(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            float markerRadius,
-            float headingDegrees
-    ) {
-        for (int i = 0; i < compassState.hintSamplePointCount(); i++) {
-            LatLon point = compassState.hintSamplePointAt(i);
-            if (point == null) {
-                continue;
-            }
-            projectRoutePoint(point, headingDegrees, projectedPoint);
-            canvas.drawCircle(cx + projectedPoint.x * scale, cy - projectedPoint.y * scale, markerRadius, routeMarkerPaint);
-        }
-    }
-
-    private void drawLegacyHintMarkers(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float scale,
-            float markerRadius,
-            float headingDegrees
-    ) {
-        for (NavCompassState.RoutePoint point : compassState.hintPoints) {
-            projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
-            canvas.drawCircle(cx + projectedPoint.x * scale, cy - projectedPoint.y * scale, markerRadius, routeMarkerPaint);
-        }
-    }
-
-    private void drawStartPoint(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
-            return;
-        }
-
-        NavCompassState.RoutePoint point = resolveVisibleStartPoint();
-        if (point == null) {
-            return;
-        }
-        float scale = routeRadius / compassState.visibleRadiusMeters;
-        projectHeadingUp(point.eastMeters, point.northMeters, headingDegrees, projectedPoint);
-        canvas.drawCircle(
-                cx + projectedPoint.x * scale,
-                cy - projectedPoint.y * scale,
-                dp(ROUTE_MARKER_RADIUS_DP),
-                routeMarkerPaint
-        );
-    }
-
-    @Nullable
-    private NavCompassState.RoutePoint resolveVisibleStartPoint() {
-        if (compassState == null) {
-            return null;
-        }
-        if (compassState.hasRouteGeometry()) {
-            LatLon point = compassState.routeSamplePointAt(0);
-            if (point == null) {
-                return null;
-            }
-            return new NavCompassState.RoutePoint(
-                    (float) GeoMath.eastMeters(
-                            compassState.currentLatitude(),
-                            compassState.currentLongitude(),
-                            point.lat,
-                            point.lon
-                    ),
-                    (float) GeoMath.northMeters(compassState.currentLatitude(), point.lat)
-            );
-        }
-        if (!compassState.passedRoutePoints.isEmpty()) {
-            return compassState.passedRoutePoints.get(0);
-        }
-        if (!compassState.routePoints.isEmpty()) {
-            return compassState.routePoints.get(0);
-        }
-        return null;
-    }
-
-    private void drawDestinationPoint(@NonNull Canvas canvas, float cx, float cy, float routeRadius, float headingDegrees) {
-        if (compassState == null
-                || compassState.visibleRadiusMeters <= 0f
-                || !compassState.destinationWithinRadius) {
-            return;
-        }
-
-        NavigationRoutePathRenderer.PlotPoint position =
-                resolveDestinationPosition(cx, cy, routeRadius, headingDegrees);
-        if (position == null) {
-            return;
-        }
-        canvas.drawCircle(position.x, position.y, dp(DESTINATION_MARKER_RADIUS_DP), destinationPaint);
-    }
-
     private void drawDistanceLegend(@NonNull Canvas canvas, float cx, float cy, float radius) {
         legendRenderer.draw(
                 canvas,
@@ -680,84 +305,11 @@ public final class NavigationCompassView extends View {
         );
     }
 
-    @Nullable
-    private NavigationRoutePathRenderer.PlotPoint resolveDestinationPosition(
-            float cx,
-            float cy,
-            float routeRadius,
-            float headingDegrees
-    ) {
-        if (compassState == null || !compassState.destinationWithinRadius) {
-            return null;
-        }
-
-        float distance = (float) Math.hypot(compassState.destinationEastMeters, compassState.destinationNorthMeters);
-        if (distance < 1f) {
-            return null;
-        }
-
-        float scale = routeRadius / Math.max(1f, compassState.visibleRadiusMeters);
-        projectHeadingUp(
-                compassState.destinationEastMeters,
-                compassState.destinationNorthMeters,
-                headingDegrees,
-                destinationPoint
-        );
-        destinationPoint.set(
-                cx + destinationPoint.x * scale,
-                cy - destinationPoint.y * scale
-        );
-        return destinationPoint;
-    }
-
-    private float resolveLegendRingDistanceMeters(float ringScale) {
-        return NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(
-                compassState,
-                ringScale,
-                OUTER_DISTANCE_RING_SCALE
-        );
-    }
-
     private float dp(float value) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, getResources().getDisplayMetrics());
     }
 
     private int dpInt(int value) {
         return Math.round(dp((float) value));
-    }
-
-    private void projectHeadingUp(
-            float eastMeters,
-            float northMeters,
-            float headingDegrees,
-            @NonNull NavigationRoutePathRenderer.PlotPoint out
-    ) {
-        double radians = Math.toRadians(headingDegrees);
-        float rotatedEast = (float) (eastMeters * Math.cos(radians) - northMeters * Math.sin(radians));
-        float rotatedNorth = (float) (eastMeters * Math.sin(radians) + northMeters * Math.cos(radians));
-        out.set(rotatedEast, rotatedNorth);
-    }
-
-    private void projectRoutePoint(
-            @NonNull LatLon point,
-            float headingDegrees,
-            @NonNull NavigationRoutePathRenderer.PlotPoint out
-    ) {
-        if (compassState == null) {
-            out.set(0f, 0f);
-            return;
-        }
-        float eastMeters = (float) GeoMath.eastMeters(
-                compassState.currentLatitude(),
-                compassState.currentLongitude(),
-                point.lat,
-                point.lon
-        );
-        float northMeters = (float) GeoMath.northMeters(compassState.currentLatitude(), point.lat);
-        projectHeadingUp(eastMeters, northMeters, headingDegrees, out);
-    }
-
-    private interface ProjectedRoutePointSource {
-        boolean project(int index, @NonNull NavigationRoutePathRenderer.PlotPoint out);
     }
 }
