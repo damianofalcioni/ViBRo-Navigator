@@ -23,18 +23,13 @@ final class NavigationSessionRouteState {
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
-    private static final int DEVIATION_CONFIRMATION_SAMPLES = 2;
-    private static final float WALKING_SPEED_MPS = 2.0f;
-    private static final float FAST_TRAVEL_SPEED_MPS = 8.0f;
-    private static final double LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 12.0;
-    private static final double MEDIUM_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 8.0;
-    private static final double HIGH_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 5.0;
     private static final double EXPECTED_BEARING_LOOKAHEAD_METERS = 20.0;
     private static final double MIN_EXPECTED_BEARING_BASELINE_METERS = 3.0;
     private static final double MIN_DESTINATION_REACHED_RADIUS_METERS = 5.0;
 
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
+    private final NavigationDeviationConfirmation deviationConfirmation = new NavigationDeviationConfirmation();
     private final NavigationTurnState turnState = new NavigationTurnState();
     private final NavigationRouteProgressTracker progressTracker = new NavigationRouteProgressTracker();
 
@@ -55,10 +50,6 @@ final class NavigationSessionRouteState {
     private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
     private final CompassRadiusTransition compassRadiusTransition = new CompassRadiusTransition(1_000L);
-    @NonNull
-    private RouteDeviationPolicy.Reason pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
-    private int pendingDeviationSampleCount;
-
     void reset() {
         route = null;
         polylineIndex = null;
@@ -70,7 +61,7 @@ final class NavigationSessionRouteState {
         lastSmoothedAccuracyMeters = Float.NaN;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         compassRadiusTransition.reset();
-        clearPendingDeviation();
+        deviationConfirmation.clear();
         progressTracker.reset();
         blockedRouteState.reset();
         turnState.reset();
@@ -143,7 +134,7 @@ final class NavigationSessionRouteState {
                 nowMs
         );
         if (isWithinDestinationReachedRadius(filtered, accuracyMeters)) {
-            clearPendingDeviation();
+            deviationConfirmation.clear();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Evaluation.keepRoute(turnState.onDestinationReached(route), NO_SUGGESTED_INTERVAL, true);
         }
@@ -226,10 +217,10 @@ final class NavigationSessionRouteState {
             long fastChecksUntilMs
     ) {
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.NONE) {
-            clearPendingDeviation();
+            deviationConfirmation.clear();
             return null;
         }
-        if (!isConfirmedDeviation(deviationDecision, speedMps)) {
+        if (!deviationConfirmation.isConfirmed(deviationDecision, speedMps)) {
             logTentativeDeviation(deviationDecision, directionOfProgress, match);
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, false);
@@ -253,7 +244,7 @@ final class NavigationSessionRouteState {
             long fastChecksUntilMs,
             boolean stableOnRouteSample
     ) {
-        clearPendingDeviation();
+        deviationConfirmation.clear();
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, stableOnRouteSample);
     }
@@ -269,7 +260,7 @@ final class NavigationSessionRouteState {
                 + " bearingDiff=" + deviationDecision.bearingDiffDegrees
                 + " direction=" + directionOfProgress.status
                 + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters
-                + " samples=" + pendingDeviationSampleCount);
+                + " samples=" + deviationConfirmation.pendingSampleCount());
     }
 
     @NonNull
@@ -291,7 +282,7 @@ final class NavigationSessionRouteState {
                     + " direction=" + directionOfProgress.status
                     + " alongTrackDelta=" + directionOfProgress.alongTrackDeltaMeters);
         }
-        clearPendingDeviation();
+        deviationConfirmation.clear();
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         return Evaluation.requestRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
     }
@@ -394,7 +385,7 @@ final class NavigationSessionRouteState {
         lastSmoothedAccuracyMeters = Float.NaN;
         lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         compassRadiusTransition.reset();
-        clearPendingDeviation();
+        deviationConfirmation.clear();
         progressTracker.reset();
         float etaSpeedMps = 0f;
 
@@ -711,33 +702,4 @@ final class NavigationSessionRouteState {
         }
     }
 
-    private boolean isConfirmedDeviation(@NonNull RouteDeviationPolicy.Decision decision, float speedMps) {
-        if (decision.reason == RouteDeviationPolicy.Reason.OFF_TRACK
-                && decision.distanceToTrackMeters >= decision.offTrackThresholdMeters
-                + immediateOffTrackMarginMeters(speedMps)) {
-            return true;
-        }
-        if (pendingDeviationReason != decision.reason) {
-            pendingDeviationReason = decision.reason;
-            pendingDeviationSampleCount = 1;
-            return false;
-        }
-        pendingDeviationSampleCount++;
-        return pendingDeviationSampleCount >= DEVIATION_CONFIRMATION_SAMPLES;
-    }
-
-    private void clearPendingDeviation() {
-        pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
-        pendingDeviationSampleCount = 0;
-    }
-
-    private double immediateOffTrackMarginMeters(float speedMps) {
-        if (speedMps >= FAST_TRAVEL_SPEED_MPS) {
-            return HIGH_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
-        }
-        if (speedMps >= WALKING_SPEED_MPS) {
-            return MEDIUM_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
-        }
-        return LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
-    }
 }
