@@ -1,7 +1,6 @@
 package vibro.navigator;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -9,16 +8,14 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.brouter.BRouterInstallLauncher;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.nav.NavigationRequest;
-import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
@@ -27,8 +24,6 @@ import vibro.navigator.util.AppLogger;
 public class MainActivity extends Activity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
-    private static final int REQ_PICK_DESTINATION_ON_MAP = 2001;
-    private static final int REQ_PICK_STOP_ON_MAP_BASE = 3000;
     private static final String STATE_DESTINATION_TEXT = "destinationText";
     private static final String STATE_DESTINATION_SELECTED_NAME = "destinationSelectedName";
     private static final String STATE_DESTINATION_SELECTED_LAT = "destinationSelectedLat";
@@ -41,6 +36,7 @@ public class MainActivity extends Activity {
     private ProfileSpinnerController profileSpinnerController;
     private MainActivityStopController stopController;
     private MainActivityProfilePicker profilePicker;
+    private MainActivityMapPickerCoordinator mapPickerCoordinator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +44,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " intent=" + MainActivityIntentHandler.describeIntent(getIntent()));
+        mapPickerCoordinator = new MainActivityMapPickerCoordinator(this);
 
         ImageButton aboutButton = findViewById(R.id.aboutButton);
         aboutButton.setOnClickListener(v -> {
@@ -75,7 +72,7 @@ public class MainActivity extends Activity {
         boolean brouterInstalled = profilesRepository.isBRouterInstalled(this);
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
         if (!brouterInstalled && savedInstanceState == null) {
-            showBRouterInstallPrompt();
+            MainActivityBRouterInstallPrompt.show(this);
         }
 
         historyStore = new PoiHistoryStore(this);
@@ -94,10 +91,12 @@ public class MainActivity extends Activity {
                 stopsContainer,
                 historyStore,
                 searchClient,
-                this::openStopMapPicker
+                mapPickerCoordinator::openStopMapPicker
         );
 
-        destinationMapButton.setOnClickListener(v -> openDestinationMapPicker());
+        destinationMapButton.setOnClickListener(
+                v -> mapPickerCoordinator.openDestinationMapPicker(destinationController)
+        );
 
         addStopButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "Add stop requested");
@@ -204,13 +203,13 @@ public class MainActivity extends Activity {
         if (profilePicker != null && profilePicker.handleActivityResult(requestCode, resultCode, data)) {
             return;
         }
-        if (requestCode == REQ_PICK_DESTINATION_ON_MAP) {
-            handleDestinationMapResult(resultCode, data);
-            return;
-        }
-        if (requestCode >= REQ_PICK_STOP_ON_MAP_BASE && requestCode < REQ_PICK_STOP_ON_MAP_BASE + 1000) {
-            handleStopMapResult(requestCode - REQ_PICK_STOP_ON_MAP_BASE, resultCode, data);
-        }
+        mapPickerCoordinator.handleActivityResult(
+                requestCode,
+                resultCode,
+                data,
+                destinationController,
+                stopController
+        );
     }
 
     private void restoreDestinationState(@NonNull Bundle savedInstanceState) {
@@ -234,82 +233,4 @@ public class MainActivity extends Activity {
         }
     }
 
-    @SuppressWarnings("deprecation")
-    private void openDestinationMapPicker() {
-        AppLogger.i(TAG, "Opening map picker for destination");
-        startActivityForResult(
-                MapPickerActivity.createIntent(
-                        this,
-                        getString(R.string.title_map_picker_destination),
-                        resolveInitialPoi(destinationController)
-                ),
-                REQ_PICK_DESTINATION_ON_MAP
-        );
-    }
-
-    @SuppressWarnings("deprecation")
-    private void openStopMapPicker(int stopIndex, @Nullable Poi initialPoi) {
-        AppLogger.i(TAG, "Opening map picker for stop index=" + stopIndex);
-        startActivityForResult(
-                MapPickerActivity.createIntent(
-                        this,
-                        getString(R.string.title_map_picker_stop, stopIndex + 1),
-                        initialPoi
-                ),
-                REQ_PICK_STOP_ON_MAP_BASE + stopIndex
-        );
-    }
-
-    private void handleDestinationMapResult(int resultCode, @Nullable Intent data) {
-        if (resultCode != RESULT_OK || destinationController == null) {
-            return;
-        }
-        Poi poi = MapPickerActivity.parseResult(this, data);
-        if (poi == null) {
-            AppLogger.w(TAG, "Destination map picker returned without POI");
-            return;
-        }
-        destinationController.setPoi(poi);
-        AppLogger.i(TAG, "Destination selected from map=" + poi.displayLabel());
-    }
-
-    private void handleStopMapResult(int stopIndex, int resultCode, @Nullable Intent data) {
-        if (resultCode != RESULT_OK || stopController == null) {
-            return;
-        }
-        Poi poi = MapPickerActivity.parseResult(this, data);
-        if (poi == null) {
-            AppLogger.w(TAG, "Stop map picker returned without POI index=" + stopIndex);
-            return;
-        }
-        stopController.setStopPoi(stopIndex, poi);
-        AppLogger.i(TAG, "Stop selected from map index=" + stopIndex + " poi=" + poi.displayLabel());
-    }
-
-    @Nullable
-    private static Poi resolveInitialPoi(@NonNull PoiInputController controller) {
-        Poi selectedPoi = controller.getSelectedPoi();
-        if (selectedPoi != null) {
-            return selectedPoi;
-        }
-        return controller.parseCurrentPoi();
-    }
-
-    private void showBRouterInstallPrompt() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.title_brouter_not_found)
-                .setMessage(R.string.msg_brouter_install_prompt)
-                .setPositiveButton(R.string.action_open_play_store, (dialog, which) -> {
-                    if (!BRouterInstallLauncher.launchPlayStore(this)) {
-                        Toast.makeText(this, R.string.msg_open_brouter_store_failed, Toast.LENGTH_LONG).show();
-                    }
-                })
-                .setNeutralButton(R.string.action_open_fdroid, (dialog, which) -> {
-                    if (!BRouterInstallLauncher.launchFdroid(this)) {
-                        Toast.makeText(this, R.string.msg_open_brouter_store_failed, Toast.LENGTH_LONG).show();
-                    }
-                })
-                .setNegativeButton(R.string.action_cancel, null)
-                .show();
-    }
 }

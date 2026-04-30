@@ -55,7 +55,7 @@
     </rule>
 
     <rule ref="category/java/design.xml/CollapsibleIfStatements"/>
-    <rule ref="category/java/codestyle.xml/UnnecessaryLocalBeforeReturn"/>
+    <rule ref="category/java/codestyle.xml/VariableCanBeInlined"/>
     <rule ref="category/java/codestyle.xml/UnnecessaryFullyQualifiedName"/>
 
     <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>

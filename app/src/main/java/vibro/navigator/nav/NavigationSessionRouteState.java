@@ -21,8 +21,6 @@ final class NavigationSessionRouteState {
 
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
-    private static final double EXPECTED_BEARING_LOOKAHEAD_METERS = 20.0;
-    private static final double MIN_EXPECTED_BEARING_BASELINE_METERS = 3.0;
     private static final double MIN_DESTINATION_REACHED_RADIUS_METERS = 5.0;
 
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
@@ -439,26 +437,7 @@ final class NavigationSessionRouteState {
     }
 
     private double expectedBearingDegrees(@NonNull PolylineIndex.Match match) {
-        if (polylineIndex == null) {
-            return match.segmentBearingDegrees;
-        }
-        LatLon current = polylineIndex.pointAtDistance(match.alongTrackMeters);
-        if (current == null) {
-            return match.segmentBearingDegrees;
-        }
-        double lookaheadAlongTrackMeters = Math.min(
-                polylineIndex.totalLengthMeters(),
-                match.alongTrackMeters + EXPECTED_BEARING_LOOKAHEAD_METERS
-        );
-        LatLon ahead = polylineIndex.pointAtDistance(lookaheadAlongTrackMeters);
-        if (ahead == null) {
-            return match.segmentBearingDegrees;
-        }
-        double baselineMeters = GeoMath.distanceMeters(current.lat, current.lon, ahead.lat, ahead.lon);
-        if (baselineMeters < MIN_EXPECTED_BEARING_BASELINE_METERS) {
-            return match.segmentBearingDegrees;
-        }
-        return GeoMath.bearingDegrees(current.lat, current.lon, ahead.lat, ahead.lon);
+        return NavigationExpectedBearingResolver.resolve(polylineIndex, match);
     }
 
     static final class Evaluation {

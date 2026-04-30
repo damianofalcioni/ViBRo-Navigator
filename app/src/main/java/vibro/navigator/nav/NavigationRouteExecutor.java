@@ -6,8 +6,6 @@ import android.os.Handler;
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
-import vibro.navigator.brouter.BRouterClient;
-import vibro.navigator.brouter.BRouterRouter;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -136,7 +134,7 @@ final class NavigationRouteExecutor {
     static NavigationRouteExecutor createDefault(@NonNull Context context, @NonNull Handler handler) {
         NavigationWakeLockController wakeLockController = new NavigationWakeLockController(context);
         return new NavigationRouteExecutor(
-                new BRouterRouteCalculator(),
+                new NavigationBRouterRouteCalculator(),
                 Executors.newSingleThreadExecutor(),
                 new HandlerPoster(handler),
                 routeCalculation -> wakeLockController.runWithWakeLock(
@@ -269,35 +267,6 @@ final class NavigationRouteExecutor {
     @NonNull
     private static RouteCalculationGuard noWakeLockGuard() {
         return routeCalculation -> routeCalculation.call();
-    }
-
-    private static final class BRouterRouteCalculator implements RouteCalculator, AutoCloseable {
-        private final BRouterRouter router = new BRouterRouter();
-        private BRouterClient client;
-
-        @NonNull
-        @Override
-        public synchronized GeoJsonRoute routeGeoJson(
-                @NonNull Context context,
-                @NonNull LatLon start,
-                @NonNull List<LatLon> intermediates,
-                @NonNull LatLon destination,
-                @NonNull String profile,
-                @NonNull List<NogoPoint> blocked
-        ) throws Exception {
-            if (client == null) {
-                client = new BRouterClient(context.getApplicationContext());
-            }
-            return router.routeGeoJson(client, start, intermediates, destination, profile, blocked);
-        }
-
-        @Override
-        public synchronized void close() {
-            if (client != null) {
-                client.close();
-                client = null;
-            }
-        }
     }
 
     @VisibleForTesting

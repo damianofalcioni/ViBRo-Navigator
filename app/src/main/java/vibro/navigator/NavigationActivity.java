@@ -6,14 +6,11 @@ import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.widget.Toast;
-import android.window.OnBackInvokedCallback;
-import android.window.OnBackInvokedDispatcher;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,10 +37,9 @@ public class NavigationActivity extends Activity {
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private NavigationActivityRenderer renderer;
+    private NavigationActivityBackHandler backHandler;
     private final NavigationStartupCoordinator startupCoordinator =
             new NavigationStartupCoordinator(new NavigationStartupHost());
-    @Nullable
-    private OnBackInvokedCallback backInvokedCallback;
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
@@ -83,7 +79,8 @@ public class NavigationActivity extends Activity {
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
-        registerPredictiveBackCallbackIfSupported();
+        backHandler = new NavigationActivityBackHandler(this, lifecyclePolicy, this::runLegacyBackFallback);
+        backHandler.registerPredictiveBackCallbackIfSupported();
 
         renderer = new NavigationActivityRenderer(this, uiHandler);
         render(NavState.waiting(this));
@@ -187,7 +184,7 @@ public class NavigationActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        unregisterPredictiveBackCallbackIfNeeded();
+        backHandler.unregisterPredictiveBackCallbackIfNeeded();
         super.onDestroy();
     }
 
@@ -222,7 +219,7 @@ public class NavigationActivity extends Activity {
     @Override
     @SuppressLint("GestureBackNavigation")
     public void onBackPressed() {
-        handleBackAction(true);
+        backHandler.onLegacyBackPressed();
     }
 
     @Override
@@ -232,39 +229,8 @@ public class NavigationActivity extends Activity {
         startupCoordinator.onRequestPermissionsResult(requestCode);
     }
 
-    private void handleBackAction(boolean legacyBackPress) {
-        NavigationLifecyclePolicy.BackPressAction action = lifecyclePolicy.onNavigationBackPressed();
-        if (action == NavigationLifecyclePolicy.BackPressAction.MOVE_TASK_TO_BACKGROUND) {
-            AppLogger.i(TAG, "Back pressed during navigation, moving task to background");
-            if (!moveTaskToBack(true)) {
-                finish();
-            }
-            return;
-        }
-        if (legacyBackPress) {
-            super.onBackPressed();
-        } else {
-            finish();
-        }
-    }
-
-    private void registerPredictiveBackCallbackIfSupported() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || backInvokedCallback != null) {
-            return;
-        }
-        backInvokedCallback = () -> handleBackAction(false);
-        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
-                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
-                backInvokedCallback
-        );
-    }
-
-    private void unregisterPredictiveBackCallbackIfNeeded() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || backInvokedCallback == null) {
-            return;
-        }
-        getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(backInvokedCallback);
-        backInvokedCallback = null;
+    private void runLegacyBackFallback() {
+        super.onBackPressed();
     }
 
     @NonNull
