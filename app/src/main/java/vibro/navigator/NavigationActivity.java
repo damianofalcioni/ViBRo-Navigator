@@ -25,6 +25,7 @@ import vibro.navigator.nav.NavigationLifecyclePolicy;
 import vibro.navigator.nav.NavigationRequest;
 import vibro.navigator.nav.NavigationSettingsLauncher;
 import vibro.navigator.nav.NavigationService;
+import vibro.navigator.nav.NavigationServiceBinder;
 import vibro.navigator.nav.NavigationStartupCoordinator;
 import vibro.navigator.util.AppLogger;
 
@@ -34,7 +35,7 @@ public class NavigationActivity extends Activity {
 
     private static final String TAG = "NavigationActivity";
 
-    private NavigationService.LocalBinder navBinder;
+    private NavigationServiceBinder navBinder;
     private boolean bound;
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
@@ -56,7 +57,7 @@ public class NavigationActivity extends Activity {
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            navBinder = (NavigationService.LocalBinder) service;
+            navBinder = (NavigationServiceBinder) service;
             bound = true;
             AppLogger.i(TAG, "NavigationService connected component=" + name);
             navBinder.ensureForegroundNotification();

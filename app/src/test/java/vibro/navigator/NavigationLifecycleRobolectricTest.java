@@ -13,6 +13,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.nav.NavigationRequest;
 import vibro.navigator.nav.NavigationService;
+import vibro.navigator.nav.NavigationServiceBinder;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,8 +65,8 @@ public class NavigationLifecycleRobolectricTest {
         service.stopForeground(true);
         assertTrue(shadowService.isForegroundStopped());
 
-        NavigationService.LocalBinder binder =
-                (NavigationService.LocalBinder) service.onBind(new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class));
+        NavigationServiceBinder binder =
+                (NavigationServiceBinder) service.onBind(new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class));
         binder.ensureForegroundNotification();
 
         assertEquals(NavigationService.NOTIFICATION_ID_ONGOING, shadowService.getLastForegroundNotificationId());

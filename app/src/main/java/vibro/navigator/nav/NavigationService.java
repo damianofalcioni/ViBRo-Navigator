@@ -4,7 +4,6 @@ import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
-import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -12,8 +11,6 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import vibro.navigator.R;
-import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.util.AppLogger;
 
 import java.util.List;
@@ -41,7 +38,7 @@ public class NavigationService extends Service implements LocationListener {
     public static final String CHANNEL_ID_TURN_LEFT = "navigator.turn.left.v2";
     public static final String CHANNEL_ID_TURN_RIGHT = "navigator.turn.right.v2";
 
-    private final IBinder binder = new LocalBinder();
+    private final NavigationServiceBinder binder = new NavigationServiceBinder(new BinderHost());
     private final NavigationSession navigationSession = new NavigationSession();
     private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();
     private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
@@ -109,65 +106,6 @@ public class NavigationService extends Service implements LocationListener {
         return binder;
     }
 
-    public final class LocalBinder extends Binder {
-        public void registerListener(@NonNull Listener l) {
-            stateBroadcaster.register(l);
-            AppLogger.d(TAG, "Listener registered totalListeners=" + stateBroadcaster.size());
-            emitState();
-        }
-
-        public void ensureForegroundNotification() {
-            foregroundCoordinator.onNavigationUiConnected();
-        }
-
-        public void setNavigationUiVisible(boolean visible) {
-            NavigationService.this.setNavigationUiVisible(visible);
-        }
-
-        public void unregisterListener(@NonNull Listener l) {
-            stateBroadcaster.unregister(l);
-            AppLogger.d(TAG, "Listener unregistered totalListeners=" + stateBroadcaster.size());
-        }
-
-        public void addBlockedWaypoint() {
-            if (navigationSession.isPaused()) {
-                AppLogger.w(TAG, "Blocked waypoint requested while navigation is paused");
-                return;
-            }
-            Location loc = navigationSession.getLastFilteredLocation();
-            if (loc == null) {
-                AppLogger.w(TAG, "Blocked waypoint requested without a current filtered location");
-                return;
-            }
-            List<NogoPoint> added = navigationSession.addBlockedPointsAhead();
-            if (added.isEmpty()) {
-                AppLogger.w(TAG, "Blocked-road reroute ignored because no route point ahead could be matched");
-                return;
-            }
-            AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
-                    + " location=" + formatLocation(loc));
-            requestRouteRecalc(true, null, getString(R.string.nav_route_notice_blocked_road_recalculating));
-        }
-
-        public void stop() {
-            AppLogger.i(TAG, "Stop requested through binder");
-            stopNavigation();
-            stopSelf();
-        }
-
-        public void pause() {
-            NavigationService.this.pauseNavigation();
-        }
-
-        public void resume() {
-            NavigationService.this.resumeNavigation();
-        }
-
-        public boolean isPaused() {
-            return navigationSession.isPaused();
-        }
-    }
-
     private void promoteToForeground() {
         foregroundController.promoteToForeground(
                 navigationSession.currentNavigationRequest(),
@@ -198,7 +136,7 @@ public class NavigationService extends Service implements LocationListener {
 
         Location seed = locationController.getBestStartupLastKnownLocation();
         if (seed != null) {
-            AppLogger.i(TAG, "Using last known location as seed " + formatLocation(seed));
+            AppLogger.i(TAG, "Using last known location as seed " + NavigationLocationFormatter.format(seed));
             onLocationChanged(seed);
         } else {
             AppLogger.w(TAG, "No usable cached location available at navigation start "
@@ -407,6 +345,82 @@ public class NavigationService extends Service implements LocationListener {
         }
     }
 
+    private final class BinderHost implements NavigationServiceBinder.Host {
+        @Override
+        public void registerListener(@NonNull Listener listener) {
+            stateBroadcaster.register(listener);
+        }
+
+        @Override
+        public void unregisterListener(@NonNull Listener listener) {
+            stateBroadcaster.unregister(listener);
+        }
+
+        @Override
+        public int listenerCount() {
+            return stateBroadcaster.size();
+        }
+
+        @Override
+        public void emitState() {
+            NavigationService.this.emitState();
+        }
+
+        @Override
+        public void ensureForegroundNotification() {
+            foregroundCoordinator.onNavigationUiConnected();
+        }
+
+        @Override
+        public void setNavigationUiVisible(boolean visible) {
+            NavigationService.this.setNavigationUiVisible(visible);
+        }
+
+        @Override
+        public boolean isNavigationPaused() {
+            return navigationSession.isPaused();
+        }
+
+        @Override
+        @Nullable
+        public Location getLastFilteredLocation() {
+            return navigationSession.getLastFilteredLocation();
+        }
+
+        @Override
+        @NonNull
+        public List<?> addBlockedPointsAhead() {
+            return navigationSession.addBlockedPointsAhead();
+        }
+
+        @Override
+        @NonNull
+        public String getString(int resId) {
+            return NavigationService.this.getString(resId);
+        }
+
+        @Override
+        public void requestBlockedRoadRouteRecalculation(@NonNull String inProgressNotice) {
+            requestRouteRecalc(true, null, inProgressNotice);
+        }
+
+        @Override
+        public void stopNavigationAndService() {
+            stopNavigation();
+            stopSelf();
+        }
+
+        @Override
+        public void pauseNavigation() {
+            NavigationService.this.pauseNavigation();
+        }
+
+        @Override
+        public void resumeNavigation() {
+            NavigationService.this.resumeNavigation();
+        }
+    }
+
     private final class ForegroundHost implements NavigationForegroundCoordinator.Host {
         @Override
         public boolean isOngoingNotificationVisible() {
@@ -468,47 +482,6 @@ public class NavigationService extends Service implements LocationListener {
                 requestRouteRecalc(true, null);
             }
         }
-    }
-
-    @NonNull
-    private static String formatNogoPoints(@NonNull List<NogoPoint> values) {
-        if (values.isEmpty()) {
-            return "[]";
-        }
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < values.size(); i++) {
-            if (i > 0) {
-                sb.append("; ");
-            }
-            sb.append(values.get(i));
-        }
-        sb.append("]");
-        return sb.toString();
-    }
-
-    @NonNull
-    private static String formatLocation(@Nullable Location location) {
-        if (location == null) {
-            return "null";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(location.getProvider())
-                .append("(")
-                .append(location.getLatitude())
-                .append(",")
-                .append(location.getLongitude())
-                .append(")");
-        if (location.hasAccuracy()) {
-            sb.append(" acc=").append(location.getAccuracy());
-        }
-        if (location.hasSpeed()) {
-            sb.append(" speed=").append(location.getSpeed());
-        }
-        if (location.hasBearing()) {
-            sb.append(" bearing=").append(location.getBearing());
-        }
-        sb.append(" time=").append(location.getTime());
-        return sb.toString();
     }
 
 }

@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import vibro.navigator.nav.NavCompassState;
 import vibro.navigator.nav.NavState;
 import vibro.navigator.nav.NavigationCompassModeController;
-import vibro.navigator.nav.NavigationService;
+import vibro.navigator.nav.NavigationServiceBinder;
 import vibro.navigator.util.AppLogger;
 
 final class NavigationActivityRenderer {
@@ -80,7 +80,7 @@ final class NavigationActivityRenderer {
         pauseResume.setOnClickListener(v -> controls.onTogglePaused());
     }
 
-    void render(@NonNull NavState state, @Nullable NavigationService.LocalBinder navBinder) {
+    void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
         currentState = state;
         next.setText(state.nextLine);
         afterNext.setText(state.afterNextLine);
