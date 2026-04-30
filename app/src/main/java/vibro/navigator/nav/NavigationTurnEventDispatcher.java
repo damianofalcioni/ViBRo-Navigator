@@ -23,8 +23,8 @@ final class NavigationTurnEventDispatcher {
         this.notificationSink = notificationSink;
     }
 
-    void dispatch(@NonNull List<NavigationSession.TurnEvent> turnEvents) {
-        for (NavigationSession.TurnEvent event : turnEvents) {
+    void dispatch(@NonNull List<NavigationTurnEvent> turnEvents) {
+        for (NavigationTurnEvent event : turnEvents) {
             switch (event.type) {
                 case PASSED:
                     AppLogger.i(TAG, "Passed voice hint hintTrackIndex=" + event.hint.indexInTrack);

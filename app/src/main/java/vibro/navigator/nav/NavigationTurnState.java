@@ -80,7 +80,7 @@ final class NavigationTurnState {
     }
 
     @NonNull
-    List<NavigationSession.TurnEvent> onRouteApplied(
+    List<NavigationTurnEvent> onRouteApplied(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @Nullable Location lastFiltered,
@@ -96,7 +96,7 @@ final class NavigationTurnState {
     }
 
     @NonNull
-    List<NavigationSession.TurnEvent> onDestinationReached(@NonNull GeoJsonRoute route) {
+    List<NavigationTurnEvent> onDestinationReached(@NonNull GeoJsonRoute route) {
         if (destinationReached || route.track.isEmpty()) {
             return Collections.emptyList();
         }
@@ -106,11 +106,11 @@ final class NavigationTurnState {
         initialTurnNotificationSent = true;
         destinationReached = true;
         VoiceHint arrivalHint = new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0);
-        return Collections.singletonList(NavigationSession.TurnEvent.imminent(arrivalHint, 0.0, 0.0));
+        return Collections.singletonList(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 
     @NonNull
-    private List<NavigationSession.TurnEvent> buildInitialTurnEventIfNeeded(
+    private List<NavigationTurnEvent> buildInitialTurnEventIfNeeded(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @Nullable Location lastFiltered,
@@ -207,11 +207,11 @@ final class NavigationTurnState {
     }
 
     @NonNull
-    private List<NavigationSession.TurnEvent> toTurnEvents(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
+    private List<NavigationTurnEvent> toTurnEvents(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
         if (signals.isEmpty()) {
             return Collections.emptyList();
         }
-        List<NavigationSession.TurnEvent> events = new ArrayList<>(signals.size());
+        List<NavigationTurnEvent> events = new ArrayList<>(signals.size());
         for (TurnEventPlanner.TurnSignal signal : signals) {
             events.add(toTurnEvent(signal));
         }
@@ -219,24 +219,24 @@ final class NavigationTurnState {
     }
 
     @NonNull
-    private NavigationSession.TurnEvent toTurnEvent(@NonNull TurnEventPlanner.TurnSignal signal) {
+    private NavigationTurnEvent toTurnEvent(@NonNull TurnEventPlanner.TurnSignal signal) {
         switch (signal.type) {
             case PASSED:
-                return NavigationSession.TurnEvent.passed(signal.hint);
+                return NavigationTurnEvent.passed(signal.hint);
             case INITIAL:
-                return NavigationSession.TurnEvent.initial(signal.hint, signal.distanceMeters, signal.timeSeconds);
+                return NavigationTurnEvent.initial(signal.hint, signal.distanceMeters, signal.timeSeconds);
             case IMMINENT:
             default:
-                return NavigationSession.TurnEvent.imminent(signal.hint, signal.distanceMeters, signal.timeSeconds);
+                return NavigationTurnEvent.imminent(signal.hint, signal.distanceMeters, signal.timeSeconds);
         }
     }
 
     static final class Progress {
         @NonNull
-        final List<NavigationSession.TurnEvent> turnEvents;
+        final List<NavigationTurnEvent> turnEvents;
         final long suggestedUpdateIntervalMs;
 
-        private Progress(@NonNull List<NavigationSession.TurnEvent> turnEvents, long suggestedUpdateIntervalMs) {
+        private Progress(@NonNull List<NavigationTurnEvent> turnEvents, long suggestedUpdateIntervalMs) {
             this.turnEvents = turnEvents;
             this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
         }

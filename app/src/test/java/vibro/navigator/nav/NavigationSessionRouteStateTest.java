@@ -39,7 +39,7 @@ public class NavigationSessionRouteStateTest {
                 Collections.emptyList()
         );
 
-        List<NavigationSession.TurnEvent> turnEvents = state.applyRouteResult(
+        List<NavigationTurnEvent> turnEvents = state.applyRouteResult(
                 context,
                 request,
                 snapshot(request),
@@ -65,7 +65,7 @@ public class NavigationSessionRouteStateTest {
         );
 
         assertEquals(1, turnEvents.size());
-        assertEquals(NavigationSession.TurnEvent.Type.INITIAL, turnEvents.get(0).type);
+        assertEquals(NavigationTurnEvent.Type.INITIAL, turnEvents.get(0).type);
         assertFalse(navState.nextLine.isEmpty());
         assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertTrue(navState.stopProgressBlock.isEmpty());
@@ -125,7 +125,7 @@ public class NavigationSessionRouteStateTest {
 
         assertFalse(arrivalEvaluation.shouldRecalculateRoute());
         assertEquals(1, arrivalEvaluation.turnEvents.size());
-        assertEquals(NavigationSession.TurnEvent.Type.IMMINENT, arrivalEvaluation.turnEvents.get(0).type);
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, arrivalEvaluation.turnEvents.get(0).type);
         assertEquals(100, arrivalEvaluation.turnEvents.get(0).hint.command);
         assertTrue(repeatedEvaluation.turnEvents.isEmpty());
         assertEquals("■ Destination reached", navState.nextLine);
@@ -244,7 +244,7 @@ public class NavigationSessionRouteStateTest {
                 Collections.emptyList()
         );
 
-        List<NavigationSession.TurnEvent> turnEvents = state.applyRouteResult(
+        List<NavigationTurnEvent> turnEvents = state.applyRouteResult(
                 context,
                 request,
                 snapshot(request),
@@ -262,7 +262,7 @@ public class NavigationSessionRouteStateTest {
         );
 
         assertEquals(1, turnEvents.size());
-        assertEquals(NavigationSession.TurnEvent.Type.INITIAL, turnEvents.get(0).type);
+        assertEquals(NavigationTurnEvent.Type.INITIAL, turnEvents.get(0).type);
         assertEquals(42.0, turnEvents.get(0).timeSeconds, 0.0);
     }
 
@@ -1118,8 +1118,8 @@ public class NavigationSessionRouteStateTest {
     }
 
     @NonNull
-    private static NavigationSession.RouteRequestSnapshot snapshot(@NonNull NavigationRequest request) {
-        return new NavigationSession.RouteRequestSnapshot(
+    private static NavigationRouteRequestSnapshot snapshot(@NonNull NavigationRequest request) {
+        return new NavigationRouteRequestSnapshot(
                 1,
                 1,
                 new LatLon(0.0, 0.0),

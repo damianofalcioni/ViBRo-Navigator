@@ -52,7 +52,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -62,7 +62,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -103,7 +103,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -113,7 +113,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -164,7 +164,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -174,7 +174,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -217,7 +217,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -226,7 +226,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -277,7 +277,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -287,7 +287,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -330,7 +330,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -339,7 +339,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -402,7 +402,7 @@ public class NavigationRouteExecutorTest {
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 GeoJsonRoute newRoute,
                                 long beganAt
                         ) {
@@ -411,7 +411,7 @@ public class NavigationRouteExecutorTest {
 
                         @Override
                         public void onRouteFailure(
-                                NavigationSession.RouteRequestSnapshot snapshot,
+                                NavigationRouteRequestSnapshot snapshot,
                                 Exception error
                         ) {
                             failure.set(error);
@@ -428,8 +428,8 @@ public class NavigationRouteExecutorTest {
         }
     }
 
-    private static NavigationSession.RouteRequestSnapshot routeSnapshot() {
-        return new NavigationSession.RouteRequestSnapshot(
+    private static NavigationRouteRequestSnapshot routeSnapshot() {
+        return new NavigationRouteRequestSnapshot(
                 1,
                 1,
                 new LatLon(48.2082, 16.3738),

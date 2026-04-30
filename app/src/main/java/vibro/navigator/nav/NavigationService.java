@@ -15,9 +15,6 @@ import vibro.navigator.util.AppLogger;
 
 import java.util.List;
 
-import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.route.VoiceHint;
-
 public class NavigationService extends Service implements LocationListener {
 
     private static final String TAG = "NavigationService";
@@ -38,27 +35,54 @@ public class NavigationService extends Service implements LocationListener {
     public static final String CHANNEL_ID_TURN_LEFT = "navigator.turn.left.v2";
     public static final String CHANNEL_ID_TURN_RIGHT = "navigator.turn.right.v2";
 
-    private final NavigationServiceBinder binder = new NavigationServiceBinder(new BinderHost());
     private final NavigationSession navigationSession = new NavigationSession();
     private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();
     private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
-    private final NavigationForegroundCoordinator foregroundCoordinator =
-            new NavigationForegroundCoordinator(
-                    notificationMonitorHandler,
-                    new NavigationLifecyclePolicy(),
-                    FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS,
-                    new ForegroundHost()
-            );
-    @Nullable
-    private NavigationRouteExecutor routeExecutor;
-    private final NavigationRouteExecutor.Callback routeCallback = new NavigationRouteCallback();
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
     private NavigationTurnEventDispatcher turnEventDispatcher;
     private NavigationOrientationController orientationController;
     private NavigationScreenInteractivityMonitor screenInteractivityMonitor;
-    private boolean navigationUiVisible;
-    private boolean screenInteractive = true;
+    private final NavigationServiceUiVisibility uiVisibility =
+            new NavigationServiceUiVisibility(navigationSession, stateBroadcaster, this::emitState);
+    private final NavigationForegroundCoordinator foregroundCoordinator =
+            new NavigationForegroundCoordinator(
+                    notificationMonitorHandler,
+                    new NavigationLifecyclePolicy(),
+                    FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS,
+                    new NavigationServiceForegroundHost(
+                            () -> foregroundController,
+                            this::promoteToForeground,
+                            this::stopNavigation,
+                            this::stopSelf
+                    )
+            );
+    private final NavigationServiceBinder binder = new NavigationServiceBinder(new NavigationServiceBinderHost(
+            this,
+            stateBroadcaster,
+            foregroundCoordinator,
+            navigationSession,
+            uiVisibility,
+            this::emitState,
+            notice -> requestRouteRecalc(true, null, notice),
+            () -> {
+                stopNavigation();
+                stopSelf();
+            },
+            this::pauseNavigation,
+            this::resumeNavigation
+    ));
+    private final NavigationServiceCommandHandler commandHandler = new NavigationServiceCommandHandler(
+            this::readNavRequest,
+            this::startNavigation,
+            this::stopNavigation,
+            this::stopSelf,
+            this::promoteToForeground
+    );
+    @Nullable
+    private NavigationRouteExecutor routeExecutor;
+    @Nullable
+    private NavigationRouteExecutor.Callback routeCallback;
 
     @Override
     public void onCreate() {
@@ -66,37 +90,33 @@ public class NavigationService extends Service implements LocationListener {
         foregroundController = new NavigationForegroundController(this);
         locationController = new NavigationLocationController(this, this);
         routeExecutor = NavigationRouteExecutor.createDefault(this, notificationMonitorHandler);
-        turnEventDispatcher = new NavigationTurnEventDispatcher(new ForegroundNotificationSink());
+        turnEventDispatcher = new NavigationTurnEventDispatcher(
+                new NavigationServiceTurnNotificationSink(foregroundController)
+        );
         orientationController = new NavigationOrientationController(
                 this,
                 notificationMonitorHandler,
-                new OrientationCompassUiState()
+                uiVisibility
+        );
+        routeCallback = new NavigationServiceRouteCallback(
+                this,
+                navigationSession,
+                orientationController,
+                foregroundController,
+                this::dispatchTurnEvents,
+                this::emitState,
+                this::requestRouteRecalc
         );
         screenInteractivityMonitor =
-                new NavigationScreenInteractivityMonitor(this, this::onScreenInteractiveChanged);
-        screenInteractive = screenInteractivityMonitor.start();
+                new NavigationScreenInteractivityMonitor(this, uiVisibility::onScreenInteractiveChanged);
+        uiVisibility.setScreenInteractive(screenInteractivityMonitor.start());
         foregroundController.ensureChannels();
         AppLogger.i(TAG, "Service created");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        AppLogger.i(TAG, "onStartCommand action=" + (intent == null ? "null" : intent.getAction())
-                + " flags=" + flags
-                + " startId=" + startId);
-        if (intent != null && ACTION_STOP.equals(intent.getAction())) {
-            stopNavigation();
-            stopSelf();
-            return START_NOT_STICKY;
-        }
-
-        if (intent != null && ACTION_START.equals(intent.getAction())) {
-            readNavRequest(intent);
-            startNavigation();
-        }
-
-        promoteToForeground();
-        return START_STICKY;
+        return commandHandler.handle(intent, flags, startId);
     }
 
     @Nullable
@@ -186,7 +206,7 @@ public class NavigationService extends Service implements LocationListener {
             AppLogger.d(TAG, "Ignoring location update while navigation is paused");
             return;
         }
-        NavigationSession.LocationUpdateResult result =
+        NavigationLocationUpdateResult result =
                 navigationSession.onRawLocationChanged(this, location, System.currentTimeMillis());
         if (result.isDropped()) {
             return;
@@ -241,7 +261,7 @@ public class NavigationService extends Service implements LocationListener {
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable String inProgressNotice
     ) {
-        NavigationSession.RouteRequestSnapshot snapshot =
+        NavigationRouteRequestSnapshot snapshot =
                 navigationSession.prepareRouteRequest(force, System.currentTimeMillis(), inProgressNotice);
         if (snapshot == null) {
             return;
@@ -250,45 +270,17 @@ public class NavigationService extends Service implements LocationListener {
         if (rerouteNotice != null) {
             foregroundController.sendOffRouteNotification(rerouteNotice);
         }
-        if (routeExecutor == null) {
+        if (routeExecutor == null || routeCallback == null) {
             AppLogger.w(TAG, "Route executor unavailable, cannot calculate route");
             return;
         }
         routeExecutor.requestRoute(this, snapshot, routeCallback);
     }
 
-    private void dispatchTurnEvents(@NonNull List<NavigationSession.TurnEvent> turnEvents) {
+    private void dispatchTurnEvents(@NonNull List<NavigationTurnEvent> turnEvents) {
         if (!navigationSession.isPaused() && turnEventDispatcher != null) {
             turnEventDispatcher.dispatch(turnEvents);
         }
-    }
-
-    private void setNavigationUiVisible(boolean visible) {
-        if (navigationUiVisible == visible) {
-            return;
-        }
-        navigationUiVisible = visible;
-        if (visible && screenInteractive) {
-            emitState();
-        }
-    }
-
-    private void onScreenInteractiveChanged(boolean interactive) {
-        if (screenInteractive == interactive) {
-            return;
-        }
-        screenInteractive = interactive;
-        if (interactive && navigationUiVisible && stateBroadcaster.size() > 0) {
-            emitState();
-        }
-    }
-
-    private boolean shouldDispatchCompassUi() {
-        return NavigationOrientationController.shouldDispatchCompassUi(
-                navigationSession.hasActiveRoute(),
-                navigationUiVisible,
-                screenInteractive
-        );
     }
 
     private void emitState() {
@@ -326,162 +318,6 @@ public class NavigationService extends Service implements LocationListener {
             stopSelf();
         }
         super.onTaskRemoved(rootIntent);
-    }
-
-    private final class OrientationCompassUiState implements NavigationOrientationController.CompassUiState {
-        @Override
-        public boolean shouldDispatchCompassUi() {
-            return NavigationService.this.shouldDispatchCompassUi();
-        }
-
-        @Override
-        public boolean hasStateListeners() {
-            return stateBroadcaster.size() > 0;
-        }
-
-        @Override
-        public void requestStateRefresh() {
-            emitState();
-        }
-    }
-
-    private final class BinderHost implements NavigationServiceBinder.Host {
-        @Override
-        public void registerListener(@NonNull Listener listener) {
-            stateBroadcaster.register(listener);
-        }
-
-        @Override
-        public void unregisterListener(@NonNull Listener listener) {
-            stateBroadcaster.unregister(listener);
-        }
-
-        @Override
-        public int listenerCount() {
-            return stateBroadcaster.size();
-        }
-
-        @Override
-        public void emitState() {
-            NavigationService.this.emitState();
-        }
-
-        @Override
-        public void ensureForegroundNotification() {
-            foregroundCoordinator.onNavigationUiConnected();
-        }
-
-        @Override
-        public void setNavigationUiVisible(boolean visible) {
-            NavigationService.this.setNavigationUiVisible(visible);
-        }
-
-        @Override
-        public boolean isNavigationPaused() {
-            return navigationSession.isPaused();
-        }
-
-        @Override
-        @Nullable
-        public Location getLastFilteredLocation() {
-            return navigationSession.getLastFilteredLocation();
-        }
-
-        @Override
-        @NonNull
-        public List<?> addBlockedPointsAhead() {
-            return navigationSession.addBlockedPointsAhead();
-        }
-
-        @Override
-        @NonNull
-        public String getString(int resId) {
-            return NavigationService.this.getString(resId);
-        }
-
-        @Override
-        public void requestBlockedRoadRouteRecalculation(@NonNull String inProgressNotice) {
-            requestRouteRecalc(true, null, inProgressNotice);
-        }
-
-        @Override
-        public void stopNavigationAndService() {
-            stopNavigation();
-            stopSelf();
-        }
-
-        @Override
-        public void pauseNavigation() {
-            NavigationService.this.pauseNavigation();
-        }
-
-        @Override
-        public void resumeNavigation() {
-            NavigationService.this.resumeNavigation();
-        }
-    }
-
-    private final class ForegroundHost implements NavigationForegroundCoordinator.Host {
-        @Override
-        public boolean isOngoingNotificationVisible() {
-            return foregroundController != null && foregroundController.isOngoingNotificationVisible();
-        }
-
-        @Override
-        public void promoteToForeground() {
-            NavigationService.this.promoteToForeground();
-        }
-
-        @Override
-        public void stopNavigation() {
-            NavigationService.this.stopNavigation();
-        }
-
-        @Override
-        public void stopSelf() {
-            NavigationService.this.stopSelf();
-        }
-    }
-
-    private final class ForegroundNotificationSink implements NavigationTurnEventDispatcher.TurnNotificationSink {
-        @Override
-        public void sendImminentTurnNotification(
-                @NonNull VoiceHint hint,
-                double distanceMeters,
-                double timeSeconds
-        ) {
-            foregroundController.sendImminentTurnNotification(hint, distanceMeters, timeSeconds);
-        }
-    }
-
-    private final class NavigationRouteCallback implements NavigationRouteExecutor.Callback {
-        @Override
-        public void onRouteApplied(
-                @NonNull NavigationSession.RouteRequestSnapshot snapshot,
-                @NonNull GeoJsonRoute newRoute,
-                long beganAt
-        ) {
-            dispatchTurnEvents(navigationSession.applyRouteResult(NavigationService.this, snapshot, newRoute, beganAt));
-            orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
-            emitState();
-            if (navigationSession.consumePendingRouteRecalculation()) {
-                AppLogger.i(TAG, "Re-running queued route recalculation after previous request finished");
-                requestRouteRecalc(true, null);
-            }
-        }
-
-        @Override
-        public void onRouteFailure(
-                @NonNull NavigationSession.RouteRequestSnapshot snapshot,
-                @NonNull Exception error
-        ) {
-            navigationSession.applyRouteFailure(NavigationService.this, snapshot, error);
-            emitState();
-            if (navigationSession.consumePendingRouteRecalculation()) {
-                AppLogger.i(TAG, "Retrying queued route recalculation after previous request failed");
-                requestRouteRecalc(true, null);
-            }
-        }
     }
 
 }

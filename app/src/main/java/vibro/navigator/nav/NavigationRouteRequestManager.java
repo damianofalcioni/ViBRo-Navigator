@@ -75,7 +75,7 @@ final class NavigationRouteRequestManager {
     }
 
     @Nullable
-    NavigationSession.RouteRequestSnapshot prepare(
+    NavigationRouteRequestSnapshot prepare(
             boolean force,
             long nowMs,
             @NonNull NavigationRequest request,
@@ -100,7 +100,7 @@ final class NavigationRouteRequestManager {
         lastRerouteMs = nowMs;
         int requestNumber = ++routeRequestCount;
         int requestToken = ++routeRequestToken;
-        NavigationSession.RouteRequestSnapshot snapshot = new NavigationSession.RouteRequestSnapshot(
+        NavigationRouteRequestSnapshot snapshot = new NavigationRouteRequestSnapshot(
                 requestNumber,
                 requestToken,
                 new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
@@ -121,7 +121,7 @@ final class NavigationRouteRequestManager {
         return snapshot;
     }
 
-    boolean onRouteApplied(@NonNull NavigationSession.RouteRequestSnapshot snapshot) {
+    boolean onRouteApplied(@NonNull NavigationRouteRequestSnapshot snapshot) {
         if (snapshot.requestToken != routeRequestToken) {
             AppLogger.d(TAG, "Discarded stale route result #" + snapshot.requestNumber);
             return false;
@@ -134,7 +134,7 @@ final class NavigationRouteRequestManager {
 
     void onRouteFailure(
             @NonNull Context context,
-            @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
         if (snapshot.requestToken != routeRequestToken) {

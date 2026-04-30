@@ -28,7 +28,7 @@ public class NavigationTurnStateTest {
 
         state.reset();
         assertEquals(
-                NavigationSession.TurnEvent.Type.INITIAL,
+                NavigationTurnEvent.Type.INITIAL,
                 state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 5f, 5f).get(0).type
         );
 
@@ -44,7 +44,7 @@ public class NavigationTurnStateTest {
         );
 
         assertEquals(1, progress.turnEvents.size());
-        assertEquals(NavigationSession.TurnEvent.Type.PASSED, progress.turnEvents.get(0).type);
+        assertEquals(NavigationTurnEvent.Type.PASSED, progress.turnEvents.get(0).type);
         assertTrue(progress.suggestedUpdateIntervalMs >= NavigationUpdateScheduler.bounds().min);
     }
 

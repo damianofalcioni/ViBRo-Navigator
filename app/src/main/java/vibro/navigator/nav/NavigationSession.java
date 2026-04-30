@@ -7,9 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.util.AppLogger;
 
 import java.util.Collections;
@@ -118,10 +116,10 @@ final class NavigationSession {
     }
 
     @NonNull
-    LocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull Location location, long nowMs) {
+    NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull Location location, long nowMs) {
         NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(location);
         if (update.isDropped()) {
-            return LocationUpdateResult.dropped();
+            return NavigationLocationUpdateResult.dropped();
         }
 
         Location filtered = update.getFilteredLocation();
@@ -130,7 +128,13 @@ final class NavigationSession {
             routeRequestManager.markInvalidRequest(context);
             AppLogger.e(TAG, "Skipping route evaluation because the request is incomplete "
                     + currentRequest.describe(), null);
-            return LocationUpdateResult.accepted(filtered, true, null, Collections.emptyList(), NO_SUGGESTED_INTERVAL);
+            return NavigationLocationUpdateResult.accepted(
+                    filtered,
+                    true,
+                    null,
+                    Collections.emptyList(),
+                    NO_SUGGESTED_INTERVAL
+            );
         }
 
         NavigationSessionRouteState.Evaluation evaluation = routeState.evaluateLocation(
@@ -143,7 +147,7 @@ final class NavigationSession {
                 warmupController.getFastChecksUntilMs()
         );
         warmupController.recordEvaluation(evaluation.isStableOnRouteSample(), locationState.accuracyMeters(filtered), nowMs);
-        return LocationUpdateResult.accepted(
+        return NavigationLocationUpdateResult.accepted(
                 filtered,
                 evaluation.shouldRecalculateRoute(),
                 evaluation.rerouteNotice,
@@ -158,12 +162,12 @@ final class NavigationSession {
     }
 
     @Nullable
-    RouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs) {
+    NavigationRouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs) {
         return prepareRouteRequest(force, nowMs, null);
     }
 
     @Nullable
-    RouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs, @Nullable String inProgressNotice) {
+    NavigationRouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs, @Nullable String inProgressNotice) {
         return routeRequestManager.prepare(
                 force,
                 nowMs,
@@ -175,9 +179,9 @@ final class NavigationSession {
     }
 
     @NonNull
-    List<TurnEvent> applyRouteResult(
+    List<NavigationTurnEvent> applyRouteResult(
             @NonNull Context context,
-            @NonNull RouteRequestSnapshot snapshot,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
             long beganAt
     ) {
@@ -201,7 +205,7 @@ final class NavigationSession {
 
     void applyRouteFailure(
             @NonNull Context context,
-            @NonNull RouteRequestSnapshot snapshot,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
         routeRequestManager.onRouteFailure(context, snapshot, error);
@@ -251,141 +255,4 @@ final class NavigationSession {
         return NavState.withPauseState(context, baseState, paused);
     }
 
-    static final class LocationUpdateResult {
-        private final boolean dropped;
-        private final boolean shouldRecalculateRoute;
-        private final long suggestedUpdateIntervalMs;
-        @Nullable
-        private final NavigationRerouteNotice rerouteNotice;
-        @Nullable
-        final Location filteredLocation;
-        @NonNull
-        final List<TurnEvent> turnEvents;
-
-        private LocationUpdateResult(
-                boolean dropped,
-                boolean shouldRecalculateRoute,
-                long suggestedUpdateIntervalMs,
-                @Nullable NavigationRerouteNotice rerouteNotice,
-                @Nullable Location filteredLocation,
-                @NonNull List<TurnEvent> turnEvents
-        ) {
-            this.dropped = dropped;
-            this.shouldRecalculateRoute = shouldRecalculateRoute;
-            this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
-            this.rerouteNotice = rerouteNotice;
-            this.filteredLocation = filteredLocation;
-            this.turnEvents = turnEvents;
-        }
-
-        @NonNull
-        static LocationUpdateResult dropped() {
-            return new LocationUpdateResult(true, false, NO_SUGGESTED_INTERVAL, null, null, Collections.emptyList());
-        }
-
-        @NonNull
-        static LocationUpdateResult accepted(
-                @Nullable Location filteredLocation,
-                boolean shouldRecalculateRoute,
-                @Nullable NavigationRerouteNotice rerouteNotice,
-                @NonNull List<TurnEvent> turnEvents,
-                long suggestedUpdateIntervalMs
-        ) {
-            return new LocationUpdateResult(
-                    false,
-                    shouldRecalculateRoute,
-                    suggestedUpdateIntervalMs,
-                    rerouteNotice,
-                    filteredLocation,
-                    turnEvents
-            );
-        }
-
-        boolean isDropped() {
-            return dropped;
-        }
-
-        boolean shouldRecalculateRoute() {
-            return shouldRecalculateRoute;
-        }
-
-        long getSuggestedUpdateIntervalMs() {
-            return suggestedUpdateIntervalMs;
-        }
-
-        @Nullable
-        NavigationRerouteNotice getRerouteNotice() {
-            return rerouteNotice;
-        }
-    }
-
-    static final class TurnEvent {
-        enum Type {
-            PASSED,
-            IMMINENT,
-            INITIAL
-        }
-
-        @NonNull
-        final Type type;
-        @NonNull
-        final VoiceHint hint;
-        final double distanceMeters;
-        final double timeSeconds;
-
-        private TurnEvent(@NonNull Type type, @NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
-            this.type = type;
-            this.hint = hint;
-            this.distanceMeters = distanceMeters;
-            this.timeSeconds = timeSeconds;
-        }
-
-        @NonNull
-        static TurnEvent passed(@NonNull VoiceHint hint) {
-            return new TurnEvent(Type.PASSED, hint, 0.0, 0.0);
-        }
-
-        @NonNull
-        static TurnEvent imminent(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
-            return new TurnEvent(Type.IMMINENT, hint, distanceMeters, timeSeconds);
-        }
-
-        @NonNull
-        static TurnEvent initial(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
-            return new TurnEvent(Type.INITIAL, hint, distanceMeters, timeSeconds);
-        }
-    }
-
-    static final class RouteRequestSnapshot {
-        final int requestNumber;
-        final int requestToken;
-        @NonNull
-        final LatLon start;
-        @NonNull
-        final List<LatLon> intermediates;
-        @Nullable
-        final LatLon destination;
-        @Nullable
-        final String profile;
-        @NonNull
-        final List<NogoPoint> blocked;
-
-        RouteRequestSnapshot(
-                int requestNumber,
-                int requestToken,
-                @NonNull LatLon start,
-                @NonNull List<LatLon> intermediates,
-                @Nullable LatLon destination,
-                @Nullable String profile,
-                @NonNull List<NogoPoint> blocked
-        ) {
-            this.requestNumber = requestNumber;
-            this.requestToken = requestToken;
-            this.start = start;
-            this.intermediates = intermediates;
-            this.destination = destination;
-            this.profile = profile;
-            this.blocked = blocked;
-        }
-    }
 }

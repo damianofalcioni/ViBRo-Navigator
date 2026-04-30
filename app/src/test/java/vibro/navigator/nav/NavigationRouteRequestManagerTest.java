@@ -28,7 +28,7 @@ public class NavigationRouteRequestManagerTest {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 
-        NavigationSession.RouteRequestSnapshot first = manager.prepare(
+        NavigationRouteRequestSnapshot first = manager.prepare(
                 false,
                 10_000L,
                 navigationRequest(),
@@ -36,7 +36,7 @@ public class NavigationRouteRequestManagerTest {
                 Collections.emptyList(),
                 null
         );
-        NavigationSession.RouteRequestSnapshot second = manager.prepare(
+        NavigationRouteRequestSnapshot second = manager.prepare(
                 false,
                 11_000L,
                 navigationRequest(),
@@ -55,7 +55,7 @@ public class NavigationRouteRequestManagerTest {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 
-        NavigationSession.RouteRequestSnapshot first = manager.prepare(
+        NavigationRouteRequestSnapshot first = manager.prepare(
                 true,
                 2_000L,
                 navigationRequest(),
@@ -63,7 +63,7 @@ public class NavigationRouteRequestManagerTest {
                 Collections.emptyList(),
                 null
         );
-        NavigationSession.RouteRequestSnapshot second = manager.prepare(
+        NavigationRouteRequestSnapshot second = manager.prepare(
                 false,
                 3_000L,
                 navigationRequest(),
@@ -84,7 +84,7 @@ public class NavigationRouteRequestManagerTest {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 
-        NavigationSession.RouteRequestSnapshot first = manager.prepare(
+        NavigationRouteRequestSnapshot first = manager.prepare(
                 true,
                 2_000L,
                 navigationRequest(),
@@ -112,7 +112,7 @@ public class NavigationRouteRequestManagerTest {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 
-        NavigationSession.RouteRequestSnapshot snapshot = manager.prepare(
+        NavigationRouteRequestSnapshot snapshot = manager.prepare(
                 true,
                 2_000L,
                 navigationRequest(),
@@ -137,7 +137,7 @@ public class NavigationRouteRequestManagerTest {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 
-        NavigationSession.RouteRequestSnapshot snapshot = manager.prepare(
+        NavigationRouteRequestSnapshot snapshot = manager.prepare(
                 true,
                 2_000L,
                 navigationRequest(),

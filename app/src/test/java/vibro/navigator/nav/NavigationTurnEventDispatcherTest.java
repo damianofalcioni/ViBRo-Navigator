@@ -17,7 +17,7 @@ public class NavigationTurnEventDispatcherTest {
         NavigationTurnEventDispatcher dispatcher = new NavigationTurnEventDispatcher(sink);
 
         dispatcher.dispatch(Collections.singletonList(
-                NavigationSession.TurnEvent.passed(new VoiceHint(7, 2, 0, 0.0, 0))
+                NavigationTurnEvent.passed(new VoiceHint(7, 2, 0, 0.0, 0))
         ));
 
         assertEquals(0, sink.imminentCalls);
@@ -29,8 +29,8 @@ public class NavigationTurnEventDispatcherTest {
         NavigationTurnEventDispatcher dispatcher = new NavigationTurnEventDispatcher(sink);
 
         dispatcher.dispatch(Arrays.asList(
-                NavigationSession.TurnEvent.initial(new VoiceHint(3, 2, 0, 0.0, 0), 120.0, 10.0),
-                NavigationSession.TurnEvent.imminent(new VoiceHint(4, 5, 0, 0.0, 0), 25.0, 2.0)
+                NavigationTurnEvent.initial(new VoiceHint(3, 2, 0, 0.0, 0), 120.0, 10.0),
+                NavigationTurnEvent.imminent(new VoiceHint(4, 5, 0, 0.0, 0), 25.0, 2.0)
         ));
 
         assertEquals(2, sink.imminentCalls);

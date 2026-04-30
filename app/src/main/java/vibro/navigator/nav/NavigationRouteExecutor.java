@@ -27,13 +27,13 @@ final class NavigationRouteExecutor {
 
     interface Callback {
         void onRouteApplied(
-                @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+                @NonNull NavigationRouteRequestSnapshot snapshot,
                 @NonNull GeoJsonRoute newRoute,
                 long beganAt
         );
 
         void onRouteFailure(
-                @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+                @NonNull NavigationRouteRequestSnapshot snapshot,
                 @NonNull Exception error
         );
     }
@@ -150,7 +150,7 @@ final class NavigationRouteExecutor {
 
     void requestRoute(
             @NonNull Context context,
-            @NonNull NavigationSession.RouteRequestSnapshot snapshot,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Callback callback
     ) {
         Context appContext = context.getApplicationContext();
@@ -185,7 +185,7 @@ final class NavigationRouteExecutor {
     @NonNull
     private GeoJsonRoute calculateRouteWithRetry(
             @NonNull Context appContext,
-            @NonNull NavigationSession.RouteRequestSnapshot snapshot
+            @NonNull NavigationRouteRequestSnapshot snapshot
     ) throws Exception {
         int attempt = 0;
         while (true) {
@@ -212,7 +212,7 @@ final class NavigationRouteExecutor {
     }
 
     @NonNull
-    private static LatLon requireDestination(@NonNull NavigationSession.RouteRequestSnapshot snapshot) {
+    private static LatLon requireDestination(@NonNull NavigationRouteRequestSnapshot snapshot) {
         if (snapshot.destination == null) {
             throw new IllegalStateException("Route request is missing a destination");
         }
@@ -220,7 +220,7 @@ final class NavigationRouteExecutor {
     }
 
     @NonNull
-    private static String requireProfile(@NonNull NavigationSession.RouteRequestSnapshot snapshot) {
+    private static String requireProfile(@NonNull NavigationRouteRequestSnapshot snapshot) {
         if (snapshot.profile == null || snapshot.profile.trim().isEmpty()) {
             throw new IllegalStateException("Route request is missing a profile");
         }
