@@ -3,31 +3,23 @@ package vibro.navigator;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.nav.NavigationRequest;
-import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.util.AppLogger;
 
+// Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class MainActivity extends Activity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
-    private static final String STATE_DESTINATION_TEXT = "destinationText";
-    private static final String STATE_DESTINATION_SELECTED_NAME = "destinationSelectedName";
-    private static final String STATE_DESTINATION_SELECTED_LAT = "destinationSelectedLat";
-    private static final String STATE_DESTINATION_SELECTED_LON = "destinationSelectedLon";
 
     private static final String TAG = "MainActivity";
 
@@ -45,25 +37,18 @@ public class MainActivity extends Activity {
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " intent=" + MainActivityIntentHandler.describeIntent(getIntent()));
         mapPickerCoordinator = new MainActivityMapPickerCoordinator(this);
+        MainActivityControls controls = MainActivityControls.bind(this);
 
-        ImageButton aboutButton = findViewById(R.id.aboutButton);
-        aboutButton.setOnClickListener(v -> {
+        controls.aboutButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "About button tapped");
             startActivity(new Intent(this, AboutActivity.class));
         });
-
-        Spinner profileSpinner = findViewById(R.id.profileSpinner);
-        EditText destinationEdit = findViewById(R.id.destinationEdit);
-        ImageButton destinationMapButton = findViewById(R.id.destinationMapButton);
-        LinearLayout stopsContainer = findViewById(R.id.stopsContainer);
-        Button addStopButton = findViewById(R.id.addStopButton);
-        Button startNavButton = findViewById(R.id.startNavButton);
 
         BRouterProfilesRepository profilesRepository = new BRouterProfilesRepository();
         profilePicker = new MainActivityProfilePicker(this, profilesRepository);
         profileSpinnerController = new ProfileSpinnerController(
                 this,
-                profileSpinner,
+                controls.profileSpinner,
                 profilesRepository,
                 profilePicker::startCustomProfilePicker
         );
@@ -80,7 +65,7 @@ public class MainActivity extends Activity {
         AppLogger.i(TAG, "Selected POI search client=" + searchClient.getClass().getSimpleName());
         destinationController = new PoiInputController(
                 this,
-                destinationEdit,
+                controls.destinationEdit,
                 historyStore,
                 searchClient,
                 poi -> {
@@ -88,22 +73,22 @@ public class MainActivity extends Activity {
         );
         stopController = new MainActivityStopController(
                 this,
-                stopsContainer,
+                controls.stopsContainer,
                 historyStore,
                 searchClient,
                 mapPickerCoordinator::openStopMapPicker
         );
 
-        destinationMapButton.setOnClickListener(
+        controls.destinationMapButton.setOnClickListener(
                 v -> mapPickerCoordinator.openDestinationMapPicker(destinationController)
         );
 
-        addStopButton.setOnClickListener(v -> {
+        controls.addStopButton.setOnClickListener(v -> {
             AppLogger.i(TAG, "Add stop requested");
             stopController.addStopRow(null);
         });
 
-        startNavButton.setOnClickListener(v -> startNavigationFromInputs());
+        controls.startNavButton.setOnClickListener(v -> startNavigationFromInputs());
 
         stopController.restoreRows(savedInstanceState);
 
@@ -133,13 +118,7 @@ public class MainActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         if (destinationController != null) {
-            outState.putString(STATE_DESTINATION_TEXT, destinationController.getRawText());
-            Poi selectedPoi = destinationController.getSelectedPoi();
-            if (selectedPoi != null) {
-                outState.putString(STATE_DESTINATION_SELECTED_NAME, selectedPoi.name);
-                outState.putDouble(STATE_DESTINATION_SELECTED_LAT, selectedPoi.lat);
-                outState.putDouble(STATE_DESTINATION_SELECTED_LON, selectedPoi.lon);
-            }
+            MainActivityDestinationState.save(outState, destinationController);
         }
         if (stopController != null) {
             stopController.saveState(outState);
@@ -216,21 +195,7 @@ public class MainActivity extends Activity {
         if (destinationController == null) {
             return;
         }
-        String selectedName = savedInstanceState.getString(STATE_DESTINATION_SELECTED_NAME);
-        double selectedLat = savedInstanceState.getDouble(STATE_DESTINATION_SELECTED_LAT, Double.NaN);
-        double selectedLon = savedInstanceState.getDouble(STATE_DESTINATION_SELECTED_LON, Double.NaN);
-        if (selectedName != null && !Double.isNaN(selectedLat) && !Double.isNaN(selectedLon)) {
-            destinationController.restorePoi(new Poi(selectedName, selectedLat, selectedLon));
-            AppLogger.i(TAG, "Restored selected destination POI=" + selectedName
-                    + " (" + selectedLat + "," + selectedLon + ")");
-            return;
-        }
-
-        String destinationText = savedInstanceState.getString(STATE_DESTINATION_TEXT);
-        if (destinationText != null && !destinationText.isEmpty()) {
-            destinationController.restoreText(destinationText);
-            AppLogger.i(TAG, "Restored destination text=" + destinationText);
-        }
+        MainActivityDestinationState.restore(savedInstanceState, destinationController);
     }
 
 }

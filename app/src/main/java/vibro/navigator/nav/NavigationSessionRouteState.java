@@ -7,8 +7,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
-import vibro.navigator.geo.GeoMath;
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.util.AppLogger;
@@ -17,12 +15,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+// Route coordinator: route safety policies stay split across named helpers even though they meet in this class.
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 final class NavigationSessionRouteState {
 
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
-    private static final double MIN_DESTINATION_REACHED_RADIUS_METERS = 5.0;
 
+    private final NavigationRouteGeometryState geometryState = new NavigationRouteGeometryState();
     private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
     private final NavigationTurnState turnState = new NavigationTurnState();
     private final NavigationRouteProgressTracker progressTracker = new NavigationRouteProgressTracker();
@@ -30,16 +30,8 @@ final class NavigationSessionRouteState {
             new NavigationRouteDeviationHandler(progressTracker);
     private final NavigationSessionRouteDisplayState displayState = new NavigationSessionRouteDisplayState();
 
-    @Nullable
-    private GeoJsonRoute route;
-    @Nullable
-    private PolylineIndex polylineIndex;
-    private int lastSegmentIndex = -1;
-
     void reset() {
-        route = null;
-        polylineIndex = null;
-        lastSegmentIndex = -1;
+        geometryState.reset();
         displayState.reset();
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
@@ -48,7 +40,7 @@ final class NavigationSessionRouteState {
     }
 
     boolean hasActiveRoute() {
-        return route != null;
+        return geometryState.hasActiveRoute();
     }
 
     @NonNull
@@ -86,21 +78,18 @@ final class NavigationSessionRouteState {
             long nowMs,
             long fastChecksUntilMs
     ) {
-        if (isRouteUnavailable()) {
+        if (geometryState.isRouteUnavailable()) {
             AppLogger.i(TAG, "No active route loaded, requesting route calculation");
             return Evaluation.requestRecalculation(null);
         }
 
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(filtered.getLatitude(), filtered.getLongitude()),
-                lastSegmentIndex
-        );
+        PolylineIndex.Match match = geometryState.match(filtered);
         if (match == null) {
             AppLogger.w(TAG, "Route match failed, requesting recalculation");
             return Evaluation.requestRecalculation(null);
         }
-        lastSegmentIndex = match.segmentIndex;
-        double expectedBearingDegrees = expectedBearingDegrees(match);
+        geometryState.rememberSegment(match);
+        double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
         double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
         displayState.rememberSmoothedAccuracyMeters((float) smoothedAccuracyMeters);
         float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
@@ -113,10 +102,14 @@ final class NavigationSessionRouteState {
                 match.alongTrackMeters,
                 nowMs
         );
-        if (isWithinDestinationReachedRadius(filtered, accuracyMeters)) {
+        if (geometryState.isWithinDestinationReachedRadius(filtered, accuracyMeters)) {
             deviationHandler.clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            return Evaluation.keepRoute(turnState.onDestinationReached(route), NO_SUGGESTED_INTERVAL, true);
+            return Evaluation.keepRoute(
+                    turnState.onDestinationReached(geometryState.route()),
+                    NO_SUGGESTED_INTERVAL,
+                    true
+            );
         }
 
         NavigationRouteDeviationHandler.Decision deviationDecision = deviationHandler.evaluate(
@@ -156,8 +149,8 @@ final class NavigationSessionRouteState {
             boolean stableOnRouteSample
     ) {
         NavigationTurnState.Progress progress = turnState.evaluate(
-                route,
-                polylineIndex,
+                geometryState.route(),
+                geometryState.polylineIndex(),
                 match.alongTrackMeters,
                 match.segmentIndex,
                 etaSpeedMps,
@@ -168,38 +161,24 @@ final class NavigationSessionRouteState {
         return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, stableOnRouteSample);
     }
 
-    private boolean isRouteUnavailable() {
-        return route == null || polylineIndex == null || route.track.isEmpty();
-    }
-
     @Nullable
     Double currentSegmentBearingDegrees(@Nullable Location lastFiltered) {
-        if (lastFiltered == null || route == null || polylineIndex == null || route.track.isEmpty()) {
-            return null;
-        }
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
-                lastSegmentIndex
-        );
-        return match == null ? null : expectedBearingDegrees(match);
+        return geometryState.currentSegmentBearingDegrees(lastFiltered);
     }
 
     @NonNull
     List<NogoPoint> addBlockedPointsAhead(@Nullable Location lastFiltered, long nowMs) {
         List<NogoPoint> added = new ArrayList<>();
-        if (lastFiltered == null || route == null || polylineIndex == null || route.track.isEmpty()) {
+        if (lastFiltered == null || geometryState.isRouteUnavailable()) {
             return added;
         }
 
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
-                lastSegmentIndex
-        );
+        PolylineIndex.Match match = geometryState.match(lastFiltered);
         if (match == null) {
             return added;
         }
 
-        return blockedRouteState.addBlockedPointsAhead(polylineIndex, match.alongTrackMeters, nowMs);
+        return blockedRouteState.addBlockedPointsAhead(geometryState.polylineIndex(), match.alongTrackMeters, nowMs);
     }
 
     @NonNull
@@ -235,18 +214,22 @@ final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
-        route = newRoute;
-        polylineIndex = new PolylineIndex(newRoute.track);
-        lastSegmentIndex = -1;
-        displayState.onRouteApplied(context, request, newRoute, polylineIndex);
+        geometryState.loadRoute(newRoute);
+        displayState.onRouteApplied(context, request, newRoute, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
         float etaSpeedMps = 0f;
 
         List<NavigationTurnEvent> turnEvents = lastFiltered != null
-                && isWithinDestinationReachedRadius(lastFiltered, accuracyOf(lastFiltered))
+                && geometryState.isWithinDestinationReachedRadius(lastFiltered, accuracyOf(lastFiltered))
                 ? turnState.onDestinationReached(newRoute)
-                : turnState.onRouteApplied(newRoute, polylineIndex, lastFiltered, etaSpeedMps, accuracyOf(lastFiltered));
+                : turnState.onRouteApplied(
+                        newRoute,
+                        geometryState.polylineIndex(),
+                        lastFiltered,
+                        etaSpeedMps,
+                        accuracyOf(lastFiltered)
+                );
         AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
                 + " trackPoints=" + newRoute.track.size()
@@ -273,9 +256,9 @@ final class NavigationSessionRouteState {
     ) {
         return displayState.buildState(
                 context,
-                route,
-                polylineIndex,
-                lastSegmentIndex,
+                geometryState.route(),
+                geometryState.polylineIndex(),
+                geometryState.lastSegmentIndex(),
                 turnState,
                 progressTracker,
                 lastFiltered,
@@ -295,28 +278,6 @@ final class NavigationSessionRouteState {
 
     private float accuracyOf(@Nullable Location location) {
         return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
-    }
-
-    private boolean isWithinDestinationReachedRadius(@NonNull Location location, float accuracyMeters) {
-        if (route == null || route.track.isEmpty()) {
-            return false;
-        }
-        LatLon destination = route.track.get(route.track.size() - 1);
-        double destinationDistanceMeters = GeoMath.distanceMeters(
-                location.getLatitude(),
-                location.getLongitude(),
-                destination.lat,
-                destination.lon
-        );
-        double destinationReachedRadiusMeters = Math.max(
-                MIN_DESTINATION_REACHED_RADIUS_METERS,
-                Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0.0
-        );
-        return destinationDistanceMeters <= destinationReachedRadiusMeters;
-    }
-
-    private double expectedBearingDegrees(@NonNull PolylineIndex.Match match) {
-        return NavigationExpectedBearingResolver.resolve(polylineIndex, match);
     }
 
     static final class Evaluation {

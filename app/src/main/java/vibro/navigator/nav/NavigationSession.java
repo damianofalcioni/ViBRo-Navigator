@@ -6,13 +6,14 @@ import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.util.AppLogger;
 
 import java.util.Collections;
 import java.util.List;
 
+// Session coordinator: explicit state collaborators make navigation handoffs auditable without a generic facade.
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 final class NavigationSession {
 
     private static final String TAG = "NavigationSession";
@@ -157,7 +158,7 @@ final class NavigationSession {
     }
 
     @NonNull
-    List<NogoPoint> addBlockedPointsAhead() {
+    List<?> addBlockedPointsAhead() {
         return routeState.addBlockedPointsAhead(locationState.getLastFilteredLocation(), System.currentTimeMillis());
     }
 
