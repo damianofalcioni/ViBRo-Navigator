@@ -546,7 +546,7 @@ The navigation UI must show the following in large text:
 - Keep wake-lock ownership narrow and task-scoped. Long-lived navigation reliability should come from the foreground location service, while any partial wake lock should be acquired only by the collaborator performing the short critical section that needs it.
 - Keep background route computation asynchronous while all shared navigation-state mutation remains serialized on the main thread.
 - Keep `NavigationSession` split across focused collaborators for filtered location, route progress, blocked-road state, turn progression, and route-request lifecycle handling rather than collapsing that logic into one class.
-- Keep heuristics such as reroute thresholds, bearing trust rules, forward-look route bearing, direction-of-progress checks, polling cadence, and turn-alert timing in small policy/planner helpers, and keep POI search execution shared across destination and stop fields.
+- Keep heuristics such as reroute thresholds, bearing trust rules, forward-look route bearing, direction-of-progress checks, polling cadence, and turn-alert timing in small policy/planner helpers. Keep POI query/search state shared across destination and stop fields, with text-field/history UI, popup-window presentation, and query precedence/debounce/provider search kept in separate collaborators.
 - Keep the navigation-intent extras contract owned by `NavigationRequest` so activities, the foreground service, and resume notifications serialize the same request shape.
 - Prefer extending the existing `AppLogger` coverage when touching startup, permissions, routing, background execution, or network search behavior.
 

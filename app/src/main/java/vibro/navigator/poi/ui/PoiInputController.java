@@ -2,23 +2,18 @@ package vibro.navigator.poi.ui;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ListPopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.poi.CoordinateParser;
@@ -27,14 +22,10 @@ import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.util.AppLogger;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 
 public final class PoiInputController {
-
-    private static final int MAX_SUGGESTIONS = 10;
 
     public interface Listener {
         void onPoiSelected(@NonNull Poi poi);
@@ -42,18 +33,15 @@ public final class PoiInputController {
 
     private final EditText editText;
     private final PoiHistoryStore history;
-    private final PoiSearchClient searchClient;
     private final Listener listener;
 
-    private final ListPopupWindow popup;
     private final PoiSuggestionAdapter adapter;
+    private final PoiSuggestionPopupController popupController;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final String logTag;
+    private final PoiSuggestionSearchController searchController;
 
-    private Future<?> inFlight;
-    private Runnable pendingSearch;
-    private int searchGeneration;
     private Poi selectedPoi;
     private boolean programmaticChange;
     private boolean suppressNextSearch;
@@ -67,12 +55,25 @@ public final class PoiInputController {
     ) {
         this.editText = editText;
         this.history = history;
-        this.searchClient = searchClient;
         this.listener = listener;
         this.logTag = "PoiInputController#" + Integer.toHexString(System.identityHashCode(this));
         AppLogger.i(logTag, "Created controller");
 
-        adapter = new PoiSuggestionAdapter(context, new PoiSuggestionAdapter.Listener() {
+        adapter = createSuggestionAdapter(context);
+        popupController = new PoiSuggestionPopupController(
+                context,
+                editText,
+                adapter,
+                logTag,
+                this::selectPoi
+        );
+        searchController = createSearchController(searchClient);
+        attachInputHandlers();
+    }
+
+    @NonNull
+    private PoiSuggestionAdapter createSuggestionAdapter(@NonNull Context context) {
+        return new PoiSuggestionAdapter(context, new PoiSuggestionAdapter.Listener() {
             @Override
             public void onSuggestionClicked(@NonNull PoiSuggestion suggestion) {
                 selectPoi(suggestion.poi);
@@ -88,23 +89,49 @@ public final class PoiInputController {
                 deleteHistoryItem(suggestion);
             }
         });
-        popup = new ListPopupWindow(context);
-        popup.setAnchorView(editText);
-        popup.setAdapter(adapter);
-        popup.setModal(false);
-        popup.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.black)));
-        popup.setOnItemClickListener((parent, view, position, id) -> {
-            PoiSuggestion s = (PoiSuggestion) adapter.getItem(position);
-            selectPoi(s.poi);
-        });
+    }
 
+    @NonNull
+    private PoiSuggestionSearchController createSearchController(@NonNull PoiSearchClient searchClient) {
+        return new PoiSuggestionSearchController(
+                mainHandler,
+                history,
+                searchClient,
+                logTag,
+                new PoiSuggestionSearchController.Presenter() {
+                    @Override
+                    public void showHistory() {
+                        PoiInputController.this.showHistory();
+                    }
+
+                    @Override
+                    public void showSuggestions(
+                            @NonNull List<PoiSuggestion> suggestions,
+                            @NonNull String popupReason
+                    ) {
+                        adapter.setItems(suggestions);
+                        if (!suggestions.isEmpty() && editText.hasFocus()) {
+                            popupController.showIfPossible(popupReason);
+                        }
+                    }
+
+                    @Override
+                    public void clearSuggestionsAndDismiss() {
+                        adapter.setItems(new ArrayList<>());
+                        popupController.dismiss();
+                    }
+                }
+        );
+    }
+
+    private void attachInputHandlers() {
         editText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 AppLogger.d(logTag, "Input focused text=" + getRawText().trim());
                 maybeShowHistory();
             } else {
                 AppLogger.d(logTag, "Input lost focus");
-                popup.dismiss();
+                popupController.dismiss();
             }
         });
         editText.setOnClickListener(v -> {
@@ -128,14 +155,14 @@ public final class PoiInputController {
                 }
                 if (suppressNextSearch) {
                     AppLogger.d(logTag, "Suppressing search after programmatic POI selection");
-                    cancelPendingSearch();
-                    cancelInFlightSearch();
-                    dismissPopup();
+                    searchController.cancelPendingSearch();
+                    searchController.cancelInFlightSearch();
+                    popupController.dismiss();
                     suppressNextSearch = false;
                     programmaticChange = false;
                     return;
                 }
-                scheduleSearch(s.toString());
+                searchController.scheduleSearch(s.toString());
                 programmaticChange = false;
             }
         });
@@ -143,9 +170,9 @@ public final class PoiInputController {
 
     public void dispose() {
         AppLogger.i(logTag, "Disposing controller");
-        cancelPendingSearch();
-        cancelInFlightSearch();
-        dismissPopup();
+        searchController.cancelPendingSearch();
+        searchController.cancelInFlightSearch();
+        popupController.dismiss();
     }
 
     public void setText(@NonNull String text) {
@@ -162,7 +189,7 @@ public final class PoiInputController {
         selectedPoi = null;
         editText.setText(text);
         editText.setSelection(text.length());
-        dismissPopup();
+        popupController.dismiss();
     }
 
     public void setPoi(@NonNull Poi poi) {
@@ -173,7 +200,7 @@ public final class PoiInputController {
         selectedPoi = poi;
         editText.setText(label);
         editText.setSelection(label.length());
-        dismissPopup();
+        popupController.dismiss();
         history.addOrPromote(poi);
         listener.onPoiSelected(poi);
     }
@@ -186,7 +213,7 @@ public final class PoiInputController {
         selectedPoi = poi;
         editText.setText(label);
         editText.setSelection(label.length());
-        dismissPopup();
+        popupController.dismiss();
     }
 
     @NonNull
@@ -202,7 +229,7 @@ public final class PoiInputController {
         adapter.setItems(items);
         AppLogger.d(logTag, "Showing history items=" + items.size());
         if (!items.isEmpty() && editText.hasFocus()) {
-            showPopupIfPossible("history");
+            popupController.showIfPossible("history");
         }
     }
 
@@ -307,185 +334,9 @@ public final class PoiInputController {
         }
     }
 
-    private void scheduleSearch(@NonNull String raw) {
-        cancelPendingSearch();
-
-        String query = raw.trim();
-        if (showCoordinateSuggestion(query) || showHistoryMatches(query) || handleShortQuery(query)) {
-            return;
-        }
-
-        pendingSearch = () -> runSearch(query);
-        AppLogger.d(logTag, "Scheduling search query=" + query);
-        mainHandler.postDelayed(pendingSearch, 300);
-    }
-
-    private boolean showCoordinateSuggestion(@NonNull String query) {
-        Poi coords = CoordinateParser.tryParse(query, query);
-        if (coords != null) {
-            cancelInFlightSearch();
-            AppLogger.d(logTag, "Recognized direct coordinate entry query=" + query);
-            adapter.setItems(singleSuggestion(coords, false));
-            if (editText.hasFocus()) {
-                showPopupIfPossible("coordinate-entry");
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean showHistoryMatches(@NonNull String query) {
-        List<PoiSuggestion> historySuggestions = matchingHistorySuggestions(query);
-        if (!historySuggestions.isEmpty()) {
-            cancelInFlightSearch();
-            AppLogger.d(logTag, "Showing matching history query=" + query
-                    + " items=" + historySuggestions.size());
-            adapter.setItems(historySuggestions);
-            if (editText.hasFocus()) {
-                showPopupIfPossible("history-search-results");
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private boolean handleShortQuery(@NonNull String query) {
-        if (query.length() <= 3) {
-            cancelInFlightSearch();
-            if (query.isEmpty()) {
-                AppLogger.d(logTag, "Empty query, showing history");
-                showHistory();
-            } else {
-                AppLogger.d(logTag, "Query too short for search query=" + query);
-                dismissPopup();
-                adapter.setItems(new ArrayList<>());
-            }
-            return true;
-        }
-        return false;
-    }
-
-    private void cancelPendingSearch() {
-        if (pendingSearch != null) {
-            mainHandler.removeCallbacks(pendingSearch);
-            pendingSearch = null;
-        }
-    }
-
-    private void runSearch(@NonNull String query) {
-        cancelInFlightSearch();
-        int generation = ++searchGeneration;
-        inFlight = PoiSearchDispatcher.submit(() -> {
-            try {
-                List<PoiSuggestion> suggestions = performSearch(query);
-                mainHandler.post(() -> handleSearchSuccess(query, generation, suggestions));
-            } catch (IOException e) {
-                AppLogger.e(logTag, "Search failed query=" + query, e);
-                mainHandler.post(() -> handleSearchFailure(generation));
-            }
-        });
-    }
-
-    @NonNull
-    private List<PoiSuggestion> performSearch(@NonNull String query) throws IOException {
-        AppLogger.i(logTag, "Running search query=" + query);
-        List<Poi> results = searchClient.search(query, MAX_SUGGESTIONS);
-        List<PoiSuggestion> suggestions = new ArrayList<>();
-        for (Poi p : results) {
-            suggestions.add(new PoiSuggestion(p, false));
-        }
-        return suggestions;
-    }
-
-    private void handleSearchSuccess(
-            @NonNull String query,
-            int generation,
-            @NonNull List<PoiSuggestion> suggestions
-    ) {
-        if (generation != searchGeneration) {
-            AppLogger.d(logTag, "Discarding stale search result query=" + query);
-            return;
-        }
-        adapter.setItems(suggestions);
-        AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
-        if (!suggestions.isEmpty() && editText.hasFocus()) {
-            showPopupIfPossible("search-results");
-        }
-    }
-
-    private void handleSearchFailure(int generation) {
-        if (generation == searchGeneration) {
-            adapter.setItems(new ArrayList<>());
-        }
-    }
-
-    private void cancelInFlightSearch() {
-        searchGeneration++;
-        if (inFlight != null) {
-            inFlight.cancel(true);
-            inFlight = null;
-            AppLogger.d(logTag, "Cancelled in-flight search");
-        }
-    }
-
     private void selectPoi(@NonNull Poi poi) {
         AppLogger.i(logTag, "Selected POI=" + poi.displayLabel());
         setPoi(poi);
-    }
-
-    private void dismissPopup() {
-        if (popup.isShowing()) {
-            popup.dismiss();
-        }
-    }
-
-    private void showPopupIfPossible(@NonNull String reason) {
-        if (!canShowPopup(reason)) {
-            return;
-        }
-        try {
-            popup.show();
-            if (popup.getListView() != null) {
-                popup.getListView().setItemsCanFocus(true);
-            }
-        } catch (WindowManager.BadTokenException | IllegalStateException e) {
-            AppLogger.w(logTag, "Skipping popup show because anchor window is not ready reason=" + reason, e);
-        }
-    }
-
-    private boolean canShowPopup(@NonNull String reason) {
-        if (!editText.hasFocus()) {
-            return false;
-        }
-        boolean attached = ViewCompat.isAttachedToWindow(editText);
-        boolean hasWindowToken = editText.getWindowToken() != null;
-        boolean viewVisible = editText.getVisibility() == View.VISIBLE;
-        boolean windowVisible = editText.getWindowVisibility() == View.VISIBLE;
-        if (attached && hasWindowToken && viewVisible && windowVisible) {
-            return true;
-        }
-        AppLogger.d(logTag, "Skipping popup show reason=" + reason
-                + " attached=" + attached
-                + " windowToken=" + hasWindowToken
-                + " viewVisible=" + viewVisible
-                + " windowVisible=" + windowVisible);
-        return false;
-    }
-
-    @NonNull
-    private static List<PoiSuggestion> singleSuggestion(@NonNull Poi poi, boolean deletable) {
-        List<PoiSuggestion> items = new ArrayList<>();
-        items.add(new PoiSuggestion(poi, deletable));
-        return items;
-    }
-
-    @NonNull
-    private List<PoiSuggestion> matchingHistorySuggestions(@NonNull String query) {
-        List<PoiSuggestion> items = new ArrayList<>();
-        for (Poi poi : history.search(query, MAX_SUGGESTIONS)) {
-            items.add(new PoiSuggestion(poi, true));
-        }
-        return items;
     }
 
     int getSuggestionCountForTesting() {
