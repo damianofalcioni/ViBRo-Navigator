@@ -1,30 +1,17 @@
 package vibro.navigator.brouter;
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.UriPermission;
-import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.util.AppLogger;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 public class BRouterProfilesRepository {
 
@@ -35,10 +22,18 @@ public class BRouterProfilesRepository {
     private static final String KEY_CUSTOM_PROFILE_NAME = "custom_profile_name";
     private static final String KEY_PROFILES_TREE_URI = "profiles_tree_uri";
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
-    private static final String BROUTER_PROFILES_ZIP = "assets/profiles2.zip";
     private static final String TAG = "BRouterProfiles";
 
     private final BRouterProfileDirectories profileDirectories = new BRouterProfileDirectories();
+    private final BRouterProfileLister profileLister;
+
+    public BRouterProfilesRepository() {
+        this(new BRouterProfileLister());
+    }
+
+    BRouterProfilesRepository(@NonNull BRouterProfileLister profileLister) {
+        this.profileLister = profileLister;
+    }
 
     @Nullable
     public Uri getCustomProfileUri(@NonNull Context context) {
@@ -141,21 +136,11 @@ public class BRouterProfilesRepository {
 
     @NonNull
     public List<String> listProfiles(@NonNull Context context) {
-        Set<String> externalProfiles = new TreeSet<>();
-        for (Uri treeUri : resolveProfilesDiscoveryTreeUris(context)) {
-            externalProfiles.addAll(listProfilesFromTree(context, treeUri));
-        }
-        Set<String> out = new TreeSet<>(externalProfiles);
-        List<String> bundled = listBundledProfiles(context);
-        out.addAll(bundled);
-        AppLogger.i(TAG, "Listed profiles total=" + out.size()
-                + " external=" + externalProfiles.size()
-                + " bundled=" + bundled.size());
-        return new ArrayList<>(out);
+        return profileLister.listProfiles(context, resolveProfilesDiscoveryTreeUris(context));
     }
 
     @NonNull
-    List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
+    private List<Uri> resolveProfilesDiscoveryTreeUris(@NonNull Context context) {
         Uri savedTreeUri = getProfilesTreeUri(context);
         return profileDirectories.resolveProfilesDiscoveryTreeUris(
                 context,
@@ -164,95 +149,9 @@ public class BRouterProfilesRepository {
         );
     }
 
-    @NonNull
-    List<String> listProfilesFromTree(@NonNull Context context, @NonNull Uri treeUri) {
-        ContentResolver cr = context.getContentResolver();
-        Uri docUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri));
-        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, DocumentsContract.getDocumentId(docUri));
-
-        List<String> out = new ArrayList<>();
-        try (Cursor c = cr.query(childrenUri,
-                new String[]{
-                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                        DocumentsContract.Document.COLUMN_MIME_TYPE
-                },
-                null,
-                null,
-                null
-        )) {
-            if (c == null) {
-                AppLogger.w(TAG, "Profiles tree query returned null cursor uri=" + treeUri);
-                return Collections.emptyList();
-            }
-            int nameCol = c.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
-            while (c.moveToNext()) {
-                addProfileName(out, c.getString(nameCol));
-            }
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to list profiles from tree uri=" + treeUri, e);
-            return Collections.emptyList();
-        }
-        Collections.sort(out);
-        AppLogger.i(TAG, "Listed external profiles uri=" + treeUri + " count=" + out.size());
-        return out;
-    }
-
-    @NonNull
-    List<String> listBundledProfiles(@NonNull Context context) {
-        try {
-            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(BROUTER_PACKAGE_NAME, 0);
-            try (ZipFile apk = new ZipFile(appInfo.sourceDir)) {
-                ZipEntry profilesZipEntry = apk.getEntry(BROUTER_PROFILES_ZIP);
-                if (profilesZipEntry == null) {
-                    AppLogger.w(TAG, "Bundled profiles zip missing inside BRouter APK");
-                    return Collections.emptyList();
-                }
-                List<String> out = new ArrayList<>();
-                try (InputStream raw = apk.getInputStream(profilesZipEntry);
-                     ZipInputStream zip = new ZipInputStream(raw)) {
-                    ZipEntry entry;
-                    while ((entry = zip.getNextEntry()) != null) {
-                        if (!entry.isDirectory()) {
-                            addProfileName(out, entry.getName());
-                        }
-                        zip.closeEntry();
-                    }
-                }
-                Collections.sort(out);
-                AppLogger.i(TAG, "Listed bundled BRouter profiles count=" + out.size());
-                return out;
-            }
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to read bundled BRouter profiles", e);
-            return Collections.emptyList();
-        }
-    }
-
-    private void addProfileName(@NonNull List<String> out, @Nullable String rawName) {
-        String profileName = normalizeProfileName(rawName);
-        if (profileName != null) {
-            out.add(profileName);
-        }
-    }
-
     @Nullable
     public String normalizeProfileName(@Nullable String rawName) {
-        if (rawName == null) {
-            return null;
-        }
-        String name = rawName.trim();
-        if (name.isEmpty()) {
-            return null;
-        }
-        int slash = Math.max(name.lastIndexOf('/'), name.lastIndexOf('\\'));
-        if (slash >= 0 && slash + 1 < name.length()) {
-            name = name.substring(slash + 1);
-        }
-        if (!name.toLowerCase(Locale.ROOT).endsWith(".brf")) {
-            return null;
-        }
-        String base = name.substring(0, name.length() - 4).trim();
-        return base.isEmpty() ? null : base;
+        return profileLister.normalizeProfileName(rawName);
     }
 
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
