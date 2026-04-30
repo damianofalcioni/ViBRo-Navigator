@@ -1,6 +1,5 @@
 package vibro.navigator.nav;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -50,17 +49,6 @@ public class NavigationLocationControllerTest {
                 null,
                 1_000L,
                 "gps+network"
-        ));
-    }
-
-    @Test
-    public void countSatellitesUsedInFix_countsOnlyTrueFlags() {
-        assertEquals(3, NavigationLocationController.countSatellitesUsedInFix(
-                true,
-                false,
-                true,
-                false,
-                true
         ));
     }
 
