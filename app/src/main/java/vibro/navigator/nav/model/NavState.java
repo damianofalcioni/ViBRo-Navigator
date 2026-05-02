@@ -24,60 +24,31 @@ public final class NavState {
     public static final long NO_DEADLINE = -1L;
 
     @NonNull
-    public final String nextLine;
+    public final NavRouteStatus routeStatus;
     @NonNull
-    public final String afterNextLine;
+    public final NavGpsStatus gpsStatus;
     @NonNull
-    public final String destinationLine;
-    @NonNull
-    public final String stopProgressBlock;
-    @NonNull
-    public final String gpsStatusLine;
-    public final long nextEvaluationDeadlineElapsedMs;
-    @NonNull
-    public final String detailBlock;
-    @Nullable
-    public final NavCompassState compassState;
-    public final boolean paused;
+    public final NavPauseStatus pauseStatus;
 
-    private NavState(@NonNull String nextLine,
-                     @NonNull String afterNextLine,
-                     @NonNull String destinationLine,
-                     @NonNull String stopProgressBlock,
-                     @NonNull String gpsStatusLine,
-                     long nextEvaluationDeadlineElapsedMs,
-                     @NonNull String detailBlock,
-                     @Nullable NavCompassState compassState,
-                     boolean paused) {
-        this.nextLine = nextLine;
-        this.afterNextLine = afterNextLine;
-        this.destinationLine = destinationLine;
-        this.stopProgressBlock = stopProgressBlock;
-        this.gpsStatusLine = gpsStatusLine;
-        this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
-        this.detailBlock = detailBlock;
-        this.compassState = compassState;
-        this.paused = paused;
+    private NavState(
+            @NonNull NavRouteStatus routeStatus,
+            @NonNull NavGpsStatus gpsStatus,
+            @NonNull NavPauseStatus pauseStatus
+    ) {
+        this.routeStatus = routeStatus;
+        this.gpsStatus = gpsStatus;
+        this.pauseStatus = pauseStatus;
     }
 
     @NonNull
     public String displayStatusBlock() {
-        if (!detailBlock.isEmpty()) {
-            return detailBlock;
-        }
-        if (destinationLine.isEmpty()) {
-            return stopProgressBlock;
-        }
-        if (stopProgressBlock.isEmpty()) {
-            return destinationLine;
-        }
-        return destinationLine + "\n" + stopProgressBlock;
+        return routeStatus.displayStatusBlock();
     }
 
     @NonNull
     public static NavState waiting(@NonNull Context context) {
         String noRoute = context.getString(R.string.nav_no_route);
-        return new NavState(noRoute, "", "", "", defaultGpsStatusLine(context), NO_DEADLINE, noRoute, null, false);
+        return create(noRoute, "", "", "", defaultGpsStatusLine(context), NO_DEADLINE, noRoute, null, false);
     }
 
     @NonNull
@@ -87,7 +58,7 @@ public final class NavState {
 
     @NonNull
     public static NavState waitingForLocation(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
-        return new NavState(
+        return create(
                 context.getString(R.string.nav_waiting_for_location_title),
                 "",
                 "",
@@ -107,7 +78,7 @@ public final class NavState {
 
     @NonNull
     public static NavState calculatingRoute(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
-        return new NavState(
+        return create(
                 context.getString(R.string.nav_calculating_route_title),
                 "",
                 "",
@@ -129,7 +100,7 @@ public final class NavState {
     public static NavState routeUnavailable(@NonNull Context context,
                                             @NonNull String detail,
                                             long nextEvaluationDeadlineElapsedMs) {
-        return new NavState(
+        return create(
                 context.getString(R.string.nav_route_unavailable_title),
                 "",
                 "",
@@ -147,54 +118,36 @@ public final class NavState {
         if (notice.trim().isEmpty()) {
             return base;
         }
-        String detail = base.detailBlock.isEmpty()
+        String detail = base.routeStatus.progress.detailBlock.isEmpty()
                 ? notice
-                : notice + "\n" + base.detailBlock;
+                : notice + "\n" + base.routeStatus.progress.detailBlock;
         return new NavState(
-                base.nextLine,
-                base.afterNextLine,
-                base.destinationLine,
-                base.stopProgressBlock,
-                base.gpsStatusLine,
-                base.nextEvaluationDeadlineElapsedMs,
-                detail,
-                base.compassState,
-                base.paused
+                base.routeStatus.withProgress(base.routeStatus.progress.withDetailBlock(detail)),
+                base.gpsStatus,
+                base.pauseStatus
         );
     }
 
     @NonNull
     public static NavState withGpsStatus(@NonNull NavState base, @NonNull String gpsStatusLine) {
         return new NavState(
-                base.nextLine,
-                base.afterNextLine,
-                base.destinationLine,
-                base.stopProgressBlock,
-                gpsStatusLine,
-                base.nextEvaluationDeadlineElapsedMs,
-                base.detailBlock,
-                base.compassState,
-                base.paused
+                base.routeStatus,
+                base.gpsStatus.withStatusLine(gpsStatusLine),
+                base.pauseStatus
         );
     }
 
     @NonNull
     public static NavState withPauseState(@NonNull Context context, @NonNull NavState base, boolean paused) {
-        String detail = base.detailBlock;
+        String detail = base.routeStatus.progress.detailBlock;
         if (paused) {
             String pauseNotice = context.getString(R.string.nav_paused_notice);
             detail = detail.isEmpty() ? pauseNotice : pauseNotice + "\n" + detail;
         }
         return new NavState(
-                base.nextLine,
-                base.afterNextLine,
-                base.destinationLine,
-                base.stopProgressBlock,
-                base.gpsStatusLine,
-                base.nextEvaluationDeadlineElapsedMs,
-                detail,
-                base.compassState,
-                paused
+                base.routeStatus.withProgress(base.routeStatus.progress.withDetailBlock(detail)),
+                base.gpsStatus,
+                new NavPauseStatus(paused)
         );
     }
 
@@ -379,7 +332,7 @@ public final class NavState {
                 compassRadiusTransition,
                 nowMs
         );
-        return new NavState(
+        return create(
                 next,
                 afterNext,
                 destination,
@@ -389,6 +342,27 @@ public final class NavState {
                 "",
                 compassState,
                 false
+        );
+    }
+
+    @NonNull
+    private static NavState create(@NonNull String nextLine,
+                                   @NonNull String afterNextLine,
+                                   @NonNull String destinationLine,
+                                   @NonNull String stopProgressBlock,
+                                   @NonNull String gpsStatusLine,
+                                   long nextEvaluationDeadlineElapsedMs,
+                                   @NonNull String detailBlock,
+                                   @Nullable NavCompassState compassState,
+                                   boolean paused) {
+        return new NavState(
+                new NavRouteStatus(
+                        new NavGuidanceStatus(nextLine, afterNextLine),
+                        new NavProgressStatus(destinationLine, stopProgressBlock, detailBlock),
+                        compassState
+                ),
+                new NavGpsStatus(gpsStatusLine, nextEvaluationDeadlineElapsedMs),
+                new NavPauseStatus(paused)
         );
     }
 

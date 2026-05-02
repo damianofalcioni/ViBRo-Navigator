@@ -1,6 +1,7 @@
 package vibro.navigator;
 
 
+import vibro.navigator.nav.compass.CompassRoutePoint;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -51,19 +52,22 @@ final class NavigationCompassRouteMarkerRenderer {
             float routeRadius,
             float headingDegrees
     ) {
-        if (state == null || !state.destinationWithinRadius) {
+        if (state == null || !state.progressLabels.destinationWithinRadius) {
             return null;
         }
 
-        float distance = (float) Math.hypot(state.destinationEastMeters, state.destinationNorthMeters);
+        float distance = (float) Math.hypot(
+                state.progressLabels.destinationEastMeters,
+                state.progressLabels.destinationNorthMeters
+        );
         if (distance < 1f) {
             return null;
         }
 
-        float scale = routeRadius / Math.max(1f, state.visibleRadiusMeters);
+        float scale = routeRadius / Math.max(1f, state.radiusState.visibleRadiusMeters);
         NavigationCompassRouteProjector.projectHeadingUp(
-                state.destinationEastMeters,
-                state.destinationNorthMeters,
+                state.progressLabels.destinationEastMeters,
+                state.progressLabels.destinationNorthMeters,
                 headingDegrees,
                 destinationPoint
         );
@@ -83,11 +87,11 @@ final class NavigationCompassRouteMarkerRenderer {
             float routeRadius,
             float headingDegrees
     ) {
-        if (state == null || state.visibleRadiusMeters <= 0f) {
+        if (state == null || state.radiusState.visibleRadiusMeters <= 0f) {
             return;
         }
         ensurePaintsInitialized(context);
-        float scale = routeRadius / state.visibleRadiusMeters;
+        float scale = routeRadius / state.radiusState.visibleRadiusMeters;
         float markerRadius = dp(context, ROUTE_MARKER_RADIUS_DP);
         if (state.hasRouteGeometry()) {
             drawGeometryHintMarkers(canvas, state, cx, cy, scale, markerRadius, headingDegrees);
@@ -107,15 +111,15 @@ final class NavigationCompassRouteMarkerRenderer {
             float routeRadius,
             float headingDegrees
     ) {
-        if (state == null || state.visibleRadiusMeters <= 0f) {
+        if (state == null || state.radiusState.visibleRadiusMeters <= 0f) {
             return;
         }
         ensurePaintsInitialized(context);
-        NavCompassState.RoutePoint point = resolveVisibleStartPoint(state);
+        CompassRoutePoint point = resolveVisibleStartPoint(state);
         if (point == null) {
             return;
         }
-        float scale = routeRadius / state.visibleRadiusMeters;
+        float scale = routeRadius / state.radiusState.visibleRadiusMeters;
         NavigationCompassRouteProjector.projectHeadingUp(
                 point.eastMeters,
                 point.northMeters,
@@ -171,7 +175,7 @@ final class NavigationCompassRouteMarkerRenderer {
             float markerRadius,
             float headingDegrees
     ) {
-        for (NavCompassState.RoutePoint point : state.hintPoints) {
+        for (CompassRoutePoint point : state.hintPoints) {
             NavigationCompassRouteProjector.projectHeadingUp(
                     point.eastMeters,
                     point.northMeters,
@@ -183,13 +187,13 @@ final class NavigationCompassRouteMarkerRenderer {
     }
 
     @Nullable
-    private NavCompassState.RoutePoint resolveVisibleStartPoint(@NonNull NavCompassState state) {
+    private CompassRoutePoint resolveVisibleStartPoint(@NonNull NavCompassState state) {
         if (state.hasRouteGeometry()) {
             LatLon point = state.routeSamplePointAt(0);
             if (point == null) {
                 return null;
             }
-            return new NavCompassState.RoutePoint(
+            return new CompassRoutePoint(
                     (float) GeoMath.eastMeters(
                             state.currentLatitude(),
                             state.currentLongitude(),

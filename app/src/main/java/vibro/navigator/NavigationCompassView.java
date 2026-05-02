@@ -167,7 +167,7 @@ public final class NavigationCompassView extends View {
         float cy = height / 2f;
         float radius = Math.min(cx, cy) - dp(10f);
         float routeRadius = radius * 0.88f;
-        float headingDegrees = compassState == null ? 0f : compassState.headingDegrees;
+        float headingDegrees = compassState == null ? 0f : compassState.displayMode.headingDegrees;
 
         canvas.drawCircle(cx, cy, radius, surfacePaint);
         drawDistanceRings(canvas, cx, cy, radius);

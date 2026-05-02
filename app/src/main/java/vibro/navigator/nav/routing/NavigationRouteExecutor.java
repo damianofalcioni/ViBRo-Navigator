@@ -73,9 +73,7 @@ public final class NavigationRouteExecutor {
     private final ExecutorService executorService;
     private final MainThreadPoster mainThreadPoster;
     private final RouteCalculationGuard routeCalculationGuard;
-    private final int maxTransientRouteRetries;
-    private final long transientRouteRetryDelayMs;
-    private final Sleeper sleeper;
+    private final NavigationRouteRetryPolicy routeRetryPolicy;
 
     public NavigationRouteExecutor(
             @NonNull RouteCalculator routeCalculator,
@@ -127,9 +125,11 @@ public final class NavigationRouteExecutor {
         this.executorService = executorService;
         this.mainThreadPoster = mainThreadPoster;
         this.routeCalculationGuard = routeCalculationGuard;
-        this.maxTransientRouteRetries = Math.max(0, maxTransientRouteRetries);
-        this.transientRouteRetryDelayMs = Math.max(0L, transientRouteRetryDelayMs);
-        this.sleeper = sleeper;
+        this.routeRetryPolicy = new NavigationRouteRetryPolicy(
+                maxTransientRouteRetries,
+                transientRouteRetryDelayMs,
+                sleeper
+        );
     }
 
     @NonNull
@@ -189,60 +189,7 @@ public final class NavigationRouteExecutor {
             @NonNull Context appContext,
             @NonNull NavigationRouteRequestSnapshot snapshot
     ) throws Exception {
-        int attempt = 0;
-        while (true) {
-            attempt++;
-            try {
-                return routeCalculator.routeGeoJson(
-                        appContext,
-                        snapshot.start,
-                        snapshot.intermediates,
-                        requireDestination(snapshot),
-                        requireProfile(snapshot),
-                        snapshot.blocked
-                );
-            } catch (Exception e) {
-                if (!shouldRetryTransientRouteFailure(e, attempt)) {
-                    throw e;
-                }
-                AppLogger.w(TAG, "Transient BRouter route failure attempt="
-                        + attempt + "/" + (maxTransientRouteRetries + 1)
-                        + " retryDelayMs=" + transientRouteRetryDelayMs, e);
-                sleepBeforeRetry();
-            }
-        }
-    }
-
-    @NonNull
-    private static LatLon requireDestination(@NonNull NavigationRouteRequestSnapshot snapshot) {
-        if (snapshot.destination == null) {
-            throw new IllegalStateException("Route request is missing a destination");
-        }
-        return snapshot.destination;
-    }
-
-    @NonNull
-    private static String requireProfile(@NonNull NavigationRouteRequestSnapshot snapshot) {
-        if (snapshot.profile == null || snapshot.profile.trim().isEmpty()) {
-            throw new IllegalStateException("Route request is missing a profile");
-        }
-        return snapshot.profile;
-    }
-
-    private boolean shouldRetryTransientRouteFailure(@NonNull Exception error, int attempt) {
-        return attempt <= maxTransientRouteRetries && BRouterTransientFailureClassifier.isTransient(error);
-    }
-
-    private void sleepBeforeRetry() throws Exception {
-        if (transientRouteRetryDelayMs <= 0L) {
-            return;
-        }
-        try {
-            sleeper.sleep(transientRouteRetryDelayMs);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("Interrupted while retrying BRouter route calculation", e);
-        }
+        return routeRetryPolicy.calculateRoute(routeCalculator, appContext, snapshot);
     }
 
     private boolean awaitExecutorTermination() {

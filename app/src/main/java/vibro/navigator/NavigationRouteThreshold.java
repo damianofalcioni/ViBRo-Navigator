@@ -16,21 +16,21 @@ final class NavigationRouteThreshold {
             float baseStrokeWidthPx
     ) {
         if (compassState == null
-                || compassState.visibleRadiusMeters <= 0f
-                || compassState.routeThresholdMeters <= 0f) {
+                || compassState.radiusState.visibleRadiusMeters <= 0f
+                || compassState.radiusState.routeThresholdMeters <= 0f) {
             return baseStrokeWidthPx;
         }
 
         float corridorHalfWidthMeters = Math.max(
                 0f,
-                compassState.routeThresholdMeters - compassState.accuracyRadiusMeters
+                compassState.radiusState.routeThresholdMeters - compassState.radiusState.accuracyRadiusMeters
         );
         if (corridorHalfWidthMeters <= 0f) {
             return 0f;
         }
 
         float projectedThresholdWidthPx =
-                (2f * corridorHalfWidthMeters / compassState.visibleRadiusMeters) * routeRadius;
+                (2f * corridorHalfWidthMeters / compassState.radiusState.visibleRadiusMeters) * routeRadius;
         return Math.max(
                 0f,
                 Math.min(routeRadius * 2f, projectedThresholdWidthPx)
@@ -39,8 +39,8 @@ final class NavigationRouteThreshold {
 
     static boolean shouldDrawOverlay(@Nullable NavCompassState compassState) {
         return compassState != null
-                && compassState.routeThresholdMeters > compassState.accuracyRadiusMeters
-                && compassState.routeThresholdMeters > 0f
-                && compassState.visibleRadiusMeters > 0f;
+                && compassState.radiusState.routeThresholdMeters > compassState.radiusState.accuracyRadiusMeters
+                && compassState.radiusState.routeThresholdMeters > 0f
+                && compassState.radiusState.visibleRadiusMeters > 0f;
     }
 }

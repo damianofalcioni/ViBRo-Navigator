@@ -45,8 +45,8 @@ public class NavigationSessionTest {
                 null
         );
 
-        assertTrue(pausedState.paused);
-        assertTrue(pausedState.detailBlock.contains(context.getString(R.string.nav_paused_notice)));
+        assertTrue(pausedState.pauseStatus.paused);
+        assertTrue(pausedState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_paused_notice)));
         assertTrue(session.resume());
 
         NavState resumedState = session.buildState(
@@ -58,6 +58,6 @@ public class NavigationSessionTest {
                 null
         );
 
-        assertFalse(resumedState.paused);
+        assertFalse(resumedState.pauseStatus.paused);
     }
 }

@@ -34,28 +34,28 @@ public class NavigationCompassModeControllerTest {
         controller.resolve(automaticState, 18_000L);
         NavCompassState settledRestoredState = controller.resolve(automaticState, 23_000L);
 
-        assertFalse(initialState.movingScaleActive);
-        assertEquals(2_000f, initialState.visibleRadiusMeters, 0.01f);
-        assertTrue(immediateSixtySecondState.movingScaleActive);
-        assertEquals(2_000f, immediateSixtySecondState.visibleRadiusMeters, 0.01f);
-        assertTrue(midSixtySecondState.movingScaleActive);
+        assertFalse(initialState.displayMode.movingScaleActive);
+        assertEquals(2_000f, initialState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(immediateSixtySecondState.displayMode.movingScaleActive);
+        assertEquals(2_000f, immediateSixtySecondState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(midSixtySecondState.displayMode.movingScaleActive);
         assertEquals(
                 NavState.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L),
-                midSixtySecondState.visibleRadiusMeters,
+                midSixtySecondState.radiusState.visibleRadiusMeters,
                 0.01f
         );
-        assertTrue(settledSixtySecondState.movingScaleActive);
-        assertEquals(300f, settledSixtySecondState.visibleRadiusMeters, 0.01f);
-        assertFalse(immediateRestoredState.movingScaleActive);
-        assertEquals(300f, immediateRestoredState.visibleRadiusMeters, 0.01f);
-        assertFalse(midRestoredState.movingScaleActive);
+        assertTrue(settledSixtySecondState.displayMode.movingScaleActive);
+        assertEquals(300f, settledSixtySecondState.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(immediateRestoredState.displayMode.movingScaleActive);
+        assertEquals(300f, immediateRestoredState.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(midRestoredState.displayMode.movingScaleActive);
         assertEquals(
                 NavState.smoothVisibleRadiusMeters(2_000f, 300f, 1_000L),
-                midRestoredState.visibleRadiusMeters,
+                midRestoredState.radiusState.visibleRadiusMeters,
                 0.01f
         );
-        assertFalse(settledRestoredState.movingScaleActive);
-        assertEquals(2_000f, settledRestoredState.visibleRadiusMeters, 0.01f);
+        assertFalse(settledRestoredState.displayMode.movingScaleActive);
+        assertEquals(2_000f, settledRestoredState.radiusState.visibleRadiusMeters, 0.01f);
     }
 
     @Test
@@ -71,17 +71,17 @@ public class NavigationCompassModeControllerTest {
         controller.resolve(automaticState, 12_000L);
         NavCompassState restoredState = controller.resolve(automaticState, 17_000L);
 
-        assertFalse(immediateFullRouteState.movingScaleActive);
-        assertEquals(300f, immediateFullRouteState.visibleRadiusMeters, 0.01f);
-        assertFalse(beforeExpiryState.movingScaleActive);
-        assertTrue(beforeExpiryState.visibleRadiusMeters > 1_900f);
-        assertTrue(restoreStartState.movingScaleActive);
-        assertTrue(restoreStartState.visibleRadiusMeters > 1_900f);
-        assertTrue(restoringState.movingScaleActive);
-        assertTrue(restoringState.visibleRadiusMeters > 300f);
-        assertTrue(restoringState.visibleRadiusMeters < restoreStartState.visibleRadiusMeters);
-        assertTrue(restoredState.movingScaleActive);
-        assertEquals(300f, restoredState.visibleRadiusMeters, 0.01f);
+        assertFalse(immediateFullRouteState.displayMode.movingScaleActive);
+        assertEquals(300f, immediateFullRouteState.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(beforeExpiryState.displayMode.movingScaleActive);
+        assertTrue(beforeExpiryState.radiusState.visibleRadiusMeters > 1_900f);
+        assertTrue(restoreStartState.displayMode.movingScaleActive);
+        assertTrue(restoreStartState.radiusState.visibleRadiusMeters > 1_900f);
+        assertTrue(restoringState.displayMode.movingScaleActive);
+        assertTrue(restoringState.radiusState.visibleRadiusMeters > 300f);
+        assertTrue(restoringState.radiusState.visibleRadiusMeters < restoreStartState.radiusState.visibleRadiusMeters);
+        assertTrue(restoredState.displayMode.movingScaleActive);
+        assertEquals(300f, restoredState.radiusState.visibleRadiusMeters, 0.01f);
     }
 
     @Test
@@ -96,12 +96,12 @@ public class NavigationCompassModeControllerTest {
         controller.resolve(automaticState, 7_000L);
         NavCompassState restoredState = controller.resolve(automaticState, 12_000L);
 
-        assertFalse(temporaryFullRouteState.movingScaleActive);
-        assertTrue(temporaryFullRouteState.visibleRadiusMeters > 300f);
-        assertTrue(restoreStartState.movingScaleActive);
-        assertEquals(temporaryFullRouteState.visibleRadiusMeters, restoreStartState.visibleRadiusMeters, 0.01f);
-        assertTrue(restoredState.movingScaleActive);
-        assertEquals(300f, restoredState.visibleRadiusMeters, 0.01f);
+        assertFalse(temporaryFullRouteState.displayMode.movingScaleActive);
+        assertTrue(temporaryFullRouteState.radiusState.visibleRadiusMeters > 300f);
+        assertTrue(restoreStartState.displayMode.movingScaleActive);
+        assertEquals(temporaryFullRouteState.radiusState.visibleRadiusMeters, restoreStartState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(restoredState.displayMode.movingScaleActive);
+        assertEquals(300f, restoredState.radiusState.visibleRadiusMeters, 0.01f);
     }
 
     @Test
@@ -111,8 +111,8 @@ public class NavigationCompassModeControllerTest {
         controller.onCompassTapped(stationaryState(), 1_000L);
         NavCompassState resolvedState = controller.resolve(movingState(), 2_000L);
 
-        assertTrue(resolvedState.movingScaleActive);
-        assertEquals(300f, resolvedState.visibleRadiusMeters, 0.01f);
+        assertTrue(resolvedState.displayMode.movingScaleActive);
+        assertEquals(300f, resolvedState.radiusState.visibleRadiusMeters, 0.01f);
     }
 
     private static NavCompassState stationaryState() {

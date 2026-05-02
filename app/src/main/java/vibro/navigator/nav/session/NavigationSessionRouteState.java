@@ -6,7 +6,6 @@ import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
-import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -19,10 +18,8 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -30,7 +27,6 @@ import java.util.List;
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class NavigationSessionRouteState {
 
-    private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
 
     private final NavigationRouteGeometryState geometryState = new NavigationRouteGeometryState();
@@ -40,6 +36,27 @@ public final class NavigationSessionRouteState {
     private final NavigationRouteDeviationHandler deviationHandler =
             new NavigationRouteDeviationHandler(progressTracker);
     private final NavigationSessionRouteDisplayState displayState = new NavigationSessionRouteDisplayState();
+    private final NavigationArrivalDetector arrivalDetector = new NavigationArrivalDetector(geometryState);
+    private final NavigationRouteEvaluator routeEvaluator = new NavigationRouteEvaluator(
+            geometryState,
+            turnState,
+            progressTracker,
+            deviationHandler,
+            displayState,
+            arrivalDetector
+    );
+    private final NavigationBlockedPointSelector blockedPointSelector = new NavigationBlockedPointSelector(
+            geometryState,
+            blockedRouteState
+    );
+    private final NavigationRouteResultApplier routeResultApplier = new NavigationRouteResultApplier(
+            geometryState,
+            displayState,
+            deviationHandler,
+            progressTracker,
+            turnState,
+            arrivalDetector
+    );
 
     public void reset() {
         geometryState.reset();
@@ -89,87 +106,15 @@ public final class NavigationSessionRouteState {
             long nowMs,
             long fastChecksUntilMs
     ) {
-        if (geometryState.isRouteUnavailable()) {
-            AppLogger.i(TAG, "No active route loaded, requesting route calculation");
-            return Evaluation.requestRecalculation(null);
-        }
-
-        PolylineIndex.Match match = geometryState.match(filtered);
-        if (match == null) {
-            AppLogger.w(TAG, "Route match failed, requesting recalculation");
-            return Evaluation.requestRecalculation(null);
-        }
-        geometryState.rememberSegment(match);
-        double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
-        double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
-        displayState.rememberSmoothedAccuracyMeters((float) smoothedAccuracyMeters);
-        float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
+        return routeEvaluator.evaluateLocation(
                 filtered,
-                match.alongTrackMeters,
-                accuracyMeters,
-                likelyStationary
-        );
-        NavigationRouteProgressTracker.DirectionAssessment directionOfProgress = progressTracker.assessDirection(
-                match.alongTrackMeters,
-                nowMs
-        );
-        if (geometryState.isWithinDestinationReachedRadius(filtered, accuracyMeters)) {
-            deviationHandler.clearDeviationEvidence();
-            progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            return Evaluation.keepRoute(
-                    turnState.onDestinationReached(geometryState.route()),
-                    NO_SUGGESTED_INTERVAL,
-                    true
-            );
-        }
-
-        NavigationRouteDeviationHandler.Decision deviationDecision = deviationHandler.evaluate(
-                match,
-                smoothedAccuracyMeters,
-                directionOfProgress,
                 speedMps,
-                expectedBearingDegrees,
-                actualBearingDegrees,
-                nowMs
-        );
-        if (deviationDecision.shouldRecalculateRoute()) {
-            return Evaluation.requestRecalculation(deviationDecision.getRerouteNotice());
-        }
-        if (deviationDecision.shouldKeepCurrentRoute()) {
-            return keepCurrentRoute(
-                    match,
-                    etaSpeedMps,
-                    accuracyMeters,
-                    nowMs,
-                    fastChecksUntilMs,
-                    deviationDecision.isStableOnRouteSample()
-            );
-        }
-
-        progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-        return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
-    }
-
-    @NonNull
-    private Evaluation keepCurrentRoute(
-            @NonNull PolylineIndex.Match match,
-            float etaSpeedMps,
-            float accuracyMeters,
-            long nowMs,
-            long fastChecksUntilMs,
-            boolean stableOnRouteSample
-    ) {
-        NavigationTurnState.Progress progress = turnState.evaluate(
-                geometryState.route(),
-                geometryState.polylineIndex(),
-                match.alongTrackMeters,
-                match.segmentIndex,
-                etaSpeedMps,
+                likelyStationary,
                 accuracyMeters,
+                actualBearingDegrees,
                 nowMs,
                 fastChecksUntilMs
         );
-        return Evaluation.keepRoute(progress.turnEvents, progress.suggestedUpdateIntervalMs, stableOnRouteSample);
     }
 
     @Nullable
@@ -179,17 +124,7 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public List<NogoPoint> addBlockedPointsAhead(@Nullable Location lastFiltered, long nowMs) {
-        List<NogoPoint> added = new ArrayList<>();
-        if (lastFiltered == null || geometryState.isRouteUnavailable()) {
-            return added;
-        }
-
-        PolylineIndex.Match match = geometryState.match(lastFiltered);
-        if (match == null) {
-            return added;
-        }
-
-        return blockedRouteState.addBlockedPointsAhead(geometryState.polylineIndex(), match.alongTrackMeters, nowMs);
+        return blockedPointSelector.addBlockedPointsAhead(lastFiltered, nowMs);
     }
 
     @NonNull
@@ -225,28 +160,7 @@ public final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
-        geometryState.loadRoute(newRoute);
-        displayState.onRouteApplied(context, request, newRoute, geometryState.polylineIndex());
-        deviationHandler.clearDeviationEvidence();
-        progressTracker.reset();
-        float etaSpeedMps = 0f;
-
-        List<NavigationTurnEvent> turnEvents = lastFiltered != null
-                && geometryState.isWithinDestinationReachedRadius(lastFiltered, accuracyOf(lastFiltered))
-                ? turnState.onDestinationReached(newRoute)
-                : turnState.onRouteApplied(
-                        newRoute,
-                        geometryState.polylineIndex(),
-                        lastFiltered,
-                        etaSpeedMps,
-                        accuracyOf(lastFiltered)
-                );
-        AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
-                + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
-                + " trackPoints=" + newRoute.track.size()
-                + " voiceHints=" + newRoute.voiceHints.size()
-                + " lengthMeters=" + newRoute.trackLengthMeters);
-        return turnEvents;
+        return routeResultApplier.applyRouteResult(context, request, snapshot, newRoute, lastFiltered, beganAt);
     }
 
     @NonNull
@@ -285,10 +199,6 @@ public final class NavigationSessionRouteState {
                 routeCalculationNotice,
                 lastRouteFailure
         );
-    }
-
-    private float accuracyOf(@Nullable Location location) {
-        return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 
     public static final class Evaluation {

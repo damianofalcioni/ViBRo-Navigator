@@ -32,7 +32,7 @@ public final class NavigationCompassModeController {
         if (automaticState == null) {
             return;
         }
-        boolean automaticSixtySecondView = automaticState.movingScaleActive;
+        boolean automaticSixtySecondView = automaticState.displayMode.movingScaleActive;
         boolean displayedSixtySecondView = resolveDisplayedMode(automaticSixtySecondView, nowElapsedMs);
         boolean targetSixtySecondView = !displayedSixtySecondView;
         startRadiusTransition(nowElapsedMs);
@@ -57,7 +57,7 @@ public final class NavigationCompassModeController {
             clear();
             return null;
         }
-        boolean automaticSixtySecondView = automaticState.movingScaleActive;
+        boolean automaticSixtySecondView = automaticState.displayMode.movingScaleActive;
         Boolean displayedSixtySecondView = resolveOverrideMode(automaticSixtySecondView, nowElapsedMs);
         NavCompassState targetState = displayedSixtySecondView == null
                 ? automaticState
@@ -98,30 +98,30 @@ public final class NavigationCompassModeController {
             long nowElapsedMs
     ) {
         if (!radiusTransitionActive) {
-            rememberResolvedRadius(targetState.visibleRadiusMeters, nowElapsedMs);
+            rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
             return targetState;
         }
 
         float previousRadiusMeters = lastResolvedVisibleRadiusMeters != null
                 ? lastResolvedVisibleRadiusMeters
-                : automaticState.visibleRadiusMeters;
+                : automaticState.radiusState.visibleRadiusMeters;
         long deltaMs = lastRadiusTransitionUpdateElapsedMs == NO_UPDATE_TIME
                 ? 0L
                 : Math.max(0L, nowElapsedMs - lastRadiusTransitionUpdateElapsedMs);
         float resolvedRadiusMeters = deltaMs <= 0L
                 ? previousRadiusMeters
                 : NavState.smoothVisibleRadiusMeters(
-                        targetState.visibleRadiusMeters,
+                        targetState.radiusState.visibleRadiusMeters,
                         previousRadiusMeters,
                         deltaMs
                 );
-        if (isAtTarget(resolvedRadiusMeters, targetState.visibleRadiusMeters)) {
+        if (isAtTarget(resolvedRadiusMeters, targetState.radiusState.visibleRadiusMeters)) {
             radiusTransitionActive = false;
-            rememberResolvedRadius(targetState.visibleRadiusMeters, nowElapsedMs);
+            rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
             return targetState;
         }
         rememberResolvedRadius(resolvedRadiusMeters, nowElapsedMs);
-        return targetState.withDisplayMode(targetState.movingScaleActive, resolvedRadiusMeters);
+        return targetState.withDisplayMode(targetState.displayMode.movingScaleActive, resolvedRadiusMeters);
     }
 
     private void startRadiusTransition(long nowElapsedMs) {

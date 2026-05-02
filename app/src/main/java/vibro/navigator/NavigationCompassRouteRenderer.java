@@ -1,6 +1,7 @@
 package vibro.navigator;
 
 
+import vibro.navigator.nav.compass.CompassRoutePoint;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -106,11 +107,14 @@ final class NavigationCompassRouteRenderer {
             float cy,
             float routeRadius
     ) {
-        if (state == null || state.visibleRadiusMeters <= 0f || state.accuracyRadiusMeters <= 0f) {
+        if (state == null
+                || state.radiusState.visibleRadiusMeters <= 0f
+                || state.radiusState.accuracyRadiusMeters <= 0f) {
             return;
         }
 
-        float overlayRadius = routeRadius * (state.accuracyRadiusMeters / state.visibleRadiusMeters);
+        float overlayRadius = routeRadius
+                * (state.radiusState.accuracyRadiusMeters / state.radiusState.visibleRadiusMeters);
         canvas.drawCircle(cx, cy, Math.min(routeRadius, overlayRadius), accuracyOverlayPaint);
     }
 
@@ -123,7 +127,7 @@ final class NavigationCompassRouteRenderer {
             float routeRadius,
             float headingDegrees
     ) {
-        if (state == null || state.visibleRadiusMeters <= 0f) {
+        if (state == null || state.radiusState.visibleRadiusMeters <= 0f) {
             return;
         }
 
@@ -136,7 +140,7 @@ final class NavigationCompassRouteRenderer {
         ));
         routeThresholdPaint.setAlpha(resolveRouteThresholdPaintAlpha(state));
         passedRoutePaint.setStrokeWidth(dp(context, ROUTE_STROKE_WIDTH_DP));
-        float scale = routeRadius / state.visibleRadiusMeters;
+        float scale = routeRadius / state.radiusState.visibleRadiusMeters;
         if (state.hasRouteGeometry()) {
             drawRouteThresholdGeometrySegment(
                     canvas,
@@ -200,7 +204,7 @@ final class NavigationCompassRouteRenderer {
             float cy,
             float scale,
             float headingDegrees,
-            @NonNull List<NavCompassState.RoutePoint> points
+            @NonNull List<CompassRoutePoint> points
     ) {
         if (!shouldDrawRouteThresholdOverlay(state)) {
             return;
@@ -240,7 +244,7 @@ final class NavigationCompassRouteRenderer {
             float cy,
             float scale,
             float headingDegrees,
-            @NonNull List<NavCompassState.RoutePoint> points,
+            @NonNull List<CompassRoutePoint> points,
             @NonNull Paint strokePaint
     ) {
         if (points.isEmpty()) {
@@ -248,7 +252,7 @@ final class NavigationCompassRouteRenderer {
         }
 
         drawProjectedRouteSegment(canvas, state, cx, cy, scale, 0, points.size(), strokePaint, (i, out) -> {
-            NavCompassState.RoutePoint point = points.get(i);
+            CompassRoutePoint point = points.get(i);
             NavigationCompassRouteProjector.projectHeadingUp(
                     point.eastMeters,
                     point.northMeters,
@@ -277,7 +281,7 @@ final class NavigationCompassRouteRenderer {
                 scale,
                 startIndex,
                 endIndex,
-                state.visibleRadiusMeters,
+                state.radiusState.visibleRadiusMeters,
                 resolveRouteDrawPaddingMeters(state),
                 strokePaint,
                 pointSource::project
@@ -285,7 +289,10 @@ final class NavigationCompassRouteRenderer {
     }
 
     private float resolveRouteDrawPaddingMeters(@NonNull NavCompassState state) {
-        float thresholdPaddingMeters = Math.max(state.routeThresholdMeters, state.accuracyRadiusMeters);
+        float thresholdPaddingMeters = Math.max(
+                state.radiusState.routeThresholdMeters,
+                state.radiusState.accuracyRadiusMeters
+        );
         return Math.max(24f, thresholdPaddingMeters);
     }
 

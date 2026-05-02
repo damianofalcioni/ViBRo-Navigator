@@ -72,9 +72,9 @@ public class NavigationSessionRouteStateTest {
 
         assertEquals(1, turnEvents.size());
         assertEquals(NavigationTurnEvent.Type.INITIAL, turnEvents.get(0).type);
-        assertFalse(navState.nextLine.isEmpty());
-        assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
-        assertTrue(navState.stopProgressBlock.isEmpty());
+        assertFalse(navState.routeStatus.guidance.nextLine.isEmpty());
+        assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
     }
 
     @Test
@@ -134,9 +134,9 @@ public class NavigationSessionRouteStateTest {
         assertEquals(NavigationTurnEvent.Type.IMMINENT, arrivalEvaluation.turnEvents.get(0).type);
         assertEquals(100, arrivalEvaluation.turnEvents.get(0).hint.command);
         assertTrue(repeatedEvaluation.turnEvents.isEmpty());
-        assertEquals("■ Destination reached", navState.nextLine);
-        assertEquals(context.getString(R.string.nav_destination_reached), navState.destinationLine);
-        assertTrue(navState.stopProgressBlock.isEmpty());
+        assertEquals("■ Destination reached", navState.routeStatus.guidance.nextLine);
+        assertEquals(context.getString(R.string.nav_destination_reached), navState.routeStatus.progress.destinationLine);
+        assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
     }
 
     @Test
@@ -235,8 +235,8 @@ public class NavigationSessionRouteStateTest {
                 null
         );
 
-        assertTrue(navState.nextLine.contains("min"));
-        assertFalse(navState.nextLine.contains("10 s"));
+        assertTrue(navState.routeStatus.guidance.nextLine.contains("min"));
+        assertFalse(navState.routeStatus.guidance.nextLine.contains("10 s"));
     }
 
     @Test
@@ -683,9 +683,9 @@ public class NavigationSessionRouteStateTest {
                 BRouterRouteException.fromTextResponse("no track found at pass=0")
         );
 
-        assertTrue(navState.detailBlock.contains(
+        assertTrue(navState.routeStatus.progress.detailBlock.contains(
                 context.getString(R.string.nav_route_notice_no_alternative_keep_current)));
-        assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
     }
 
     @Test
@@ -764,10 +764,10 @@ public class NavigationSessionRouteStateTest {
                 null
         );
 
-        assertTrue(stationaryState.compassState.visibleRadiusMeters >= movingState.compassState.visibleRadiusMeters);
+        assertTrue(stationaryState.routeStatus.compassState.radiusState.visibleRadiusMeters >= movingState.routeStatus.compassState.radiusState.visibleRadiusMeters);
         assertEquals(
-                movingState.compassState.visibleRadiusMeters,
-                resumedState.compassState.visibleRadiusMeters,
+                movingState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                resumedState.routeStatus.compassState.radiusState.visibleRadiusMeters,
                 0.01f
         );
     }
@@ -954,23 +954,23 @@ public class NavigationSessionRouteStateTest {
         );
 
         float shortProgress = normalizedTransitionProgress(
-                shortMovingState.compassState.visibleRadiusMeters,
-                shortMidTransitionState.compassState.visibleRadiusMeters,
-                shortSettledOverviewState.compassState.visibleRadiusMeters
+                shortMovingState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                shortMidTransitionState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                shortSettledOverviewState.routeStatus.compassState.radiusState.visibleRadiusMeters
         );
         float longProgress = normalizedTransitionProgress(
-                longMovingState.compassState.visibleRadiusMeters,
-                longMidTransitionState.compassState.visibleRadiusMeters,
-                longSettledOverviewState.compassState.visibleRadiusMeters
+                longMovingState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                longMidTransitionState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                longSettledOverviewState.routeStatus.compassState.radiusState.visibleRadiusMeters
         );
 
         assertEquals(0.5f, shortProgress, 0.08f);
         assertEquals(0.5f, longProgress, 0.08f);
         assertEquals(shortProgress, longProgress, 0.05f);
-        assertTrue(shortSettledOverviewState.compassState.visibleRadiusMeters
-                > shortMovingState.compassState.visibleRadiusMeters);
-        assertTrue(longSettledOverviewState.compassState.visibleRadiusMeters
-                > longMovingState.compassState.visibleRadiusMeters);
+        assertTrue(shortSettledOverviewState.routeStatus.compassState.radiusState.visibleRadiusMeters
+                > shortMovingState.routeStatus.compassState.radiusState.visibleRadiusMeters);
+        assertTrue(longSettledOverviewState.routeStatus.compassState.radiusState.visibleRadiusMeters
+                > longMovingState.routeStatus.compassState.radiusState.visibleRadiusMeters);
     }
 
     @Test
@@ -994,8 +994,8 @@ public class NavigationSessionRouteStateTest {
                 BRouterRouteException.fromTextResponse("no track found at pass=0")
         );
 
-        assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.nextLine);
-        assertTrue(navState.detailBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
+        assertEquals(context.getString(R.string.nav_route_unavailable_title), navState.routeStatus.guidance.nextLine);
+        assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_route_notice_no_route_found)));
     }
 
     @Test
@@ -1035,9 +1035,9 @@ public class NavigationSessionRouteStateTest {
                 null
         );
 
-        assertTrue(navState.destinationLine.contains(context.getString(R.string.nav_destination_label)));
-        assertTrue(navState.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
-        assertTrue(navState.detailBlock.isEmpty());
+        assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertTrue(navState.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+        assertTrue(navState.routeStatus.progress.detailBlock.isEmpty());
     }
 
     @Test
@@ -1091,10 +1091,10 @@ public class NavigationSessionRouteStateTest {
                 null
         );
 
-        assertTrue(beforeFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
-        assertFalse(beforeFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
-        assertTrue(afterFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
-        assertFalse(afterFirstStop.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+        assertTrue(beforeFirstStop.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+        assertFalse(beforeFirstStop.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
+        assertTrue(afterFirstStop.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 2)));
+        assertFalse(afterFirstStop.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
     }
 
     @Test
@@ -1119,8 +1119,8 @@ public class NavigationSessionRouteStateTest {
                 null
         );
 
-        assertTrue(navState.detailBlock.contains(context.getString(R.string.nav_route_notice_blocked_road_recalculating)));
-        assertTrue(navState.detailBlock.contains(context.getString(R.string.nav_calculating_route_body)));
+        assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_route_notice_blocked_road_recalculating)));
+        assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_calculating_route_body)));
     }
 
     @NonNull

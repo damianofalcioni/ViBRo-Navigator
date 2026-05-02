@@ -264,13 +264,13 @@ public final class NavigationSessionRouteDisplayState {
             @Nullable Location lastFiltered,
             boolean likelyStationary
     ) {
-        if (state.compassState == null) {
+        if (state.routeStatus.compassState == null) {
             return;
         }
-        lastCompassVisibleRadiusMeters = state.compassState.visibleRadiusMeters;
+        lastCompassVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
         lastCompassRadiusUpdateTimeMs = nowMs;
         if (lastFiltered != null && NavState.hasReliableMovingSpeed(lastFiltered, likelyStationary)) {
-            lastReliableMovingCompassVisibleRadiusMeters = state.compassState.visibleRadiusMeters;
+            lastReliableMovingCompassVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
         }
     }
 }

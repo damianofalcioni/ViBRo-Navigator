@@ -33,7 +33,7 @@ final class NavigationCompassLegendRenderer {
             @NonNull Paint distanceLegendLeftPaint,
             @NonNull Paint headingAccuracyGuidePaint
     ) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
+        if (compassState == null || compassState.radiusState.visibleRadiusMeters <= 0f) {
             return;
         }
 
@@ -69,12 +69,12 @@ final class NavigationCompassLegendRenderer {
             float minVisibleDegrees,
             float maxDegrees
     ) {
-        if (compassState == null || compassState.headingAccuracyDegrees == null) {
+        if (compassState == null || compassState.displayMode.headingAccuracyDegrees == null) {
             return null;
         }
         float boundedAccuracyDegrees = Math.min(
                 maxDegrees,
-                Math.max(0f, compassState.headingAccuracyDegrees)
+                Math.max(0f, compassState.displayMode.headingAccuracyDegrees)
         );
         if (boundedAccuracyDegrees <= 0f) {
             return null;
@@ -87,10 +87,10 @@ final class NavigationCompassLegendRenderer {
             float ringScale,
             float outerDistanceRingScale
     ) {
-        if (compassState == null || compassState.visibleRadiusMeters <= 0f) {
+        if (compassState == null || compassState.radiusState.visibleRadiusMeters <= 0f) {
             return 0f;
         }
-        return compassState.visibleRadiusMeters * (ringScale / outerDistanceRingScale);
+        return compassState.radiusState.visibleRadiusMeters * (ringScale / outerDistanceRingScale);
     }
 
     private void drawLegendRow(
@@ -267,7 +267,7 @@ final class NavigationCompassLegendRenderer {
             @NonNull NavCompassState compassState,
             float distanceMeters
     ) {
-        int seconds = (int) Math.round(distanceMeters / Math.max(1f, compassState.referenceSpeedMps));
+        int seconds = (int) Math.round(distanceMeters / Math.max(1f, compassState.displayMode.referenceSpeedMps));
         return NavigationTextFormatter.formatTimeSeconds(context, seconds);
     }
 }

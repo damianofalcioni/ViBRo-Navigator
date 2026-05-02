@@ -73,7 +73,7 @@ final class NavigationActivityRenderer {
 
     void configureControls(@NonNull Controls controls) {
         compass.setOnClickListener(v -> {
-            compassModeController.onCompassTapped(currentState == null ? null : currentState.compassState);
+            compassModeController.onCompassTapped(currentState == null ? null : currentState.routeStatus.compassState);
             renderCompassState();
         });
         blocked.setOnClickListener(v -> controls.onBlockedRoad());
@@ -83,15 +83,15 @@ final class NavigationActivityRenderer {
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
         currentState = state;
-        next.setText(state.nextLine);
-        afterNext.setText(state.afterNextLine);
-        destination.setText(state.displayStatusBlock());
+        next.setText(state.routeStatus.guidance.nextLine);
+        afterNext.setText(state.routeStatus.guidance.afterNextLine);
+        destination.setText(state.routeStatus.displayStatusBlock());
         renderCompassState();
-        blocked.setEnabled(!state.paused);
+        blocked.setEnabled(!state.pauseStatus.paused);
         pauseResume.setEnabled(navBinder != null);
-        pauseResume.setImageResource(state.paused ? R.drawable.ic_play : R.drawable.ic_pause);
+        pauseResume.setImageResource(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause);
         pauseResume.setContentDescription(activity.getString(
-                state.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
+                state.pauseStatus.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
         ));
         renderGpsStatus();
         logRenderedStateIfChanged(state);
@@ -102,21 +102,22 @@ final class NavigationActivityRenderer {
         if (currentState == null) {
             statusText = activity.getString(
                     R.string.format_nav_gps_status_with_countdown,
-                    NavState.waiting(activity).gpsStatusLine,
+                    NavState.waiting(activity).gpsStatus.statusLine,
                     activity.getString(R.string.nav_status_unavailable)
             );
             gpsStatus.setText(statusText);
             return;
         }
         String nextEvaluationValue = activity.getString(R.string.nav_status_unavailable);
-        long remainingMs = Math.max(0L, currentState.nextEvaluationDeadlineElapsedMs - SystemClock.elapsedRealtime());
-        if (currentState.nextEvaluationDeadlineElapsedMs != NavState.NO_DEADLINE && remainingMs > 0L) {
+        long nextEvaluationDeadlineElapsedMs = currentState.gpsStatus.nextEvaluationDeadlineElapsedMs;
+        long remainingMs = Math.max(0L, nextEvaluationDeadlineElapsedMs - SystemClock.elapsedRealtime());
+        if (nextEvaluationDeadlineElapsedMs != NavState.NO_DEADLINE && remainingMs > 0L) {
             long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
             nextEvaluationValue = activity.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
         }
         statusText = activity.getString(
                 R.string.format_nav_gps_status_with_countdown,
-                currentState.gpsStatusLine,
+                currentState.gpsStatus.statusLine,
                 nextEvaluationValue
         );
         gpsStatus.setText(styleGpsStatus(statusText));
@@ -152,7 +153,7 @@ final class NavigationActivityRenderer {
     }
 
     private void renderCompassState() {
-        @Nullable NavCompassState compassState = currentState == null ? null : currentState.compassState;
+        @Nullable NavCompassState compassState = currentState == null ? null : currentState.routeStatus.compassState;
         compass.setCompassState(compassModeController.resolve(compassState));
         cancelPendingCompassTransition();
         if (compassModeController.isTransitionInProgress()) {
@@ -189,26 +190,29 @@ final class NavigationActivityRenderer {
     }
 
     private void logRenderedStateIfChanged(@NonNull NavState state) {
-        String stateKey = state.nextLine + "|" + state.afterNextLine + "|" + state.gpsStatusLine
-                + "|" + state.nextEvaluationDeadlineElapsedMs + "|" + state.destinationLine
-                + "|" + state.stopProgressBlock
-                + "|" + state.detailBlock
-                + "|" + state.paused
-                + "|" + (state.compassState == null ? "no-compass"
-                : state.compassState.routePoints.size() + ":" + state.compassState.headingDegrees);
+        String stateKey = state.routeStatus.guidance.nextLine + "|" + state.routeStatus.guidance.afterNextLine
+                + "|" + state.gpsStatus.statusLine
+                + "|" + state.gpsStatus.nextEvaluationDeadlineElapsedMs
+                + "|" + state.routeStatus.progress.destinationLine
+                + "|" + state.routeStatus.progress.stopProgressBlock
+                + "|" + state.routeStatus.progress.detailBlock
+                + "|" + state.pauseStatus.paused
+                + "|" + (state.routeStatus.compassState == null ? "no-compass"
+                : state.routeStatus.compassState.routePoints.size() + ":" + state.routeStatus.compassState.displayMode.headingDegrees);
         if (stateKey.equals(lastRenderedStateKey)) {
             return;
         }
         lastRenderedStateKey = stateKey;
-        AppLogger.d(TAG, "Rendered state next=" + state.nextLine
-                + " afterNext=" + state.afterNextLine
-                + " gpsStatus=" + state.gpsStatusLine
-                + " nextEvalDeadline=" + state.nextEvaluationDeadlineElapsedMs
-                + " destination=" + state.destinationLine
-                + " stops=" + state.stopProgressBlock
-                + " paused=" + state.paused
-                + " compass=" + (state.compassState == null ? "none"
-                : ("points=" + state.compassState.routePoints.size() + " heading=" + state.compassState.headingDegrees))
-                + " detail=" + state.detailBlock);
+        AppLogger.d(TAG, "Rendered state next=" + state.routeStatus.guidance.nextLine
+                + " afterNext=" + state.routeStatus.guidance.afterNextLine
+                + " gpsStatus=" + state.gpsStatus.statusLine
+                + " nextEvalDeadline=" + state.gpsStatus.nextEvaluationDeadlineElapsedMs
+                + " destination=" + state.routeStatus.progress.destinationLine
+                + " stops=" + state.routeStatus.progress.stopProgressBlock
+                + " paused=" + state.pauseStatus.paused
+                + " compass=" + (state.routeStatus.compassState == null ? "none"
+                : ("points=" + state.routeStatus.compassState.routePoints.size()
+                + " heading=" + state.routeStatus.compassState.displayMode.headingDegrees))
+                + " detail=" + state.routeStatus.progress.detailBlock);
     }
 }

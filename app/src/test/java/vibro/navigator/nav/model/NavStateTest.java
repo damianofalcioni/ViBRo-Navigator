@@ -68,8 +68,8 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.nextLine.contains("111 m"));
-        assertTrue(state.afterNextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains("111 m"));
     }
 
     @Test
@@ -112,10 +112,10 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.nextLine.contains("111 m"));
-        assertTrue(state.nextLine.contains("20 s"));
-        assertTrue(state.afterNextLine.contains("111 m"));
-        assertTrue(state.afterNextLine.contains("25 s"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("20 s"));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains("25 s"));
     }
 
     @Test
@@ -153,7 +153,7 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.nextLine.contains("45 s"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("45 s"));
     }
 
     @Test
@@ -192,7 +192,7 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.nextLine.contains("45 s"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("45 s"));
     }
 
     @Test
@@ -229,7 +229,7 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.nextLine.contains("--"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("--"));
     }
 
     @Test
@@ -268,9 +268,9 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.destinationLine.contains("Destination"));
-        assertTrue(state.destinationLine.contains("111 m"));
-        assertTrue(state.destinationLine.contains("26 s"));
+        assertTrue(state.routeStatus.progress.destinationLine.contains("Destination"));
+        assertTrue(state.routeStatus.progress.destinationLine.contains("111 m"));
+        assertTrue(state.routeStatus.progress.destinationLine.contains("26 s"));
     }
 
     @Test
@@ -313,9 +313,9 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.stopProgressBlock.contains("Stop 1"));
-        assertTrue(state.stopProgressBlock.contains("111 m"));
-        assertTrue(state.stopProgressBlock.contains("26 s"));
+        assertTrue(state.routeStatus.progress.stopProgressBlock.contains("Stop 1"));
+        assertTrue(state.routeStatus.progress.stopProgressBlock.contains("111 m"));
+        assertTrue(state.routeStatus.progress.stopProgressBlock.contains("26 s"));
     }
 
     @Test
@@ -355,19 +355,19 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(state.compassState);
-        assertEquals(90.0f, state.compassState.headingDegrees, 0.01f);
-        assertEquals(8.0f, state.compassState.headingAccuracyDegrees, 0.01f);
-        assertTrue(state.compassState.routePoints.size() >= 2);
-        assertTrue(state.compassState.visibleRadiusMeters >= 90f);
+        assertNotNull(state.routeStatus.compassState);
+        assertEquals(90.0f, state.routeStatus.compassState.displayMode.headingDegrees, 0.01f);
+        assertEquals(8.0f, state.routeStatus.compassState.displayMode.headingAccuracyDegrees, 0.01f);
+        assertTrue(state.routeStatus.compassState.routePoints.size() >= 2);
+        assertTrue(state.routeStatus.compassState.radiusState.visibleRadiusMeters >= 90f);
         assertEquals(
-                state.compassState.visibleRadiusMeters / 60f,
-                state.compassState.referenceSpeedMps,
+                state.routeStatus.compassState.radiusState.visibleRadiusMeters / 60f,
+                state.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
         );
-        assertTrue(state.compassState.movingScaleActive);
-        assertEquals(13f, state.compassState.routeThresholdMeters, 0.01f);
-        assertTrue(state.compassState.passedRoutePoints.size() >= 1);
+        assertTrue(state.routeStatus.compassState.displayMode.movingScaleActive);
+        assertEquals(13f, state.routeStatus.compassState.radiusState.routeThresholdMeters, 0.01f);
+        assertTrue(state.routeStatus.compassState.passedRoutePoints.size() >= 1);
     }
 
     @Test
@@ -412,9 +412,9 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(state.compassState);
-        assertEquals(9f, state.compassState.accuracyRadiusMeters, 0.01f);
-        assertEquals(17f, state.compassState.routeThresholdMeters, 0.01f);
+        assertNotNull(state.routeStatus.compassState);
+        assertEquals(9f, state.routeStatus.compassState.radiusState.accuracyRadiusMeters, 0.01f);
+        assertEquals(17f, state.routeStatus.compassState.radiusState.routeThresholdMeters, 0.01f);
     }
 
     @Test
@@ -453,9 +453,9 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(state.compassState);
-        assertTrue(state.compassState.passedRoutePoints.size() >= 2);
-        assertTrue(state.compassState.routePoints.size() >= 2);
+        assertNotNull(state.routeStatus.compassState);
+        assertTrue(state.routeStatus.compassState.passedRoutePoints.size() >= 2);
+        assertTrue(state.routeStatus.compassState.routePoints.size() >= 2);
     }
 
     @Test
@@ -494,12 +494,12 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(state.compassState);
-        assertTrue(state.compassState.visibleRadiusMeters > 1_000f);
-        assertTrue(state.compassState.destinationWithinRadius);
-        assertFalse(state.compassState.movingScaleActive);
-        assertEquals(13f, state.compassState.routeThresholdMeters, 0.01f);
-        assertTrue(state.compassState.routePoints.size() >= 4);
+        assertNotNull(state.routeStatus.compassState);
+        assertTrue(state.routeStatus.compassState.radiusState.visibleRadiusMeters > 1_000f);
+        assertTrue(state.routeStatus.compassState.progressLabels.destinationWithinRadius);
+        assertFalse(state.routeStatus.compassState.displayMode.movingScaleActive);
+        assertEquals(13f, state.routeStatus.compassState.radiusState.routeThresholdMeters, 0.01f);
+        assertTrue(state.routeStatus.compassState.routePoints.size() >= 4);
     }
 
     @Test
@@ -553,7 +553,7 @@ public class NavStateTest {
                 null,
                 0.0,
                 null,
-                stationaryState.compassState.visibleRadiusMeters,
+                stationaryState.routeStatus.compassState.radiusState.visibleRadiusMeters,
                 null,
                 1_000L,
                 NavState.NO_DEADLINE,
@@ -562,13 +562,13 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(movingState.compassState);
-        assertTrue(movingState.compassState.visibleRadiusMeters > 600f);
-        assertTrue(movingState.compassState.visibleRadiusMeters < stationaryState.compassState.visibleRadiusMeters);
-        assertFalse(movingState.compassState.destinationWithinRadius);
+        assertNotNull(movingState.routeStatus.compassState);
+        assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters > 600f);
+        assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters < stationaryState.routeStatus.compassState.radiusState.visibleRadiusMeters);
+        assertFalse(movingState.routeStatus.compassState.progressLabels.destinationWithinRadius);
         assertEquals(
-                movingState.compassState.visibleRadiusMeters / 60f,
-                movingState.compassState.referenceSpeedMps,
+                movingState.routeStatus.compassState.radiusState.visibleRadiusMeters / 60f,
+                movingState.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
         );
     }
@@ -616,8 +616,8 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(state.compassState);
-        assertEquals(1.0f, state.compassState.referenceSpeedMps, 0.01f);
+        assertNotNull(state.routeStatus.compassState);
+        assertEquals(1.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
     }
 
     @Test
@@ -655,9 +655,9 @@ public class NavStateTest {
                 context
         );
 
-        assertNotNull(state.compassState);
-        assertEquals(240f, state.compassState.visibleRadiusMeters, 0.01f);
-        assertEquals(4.0f, state.compassState.referenceSpeedMps, 0.01f);
+        assertNotNull(state.routeStatus.compassState);
+        assertEquals(240f, state.routeStatus.compassState.radiusState.visibleRadiusMeters, 0.01f);
+        assertEquals(4.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
     }
 
     @Test
@@ -698,7 +698,7 @@ public class NavStateTest {
                 context
         );
 
-        assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7)", state.gpsStatusLine);
+        assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7)", state.gpsStatus.statusLine);
     }
 
     @Test
@@ -785,7 +785,7 @@ public class NavStateTest {
         );
 
         assertEquals(
-                baseState.destinationLine + "\n" + baseState.stopProgressBlock,
+                baseState.routeStatus.progress.destinationLine + "\n" + baseState.routeStatus.progress.stopProgressBlock,
                 baseState.displayStatusBlock()
         );
     }
