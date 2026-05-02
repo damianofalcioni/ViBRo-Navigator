@@ -29,7 +29,7 @@ jobs:
       - name: Ensure gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Run complexity checks and tests
+      - name: Run maintainability checks and tests
         run: ./gradlew complexityCheck test
 
       - name: Decode keystore

@@ -558,4 +558,5 @@ The navigation UI must show the following in large text:
 - Keep lifecycle decisions, heuristics, planners, and policy thresholds in small helpers when practical so they remain directly unit-testable.
 - Maintain coverage for navigation-request serialization, startup/preflight flow, reroute heuristics, bearing trust, route-progress confirmation, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting.
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including user-visible direction symbols.
+- Maintain a zero-violation PMD maintainability gate for production Java sources, covering complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related rules.
 - Refactors that only move unchanged wiring into helpers or package-level value contracts do not require new tests by default. Behavior changes in helper-owned flows should add or update focused JVM or Robolectric coverage.

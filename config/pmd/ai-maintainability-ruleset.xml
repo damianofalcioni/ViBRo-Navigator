@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="ViBRo Navigator AI maintainability sweep"
+<ruleset name="ViBRo Navigator AI maintainability baseline"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.github.io/schema/ruleset_2_0_0.xsd">
     <description>
-        Optional PMD sweep for small, explicit, low-branching Java code that is easier for AI agents to reason about.
-        This ruleset is intentionally stricter than the enforced complexity gate and is used as a refactor backlog.
+        Enforced PMD baseline for small, explicit, low-branching Java code that is easier for maintainers
+        and AI agents to reason about.
     </description>
 
     <rule ref="category/java/design.xml/CognitiveComplexity">
