@@ -1,5 +1,7 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.os.Build;
@@ -8,7 +10,6 @@ import android.window.OnBackInvokedDispatcher;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.nav.NavigationLifecyclePolicy;
 import vibro.navigator.util.AppLogger;
 
 final class NavigationActivityBackHandler {

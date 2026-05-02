@@ -1,8 +1,9 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.compass.NavCompassState;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.nav.NavCompassState;
 
 final class NavigationRouteThreshold {
 

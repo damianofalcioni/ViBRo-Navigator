@@ -1,5 +1,7 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.model.NavigationRequest;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -8,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
-import vibro.navigator.nav.NavigationRequest;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;

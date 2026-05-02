@@ -1,5 +1,9 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.service.NavigationService;
+import vibro.navigator.nav.service.NavigationServiceBinder;
+import vibro.navigator.nav.model.NavigationRequest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -11,9 +15,6 @@ import android.content.ServiceConnection;
 
 import androidx.test.core.app.ApplicationProvider;
 
-import vibro.navigator.nav.NavigationRequest;
-import vibro.navigator.nav.NavigationService;
-import vibro.navigator.nav.NavigationServiceBinder;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

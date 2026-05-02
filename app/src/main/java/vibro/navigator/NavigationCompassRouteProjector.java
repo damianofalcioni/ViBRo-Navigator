@@ -1,10 +1,11 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.compass.NavCompassState;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.NavCompassState;
 
 final class NavigationCompassRouteProjector {
 

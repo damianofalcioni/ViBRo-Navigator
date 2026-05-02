@@ -1,5 +1,7 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.model.NavigationRequest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.nav.NavigationRequest;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;

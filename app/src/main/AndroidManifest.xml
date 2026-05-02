@@ -196,7 +196,7 @@
         </activity>
 
         <service
-            android:name=".nav.NavigationService"
+            android:name=".nav.service.NavigationService"
             android:exported="false"
             android:stopWithTask="true"
             android:foregroundServiceType="location" />

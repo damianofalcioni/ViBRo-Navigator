@@ -1,5 +1,13 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.service.NavigationService;
+import vibro.navigator.nav.service.NavigationServiceBinder;
+import vibro.navigator.nav.startup.NavigationSettingsLauncher;
+import vibro.navigator.nav.startup.NavigationStartupCoordinator;
+import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
+import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavState;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -17,13 +25,6 @@ import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import vibro.navigator.nav.NavState;
-import vibro.navigator.nav.NavigationLifecyclePolicy;
-import vibro.navigator.nav.NavigationRequest;
-import vibro.navigator.nav.NavigationSettingsLauncher;
-import vibro.navigator.nav.NavigationService;
-import vibro.navigator.nav.NavigationServiceBinder;
-import vibro.navigator.nav.NavigationStartupCoordinator;
 import vibro.navigator.util.AppLogger;
 
 public class NavigationActivity extends Activity {

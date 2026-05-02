@@ -1,5 +1,7 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -12,7 +14,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
-import vibro.navigator.nav.NavCompassState;
 
 public final class NavigationCompassView extends View {
 

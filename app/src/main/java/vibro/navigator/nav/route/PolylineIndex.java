@@ -17,7 +17,7 @@ public final class PolylineIndex {
         public final double segmentBearingDegrees;
         public final int segmentIndex;
 
-        Match(double distanceToTrackMeters, double alongTrackMeters, double segmentBearingDegrees, int segmentIndex) {
+        public Match(double distanceToTrackMeters, double alongTrackMeters, double segmentBearingDegrees, int segmentIndex) {
             this.distanceToTrackMeters = distanceToTrackMeters;
             this.alongTrackMeters = alongTrackMeters;
             this.segmentBearingDegrees = segmentBearingDegrees;

@@ -1,5 +1,7 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -11,7 +13,6 @@ import androidx.core.content.ContextCompat;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.NavCompassState;
 
 final class NavigationCompassRouteMarkerRenderer {
 

@@ -1,5 +1,8 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.format.NavigationTextFormatter;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
@@ -8,8 +11,6 @@ import android.graphics.RectF;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.nav.NavCompassState;
-import vibro.navigator.nav.NavigationTextFormatter;
 
 final class NavigationCompassLegendRenderer {
     private final RectF arcBounds = new RectF();

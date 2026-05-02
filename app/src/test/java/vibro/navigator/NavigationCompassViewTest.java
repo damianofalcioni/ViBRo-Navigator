@@ -1,12 +1,13 @@
 package vibro.navigator;
 
+
+import vibro.navigator.nav.compass.NavCompassState;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import vibro.navigator.nav.NavCompassState;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
