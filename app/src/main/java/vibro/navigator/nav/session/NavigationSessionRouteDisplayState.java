@@ -9,6 +9,7 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateBuildInput;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.model.NavTarget;
+import vibro.navigator.nav.compass.NavCompassStateInput;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -84,6 +85,22 @@ public final class NavigationSessionRouteDisplayState {
                 snapshot.accuracyMeters,
                 snapshot.likelyStationary
         );
+        NavCompassStateInput compassInput = NavCompassStateInput.builder(route, polylineIndex, snapshot.lastFiltered)
+                .routeProgress(match.alongTrackMeters)
+                .motion(
+                        snapshot.speedMps,
+                        snapshot.likelyStationary,
+                        compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters)
+                )
+                .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)
+                .radiusMemory(
+                        compassMemory.lastVisibleRadiusMeters(),
+                        compassMemory.lastReliableMovingVisibleRadiusMeters(),
+                        compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
+                )
+                .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
+                .nowMs(snapshot.nowMs)
+                .build();
         NavState state = NavStateComposer.from(NavStateBuildInput
                 .builder(snapshot.context, route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters, turnState.getNextHintIdx(), match.segmentIndex)
@@ -96,12 +113,7 @@ public final class NavigationSessionRouteDisplayState {
                 )
                 .gps(snapshot.fixedSatelliteCount)
                 .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)
-                .compassMemory(
-                        compassMemory.lastVisibleRadiusMeters(),
-                        compassMemory.lastReliableMovingVisibleRadiusMeters(),
-                        compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
-                )
-                .compassGeometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
+                .compass(compassInput)
                 .timing(snapshot.nextEvaluationDeadlineElapsedMs, snapshot.nowMs)
                 .destinationReached(turnState.isDestinationReached())
                 .targets(targets)

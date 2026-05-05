@@ -3,10 +3,8 @@ package vibro.navigator.nav.compass;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 
-import java.util.AbstractList;
 import java.util.Collections;
 import java.util.List;
 
@@ -32,6 +30,16 @@ public final class NavCompassState {
     private final int remainingRouteStartSamplePointIndex;
 
     @NonNull
+    static NavCompassState fromProjectedPoints(@NonNull NavCompassProjectedPointsInput input) {
+        return new NavCompassState(input);
+    }
+
+    @NonNull
+    static NavCompassState fromRouteGeometry(@NonNull NavCompassRouteGeometryInput input) {
+        return new NavCompassState(input);
+    }
+
+    @NonNull
     public static NavCompassState fromProjectedPoints(
             float headingDegrees,
             @Nullable Float headingAccuracyDegrees,
@@ -45,22 +53,9 @@ public final class NavCompassState {
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
-        return new NavCompassState(
-                new CompassDisplayMetrics(
-                        headingDegrees,
-                        headingAccuracyDegrees,
-                        referenceSpeedMps,
-                        referenceSpeedMps,
-                        referenceSpeedMps,
-                        false
-                ),
-                new CompassRadiusMetrics(
-                        visibleRadiusMeters,
-                        visibleRadiusMeters,
-                        visibleRadiusMeters,
-                        accuracyRadiusMeters,
-                        0f
-                ),
+        return fromProjectedPoints(new NavCompassProjectedPointsInput(
+                displayMetrics(headingDegrees, headingAccuracyDegrees, referenceSpeedMps, false),
+                radiusMetrics(visibleRadiusMeters, accuracyRadiusMeters, 0f),
                 passedRoutePoints,
                 routePoints,
                 hintPoints,
@@ -69,7 +64,7 @@ public final class NavCompassState {
                         destinationNorthMeters,
                         destinationWithinRadius
                 )
-        );
+        ));
     }
 
     @NonNull
@@ -88,22 +83,9 @@ public final class NavCompassState {
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
-        return new NavCompassState(
-                new CompassDisplayMetrics(
-                        headingDegrees,
-                        headingAccuracyDegrees,
-                        referenceSpeedMps,
-                        referenceSpeedMps,
-                        referenceSpeedMps,
-                        movingScaleActive
-                ),
-                new CompassRadiusMetrics(
-                        visibleRadiusMeters,
-                        visibleRadiusMeters,
-                        visibleRadiusMeters,
-                        accuracyRadiusMeters,
-                        routeThresholdMeters
-                ),
+        return fromProjectedPoints(new NavCompassProjectedPointsInput(
+                displayMetrics(headingDegrees, headingAccuracyDegrees, referenceSpeedMps, movingScaleActive),
+                radiusMetrics(visibleRadiusMeters, accuracyRadiusMeters, routeThresholdMeters),
                 passedRoutePoints,
                 routePoints,
                 hintPoints,
@@ -112,7 +94,7 @@ public final class NavCompassState {
                         destinationNorthMeters,
                         destinationWithinRadius
                 )
-        );
+        ));
     }
 
     @NonNull
@@ -136,7 +118,7 @@ public final class NavCompassState {
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
-        return new NavCompassState(
+        return fromRouteGeometry(new NavCompassRouteGeometryInput(
                 new CompassDisplayMetrics(
                         headingDegrees,
                         headingAccuracyDegrees,
@@ -161,108 +143,93 @@ public final class NavCompassState {
                         destinationNorthMeters,
                         destinationWithinRadius
                 )
-        );
+        ));
     }
 
-    private NavCompassState(
-            @NonNull CompassDisplayMetrics displayMetrics,
-            @NonNull CompassRadiusMetrics radiusMetrics,
-            @NonNull List<CompassRoutePoint> passedRoutePoints,
-            @NonNull List<CompassRoutePoint> routePoints,
-            @NonNull List<CompassRoutePoint> hintPoints,
-            @NonNull CompassDestinationProjection destinationProjection
-    ) {
+    private NavCompassState(@NonNull NavCompassProjectedPointsInput input) {
         this.displayMode = new CompassDisplayMode(
-                displayMetrics.headingDegrees,
-                displayMetrics.headingAccuracyDegrees,
-                displayMetrics.referenceSpeedMps,
-                displayMetrics.fullRouteReferenceSpeedMps,
-                displayMetrics.sixtySecondReferenceSpeedMps,
-                displayMetrics.movingScaleActive
+                input.displayMetrics.headingDegrees,
+                input.displayMetrics.headingAccuracyDegrees,
+                input.displayMetrics.referenceSpeedMps,
+                input.displayMetrics.fullRouteReferenceSpeedMps,
+                input.displayMetrics.sixtySecondReferenceSpeedMps,
+                input.displayMetrics.movingScaleActive
         );
         this.radiusState = new CompassRadiusState(
-                radiusMetrics.visibleRadiusMeters,
-                radiusMetrics.fullRouteVisibleRadiusMeters,
-                radiusMetrics.sixtySecondVisibleRadiusMeters,
-                radiusMetrics.accuracyRadiusMeters,
-                radiusMetrics.routeThresholdMeters
+                input.radiusMetrics.visibleRadiusMeters,
+                input.radiusMetrics.fullRouteVisibleRadiusMeters,
+                input.radiusMetrics.sixtySecondVisibleRadiusMeters,
+                input.radiusMetrics.accuracyRadiusMeters,
+                input.radiusMetrics.routeThresholdMeters
         );
         this.progressLabels = new CompassProgressLabels(
-                destinationProjection.eastMeters,
-                destinationProjection.northMeters,
-                destinationProjection.withinRadius
+                input.destinationProjection.eastMeters,
+                input.destinationProjection.northMeters,
+                input.destinationProjection.withinRadius
         );
-        this.passedRoutePoints = Collections.unmodifiableList(passedRoutePoints);
-        this.routePoints = Collections.unmodifiableList(routePoints);
-        this.hintPoints = Collections.unmodifiableList(hintPoints);
+        this.passedRoutePoints = Collections.unmodifiableList(input.passedRoutePoints);
+        this.routePoints = Collections.unmodifiableList(input.routePoints);
+        this.hintPoints = Collections.unmodifiableList(input.hintPoints);
         this.routeGeometry = null;
         this.currentLatitude = Double.NaN;
         this.currentLongitude = Double.NaN;
-        this.passedRouteSamplePointCount = passedRoutePoints.size();
-        this.remainingRouteStartSamplePointIndex = routePoints.isEmpty() ? 0 : 0;
+        this.passedRouteSamplePointCount = input.passedRoutePoints.size();
+        this.remainingRouteStartSamplePointIndex = input.routePoints.isEmpty() ? 0 : 0;
     }
 
-    private NavCompassState(
-            @NonNull CompassDisplayMetrics displayMetrics,
-            @NonNull CompassRadiusMetrics radiusMetrics,
-            @NonNull CompassRouteGeometry routeGeometry,
-            double currentLatitude,
-            double currentLongitude,
-            int passedRouteSamplePointCount,
-            @NonNull CompassDestinationProjection destinationProjection
-    ) {
+    private NavCompassState(@NonNull NavCompassRouteGeometryInput input) {
         this.displayMode = new CompassDisplayMode(
-                displayMetrics.headingDegrees,
-                displayMetrics.headingAccuracyDegrees,
-                displayMetrics.referenceSpeedMps,
-                displayMetrics.fullRouteReferenceSpeedMps,
-                displayMetrics.sixtySecondReferenceSpeedMps,
-                displayMetrics.movingScaleActive
+                input.displayMetrics.headingDegrees,
+                input.displayMetrics.headingAccuracyDegrees,
+                input.displayMetrics.referenceSpeedMps,
+                input.displayMetrics.fullRouteReferenceSpeedMps,
+                input.displayMetrics.sixtySecondReferenceSpeedMps,
+                input.displayMetrics.movingScaleActive
         );
         this.radiusState = new CompassRadiusState(
-                radiusMetrics.visibleRadiusMeters,
-                radiusMetrics.fullRouteVisibleRadiusMeters,
-                radiusMetrics.sixtySecondVisibleRadiusMeters,
-                radiusMetrics.accuracyRadiusMeters,
-                radiusMetrics.routeThresholdMeters
+                input.radiusMetrics.visibleRadiusMeters,
+                input.radiusMetrics.fullRouteVisibleRadiusMeters,
+                input.radiusMetrics.sixtySecondVisibleRadiusMeters,
+                input.radiusMetrics.accuracyRadiusMeters,
+                input.radiusMetrics.routeThresholdMeters
         );
         this.progressLabels = new CompassProgressLabels(
-                destinationProjection.eastMeters,
-                destinationProjection.northMeters,
-                destinationProjection.withinRadius
+                input.destinationProjection.eastMeters,
+                input.destinationProjection.northMeters,
+                input.destinationProjection.withinRadius
         );
-        this.routeGeometry = routeGeometry;
-        this.currentLatitude = currentLatitude;
-        this.currentLongitude = currentLongitude;
+        this.routeGeometry = input.routeGeometry;
+        this.currentLatitude = input.currentLatitude;
+        this.currentLongitude = input.currentLongitude;
         this.passedRouteSamplePointCount = Math.max(
                 0,
-                Math.min(passedRouteSamplePointCount, routeGeometry.routeSamplePointCount())
+                Math.min(input.passedRouteSamplePointCount, input.routeGeometry.routeSamplePointCount())
         );
-        this.remainingRouteStartSamplePointIndex = routeGeometry.routeSamplePointCount() == 0
+        this.remainingRouteStartSamplePointIndex = input.routeGeometry.routeSamplePointCount() == 0
                 ? 0
                 : Math.max(0, this.passedRouteSamplePointCount - 1);
-        this.passedRoutePoints = new ProjectedRoutePointList(
-                routeGeometry,
+        this.passedRoutePoints = new ProjectedCompassRoutePointList(
+                input.routeGeometry,
                 this.currentLatitude,
                 this.currentLongitude,
                 0,
                 this.passedRouteSamplePointCount,
                 false
         );
-        this.routePoints = new ProjectedRoutePointList(
-                routeGeometry,
+        this.routePoints = new ProjectedCompassRoutePointList(
+                input.routeGeometry,
                 this.currentLatitude,
                 this.currentLongitude,
                 this.remainingRouteStartSamplePointIndex,
-                routeGeometry.routeSamplePointCount(),
+                input.routeGeometry.routeSamplePointCount(),
                 false
         );
-        this.hintPoints = new ProjectedRoutePointList(
-                routeGeometry,
+        this.hintPoints = new ProjectedCompassRoutePointList(
+                input.routeGeometry,
                 this.currentLatitude,
                 this.currentLongitude,
                 0,
-                routeGeometry.hintSamplePointCount(),
+                input.routeGeometry.hintSamplePointCount(),
                 true
         );
     }
@@ -294,8 +261,8 @@ public final class NavCompassState {
         )
                 <= targetVisibleRadiusMeters;
         if (routeGeometry != null) {
-            return new NavCompassState(
-                    new CompassDisplayMetrics(
+            return fromRouteGeometry(new NavCompassRouteGeometryInput(
+                    displayMetrics(
                             displayMode.headingDegrees,
                             displayMode.headingAccuracyDegrees,
                             targetReferenceSpeedMps,
@@ -319,10 +286,10 @@ public final class NavCompassState {
                             progressLabels.destinationNorthMeters,
                             targetDestinationWithinRadius
                     )
-            );
+            ));
         }
-        return new NavCompassState(
-                new CompassDisplayMetrics(
+        return fromProjectedPoints(new NavCompassProjectedPointsInput(
+                displayMetrics(
                         displayMode.headingDegrees,
                         displayMode.headingAccuracyDegrees,
                         targetReferenceSpeedMps,
@@ -345,6 +312,57 @@ public final class NavCompassState {
                         progressLabels.destinationNorthMeters,
                         targetDestinationWithinRadius
                 )
+        ));
+    }
+
+    @NonNull
+    private static CompassDisplayMetrics displayMetrics(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            boolean movingScaleActive
+    ) {
+        return displayMetrics(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                movingScaleActive
+        );
+    }
+
+    @NonNull
+    private static CompassDisplayMetrics displayMetrics(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float fullRouteReferenceSpeedMps,
+            float sixtySecondReferenceSpeedMps,
+            boolean movingScaleActive
+    ) {
+        return new CompassDisplayMetrics(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                fullRouteReferenceSpeedMps,
+                sixtySecondReferenceSpeedMps,
+                movingScaleActive
+        );
+    }
+
+    @NonNull
+    private static CompassRadiusMetrics radiusMetrics(
+            float visibleRadiusMeters,
+            float accuracyRadiusMeters,
+            float routeThresholdMeters
+    ) {
+        return new CompassRadiusMetrics(
+                visibleRadiusMeters,
+                visibleRadiusMeters,
+                visibleRadiusMeters,
+                accuracyRadiusMeters,
+                routeThresholdMeters
         );
     }
 
@@ -394,52 +412,5 @@ public final class NavCompassState {
 
     public double currentLongitude() {
         return currentLongitude;
-    }
-
-    private static final class ProjectedRoutePointList extends AbstractList<CompassRoutePoint> {
-        @NonNull
-        private final CompassRouteGeometry routeGeometry;
-        private final double currentLatitude;
-        private final double currentLongitude;
-        private final int startIndex;
-        private final int endIndex;
-        private final boolean hintPoints;
-
-        private ProjectedRoutePointList(
-                @NonNull CompassRouteGeometry routeGeometry,
-                double currentLatitude,
-                double currentLongitude,
-                int startIndex,
-                int endIndex,
-                boolean hintPoints
-        ) {
-            this.routeGeometry = routeGeometry;
-            this.currentLatitude = currentLatitude;
-            this.currentLongitude = currentLongitude;
-            this.startIndex = startIndex;
-            this.endIndex = Math.max(startIndex, endIndex);
-            this.hintPoints = hintPoints;
-        }
-
-        @NonNull
-        @Override
-        public CompassRoutePoint get(int index) {
-            int absoluteIndex = startIndex + index;
-            LatLon point = hintPoints
-                    ? routeGeometry.hintSamplePointAt(absoluteIndex)
-                    : routeGeometry.routeSamplePointAt(absoluteIndex);
-            if (point == null) {
-                throw new IndexOutOfBoundsException("index=" + index);
-            }
-            return new CompassRoutePoint(
-                    (float) GeoMath.eastMeters(currentLatitude, currentLongitude, point.lat, point.lon),
-                    (float) GeoMath.northMeters(currentLatitude, point.lat)
-            );
-        }
-
-        @Override
-        public int size() {
-            return endIndex - startIndex;
-        }
     }
 }

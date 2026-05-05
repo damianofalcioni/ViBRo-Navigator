@@ -160,7 +160,16 @@ public final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
-        return routeResultApplier.applyRouteResult(context, request, snapshot, newRoute, lastFiltered, beganAt);
+        return routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
+                context,
+                request,
+                snapshot,
+                newRoute,
+                lastFiltered,
+                speedMps,
+                likelyStationary,
+                beganAt
+        ));
     }
 
     @NonNull

@@ -1,6 +1,5 @@
 package vibro.navigator.nav.session;
 
-import android.content.Context;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
@@ -12,10 +11,7 @@ import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
-import vibro.navigator.nav.model.NavigationRequest;
-import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
-import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteResultApplier {
@@ -51,35 +47,28 @@ final class NavigationRouteResultApplier {
     }
 
     @NonNull
-    List<NavigationTurnEvent> applyRouteResult(
-            @NonNull Context context,
-            @NonNull NavigationRequest request,
-            @NonNull NavigationRouteRequestSnapshot snapshot,
-            @NonNull GeoJsonRoute newRoute,
-            @Nullable Location lastFiltered,
-            long beganAt
-    ) {
-        geometryState.loadRoute(newRoute);
-        displayState.onRouteApplied(context, request, newRoute, geometryState.polylineIndex());
+    List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
+        geometryState.loadRoute(input.route);
+        displayState.onRouteApplied(input.context, input.request, input.route, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
-        float etaSpeedMps = 0f;
+        float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;
 
-        List<NavigationTurnEvent> turnEvents = lastFiltered != null
-                && arrivalDetector.isDestinationReached(lastFiltered, accuracyOf(lastFiltered))
-                ? turnState.onDestinationReached(newRoute)
+        List<NavigationTurnEvent> turnEvents = input.lastFiltered != null
+                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyOf(input.lastFiltered))
+                ? turnState.onDestinationReached(input.route)
                 : turnState.onRouteApplied(
-                        newRoute,
+                        input.route,
                         geometryState.polylineIndex(),
-                        lastFiltered,
-                        etaSpeedMps,
-                        accuracyOf(lastFiltered)
+                        input.lastFiltered,
+                        initialSpeedMps,
+                        accuracyOf(input.lastFiltered)
                 );
-        AppLogger.i(TAG, "Route recalculation #" + snapshot.requestNumber
-                + " succeeded durationMs=" + (System.currentTimeMillis() - beganAt)
-                + " trackPoints=" + newRoute.track.size()
-                + " voiceHints=" + newRoute.voiceHints.size()
-                + " lengthMeters=" + newRoute.trackLengthMeters);
+        AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
+                + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
+                + " trackPoints=" + input.route.track.size()
+                + " voiceHints=" + input.route.voiceHints.size()
+                + " lengthMeters=" + input.route.trackLengthMeters);
         return turnEvents;
     }
 

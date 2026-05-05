@@ -1,14 +1,9 @@
 package vibro.navigator.nav.service;
 
 
-import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
-import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
-import vibro.navigator.nav.location.NavigationLocationController;
-import vibro.navigator.nav.orientation.NavigationOrientationController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
-import vibro.navigator.nav.routing.NavigationRouteExecutor;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
@@ -57,10 +52,8 @@ public class NavigationService extends Service {
             this::requestRouteRecalc,
             this::emitState
     );
-    private NavigationForegroundController foregroundController;
-    private NavigationLocationController locationController;
-    private NavigationOrientationController orientationController;
-    private NavigationScreenInteractivityMonitor screenInteractivityMonitor;
+    @Nullable
+    private NavigationServiceRuntime runtime;
     private final NavigationServiceUiVisibility uiVisibility =
             new NavigationServiceUiVisibility(navigationSession, stateBroadcaster, this::emitState);
     private final NavigationForegroundCoordinator foregroundCoordinator =
@@ -69,7 +62,7 @@ public class NavigationService extends Service {
                     new NavigationLifecyclePolicy(),
                     FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS,
                     new NavigationServiceForegroundHost(
-                            () -> foregroundController,
+                            () -> runtime().foregroundController(),
                             this::promoteToForeground,
                             this::stopNavigation,
                             this::stopSelf
@@ -97,15 +90,11 @@ public class NavigationService extends Service {
             this::stopSelf,
             this::promoteToForeground
     );
-    @Nullable
-    private NavigationRouteExecutor routeExecutor;
-    @Nullable
-    private NavigationRouteExecutor.Callback routeCallback;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        NavigationServiceDependencies dependencies = NavigationServiceDependencies.create(
+        runtime = NavigationServiceRuntime.create(
                 this,
                 notificationMonitorHandler,
                 navigationSession,
@@ -115,13 +104,6 @@ public class NavigationService extends Service {
                 this::emitState,
                 this::requestRouteRecalc
         );
-        foregroundController = dependencies.foreground.controller;
-        locationController = dependencies.tracking.locationController;
-        routeExecutor = dependencies.routing.executor;
-        routeCallback = dependencies.routing.callback;
-        orientationController = dependencies.tracking.orientationController;
-        screenInteractivityMonitor = dependencies.foreground.screenInteractivityMonitor;
-        uiVisibility.setScreenInteractive(dependencies.foreground.screenInteractive);
         AppLogger.i(TAG, "Service created");
     }
 
@@ -138,7 +120,7 @@ public class NavigationService extends Service {
     }
 
     private void promoteToForeground() {
-        foregroundController.promoteToForeground(
+        runtime().promoteToForeground(
                 navigationSession.currentNavigationRequest(),
                 navigationSession.isPaused()
         );
@@ -151,16 +133,16 @@ public class NavigationService extends Service {
     }
 
     private void startNavigation() {
-        locationController.resetTrackingState();
+        runtime().resetTrackingState();
 
         if (!navigationSession.start(this, System.currentTimeMillis())) {
             emitState();
             return;
         }
 
-        locationController.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
-        locationController.requestCurrentLocationSeeds();
-        orientationController.start();
+        runtime().requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
+        runtime().requestCurrentLocationSeeds();
+        runtime().startOrientation();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
@@ -171,8 +153,7 @@ public class NavigationService extends Service {
         if (!navigationSession.pause()) {
             return;
         }
-        locationController.stopTracking();
-        orientationController.stop();
+        runtime().stopTrackingAndOrientation();
         promoteToForeground();
         emitState();
         AppLogger.i(TAG, "Navigation paused");
@@ -182,11 +163,11 @@ public class NavigationService extends Service {
         if (!navigationSession.resume()) {
             return;
         }
-        locationController.requestLocationUpdates(
-                locationController.getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
+        runtime().requestLocationUpdates(
+                runtime().lastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
-        locationController.requestCurrentLocationSeeds();
-        orientationController.start();
+        runtime().requestCurrentLocationSeeds();
+        runtime().startOrientation();
         promoteToForeground();
         emitState();
         AppLogger.i(TAG, "Navigation resumed");
@@ -197,10 +178,9 @@ public class NavigationService extends Service {
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
         navigationSession.stop();
         foregroundCoordinator.stopMonitoring();
-        locationController.stopTracking();
-        orientationController.stop();
+        runtime().stopTrackingAndOrientation();
         stateBroadcaster.clear();
-        foregroundController.stopForegroundService();
+        runtime().stopForegroundService();
     }
 
     private void requestRouteRecalc(boolean force, @Nullable NavigationRerouteNotice rerouteNotice) {
@@ -219,23 +199,19 @@ public class NavigationService extends Service {
         }
         emitState();
         if (rerouteNotice != null) {
-            foregroundController.sendOffRouteNotification(rerouteNotice);
+            runtime().sendOffRouteNotification(rerouteNotice);
         }
-        if (routeExecutor == null || routeCallback == null) {
-            AppLogger.w(TAG, "Route executor unavailable, cannot calculate route");
-            return;
-        }
-        routeExecutor.requestRoute(this, snapshot, routeCallback);
+        runtime().requestRoute(this, snapshot);
     }
 
     private void emitState() {
         NavState s = navigationSession.buildState(
                 this,
-                locationController.getNextEvaluationDeadlineElapsedMs(),
+                runtime().nextEvaluationDeadlineElapsedMs(),
                 System.currentTimeMillis(),
-                locationController.getFixedSatelliteCount(),
-                orientationController.currentDisplayHeadingDegrees(),
-                orientationController.currentDisplayHeadingAccuracyDegrees()
+                runtime().fixedSatelliteCount(),
+                runtime().displayHeadingDegrees(),
+                runtime().displayHeadingAccuracyDegrees()
         );
         stateBroadcaster.dispatch(s);
     }
@@ -244,13 +220,10 @@ public class NavigationService extends Service {
     public void onDestroy() {
         AppLogger.i(TAG, "Service destroyed");
         stopNavigation();
-        if (screenInteractivityMonitor != null) {
-            screenInteractivityMonitor.stop();
-            screenInteractivityMonitor = null;
-        }
-        if (routeExecutor != null) {
-            routeExecutor.shutdown();
-            routeExecutor = null;
+        if (runtime != null) {
+            runtime.stopScreenInteractivityMonitor();
+            runtime.shutdownRouteExecutor();
+            runtime = null;
         }
         super.onDestroy();
     }
@@ -263,6 +236,14 @@ public class NavigationService extends Service {
             stopSelf();
         }
         super.onTaskRemoved(rootIntent);
+    }
+
+    @NonNull
+    private NavigationServiceRuntime runtime() {
+        if (runtime == null) {
+            throw new IllegalStateException("Navigation service runtime is not initialized");
+        }
+        return runtime;
     }
 
 }

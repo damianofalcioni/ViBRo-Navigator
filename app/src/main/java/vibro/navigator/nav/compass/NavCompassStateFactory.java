@@ -147,26 +147,32 @@ public final class NavCompassStateFactory {
         float routeThresholdMeters =
                 (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
-        return NavCompassState.fromRouteGeometry(
-                resolvedHeading,
-                sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
-                referenceSpeedMps,
-                fullRouteReferenceSpeedMps,
-                sixtySecondReferenceSpeedMps,
-                radiusState.visibleRadiusMeters,
-                radiusState.fullRouteVisibleRadiusMeters,
-                radiusState.sixtySecondVisibleRadiusMeters,
-                sanitizeAccuracyMeters(compassAccuracyMeters),
-                radiusState.usingMovingScale,
-                routeThresholdMeters,
+        return NavCompassState.fromRouteGeometry(new NavCompassRouteGeometryInput(
+                new CompassDisplayMetrics(
+                        resolvedHeading,
+                        sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
+                        referenceSpeedMps,
+                        fullRouteReferenceSpeedMps,
+                        sixtySecondReferenceSpeedMps,
+                        radiusState.usingMovingScale
+                ),
+                new CompassRadiusMetrics(
+                        radiusState.visibleRadiusMeters,
+                        radiusState.fullRouteVisibleRadiusMeters,
+                        radiusState.sixtySecondVisibleRadiusMeters,
+                        sanitizeAccuracyMeters(compassAccuracyMeters),
+                        routeThresholdMeters
+                ),
                 routeGeometry,
                 currentLat,
                 currentLon,
                 routeGeometry.passedRoutePointCount(alongTrackMeters),
-                destinationEastMeters,
-                destinationNorthMeters,
-                destinationDistanceMeters <= radiusState.visibleRadiusMeters
-        );
+                new CompassDestinationProjection(
+                        destinationEastMeters,
+                        destinationNorthMeters,
+                        destinationDistanceMeters <= radiusState.visibleRadiusMeters
+                )
+        ));
     }
 
     public static boolean hasReliableMovingSpeed(

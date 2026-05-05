@@ -14,6 +14,7 @@ import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.compass.NavCompassStateInput;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -967,17 +968,24 @@ public class NavStateTest {
             @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
+        NavCompassStateInput compassInput = NavCompassStateInput.builder(route, index, currentLocation)
+                .routeProgress(alongTrackMeters)
+                .motion(speedMps, likelyStationary, compassAccuracyMeters)
+                .heading(headingDegrees, headingAccuracyDegrees)
+                .radiusMemory(
+                        previousCompassVisibleRadiusMeters,
+                        previousReliableMovingCompassVisibleRadiusMeters,
+                        compassRadiusUpdateDeltaMs
+                )
+                .geometry(compassRouteGeometry, compassRadiusTransition)
+                .nowMs(nowMs)
+                .build();
         return NavStateComposer.from(NavStateBuildInput.builder(context, route, index, currentLocation)
                 .routeProgress(alongTrackMeters, nextHintIdx, currentSegmentIndex)
                 .motion(speedMps, etaSpeedMps, likelyStationary, accuracyMeters, compassAccuracyMeters)
                 .gps(fixedSatelliteCount)
                 .heading(headingDegrees, headingAccuracyDegrees)
-                .compassMemory(
-                        previousCompassVisibleRadiusMeters,
-                        previousReliableMovingCompassVisibleRadiusMeters,
-                        compassRadiusUpdateDeltaMs
-                )
-                .compassGeometry(compassRouteGeometry, compassRadiusTransition)
+                .compass(compassInput)
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .destinationReached(destinationReached)
                 .targets(targets)

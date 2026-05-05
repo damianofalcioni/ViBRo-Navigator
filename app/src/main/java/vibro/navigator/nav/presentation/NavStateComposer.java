@@ -12,7 +12,6 @@ import vibro.navigator.R;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
-import vibro.navigator.nav.compass.NavCompassStateInput;
 import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -102,11 +101,11 @@ public final class NavStateComposer {
         List<String> directionLines = NavStateTextFactory.buildDirectionLines(
                 input.route,
                 input.index,
-                input.alongTrackMeters,
-                input.nextHintIndex,
-                input.currentSegmentIndex,
-                input.etaSpeedMps,
-                input.accuracyMeters,
+                input.routeProgress.alongTrackMeters,
+                input.routeProgress.nextHintIndex,
+                input.routeProgress.currentSegmentIndex,
+                input.motion.etaSpeedMps,
+                input.motion.accuracyMeters,
                 input.destinationReached,
                 input.context
         );
@@ -115,10 +114,10 @@ public final class NavStateComposer {
         String destination = NavStateTextFactory.buildDestinationLine(
                 input.route,
                 input.index,
-                input.alongTrackMeters,
-                input.currentSegmentIndex,
-                input.etaSpeedMps,
-                input.nowMs,
+                input.routeProgress.alongTrackMeters,
+                input.routeProgress.currentSegmentIndex,
+                input.motion.etaSpeedMps,
+                input.timing.nowMs,
                 input.destinationReached,
                 input.targets,
                 input.context
@@ -126,49 +125,35 @@ public final class NavStateComposer {
         String stopProgress = NavStateTextFactory.buildStopProgress(
                 input.route,
                 input.index,
-                input.alongTrackMeters,
-                input.currentSegmentIndex,
-                input.etaSpeedMps,
-                input.nowMs,
+                input.routeProgress.alongTrackMeters,
+                input.routeProgress.currentSegmentIndex,
+                input.motion.etaSpeedMps,
+                input.timing.nowMs,
                 input.destinationReached,
                 input.targets,
                 input.context
         );
         String gpsStatus = buildGpsStatusLine(
-                input.speedMps,
+                input.motion.speedMps,
                 input.currentLocation,
-                input.accuracyMeters,
-                input.fixedSatelliteCount,
+                input.motion.accuracyMeters,
+                input.gps.fixedSatelliteCount,
                 input.context
         );
-        NavCompassState compassState = NavCompassStateFactory.buildCompassState(compassInput(input));
+        NavCompassState compassState = input.compassInput == null
+                ? null
+                : NavCompassStateFactory.buildCompassState(input.compassInput);
         return create(
                 next,
                 afterNext,
                 destination,
                 stopProgress,
                 gpsStatus,
-                input.nextEvaluationDeadlineElapsedMs,
+                input.timing.nextEvaluationDeadlineElapsedMs,
                 "",
                 compassState,
                 false
         );
-    }
-
-    @NonNull
-    private static NavCompassStateInput compassInput(@NonNull NavStateBuildInput input) {
-        return NavCompassStateInput.builder(input.route, input.index, input.currentLocation)
-                .routeProgress(input.alongTrackMeters)
-                .motion(input.speedMps, input.likelyStationary, input.compassAccuracyMeters)
-                .heading(input.headingDegrees, input.headingAccuracyDegrees)
-                .radiusMemory(
-                        input.previousCompassVisibleRadiusMeters,
-                        input.previousReliableMovingCompassVisibleRadiusMeters,
-                        input.compassRadiusUpdateDeltaMs
-                )
-                .geometry(input.compassRouteGeometry, input.compassRadiusTransition)
-                .nowMs(input.nowMs)
-                .build();
     }
 
     @NonNull
