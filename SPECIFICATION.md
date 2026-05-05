@@ -88,6 +88,7 @@ Below the routing-profile selector, the app must show an input field for searchi
 - The user must be able to select a result from the dropdown
 - Selecting a result must bind the destination to the coordinates of that POI
 - Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again
+- Selecting a destination or intermediate stop must clear focus from POI text inputs and hide the soft keyboard, including when Android tries to restore focus to another POI input after the selection popup closes
 - After a portrait/landscape layout change or other activity recreation, restoring a previously selected destination or stop must keep that resolved selection and must not reopen suggestions unless the user edits the restored text
 
 #### 2.4 Destination map picker

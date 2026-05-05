@@ -1,13 +1,16 @@
 package vibro.navigator.poi.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.app.Activity;
 import android.content.Context;
 import android.os.Looper;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -18,6 +21,7 @@ import vibro.navigator.poi.search.PoiSearchClient;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
 import java.util.Collections;
@@ -63,6 +67,98 @@ public class PoiInputControllerTest {
         assertEquals("Saved destination", controller.getRawText());
         assertSame(selected, controller.getSelectedPoi());
         assertSame(selected, listenerSelection[0]);
+    }
+
+    @Test
+    public void setPoi_clearsInputFocusAfterSelection() {
+        Poi selected = new Poi("Saved destination", 48.2082d, 16.3738d);
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                new PoiHistoryStore(context),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        controller.getEditText().requestFocus();
+
+        controller.setPoi(selected);
+
+        assertFalse(controller.getEditText().hasFocus());
+    }
+
+    @Test
+    public void setPoi_parksFocusOutsideOtherPoiInputs() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        LinearLayout root = new LinearLayout(activity);
+        root.setFocusableInTouchMode(true);
+        EditText destinationEdit = new EditText(activity);
+        EditText stopEdit = new EditText(activity);
+        root.addView(destinationEdit);
+        root.addView(stopEdit);
+        activity.setContentView(root);
+        PoiInputController destinationController = new PoiInputController(
+                activity,
+                destinationEdit,
+                new PoiHistoryStore(activity),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        PoiInputController stopController = new PoiInputController(
+                activity,
+                stopEdit,
+                new PoiHistoryStore(activity),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        stopEdit.requestFocus();
+
+        stopController.setPoi(new Poi("Stop A", 48.2082d, 16.3738d));
+
+        assertFalse(destinationEdit.hasFocus());
+        assertFalse(stopEdit.hasFocus());
+        assertTrue(stopEdit.getRootView().hasFocus());
+        destinationController.dispose();
+        stopController.dispose();
+    }
+
+    @Test
+    public void setPoi_recoversWhenAnotherPoiInputFocusesAfterSelection() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        LinearLayout root = new LinearLayout(activity);
+        EditText destinationEdit = new EditText(activity);
+        EditText stopEdit = new EditText(activity);
+        root.addView(destinationEdit);
+        root.addView(stopEdit);
+        activity.setContentView(root);
+        PoiInputController destinationController = new PoiInputController(
+                activity,
+                destinationEdit,
+                new PoiHistoryStore(activity),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        PoiInputController stopController = new PoiInputController(
+                activity,
+                stopEdit,
+                new PoiHistoryStore(activity),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        stopEdit.requestFocus();
+
+        stopController.setPoi(new Poi("Stop A", 48.2082d, 16.3738d));
+        destinationEdit.requestFocus();
+        shadowOf(Looper.getMainLooper()).idleFor(150, TimeUnit.MILLISECONDS);
+
+        assertFalse(destinationEdit.hasFocus());
+        assertFalse(stopEdit.hasFocus());
+        destinationController.dispose();
+        stopController.dispose();
     }
 
     @Test

@@ -204,6 +204,7 @@ public final class PoiInputController {
         editText.setText(label);
         editText.setSelection(label.length());
         popupController.dismiss();
+        PoiInputFocusController.clearFocusAndHideKeyboard(editText);
         history.addOrPromote(poi);
         listener.onPoiSelected(poi);
     }
