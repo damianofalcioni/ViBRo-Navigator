@@ -246,21 +246,18 @@ public final class NavigationSession {
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees
         );
-        baseState = routeState.buildState(
-                context,
-                lastFiltered,
-                speedMps,
-                likelyStationary,
-                accuracyMeters,
-                fixedSatelliteCount,
-                heading.headingDegrees,
-                heading.headingAccuracyDegrees,
-                nextEvaluationDeadlineElapsedMs,
-                nowMs,
-                routeRequestManager.isRouteCalculationInProgress(),
-                routeRequestManager.getInProgressNotice(),
-                routeRequestManager.getLastRouteFailure()
-        );
+        NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(context)
+                .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
+                .gps(fixedSatelliteCount)
+                .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
+                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
+                .routeCalculation(
+                        routeRequestManager.isRouteCalculationInProgress(),
+                        routeRequestManager.getInProgressNotice(),
+                        routeRequestManager.getLastRouteFailure()
+                )
+                .build();
+        baseState = routeState.advanceDisplayState(snapshot);
         return NavStateComposer.withPauseState(context, baseState, paused);
     }
 

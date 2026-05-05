@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.about;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import vibro.navigator.R;
 import vibro.navigator.util.AppLogger;
 
 import org.junit.Before;

@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.about;
 
 import android.hardware.SensorManager;
 import android.location.Location;

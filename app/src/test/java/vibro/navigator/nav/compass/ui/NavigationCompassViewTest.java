@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
@@ -22,7 +22,7 @@ public class NavigationCompassViewTest {
     public void destinationPositionIsHiddenWhenOutsideVisibleRadius() {
         NavigationCompassRouteMarkerRenderer renderer = new NavigationCompassRouteMarkerRenderer();
 
-        assertNull(renderer.resolveDestinationPosition(new NavCompassState(
+        assertNull(renderer.resolveDestinationPosition(NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,
@@ -41,7 +41,7 @@ public class NavigationCompassViewTest {
     public void destinationPositionIsVisibleWhenWithinVisibleRadius() {
         NavigationCompassRouteMarkerRenderer renderer = new NavigationCompassRouteMarkerRenderer();
 
-        assertNotNull(renderer.resolveDestinationPosition(new NavCompassState(
+        assertNotNull(renderer.resolveDestinationPosition(NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,
@@ -60,7 +60,7 @@ public class NavigationCompassViewTest {
     public void routeThresholdStrokeWidthRepresentsThresholdWhenMoving() {
         NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
 
-        assertEquals(16f, renderer.resolveRouteThresholdStrokeWidthPx(new NavCompassState(
+        assertEquals(16f, renderer.resolveRouteThresholdStrokeWidthPx(NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,
@@ -81,7 +81,7 @@ public class NavigationCompassViewTest {
     public void routeThresholdOverlayIsEnabledInFullRouteOverview() {
         NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
 
-        assertEquals(true, renderer.shouldDrawRouteThresholdOverlay(new NavCompassState(
+        assertEquals(true, renderer.shouldDrawRouteThresholdOverlay(NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,
@@ -101,7 +101,7 @@ public class NavigationCompassViewTest {
     @Test
     public void routeThresholdOverlayIsDisabledWhenAccuracyAlreadyCoversThreshold() {
         NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
-        NavCompassState state = new NavCompassState(
+        NavCompassState state = NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,
@@ -125,7 +125,7 @@ public class NavigationCompassViewTest {
     public void routeThresholdUsesEightyPercentTransparencyInMovingMode() {
         NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
 
-        assertEquals(51, renderer.resolveRouteThresholdPaintAlpha(new NavCompassState(
+        assertEquals(51, renderer.resolveRouteThresholdPaintAlpha(NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,

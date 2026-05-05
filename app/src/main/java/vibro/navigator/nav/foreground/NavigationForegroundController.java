@@ -3,6 +3,7 @@ package vibro.navigator.nav.foreground;
 
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.format.NavigationTextFormatter;
@@ -18,7 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
 import vibro.navigator.main.MainActivity;
-import vibro.navigator.navigation.ui.NavigationActivity;
+import vibro.navigator.nav.ui.NavigationActivity;
 import vibro.navigator.R;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.DirectionKind;
@@ -160,7 +161,7 @@ public final class NavigationForegroundController {
         openNavigationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
                 | Intent.FLAG_ACTIVITY_CLEAR_TOP
                 | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        request.putInto(openNavigationIntent);
+        NavigationRequestIntentContract.putInto(openNavigationIntent, request);
         PendingIntent openNavigationPendingIntent = PendingIntent.getActivity(
                 service,
                 0,

@@ -36,11 +36,11 @@
         android:theme="@style/Theme.ViBRoNavigator">
 
         <activity
-            android:name=".AboutActivity"
+            android:name=".about.AboutActivity"
             android:exported="false" />
 
         <activity
-            android:name=".navigation.ui.NavigationActivity"
+            android:name=".nav.ui.NavigationActivity"
             android:exported="false"
             android:launchMode="singleTop" />
 

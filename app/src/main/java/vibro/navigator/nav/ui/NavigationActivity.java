@@ -1,8 +1,9 @@
-package vibro.navigator.navigation.ui;
+package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
 
 
+import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.startup.NavigationSettingsLauncher;
@@ -240,7 +241,7 @@ public class NavigationActivity extends Activity {
     @NonNull
     private String describeNavigationRequest() {
         return "resumeExisting=" + shouldResumeExistingNavigation()
-                + ", " + NavigationRequest.fromIntent(getIntent()).describe();
+                + ", " + NavigationRequestIntentContract.fromIntent(getIntent()).describe();
     }
 
     private boolean shouldResumeExistingNavigation() {
@@ -248,7 +249,7 @@ public class NavigationActivity extends Activity {
     }
 
     private boolean hasNavigationRequest() {
-        return NavigationRequest.fromIntent(getIntent()).isComplete();
+        return NavigationRequestIntentContract.fromIntent(getIntent()).isComplete();
     }
 
     private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
@@ -261,7 +262,7 @@ public class NavigationActivity extends Activity {
         @NonNull
         @Override
         public NavigationRequest getNavigationRequest() {
-            return NavigationRequest.fromIntent(getIntent());
+            return NavigationRequestIntentContract.fromIntent(getIntent());
         }
 
         @Override
@@ -303,7 +304,7 @@ public class NavigationActivity extends Activity {
         public void startNavigationService(@NonNull NavigationRequest request) {
             Intent start = new Intent(NavigationActivity.this, NavigationService.class);
             start.setAction(NavigationService.ACTION_START);
-            request.putInto(start);
+            NavigationRequestIntentContract.putInto(start, request);
             AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
             ContextCompat.startForegroundService(NavigationActivity.this, start);
         }

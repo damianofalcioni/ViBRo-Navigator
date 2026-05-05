@@ -3,9 +3,10 @@ package vibro.navigator.main;
 import vibro.navigator.R;
 
 
+import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.model.NavigationRequest;
-import vibro.navigator.AboutActivity;
-import vibro.navigator.navigation.ui.NavigationActivity;
+import vibro.navigator.about.AboutActivity;
+import vibro.navigator.nav.ui.NavigationActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -173,7 +174,7 @@ public class MainActivity extends Activity {
     private void launchNavigation(@NonNull NavigationRequest request) {
         AppLogger.i(TAG, "Starting NavigationActivity " + request.describe());
         Intent intent = new Intent(this, NavigationActivity.class);
-        request.putInto(intent);
+        NavigationRequestIntentContract.putInto(intent, request);
         startActivity(intent);
     }
 

@@ -164,7 +164,21 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
-    public NavState buildState(
+    public NavState advanceDisplayState(@NonNull NavigationDisplaySnapshot snapshot) {
+        NavState state = displayState.buildState(
+                snapshot,
+                geometryState.route(),
+                geometryState.polylineIndex(),
+                geometryState.lastSegmentIndex(),
+                turnState,
+                progressTracker
+        );
+        displayState.rememberRenderedState(state, snapshot);
+        return state;
+    }
+
+    @NonNull
+    NavState buildState(
             @NonNull Context context,
             @Nullable Location lastFiltered,
             float speedMps,
@@ -179,26 +193,13 @@ public final class NavigationSessionRouteState {
             @Nullable String routeCalculationNotice,
             @Nullable Throwable lastRouteFailure
     ) {
-        return displayState.buildState(
-                context,
-                geometryState.route(),
-                geometryState.polylineIndex(),
-                geometryState.lastSegmentIndex(),
-                turnState,
-                progressTracker,
-                lastFiltered,
-                speedMps,
-                likelyStationary,
-                accuracyMeters,
-                fixedSatelliteCount,
-                headingDegrees,
-                headingAccuracyDegrees,
-                nextEvaluationDeadlineElapsedMs,
-                nowMs,
-                routeCalculationInProgress,
-                routeCalculationNotice,
-                lastRouteFailure
-        );
+        return advanceDisplayState(NavigationDisplaySnapshot.builder(context)
+                .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
+                .gps(fixedSatelliteCount)
+                .heading(headingDegrees, headingAccuracyDegrees)
+                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
+                .routeCalculation(routeCalculationInProgress, routeCalculationNotice, lastRouteFailure)
+                .build());
     }
 
     public static final class Evaluation {

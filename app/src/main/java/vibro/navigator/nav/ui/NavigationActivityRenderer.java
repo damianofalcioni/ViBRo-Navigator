@@ -1,7 +1,7 @@
-package vibro.navigator.navigation.ui;
+package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
-import vibro.navigator.NavigationCompassView;
+import vibro.navigator.nav.compass.ui.NavigationCompassView;
 
 
 import vibro.navigator.nav.compass.NavCompassState;

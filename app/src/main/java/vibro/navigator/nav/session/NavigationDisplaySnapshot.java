@@ -1,0 +1,129 @@
+package vibro.navigator.nav.session;
+
+import android.content.Context;
+import android.location.Location;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+public final class NavigationDisplaySnapshot {
+    @NonNull
+    final Context context;
+    @Nullable
+    final Location lastFiltered;
+    final float speedMps;
+    final boolean likelyStationary;
+    final float accuracyMeters;
+    @Nullable
+    final Integer fixedSatelliteCount;
+    @Nullable
+    final Double headingDegrees;
+    @Nullable
+    final Float headingAccuracyDegrees;
+    final long nextEvaluationDeadlineElapsedMs;
+    final long nowMs;
+    final boolean routeCalculationInProgress;
+    @Nullable
+    final String routeCalculationNotice;
+    @Nullable
+    final Throwable lastRouteFailure;
+
+    private NavigationDisplaySnapshot(@NonNull Builder builder) {
+        context = builder.context;
+        lastFiltered = builder.lastFiltered;
+        speedMps = builder.speedMps;
+        likelyStationary = builder.likelyStationary;
+        accuracyMeters = builder.accuracyMeters;
+        fixedSatelliteCount = builder.fixedSatelliteCount;
+        headingDegrees = builder.headingDegrees;
+        headingAccuracyDegrees = builder.headingAccuracyDegrees;
+        nextEvaluationDeadlineElapsedMs = builder.nextEvaluationDeadlineElapsedMs;
+        nowMs = builder.nowMs;
+        routeCalculationInProgress = builder.routeCalculationInProgress;
+        routeCalculationNotice = builder.routeCalculationNotice;
+        lastRouteFailure = builder.lastRouteFailure;
+    }
+
+    @NonNull
+    static Builder builder(@NonNull Context context) {
+        return new Builder(context);
+    }
+
+    static final class Builder {
+        @NonNull
+        private final Context context;
+        @Nullable
+        private Location lastFiltered;
+        private float speedMps;
+        private boolean likelyStationary;
+        private float accuracyMeters = Float.MAX_VALUE;
+        @Nullable
+        private Integer fixedSatelliteCount;
+        @Nullable
+        private Double headingDegrees;
+        @Nullable
+        private Float headingAccuracyDegrees;
+        private long nextEvaluationDeadlineElapsedMs;
+        private long nowMs;
+        private boolean routeCalculationInProgress;
+        @Nullable
+        private String routeCalculationNotice;
+        @Nullable
+        private Throwable lastRouteFailure;
+
+        private Builder(@NonNull Context context) {
+            this.context = context;
+        }
+
+        @NonNull
+        Builder location(
+                @Nullable Location lastFiltered,
+                float speedMps,
+                boolean likelyStationary,
+                float accuracyMeters
+        ) {
+            this.lastFiltered = lastFiltered;
+            this.speedMps = speedMps;
+            this.likelyStationary = likelyStationary;
+            this.accuracyMeters = accuracyMeters;
+            return this;
+        }
+
+        @NonNull
+        Builder gps(@Nullable Integer fixedSatelliteCount) {
+            this.fixedSatelliteCount = fixedSatelliteCount;
+            return this;
+        }
+
+        @NonNull
+        Builder heading(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees) {
+            this.headingDegrees = headingDegrees;
+            this.headingAccuracyDegrees = headingAccuracyDegrees;
+            return this;
+        }
+
+        @NonNull
+        Builder timing(long nextEvaluationDeadlineElapsedMs, long nowMs) {
+            this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
+            this.nowMs = nowMs;
+            return this;
+        }
+
+        @NonNull
+        Builder routeCalculation(
+                boolean routeCalculationInProgress,
+                @Nullable String routeCalculationNotice,
+                @Nullable Throwable lastRouteFailure
+        ) {
+            this.routeCalculationInProgress = routeCalculationInProgress;
+            this.routeCalculationNotice = routeCalculationNotice;
+            this.lastRouteFailure = lastRouteFailure;
+            return this;
+        }
+
+        @NonNull
+        NavigationDisplaySnapshot build() {
+            return new NavigationDisplaySnapshot(this);
+        }
+    }
+}

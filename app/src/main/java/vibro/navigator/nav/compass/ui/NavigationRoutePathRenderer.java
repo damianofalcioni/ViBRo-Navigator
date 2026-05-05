@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.nav.compass.ui;
 
 import android.graphics.Canvas;
 import android.graphics.Paint;

@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.about;
 
 import android.location.GnssStatus;
 import android.location.LocationManager;

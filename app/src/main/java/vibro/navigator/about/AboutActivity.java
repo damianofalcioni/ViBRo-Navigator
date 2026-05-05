@@ -1,6 +1,8 @@
-package vibro.navigator;
+package vibro.navigator.about;
 
 
+import vibro.navigator.BuildConfig;
+import vibro.navigator.R;
 import vibro.navigator.nav.foreground.NavigationNotificationDebugHelper;
 import android.app.Activity;
 import android.os.Bundle;

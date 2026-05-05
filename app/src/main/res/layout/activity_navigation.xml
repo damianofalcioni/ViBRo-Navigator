@@ -50,7 +50,7 @@
         android:layout_weight="1"
         android:gravity="center_horizontal">
 
-        <vibro.navigator.NavigationCompassView
+        <vibro.navigator.nav.compass.ui.NavigationCompassView
             android:id="@+id/navigationCompassView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

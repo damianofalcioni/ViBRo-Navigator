@@ -1,6 +1,7 @@
-package vibro.navigator;
+package vibro.navigator.nav.compass.ui;
 
 
+import vibro.navigator.R;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;

@@ -1,7 +1,6 @@
 package vibro.navigator.nav.location;
 
 
-import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 import vibro.navigator.nav.model.NavState;
 import android.content.Context;
 import android.location.Location;
@@ -155,11 +154,12 @@ public final class NavigationLocationController {
         if (!NavigationLocationProviderAccess.hasAnyLocationPermission(fineGranted, coarseGranted)) {
             return null;
         }
-        Location gps = fineGranted ? providerAccess.getLastKnownLocationQuietly(LocationManager.GPS_PROVIDER) : null;
-        Location network = NavigationLocationProviderAccess.hasAnyLocationPermission(fineGranted, coarseGranted)
-                ? providerAccess.getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER)
-                : null;
-        Location best = NavigationStartupLocationSelector.selectBest(gps, network, System.currentTimeMillis());
+        Location best = LastKnownLocationSelector.findBestStartup(
+                providerAccess::getLastKnownLocationQuietly,
+                fineGranted,
+                coarseGranted,
+                System.currentTimeMillis()
+        );
         AppLogger.d(TAG, "Best last known location=" + NavigationLocationFormatter.format(best));
         return best;
     }

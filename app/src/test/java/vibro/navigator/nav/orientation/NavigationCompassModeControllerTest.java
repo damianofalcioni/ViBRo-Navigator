@@ -139,7 +139,7 @@ public class NavigationCompassModeControllerTest {
         );
         float visibleRadiusMeters = sixtySecondView ? sixtySecondRadiusMeters : fullRouteRadiusMeters;
         float referenceSpeedMps = sixtySecondView ? sixtySecondReferenceSpeedMps : fullRouteReferenceSpeedMps;
-        return new NavCompassState(
+        return NavCompassState.fromRouteGeometry(
                 90f,
                 8f,
                 referenceSpeedMps,

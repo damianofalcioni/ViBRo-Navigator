@@ -18,6 +18,7 @@ import androidx.annotation.StringRes;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import vibro.navigator.nav.location.LastKnownLocationSelector;
 import vibro.navigator.util.AppLogger;
 
 import java.util.ArrayList;
@@ -172,29 +173,16 @@ final class MapPickerLocationController {
         if (locationManager == null || !hasLocationPermission()) {
             return null;
         }
-        Location best = null;
-        String[] providers = new String[]{
-                LocationManager.GPS_PROVIDER,
-                LocationManager.NETWORK_PROVIDER,
-                LocationManager.PASSIVE_PROVIDER
-        };
-        for (String provider : providers) {
-            best = betterLastKnownLocation(provider, best);
-        }
-        return best;
+        return LastKnownLocationSelector.findBestForMapPicker(this::lastKnownLocation);
     }
 
     @Nullable
-    private Location betterLastKnownLocation(@NonNull String provider, @Nullable Location best) {
+    private Location lastKnownLocation(@NonNull String provider) {
         try {
-            Location candidate = locationManager.getLastKnownLocation(provider);
-            if (candidate == null) {
-                return best;
-            }
-            return best == null || isBetterLocation(candidate, best) ? candidate : best;
+            return locationManager.getLastKnownLocation(provider);
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Failed to read last known location provider=" + provider, e);
-            return best;
+            return null;
         }
     }
 
@@ -208,19 +196,6 @@ final class MapPickerLocationController {
             AppLogger.w(TAG, "Failed to read provider state provider=" + provider, e);
             return false;
         }
-    }
-
-    private boolean isBetterLocation(@NonNull Location candidate, @NonNull Location best) {
-        if (candidate.hasAccuracy() && best.hasAccuracy()) {
-            float accuracyDelta = candidate.getAccuracy() - best.getAccuracy();
-            if (accuracyDelta < -10f) {
-                return true;
-            }
-            if (accuracyDelta > 10f) {
-                return false;
-            }
-        }
-        return candidate.getTime() > best.getTime();
     }
 
     @NonNull

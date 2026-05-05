@@ -10,7 +10,7 @@ import android.os.SystemClock;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.HeadingSensorSupport;
+import vibro.navigator.sensor.HeadingSensorSupport;
 import vibro.navigator.util.AppLogger;
 
 public final class GeomagneticOrientationMonitor implements SensorEventListener {

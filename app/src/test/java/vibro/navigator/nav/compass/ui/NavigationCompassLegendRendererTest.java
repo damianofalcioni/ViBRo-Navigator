@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
@@ -72,7 +72,7 @@ public class NavigationCompassLegendRendererTest {
     }
 
     private static NavCompassState compassState(float visibleRadiusMeters, Float headingAccuracyDegrees) {
-        return new NavCompassState(
+        return NavCompassState.fromProjectedPoints(
                 0f,
                 headingAccuracyDegrees,
                 1f,

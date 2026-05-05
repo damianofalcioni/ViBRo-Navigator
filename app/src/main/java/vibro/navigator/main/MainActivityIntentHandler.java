@@ -1,10 +1,10 @@
 package vibro.navigator.main;
 
 import vibro.navigator.R;
-import vibro.navigator.navigation.ui.NavigationActivity;
+import vibro.navigator.nav.ui.NavigationActivity;
 
 
-import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -33,7 +33,10 @@ final class MainActivityIntentHandler {
         AppLogger.i(TAG, "Forwarding notification tap to NavigationActivity");
         Intent navigationIntent = new Intent(activity, NavigationActivity.class);
         navigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
-        NavigationRequest.fromIntent(intent).putInto(navigationIntent);
+        NavigationRequestIntentContract.putInto(
+                navigationIntent,
+                NavigationRequestIntentContract.fromIntent(intent)
+        );
 
         intent.removeExtra(MainActivity.EXTRA_OPEN_NAVIGATION);
         intent.removeExtra(NavigationActivity.EXTRA_RESUME_EXISTING);

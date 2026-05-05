@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.about;
 
 import static org.junit.Assert.assertTrue;
 

@@ -1,10 +1,12 @@
-package vibro.navigator;
+package vibro.navigator.sensor;
 
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+
+import vibro.navigator.R;
 
 public final class HeadingSensorSupport {
 

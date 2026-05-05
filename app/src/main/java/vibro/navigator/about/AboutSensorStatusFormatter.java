@@ -1,5 +1,7 @@
-package vibro.navigator;
+package vibro.navigator.about;
 
+import vibro.navigator.R;
+import vibro.navigator.sensor.HeadingSensorSupport;
 import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;

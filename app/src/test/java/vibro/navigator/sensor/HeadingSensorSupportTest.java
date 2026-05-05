@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.sensor;
 
 import static org.junit.Assert.assertEquals;
 

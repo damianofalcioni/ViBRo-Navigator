@@ -147,7 +147,7 @@ public final class NavCompassStateFactory {
         float routeThresholdMeters =
                 (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
-        return new NavCompassState(
+        return NavCompassState.fromRouteGeometry(
                 resolvedHeading,
                 sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
                 referenceSpeedMps,

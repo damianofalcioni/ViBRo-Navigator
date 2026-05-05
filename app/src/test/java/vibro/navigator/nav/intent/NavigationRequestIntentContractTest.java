@@ -1,8 +1,9 @@
-package vibro.navigator.nav.model;
+package vibro.navigator.nav.intent;
 
 import android.content.Intent;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.model.NavigationRequest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,7 +17,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
-public class NavigationRequestTest {
+public class NavigationRequestIntentContractTest {
 
     @Test
     public void putInto_thenFromIntent_roundTripsRequestFields() {
@@ -31,9 +32,9 @@ public class NavigationRequestTest {
         );
 
         Intent intent = new Intent();
-        original.putInto(intent);
+        NavigationRequestIntentContract.putInto(intent, original);
 
-        NavigationRequest restored = NavigationRequest.fromIntent(intent);
+        NavigationRequest restored = NavigationRequestIntentContract.fromIntent(intent);
 
         assertTrue(restored.isComplete());
         assertEquals("trekking", restored.profile);
@@ -50,15 +51,15 @@ public class NavigationRequestTest {
     @Test
     public void fromIntent_discardsInvalidStopsAndRequiresProfile() {
         Intent intent = new Intent();
-        intent.putExtra(NavigationRequest.EXTRA_DEST_NAME, "Test destination");
-        intent.putExtra(NavigationRequest.EXTRA_DEST_LAT, 48.2082d);
-        intent.putExtra(NavigationRequest.EXTRA_DEST_LON, 16.3738d);
+        intent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_NAME, "Test destination");
+        intent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
+        intent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
         intent.putStringArrayListExtra(
-                NavigationRequest.EXTRA_STOPS,
+                NavigationRequestIntentContract.EXTRA_STOPS,
                 new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12"))
         );
 
-        NavigationRequest restored = NavigationRequest.fromIntent(intent);
+        NavigationRequest restored = NavigationRequestIntentContract.fromIntent(intent);
 
         assertFalse(restored.isComplete());
         assertEquals("Test destination", restored.destinationName);

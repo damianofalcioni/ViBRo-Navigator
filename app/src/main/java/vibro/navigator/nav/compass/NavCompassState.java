@@ -31,7 +31,8 @@ public final class NavCompassState {
     private final int passedRouteSamplePointCount;
     private final int remainingRouteStartSamplePointIndex;
 
-    public NavCompassState(
+    @NonNull
+    public static NavCompassState fromProjectedPoints(
             float headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,
@@ -44,7 +45,7 @@ public final class NavCompassState {
             float destinationNorthMeters,
             boolean destinationWithinRadius
     ) {
-        this(
+        return new NavCompassState(
                 headingDegrees,
                 headingAccuracyDegrees,
                 referenceSpeedMps,
@@ -65,7 +66,117 @@ public final class NavCompassState {
         );
     }
 
-    public NavCompassState(
+    @NonNull
+    public static NavCompassState fromProjectedPoints(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float visibleRadiusMeters,
+            float accuracyRadiusMeters,
+            boolean movingScaleActive,
+            float routeThresholdMeters,
+            @NonNull List<CompassRoutePoint> passedRoutePoints,
+            @NonNull List<CompassRoutePoint> routePoints,
+            @NonNull List<CompassRoutePoint> hintPoints,
+            float destinationEastMeters,
+            float destinationNorthMeters,
+            boolean destinationWithinRadius
+    ) {
+        return new NavCompassState(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                referenceSpeedMps,
+                visibleRadiusMeters,
+                visibleRadiusMeters,
+                visibleRadiusMeters,
+                accuracyRadiusMeters,
+                movingScaleActive,
+                routeThresholdMeters,
+                passedRoutePoints,
+                routePoints,
+                hintPoints,
+                destinationEastMeters,
+                destinationNorthMeters,
+                destinationWithinRadius
+        );
+    }
+
+    @NonNull
+    public static NavCompassState fromRouteGeometry(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float fullRouteReferenceSpeedMps,
+            float sixtySecondReferenceSpeedMps,
+            float visibleRadiusMeters,
+            float fullRouteVisibleRadiusMeters,
+            float sixtySecondVisibleRadiusMeters,
+            float accuracyRadiusMeters,
+            boolean movingScaleActive,
+            float routeThresholdMeters,
+            @NonNull CompassRouteGeometry routeGeometry,
+            double currentLatitude,
+            double currentLongitude,
+            int passedRouteSamplePointCount,
+            float destinationEastMeters,
+            float destinationNorthMeters,
+            boolean destinationWithinRadius
+    ) {
+        return new NavCompassState(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                fullRouteReferenceSpeedMps,
+                sixtySecondReferenceSpeedMps,
+                visibleRadiusMeters,
+                fullRouteVisibleRadiusMeters,
+                sixtySecondVisibleRadiusMeters,
+                accuracyRadiusMeters,
+                movingScaleActive,
+                routeThresholdMeters,
+                routeGeometry,
+                currentLatitude,
+                currentLongitude,
+                passedRouteSamplePointCount,
+                destinationEastMeters,
+                destinationNorthMeters,
+                destinationWithinRadius
+        );
+    }
+
+    private NavCompassState(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float visibleRadiusMeters,
+            float accuracyRadiusMeters,
+            @NonNull List<CompassRoutePoint> passedRoutePoints,
+            @NonNull List<CompassRoutePoint> routePoints,
+            @NonNull List<CompassRoutePoint> hintPoints,
+            float destinationEastMeters,
+            float destinationNorthMeters,
+            boolean destinationWithinRadius
+    ) {
+        this(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                visibleRadiusMeters,
+                accuracyRadiusMeters,
+                false,
+                0f,
+                passedRoutePoints,
+                routePoints,
+                hintPoints,
+                destinationEastMeters,
+                destinationNorthMeters,
+                destinationWithinRadius
+        );
+    }
+
+    private NavCompassState(
             float headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,
@@ -101,7 +212,7 @@ public final class NavCompassState {
         );
     }
 
-    public NavCompassState(
+    private NavCompassState(
             float headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,
@@ -150,7 +261,7 @@ public final class NavCompassState {
         this.remainingRouteStartSamplePointIndex = routePoints.isEmpty() ? 0 : 0;
     }
 
-    public NavCompassState(
+    private NavCompassState(
             float headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,

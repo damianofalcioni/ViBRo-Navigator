@@ -4,6 +4,7 @@ package vibro.navigator.nav.service;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
+import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.orientation.NavigationOrientationController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
@@ -145,7 +146,7 @@ public class NavigationService extends Service {
     }
 
     private void readNavRequest(@NonNull Intent intent) {
-        NavigationRequest request = NavigationRequest.fromIntent(intent);
+        NavigationRequest request = NavigationRequestIntentContract.fromIntent(intent);
         navigationSession.loadRequest(request);
     }
 
