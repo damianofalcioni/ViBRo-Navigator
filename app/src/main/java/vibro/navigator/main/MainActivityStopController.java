@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -236,3 +238,4 @@ final class MainActivityStopController {
         return controller.parseCurrentPoi();
     }
 }
+

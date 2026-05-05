@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.main;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -62,3 +62,4 @@ public final class RepeatSelectSpinner extends Spinner {
         listener.onItemSelected(this, selectedView, position, getSelectedItemId());
     }
 }
+

@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import android.widget.Button;
 import android.widget.EditText;
@@ -56,3 +58,4 @@ final class MainActivityControls {
         );
     }
 }
+

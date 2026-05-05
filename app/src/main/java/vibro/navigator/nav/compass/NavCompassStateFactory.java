@@ -70,6 +70,27 @@ public final class NavCompassStateFactory {
     }
 
     @Nullable
+    public static NavCompassState buildCompassState(@NonNull NavCompassStateInput input) {
+        return buildCompassState(
+                input.route,
+                input.index,
+                input.alongTrackMeters,
+                input.currentLocation,
+                input.speedMps,
+                input.likelyStationary,
+                input.accuracyMeters,
+                input.headingDegrees,
+                input.headingAccuracyDegrees,
+                input.previousVisibleRadiusMeters,
+                input.previousReliableMovingVisibleRadiusMeters,
+                input.radiusUpdateDeltaMs,
+                input.routeGeometry,
+                input.radiusTransition,
+                input.nowMs
+        );
+    }
+
+    @Nullable
     public static NavCompassState buildCompassState(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,

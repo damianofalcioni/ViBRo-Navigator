@@ -9,7 +9,6 @@ import vibro.navigator.nav.orientation.NavigationOrientationController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteExecutor;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
-import vibro.navigator.nav.guidance.NavigationTurnEventDispatcher;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -59,7 +58,6 @@ public class NavigationService extends Service {
     );
     private NavigationForegroundController foregroundController;
     private NavigationLocationController locationController;
-    private NavigationTurnEventDispatcher turnEventDispatcher;
     private NavigationOrientationController orientationController;
     private NavigationScreenInteractivityMonitor screenInteractivityMonitor;
     private final NavigationServiceUiVisibility uiVisibility =
@@ -106,32 +104,23 @@ public class NavigationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        foregroundController = new NavigationForegroundController(this);
-        locationController = new NavigationLocationController(this, locationHandler);
-        routeExecutor = NavigationRouteExecutor.createDefault(this, notificationMonitorHandler);
-        turnEventDispatcher = new NavigationTurnEventDispatcher(
-                new NavigationServiceTurnNotificationSink(foregroundController)
-        );
-        turnEvents.attachDispatcher(turnEventDispatcher);
-        orientationController = new NavigationOrientationController(
+        NavigationServiceDependencies dependencies = NavigationServiceDependencies.create(
                 this,
                 notificationMonitorHandler,
-                uiVisibility
-        );
-        routeCallback = new NavigationServiceRouteCallback(
-                this,
                 navigationSession,
-                orientationController,
-                foregroundController,
                 turnEvents,
+                locationHandler,
+                uiVisibility,
                 this::emitState,
                 this::requestRouteRecalc
         );
-        locationHandler.attachControllers(locationController, orientationController, foregroundController);
-        screenInteractivityMonitor =
-                new NavigationScreenInteractivityMonitor(this, uiVisibility::onScreenInteractiveChanged);
-        uiVisibility.setScreenInteractive(screenInteractivityMonitor.start());
-        foregroundController.ensureChannels();
+        foregroundController = dependencies.foregroundController;
+        locationController = dependencies.locationController;
+        routeExecutor = dependencies.routeExecutor;
+        routeCallback = dependencies.routeCallback;
+        orientationController = dependencies.orientationController;
+        screenInteractivityMonitor = dependencies.screenInteractivityMonitor;
+        uiVisibility.setScreenInteractive(dependencies.screenInteractive);
         AppLogger.i(TAG, "Service created");
     }
 

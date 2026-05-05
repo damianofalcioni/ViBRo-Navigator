@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 
 import vibro.navigator.nav.model.NavigationRequest;
@@ -131,3 +133,5 @@ final class NavigationInputResolver {
         }
     }
 }
+
+

@@ -1,10 +1,14 @@
-package vibro.navigator;
+package vibro.navigator.navigation.ui;
+
+import vibro.navigator.R;
+import vibro.navigator.NavigationCompassView;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavStateComposer;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -102,7 +106,7 @@ final class NavigationActivityRenderer {
         if (currentState == null) {
             statusText = activity.getString(
                     R.string.format_nav_gps_status_with_countdown,
-                    NavState.waiting(activity).gpsStatus.statusLine,
+                    NavStateComposer.waiting(activity).gpsStatus.statusLine,
                     activity.getString(R.string.nav_status_unavailable)
             );
             gpsStatus.setText(statusText);
@@ -216,3 +220,4 @@ final class NavigationActivityRenderer {
                 + " detail=" + state.routeStatus.progress.detailBlock);
     }
 }
+

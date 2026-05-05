@@ -1,16 +1,11 @@
 package vibro.navigator.poi.ui;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
-import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -37,6 +32,7 @@ public final class PoiInputController {
 
     private final PoiSuggestionAdapter adapter;
     private final PoiSuggestionPopupController popupController;
+    private final PoiHistoryActionController historyActions;
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final String logTag;
@@ -59,6 +55,13 @@ public final class PoiInputController {
         this.logTag = "PoiInputController#" + Integer.toHexString(System.identityHashCode(this));
         AppLogger.i(logTag, "Created controller");
 
+        historyActions = new PoiHistoryActionController(
+                editText,
+                history,
+                logTag,
+                this::showHistory,
+                this::updateSelectedPoiAfterRename
+        );
         adapter = createSuggestionAdapter(context);
         popupController = new PoiSuggestionPopupController(
                 context,
@@ -81,12 +84,12 @@ public final class PoiInputController {
 
             @Override
             public void onEditClicked(@NonNull PoiSuggestion suggestion) {
-                promptRenameHistoryItem(suggestion);
+                historyActions.promptRenameHistoryItem(suggestion);
             }
 
             @Override
             public void onDeleteClicked(@NonNull PoiSuggestion suggestion) {
-                deleteHistoryItem(suggestion);
+                historyActions.deleteHistoryItem(suggestion);
             }
         });
     }
@@ -259,67 +262,6 @@ public final class PoiInputController {
         Poi parsed = CoordinateParser.tryParse(raw, raw);
         AppLogger.d(logTag, "Parsed current text as coordinates success=" + (parsed != null) + " raw=" + raw);
         return parsed;
-    }
-
-    private void deleteHistoryItem(@NonNull PoiSuggestion suggestion) {
-        AppLogger.i(logTag, "Deleting history item=" + suggestion.poi.displayLabel());
-        history.remove(suggestion.poi);
-        showHistory();
-    }
-
-    private void promptRenameHistoryItem(@NonNull PoiSuggestion suggestion) {
-        Context context = editText.getContext();
-        Poi poi = suggestion.poi;
-        EditText input = new EditText(context);
-        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
-        input.setSingleLine(true);
-        input.setText(poi.displayLabel());
-        input.setSelection(input.getText().length());
-
-        int horizontalPaddingPx = Math.round(context.getResources().getDisplayMetrics().density * 24f);
-        FrameLayout container = new FrameLayout(context);
-        container.setPadding(horizontalPaddingPx, 0, horizontalPaddingPx, 0);
-        container.addView(input, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-
-        AlertDialog dialog = new AlertDialog.Builder(context)
-                .setTitle(R.string.title_edit_destination_name)
-                .setView(container)
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.action_save, null)
-                .create();
-        dialog.setOnShowListener(ignored -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
-            String updatedName = input.getText() != null ? input.getText().toString().trim() : "";
-            saveHistoryRename(dialog, input, poi, updatedName);
-        }));
-        dialog.show();
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-        }
-        input.requestFocus();
-    }
-
-    private void saveHistoryRename(
-            @NonNull AlertDialog dialog,
-            @NonNull EditText input,
-            @NonNull Poi poi,
-            @NonNull String updatedName
-    ) {
-        if (updatedName.isEmpty()) {
-            input.setError(editText.getContext().getString(R.string.msg_invalid_destination_name));
-            return;
-        }
-        if (!history.rename(poi, updatedName)) {
-            dialog.dismiss();
-            return;
-        }
-
-        updateSelectedPoiAfterRename(poi, new Poi(updatedName, poi.lat, poi.lon));
-        AppLogger.i(logTag, "Renamed history item key=" + poi.stableKey() + " newName=" + updatedName);
-        showHistory();
-        dialog.dismiss();
     }
 
     private void updateSelectedPoiAfterRename(@NonNull Poi originalPoi, @NonNull Poi renamedPoi) {

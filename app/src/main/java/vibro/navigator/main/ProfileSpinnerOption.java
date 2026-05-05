@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.main;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -43,3 +43,4 @@ final class ProfileSpinnerOption {
         return value == null ? "null" : value;
     }
 }
+

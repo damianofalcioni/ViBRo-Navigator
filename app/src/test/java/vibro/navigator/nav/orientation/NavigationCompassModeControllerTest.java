@@ -3,7 +3,7 @@ package vibro.navigator.nav.orientation;
 
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.compass.NavCompassStateFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -40,7 +40,7 @@ public class NavigationCompassModeControllerTest {
         assertEquals(2_000f, immediateSixtySecondState.radiusState.visibleRadiusMeters, 0.01f);
         assertTrue(midSixtySecondState.displayMode.movingScaleActive);
         assertEquals(
-                NavState.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L),
+                NavCompassStateFactory.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L),
                 midSixtySecondState.radiusState.visibleRadiusMeters,
                 0.01f
         );
@@ -50,7 +50,7 @@ public class NavigationCompassModeControllerTest {
         assertEquals(300f, immediateRestoredState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(midRestoredState.displayMode.movingScaleActive);
         assertEquals(
-                NavState.smoothVisibleRadiusMeters(2_000f, 300f, 1_000L),
+                NavCompassStateFactory.smoothVisibleRadiusMeters(2_000f, 300f, 1_000L),
                 midRestoredState.radiusState.visibleRadiusMeters,
                 0.01f
         );
@@ -161,3 +161,4 @@ public class NavigationCompassModeControllerTest {
         );
     }
 }
+

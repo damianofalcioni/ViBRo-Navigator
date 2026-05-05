@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import android.content.Context;
 import android.view.MotionEvent;
@@ -200,3 +202,5 @@ final class ProfileSpinnerController {
         profilesRepository.saveSelectedProfileKey(context, option.selectionKey());
     }
 }
+
+

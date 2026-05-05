@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
@@ -119,3 +121,4 @@ public class ProfileSpinnerControllerTest {
         }
     }
 }
+

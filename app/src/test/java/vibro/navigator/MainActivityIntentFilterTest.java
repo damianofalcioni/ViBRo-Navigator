@@ -1,5 +1,7 @@
 package vibro.navigator;
 
+import vibro.navigator.main.MainActivity;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -67,3 +69,4 @@ public class MainActivityIntentFilterTest {
         return false;
     }
 }
+

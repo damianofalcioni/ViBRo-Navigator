@@ -2,7 +2,7 @@ package vibro.navigator.nav.orientation;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.compass.NavCompassStateFactory;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
@@ -110,7 +110,7 @@ public final class NavigationCompassModeController {
                 : Math.max(0L, nowElapsedMs - lastRadiusTransitionUpdateElapsedMs);
         float resolvedRadiusMeters = deltaMs <= 0L
                 ? previousRadiusMeters
-                : NavState.smoothVisibleRadiusMeters(
+                : NavCompassStateFactory.smoothVisibleRadiusMeters(
                         targetState.radiusState.visibleRadiusMeters,
                         previousRadiusMeters,
                         deltaMs

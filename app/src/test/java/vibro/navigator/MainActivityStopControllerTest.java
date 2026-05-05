@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.main;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -130,3 +130,4 @@ public class MainActivityStopControllerTest {
         assertNull(restoredController.getSelectedPoi());
     }
 }
+

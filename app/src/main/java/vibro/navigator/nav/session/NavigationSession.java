@@ -7,6 +7,7 @@ import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavStateComposer;
 import android.content.Context;
 import android.location.Location;
 
@@ -260,7 +261,7 @@ public final class NavigationSession {
                 routeRequestManager.getInProgressNotice(),
                 routeRequestManager.getLastRouteFailure()
         );
-        return NavState.withPauseState(context, baseState, paused);
+        return NavStateComposer.withPauseState(context, baseState, paused);
     }
 
 }

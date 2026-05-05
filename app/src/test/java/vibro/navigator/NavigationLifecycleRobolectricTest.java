@@ -1,5 +1,8 @@
 package vibro.navigator;
 
+import vibro.navigator.main.MainActivity;
+import vibro.navigator.navigation.ui.NavigationActivity;
+
 
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -147,3 +150,4 @@ public class NavigationLifecycleRobolectricTest {
         }
     }
 }
+

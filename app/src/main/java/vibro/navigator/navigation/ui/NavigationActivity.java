@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.navigation.ui;
+
+import vibro.navigator.R;
 
 
 import vibro.navigator.nav.service.NavigationService;
@@ -8,6 +10,7 @@ import vibro.navigator.nav.startup.NavigationStartupCoordinator;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavStateComposer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -84,7 +87,7 @@ public class NavigationActivity extends Activity {
         backHandler.registerPredictiveBackCallbackIfSupported();
 
         renderer = new NavigationActivityRenderer(this, uiHandler);
-        render(NavState.waiting(this));
+        render(NavStateComposer.waiting(this));
         configureControls();
 
         ensureReadyThenStart();
@@ -332,3 +335,4 @@ public class NavigationActivity extends Activity {
     }
 
 }
+

@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.map;
+
+import vibro.navigator.R;
 
 import android.Manifest;
 import android.app.Activity;
@@ -227,3 +229,4 @@ final class MapPickerLocationController {
         return provider == null ? "unknown" : provider;
     }
 }
+

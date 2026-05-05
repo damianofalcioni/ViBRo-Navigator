@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.navigation.ui;
 
 
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;

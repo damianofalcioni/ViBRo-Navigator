@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.map;
+
+import vibro.navigator.R;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -321,3 +323,4 @@ public final class MapPickerActivity extends Activity {
         }
     }
 }
+

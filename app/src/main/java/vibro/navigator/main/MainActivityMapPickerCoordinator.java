@@ -1,4 +1,7 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
+import vibro.navigator.map.MapPickerActivity;
 
 import android.content.Intent;
 
@@ -121,3 +124,4 @@ final class MainActivityMapPickerCoordinator {
         return controller.parseCurrentPoi();
     }
 }
+

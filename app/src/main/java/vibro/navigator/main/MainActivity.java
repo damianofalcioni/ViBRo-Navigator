@@ -1,7 +1,11 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.AboutActivity;
+import vibro.navigator.navigation.ui.NavigationActivity;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -200,3 +204,4 @@ public class MainActivity extends Activity {
     }
 
 }
+

@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import android.app.AlertDialog;
 import android.widget.Toast;
@@ -30,3 +32,4 @@ final class MainActivityBRouterInstallPrompt {
                 .show();
     }
 }
+

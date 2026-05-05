@@ -1,4 +1,7 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
+import vibro.navigator.navigation.ui.NavigationActivity;
 
 
 import vibro.navigator.nav.model.NavigationRequest;
@@ -84,3 +87,4 @@ final class MainActivityIntentHandler {
         return value == null ? "null" : value;
     }
 }
+

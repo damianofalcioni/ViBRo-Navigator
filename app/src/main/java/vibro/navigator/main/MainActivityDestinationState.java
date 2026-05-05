@@ -1,4 +1,4 @@
-package vibro.navigator;
+package vibro.navigator.main;
 
 import android.os.Bundle;
 

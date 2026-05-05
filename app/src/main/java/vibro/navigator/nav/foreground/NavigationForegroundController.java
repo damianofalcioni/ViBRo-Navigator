@@ -17,8 +17,8 @@ import android.service.notification.StatusBarNotification;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
-import vibro.navigator.MainActivity;
-import vibro.navigator.NavigationActivity;
+import vibro.navigator.main.MainActivity;
+import vibro.navigator.navigation.ui.NavigationActivity;
 import vibro.navigator.R;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.DirectionKind;

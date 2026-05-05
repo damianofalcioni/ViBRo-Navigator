@@ -40,16 +40,16 @@
             android:exported="false" />
 
         <activity
-            android:name=".NavigationActivity"
+            android:name=".navigation.ui.NavigationActivity"
             android:exported="false"
             android:launchMode="singleTop" />
 
         <activity
-            android:name=".MapPickerActivity"
+            android:name=".map.MapPickerActivity"
             android:exported="false" />
 
         <activity
-            android:name=".MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

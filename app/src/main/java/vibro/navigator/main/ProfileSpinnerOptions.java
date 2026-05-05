@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import android.content.Context;
 
@@ -95,3 +97,5 @@ final class ProfileSpinnerOptions {
         );
     }
 }
+
+

@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.map;
+
+import vibro.navigator.R;
 
 import android.content.Context;
 import android.content.Intent;
@@ -78,3 +80,4 @@ final class MapPickerIntentContract {
         return new Poi(safeName, lat, lon);
     }
 }
+

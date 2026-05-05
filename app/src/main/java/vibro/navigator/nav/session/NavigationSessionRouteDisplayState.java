@@ -1,13 +1,13 @@
 package vibro.navigator.nav.session;
 
 
-import vibro.navigator.nav.compass.CompassRadiusTransition;
-import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.routing.NavigationRouteFailureFormatter;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavStateBuildInput;
+import vibro.navigator.nav.model.NavStateComposer;
 import vibro.navigator.nav.model.NavTarget;
 import android.content.Context;
 import android.location.Location;
@@ -25,33 +25,18 @@ import java.util.List;
 
 public final class NavigationSessionRouteDisplayState {
 
-    private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
-
-    @Nullable
-    private CompassRouteGeometry compassRouteGeometry;
     @NonNull
     private List<NavTarget> targets = new ArrayList<>();
-    @Nullable
-    private Float lastCompassVisibleRadiusMeters;
-    @Nullable
-    private Float lastReliableMovingCompassVisibleRadiusMeters;
-    private float lastSmoothedAccuracyMeters = Float.NaN;
-    private long lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
-    private final CompassRadiusTransition compassRadiusTransition = new CompassRadiusTransition(1_000L);
+    private final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
 
     public void reset() {
-        compassRouteGeometry = null;
         targets = new ArrayList<>();
-        lastCompassVisibleRadiusMeters = null;
-        lastReliableMovingCompassVisibleRadiusMeters = null;
-        lastSmoothedAccuracyMeters = Float.NaN;
-        lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
-        compassRadiusTransition.reset();
+        compassMemory.reset();
     }
 
     public void rememberSmoothedAccuracyMeters(float smoothedAccuracyMeters) {
-        lastSmoothedAccuracyMeters = smoothedAccuracyMeters;
+        compassMemory.rememberSmoothedAccuracyMeters(smoothedAccuracyMeters);
     }
 
     public void onRouteApplied(
@@ -60,12 +45,8 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex
     ) {
-        compassRouteGeometry = NavState.buildCompassRouteGeometry(route, polylineIndex);
+        compassMemory.onRouteApplied(route, polylineIndex);
         targets = buildTargets(context, request.stops, polylineIndex);
-        lastCompassVisibleRadiusMeters = null;
-        lastSmoothedAccuracyMeters = Float.NaN;
-        lastCompassRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
-        compassRadiusTransition.reset();
     }
 
     @NonNull
@@ -107,7 +88,7 @@ public final class NavigationSessionRouteDisplayState {
                 lastSegmentIndex
         );
         if (match == null) {
-            return NavState.withGpsStatus(NavState.waiting(context), gpsStatusLine);
+            return NavStateComposer.withGpsStatus(NavStateComposer.waiting(context), gpsStatusLine);
         }
 
         float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
@@ -116,33 +97,29 @@ public final class NavigationSessionRouteDisplayState {
                 accuracyMeters,
                 likelyStationary
         );
-        NavState state = NavState.from(
-                route,
-                polylineIndex,
-                match.alongTrackMeters,
-                turnState.getNextHintIdx(),
-                match.segmentIndex,
-                speedMps,
-                etaSpeedMps,
-                likelyStationary,
-                accuracyMeters,
-                resolveCompassAccuracyMeters(accuracyMeters),
-                lastFiltered,
-                fixedSatelliteCount,
-                headingDegrees,
-                headingAccuracyDegrees,
-                lastCompassVisibleRadiusMeters,
-                lastReliableMovingCompassVisibleRadiusMeters,
-                resolveCompassRadiusUpdateDeltaMs(nowMs),
-                compassRouteGeometry,
-                compassRadiusTransition,
-                nextEvaluationDeadlineElapsedMs,
-                nowMs,
-                turnState.isDestinationReached(),
-                targets,
-                context
-        );
-        rememberCompassState(state, nowMs, lastFiltered, likelyStationary);
+        NavState state = NavStateComposer.from(NavStateBuildInput
+                .builder(context, route, polylineIndex, lastFiltered)
+                .routeProgress(match.alongTrackMeters, turnState.getNextHintIdx(), match.segmentIndex)
+                .motion(
+                        speedMps,
+                        etaSpeedMps,
+                        likelyStationary,
+                        accuracyMeters,
+                        compassMemory.resolveAccuracyMeters(accuracyMeters)
+                )
+                .gps(fixedSatelliteCount)
+                .heading(headingDegrees, headingAccuracyDegrees)
+                .compassMemory(
+                        compassMemory.lastVisibleRadiusMeters(),
+                        compassMemory.lastReliableMovingVisibleRadiusMeters(),
+                        compassMemory.resolveRadiusUpdateDeltaMs(nowMs)
+                )
+                .compassGeometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
+                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
+                .destinationReached(turnState.isDestinationReached())
+                .targets(targets)
+                .build());
+        compassMemory.rememberCompassState(state, nowMs, lastFiltered, likelyStationary);
         return withLastRouteFailureNotice(context, state, lastRouteFailure);
     }
 
@@ -155,9 +132,9 @@ public final class NavigationSessionRouteDisplayState {
             @Nullable Integer fixedSatelliteCount
     ) {
         if (lastFiltered == null) {
-            return NavState.buildGpsStatusLine(Float.NaN, null, Float.NaN, fixedSatelliteCount, context);
+            return NavStateComposer.buildGpsStatusLine(Float.NaN, null, Float.NaN, fixedSatelliteCount, context);
         }
-        return NavState.buildGpsStatusLine(speedMps, lastFiltered, accuracyMeters, fixedSatelliteCount, context);
+        return NavStateComposer.buildGpsStatusLine(speedMps, lastFiltered, accuracyMeters, fixedSatelliteCount, context);
     }
 
     @NonNull
@@ -168,14 +145,14 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull String gpsStatusLine
     ) {
         if (lastRouteFailure != null) {
-            return NavState.withGpsStatus(NavState.routeUnavailable(
+            return NavStateComposer.withGpsStatus(NavStateComposer.routeUnavailable(
                     context,
                     NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
                     nextEvaluationDeadlineElapsedMs
             ), gpsStatusLine);
         }
-        return NavState.withGpsStatus(
-                NavState.waitingForLocation(context, nextEvaluationDeadlineElapsedMs),
+        return NavStateComposer.withGpsStatus(
+                NavStateComposer.waitingForLocation(context, nextEvaluationDeadlineElapsedMs),
                 gpsStatusLine
         );
     }
@@ -187,11 +164,11 @@ public final class NavigationSessionRouteDisplayState {
             @Nullable String routeCalculationNotice,
             @NonNull String gpsStatusLine
     ) {
-        NavState calculatingState = NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
+        NavState calculatingState = NavStateComposer.calculatingRoute(context, nextEvaluationDeadlineElapsedMs);
         if (routeCalculationNotice != null && !routeCalculationNotice.trim().isEmpty()) {
-            calculatingState = NavState.withNotice(calculatingState, routeCalculationNotice);
+            calculatingState = NavStateComposer.withNotice(calculatingState, routeCalculationNotice);
         }
-        return NavState.withGpsStatus(calculatingState, gpsStatusLine);
+        return NavStateComposer.withGpsStatus(calculatingState, gpsStatusLine);
     }
 
     @NonNull
@@ -202,14 +179,14 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull String gpsStatusLine
     ) {
         if (lastRouteFailure != null) {
-            return NavState.withGpsStatus(NavState.routeUnavailable(
+            return NavStateComposer.withGpsStatus(NavStateComposer.routeUnavailable(
                     context,
                     NavigationRouteFailureFormatter.format(context, lastRouteFailure, false),
                     nextEvaluationDeadlineElapsedMs
             ), gpsStatusLine);
         }
-        return NavState.withGpsStatus(
-                NavState.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
+        return NavStateComposer.withGpsStatus(
+                NavStateComposer.calculatingRoute(context, nextEvaluationDeadlineElapsedMs),
                 gpsStatusLine
         );
     }
@@ -221,17 +198,8 @@ public final class NavigationSessionRouteDisplayState {
             @Nullable Throwable lastRouteFailure
     ) {
         return lastRouteFailure != null
-                ? NavState.withNotice(state, NavigationRouteFailureFormatter.format(context, lastRouteFailure, true))
+                ? NavStateComposer.withNotice(state, NavigationRouteFailureFormatter.format(context, lastRouteFailure, true))
                 : state;
-    }
-
-    private float resolveCompassAccuracyMeters(float fallbackAccuracyMeters) {
-        if (Float.isFinite(lastSmoothedAccuracyMeters) && lastSmoothedAccuracyMeters > 0f) {
-            return lastSmoothedAccuracyMeters;
-        }
-        return Float.isFinite(fallbackAccuracyMeters) && fallbackAccuracyMeters > 0f
-                ? fallbackAccuracyMeters
-                : 0f;
     }
 
     @NonNull
@@ -251,26 +219,4 @@ public final class NavigationSessionRouteDisplayState {
         return out;
     }
 
-    private long resolveCompassRadiusUpdateDeltaMs(long nowMs) {
-        if (lastCompassRadiusUpdateTimeMs == NO_COMPASS_RADIUS_UPDATE_TIME_MS || nowMs <= lastCompassRadiusUpdateTimeMs) {
-            return 0L;
-        }
-        return nowMs - lastCompassRadiusUpdateTimeMs;
-    }
-
-    private void rememberCompassState(
-            @NonNull NavState state,
-            long nowMs,
-            @Nullable Location lastFiltered,
-            boolean likelyStationary
-    ) {
-        if (state.routeStatus.compassState == null) {
-            return;
-        }
-        lastCompassVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
-        lastCompassRadiusUpdateTimeMs = nowMs;
-        if (lastFiltered != null && NavState.hasReliableMovingSpeed(lastFiltered, likelyStationary)) {
-            lastReliableMovingCompassVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
-        }
-    }
 }

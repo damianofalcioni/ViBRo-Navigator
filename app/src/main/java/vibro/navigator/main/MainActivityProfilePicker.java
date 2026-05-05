@@ -1,4 +1,6 @@
-package vibro.navigator;
+package vibro.navigator.main;
+
+import vibro.navigator.R;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -206,3 +208,4 @@ final class MainActivityProfilePicker {
         return value == null ? "null" : value.toString();
     }
 }
+

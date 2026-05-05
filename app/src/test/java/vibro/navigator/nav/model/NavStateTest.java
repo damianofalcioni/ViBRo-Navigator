@@ -46,7 +46,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -90,7 +90,7 @@ public class NavStateTest {
                 333.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -131,7 +131,7 @@ public class NavStateTest {
                 111.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -170,7 +170,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -207,7 +207,7 @@ public class NavStateTest {
                 111.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -246,7 +246,7 @@ public class NavStateTest {
                 111.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -288,7 +288,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -333,7 +333,7 @@ public class NavStateTest {
         android.location.Location movingLocation = locationAt(48.2000, 16.3600);
         movingLocation.setSpeed(2.5f);
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -385,7 +385,7 @@ public class NavStateTest {
         android.location.Location movingLocation = locationAt(48.2000, 16.3600);
         movingLocation.setSpeed(2.5f);
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -431,7 +431,7 @@ public class NavStateTest {
                 333.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 140.0,
@@ -472,7 +472,7 @@ public class NavStateTest {
                 999.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -516,7 +516,7 @@ public class NavStateTest {
                 9_999.0
         );
 
-        NavState stationaryState = NavState.from(
+        NavState stationaryState = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -540,7 +540,7 @@ public class NavStateTest {
 
         android.location.Location movingLocation = locationAt(0.0, 0.0);
         movingLocation.setSpeed(20f);
-        NavState movingState = NavState.from(
+        NavState movingState = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -575,7 +575,7 @@ public class NavStateTest {
 
     @Test
     public void smoothVisibleRadiusMeters_contractsTowardMovingScaleQuickly() {
-        float resolvedRadiusMeters = NavState.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L);
+        float resolvedRadiusMeters = vibro.navigator.nav.compass.NavCompassStateFactory.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L);
 
         assertTrue(resolvedRadiusMeters > 300f);
         assertTrue(resolvedRadiusMeters < 550f);
@@ -594,7 +594,7 @@ public class NavStateTest {
                 666.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -633,7 +633,7 @@ public class NavStateTest {
                 2_222.0
         );
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -676,7 +676,7 @@ public class NavStateTest {
         location.setBearing(182.2f);
         location.setBearingAccuracyDegrees(9.4f);
 
-        NavState state = NavState.from(
+        NavState state = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -715,7 +715,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState baseState = NavState.from(
+        NavState baseState = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -740,7 +740,7 @@ public class NavStateTest {
                 context
         );
 
-        NavState state = NavState.withNotice(baseState, "Rerouting around blockage");
+        NavState state = NavStateComposer.withNotice(baseState, "Rerouting around blockage");
 
         assertEquals("Rerouting around blockage", state.displayStatusBlock());
     }
@@ -759,7 +759,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState baseState = NavState.from(
+        NavState baseState = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -804,7 +804,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState baseState = NavState.from(
+        NavState baseState = NavStateComposer.from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -829,7 +829,7 @@ public class NavStateTest {
                 context
         );
 
-        NavState state = NavState.withPauseState(context, baseState, true);
+        NavState state = NavStateComposer.withPauseState(context, baseState, true);
 
         assertEquals(context.getString(R.string.nav_paused_notice), state.displayStatusBlock());
     }
@@ -843,3 +843,4 @@ public class NavStateTest {
         return location;
     }
 }
+
