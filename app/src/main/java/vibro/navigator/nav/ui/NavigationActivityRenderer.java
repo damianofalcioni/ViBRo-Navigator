@@ -8,7 +8,7 @@ import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.model.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -27,7 +27,7 @@ import androidx.core.widget.TextViewCompat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class NavigationActivityRenderer {
 

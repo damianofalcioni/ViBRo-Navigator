@@ -19,7 +19,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.nav.location.LastKnownLocationSelector;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;

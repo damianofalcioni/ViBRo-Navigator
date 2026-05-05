@@ -22,7 +22,7 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 // Android service shell: explicit collaborators keep lifecycle ownership visible and behavior isolated in helpers.
 @SuppressWarnings("PMD.CouplingBetweenObjects")
@@ -115,13 +115,13 @@ public class NavigationService extends Service {
                 this::emitState,
                 this::requestRouteRecalc
         );
-        foregroundController = dependencies.foregroundController;
-        locationController = dependencies.locationController;
-        routeExecutor = dependencies.routeExecutor;
-        routeCallback = dependencies.routeCallback;
-        orientationController = dependencies.orientationController;
-        screenInteractivityMonitor = dependencies.screenInteractivityMonitor;
-        uiVisibility.setScreenInteractive(dependencies.screenInteractive);
+        foregroundController = dependencies.foreground.controller;
+        locationController = dependencies.tracking.locationController;
+        routeExecutor = dependencies.routing.executor;
+        routeCallback = dependencies.routing.callback;
+        orientationController = dependencies.tracking.orientationController;
+        screenInteractivityMonitor = dependencies.foreground.screenInteractivityMonitor;
+        uiVisibility.setScreenInteractive(dependencies.foreground.screenInteractive);
         AppLogger.i(TAG, "Service created");
     }
 

@@ -6,7 +6,7 @@ import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class NavigationForegroundCoordinator {
 

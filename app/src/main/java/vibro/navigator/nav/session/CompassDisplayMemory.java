@@ -9,7 +9,7 @@ import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.model.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 

@@ -7,7 +7,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class ViBRoNavigatorApp extends Application {
 

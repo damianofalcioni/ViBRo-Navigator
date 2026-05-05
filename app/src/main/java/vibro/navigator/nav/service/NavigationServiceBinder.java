@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.R;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class NavigationServiceBinder extends Binder {
 

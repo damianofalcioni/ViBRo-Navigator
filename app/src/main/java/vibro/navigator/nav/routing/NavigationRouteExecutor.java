@@ -11,7 +11,7 @@ import androidx.annotation.VisibleForTesting;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.List;
 import java.util.concurrent.Callable;

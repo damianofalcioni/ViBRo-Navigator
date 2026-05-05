@@ -16,7 +16,7 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteResultApplier {
     private static final String TAG = "NavSessionRoute";

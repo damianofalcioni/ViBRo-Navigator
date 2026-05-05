@@ -14,7 +14,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public class AboutActivity extends Activity {
 

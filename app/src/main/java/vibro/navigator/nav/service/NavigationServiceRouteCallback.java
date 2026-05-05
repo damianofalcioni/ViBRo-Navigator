@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.List;
 

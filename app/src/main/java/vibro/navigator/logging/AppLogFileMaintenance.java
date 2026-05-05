@@ -1,4 +1,4 @@
-package vibro.navigator.util;
+package vibro.navigator.logging;
 
 import android.content.Context;
 

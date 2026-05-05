@@ -3,7 +3,7 @@ package vibro.navigator.poi.search;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.BuildConfig;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class PoiSearchClients {
     private static final String TAG = "PoiSearchClients";

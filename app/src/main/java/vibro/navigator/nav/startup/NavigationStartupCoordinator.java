@@ -9,7 +9,7 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class NavigationStartupCoordinator {
 

@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.route.VoiceHint;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.List;
 

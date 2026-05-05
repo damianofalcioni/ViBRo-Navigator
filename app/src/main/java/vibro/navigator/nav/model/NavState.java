@@ -15,7 +15,7 @@ public final class NavState {
     @NonNull
     public final NavPauseStatus pauseStatus;
 
-    NavState(
+    public NavState(
             @NonNull NavRouteStatus routeStatus,
             @NonNull NavGpsStatus gpsStatus,
             @NonNull NavPauseStatus pauseStatus

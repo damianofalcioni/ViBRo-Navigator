@@ -1,4 +1,4 @@
-package vibro.navigator.util;
+package vibro.navigator.intent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

@@ -1,4 +1,4 @@
-package vibro.navigator.nav.model;
+package vibro.navigator.nav.presentation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -12,6 +12,10 @@ import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.compass.CompassRadiusTransition;
+import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
@@ -22,6 +26,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavStateTest {
@@ -46,7 +51,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -90,7 +95,7 @@ public class NavStateTest {
                 333.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -131,7 +136,7 @@ public class NavStateTest {
                 111.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -170,7 +175,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -207,7 +212,7 @@ public class NavStateTest {
                 111.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -246,7 +251,7 @@ public class NavStateTest {
                 111.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -288,7 +293,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -333,7 +338,7 @@ public class NavStateTest {
         android.location.Location movingLocation = locationAt(48.2000, 16.3600);
         movingLocation.setSpeed(2.5f);
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -385,7 +390,7 @@ public class NavStateTest {
         android.location.Location movingLocation = locationAt(48.2000, 16.3600);
         movingLocation.setSpeed(2.5f);
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -431,7 +436,7 @@ public class NavStateTest {
                 333.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 140.0,
@@ -472,7 +477,7 @@ public class NavStateTest {
                 999.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -516,7 +521,7 @@ public class NavStateTest {
                 9_999.0
         );
 
-        NavState stationaryState = NavStateComposer.from(
+        NavState stationaryState = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -540,7 +545,7 @@ public class NavStateTest {
 
         android.location.Location movingLocation = locationAt(0.0, 0.0);
         movingLocation.setSpeed(20f);
-        NavState movingState = NavStateComposer.from(
+        NavState movingState = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -594,7 +599,7 @@ public class NavStateTest {
                 666.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -633,7 +638,7 @@ public class NavStateTest {
                 2_222.0
         );
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -676,7 +681,7 @@ public class NavStateTest {
         location.setBearing(182.2f);
         location.setBearingAccuracyDegrees(9.4f);
 
-        NavState state = NavStateComposer.from(
+        NavState state = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -715,7 +720,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState baseState = NavStateComposer.from(
+        NavState baseState = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -759,7 +764,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState baseState = NavStateComposer.from(
+        NavState baseState = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -804,7 +809,7 @@ public class NavStateTest {
                 222.0
         );
 
-        NavState baseState = NavStateComposer.from(
+        NavState baseState = from(
                 route,
                 new PolylineIndex(route.track),
                 0.0,
@@ -832,6 +837,151 @@ public class NavStateTest {
         NavState state = NavStateComposer.withPauseState(context, baseState, true);
 
         assertEquals(context.getString(R.string.nav_paused_notice), state.displayStatusBlock());
+    }
+
+    @NonNull
+    private static NavState from(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int nextHintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @NonNull android.location.Location currentLocation,
+            Integer fixedSatelliteCount,
+            Double headingDegrees,
+            Float headingAccuracyDegrees,
+            Float previousCompassVisibleRadiusMeters,
+            Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @NonNull List<NavTarget> targets,
+            @NonNull Context context
+    ) {
+        return from(
+                route,
+                index,
+                alongTrackMeters,
+                nextHintIdx,
+                currentSegmentIndex,
+                speedMps,
+                speedMps,
+                likelyStationary,
+                accuracyMeters,
+                accuracyMeters,
+                currentLocation,
+                fixedSatelliteCount,
+                headingDegrees,
+                headingAccuracyDegrees,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                null,
+                null,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                false,
+                targets,
+                context
+        );
+    }
+
+    @NonNull
+    private static NavState from(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int nextHintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            float etaSpeedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @NonNull android.location.Location currentLocation,
+            Integer fixedSatelliteCount,
+            Double headingDegrees,
+            Float headingAccuracyDegrees,
+            Float previousCompassVisibleRadiusMeters,
+            Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @NonNull List<NavTarget> targets,
+            @NonNull Context context
+    ) {
+        return from(
+                route,
+                index,
+                alongTrackMeters,
+                nextHintIdx,
+                currentSegmentIndex,
+                speedMps,
+                etaSpeedMps,
+                likelyStationary,
+                accuracyMeters,
+                accuracyMeters,
+                currentLocation,
+                fixedSatelliteCount,
+                headingDegrees,
+                headingAccuracyDegrees,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                null,
+                null,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                false,
+                targets,
+                context
+        );
+    }
+
+    @NonNull
+    private static NavState from(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int nextHintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            float etaSpeedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            float compassAccuracyMeters,
+            @NonNull android.location.Location currentLocation,
+            Integer fixedSatelliteCount,
+            Double headingDegrees,
+            Float headingAccuracyDegrees,
+            Float previousCompassVisibleRadiusMeters,
+            Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            CompassRouteGeometry compassRouteGeometry,
+            CompassRadiusTransition compassRadiusTransition,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            boolean destinationReached,
+            @NonNull List<NavTarget> targets,
+            @NonNull Context context
+    ) {
+        return NavStateComposer.from(NavStateBuildInput.builder(context, route, index, currentLocation)
+                .routeProgress(alongTrackMeters, nextHintIdx, currentSegmentIndex)
+                .motion(speedMps, etaSpeedMps, likelyStationary, accuracyMeters, compassAccuracyMeters)
+                .gps(fixedSatelliteCount)
+                .heading(headingDegrees, headingAccuracyDegrees)
+                .compassMemory(
+                        previousCompassVisibleRadiusMeters,
+                        previousReliableMovingCompassVisibleRadiusMeters,
+                        compassRadiusUpdateDeltaMs
+                )
+                .compassGeometry(compassRouteGeometry, compassRadiusTransition)
+                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
+                .destinationReached(destinationReached)
+                .targets(targets)
+                .build());
     }
 
     @NonNull

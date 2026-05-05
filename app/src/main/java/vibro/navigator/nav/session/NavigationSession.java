@@ -7,7 +7,7 @@ import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.model.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import android.content.Context;
 import android.location.Location;
 
@@ -15,7 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.Collections;
 import java.util.List;

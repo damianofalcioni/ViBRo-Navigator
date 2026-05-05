@@ -10,7 +10,7 @@ import android.os.CancellationSignal;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;

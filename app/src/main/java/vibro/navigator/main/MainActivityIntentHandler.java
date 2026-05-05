@@ -16,8 +16,8 @@ import androidx.annotation.Nullable;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;
-import vibro.navigator.util.AppLogger;
-import vibro.navigator.util.IntentLocationParser;
+import vibro.navigator.logging.AppLogger;
+import vibro.navigator.intent.IntentLocationParser;
 
 final class MainActivityIntentHandler {
 

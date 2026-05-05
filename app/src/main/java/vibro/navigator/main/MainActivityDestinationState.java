@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class MainActivityDestinationState {
 

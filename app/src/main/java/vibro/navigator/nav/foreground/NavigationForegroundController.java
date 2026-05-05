@@ -25,7 +25,7 @@ import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.DirectionKind;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.route.VoiceHint;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class NavigationForegroundController {
 

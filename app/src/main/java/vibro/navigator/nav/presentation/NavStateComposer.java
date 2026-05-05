@@ -1,4 +1,4 @@
-package vibro.navigator.nav.model;
+package vibro.navigator.nav.presentation;
 
 import android.content.Context;
 import android.location.Location;
@@ -9,12 +9,17 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.R;
-import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.compass.NavCompassStateInput;
 import vibro.navigator.nav.format.NavStateTextFactory;
+import vibro.navigator.nav.model.NavGpsStatus;
+import vibro.navigator.nav.model.NavGuidanceStatus;
+import vibro.navigator.nav.model.NavPauseStatus;
+import vibro.navigator.nav.model.NavProgressStatus;
+import vibro.navigator.nav.model.NavRouteStatus;
+import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 
@@ -90,109 +95,6 @@ public final class NavStateComposer {
                 null,
                 false
         );
-    }
-
-    @NonNull
-    public static NavState from(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            double alongTrackMeters,
-            int nextHintIdx,
-            int currentSegmentIndex,
-            float speedMps,
-            boolean likelyStationary,
-            float accuracyMeters,
-            @NonNull Location currentLocation,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Double headingDegrees,
-            @Nullable Float headingAccuracyDegrees,
-            @Nullable Float previousCompassVisibleRadiusMeters,
-            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
-            long compassRadiusUpdateDeltaMs,
-            long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
-            @NonNull List<NavTarget> targets,
-            @NonNull Context context
-    ) {
-        return from(route, index, alongTrackMeters, nextHintIdx, currentSegmentIndex, speedMps, speedMps,
-                likelyStationary, accuracyMeters, accuracyMeters, currentLocation, fixedSatelliteCount,
-                headingDegrees, headingAccuracyDegrees, previousCompassVisibleRadiusMeters,
-                previousReliableMovingCompassVisibleRadiusMeters, compassRadiusUpdateDeltaMs, null, null,
-                nextEvaluationDeadlineElapsedMs, nowMs, false, targets, context);
-    }
-
-    @NonNull
-    public static NavState from(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            double alongTrackMeters,
-            int nextHintIdx,
-            int currentSegmentIndex,
-            float speedMps,
-            float etaSpeedMps,
-            boolean likelyStationary,
-            float accuracyMeters,
-            @NonNull Location currentLocation,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Double headingDegrees,
-            @Nullable Float headingAccuracyDegrees,
-            @Nullable Float previousCompassVisibleRadiusMeters,
-            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
-            long compassRadiusUpdateDeltaMs,
-            long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
-            @NonNull List<NavTarget> targets,
-            @NonNull Context context
-    ) {
-        return from(route, index, alongTrackMeters, nextHintIdx, currentSegmentIndex, speedMps, etaSpeedMps,
-                likelyStationary, accuracyMeters, accuracyMeters, currentLocation, fixedSatelliteCount,
-                headingDegrees, headingAccuracyDegrees, previousCompassVisibleRadiusMeters,
-                previousReliableMovingCompassVisibleRadiusMeters, compassRadiusUpdateDeltaMs, null, null,
-                nextEvaluationDeadlineElapsedMs, nowMs, false, targets, context);
-    }
-
-    @NonNull
-    public static NavState from(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            double alongTrackMeters,
-            int nextHintIdx,
-            int currentSegmentIndex,
-            float speedMps,
-            float etaSpeedMps,
-            boolean likelyStationary,
-            float accuracyMeters,
-            float compassAccuracyMeters,
-            @NonNull Location currentLocation,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Double headingDegrees,
-            @Nullable Float headingAccuracyDegrees,
-            @Nullable Float previousCompassVisibleRadiusMeters,
-            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
-            long compassRadiusUpdateDeltaMs,
-            @Nullable CompassRouteGeometry compassRouteGeometry,
-            @Nullable CompassRadiusTransition compassRadiusTransition,
-            long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
-            boolean destinationReached,
-            @NonNull List<NavTarget> targets,
-            @NonNull Context context
-    ) {
-        return from(NavStateBuildInput.builder(context, route, index, currentLocation)
-                .routeProgress(alongTrackMeters, nextHintIdx, currentSegmentIndex)
-                .motion(speedMps, etaSpeedMps, likelyStationary, accuracyMeters, compassAccuracyMeters)
-                .gps(fixedSatelliteCount)
-                .heading(headingDegrees, headingAccuracyDegrees)
-                .compassMemory(
-                        previousCompassVisibleRadiusMeters,
-                        previousReliableMovingCompassVisibleRadiusMeters,
-                        compassRadiusUpdateDeltaMs
-                )
-                .compassGeometry(compassRouteGeometry, compassRadiusTransition)
-                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
-                .destinationReached(destinationReached)
-                .targets(targets)
-                .build());
     }
 
     @NonNull

@@ -13,7 +13,7 @@ import androidx.annotation.NonNull;
 import vibro.navigator.R;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class PoiHistoryActionController {
     interface SelectionUpdater {

@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import vibro.navigator.nav.kalman.LatLonKalmanFilter;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 public final class NavigationSessionLocationState {
 

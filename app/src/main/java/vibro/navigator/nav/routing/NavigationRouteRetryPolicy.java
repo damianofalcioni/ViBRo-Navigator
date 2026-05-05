@@ -6,7 +6,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteRetryPolicy {
     private static final String TAG = "NavRouteExecutor";

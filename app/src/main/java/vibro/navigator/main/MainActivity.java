@@ -19,7 +19,7 @@ import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 // Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
 @SuppressWarnings("PMD.CouplingBetweenObjects")

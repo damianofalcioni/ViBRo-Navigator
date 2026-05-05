@@ -4,45 +4,24 @@ import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.nav.foreground.NavigationForegroundController;
-import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
-import vibro.navigator.nav.guidance.NavigationTurnEventDispatcher;
-import vibro.navigator.nav.location.NavigationLocationController;
-import vibro.navigator.nav.orientation.NavigationOrientationController;
-import vibro.navigator.nav.routing.NavigationRouteExecutor;
 import vibro.navigator.nav.session.NavigationSession;
 
 final class NavigationServiceDependencies {
     @NonNull
-    final NavigationForegroundController foregroundController;
+    final NavigationForegroundRuntime foreground;
     @NonNull
-    final NavigationLocationController locationController;
+    final NavigationTrackingRuntime tracking;
     @NonNull
-    final NavigationRouteExecutor routeExecutor;
-    @NonNull
-    final NavigationServiceRouteCallback routeCallback;
-    @NonNull
-    final NavigationOrientationController orientationController;
-    @NonNull
-    final NavigationScreenInteractivityMonitor screenInteractivityMonitor;
-    final boolean screenInteractive;
+    final NavigationRoutingRuntime routing;
 
     private NavigationServiceDependencies(
-            @NonNull NavigationForegroundController foregroundController,
-            @NonNull NavigationLocationController locationController,
-            @NonNull NavigationRouteExecutor routeExecutor,
-            @NonNull NavigationServiceRouteCallback routeCallback,
-            @NonNull NavigationOrientationController orientationController,
-            @NonNull NavigationScreenInteractivityMonitor screenInteractivityMonitor,
-            boolean screenInteractive
+            @NonNull NavigationForegroundRuntime foreground,
+            @NonNull NavigationTrackingRuntime tracking,
+            @NonNull NavigationRoutingRuntime routing
     ) {
-        this.foregroundController = foregroundController;
-        this.locationController = locationController;
-        this.routeExecutor = routeExecutor;
-        this.routeCallback = routeCallback;
-        this.orientationController = orientationController;
-        this.screenInteractivityMonitor = screenInteractivityMonitor;
-        this.screenInteractive = screenInteractive;
+        this.foreground = foreground;
+        this.tracking = tracking;
+        this.routing = routing;
     }
 
     @NonNull
@@ -56,39 +35,24 @@ final class NavigationServiceDependencies {
             @NonNull Runnable stateEmitter,
             @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
     ) {
-        NavigationForegroundController foregroundController = new NavigationForegroundController(service);
-        NavigationLocationController locationController = new NavigationLocationController(service, locationHandler);
-        NavigationRouteExecutor routeExecutor = NavigationRouteExecutor.createDefault(service, handler);
-        NavigationTurnEventDispatcher turnEventDispatcher = new NavigationTurnEventDispatcher(
-                new NavigationServiceTurnNotificationSink(foregroundController)
-        );
-        turnEvents.attachDispatcher(turnEventDispatcher);
-        NavigationOrientationController orientationController = new NavigationOrientationController(
+        NavigationForegroundRuntime foreground = NavigationForegroundRuntime.create(service, uiVisibility);
+        NavigationTrackingRuntime tracking = NavigationTrackingRuntime.create(
                 service,
                 handler,
-                uiVisibility
+                uiVisibility,
+                locationHandler,
+                foreground.controller
         );
-        NavigationServiceRouteCallback routeCallback = new NavigationServiceRouteCallback(
+        NavigationRoutingRuntime routing = NavigationRoutingRuntime.create(
                 service,
+                handler,
                 navigationSession,
-                orientationController,
-                foregroundController,
+                tracking.orientationController,
+                foreground.controller,
                 turnEvents,
                 stateEmitter,
                 routeRecalculator
         );
-        locationHandler.attachControllers(locationController, orientationController, foregroundController);
-        NavigationScreenInteractivityMonitor screenInteractivityMonitor =
-                new NavigationScreenInteractivityMonitor(service, uiVisibility::onScreenInteractiveChanged);
-        foregroundController.ensureChannels();
-        return new NavigationServiceDependencies(
-                foregroundController,
-                locationController,
-                routeExecutor,
-                routeCallback,
-                orientationController,
-                screenInteractivityMonitor,
-                screenInteractivityMonitor.start()
-        );
+        return new NavigationServiceDependencies(foreground, tracking, routing);
     }
 }

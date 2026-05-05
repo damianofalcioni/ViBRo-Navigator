@@ -23,9 +23,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.poi.Poi;
-import vibro.navigator.util.AppLogger;
-
-import java.util.Locale;
+import vibro.navigator.logging.AppLogger;
 
 public final class MapPickerActivity extends Activity {
 
@@ -55,7 +53,7 @@ public final class MapPickerActivity extends Activity {
     }
 
     private WebView mapWebView;
-    private boolean pageLoaded;
+    private final MapPickerScriptController scriptController = new MapPickerScriptController();
     @Nullable
     private Poi selectedPoi;
     @Nullable
@@ -69,6 +67,7 @@ public final class MapPickerActivity extends Activity {
         setContentView(R.layout.activity_map_picker);
 
         mapWebView = findViewById(R.id.mapWebView);
+        scriptController.attach(mapWebView);
         ImageButton mapZoomInButton = findViewById(R.id.mapZoomInButton);
         ImageButton mapZoomOutButton = findViewById(R.id.mapZoomOutButton);
         ImageButton mapCurrentLocationButton = findViewById(R.id.mapCurrentLocationButton);
@@ -103,8 +102,8 @@ public final class MapPickerActivity extends Activity {
 
         configureWebView();
 
-        mapZoomInButton.setOnClickListener(v -> runMapCommand("window.mapPicker.zoomIn();"));
-        mapZoomOutButton.setOnClickListener(v -> runMapCommand("window.mapPicker.zoomOut();"));
+        mapZoomInButton.setOnClickListener(v -> scriptController.zoomIn());
+        mapZoomOutButton.setOnClickListener(v -> scriptController.zoomOut());
         mapCurrentLocationButton.setOnClickListener(v -> centerOnCurrentLocation());
         mapCancelButton.setOnClickListener(v -> finish());
         mapUseSelectionButton.setOnClickListener(v -> finishWithSelection());
@@ -137,6 +136,7 @@ public final class MapPickerActivity extends Activity {
             mapWebView.destroy();
             mapWebView = null;
         }
+        scriptController.detach();
         super.onDestroy();
     }
 
@@ -173,7 +173,7 @@ public final class MapPickerActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                pageLoaded = true;
+                scriptController.onPageLoaded();
                 initializeMap();
             }
 
@@ -193,8 +193,13 @@ public final class MapPickerActivity extends Activity {
     private void initializeMap() {
         Poi centerPoi = selectedPoi != null ? selectedPoi : initialPoi;
         MapInitialView initialView = MapInitialView.from(centerPoi, selectedPoi);
-        String script = initialView.toInitializeScript();
-        runMapCommand(script);
+        scriptController.initialize(
+                initialView.centerLat,
+                initialView.centerLon,
+                initialView.zoom,
+                initialView.selectedLat,
+                initialView.selectedLon
+        );
         AppLogger.i(TAG, "Initialized map centerLat=" + initialView.centerLat + " centerLon=" + initialView.centerLon
                 + " zoom=" + initialView.zoom + " hasSelection=" + (selectedPoi != null));
         if (centerPoi == null) {
@@ -231,21 +236,8 @@ public final class MapPickerActivity extends Activity {
                     centerPoi != null ? centerPoi.lat : DEFAULT_CENTER_LAT,
                     centerPoi != null ? centerPoi.lon : DEFAULT_CENTER_LON,
                     centerPoi != null ? SELECTED_ZOOM : DEFAULT_ZOOM,
-                    selectedPoi != null ? formatJsDouble(selectedPoi.lat) : "null",
-                    selectedPoi != null ? formatJsDouble(selectedPoi.lon) : "null"
-            );
-        }
-
-        @NonNull
-        String toInitializeScript() {
-            return String.format(
-                    Locale.US,
-                    "window.mapPicker.initialize(%s,%s,%d,%s,%s);",
-                    formatJsDouble(centerLat),
-                    formatJsDouble(centerLon),
-                    zoom,
-                    selectedLat,
-                    selectedLon
+                    selectedPoi != null ? MapPickerScriptController.formatJsDouble(selectedPoi.lat) : "null",
+                    selectedPoi != null ? MapPickerScriptController.formatJsDouble(selectedPoi.lon) : "null"
             );
         }
     }
@@ -272,26 +264,12 @@ public final class MapPickerActivity extends Activity {
         }
     }
 
-    private void runMapCommand(@NonNull String script) {
-        if (!pageLoaded || mapWebView == null) {
-            return;
-        }
-        mapWebView.evaluateJavascript(script, null);
-    }
-
     private void showCurrentLocation(@NonNull Location location, boolean selectPoint) {
         Poi poi = poiForCoordinates(location.getLatitude(), location.getLongitude());
         if (selectPoint) {
             selectedPoi = poi;
         }
-        runMapCommand(String.format(
-                Locale.US,
-                "window.mapPicker.centerOn(%s,%s,%d,%s);",
-                formatJsDouble(poi.lat),
-                formatJsDouble(poi.lon),
-                CURRENT_LOCATION_ZOOM,
-                selectPoint ? "true" : "false"
-        ));
+        scriptController.centerOn(poi, CURRENT_LOCATION_ZOOM, selectPoint);
     }
 
     private void showLocationMessage(int messageResId) {
@@ -306,11 +284,6 @@ public final class MapPickerActivity extends Activity {
     @Nullable
     private static Poi restorePoi(@Nullable String name, double lat, double lon) {
         return MapPickerIntentContract.restorePoi(name, lat, lon);
-    }
-
-    @NonNull
-    private static String formatJsDouble(double value) {
-        return String.format(Locale.US, "%.8f", value);
     }
 
     private final class MapJavascriptBridge {

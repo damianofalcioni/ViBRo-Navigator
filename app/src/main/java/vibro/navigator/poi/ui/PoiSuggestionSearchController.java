@@ -8,7 +8,7 @@ import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;

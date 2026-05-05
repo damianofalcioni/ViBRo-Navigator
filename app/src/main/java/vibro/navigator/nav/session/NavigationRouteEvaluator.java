@@ -10,7 +10,7 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteEvaluator {
     private static final String TAG = "NavSessionRoute";

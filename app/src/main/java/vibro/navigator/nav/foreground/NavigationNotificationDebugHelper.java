@@ -14,7 +14,7 @@ import vibro.navigator.R;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.route.VoiceHint;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.LinkedHashMap;
 import java.util.Map;

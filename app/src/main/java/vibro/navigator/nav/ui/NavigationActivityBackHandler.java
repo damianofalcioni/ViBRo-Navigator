@@ -10,7 +10,7 @@ import android.window.OnBackInvokedDispatcher;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 final class NavigationActivityBackHandler {
 

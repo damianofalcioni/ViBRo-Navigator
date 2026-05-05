@@ -8,7 +8,7 @@ import android.provider.DocumentsContract;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package vibro.navigator.nav.model;
+package vibro.navigator.nav.presentation;
 
 import android.content.Context;
 import android.location.Location;
@@ -12,6 +12,8 @@ import java.util.List;
 
 import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 

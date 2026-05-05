@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.R;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -6,8 +6,8 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.model.NavStateBuildInput;
-import vibro.navigator.nav.model.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateBuildInput;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.model.NavTarget;
 import android.content.Context;
 

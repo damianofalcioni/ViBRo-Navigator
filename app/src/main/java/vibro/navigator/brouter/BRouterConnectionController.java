@@ -5,7 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import btools.routingapp.BRouterServiceConnection;
 import btools.routingapp.IBRouterService;

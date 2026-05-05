@@ -13,7 +13,7 @@ import android.widget.TextView;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
-import vibro.navigator.util.AppLogger;
+import vibro.navigator.logging.AppLogger;
 
 import org.junit.Before;
 import org.junit.Test;
