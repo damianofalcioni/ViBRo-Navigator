@@ -2,10 +2,14 @@ package vibro.navigator;
 
 import vibro.navigator.main.MainActivity;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import android.content.ComponentName;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
 
@@ -48,6 +52,18 @@ public class MainActivityIntentFilterTest {
         intent.addCategory(Intent.CATEGORY_DEFAULT);
 
         assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityUsesOwnTaskForExternalLaunches() throws PackageManager.NameNotFoundException {
+        String packageName = ApplicationProvider.getApplicationContext().getPackageName();
+        ComponentName componentName = new ComponentName(packageName, MainActivity.class.getName());
+
+        ActivityInfo activityInfo = ApplicationProvider.getApplicationContext()
+                .getPackageManager()
+                .getActivityInfo(componentName, 0);
+
+        assertEquals(ActivityInfo.LAUNCH_SINGLE_TASK, activityInfo.launchMode);
     }
 
     private static boolean resolvesToMainActivity(Intent intent) {
