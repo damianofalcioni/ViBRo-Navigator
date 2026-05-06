@@ -106,16 +106,20 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="36dp"
             android:gravity="center_horizontal"
             android:orientation="horizontal">
 
-            <Button
+            <ImageButton
                 android:id="@+id/startNavButton"
-                style="@style/Widget.ViBRoNavigator.Button.Primary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/action_start_navigation" />
+                style="@style/Widget.ViBRoNavigator.IconButton.Circle"
+                android:layout_width="132dp"
+                android:layout_height="132dp"
+                android:contentDescription="@string/action_start_navigation"
+                android:padding="30dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_play"
+                android:tint="@null" />
         </LinearLayout>
 
     </LinearLayout>

@@ -25,7 +25,7 @@ final class MainActivityControls {
     @NonNull
     final Button addStopButton;
     @NonNull
-    final Button startNavButton;
+    final ImageButton startNavButton;
 
     private MainActivityControls(
             @NonNull ImageButton aboutButton,
@@ -34,7 +34,7 @@ final class MainActivityControls {
             @NonNull ImageButton destinationMapButton,
             @NonNull LinearLayout stopsContainer,
             @NonNull Button addStopButton,
-            @NonNull Button startNavButton
+            @NonNull ImageButton startNavButton
     ) {
         this.aboutButton = aboutButton;
         this.profileSpinner = profileSpinner;

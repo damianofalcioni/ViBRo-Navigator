@@ -137,7 +137,7 @@ Below the destination input, the app must show a centered plus button.
 
 ### 4. Start navigation
 
-At the bottom center of the main UI, the app must show a start navigation button.
+At the bottom center of the main UI, the app must show a large icon-only circular start navigation button using the same green play symbol as the navigation resume/play button.
 
 Pressing the button must:
 
@@ -429,6 +429,7 @@ The navigation UI must show the following in large text:
 - At the bottom action row, the navigation UI must show an icon-only circular button that toggles between pause and resume for the current navigation session
 - Pressing pause must keep the current route, destination, and intermediate-stop progress in memory while suspending live guidance updates
 - While paused, the navigation UI must clearly indicate that the session is paused and the button icon must switch to resume/play
+- The resume/play icon must use the same green play symbol as the main start navigation button
 - Pressing resume must continue the existing navigation session instead of starting a fresh route-planning flow
 - Portrait and landscape layouts must both expose the pause/resume action alongside the blocked-road and stop-navigation actions
 - In the bottom action row, the action order must be blocked-road, stop, then pause/resume from left to right, with matching spacing around the three circular buttons
