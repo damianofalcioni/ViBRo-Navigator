@@ -105,6 +105,7 @@ Distribution-related workflows:
 - The app may use a user-selected document tree for external custom `.brf` profiles
 - Destination/stop map picking currently requires only platform WebView plus network access to `tile.openstreetmap.org`; do not replace it with an external map dependency unless explicitly requested
 - `local.properties` is developer-local configuration. Do not make release or F-Droid flows depend on committed machine-specific values.
+- Developer-mode behavior logs are written under the app-specific external files `logs/` directory, preferring a removable memory card when one is mounted. On device, check `/storage/<card-id>/Android/data/vibro.navigator.debug/files/logs/` for debug builds and `/storage/<card-id>/Android/data/vibro.navigator/files/logs/` for release builds; if no removable card is present, check the same package paths under primary external storage such as `/sdcard/Android/data/.../files/logs/`.
 
 ## Practical review checklist
 
