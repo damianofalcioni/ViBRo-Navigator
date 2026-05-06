@@ -7,6 +7,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public final class LiveLocationCoordinator {
+    public static final String FUSED_PROVIDER = "fused";
 
     private static final long LOCATION_STALE_MS = 15_000L;
     private static final long LOCATION_FRESHNESS_BIAS_MS = 8_000L;
@@ -19,11 +20,14 @@ public final class LiveLocationCoordinator {
     @Nullable
     private Location latestNetworkLocation;
     @Nullable
+    private Location latestFusedLocation;
+    @Nullable
     private Location lastDispatchedRawLocation;
 
     public void reset() {
         latestGpsLocation = null;
         latestNetworkLocation = null;
+        latestFusedLocation = null;
         lastDispatchedRawLocation = null;
     }
 
@@ -33,6 +37,8 @@ public final class LiveLocationCoordinator {
             latestGpsLocation = copy;
         } else if (LocationManager.NETWORK_PROVIDER.equals(location.getProvider())) {
             latestNetworkLocation = copy;
+        } else {
+            latestFusedLocation = copy;
         }
     }
 
@@ -41,6 +47,8 @@ public final class LiveLocationCoordinator {
             latestGpsLocation = null;
         } else if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
             latestNetworkLocation = null;
+        } else if (FUSED_PROVIDER.equals(provider)) {
+            latestFusedLocation = null;
         }
     }
 
@@ -48,7 +56,8 @@ public final class LiveLocationCoordinator {
     public Location selectBestLiveLocation() {
         Location gps = isRecentLocation(latestGpsLocation) ? latestGpsLocation : null;
         Location network = isRecentLocation(latestNetworkLocation) ? latestNetworkLocation : null;
-        return copyOf(resolveBestLiveLocation(gps, network));
+        Location fused = isRecentLocation(latestFusedLocation) ? latestFusedLocation : null;
+        return copyOf(resolveBestLiveLocation(resolveBestLiveLocation(gps, network), fused));
     }
 
     @Nullable

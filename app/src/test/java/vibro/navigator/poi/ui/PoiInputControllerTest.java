@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @RunWith(RobolectricTestRunner.class)
 public class PoiInputControllerTest {
+    private static final String COFFEE_SPOT = "Coffee Spot";
 
     private Context context;
 
@@ -61,7 +62,7 @@ public class PoiInputControllerTest {
         );
 
         controller.setPoi(selected);
-        shadowOf(Looper.getMainLooper()).idleFor(400, java.util.concurrent.TimeUnit.MILLISECONDS);
+        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
 
         assertEquals(0, searchCalls.get());
         assertEquals("Saved destination", controller.getRawText());
@@ -179,7 +180,7 @@ public class PoiInputControllerTest {
         );
 
         controller.restorePoi(selected);
-        shadowOf(Looper.getMainLooper()).idleFor(400, java.util.concurrent.TimeUnit.MILLISECONDS);
+        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
 
         assertEquals(0, searchCalls.get());
         assertEquals("Stored destination", controller.getRawText());
@@ -203,7 +204,7 @@ public class PoiInputControllerTest {
         );
 
         controller.restoreText("Cafe Central");
-        shadowOf(Looper.getMainLooper()).idleFor(400, java.util.concurrent.TimeUnit.MILLISECONDS);
+        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
 
         assertEquals(0, searchCalls.get());
         assertEquals("Cafe Central", controller.getRawText());
@@ -214,7 +215,7 @@ public class PoiInputControllerTest {
     public void typedQuery_prefersMatchingHistoryOverOnlineSearch() {
         AtomicInteger searchCalls = new AtomicInteger();
         PoiHistoryStore historyStore = new PoiHistoryStore(context);
-        historyStore.addOrPromote(new Poi("Coffee Spot", 48.2082d, 16.3738d));
+        historyStore.addOrPromote(new Poi(COFFEE_SPOT, 48.2082d, 16.3738d));
         PoiSearchClient searchClient = (query, limit) -> {
             searchCalls.incrementAndGet();
             return Collections.singletonList(new Poi("Coffee Online", 48.2000d, 16.3600d));
@@ -233,14 +234,14 @@ public class PoiInputControllerTest {
 
         assertEquals(0, searchCalls.get());
         assertEquals(1, controller.getSuggestionCountForTesting());
-        assertEquals("Coffee Spot", controller.getSuggestionLabelForTesting(0));
+        assertEquals(COFFEE_SPOT, controller.getSuggestionLabelForTesting(0));
     }
 
     @Test
     public void typedSingleCharacterQuery_canReturnMatchingHistoryWithoutOnlineSearch() {
         AtomicInteger searchCalls = new AtomicInteger();
         PoiHistoryStore historyStore = new PoiHistoryStore(context);
-        historyStore.addOrPromote(new Poi("Coffee Spot", 48.2082d, 16.3738d));
+        historyStore.addOrPromote(new Poi(COFFEE_SPOT, 48.2082d, 16.3738d));
         PoiSearchClient searchClient = (query, limit) -> {
             searchCalls.incrementAndGet();
             return Collections.emptyList();
@@ -259,14 +260,14 @@ public class PoiInputControllerTest {
 
         assertEquals(0, searchCalls.get());
         assertEquals(1, controller.getSuggestionCountForTesting());
-        assertEquals("Coffee Spot", controller.getSuggestionLabelForTesting(0));
+        assertEquals(COFFEE_SPOT, controller.getSuggestionLabelForTesting(0));
     }
 
     @Test
     public void typedSingleCharacterQueryWithoutHistoryMatch_doesNotSearchOnline() {
         AtomicInteger searchCalls = new AtomicInteger();
         PoiHistoryStore historyStore = new PoiHistoryStore(context);
-        historyStore.addOrPromote(new Poi("Coffee Spot", 48.2082d, 16.3738d));
+        historyStore.addOrPromote(new Poi(COFFEE_SPOT, 48.2082d, 16.3738d));
         PoiSearchClient searchClient = (query, limit) -> {
             searchCalls.incrementAndGet();
             return Collections.emptyList();

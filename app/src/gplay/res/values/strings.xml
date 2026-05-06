@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_credits">Credits: BRouter for routing. POI search uses Google Maps Geocoding when configured, otherwise OpenStreetMap Nominatim. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
+</resources>

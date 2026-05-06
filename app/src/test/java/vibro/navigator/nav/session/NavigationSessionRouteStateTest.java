@@ -32,7 +32,10 @@ import java.util.Collections;
 import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("PMD.TooManyMethods")
 public class NavigationSessionRouteStateTest {
+    private static final String DESTINATION = "Destination";
+    private static final String TREKKING_PROFILE = "trekking";
 
     @Test
     public void applyRouteResult_buildsInitialTurnEventAndRenderableState() {
@@ -82,8 +85,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -144,8 +147,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -178,8 +181,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -244,8 +247,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -277,8 +280,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -311,8 +314,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -366,8 +369,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -409,8 +412,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -456,8 +459,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -490,8 +493,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.00018, 0.00018),
                 Collections.emptyList()
         );
@@ -525,8 +528,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -567,8 +570,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         );
@@ -619,8 +622,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.003),
                 Collections.emptyList()
         );
@@ -651,8 +654,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.003),
                 Collections.emptyList()
         );
@@ -693,8 +696,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.09),
                 Collections.emptyList()
         );
@@ -778,8 +781,8 @@ public class NavigationSessionRouteStateTest {
 
         NavigationSessionRouteState shortRouteState = new NavigationSessionRouteState();
         NavigationRequest shortRouteRequest = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.018),
                 Collections.emptyList()
         );
@@ -805,8 +808,8 @@ public class NavigationSessionRouteStateTest {
 
         NavigationSessionRouteState longRouteState = new NavigationSessionRouteState();
         NavigationRequest longRouteRequest = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.18),
                 Collections.emptyList()
         );
@@ -1003,8 +1006,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.003),
                 Collections.singletonList(new LatLon(0.0, 0.002))
         );
@@ -1045,8 +1048,8 @@ public class NavigationSessionRouteStateTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.003),
                 Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
         );

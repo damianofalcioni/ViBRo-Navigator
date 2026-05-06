@@ -57,6 +57,19 @@ public class LiveLocationCoordinatorTest {
         assertTrue(coordinator.shouldDispatch(improved));
     }
 
+    @Test
+    public void selectBestLiveLocation_acceptsFusedFixWhenItIsOnlyFreshCandidate() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        coordinator.remember(newLocation(LiveLocationCoordinator.FUSED_PROVIDER, 500L, 8f, 48.30d, 16.41d));
+
+        Location selected = coordinator.selectBestLiveLocation();
+
+        assertNotNull(selected);
+        assertEquals(LiveLocationCoordinator.FUSED_PROVIDER, selected.getProvider());
+        assertEquals(48.30d, selected.getLatitude(), 0.0);
+        assertEquals(16.41d, selected.getLongitude(), 0.0);
+    }
+
     private static Location newLocation(
             String provider,
             long ageMs,

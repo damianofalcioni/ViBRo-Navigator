@@ -11,14 +11,15 @@ import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationLocationControllerTest {
+    private static final String GPS_AND_NETWORK = "gps+network";
 
     @Test
     public void shouldReuseActiveLocationRequest_returnsTrueForMatchingIntervalAndProviders() {
         assertTrue(NavigationLocationController.shouldReuseActiveLocationRequest(
                 1_000L,
-                "gps+network",
+                GPS_AND_NETWORK,
                 1_000L,
-                "gps+network"
+                GPS_AND_NETWORK
         ));
     }
 
@@ -26,9 +27,9 @@ public class NavigationLocationControllerTest {
     public void shouldReuseActiveLocationRequest_returnsFalseForChangedInterval() {
         assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
                 2_000L,
-                "gps+network",
+                GPS_AND_NETWORK,
                 1_000L,
-                "gps+network"
+                GPS_AND_NETWORK
         ));
     }
 
@@ -38,7 +39,7 @@ public class NavigationLocationControllerTest {
                 1_000L,
                 "gps",
                 1_000L,
-                "gps+network"
+                GPS_AND_NETWORK
         ));
     }
 
@@ -48,7 +49,7 @@ public class NavigationLocationControllerTest {
                 1_000L,
                 null,
                 1_000L,
-                "gps+network"
+                GPS_AND_NETWORK
         ));
     }
 

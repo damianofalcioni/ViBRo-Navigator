@@ -38,9 +38,26 @@ tasks.register("complexityCheck", Pmd) {
     group = "verification"
     description = "Runs the enforced PMD maintainability baseline on production Java sources."
 
-    source = fileTree("src/main/java") {
-        include "**/*.java"
-    }
+    source = files(
+            fileTree("src/main/java") {
+                include "**/*.java"
+            },
+            fileTree("src/fdroid/java") {
+                include "**/*.java"
+            },
+            fileTree("src/gplay/java") {
+                include "**/*.java"
+            },
+            fileTree("src/test/java") {
+                include "**/*.java"
+            },
+            fileTree("src/testFdroid/java") {
+                include "**/*.java"
+            },
+            fileTree("src/testGplay/java") {
+                include "**/*.java"
+            }
+    )
     ruleSetFiles = files("$rootDir/config/pmd/ai-maintainability-ruleset.xml")
     ruleSets = []
     ignoreFailures = false
@@ -67,9 +84,19 @@ android {
         versionCode = 1
         versionName = "0.1.0"
 
-        buildConfigField "String", "GOOGLE_MAPS_API_KEY", "\"${googleMapsApiKey}\""
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    flavorDimensions += "distribution"
+
+    productFlavors {
+        gplay {
+            dimension = "distribution"
+            buildConfigField "String", "GOOGLE_MAPS_API_KEY", "\"${googleMapsApiKey}\""
+        }
+        fdroid {
+            dimension = "distribution"
+        }
     }
 
     signingConfigs {
@@ -123,6 +150,8 @@ android {
 
 dependencies {
     implementation "androidx.core:core:1.17.0"
+
+    gplayImplementation "com.google.android.gms:play-services-location:21.3.0"
 
     testImplementation "junit:junit:4.13.2"
     testImplementation "androidx.test:core:1.7.0"

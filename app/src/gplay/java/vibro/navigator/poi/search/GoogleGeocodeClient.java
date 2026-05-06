@@ -2,8 +2,8 @@ package vibro.navigator.poi.search;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.poi.Poi;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.poi.Poi;
 
 import java.io.BufferedReader;
 import java.io.IOException;

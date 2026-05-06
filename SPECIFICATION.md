@@ -11,7 +11,7 @@ ViBRo Navigator is a lightweight Android navigation app based on BRouter.
 Core product constraints:
 
 - Use Java
-- Avoid dependencies as much as possible, including Google Play Services
+- Avoid dependencies as much as possible. Google Play Services may be used only in the Google Play distribution flavor for explicitly requested Google features; the F-Droid flavor and common source set must remain free of Google Play Services dependencies.
 - Keep generated and maintained code minimal while still implementing the features
 - Target the latest practical Android SDK while keeping `minSdk 21`
 - The current repository baseline is `compileSdk 36` and `targetSdk 36` while keeping `minSdk 21`
@@ -79,8 +79,9 @@ Below the routing-profile selector, the app must show an input field for searchi
 - On every typed character, but only once the query length is greater than 3, the app must retrieve matching POIs
 - Online provider search must only run when the typed query has no matching history entries and the query length is greater than 3
 - Each result must include the POI full name and coordinates
-- The data source must be Google Maps REST APIs when a Google API key is defined
+- In the Google Play flavor, the data source must be Google Maps REST APIs when a Google API key is defined
 - If the Google API key is not defined, the app must use OpenStreetMap APIs
+- In the F-Droid flavor, POI search must always use OpenStreetMap APIs and must not include Google search code or require a Google API key
 
 #### 2.3 Search results dropdown
 
@@ -198,6 +199,9 @@ The app must monitor user position:
 - The dynamic interval must never be lower than 1 second
 - The dynamic interval must never exceed 60 seconds
 - Re-requesting location updates must reuse the active listener registration when the requested interval bucket and enabled provider set are unchanged, so the app does not continuously tear down and rebuild subscriptions
+- The Google Play flavor may use Google fused location when Google Play Services is available and the user has enabled the fused-location setting
+- When fused location is unavailable or disabled, the app must fall back to the legacy platform GPS/network provider path
+- The F-Droid flavor must use the legacy platform GPS/network provider path and must not include Google fused-location code or Play Services dependencies
 - Position handling must use a Kalman filter
 - Any asynchronous route calculation must apply its resulting shared navigation state in a single serialized path so stale background results cannot overwrite newer navigation state
 - The navigation session must support an explicit paused mode that preserves the current request and loaded route while temporarily suspending live guidance processing
@@ -477,13 +481,17 @@ The navigation UI must show the following in large text:
   - The app version
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
   - Copyright and license text
-  - API/data-source attribution stating that POI search uses OpenStreetMap Nominatim and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
+  - API/data-source attribution stating the active POI search data source and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
   - A Settings section below the about text
   - A Diagnostic section at the end
 
 #### 5.1 Logging and diagnostics
 
 - The about page Settings section must show a Log enabled switch
+- The about page Settings section must show a Use fused location switch
+- The Use fused location switch must be enabled only in builds that support Google fused location
+- In the F-Droid flavor, the Use fused location switch must be disabled and must not enable Google functionality
+- In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available
 - The app must write its log file only when the Log enabled setting is switched on
 - The Log enabled setting must persist across app launches
 - When Log enabled is already on at app startup, the app must create a fresh log file for that app session before startup logging begins
@@ -541,6 +549,11 @@ The navigation UI must show the following in large text:
 ## Distribution and release expectations
 
 - The repository should remain suitable for official F-Droid inclusion.
+- The Android app must be built with explicit `fdroid` and `gplay` product flavors.
+- The F-Droid flavor must not include Google Play Services dependencies, Google fused-location code, Google POI search code, or any runtime requirement for a Google API key.
+- Google-specific implementation code must live in the `gplay` source set, with F-Droid-safe stubs in the `fdroid` source set and flavor-neutral interfaces in the common source set.
+- GitHub Actions and F-Droid metadata must build the `fdroid` flavor for F-Droid readiness and submission paths.
+- Upstream release automation may build both `fdroid` and `gplay` release APKs, with artifacts kept under their flavor-specific Gradle output paths.
 - Upstream app-store metadata should be maintained in the source repository using the `fastlane/metadata/android/en-US/...` layout so F-Droid can reuse the app description, changelog, icon, and screenshots directly from upstream.
 - The repository should provide maintainer-facing submission documentation for official F-Droid inclusion. That documentation is an operator runbook for project maintainers and should not be treated as end-user product documentation.
 - GitHub Actions may automate F-Droid readiness checks and preparation of a `fdroiddata` merge request, but the specification should assume that official publication still requires F-Droid maintainer review and F-Droid-side rebuild/sign/publish steps.
@@ -558,6 +571,7 @@ The navigation UI must show the following in large text:
 - Keep active route/polyline geometry ownership in `nav/route`, route-location evaluation in `NavigationRouteEvaluator`, arrival checks in `NavigationArrivalDetector`, blocked-road point selection in `NavigationBlockedPointSelector`, route-result application in `NavigationRouteResultApplier`, route-deviation policy, confirmation, direction-of-progress evidence, and reroute-notice selection in `nav/guidance`, route display branching in `NavigationSessionRouteDisplayState`, compass display memory in `CompassDisplayMemory`, and route display assembly in `nav/presentation`/`nav/format`/`nav/compass` so safety decisions stay easy to review independently. Display memory updates should be explicit display-advance steps rather than hidden side effects of pure state construction.
 - Keep compass display state grouped by display mode, radius state, progress labels, and route points. `NavCompassState` should remain the top-level immutable compass snapshot, while rendering code consumes `CompassDisplayMode`, `CompassRadiusState`, `CompassProgressLabels`, and `CompassRoutePoint` instead of relying on duplicate scalar aliases. Construction should use named factories for projected-point snapshots and route-geometry-backed snapshots, with grouped construction inputs for display metrics, radius metrics, and destination projection rather than direct public constructors or long primitive constructor chains.
 - Keep heuristics such as reroute thresholds, bearing trust rules, forward-look route bearing, direction-of-progress checks, polling cadence, and turn-alert timing in small policy/planner helpers. Keep POI query/search state shared across destination and stop fields, with text-field selection state, history rename/delete actions, popup-window presentation, and query precedence/debounce/provider search kept in separate collaborators.
+- Keep flavor-specific services behind a small distribution bridge. Common code may call flavor-neutral interfaces, but Google Play Services imports, Google fused-location implementation, Google POI search, and Google parser tests must remain under `app/src/gplay` or `app/src/testGplay`. The `fdroid` source set must provide no-op or OpenStreetMap-only behavior for the same bridge contracts.
 - Keep `nav/model/NavigationRequest` as a pure domain request. Keep the navigation-intent extras contract owned by `nav/intent/NavigationRequestIntentContract` so activities, the foreground service, and resume notifications serialize the same request shape without hand-copying extras. Keep app-wide incoming map/share URI parsing under `intent/`, separate from navigation-start extras.
 - Prefer extending the existing `logging/AppLogger` coverage when touching startup, permissions, routing, background execution, or network search behavior.
 
@@ -568,5 +582,6 @@ The navigation UI must show the following in large text:
 - Keep lifecycle decisions, heuristics, planners, and policy thresholds in small helpers when practical so they remain directly unit-testable.
 - Maintain coverage for navigation-request serialization, startup/preflight flow, reroute heuristics, bearing trust, route-progress confirmation, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route-execution callback handoff, turn-event dispatch, and safe listener broadcasting.
 - Voice-hint mapping coverage should verify the current BRouter mode-9 command set, including user-visible direction symbols.
-- Maintain a zero-violation PMD maintainability gate for production Java sources, covering complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related rules.
+- Maintain a zero-violation PMD maintainability gate for production and JVM test Java sources, including flavor-specific source sets, covering complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related rules.
+- Distribution-sensitive changes should run explicit flavor checks, including `testFdroidDebugUnitTest`, `testGplayDebugUnitTest`, `lintFdroidDebug`, `lintGplayDebug`, `assembleFdroidRelease`, and `assembleGplayRelease`.
 - Refactors that only move unchanged wiring into helpers or package-level value contracts do not require new tests by default. Behavior changes in helper-owned flows should add or update focused JVM or Robolectric coverage.

@@ -2,7 +2,7 @@ Categories:
   - Navigation
 License: MIT
 AuthorName: Damiano Falcioni
-Summary: Offline-first BRouter navigation with vibration-based turn guidance
+Summary: Vibrating/Vibe-coded BRouter Navigator is a lightweight, offline-first, and battery-efficient Android navigation app built on top of BRouter
 
 # Replace these with the final public GitHub URLs before submitting to fdroiddata.
 WebSite: https://github.com/damianofalcioni/ViBRo-Navigator
@@ -19,7 +19,7 @@ Builds:
     commit: REPLACE_WITH_RELEASE_TAG_OR_COMMIT
     rm: local.properties
     gradle:
-      - yes
+      - fdroid
 
 AutoUpdateMode: Version
 UpdateCheckMode: Tags ^v?[0-9]+\.[0-9]+\.[0-9]+$

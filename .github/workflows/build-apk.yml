@@ -30,28 +30,32 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Run maintainability checks and tests
-        run: ./gradlew complexityCheck test
+        run: ./gradlew complexityCheck testFdroidDebugUnitTest testGplayDebugUnitTest
 
       - name: Decode keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/release-keystore.jks
 
-      - name: Build signed release APK
+      - name: Build signed release APKs
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release-keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleFdroidRelease assembleGplayRelease
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: release-apks
+          path: |
+            app/build/outputs/apk/fdroid/release/*.apk
+            app/build/outputs/apk/gplay/release/*.apk
 
       - name: Attach APK to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/fdroid/release/*.apk
+            app/build/outputs/apk/gplay/release/*.apk

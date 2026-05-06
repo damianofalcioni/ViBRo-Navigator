@@ -3,6 +3,7 @@ package vibro.navigator.about;
 
 import vibro.navigator.BuildConfig;
 import vibro.navigator.R;
+import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.nav.foreground.NavigationNotificationDebugHelper;
 import android.app.Activity;
 import android.os.Bundle;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppSettings;
 
 public class AboutActivity extends Activity {
 
@@ -31,6 +33,7 @@ public class AboutActivity extends Activity {
     private TextView sensorStatusTitle;
     private TextView sensorStatusBody;
     private Switch logEnabledSwitch;
+    private Switch fusedLocationSwitch;
     private Button symbolTestButton;
 
     @Override
@@ -40,6 +43,7 @@ public class AboutActivity extends Activity {
 
         TextView version = findViewById(R.id.aboutVersion);
         logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
+        fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
         sensorStatusTitle = findViewById(R.id.aboutSensorStatusTitle);
         sensorStatusBody = findViewById(R.id.aboutSensorStatusBody);
         symbolTestButton = findViewById(R.id.aboutSymbolTestButton);
@@ -49,6 +53,7 @@ public class AboutActivity extends Activity {
             AppLogger.setLoggingEnabled(this, isChecked);
             renderDiagnosticSection();
         });
+        configureFusedLocationSwitch();
         symbolTestButton.setOnClickListener(v -> sendSymbolTestNotification());
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
@@ -77,6 +82,8 @@ public class AboutActivity extends Activity {
 
     private void renderDiagnosticSection() {
         logEnabledSwitch.setChecked(AppLogger.isLoggingEnabled(this));
+        fusedLocationSwitch.setChecked(DistributionServices.supportsFusedLocation()
+                && AppSettings.isFusedLocationEnabled(this));
         sensorStatusTitle.setVisibility(android.view.View.VISIBLE);
         sensorStatusBody.setVisibility(android.view.View.VISIBLE);
         symbolTestButton.setVisibility(android.view.View.VISIBLE);
@@ -86,5 +93,19 @@ public class AboutActivity extends Activity {
     private void sendSymbolTestNotification() {
         NavigationNotificationDebugHelper.postSymbolTestNotification(this);
         Toast.makeText(this, R.string.msg_symbol_test_notification_sent, Toast.LENGTH_SHORT).show();
+    }
+
+    private void configureFusedLocationSwitch() {
+        boolean supported = DistributionServices.supportsFusedLocation();
+        fusedLocationSwitch.setEnabled(supported);
+        fusedLocationSwitch.setChecked(supported && AppSettings.isFusedLocationEnabled(this));
+        fusedLocationSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (!DistributionServices.supportsFusedLocation()) {
+                buttonView.setChecked(false);
+                return;
+            }
+            AppSettings.setFusedLocationEnabled(this, isChecked);
+            renderDiagnosticSection();
+        });
     }
 }

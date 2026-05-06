@@ -32,6 +32,7 @@ import java.util.Arrays;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationLifecycleRobolectricTest {
+    private static final String TEST_PROFILE = "test-profile";
 
     @Test
     public void backPressMovesNavigationActivityTaskToBackground() {
@@ -52,7 +53,7 @@ public class NavigationLifecycleRobolectricTest {
     public void ensureForegroundNotificationRestoresForegroundState() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
 
@@ -82,7 +83,7 @@ public class NavigationLifecycleRobolectricTest {
     public void foregroundNotificationResumeIntentPreservesNavigationRequest() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_NAME, "Vienna Center");
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
@@ -102,7 +103,7 @@ public class NavigationLifecycleRobolectricTest {
 
         assertTrue(resumeIntent.getBooleanExtra(MainActivity.EXTRA_OPEN_NAVIGATION, false));
         assertTrue(resumeIntent.getBooleanExtra(NavigationActivity.EXTRA_RESUME_EXISTING, false));
-        assertEquals("test-profile", resumeIntent.getStringExtra(NavigationRequestIntentContract.EXTRA_PROFILE));
+        assertEquals(TEST_PROFILE, resumeIntent.getStringExtra(NavigationRequestIntentContract.EXTRA_PROFILE));
         assertEquals("Vienna Center", resumeIntent.getStringExtra(NavigationRequestIntentContract.EXTRA_DEST_NAME));
         assertEquals(48.2082d, resumeIntent.getDoubleExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, Double.NaN), 0.0);
         assertEquals(16.3738d, resumeIntent.getDoubleExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, Double.NaN), 0.0);
@@ -116,7 +117,7 @@ public class NavigationLifecycleRobolectricTest {
     public void onTaskRemovedStopsNavigationAndForegroundState() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, "test-profile");
+        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
         startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
 

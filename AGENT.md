@@ -12,24 +12,28 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 - Android Gradle Plugin: `9.1.1`
 - Java toolchain: `17`
 - SDKs in repo today: `compileSdk 36`, `targetSdk 36`, `minSdk 21`
-- Runtime dependencies are intentionally minimal: `androidx.core`
-- Do not add Google Play Services or other heavy dependencies unless explicitly requested
+- Runtime dependencies are intentionally minimal in the common/F-Droid code path: `androidx.core`
+- The app has two distribution flavors: `fdroid` and `gplay`
+- Google Play Services is allowed only in the `gplay` source set/dependency graph. Keep F-Droid and common source sets free of Google Play Services classes, API clients, and build requirements.
+- Keep `gplay` listed before `fdroid` in `productFlavors` so default debug variant selection includes the fused-location implementation.
 
 Verified commands from the repository root:
 
-- `.\gradlew.bat test`
-- `.\gradlew.bat testDebugUnitTest`
-- `.\gradlew.bat assembleDebug`
-- `.\gradlew.bat assembleRelease`
+- `.\gradlew.bat testFdroidDebugUnitTest`
+- `.\gradlew.bat testGplayDebugUnitTest`
+- `.\gradlew.bat assembleFdroidDebug`
+- `.\gradlew.bat assembleGplayDebug`
+- `.\gradlew.bat assembleFdroidRelease`
+- `.\gradlew.bat assembleGplayRelease`
 - `.\gradlew.bat complexityCheck`
-- `.\gradlew.bat lint`
-- `.\gradlew.bat lintDebug`
+- `.\gradlew.bat lintFdroidDebug`
+- `.\gradlew.bat lintGplayDebug`
 
-CI lives in `.github/workflows/build-apk.yml` and runs tests plus debug/release APK builds.
+CI lives in `.github/workflows/build-apk.yml` and runs explicit `fdroid`/`gplay` unit tests plus both release APK builds.
 
 Distribution-related workflows:
 
-- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, lint/maintainability/tests, and unsigned release APK generation.
+- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, explicit flavor lint/tests, and `assembleFdroidRelease` generation.
 - `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that renders `fdroid/vibro.navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
 - `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
@@ -52,10 +56,12 @@ Distribution-related workflows:
 - `NavigationSessionRouteState` owns active-route coordination, not the full decision logic inline. Keep route-location evaluation in `NavigationRouteEvaluator`, destination-reached checks in `NavigationArrivalDetector`, blocked-road no-go selection in `NavigationBlockedPointSelector`, and route-result application/reset handoff in `NavigationRouteResultApplier`. Keep active route/polyline ownership, last-segment memory, destination-radius geometry, and route-bearing lookup in `nav/route/NavigationRouteGeometryState`; keep deviation policy, confirmation, along-track direction evidence, and reroute-notice logging in `nav/guidance/NavigationRouteDeviationHandler`; keep expected route-bearing lookahead in `nav/orientation/NavigationExpectedBearingResolver`; keep target progress labels and high-level route display branching in `NavigationSessionRouteDisplayState`; keep compass geometry/radius/accuracy display memory in `CompassDisplayMemory`; and keep `nav/model/NavState` construction in `nav/presentation/NavStateComposer` via `NavStateBuildInput` and `NavigationDisplaySnapshot` so route safety decisions and route presentation stay independently understandable. Memory mutation after rendering belongs in explicit display-advance paths such as `advanceDisplayState`, not hidden inside pure state-building helpers.
 - Keep reroute heuristics split between bearing-source trust, route-deviation policy, deviation confirmation, and route-state progress handling in `nav/guidance`. Wrong-direction detection should continue to use forward-looking route bearing plus along-track direction-of-progress evidence instead of relying on a raw matched-segment bearing alone. Consecutive-sample confirmation and speed-sensitive immediate off-track margins belong in `NavigationDeviationConfirmation`.
 - Startup last-known-location freshness and quality selection belongs in `nav/startup/NavigationStartupLocationSelector`, with shared last-known provider comparison and reader handoff in `nav/location/LastKnownLocationSelector`; keep `NavigationLocationController` focused on orchestrating Android location tracking state and active-subscription reuse. Provider permission checks, enabled-provider selection, last-known reads, and continuous update requests belong in `NavigationLocationProviderAccess`. Android 11+ one-shot current-location seed requests and their cancellation state belong in `NavigationCurrentLocationSeeder`. Foreground navigation GNSS satellite-count callback state belongs in `NavigationGnssStatusTracker`.
+- Flavor-specific location/search capabilities are reached through `vibro.navigator.distribution.DistributionServices`. The `fdroid` source set must provide no-op/non-Google implementations. The `gplay` source set owns Google fused location and Google POI search implementations, including all `com.google.android.gms` imports and Google Maps REST client/parser code. Common navigation code may depend on small interfaces such as `FusedLocationUpdateClient`, but it must not import Google classes directly.
 - `nav/model/NavigationRequest` is the pure domain request. The shared navigation extras contract used by activities, the service, and resume notifications belongs in `nav/intent/NavigationRequestIntentContract`; keep all start/resume serialization through that contract instead of hand-copying extras.
 - `nav/model/NavState` is the immutable navigation display snapshot. Its public display contract should stay grouped by focused value objects: `NavRouteStatus`, `NavGuidanceStatus`, `NavProgressStatus`, `NavGpsStatus`, and `NavPauseStatus`. Do not reintroduce duplicate top-level aliases for guidance, progress, GPS, compass, or pause fields, and do not move Android/resource-aware state construction back into `NavState`. Keep `NavState` assembly in `nav/presentation/NavStateComposer`, use `nav/presentation/NavStateBuildInput` for route-display composition handoffs, pass compass display construction as a prebuilt `nav/compass/NavCompassStateInput`, keep route direction/progress line assembly in `nav/format/NavStateTextFactory`, compass-state assembly in `nav/compass/NavCompassStateFactory`, automatic compass radius policy in `nav/compass/CompassRadiusResolver`, and primitive user-visible navigation/notification formatting in `nav/format/NavigationTextFormatter`. Keep GPS status field formatting and validity checks in `nav/location/NavigationGpsTextFormatter` so turn/off-route copy and GPS telemetry copy remain separate.
 - `brouter/` owns BRouter service integration, routing params, profile discovery, and GeoJSON route requests. Keep service binding/rebinding in `BRouterConnectionController`, route request retry and binder-call recovery in `BRouterClient`, compressed response decoding in `BRouterResponseDecoder`, external `profiles2` document-tree probing in `BRouterProfileDirectories`, document-ID candidate ordering in `BRouterProfileDirectoryCandidates`, and profile enumeration/name normalization in `BRouterProfileLister`, rather than folding Android storage probing or listing mechanics back into `BRouterProfilesRepository`. Preserve the current `timode=9` voice-hint contract unless there is a deliberate product change.
 - `poi/`, `poi/search/`, and `poi/ui/` own POI parsing, history, provider-backed search, and shared suggestion UI. Keep search execution shared across inputs. Keep `PoiInputController` focused on the text field, selected POI, and suggestion presentation wiring; keep history-row rename/delete dialog behavior in `PoiHistoryActionController`; keep popup window safety/presentation in `PoiSuggestionPopupController`; keep query precedence, debounce timing, direct-coordinate suggestions, history-match priority, and async provider search in `PoiSuggestionSearchController`.
+- Common POI search defaults to OpenStreetMap Nominatim unless the active distribution source set supplies a Google client. Keep Google search code and Google parser tests under `app/src/gplay` and `app/src/testGplay`; F-Droid tests must not compile Google-specific test classes.
 - Incoming shared/opened location parsing is split under `intent/`: `IntentLocationParser` handles intent/shared-text orchestration, `IntentLocationUriParser` handles URI scheme dispatch, `IntentWebMapUriParser` handles Google Maps/OpenStreetMap web URLs, and the coordinate/query/decode helpers keep the parsing mechanics isolated.
 - `app/src/main/assets/map_picker.html` is the current map-rendering implementation for destination/stop selection. Preserve tap-to-select, drag-to-pan, pinch-to-zoom, button-based zoom/current-location controls, and safe gesture handling so pinch release does not mutate the selected point.
 - App UI packages are split by entry point: `main` owns the destination/profile/stop setup screen, `map` owns manual map picking, and `nav/ui` owns the active navigation screen. Navigation domain packages are intentionally split by reasoning boundary: `nav/route` holds route data and geometry primitives; `nav/routing` owns BRouter route execution and request lifecycle; `nav/guidance` owns route progress, reroute policy, turn planning, and update cadence; `nav/location` owns GPS/provider and motion state; `nav/orientation` owns heading use and stationary turn-to-face-route advice; `nav/compass/ui` owns compass drawing; `nav/foreground` owns notifications/screen monitoring; `nav/power` owns short wake-lock scopes; `nav/intent`, `nav/model`, `nav/presentation`, `nav/format`, and `nav/policy` hold navigation intent contracts, shared domain/display contracts, Android/resource-aware display-state assembly, user-visible formatting, and lifecycle policy. App-wide incoming map/share intent parsing lives in `intent/`; app-wide diagnostics logging lives in `logging/`.
@@ -69,7 +75,7 @@ Distribution-related workflows:
 - Keep lifecycle rules, heuristics, planners, and policy thresholds in small helpers when practical so they stay directly unit-testable.
 - Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
 - Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
-- `.\gradlew.bat complexityCheck` runs the enforced PMD maintainability baseline over production Java sources. The task has a zero-violation baseline and should fail on any reported violation across complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related maintainability rules. Treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes. Prefer fixes that remove real reasoning burden, such as extracting named handoff contracts or policy helpers; do not add indirection solely to silence coupling warnings on thin shell/coordinator classes.
+- `.\gradlew.bat complexityCheck` runs the enforced PMD maintainability baseline over production and JVM test Java sources, including flavor source sets. The task has a zero-violation baseline and should fail on any reported violation across complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related maintainability rules. Treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes. Prefer fixes that remove real reasoning burden, such as extracting named handoff contracts or policy helpers; do not add indirection solely to silence coupling warnings on thin shell/coordinator classes.
 - Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
 
 ## Project rules
@@ -91,16 +97,17 @@ Distribution-related workflows:
 - If you change startup permission/settings/battery-optimization flow, keep `nav/ui/NavigationActivity` thin and update the startup/lifecycle tests.
 - If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect `brouter/`, `nav/routing/`, `nav/route/`, and `nav/directions/` together and keep mode-9 coverage aligned.
 - If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, history-before-online precedence from the first typed character, shared search dispatch, and history behavior for externally opened locations.
+- If you change fused location, Google POI search, or distribution bridges, verify Google references remain isolated to `app/src/gplay` and `app/src/testGplay`, and verify the F-Droid runtime classpath does not gain Play Services dependencies.
 - If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout.
 - If you change logging, keep the shared `buildLogPrefix` plus `AppLogFiles.appendBlock` path intact so formatting, log-enabled gating, file-session selection, trimming, and legacy migration behavior stay consistent.
-- When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by `lintDebug`.
+- When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by flavor lint.
 - If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
-- After any code update, always run `.\gradlew.bat testDebugUnitTest`, `.\gradlew.bat complexityCheck`, and `.\gradlew.bat lintDebug` before closing the task.
+- After any code update, always run the relevant flavor tests and lint before closing the task. For distribution-sensitive changes, run `.\gradlew.bat lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidRelease assembleGplayRelease`.
 - At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
 
 ## Local config
 
-- Optional Google key: define `GOOGLE_MAPS_API_KEY` in `local.properties` or the environment
+- Optional Google key for the `gplay` flavor only: define `GOOGLE_MAPS_API_KEY` in `local.properties` or the environment
 - BRouter must be installed on the device as `btools.routingapp`
 - The app may use a user-selected document tree for external custom `.brf` profiles
 - Destination/stop map picking currently requires only platform WebView plus network access to `tile.openstreetmap.org`; do not replace it with an external map dependency unless explicitly requested

@@ -31,6 +31,9 @@ import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavStateTest {
+    private static final String DESTINATION = "Destination";
+    private static final String DISTANCE_111_METERS = "111 m";
+    private static final String STOP_1 = "Stop 1";
 
     private final Context context = ApplicationProvider.getApplicationContext();
 
@@ -70,12 +73,12 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 222.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 222.0)),
                 context
         );
 
-        assertTrue(state.routeStatus.guidance.nextLine.contains("111 m"));
-        assertTrue(state.routeStatus.guidance.afterNextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains(DISTANCE_111_METERS));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains(DISTANCE_111_METERS));
     }
 
     @Test
@@ -114,13 +117,13 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 333.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 333.0)),
                 context
         );
 
-        assertTrue(state.routeStatus.guidance.nextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.nextLine.contains(DISTANCE_111_METERS));
         assertTrue(state.routeStatus.guidance.nextLine.contains("20 s"));
-        assertTrue(state.routeStatus.guidance.afterNextLine.contains("111 m"));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains(DISTANCE_111_METERS));
         assertTrue(state.routeStatus.guidance.afterNextLine.contains("25 s"));
     }
 
@@ -155,7 +158,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 111.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 111.0)),
                 context
         );
 
@@ -194,7 +197,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 222.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 222.0)),
                 context
         );
 
@@ -231,7 +234,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 111.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 111.0)),
                 context
         );
 
@@ -270,12 +273,12 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 111.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 111.0)),
                 context
         );
 
-        assertTrue(state.routeStatus.progress.destinationLine.contains("Destination"));
-        assertTrue(state.routeStatus.progress.destinationLine.contains("111 m"));
+        assertTrue(state.routeStatus.progress.destinationLine.contains(DESTINATION));
+        assertTrue(state.routeStatus.progress.destinationLine.contains(DISTANCE_111_METERS));
         assertTrue(state.routeStatus.progress.destinationLine.contains("26 s"));
     }
 
@@ -313,14 +316,14 @@ public class NavStateTest {
                 NavState.NO_DEADLINE,
                 0L,
                 Arrays.asList(
-                        new NavTarget("Stop 1", 111.0),
-                        new NavTarget("Destination", 222.0)
+                        new NavTarget(STOP_1, 111.0),
+                        new NavTarget(DESTINATION, 222.0)
                 ),
                 context
         );
 
-        assertTrue(state.routeStatus.progress.stopProgressBlock.contains("Stop 1"));
-        assertTrue(state.routeStatus.progress.stopProgressBlock.contains("111 m"));
+        assertTrue(state.routeStatus.progress.stopProgressBlock.contains(STOP_1));
+        assertTrue(state.routeStatus.progress.stopProgressBlock.contains(DISTANCE_111_METERS));
         assertTrue(state.routeStatus.progress.stopProgressBlock.contains("26 s"));
     }
 
@@ -357,7 +360,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 130.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 130.0)),
                 context
         );
 
@@ -414,7 +417,7 @@ public class NavStateTest {
                 NavState.NO_DEADLINE,
                 0L,
                 false,
-                Collections.singletonList(new NavTarget("Destination", 130.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 130.0)),
                 context
         );
 
@@ -455,7 +458,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 333.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 333.0)),
                 context
         );
 
@@ -496,7 +499,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 999.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 999.0)),
                 context
         );
 
@@ -540,7 +543,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 9_999.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 9_999.0)),
                 context
         );
 
@@ -564,7 +567,7 @@ public class NavStateTest {
                 1_000L,
                 NavState.NO_DEADLINE,
                 1_000L,
-                Collections.singletonList(new NavTarget("Destination", 9_999.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 9_999.0)),
                 context
         );
 
@@ -618,7 +621,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 666.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 666.0)),
                 context
         );
 
@@ -657,7 +660,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 2_222.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 2_222.0)),
                 context
         );
 
@@ -700,7 +703,7 @@ public class NavStateTest {
                 0L,
                 NavState.NO_DEADLINE,
                 0L,
-                Collections.singletonList(new NavTarget("Destination", 140.0)),
+                Collections.singletonList(new NavTarget(DESTINATION, 140.0)),
                 context
         );
 
@@ -740,8 +743,8 @@ public class NavStateTest {
                 NavState.NO_DEADLINE,
                 0L,
                 Arrays.asList(
-                        new NavTarget("Stop 1", 111.0),
-                        new NavTarget("Destination", 222.0)
+                        new NavTarget(STOP_1, 111.0),
+                        new NavTarget(DESTINATION, 222.0)
                 ),
                 context
         );
@@ -784,8 +787,8 @@ public class NavStateTest {
                 NavState.NO_DEADLINE,
                 0L,
                 Arrays.asList(
-                        new NavTarget("Stop 1", 111.0),
-                        new NavTarget("Destination", 222.0)
+                        new NavTarget(STOP_1, 111.0),
+                        new NavTarget(DESTINATION, 222.0)
                 ),
                 context
         );
@@ -829,8 +832,8 @@ public class NavStateTest {
                 NavState.NO_DEADLINE,
                 0L,
                 Arrays.asList(
-                        new NavTarget("Stop 1", 111.0),
-                        new NavTarget("Destination", 222.0)
+                        new NavTarget(STOP_1, 111.0),
+                        new NavTarget(DESTINATION, 222.0)
                 ),
                 context
         );

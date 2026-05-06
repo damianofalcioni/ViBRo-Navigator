@@ -70,29 +70,29 @@ jobs:
           fi
 
       - name: Run lint, maintainability checks, and tests
-        run: ./gradlew lint complexityCheck test
+        run: ./gradlew lintFdroidDebug lintGplayDebug complexityCheck testFdroidDebugUnitTest testGplayDebugUnitTest
 
       - name: Decode keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/release-keystore.jks
 
-      - name: Build signed release APK
+      - name: Build signed F-Droid release APK
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release-keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew assembleRelease
+        run: ./gradlew assembleFdroidRelease
 
-      - name: Verify signed release artifact
+      - name: Verify signed F-Droid release artifact
         shell: bash
         run: |
           set -euo pipefail
-          ls app/build/outputs/apk/release/
-          test -f app/build/outputs/apk/release/app-release.apk
+          ls app/build/outputs/apk/fdroid/release/
+          test -f app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: fdroid-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
