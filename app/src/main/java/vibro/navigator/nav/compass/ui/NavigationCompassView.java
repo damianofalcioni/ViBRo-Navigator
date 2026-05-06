@@ -29,15 +29,19 @@ public final class NavigationCompassView extends View {
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
     private static final float CALIBRATION_RING_RADIUS_OFFSET_DP = 5f;
     private static final float CALIBRATION_RING_STROKE_WIDTH_DP = 3f;
+    private static final float PAUSED_RING_RADIUS_OFFSET_DP = 5f;
+    private static final float PAUSED_RING_STROKE_WIDTH_DP = 4f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
     private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
 
     @Nullable
     private NavCompassState compassState;
+    private boolean navigationPaused;
 
     private final Paint surfacePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint pausedRingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint majorTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint minorTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accentTickPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -85,6 +89,10 @@ public final class NavigationCompassView extends View {
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeWidth(dp(2f));
         ringPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_ring));
+
+        pausedRingPaint.setStyle(Paint.Style.STROKE);
+        pausedRingPaint.setStrokeWidth(dp(PAUSED_RING_STROKE_WIDTH_DP));
+        pausedRingPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_paused_ring));
 
         calibrationRing.init(dp(CALIBRATION_RING_STROKE_WIDTH_DP));
     }
@@ -155,6 +163,18 @@ public final class NavigationCompassView extends View {
         invalidate();
     }
 
+    public void setNavigationPaused(boolean navigationPaused) {
+        if (this.navigationPaused == navigationPaused) {
+            return;
+        }
+        this.navigationPaused = navigationPaused;
+        invalidate();
+    }
+
+    boolean isNavigationPausedForTest() {
+        return navigationPaused;
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int desired = dpInt(DEFAULT_SIZE_DP);
@@ -177,6 +197,7 @@ public final class NavigationCompassView extends View {
         float headingDegrees = compassState == null ? 0f : compassState.displayMode.headingDegrees;
 
         canvas.drawCircle(cx, cy, radius, surfacePaint);
+        drawPausedRing(canvas, cx, cy, radius);
         drawDistanceRings(canvas, cx, cy, radius);
         drawOuterCompass(canvas, cx, cy, radius, headingDegrees);
 
@@ -201,6 +222,13 @@ public final class NavigationCompassView extends View {
         drawDistanceLegend(canvas, cx, cy, radius);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
         calibrationRing.draw(canvas, getContext(), cx, cy, radius, dp(CALIBRATION_RING_RADIUS_OFFSET_DP));
+    }
+
+    private void drawPausedRing(@NonNull Canvas canvas, float cx, float cy, float radius) {
+        if (!navigationPaused) {
+            return;
+        }
+        canvas.drawCircle(cx, cy, radius + dp(PAUSED_RING_RADIUS_OFFSET_DP), pausedRingPaint);
     }
 
     private void drawDistanceRings(@NonNull Canvas canvas, float cx, float cy, float radius) {

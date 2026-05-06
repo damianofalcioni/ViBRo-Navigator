@@ -188,6 +188,22 @@ public class NavigationCompassViewTest {
     }
 
     @Test
+    public void pausedRingVisibilityFollowsNavigationPausedState() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassView compassView = new NavigationCompassView(activity);
+
+        assertFalse(compassView.isNavigationPausedForTest());
+
+        compassView.setNavigationPaused(true);
+
+        assertTrue(compassView.isNavigationPausedForTest());
+
+        compassView.setNavigationPaused(false);
+
+        assertFalse(compassView.isNavigationPausedForTest());
+    }
+
+    @Test
     public void headingCalibrationNeededOnlyWhenAccuracyIsExplicitlyPoor() {
         assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(null));
         assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(compassStateWithHeadingAccuracy(null)));

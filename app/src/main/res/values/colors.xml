@@ -11,6 +11,7 @@
     <color name="ripple_light">#33FFFFFF</color>
     <color name="compass_surface">#1D1D1D</color>
     <color name="compass_ring">#3C3C3C</color>
+    <color name="compass_paused_ring">#616161</color>
     <color name="compass_accent">#F28A35</color>
     <color name="compass_route">#E14646</color>
     <color name="compass_route_passed">#80E14646</color>

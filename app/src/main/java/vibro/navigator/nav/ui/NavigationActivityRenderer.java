@@ -158,6 +158,7 @@ final class NavigationActivityRenderer {
 
     private void renderCompassState() {
         @Nullable NavCompassState compassState = currentState == null ? null : currentState.routeStatus.compassState;
+        compass.setNavigationPaused(currentState != null && currentState.pauseStatus.paused);
         compass.setCompassState(compassModeController.resolve(compassState));
         cancelPendingCompassTransition();
         if (compassModeController.isTransitionInProgress()) {
