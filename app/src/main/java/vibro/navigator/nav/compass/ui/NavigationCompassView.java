@@ -27,6 +27,8 @@ public final class NavigationCompassView extends View {
     private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = 10f;
     private static final float HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES = 5f;
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
+    private static final float CALIBRATION_RING_RADIUS_OFFSET_DP = 5f;
+    private static final float CALIBRATION_RING_STROKE_WIDTH_DP = 3f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
     private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
@@ -49,6 +51,7 @@ public final class NavigationCompassView extends View {
     private final Path compassClipPath = new Path();
     private final NavigationCompassRouteRenderer routeRenderer = new NavigationCompassRouteRenderer();
     private final NavigationCompassLegendRenderer legendRenderer = new NavigationCompassLegendRenderer();
+    private final NavigationCompassCalibrationRing calibrationRing = new NavigationCompassCalibrationRing(this);
 
     public NavigationCompassView(Context context) {
         super(context);
@@ -82,6 +85,8 @@ public final class NavigationCompassView extends View {
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeWidth(dp(2f));
         ringPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_ring));
+
+        calibrationRing.init(dp(CALIBRATION_RING_STROKE_WIDTH_DP));
     }
 
     private void initTickPaints() {
@@ -146,6 +151,7 @@ public final class NavigationCompassView extends View {
 
     public void setCompassState(@Nullable NavCompassState compassState) {
         this.compassState = compassState;
+        calibrationRing.update(compassState);
         invalidate();
     }
 
@@ -194,6 +200,7 @@ public final class NavigationCompassView extends View {
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
+        calibrationRing.draw(canvas, getContext(), cx, cy, radius, dp(CALIBRATION_RING_RADIUS_OFFSET_DP));
     }
 
     private void drawDistanceRings(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -305,6 +312,12 @@ public final class NavigationCompassView extends View {
                 HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES,
                 HEADING_ACCURACY_GUIDE_MAX_DEGREES
         );
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        calibrationRing.detach();
+        super.onDetachedFromWindow();
     }
 
     private float dp(float value) {

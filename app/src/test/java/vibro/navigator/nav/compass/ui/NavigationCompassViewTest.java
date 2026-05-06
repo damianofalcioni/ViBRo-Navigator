@@ -2,6 +2,10 @@ package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
+import android.app.Activity;
+import android.os.Looper;
+import android.view.View;
+
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
@@ -11,9 +15,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassViewTest {
@@ -180,4 +187,56 @@ public class NavigationCompassViewTest {
         assertEquals(40f, RouteDrawingMath.clampRouteCoordinate(40f, 114f), 0.01f);
     }
 
+    @Test
+    public void headingCalibrationNeededOnlyWhenAccuracyIsExplicitlyPoor() {
+        assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(null));
+        assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(compassStateWithHeadingAccuracy(null)));
+        assertTrue(NavigationCompassCalibrationRing.needsHeadingCalibration(compassStateWithHeadingAccuracy(35f)));
+        assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(compassStateWithHeadingAccuracy(20f)));
+    }
+
+    @Test
+    public void calibrationRingStaysRedUntilHeadingAccuracyRecoversThenHidesGreen() {
+        NavigationCompassCalibrationRing ring = calibrationRing();
+
+        ring.update(compassStateWithHeadingAccuracy(35f));
+
+        assertTrue(ring.isVisibleForTest());
+        assertTrue(ring.isCalibrationNeededForTest());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(2, TimeUnit.SECONDS);
+        assertTrue(ring.isVisibleForTest());
+        assertTrue(ring.isCalibrationNeededForTest());
+
+        ring.update(compassStateWithHeadingAccuracy(10f));
+
+        assertTrue(ring.isVisibleForTest());
+        assertFalse(ring.isCalibrationNeededForTest());
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(2, TimeUnit.SECONDS);
+        assertFalse(ring.isVisibleForTest());
+    }
+
+    private static NavigationCompassCalibrationRing calibrationRing() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        View owner = new View(activity);
+        activity.setContentView(owner);
+        NavigationCompassCalibrationRing ring = new NavigationCompassCalibrationRing(owner);
+        ring.init(3f);
+        return ring;
+    }
+
+    private static NavCompassState compassStateWithHeadingAccuracy(Float headingAccuracyDegrees) {
+        return NavCompassState.fromProjectedPoints(
+                0f,
+                headingAccuracyDegrees,
+                1f,
+                120f,
+                0f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        );
+    }
 }
