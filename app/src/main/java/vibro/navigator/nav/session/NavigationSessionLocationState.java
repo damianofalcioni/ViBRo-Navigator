@@ -17,8 +17,9 @@ public final class NavigationSessionLocationState {
 
     private static final String TAG = "NavSessionLocation";
     private static final float MIN_RAW_BEARING_SPEED_MPS = 1.0f;
+    private static final float MIN_COURSE_HEADING_DISPLAY_SPEED_MPS = 2.5f;
     private static final float MIN_TRUSTED_GPS_BEARING_SPEED_MPS = 0.8f;
-    private static final float MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS = 1.5f;
+    private static final float MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS = 2.5f;
     private static final float MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES = 25f;
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
@@ -93,6 +94,9 @@ public final class NavigationSessionLocationState {
     @Nullable
     public HeadingEstimate preferredCompassHeading(@NonNull Location location, boolean likelyStationary) {
         if (likelyStationary) {
+            return null;
+        }
+        if (speedMps(location) < MIN_COURSE_HEADING_DISPLAY_SPEED_MPS) {
             return null;
         }
         Double gpsBearingDegrees = trustedGpsBearingDegrees(location);

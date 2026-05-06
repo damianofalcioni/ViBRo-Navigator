@@ -218,8 +218,9 @@ The app must monitor user position:
 - The route must also be recalculated when the user is still on the track but is moving in the wrong direction
 - Wrong direction is defined as bearing difference greater than 60 degrees
 - Bearing-based wrong-direction detection must only be trusted when the current fix is accurate enough and the heading source is credible for the current speed and displacement
-- When GPS bearing accuracy is available, the app should prefer GPS bearing only when that reported bearing accuracy is good enough for walking and cycling use cases; low-speed walking use must remain supported and must not be excluded by a cycling-only speed gate
-- When GPS bearing is not trustworthy enough, wrong-direction detection and moving compass-heading selection should fall back to a movement-derived course computed from recent filtered route progress rather than from a single noisy fix pair
+- When numeric GPS bearing accuracy is available, the app should trust GPS bearing for wrong-direction evidence only when the reported bearing accuracy is good enough for walking and cycling use cases and the user is moving at least 0.8 m/s; low-speed walking use must remain supported and must not be excluded by a cycling-only speed gate
+- When numeric GPS bearing accuracy is not available, the app should trust GPS bearing for wrong-direction evidence only at course-style speeds of at least 2.5 m/s
+- When GPS bearing is not trustworthy enough, wrong-direction detection should fall back to a movement-derived course computed from recent filtered route progress rather than from a single noisy fix pair
 - Low-confidence bearing estimates must not trigger reroutes on their own
 - The expected route bearing for wrong-direction checks should be forward-looking, derived from a short lookahead along the matched route geometry rather than only from the single currently matched segment
 - Bearing mismatch alone should not be enough to reroute while the user is still making clear forward progress along the route
@@ -328,9 +329,10 @@ The navigation UI must show the following in large text:
 - In the center: a map-free compass canvas showing the active route relative to the current position
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
-- While the user is moving, the displayed compass heading should prefer the trusted GPS/course heading to reduce jitter, and should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
+- While the user is moving at course-style speeds of at least 2.5 m/s, the displayed compass heading should prefer trusted GPS/course heading to reduce jitter; at walking speeds below that threshold, the displayed compass should prefer the live heading sensor when available
+- At course-style speeds, the displayed compass heading should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees
-- When the user is stationary, or when neither trusted GPS/course heading nor movement-derived course is available, the displayed compass heading may fall back to the live heading from the preferred heading sensor path
+- When the user is stationary, moving below the course-heading display threshold, or when neither trusted GPS/course heading nor movement-derived course is available, the displayed compass heading may fall back to the live heading from the preferred heading sensor path
 - The preferred heading sensor path must use the geomagnetic rotation vector when the platform exposes it and may fall back to the standard rotation vector when that is the only available fused heading sensor
 - Live heading-sensor-driven compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
@@ -493,7 +495,7 @@ The navigation UI must show the following in large text:
   - the selected heading sensor, preferring geomagnetic rotation vector and otherwise falling back to rotation vector when that is the available fused heading source
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
 - Each listed item must show both its current status and its latest available value details
-- Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, and sample age when available
+- Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available
 - Heading-sensor details should include the selected sensor type plus the latest available heading/orientation-derived values and sample age when available
 - When developer mode is enabled, the about page must also show a developer-only action to send a notification-symbol test
 - Triggering that action must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
