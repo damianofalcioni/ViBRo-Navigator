@@ -38,7 +38,7 @@ final class AboutGnssStatusTracker {
         try {
             locationManager.unregisterGnssStatusCallback(callback);
         } catch (Exception ignored) {
-            // Best effort only for developer diagnostics.
+            // Best effort only for diagnostics.
         } finally {
             callback = null;
             fixedSatelliteCount = null;

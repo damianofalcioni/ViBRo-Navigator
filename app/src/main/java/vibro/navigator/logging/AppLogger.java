@@ -16,18 +16,24 @@ public final class AppLogger {
 
     private static final String TAG = "AppLogger";
     private static final Object LOCK = new Object();
+    private static final String PREFS_NAME = "app_logging";
+    private static final String KEY_LOG_ENABLED = "log_enabled";
 
     @Nullable
     private static File logFile;
-    private static boolean developerModeEnabled;
+    private static boolean loggingEnabled;
 
     private AppLogger() {
     }
 
     public static void init(@NonNull Context context) {
+        Context appContext = context.getApplicationContext();
         synchronized (LOCK) {
-            developerModeEnabled = false;
+            loggingEnabled = readLogEnabled(appContext);
             logFile = null;
+            if (loggingEnabled) {
+                ensureLogFileLocked(appContext, true);
+            }
         }
     }
 
@@ -35,7 +41,7 @@ public final class AppLogger {
     public static String getLogFilePath(@NonNull Context context) {
         synchronized (LOCK) {
             Context appContext = context.getApplicationContext();
-            if (developerModeEnabled) {
+            if (loggingEnabled) {
                 ensureLogFileLocked(appContext, false);
             }
             if (logFile != null) {
@@ -45,22 +51,29 @@ public final class AppLogger {
         return AppLogFiles.fallbackLogFilePath(context.getApplicationContext());
     }
 
-    public static boolean isDeveloperModeEnabled(@NonNull Context context) {
+    public static boolean isLoggingEnabled(@NonNull Context context) {
         synchronized (LOCK) {
-            return developerModeEnabled;
+            return loggingEnabled;
         }
     }
 
-    public static boolean enableDeveloperMode(@NonNull Context context) {
+    public static boolean setLoggingEnabled(@NonNull Context context, boolean enabled) {
         Context appContext = context.getApplicationContext();
         synchronized (LOCK) {
-            if (developerModeEnabled) {
+            if (loggingEnabled == enabled) {
                 return false;
             }
-            developerModeEnabled = true;
-            ensureLogFileLocked(appContext, true);
+            writeLogEnabled(appContext, enabled);
+            loggingEnabled = enabled;
+            if (loggingEnabled) {
+                ensureLogFileLocked(appContext, true);
+            } else {
+                logFile = null;
+            }
         }
-        write("INFO", TAG, "Developer mode enabled", null);
+        if (enabled) {
+            write("INFO", TAG, "Logging enabled", null);
+        }
         return true;
     }
 
@@ -155,7 +168,7 @@ public final class AppLogger {
     @Nullable
     private static File currentLogFile() {
         synchronized (LOCK) {
-            if (!developerModeEnabled) {
+            if (!loggingEnabled) {
                 return null;
             }
             return logFile;
@@ -179,5 +192,17 @@ public final class AppLogger {
 
     private static void ensureLogFileLocked(@NonNull Context context, boolean forceRefresh) {
         logFile = AppLogFiles.ensureLogFile(context, logFile, forceRefresh);
+    }
+
+    private static boolean readLogEnabled(@NonNull Context context) {
+        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_LOG_ENABLED, false);
+    }
+
+    private static void writeLogEnabled(@NonNull Context context, boolean enabled) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_LOG_ENABLED, enabled)
+                .commit();
     }
 }

@@ -32,8 +32,14 @@ final class AppLogStorage {
 
     @NonNull
     static String buildLogFileName(@NonNull Date now) {
-        String timestamp = new SimpleDateFormat("yyyyMMddHHmm", Locale.US).format(now);
-        return LOG_FILE_PREFIX + timestamp + LOG_FILE_SUFFIX;
+        return buildLogFileName(now, 1);
+    }
+
+    @NonNull
+    static String buildLogFileName(@NonNull Date now, int collisionIndex) {
+        String timestamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(now);
+        String collisionSuffix = collisionIndex > 1 ? "-" + collisionIndex : "";
+        return LOG_FILE_PREFIX + timestamp + collisionSuffix + LOG_FILE_SUFFIX;
     }
 
     @NonNull

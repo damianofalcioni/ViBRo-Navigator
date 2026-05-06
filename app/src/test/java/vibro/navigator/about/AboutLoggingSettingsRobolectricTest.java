@@ -2,12 +2,14 @@ package vibro.navigator.about;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
 import android.app.NotificationManager;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -27,47 +29,49 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 @RunWith(RobolectricTestRunner.class)
-public class DeveloperModeRobolectricTest {
+public class AboutLoggingSettingsRobolectricTest {
 
     @Before
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
         AppLogger.init(context);
+        AppLogger.setLoggingEnabled(context, false);
+        AppLogger.init(context);
         ShadowToast.reset();
     }
 
     @Test
-    public void developerModeStartsDisabledOnInit() {
+    public void loggingSettingStartsDisabledAndPersistsWhenEnabled() {
         Application context = ApplicationProvider.getApplicationContext();
 
-        assertFalse(AppLogger.isDeveloperModeEnabled(context));
+        assertFalse(AppLogger.isLoggingEnabled(context));
 
-        assertTrue(AppLogger.enableDeveloperMode(context));
-        assertTrue(AppLogger.isDeveloperModeEnabled(context));
+        assertTrue(AppLogger.setLoggingEnabled(context, true));
+        assertTrue(AppLogger.isLoggingEnabled(context));
 
         AppLogger.init(context);
 
-        assertFalse(AppLogger.isDeveloperModeEnabled(context));
+        assertTrue(AppLogger.isLoggingEnabled(context));
     }
 
     @Test
-    public void enablingDeveloperModeTwiceKeepsCurrentLogSession() {
+    public void settingLoggingToSameValueKeepsCurrentLogSession() {
         Application context = ApplicationProvider.getApplicationContext();
 
-        assertTrue(AppLogger.enableDeveloperMode(context));
+        assertTrue(AppLogger.setLoggingEnabled(context, true));
         String firstPath = AppLogger.getLogFilePath(context);
 
-        assertFalse(AppLogger.enableDeveloperMode(context));
+        assertFalse(AppLogger.setLoggingEnabled(context, true));
         assertEquals(firstPath, AppLogger.getLogFilePath(context));
     }
 
     @Test
-    public void enablingDeveloperModeAfterRestartRecreatesLogFile() throws Exception {
+    public void enabledLoggingCreatesFreshSessionFileAfterRestart() throws Exception {
         Application context = ApplicationProvider.getApplicationContext();
 
-        assertTrue(AppLogger.enableDeveloperMode(context));
+        assertTrue(AppLogger.setLoggingEnabled(context, true));
         String firstPath = AppLogger.getLogFilePath(context);
-        AppLogger.i("DeveloperModeTest", "first run marker");
+        AppLogger.i("AboutLoggingSettingsTest", "first run marker");
         String firstContent = new String(
                 Files.readAllBytes(new File(firstPath).toPath()),
                 StandardCharsets.UTF_8
@@ -76,48 +80,35 @@ public class DeveloperModeRobolectricTest {
 
         AppLogger.init(context);
 
-        assertTrue(AppLogger.enableDeveloperMode(context));
         String secondPath = AppLogger.getLogFilePath(context);
         String secondContent = new String(
                 Files.readAllBytes(new File(secondPath).toPath()),
                 StandardCharsets.UTF_8
         );
 
+        assertNotEquals(firstPath, secondPath);
         assertFalse(secondContent.contains("first run marker"));
     }
 
     @Test
-    public void aboutPageShowsAlreadyEnabledMessageOnSecondUnlockGesture() {
+    public void aboutPageFiveTapsDoNotEnableLogging() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         View root = activity.findViewById(R.id.aboutRoot);
 
-        performDeveloperUnlockGesture(root);
-        assertEquals(
-                activity.getString(R.string.msg_developer_mode_enabled),
-                ShadowToast.getTextOfLatestToast()
-        );
+        performFiveTaps(root);
 
-        performDeveloperUnlockGesture(root);
-        assertEquals(
-                activity.getString(R.string.msg_developer_mode_already_enabled),
-                ShadowToast.getTextOfLatestToast()
-        );
+        assertFalse(AppLogger.isLoggingEnabled(activity));
     }
 
     @Test
-    public void aboutPageShowsUsedSensorStatusesInDeveloperMode() {
+    public void aboutPageShowsSettingsAndDiagnosticsWithoutGesture() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
-        View root = activity.findViewById(R.id.aboutRoot);
+        Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
 
-        assertEquals(View.GONE, sensorStatusTitle.getVisibility());
-        assertEquals(View.GONE, sensorStatusBody.getVisibility());
-        assertEquals(View.GONE, symbolTestButton.getVisibility());
-
-        performDeveloperUnlockGesture(root);
-
+        assertFalse(logEnabledSwitch.isChecked());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
         assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
@@ -134,15 +125,26 @@ public class DeveloperModeRobolectricTest {
     }
 
     @Test
-    public void aboutPageCanSendSymbolTestNotificationInDeveloperMode() {
+    public void aboutPageLogSwitchEnablesLogging() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
-        View root = activity.findViewById(R.id.aboutRoot);
+        Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
+
+        assertFalse(AppLogger.isLoggingEnabled(activity));
+
+        logEnabledSwitch.performClick();
+
+        assertTrue(AppLogger.isLoggingEnabled(activity));
+        assertTrue(new File(AppLogger.getLogFilePath(activity)).exists());
+    }
+
+    @Test
+    public void aboutPageCanSendSymbolTestNotificationFromDiagnostics() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
         NotificationManager notificationManager = activity.getSystemService(NotificationManager.class);
 
-        assertEquals(View.GONE, symbolTestButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
 
-        performDeveloperUnlockGesture(root);
         symbolTestButton.performClick();
 
         assertEquals(
@@ -152,7 +154,7 @@ public class DeveloperModeRobolectricTest {
         assertTrue(notificationManager.getActiveNotifications().length > 0);
     }
 
-    private static void performDeveloperUnlockGesture(View view) {
+    private static void performFiveTaps(View view) {
         for (int i = 0; i < 5; i++) {
             view.performClick();
         }

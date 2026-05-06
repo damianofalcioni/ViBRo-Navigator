@@ -32,20 +32,68 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:autoLink="web"
-            android:text="@string/about_body"
+            android:text="@string/about_short_description"
             android:textColor="@color/white"
             android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/aboutLegal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/about_legal"
+            android:textColor="@color/gray_700"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/aboutCredits"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:autoLink="web"
+            android:text="@string/about_credits"
+            android:textColor="@color/gray_700"
+            android:textSize="14sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/outline" />
+
+        <TextView
+            android:id="@+id/aboutSettingsTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="@string/about_settings_title"
+            android:textColor="@color/white"
+            android:textSize="18sp" />
+
+        <Switch
+            android:id="@+id/aboutLogEnabledSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/label_log_enabled"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/outline" />
 
         <TextView
             android:id="@+id/aboutSensorStatusTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="@string/about_sensor_status_title"
+            android:layout_marginTop="20dp"
+            android:text="@string/about_diagnostic_title"
             android:textColor="@color/white"
-            android:textSize="18sp"
-            android:visibility="gone" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/aboutSensorStatusBody"
@@ -53,15 +101,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:textColor="@color/gray_700"
-            android:textSize="14sp"
-            android:visibility="gone" />
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/aboutSymbolTestButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/action_send_symbol_test_notification"
-            android:visibility="gone" />
+            android:text="@string/action_send_symbol_test_notification" />
     </LinearLayout>
 </ScrollView>

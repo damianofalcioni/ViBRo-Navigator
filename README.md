@@ -96,7 +96,7 @@ ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low,
 * Pure Java implementation
 * Minimal architecture with focused components
 * Navigation logic split into small, testable modules
-* Logging and diagnostics available via hidden developer mode (5 rapid taps in the about page)
+* Optional session logging and diagnostics are available from the About page.
 * Google Maps API available when `GOOGLE_MAPS_API_KEY` is defined in `local.properties` or as an environment variable.
 
 ---

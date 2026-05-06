@@ -476,22 +476,23 @@ The navigation UI must show the following in large text:
 - The about page must contain:
   - The app version
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
+  - Copyright and license text
   - API/data-source attribution stating that POI search uses OpenStreetMap Nominatim and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
+  - A Settings section below the about text
+  - A Diagnostic section at the end
 
-#### 5.1 Hidden developer mode
+#### 5.1 Logging and diagnostics
 
-- While on the about page, five fast taps anywhere on the page must enable a hidden developer mode
-- Enabling developer mode must show a popup confirming that developer mode is now enabled
-- The app must start with developer mode disabled on every app launch
-- Developer mode must apply only after it is enabled from the about page during the current app run
-- The app must write its log file only when developer mode is enabled
-- When developer mode is enabled for the first time, the app must create a new log file named `vibro-navigator-log-yyyymmddhhmm.txt` using the current local date and time
-- When developer mode is enabled again after a later app restart, the app must start a fresh log session by recreating that run's target log file before writing new entries
-- Repeating the five-tap developer-mode gesture while developer mode is already enabled must not restart logging and must instead show a popup that developer mode is already enabled
-- When developer mode is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
+- The about page Settings section must show a Log enabled switch
+- The app must write its log file only when the Log enabled setting is switched on
+- The Log enabled setting must persist across app launches
+- When Log enabled is already on at app startup, the app must create a fresh log file for that app session before startup logging begins
+- When Log enabled is switched on during an app session, the app must create a fresh log file for the remaining logs in that session
+- A single log file must contain all logs written from the app session's log-file creation until termination or until logging is switched off
+- Log files must use the `vibro-navigator-log-yyyymmddhhmmss.txt` naming pattern, with a collision suffix when needed so app sessions opened close together do not overwrite each other
+- When logging is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
-- When developer mode is enabled, the about page must additionally show a developer-only diagnostics block below the normal about text
-- That diagnostics block must currently list the app's used live inputs:
+- The about page Diagnostic section must currently list the app's used live inputs:
   - GPS provider
   - network provider
   - the selected heading sensor, preferring geomagnetic rotation vector and otherwise falling back to rotation vector when that is the available fused heading source
@@ -499,7 +500,7 @@ The navigation UI must show the following in large text:
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available
 - Heading-sensor details should include the selected sensor type plus the latest available heading/orientation-derived values and sample age when available
-- When developer mode is enabled, the about page must also show a developer-only action to send a notification-symbol test
+- The about page Diagnostic section must also show an action to send a notification-symbol test
 - Triggering that action must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
 - That test notification must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
 - Those test symbols should remain simple enough to render on generic smart bands rather than assuming full emoji support
