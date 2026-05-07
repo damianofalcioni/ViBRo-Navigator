@@ -500,6 +500,7 @@ The navigation UI must show the following in large text:
 
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
+- The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
 - The Use fused location switch must be enabled only in builds that support Google fused location
 - In the F-Droid flavor, the Use fused location switch must be disabled and must not enable Google functionality
 - In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available

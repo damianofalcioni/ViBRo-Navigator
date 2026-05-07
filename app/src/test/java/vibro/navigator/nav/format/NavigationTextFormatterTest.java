@@ -10,8 +10,11 @@ import android.content.Context;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import vibro.navigator.settings.AppSettings;
 import vibro.navigator.nav.route.VoiceHint;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -20,6 +23,39 @@ import org.robolectric.RobolectricTestRunner;
 public class NavigationTextFormatterTest {
 
     private final Context context = ApplicationProvider.getApplicationContext();
+
+    @Before
+    public void setUp() {
+        AppSettings.setImperialUnitsEnabled(context, false);
+    }
+
+    @After
+    public void tearDown() {
+        AppSettings.setImperialUnitsEnabled(context, false);
+    }
+
+    @Test
+    public void formatDistance_usesMetricUnitsByDefault() {
+        assertEquals("120 m", NavigationTextFormatter.formatDistance(context, 120.0));
+        assertEquals("1.2 km", NavigationTextFormatter.formatDistance(context, 1234.0));
+    }
+
+    @Test
+    public void formatDistance_usesImperialUnitsWhenEnabled() {
+        AppSettings.setImperialUnitsEnabled(context, true);
+
+        assertEquals("394 ft", NavigationTextFormatter.formatDistance(context, 120.0));
+        assertEquals("1.0 mi", NavigationTextFormatter.formatDistance(context, 1609.344));
+    }
+
+    @Test
+    public void formatGpsMeasurements_useImperialUnitsWhenEnabled() {
+        AppSettings.setImperialUnitsEnabled(context, true);
+
+        assertEquals("10 mph", NavigationTextFormatter.formatSpeed(context, 4.5f));
+        assertEquals("805 ft", NavigationTextFormatter.formatElevation(context, 245.4));
+        assertEquals("±16 ft", NavigationTextFormatter.formatAccuracy(context, 5f));
+    }
 
     @Test
     public void formatOffRouteNotification_formatsOffTrackDetails() {

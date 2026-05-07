@@ -16,6 +16,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppSettings;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -37,6 +38,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
+        AppSettings.setImperialUnitsEnabled(context, false);
         ShadowToast.reset();
     }
 
@@ -104,11 +106,13 @@ public class AboutLoggingSettingsRobolectricTest {
     public void aboutPageShowsSettingsAndDiagnosticsWithoutGesture() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
+        Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
 
         assertFalse(logEnabledSwitch.isChecked());
+        assertFalse(imperialUnitsSwitch.isChecked());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
         assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
@@ -141,6 +145,18 @@ public class AboutLoggingSettingsRobolectricTest {
 
         assertTrue(AppLogger.isLoggingEnabled(activity));
         assertTrue(new File(AppLogger.getLogFilePath(activity)).exists());
+    }
+
+    @Test
+    public void aboutPageImperialUnitsSwitchPersistsPreference() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
+
+        assertFalse(AppSettings.isImperialUnitsEnabled(activity));
+
+        imperialUnitsSwitch.performClick();
+
+        assertTrue(AppSettings.isImperialUnitsEnabled(activity));
     }
 
     @Test

@@ -1,7 +1,6 @@
 package vibro.navigator.nav.compass.ui;
 
 
-import vibro.navigator.R;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import android.content.Context;
@@ -256,10 +255,7 @@ final class NavigationCompassLegendRenderer {
 
     @NonNull
     private static String formatDistanceLabel(@NonNull Context context, float distanceMeters) {
-        if (distanceMeters >= 1000f) {
-            return context.getString(R.string.format_distance_km, distanceMeters / 1000f);
-        }
-        return context.getString(R.string.format_distance_m, distanceMeters);
+        return NavigationTextFormatter.formatDistance(context, distanceMeters);
     }
 
     @NonNull

@@ -118,12 +118,17 @@
 
     <string name="format_distance_m">%1$.0f m</string>
     <string name="format_distance_km">%1$.1f km</string>
+    <string name="format_distance_ft">%1$.0f ft</string>
+    <string name="format_distance_mi">%1$.1f mi</string>
     <string name="format_bearing_degrees">%1$.0f°</string>
     <string name="format_time_s">%1$d s</string>
     <string name="format_time_min">%1$d min</string>
     <string name="format_nav_speed_value">%1$.0f km/h</string>
+    <string name="format_nav_speed_mph_value">%1$.0f mph</string>
     <string name="format_nav_elevation_value">%1$.0f m</string>
+    <string name="format_nav_elevation_ft_value">%1$.0f ft</string>
     <string name="format_nav_accuracy_value">±%1$.0f m</string>
+    <string name="format_nav_accuracy_ft_value">±%1$.0f ft</string>
     <string name="format_nav_bearing_value">%1$.0f°</string>
     <string name="format_nav_bearing_accuracy_value">%1$.0f°</string>
     <string name="format_nav_next_position_check_value">%1$d s</string>
@@ -148,6 +153,7 @@
     <string name="about_settings_title">Settings</string>
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
+    <string name="label_imperial_units_enabled">Use imperial units</string>
     <string name="about_diagnostic_title">Diagnostic</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>

@@ -90,6 +90,16 @@
             android:textColor="@color/white"
             android:textSize="16sp" />
 
+        <Switch
+            android:id="@+id/aboutImperialUnitsSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/label_imperial_units_enabled"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

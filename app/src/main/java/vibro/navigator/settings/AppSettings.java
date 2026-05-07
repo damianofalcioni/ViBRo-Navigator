@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 public final class AppSettings {
     private static final String PREFS = "vibro.navigator.settings";
     private static final String KEY_USE_FUSED_LOCATION = "use_fused_location";
+    private static final String KEY_USE_IMPERIAL_UNITS = "use_imperial_units";
 
     private AppSettings() {
     }
@@ -19,6 +20,16 @@ public final class AppSettings {
     public static void setFusedLocationEnabled(@NonNull Context context, boolean enabled) {
         prefs(context).edit()
                 .putBoolean(KEY_USE_FUSED_LOCATION, enabled)
+                .apply();
+    }
+
+    public static boolean isImperialUnitsEnabled(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_USE_IMPERIAL_UNITS, false);
+    }
+
+    public static void setImperialUnitsEnabled(@NonNull Context context, boolean enabled) {
+        prefs(context).edit()
+                .putBoolean(KEY_USE_IMPERIAL_UNITS, enabled)
                 .apply();
     }
 

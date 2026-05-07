@@ -99,10 +99,7 @@ public final class NavigationTextFormatter {
 
     @NonNull
     public static String formatDistance(@NonNull Context context, double meters) {
-        if (meters >= 1000.0) {
-            return context.getString(R.string.format_distance_km, meters / 1000.0);
-        }
-        return context.getString(R.string.format_distance_m, meters);
+        return NavigationMeasurementFormatter.formatDistance(context, meters);
     }
 
     @NonNull

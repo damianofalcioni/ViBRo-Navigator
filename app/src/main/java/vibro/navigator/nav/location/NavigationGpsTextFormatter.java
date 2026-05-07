@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.format.NavigationMeasurementFormatter;
 
 public final class NavigationGpsTextFormatter {
 
@@ -35,26 +36,17 @@ public final class NavigationGpsTextFormatter {
 
     @NonNull
     public static String formatSpeed(@NonNull Context context, float speedMps) {
-        if (!Float.isFinite(speedMps) || speedMps < 0f) {
-            return context.getString(R.string.nav_status_unavailable);
-        }
-        return context.getString(R.string.format_nav_speed_value, speedMps * 3.6f);
+        return NavigationMeasurementFormatter.formatSpeed(context, speedMps);
     }
 
     @NonNull
     public static String formatElevation(@NonNull Context context, @Nullable Double elevationMeters) {
-        if (elevationMeters == null || !Double.isFinite(elevationMeters)) {
-            return context.getString(R.string.nav_status_unavailable);
-        }
-        return context.getString(R.string.format_nav_elevation_value, elevationMeters);
+        return NavigationMeasurementFormatter.formatElevation(context, elevationMeters);
     }
 
     @NonNull
     public static String formatAccuracy(@NonNull Context context, float accuracyMeters) {
-        if (!Float.isFinite(accuracyMeters) || accuracyMeters <= 0f) {
-            return context.getString(R.string.nav_status_unavailable);
-        }
-        return context.getString(R.string.format_nav_accuracy_value, accuracyMeters);
+        return NavigationMeasurementFormatter.formatAccuracy(context, accuracyMeters);
     }
 
     @NonNull

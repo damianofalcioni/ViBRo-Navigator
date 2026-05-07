@@ -34,6 +34,7 @@ public class AboutActivity extends Activity {
     private TextView sensorStatusBody;
     private Switch logEnabledSwitch;
     private Switch fusedLocationSwitch;
+    private Switch imperialUnitsSwitch;
     private Button symbolTestButton;
 
     @Override
@@ -44,6 +45,7 @@ public class AboutActivity extends Activity {
         TextView version = findViewById(R.id.aboutVersion);
         logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
         fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
+        imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
         sensorStatusTitle = findViewById(R.id.aboutSensorStatusTitle);
         sensorStatusBody = findViewById(R.id.aboutSensorStatusBody);
         symbolTestButton = findViewById(R.id.aboutSymbolTestButton);
@@ -54,6 +56,7 @@ public class AboutActivity extends Activity {
             renderDiagnosticSection();
         });
         configureFusedLocationSwitch();
+        configureImperialUnitsSwitch();
         symbolTestButton.setOnClickListener(v -> sendSymbolTestNotification());
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
@@ -84,6 +87,7 @@ public class AboutActivity extends Activity {
         logEnabledSwitch.setChecked(AppLogger.isLoggingEnabled(this));
         fusedLocationSwitch.setChecked(DistributionServices.supportsFusedLocation()
                 && AppSettings.isFusedLocationEnabled(this));
+        imperialUnitsSwitch.setChecked(AppSettings.isImperialUnitsEnabled(this));
         sensorStatusTitle.setVisibility(android.view.View.VISIBLE);
         sensorStatusBody.setVisibility(android.view.View.VISIBLE);
         symbolTestButton.setVisibility(android.view.View.VISIBLE);
@@ -105,6 +109,14 @@ public class AboutActivity extends Activity {
                 return;
             }
             AppSettings.setFusedLocationEnabled(this, isChecked);
+            renderDiagnosticSection();
+        });
+    }
+
+    private void configureImperialUnitsSwitch() {
+        imperialUnitsSwitch.setChecked(AppSettings.isImperialUnitsEnabled(this));
+        imperialUnitsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            AppSettings.setImperialUnitsEnabled(this, isChecked);
             renderDiagnosticSection();
         });
     }
