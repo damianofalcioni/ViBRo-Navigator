@@ -228,12 +228,12 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void orientationCueArcLeavesGapBeforeTargetMarker() {
+    public void orientationCueArcExtendsToTargetMarker() {
         NavigationCompassOrientationCueRenderer renderer = new NavigationCompassOrientationCueRenderer();
 
-        assertEquals(14f, renderer.arcSweepWithMarkerGap(20f), 0.01f);
-        assertEquals(-14f, renderer.arcSweepWithMarkerGap(-20f), 0.01f);
-        assertEquals(0f, renderer.arcSweepWithMarkerGap(4f), 0.01f);
+        assertEquals(20f, renderer.arcSweepToMarker(20f), 0.01f);
+        assertEquals(-20f, renderer.arcSweepToMarker(-20f), 0.01f);
+        assertEquals(4f, renderer.arcSweepToMarker(4f), 0.01f);
     }
 
     @Test

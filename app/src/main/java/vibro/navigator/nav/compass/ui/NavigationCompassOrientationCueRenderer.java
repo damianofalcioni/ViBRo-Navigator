@@ -17,14 +17,14 @@ import vibro.navigator.nav.compass.NavCompassState;
 
 final class NavigationCompassOrientationCueRenderer {
 
-    private static final float ARC_RADIUS_OFFSET_DP = 5f;
+    private static final float ARC_RADIUS_OFFSET_DP = 2f;
     private static final float ARC_STROKE_WIDTH_DP = 1.1f;
-    private static final float MARKER_ARC_GAP_DEGREES = 6f;
-    private static final float MARKER_TIP_OFFSET_DP = 2f;
+    private static final float MARKER_BORDER_WIDTH_DP = 1.2f;
     private static final float MARKER_WIDTH_DP = 14f;
     private static final float MARKER_HEIGHT_DP = 8f;
 
     private final Paint cuePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint markerBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path markerPath = new Path();
     private final RectF arcBounds = new RectF();
     private boolean initialized;
@@ -44,7 +44,7 @@ final class NavigationCompassOrientationCueRenderer {
         }
         ensurePaintInitialized(context);
         float sweepDegrees = signedSweepDegrees(currentHeadingDegrees, cue.targetHeadingDegrees);
-        drawArc(canvas, context, cx, cy, radius, arcSweepWithMarkerGap(sweepDegrees));
+        drawArc(canvas, context, cx, cy, radius, arcSweepToMarker(sweepDegrees));
         drawMarker(canvas, context, cx, cy, radius, sweepDegrees);
     }
 
@@ -53,13 +53,8 @@ final class NavigationCompassOrientationCueRenderer {
         return normalized == -180f ? 180f : normalized;
     }
 
-    float arcSweepWithMarkerGap(float sweepDegrees) {
-        if (Math.abs(sweepDegrees) <= MARKER_ARC_GAP_DEGREES) {
-            return 0f;
-        }
-        return sweepDegrees > 0f
-                ? sweepDegrees - MARKER_ARC_GAP_DEGREES
-                : sweepDegrees + MARKER_ARC_GAP_DEGREES;
+    float arcSweepToMarker(float sweepDegrees) {
+        return sweepDegrees;
     }
 
     private void drawArc(
@@ -86,8 +81,8 @@ final class NavigationCompassOrientationCueRenderer {
             float radius,
             float sweepDegrees
     ) {
-        float tipY = cy - radius - dp(context, MARKER_TIP_OFFSET_DP);
-        float baseY = tipY - dp(context, MARKER_HEIGHT_DP);
+        float tipY = cy - radius;
+        float baseY = tipY + dp(context, MARKER_HEIGHT_DP);
         float halfWidth = dp(context, MARKER_WIDTH_DP) / 2f;
 
         markerPath.reset();
@@ -100,6 +95,7 @@ final class NavigationCompassOrientationCueRenderer {
         canvas.save();
         canvas.rotate(sweepDegrees, cx, cy);
         canvas.drawPath(markerPath, cuePaint);
+        canvas.drawPath(markerPath, markerBorderPaint);
         canvas.restore();
     }
 
@@ -108,6 +104,10 @@ final class NavigationCompassOrientationCueRenderer {
             return;
         }
         cuePaint.setColor(ContextCompat.getColor(context, R.color.danger));
+        markerBorderPaint.setStyle(Paint.Style.STROKE);
+        markerBorderPaint.setStrokeWidth(dp(context, MARKER_BORDER_WIDTH_DP));
+        markerBorderPaint.setStrokeJoin(Paint.Join.ROUND);
+        markerBorderPaint.setColor(ContextCompat.getColor(context, R.color.compass_surface));
         initialized = true;
     }
 
