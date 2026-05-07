@@ -20,6 +20,8 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
     @Nullable
     private final SensorManager sensorManager;
     @NonNull
+    private final AboutFusedLocationDiagnostic fusedLocationDiagnostic;
+    @NonNull
     private final HeadingSensorDiagnostic rotationVectorDiagnostic;
     @NonNull
     private final HeadingSensorDiagnostic geomagneticRotationVectorDiagnostic;
@@ -34,6 +36,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         Context appContext = context.getApplicationContext();
         locationManager = (LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);
         sensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
+        fusedLocationDiagnostic = new AboutFusedLocationDiagnostic(appContext);
         rotationVectorDiagnostic = new HeadingSensorDiagnostic(
                 sensorManager,
                 Sensor.TYPE_ROTATION_VECTOR,
@@ -78,6 +81,15 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
     @NonNull
     String build(@NonNull Context context) {
         StringBuilder sb = new StringBuilder();
+        if (fusedLocationDiagnostic.shouldDisplay()) {
+            appendLine(
+                    context,
+                    sb,
+                    R.string.label_sensor_fused_provider,
+                    fusedLocationDiagnostic.statusResId(),
+                    fusedLocationDiagnostic.value()
+            );
+        }
         appendLine(
                 context,
                 sb,

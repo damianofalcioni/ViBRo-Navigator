@@ -10,6 +10,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailabilityLight;
 
 import vibro.navigator.BuildConfig;
+import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.poi.search.GoogleGeocodeClient;
 import vibro.navigator.poi.search.PoiSearchClient;
@@ -33,6 +34,11 @@ public final class DistributionServices {
             @NonNull LocationListener listener
     ) {
         return new GplayFusedLocationUpdateClient(context, listener);
+    }
+
+    @NonNull
+    public static FusedLocationDiagnosticClient createFusedLocationDiagnosticClient(@NonNull Context context) {
+        return new GplayFusedLocationDiagnosticClient(context);
     }
 
     @Nullable

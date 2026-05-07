@@ -6,6 +6,7 @@ import android.location.LocationListener;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 
@@ -29,9 +30,26 @@ public final class DistributionServices {
         return new NoOpFusedLocationUpdateClient();
     }
 
+    @NonNull
+    public static FusedLocationDiagnosticClient createFusedLocationDiagnosticClient(@NonNull Context context) {
+        return new NoOpFusedLocationDiagnosticClient();
+    }
+
     @Nullable
     public static PoiSearchClient createGooglePoiSearchClient() {
         return null;
+    }
+
+    private static final class NoOpFusedLocationDiagnosticClient implements FusedLocationDiagnosticClient {
+        @Override
+        public boolean isAvailable() {
+            return false;
+        }
+
+        @Override
+        public void requestLastKnownLocation(@NonNull Callback callback) {
+            callback.onFailure("unavailable");
+        }
     }
 
     private static final class NoOpFusedLocationUpdateClient implements FusedLocationUpdateClient {

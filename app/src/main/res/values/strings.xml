@@ -149,6 +149,7 @@
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
     <string name="about_diagnostic_title">Diagnostic</string>
+    <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>
     <string name="label_sensor_network_provider">Network provider</string>
     <string name="label_sensor_geomagnetic_rotation_vector">Geomagnetic rotation vector</string>
