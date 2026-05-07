@@ -157,6 +157,7 @@ public class NavigationCompassModeControllerTest {
                 1,
                 0f,
                 1_500f,
+                5f,
                 !sixtySecondView
         );
     }

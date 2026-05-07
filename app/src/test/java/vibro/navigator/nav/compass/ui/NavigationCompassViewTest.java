@@ -152,6 +152,27 @@ public class NavigationCompassViewTest {
     }
 
     @Test
+    public void destinationReachedRadiusScalesFromVisibleRadius() {
+        NavigationCompassRouteMarkerRenderer renderer = new NavigationCompassRouteMarkerRenderer();
+
+        assertEquals(10f, renderer.resolveDestinationReachedRadiusPx(NavCompassState.fromProjectedPoints(
+                0f,
+                null,
+                1f,
+                100f,
+                10f,
+                true,
+                18f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                20f,
+                0f,
+                true
+        ), 100f), 0.01f);
+    }
+
+    @Test
     public void routeKeepsOpaqueBaseAlphaInMovingMode() {
         NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
 

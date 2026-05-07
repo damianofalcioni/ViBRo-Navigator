@@ -20,9 +20,11 @@ final class NavigationCompassRouteMarkerRenderer {
 
     private static final float ROUTE_MARKER_RADIUS_DP = 2.5f;
     private static final float DESTINATION_MARKER_RADIUS_DP = 4f;
+    private static final int DESTINATION_REACHED_RADIUS_ALPHA = 51;
 
     private final Paint routeMarkerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint destinationPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint destinationReachedRadiusPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
     private final NavigationRoutePathRenderer.PlotPoint destinationPoint = new NavigationRoutePathRenderer.PlotPoint();
     private boolean initialized;
@@ -37,6 +39,7 @@ final class NavigationCompassRouteMarkerRenderer {
             float headingDegrees
     ) {
         ensurePaintsInitialized(context);
+        drawDestinationReachedRadius(canvas, state, cx, cy, routeRadius, headingDegrees);
         NavigationRoutePathRenderer.PlotPoint position =
                 resolveDestinationPosition(state, cx, cy, routeRadius, headingDegrees);
         if (position == null) {
@@ -77,6 +80,16 @@ final class NavigationCompassRouteMarkerRenderer {
                 cy - destinationPoint.y * scale
         );
         return destinationPoint;
+    }
+
+    float resolveDestinationReachedRadiusPx(@Nullable NavCompassState state, float routeRadius) {
+        if (state == null
+                || state.radiusState.visibleRadiusMeters <= 0f
+                || state.progressLabels.destinationReachedRadiusMeters <= 0f) {
+            return 0f;
+        }
+        return routeRadius
+                * (state.progressLabels.destinationReachedRadiusMeters / state.radiusState.visibleRadiusMeters);
     }
 
     void drawHintMarkers(
@@ -145,7 +158,58 @@ final class NavigationCompassRouteMarkerRenderer {
 
         destinationPaint.setStyle(Paint.Style.FILL);
         destinationPaint.setColor(ContextCompat.getColor(context, R.color.white));
+
+        destinationReachedRadiusPaint.setStyle(Paint.Style.FILL);
+        destinationReachedRadiusPaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
+        destinationReachedRadiusPaint.setAlpha(DESTINATION_REACHED_RADIUS_ALPHA);
         initialized = true;
+    }
+
+    private void drawDestinationReachedRadius(
+            @NonNull Canvas canvas,
+            @Nullable NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius,
+            float headingDegrees
+    ) {
+        NavigationRoutePathRenderer.PlotPoint position = resolveDestinationCenterPosition(
+                state,
+                cx,
+                cy,
+                routeRadius,
+                headingDegrees
+        );
+        float radiusPx = resolveDestinationReachedRadiusPx(state, routeRadius);
+        if (position == null || radiusPx <= 0f) {
+            return;
+        }
+        canvas.drawCircle(position.x, position.y, Math.min(routeRadius, radiusPx), destinationReachedRadiusPaint);
+    }
+
+    @Nullable
+    private NavigationRoutePathRenderer.PlotPoint resolveDestinationCenterPosition(
+            @Nullable NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius,
+            float headingDegrees
+    ) {
+        if (state == null || !state.progressLabels.destinationWithinRadius) {
+            return null;
+        }
+        float scale = routeRadius / Math.max(1f, state.radiusState.visibleRadiusMeters);
+        NavigationCompassRouteProjector.projectHeadingUp(
+                state.progressLabels.destinationEastMeters,
+                state.progressLabels.destinationNorthMeters,
+                headingDegrees,
+                destinationPoint
+        );
+        destinationPoint.set(
+                cx + destinationPoint.x * scale,
+                cy - destinationPoint.y * scale
+        );
+        return destinationPoint;
     }
 
     private void drawGeometryHintMarkers(

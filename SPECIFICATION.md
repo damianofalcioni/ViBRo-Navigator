@@ -326,8 +326,11 @@ The navigation UI must show the following in large text:
 - The second upcoming direction's relative time should be derived from BRouter timing between the first and second maneuver points when available
 - The navigation UI must only surface directions whose distance is outside the current minimum trusted maneuver radius; unreliable micro-maneuvers should be skipped in favor of the next trustworthy instruction
 - In ambiguous low-confidence conditions, temporary absence of a next-turn line is preferable to presenting a wrong or misleading turn
+- When BRouter reports command `100`, the navigation UI must treat it as the authoritative destination-reached arrival instruction
+- When no further actionable maneuver follows the final maneuver and BRouter has not reported command `100`, the navigation UI must synthesize a destination-reached arrival instruction at the final route point
+- Before the user enters the destination-reached radius, destination-reached instructions must behave like an upcoming direction and include the remaining distance and time, including relative distance and time when shown as the second line after the final maneuver
 - Once the user is inside the destination-reached radius, the primary next-direction line must switch to a destination-reached message using the mapped arrival symbol instead of remaining blank
-- That destination-reached presentation should omit misleading `0 m` or `0 s` countdown fields and behave as a terminal guidance state rather than as another ordinary turn
+- That terminal destination-reached presentation should omit misleading `0 m` or `0 s` countdown fields and behave as a terminal guidance state rather than as another ordinary turn
 - The first upcoming direction must keep the full available instruction row width
 - Both direction lines must stay on a single line and should reduce text size as needed before falling back to end-ellipsis truncation
 
@@ -336,6 +339,7 @@ The navigation UI must show the following in large text:
 - In the center: a map-free compass canvas showing the active route relative to the current position
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
+- The compass must draw the destination-reached radius around the destination marker using the same transparent red treatment as the route-threshold overlay
 - While the user is moving at course-style speeds of at least 2.5 m/s, the displayed compass heading should prefer trusted GPS/course heading to reduce jitter; at walking speeds below that threshold, the displayed compass should prefer the live heading sensor when available
 - At course-style speeds, the displayed compass heading should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees

@@ -84,6 +84,13 @@ public final class NavigationRouteGeometryState {
         return NavigationExpectedBearingResolver.resolve(polylineIndex, match);
     }
 
+    public static double resolveDestinationReachedRadiusMeters(float accuracyMeters) {
+        return Math.max(
+                MIN_DESTINATION_REACHED_RADIUS_METERS,
+                Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0.0
+        );
+    }
+
     public boolean isWithinDestinationReachedRadius(@NonNull Location location, float accuracyMeters) {
         if (route == null || route.track.isEmpty()) {
             return false;
@@ -95,10 +102,7 @@ public final class NavigationRouteGeometryState {
                 destination.lat,
                 destination.lon
         );
-        double destinationReachedRadiusMeters = Math.max(
-                MIN_DESTINATION_REACHED_RADIUS_METERS,
-                Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0.0
-        );
+        double destinationReachedRadiusMeters = resolveDestinationReachedRadiusMeters(accuracyMeters);
         return destinationDistanceMeters <= destinationReachedRadiusMeters;
     }
 }

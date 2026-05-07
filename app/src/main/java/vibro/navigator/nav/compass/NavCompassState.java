@@ -64,6 +64,7 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
+                        Math.max(5f, accuracyRadiusMeters),
                         destinationWithinRadius
                 )
         ));
@@ -94,6 +95,7 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
+                        Math.max(5f, accuracyRadiusMeters),
                         destinationWithinRadius
                 )
         ));
@@ -118,6 +120,7 @@ public final class NavCompassState {
             int passedRouteSamplePointCount,
             float destinationEastMeters,
             float destinationNorthMeters,
+            float destinationReachedRadiusMeters,
             boolean destinationWithinRadius
     ) {
         return fromRouteGeometry(new NavCompassRouteGeometryInput(
@@ -143,6 +146,7 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
+                        destinationReachedRadiusMeters,
                         destinationWithinRadius
                 )
         ));
@@ -167,6 +171,7 @@ public final class NavCompassState {
         this.progressLabels = new CompassProgressLabels(
                 input.destinationProjection.eastMeters,
                 input.destinationProjection.northMeters,
+                input.destinationProjection.reachedRadiusMeters,
                 input.destinationProjection.withinRadius
         );
         this.passedRoutePoints = Collections.unmodifiableList(input.passedRoutePoints);
@@ -199,6 +204,7 @@ public final class NavCompassState {
         this.progressLabels = new CompassProgressLabels(
                 input.destinationProjection.eastMeters,
                 input.destinationProjection.northMeters,
+                input.destinationProjection.reachedRadiusMeters,
                 input.destinationProjection.withinRadius
         );
         this.routeGeometry = input.routeGeometry;
@@ -288,6 +294,7 @@ public final class NavCompassState {
                     new CompassDestinationProjection(
                             progressLabels.destinationEastMeters,
                             progressLabels.destinationNorthMeters,
+                            progressLabels.destinationReachedRadiusMeters,
                             targetDestinationWithinRadius
                     ),
                     orientationCue
@@ -315,6 +322,7 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         progressLabels.destinationEastMeters,
                         progressLabels.destinationNorthMeters,
+                        progressLabels.destinationReachedRadiusMeters,
                         targetDestinationWithinRadius
                 ),
                 orientationCue

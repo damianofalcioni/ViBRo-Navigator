@@ -129,6 +129,120 @@ public class NavStateTest {
     }
 
     @Test
+    public void from_synthesizesArrivalHintAfterFinalManeuver() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 2, 0, 0.0, 0),
+                        new VoiceHint(2, 100, 0, 0.0, 0)
+                ),
+                Arrays.asList(0.0, 20.0, 45.0),
+                45.0,
+                222.0
+        );
+
+        NavState state = from(
+                route,
+                new PolylineIndex(route.track),
+                0.0,
+                0,
+                0,
+                0f,
+                false,
+                5f,
+                locationAt(0.0, 0.0),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget(DESTINATION, 222.0)),
+                context
+        );
+
+        assertTrue(state.routeStatus.guidance.nextLine.contains(DISTANCE_111_METERS));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains(DISTANCE_111_METERS));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains("25 s"));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains(context.getString(R.string.direction_arrive)));
+        assertFalse(state.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_arrive)));
+
+        NavState afterFinalManeuver = from(
+                route,
+                new PolylineIndex(route.track),
+                111.0,
+                1,
+                1,
+                0f,
+                false,
+                5f,
+                locationAt(0.0, 0.001),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget(DESTINATION, 222.0)),
+                context
+        );
+
+        assertTrue(afterFinalManeuver.routeStatus.guidance.nextLine.contains(DISTANCE_111_METERS));
+        assertTrue(afterFinalManeuver.routeStatus.guidance.nextLine.contains("25 s"));
+        assertTrue(afterFinalManeuver.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_arrive)
+        ));
+        assertEquals("", afterFinalManeuver.routeStatus.guidance.afterNextLine);
+
+        GeoJsonRoute nearDestinationRoute = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.emptyList(),
+                Arrays.asList(0.0, 20.0),
+                20.0,
+                111.0
+        );
+        NavState nearDestinationState = from(
+                nearDestinationRoute,
+                new PolylineIndex(nearDestinationRoute.track),
+                108.0,
+                0,
+                0,
+                1.5f,
+                false,
+                10f,
+                locationAt(0.0, 0.00097),
+                null,
+                45.0,
+                null,
+                null,
+                null,
+                0L,
+                NavState.NO_DEADLINE,
+                0L,
+                Collections.singletonList(new NavTarget(DESTINATION, 111.0)),
+                context
+        );
+
+        assertTrue(nearDestinationState.routeStatus.guidance.nextLine.contains("3 m"));
+        assertTrue(nearDestinationState.routeStatus.guidance.nextLine.contains("2 s"));
+        assertTrue(nearDestinationState.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_arrive)
+        ));
+        assertEquals("", nearDestinationState.routeStatus.guidance.afterNextLine);
+    }
+
+    @Test
     public void from_showsUnavailableHintTimeWhenSameSegmentSpeedIsUnavailable() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(

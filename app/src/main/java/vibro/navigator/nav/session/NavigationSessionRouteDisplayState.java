@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
 import java.util.ArrayList;
@@ -92,6 +93,8 @@ public final class NavigationSessionRouteDisplayState {
                         snapshot.likelyStationary,
                         compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters)
                 )
+                .destinationReachedRadiusMeters((float)
+                        NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(snapshot.accuracyMeters))
                 .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)
                 .radiusMemory(
                         compassMemory.lastVisibleRadiusMeters(),

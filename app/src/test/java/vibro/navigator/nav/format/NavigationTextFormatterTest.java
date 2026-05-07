@@ -81,4 +81,16 @@ public class NavigationTextFormatterTest {
 
         assertEquals("■ Destination reached", message);
     }
+
+    @Test
+    public void formatTurnNotification_formatsUpcomingArrivalWithDistanceAndCountdown() {
+        String message = NavigationTextFormatter.formatTurnNotification(
+                context,
+                new VoiceHint(1, 100, 0, 0.0, 0),
+                120.0,
+                8.0
+        );
+
+        assertEquals("■ 120 m - 8 s - Destination reached", message);
+    }
 }

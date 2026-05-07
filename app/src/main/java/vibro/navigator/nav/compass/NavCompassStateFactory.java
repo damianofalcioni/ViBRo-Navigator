@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
 public final class NavCompassStateFactory {
@@ -79,6 +80,7 @@ public final class NavCompassStateFactory {
                 input.speedMps,
                 input.likelyStationary,
                 input.accuracyMeters,
+                input.destinationReachedRadiusMeters,
                 input.headingDegrees,
                 input.headingAccuracyDegrees,
                 input.previousVisibleRadiusMeters,
@@ -117,6 +119,7 @@ public final class NavCompassStateFactory {
                 speedMps,
                 likelyStationary,
                 compassAccuracyMeters,
+                (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(compassAccuracyMeters),
                 headingDegrees,
                 headingAccuracyDegrees,
                 previousCompassVisibleRadiusMeters,
@@ -138,6 +141,7 @@ public final class NavCompassStateFactory {
             float speedMps,
             boolean likelyStationary,
             float compassAccuracyMeters,
+            float destinationReachedRadiusMeters,
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
@@ -210,6 +214,7 @@ public final class NavCompassStateFactory {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
+                        destinationReachedRadiusMeters,
                         destinationDistanceMeters <= radiusState.visibleRadiusMeters
                 ),
                 orientationCue

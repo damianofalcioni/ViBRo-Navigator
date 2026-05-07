@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
 public final class NavCompassStateInput {
@@ -19,6 +20,7 @@ public final class NavCompassStateInput {
     public final float speedMps;
     public final boolean likelyStationary;
     public final float accuracyMeters;
+    public final float destinationReachedRadiusMeters;
     @Nullable
     public final Double headingDegrees;
     @Nullable
@@ -44,6 +46,7 @@ public final class NavCompassStateInput {
         speedMps = builder.speedMps;
         likelyStationary = builder.likelyStationary;
         accuracyMeters = builder.accuracyMeters;
+        destinationReachedRadiusMeters = builder.destinationReachedRadiusMeters;
         headingDegrees = builder.headingDegrees;
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
         previousVisibleRadiusMeters = builder.previousVisibleRadiusMeters;
@@ -75,6 +78,7 @@ public final class NavCompassStateInput {
         private float speedMps;
         private boolean likelyStationary;
         private float accuracyMeters;
+        private float destinationReachedRadiusMeters;
         @Nullable
         private Double headingDegrees;
         @Nullable
@@ -113,6 +117,14 @@ public final class NavCompassStateInput {
             this.speedMps = speedMps;
             this.likelyStationary = likelyStationary;
             this.accuracyMeters = accuracyMeters;
+            this.destinationReachedRadiusMeters =
+                    (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(accuracyMeters);
+            return this;
+        }
+
+        @NonNull
+        public Builder destinationReachedRadiusMeters(float destinationReachedRadiusMeters) {
+            this.destinationReachedRadiusMeters = destinationReachedRadiusMeters;
             return this;
         }
 

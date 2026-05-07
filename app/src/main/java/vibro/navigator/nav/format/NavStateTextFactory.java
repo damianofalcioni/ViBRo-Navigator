@@ -19,7 +19,6 @@ import java.util.Collections;
 import java.util.List;
 
 public final class NavStateTextFactory {
-
     private NavStateTextFactory() {
     }
 
@@ -35,11 +34,11 @@ public final class NavStateTextFactory {
             boolean destinationReached,
             @NonNull Context context
     ) {
+        if (route.track.isEmpty()) {
+            return new ArrayList<>();
+        }
         if (destinationReached) {
             return buildDestinationReachedDirectionLines(route, context);
-        }
-        if (hasNoUpcomingDirectionHints(route, hintIdx)) {
-            return new ArrayList<>();
         }
 
         List<UpcomingHint> upcomingHints = collectUpcomingDirectionHints(
@@ -62,15 +61,11 @@ public final class NavStateTextFactory {
         return new ArrayList<>(Collections.singletonList(
                 NavigationTextFormatter.formatTurnNotification(
                         context,
-                        new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0),
+                        new VoiceHint(route.track.size() - 1, NavArrivalHintFactory.ARRIVAL_COMMAND, 0, 0.0, 0),
                         0.0,
                         0.0
                 )
         ));
-    }
-
-    private static boolean hasNoUpcomingDirectionHints(@NonNull GeoJsonRoute route, int hintIdx) {
-        return route.voiceHints.isEmpty() || hintIdx < 0 || hintIdx >= route.voiceHints.size();
     }
 
     @NonNull
@@ -85,11 +80,12 @@ public final class NavStateTextFactory {
     ) {
         List<UpcomingHint> upcomingHints = new ArrayList<>(2);
         double minReliableDistanceMeters = minimumReliableTurnDistanceMeters(accuracyMeters);
-        for (int i = hintIdx; i < route.voiceHints.size() && upcomingHints.size() < 2; i++) {
+        int startHintIdx = Math.max(0, hintIdx);
+        for (int i = startHintIdx; i < route.voiceHints.size() && upcomingHints.size() < 2; i++) {
             VoiceHint hint = route.voiceHints.get(i);
             double hintDist = index.distanceAtPointIndex(hint.indexInTrack);
             double dist = Math.max(0.0, hintDist - alongTrackMeters);
-            if (dist <= minReliableDistanceMeters) {
+            if (dist <= minReliableDistanceMeters && hint.command != NavArrivalHintFactory.ARRIVAL_COMMAND) {
                 continue;
             }
             Double timeSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
@@ -104,6 +100,22 @@ public final class NavStateTextFactory {
                     hint,
                     dist,
                     timeSeconds != null ? timeSeconds : Double.NaN
+            ));
+        }
+        NavArrivalHintFactory.ArrivalHint arrivalHint = NavArrivalHintFactory.buildSyntheticArrivalHint(
+                route,
+                index,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                startHintIdx,
+                upcomingHints.size()
+        );
+        if (arrivalHint != null) {
+            upcomingHints.add(new UpcomingHint(
+                    arrivalHint.hint,
+                    arrivalHint.distanceMeters,
+                    arrivalHint.timeSeconds
             ));
         }
         return upcomingHints;
