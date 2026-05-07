@@ -9,6 +9,7 @@ public final class NavigationStartupLocationSelector {
 
     private static final long MAX_AGE_MS = 15_000L;
     private static final float MAX_ACCURACY_METERS = 50f;
+    private static final float MAX_ROUTE_START_ACCURACY_METERS = 25f;
 
     private NavigationStartupLocationSelector() {
     }
@@ -32,6 +33,15 @@ public final class NavigationStartupLocationSelector {
         long ageMs = Math.max(0L, nowMs - location.getTime());
         return ageMs <= MAX_AGE_MS
                 && accuracyMeters(location) <= MAX_ACCURACY_METERS;
+    }
+
+    public static boolean isUsableForRouteStart(@Nullable Location location, long nowMs) {
+        if (location == null) {
+            return false;
+        }
+        long ageMs = Math.max(0L, nowMs - location.getTime());
+        return ageMs <= MAX_AGE_MS
+                && accuracyMeters(location) <= MAX_ROUTE_START_ACCURACY_METERS;
     }
 
     private static boolean isBetterThan(@NonNull Location candidate, @Nullable Location currentBest) {

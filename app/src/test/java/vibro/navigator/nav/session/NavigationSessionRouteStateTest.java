@@ -38,6 +38,41 @@ public class NavigationSessionRouteStateTest {
     private static final String TREKKING_PROFILE = "trekking";
 
     @Test
+    public void evaluateLocation_waitsForAccurateStartupFixBeforeFirstRoute() {
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.0, 1_000L, 30f),
+                0f,
+                30f,
+                null,
+                1_000L,
+                0L
+        );
+
+        assertFalse(evaluation.shouldRecalculateRoute());
+        assertFalse(evaluation.isStableOnRouteSample());
+        assertEquals(1_000L, evaluation.getSuggestedUpdateIntervalMs());
+        assertTrue(evaluation.turnEvents.isEmpty());
+    }
+
+    @Test
+    public void evaluateLocation_requestsFirstRouteWithAccurateStartupFix() {
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        NavigationSessionRouteState.Evaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.0, 1_000L, 25f),
+                0f,
+                25f,
+                null,
+                1_000L,
+                0L
+        );
+
+        assertTrue(evaluation.shouldRecalculateRoute());
+    }
+
+    @Test
     public void applyRouteResult_buildsInitialTurnEventAndRenderableState() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

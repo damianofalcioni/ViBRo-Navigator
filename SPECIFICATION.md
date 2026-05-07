@@ -147,6 +147,7 @@ Pressing the button must:
 - Use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
 - Include any intermediate stops in the route calculation
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
+- The first BRouter route calculation must only use a startup location fix that is recent and has location accuracy of 25 meters or better, whether that fix came from a cached seed, one-shot current-location request, or live location update
 
 #### 4.1 Missing BRouter handling
 

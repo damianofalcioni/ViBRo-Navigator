@@ -5,16 +5,20 @@ import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Collections;
+
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteEvaluator {
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
+    private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS = 1_000L;
 
     @NonNull
     private final NavigationRouteGeometryState geometryState;
@@ -60,8 +64,7 @@ final class NavigationRouteEvaluator {
             long fastChecksUntilMs
     ) {
         if (geometryState.isRouteUnavailable()) {
-            AppLogger.i(TAG, "No active route loaded, requesting route calculation");
-            return NavigationSessionRouteState.Evaluation.requestRecalculation(null);
+            return evaluateUnavailableRoute(filtered, accuracyMeters, nowMs);
         }
 
         PolylineIndex.Match match = geometryState.match(filtered);
@@ -129,6 +132,39 @@ final class NavigationRouteEvaluator {
 
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
+    }
+
+    @NonNull
+    private NavigationSessionRouteState.Evaluation evaluateUnavailableRoute(
+            @NonNull Location filtered,
+            float accuracyMeters,
+            long nowMs
+    ) {
+        NavigationSessionRouteState.Evaluation startupWait =
+                waitForAccurateStartupLocationIfNeeded(filtered, accuracyMeters, nowMs);
+        if (startupWait != null) {
+            return startupWait;
+        }
+        AppLogger.i(TAG, "No active route loaded, requesting route calculation");
+        return NavigationSessionRouteState.Evaluation.requestRecalculation(null);
+    }
+
+    @Nullable
+    private NavigationSessionRouteState.Evaluation waitForAccurateStartupLocationIfNeeded(
+            @NonNull Location filtered,
+            float accuracyMeters,
+            long nowMs
+    ) {
+        if (NavigationStartupLocationSelector.isUsableForRouteStart(filtered, nowMs)) {
+            return null;
+        }
+        AppLogger.i(TAG, "Waiting for accurate startup location before first route calculation"
+                + " accuracyMeters=" + accuracyMeters);
+        return NavigationSessionRouteState.Evaluation.keepRoute(
+                Collections.emptyList(),
+                STARTUP_LOCATION_WAIT_INTERVAL_MS,
+                false
+        );
     }
 
     @NonNull

@@ -63,6 +63,22 @@ public class NavigationStartupLocationSelectorTest {
         assertTrue(NavigationStartupLocationSelector.isUsable(location, nowMs));
     }
 
+    @Test
+    public void isUsableForRouteStart_rejectsFixAboveWarmupAccuracy() {
+        long nowMs = 100_000L;
+        Location location = location(LocationManager.GPS_PROVIDER, nowMs - 2_000L, 30f);
+
+        assertFalse(NavigationStartupLocationSelector.isUsableForRouteStart(location, nowMs));
+    }
+
+    @Test
+    public void isUsableForRouteStart_acceptsFreshWarmupAccurateFix() {
+        long nowMs = 100_000L;
+        Location location = location(LocationManager.GPS_PROVIDER, nowMs - 2_000L, 25f);
+
+        assertTrue(NavigationStartupLocationSelector.isUsableForRouteStart(location, nowMs));
+    }
+
     private static Location location(String provider, long timeMs, float accuracyMeters) {
         Location location = new Location(provider);
         location.setLatitude(48.2082d);
