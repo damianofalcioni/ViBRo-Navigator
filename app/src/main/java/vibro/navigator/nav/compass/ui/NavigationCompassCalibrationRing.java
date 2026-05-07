@@ -15,7 +15,7 @@ import vibro.navigator.nav.compass.NavCompassState;
 final class NavigationCompassCalibrationRing {
     private static final float HEADING_CALIBRATION_OK_MAX_DEGREES = 25f;
     private static final long CALIBRATION_OK_RING_VISIBLE_MS = 2_000L;
-    private static final int CALIBRATION_BACKGROUND_ALPHA = 84;
+    static final int BACKGROUND_ALPHA = 84;
 
     @NonNull
     private final View owner;
@@ -71,7 +71,7 @@ final class NavigationCompassCalibrationRing {
                 context,
                 calibrationNeeded ? R.color.danger : R.color.success
         ));
-        calibrationRingPaint.setAlpha(CALIBRATION_BACKGROUND_ALPHA);
+        calibrationRingPaint.setAlpha(BACKGROUND_ALPHA);
         canvas.drawCircle(cx, cy, radius, calibrationRingPaint);
     }
 

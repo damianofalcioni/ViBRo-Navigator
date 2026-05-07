@@ -3,6 +3,7 @@ package vibro.navigator.nav.compass.ui;
 
 import vibro.navigator.nav.compass.NavCompassState;
 import android.app.Activity;
+import android.graphics.Paint;
 import android.os.Looper;
 import android.view.View;
 
@@ -19,6 +20,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -188,7 +190,7 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void pausedRingVisibilityFollowsNavigationPausedState() {
+    public void pausedLayerVisibilityFollowsNavigationPausedState() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassView compassView = new NavigationCompassView(activity);
 
@@ -204,11 +206,16 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void calibrationLayerSitsInsideOuterCompassInsteadOfOutsideArcArea() {
+    public void pausedAndCalibrationLayersUseOuterCompassGeometry() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassView compassView = new NavigationCompassView(activity);
+        Field pausedRingPaintField = NavigationCompassView.class.getDeclaredField("pausedRingPaint");
+        pausedRingPaintField.setAccessible(true);
+        Paint pausedRingPaint = (Paint) pausedRingPaintField.get(compassView);
 
         assertEquals(91f, compassView.outerCompassLayerRadius(100f), 0.01f);
+        assertEquals(0.18f, NavigationCompassView.OUTER_COMPASS_LAYER_STROKE_SCALE, 0.01f);
+        assertEquals(NavigationCompassCalibrationRing.BACKGROUND_ALPHA, pausedRingPaint.getAlpha());
     }
 
     @Test

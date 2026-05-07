@@ -30,11 +30,10 @@ public final class NavigationCompassView extends View {
     private static final float OUTER_COMPASS_LAYER_INNER_SCALE = 0.88f;
     private static final float OUTER_COMPASS_LAYER_OUTER_SCALE = 0.94f;
     private static final float OUTER_COMPASS_LAYER_RADIUS_SCALE = 0.91f;
-    private static final float PAUSED_RING_RADIUS_OFFSET_DP = 5f;
-    private static final float PAUSED_RING_STROKE_WIDTH_DP = 4f;
+    private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
+    static final float OUTER_COMPASS_LAYER_STROKE_SCALE = 1f - OUTER_DISTANCE_RING_SCALE;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
-    private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
 
     @Nullable
     private NavCompassState compassState;
@@ -94,8 +93,8 @@ public final class NavigationCompassView extends View {
         ringPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_ring));
 
         pausedRingPaint.setStyle(Paint.Style.STROKE);
-        pausedRingPaint.setStrokeWidth(dp(PAUSED_RING_STROKE_WIDTH_DP));
         pausedRingPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_paused_ring));
+        pausedRingPaint.setAlpha(NavigationCompassCalibrationRing.BACKGROUND_ALPHA);
 
         calibrationRing.init();
     }
@@ -200,7 +199,6 @@ public final class NavigationCompassView extends View {
         float headingDegrees = compassState == null ? 0f : compassState.displayMode.headingDegrees;
 
         canvas.drawCircle(cx, cy, radius, surfacePaint);
-        drawPausedRing(canvas, cx, cy, radius);
         drawDistanceRings(canvas, cx, cy, radius);
         calibrationRing.draw(
                 canvas,
@@ -208,8 +206,9 @@ public final class NavigationCompassView extends View {
                 cx,
                 cy,
                 outerCompassLayerRadius(radius),
-                radius * (1f - OUTER_DISTANCE_RING_SCALE)
+                radius * OUTER_COMPASS_LAYER_STROKE_SCALE
         );
+        drawPausedRing(canvas, cx, cy, radius);
         drawOuterCompass(canvas, cx, cy, radius, headingDegrees);
 
         int saveCount = canvas.save();
@@ -239,7 +238,8 @@ public final class NavigationCompassView extends View {
         if (!navigationPaused) {
             return;
         }
-        canvas.drawCircle(cx, cy, radius + dp(PAUSED_RING_RADIUS_OFFSET_DP), pausedRingPaint);
+        pausedRingPaint.setStrokeWidth(radius * OUTER_COMPASS_LAYER_STROKE_SCALE);
+        canvas.drawCircle(cx, cy, outerCompassLayerRadius(radius), pausedRingPaint);
     }
 
     private void drawDistanceRings(@NonNull Canvas canvas, float cx, float cy, float radius) {
