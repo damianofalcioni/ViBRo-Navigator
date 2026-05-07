@@ -29,6 +29,8 @@ final class NavigationRouteResultApplier {
     private final NavigationTurnState turnState;
     @NonNull
     private final NavigationArrivalDetector arrivalDetector;
+    @NonNull
+    private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
 
     NavigationRouteResultApplier(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -36,7 +38,8 @@ final class NavigationRouteResultApplier {
             @NonNull NavigationRouteDeviationHandler deviationHandler,
             @NonNull NavigationRouteProgressTracker progressTracker,
             @NonNull NavigationTurnState turnState,
-            @NonNull NavigationArrivalDetector arrivalDetector
+            @NonNull NavigationArrivalDetector arrivalDetector,
+            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker
     ) {
         this.geometryState = geometryState;
         this.displayState = displayState;
@@ -44,32 +47,55 @@ final class NavigationRouteResultApplier {
         this.progressTracker = progressTracker;
         this.turnState = turnState;
         this.arrivalDetector = arrivalDetector;
+        this.intermediateArrivalTracker = intermediateArrivalTracker;
     }
 
     @NonNull
     List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
         geometryState.loadRoute(input.route);
         displayState.onRouteApplied(input.context, input.request, input.route, geometryState.polylineIndex());
+        intermediateArrivalTracker.onRouteApplied(input.request.stops, input.route, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
         float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;
 
-        List<NavigationTurnEvent> turnEvents = input.lastFiltered != null
-                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyOf(input.lastFiltered))
-                ? turnState.onDestinationReached(input.route)
-                : turnState.onRouteApplied(
-                        input.route,
-                        geometryState.polylineIndex(),
-                        input.lastFiltered,
-                        initialSpeedMps,
-                        accuracyOf(input.lastFiltered)
-                );
+        float accuracyMeters = accuracyOf(input.lastFiltered);
+        List<NavigationTurnEvent> turnEvents = buildRouteAppliedTurnEvents(input, initialSpeedMps, accuracyMeters);
         AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
                 + " trackPoints=" + input.route.track.size()
                 + " voiceHints=" + input.route.voiceHints.size()
                 + " lengthMeters=" + input.route.trackLengthMeters);
         return turnEvents;
+    }
+
+    @NonNull
+    private List<NavigationTurnEvent> buildRouteAppliedTurnEvents(
+            @NonNull NavigationRouteResultInput input,
+            float initialSpeedMps,
+            float accuracyMeters
+    ) {
+        if (input.lastFiltered != null && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
+            return turnState.onDestinationReached(input.route);
+        }
+
+        List<NavigationTurnEvent> initialEvents = turnState.onRouteApplied(
+                input.route,
+                geometryState.polylineIndex(),
+                input.lastFiltered,
+                initialSpeedMps,
+                accuracyMeters
+        );
+        if (input.lastFiltered == null) {
+            return initialEvents;
+        }
+        Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
+                input.lastFiltered,
+                accuracyMeters
+        );
+        return reachedIntermediateTrackIndex != null
+                ? turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex)
+                : initialEvents;
     }
 
     private float accuracyOf(@Nullable Location location) {

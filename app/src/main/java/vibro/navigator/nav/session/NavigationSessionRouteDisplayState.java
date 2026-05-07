@@ -120,6 +120,7 @@ public final class NavigationSessionRouteDisplayState {
                 .compass(compassInput)
                 .timing(snapshot.nextEvaluationDeadlineElapsedMs, snapshot.nowMs)
                 .destinationReached(turnState.isDestinationReached())
+                .intermediateDestinationReachedTrackIndex(turnState.getIntermediateDestinationReachedTrackIndex())
                 .targets(targets)
                 .build());
         return withLastRouteFailureNotice(snapshot, state);

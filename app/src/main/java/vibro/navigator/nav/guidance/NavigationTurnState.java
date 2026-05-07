@@ -24,6 +24,7 @@ public final class NavigationTurnState {
     private boolean notified5;
     private boolean initialTurnNotificationSent;
     private boolean destinationReached;
+    private int intermediateDestinationReachedTrackIndex = -1;
 
     public void reset() {
         nextHintIdx = 0;
@@ -31,6 +32,7 @@ public final class NavigationTurnState {
         notified5 = false;
         initialTurnNotificationSent = false;
         destinationReached = false;
+        intermediateDestinationReachedTrackIndex = -1;
     }
 
     public int getNextHintIdx() {
@@ -39,6 +41,10 @@ public final class NavigationTurnState {
 
     public boolean isDestinationReached() {
         return destinationReached;
+    }
+
+    public int getIntermediateDestinationReachedTrackIndex() {
+        return intermediateDestinationReachedTrackIndex;
     }
 
     @NonNull
@@ -66,6 +72,7 @@ public final class NavigationTurnState {
         nextHintIdx = progress.nextHintIdx;
         notified10 = progress.notified10;
         notified5 = progress.notified5;
+        clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
         long suggestedUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
                 nowMs,
                 fastChecksUntilMs,
@@ -92,6 +99,7 @@ public final class NavigationTurnState {
         notified5 = false;
         initialTurnNotificationSent = false;
         destinationReached = false;
+        intermediateDestinationReachedTrackIndex = -1;
         return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps, accuracyMeters);
     }
 
@@ -105,8 +113,30 @@ public final class NavigationTurnState {
         notified5 = false;
         initialTurnNotificationSent = true;
         destinationReached = true;
+        intermediateDestinationReachedTrackIndex = -1;
         VoiceHint arrivalHint = new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0);
         return Collections.singletonList(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+    }
+
+    @NonNull
+    public List<NavigationTurnEvent> onIntermediateDestinationReached(int trackIndex) {
+        initialTurnNotificationSent = true;
+        intermediateDestinationReachedTrackIndex = trackIndex;
+        VoiceHint arrivalHint = new VoiceHint(trackIndex, 100, 0, 0.0, 0);
+        return Collections.singletonList(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+    }
+
+    private void clearIntermediateDestinationReachedIfPassed(
+            @NonNull PolylineIndex polylineIndex,
+            double alongTrackMeters
+    ) {
+        if (intermediateDestinationReachedTrackIndex < 0) {
+            return;
+        }
+        double reachedDistanceMeters = polylineIndex.distanceAtPointIndex(intermediateDestinationReachedTrackIndex);
+        if (alongTrackMeters > reachedDistanceMeters + 5.0) {
+            intermediateDestinationReachedTrackIndex = -1;
+        }
     }
 
     @NonNull

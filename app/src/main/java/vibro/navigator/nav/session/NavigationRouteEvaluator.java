@@ -28,6 +28,8 @@ final class NavigationRouteEvaluator {
     private final NavigationSessionRouteDisplayState displayState;
     @NonNull
     private final NavigationArrivalDetector arrivalDetector;
+    @NonNull
+    private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
 
     NavigationRouteEvaluator(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -35,7 +37,8 @@ final class NavigationRouteEvaluator {
             @NonNull NavigationRouteProgressTracker progressTracker,
             @NonNull NavigationRouteDeviationHandler deviationHandler,
             @NonNull NavigationSessionRouteDisplayState displayState,
-            @NonNull NavigationArrivalDetector arrivalDetector
+            @NonNull NavigationArrivalDetector arrivalDetector,
+            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker
     ) {
         this.geometryState = geometryState;
         this.turnState = turnState;
@@ -43,6 +46,7 @@ final class NavigationRouteEvaluator {
         this.deviationHandler = deviationHandler;
         this.displayState = displayState;
         this.arrivalDetector = arrivalDetector;
+        this.intermediateArrivalTracker = intermediateArrivalTracker;
     }
 
     @NonNull
@@ -84,6 +88,17 @@ final class NavigationRouteEvaluator {
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return NavigationSessionRouteState.Evaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
+                    NO_SUGGESTED_INTERVAL,
+                    true
+            );
+        }
+
+        Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(filtered, accuracyMeters);
+        if (reachedIntermediateTrackIndex != null) {
+            deviationHandler.clearDeviationEvidence();
+            progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+            return NavigationSessionRouteState.Evaluation.keepRoute(
+                    turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex),
                     NO_SUGGESTED_INTERVAL,
                     true
             );

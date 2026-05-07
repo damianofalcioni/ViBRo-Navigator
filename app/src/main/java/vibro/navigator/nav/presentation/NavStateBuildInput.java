@@ -39,6 +39,7 @@ public final class NavStateBuildInput {
     @NonNull
     public final Timing timing;
     public final boolean destinationReached;
+    public final int intermediateDestinationReachedTrackIndex;
     @NonNull
     public final List<NavTarget> targets;
 
@@ -54,6 +55,7 @@ public final class NavStateBuildInput {
         compassInput = builder.compassInput;
         timing = builder.timing;
         destinationReached = builder.destinationReached;
+        intermediateDestinationReachedTrackIndex = builder.intermediateDestinationReachedTrackIndex;
         targets = Collections.unmodifiableList(new ArrayList<>(builder.targets));
     }
 
@@ -154,6 +156,7 @@ public final class NavStateBuildInput {
         @NonNull
         private Timing timing = new Timing(NO_DEADLINE, 0L);
         private boolean destinationReached;
+        private int intermediateDestinationReachedTrackIndex = -1;
         @NonNull
         private List<NavTarget> targets = Collections.emptyList();
 
@@ -214,6 +217,12 @@ public final class NavStateBuildInput {
         @NonNull
         public Builder destinationReached(boolean destinationReached) {
             this.destinationReached = destinationReached;
+            return this;
+        }
+
+        @NonNull
+        public Builder intermediateDestinationReachedTrackIndex(int trackIndex) {
+            intermediateDestinationReachedTrackIndex = trackIndex;
             return this;
         }
 

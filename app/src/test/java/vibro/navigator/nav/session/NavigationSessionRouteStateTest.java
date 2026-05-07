@@ -143,6 +143,96 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void evaluateLocation_emitsIntermediateArrivalEventOnceAndKeepsDestinationActive() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.singletonList(new LatLon(0.0, 0.001))
+        );
+        state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithoutHints(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation stopEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationSessionRouteState.Evaluation repeatedEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 3_000L),
+                0f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
+        NavState navState = state.buildState(
+                context,
+                location(0.0, 0.001, 3_000L),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null,
+                null
+        );
+
+        assertFalse(stopEvaluation.shouldRecalculateRoute());
+        assertEquals(1, stopEvaluation.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, stopEvaluation.turnEvents.get(0).type);
+        assertEquals(100, stopEvaluation.turnEvents.get(0).hint.command);
+        assertTrue(repeatedEvaluation.turnEvents.isEmpty());
+        assertEquals("■ Destination reached", navState.routeStatus.guidance.nextLine);
+        assertTrue(navState.routeStatus.guidance.afterNextLine.contains(context.getString(R.string.direction_arrive)));
+        assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertFalse(navState.routeStatus.progress.destinationLine.equals(context.getString(R.string.nav_destination_reached)));
+        assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
+    }
+
+    @Test
+    public void applyRouteResult_emitsIntermediateArrivalEventWhenAlreadyInsideStopRadius() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.singletonList(new LatLon(0.0, 0.001))
+        );
+
+        List<NavigationTurnEvent> turnEvents = state.applyRouteResult(
+                context,
+                request,
+                snapshot(request),
+                routeWithoutHints(),
+                location(0.0, 0.001, 1_000L),
+                5f,
+                500L
+        );
+
+        assertEquals(1, turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, turnEvents.get(0).type);
+        assertEquals(100, turnEvents.get(0).hint.command);
+    }
+
+    @Test
     public void evaluateLocation_prefersArrivalOverOffTrackRerouteWhenInsideDestinationRadius() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
