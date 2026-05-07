@@ -153,6 +153,7 @@
     <string name="label_sensor_network_provider">Network provider</string>
     <string name="label_sensor_geomagnetic_rotation_vector">Geomagnetic rotation vector</string>
     <string name="label_sensor_rotation_vector">Rotation vector</string>
+    <string name="label_sensor_orientation">Orientation sensor</string>
     <string name="sensor_status_enabled">enabled</string>
     <string name="sensor_status_disabled">disabled</string>
     <string name="sensor_status_available">available</string>

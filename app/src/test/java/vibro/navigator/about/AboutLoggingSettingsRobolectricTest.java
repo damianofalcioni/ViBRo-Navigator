@@ -119,7 +119,13 @@ public class AboutLoggingSettingsRobolectricTest {
                 activity.getString(R.string.label_sensor_network_provider)
         ));
         assertTrue(sensorStatusBody.getText().toString().contains(
+                activity.getString(R.string.label_sensor_rotation_vector)
+        ));
+        assertTrue(sensorStatusBody.getText().toString().contains(
                 activity.getString(R.string.label_sensor_geomagnetic_rotation_vector)
+        ));
+        assertTrue(sensorStatusBody.getText().toString().contains(
+                activity.getString(R.string.label_sensor_orientation)
         ));
         assertTrue(sensorStatusBody.getText().toString().contains("value="));
     }

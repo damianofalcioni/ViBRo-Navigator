@@ -88,12 +88,12 @@ public final class GeomagneticOrientationMonitor implements SensorEventListener 
             AppLogger.w(TAG, "Heading sensor unavailable");
             return false;
         }
-        if (orientationSensor.getType() != Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR) {
+        if (orientationSensor.getType() != Sensor.TYPE_ROTATION_VECTOR) {
             AppLogger.i(TAG, "Using " + HeadingSensorSupport.describeSensor(orientationSensor) + " fallback");
         }
         started = sensorManager.registerListener(this, orientationSensor, SensorManager.SENSOR_DELAY_UI);
         if (!started) {
-            AppLogger.w(TAG, "Failed to register geomagnetic heading listener");
+            AppLogger.w(TAG, "Failed to register heading listener");
         }
         return started;
     }

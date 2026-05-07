@@ -340,7 +340,7 @@ The navigation UI must show the following in large text:
 - At course-style speeds, the displayed compass heading should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees
 - When the user is stationary, moving below the course-heading display threshold, or when neither trusted GPS/course heading nor movement-derived course is available, the displayed compass heading may fall back to the live heading from the preferred heading sensor path
-- The preferred heading sensor path must use the geomagnetic rotation vector when the platform exposes it and may fall back to the standard rotation vector when that is the only available fused heading sensor
+- The preferred heading sensor path must use the standard rotation vector when the platform exposes it and may fall back to the geomagnetic rotation vector when that is the only available fused heading sensor
 - Live heading-sensor-driven compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
@@ -507,7 +507,9 @@ The navigation UI must show the following in large text:
 - The about page Diagnostic section must currently list the app's used live inputs:
   - GPS provider
   - network provider
-  - the selected heading sensor, preferring geomagnetic rotation vector and otherwise falling back to rotation vector when that is the available fused heading source
+  - rotation vector heading sensor
+  - geomagnetic rotation vector heading sensor
+  - deprecated orientation sensor for comparison only, even though it is not used by navigation
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available

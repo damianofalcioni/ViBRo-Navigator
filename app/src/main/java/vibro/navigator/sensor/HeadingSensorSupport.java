@@ -16,11 +16,11 @@ public final class HeadingSensorSupport {
     }
 
     public static int chooseBestSensorType(boolean hasGeomagneticRotationVector, boolean hasRotationVector) {
-        if (hasGeomagneticRotationVector) {
-            return Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR;
-        }
         if (hasRotationVector) {
             return Sensor.TYPE_ROTATION_VECTOR;
+        }
+        if (hasGeomagneticRotationVector) {
+            return Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR;
         }
         return SENSOR_TYPE_UNAVAILABLE;
     }

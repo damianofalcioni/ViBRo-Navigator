@@ -44,24 +44,24 @@ final class AboutSensorValueFormatter {
     }
 
     @NonNull
-    static String describeGeomagneticValue(
-            @Nullable float[] geomagneticVector,
-            int geomagneticAccuracy,
-            long geomagneticElapsedRealtimeMs
+    static String describeRotationVectorValue(
+            @Nullable float[] rotationVector,
+            int accuracy,
+            long elapsedRealtimeMs
     ) {
-        if (geomagneticVector == null || geomagneticElapsedRealtimeMs < 0L) {
+        if (rotationVector == null || elapsedRealtimeMs < 0L) {
             return "value=waiting for sample";
         }
 
         float[] rotationMatrix = new float[9];
-        SensorManager.getRotationMatrixFromVector(rotationMatrix, geomagneticVector);
+        SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
         float[] orientation = new float[3];
         SensorManager.getOrientation(rotationMatrix, orientation);
         double headingDegrees = (Math.toDegrees(orientation[0]) + 360.0) % 360.0;
         double pitchDegrees = Math.toDegrees(orientation[1]);
         double rollDegrees = Math.toDegrees(orientation[2]);
-        String headingAccuracyValue = describeHeadingAccuracy(geomagneticVector);
-        long ageMs = Math.max(0L, SystemClock.elapsedRealtime() - geomagneticElapsedRealtimeMs);
+        String headingAccuracyValue = describeHeadingAccuracy(rotationVector);
+        long ageMs = Math.max(0L, SystemClock.elapsedRealtime() - elapsedRealtimeMs);
 
         return String.format(
                 Locale.US,
@@ -70,9 +70,44 @@ final class AboutSensorValueFormatter {
                 pitchDegrees,
                 rollDegrees,
                 headingAccuracyValue,
-                accuracyLabel(geomagneticAccuracy),
+                accuracyLabel(accuracy),
                 ageMs,
-                formatVector(geomagneticVector)
+                formatVector(rotationVector)
+        );
+    }
+
+    @NonNull
+    static String describeOrientationValue(
+            @Nullable float[] orientationValues,
+            int accuracy,
+            long elapsedRealtimeMs
+    ) {
+        if (orientationValues == null || elapsedRealtimeMs < 0L) {
+            return "value=waiting for sample";
+        }
+        if (orientationValues.length < 3) {
+            return String.format(
+                    Locale.US,
+                    "value=invalid acc=%s raw=%s",
+                    accuracyLabel(accuracy),
+                    formatVector(orientationValues)
+            );
+        }
+
+        double headingDegrees = (orientationValues[0] + 360.0) % 360.0;
+        double pitchDegrees = orientationValues[1];
+        double rollDegrees = orientationValues[2];
+        long ageMs = Math.max(0L, SystemClock.elapsedRealtime() - elapsedRealtimeMs);
+
+        return String.format(
+                Locale.US,
+                "value=heading=%.0fdeg pitch=%.0fdeg roll=%.0fdeg acc=%s age=%dms raw=%s",
+                headingDegrees,
+                pitchDegrees,
+                rollDegrees,
+                accuracyLabel(accuracy),
+                ageMs,
+                formatVector(orientationValues)
         );
     }
 

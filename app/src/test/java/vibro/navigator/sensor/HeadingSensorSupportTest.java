@@ -12,17 +12,17 @@ import org.robolectric.RobolectricTestRunner;
 public class HeadingSensorSupportTest {
 
     @Test
-    public void chooseBestSensorType_prefersGeomagneticRotationVector() {
+    public void chooseBestSensorType_prefersRotationVector() {
         int sensorType = HeadingSensorSupport.chooseBestSensorType(true, true);
 
-        assertEquals(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR, sensorType);
+        assertEquals(Sensor.TYPE_ROTATION_VECTOR, sensorType);
     }
 
     @Test
-    public void chooseBestSensorType_fallsBackToRotationVector() {
-        int sensorType = HeadingSensorSupport.chooseBestSensorType(false, true);
+    public void chooseBestSensorType_fallsBackToGeomagneticRotationVector() {
+        int sensorType = HeadingSensorSupport.chooseBestSensorType(true, false);
 
-        assertEquals(Sensor.TYPE_ROTATION_VECTOR, sensorType);
+        assertEquals(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR, sensorType);
     }
 
     @Test
