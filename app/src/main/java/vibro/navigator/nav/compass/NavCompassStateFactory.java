@@ -86,6 +86,7 @@ public final class NavCompassStateFactory {
                 input.radiusUpdateDeltaMs,
                 input.routeGeometry,
                 input.radiusTransition,
+                input.orientationCue,
                 input.nowMs
         );
     }
@@ -106,6 +107,45 @@ public final class NavCompassStateFactory {
             long compassRadiusUpdateDeltaMs,
             @Nullable CompassRouteGeometry compassRouteGeometry,
             @Nullable CompassRadiusTransition compassRadiusTransition,
+            long nowMs
+    ) {
+        return buildCompassState(
+                route,
+                index,
+                alongTrackMeters,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                headingDegrees,
+                headingAccuracyDegrees,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                compassRouteGeometry,
+                compassRadiusTransition,
+                null,
+                nowMs
+        );
+    }
+
+    @Nullable
+    public static NavCompassState buildCompassState(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            @NonNull Location currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            @Nullable CompassRouteGeometry compassRouteGeometry,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
+            @Nullable CompassOrientationCue orientationCue,
             long nowMs
     ) {
         if (route.track.isEmpty()) {
@@ -171,7 +211,8 @@ public final class NavCompassStateFactory {
                         destinationEastMeters,
                         destinationNorthMeters,
                         destinationDistanceMeters <= radiusState.visibleRadiusMeters
-                )
+                ),
+                orientationCue
         ));
     }
 

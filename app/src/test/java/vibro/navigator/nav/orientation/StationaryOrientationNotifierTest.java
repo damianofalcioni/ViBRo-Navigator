@@ -1,6 +1,8 @@
 package vibro.navigator.nav.orientation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import android.hardware.SensorManager;
 
@@ -26,6 +28,7 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
+                null,
                 sample(20.0, 1_000L),
                 1_000L,
                 sink
@@ -38,6 +41,7 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
+                null,
                 sample(20.0, 6_000L),
                 6_500L,
                 sink
@@ -48,6 +52,7 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
+                null,
                 sample(20.0, 7_000L),
                 7_000L,
                 sink
@@ -55,6 +60,8 @@ public class StationaryOrientationNotifierTest {
 
         assertEquals(1, sink.decisions.size());
         assertEquals(70.0, sink.decisions.get(0).absoluteTurnDegrees(), 0.001);
+        assertNotNull(notifier.activeOrientationCue());
+        assertEquals(90.0f, notifier.activeOrientationCue().targetHeadingDegrees, 0.001f);
     }
 
     @Test
@@ -66,13 +73,75 @@ public class StationaryOrientationNotifierTest {
                 false,
                 1.2f,
                 90.0,
+                90.0,
                 sample(20.0, 7_000L),
                 7_000L,
                 sink
         );
+        assertNull(notifier.activeOrientationCue());
         notifyAfterDwell(8_000L, 13_500L);
 
         assertEquals(2, sink.decisions.size());
+    }
+
+    @Test
+    public void maybeNotifyKeepsCueWhileMovementIsNotAlignedWithRoute() {
+        notifyAfterDwell(1_000L, 6_500L);
+
+        notifier.maybeNotify(
+                true,
+                false,
+                false,
+                1.2f,
+                90.0,
+                200.0,
+                sample(20.0, 7_000L),
+                7_000L,
+                sink
+        );
+
+        assertNotNull(notifier.activeOrientationCue());
+        assertEquals(90.0f, notifier.activeOrientationCue().targetHeadingDegrees, 0.001f);
+    }
+
+    @Test
+    public void maybeNotifyDoesNotExposeCueWhenAlreadyAligned() {
+        notifier.maybeNotify(
+                true,
+                false,
+                true,
+                0f,
+                25.0,
+                null,
+                sample(20.0, 1_000L),
+                1_000L,
+                sink
+        );
+        notifier.maybeNotify(
+                true,
+                false,
+                true,
+                0f,
+                25.0,
+                null,
+                sample(20.0, 6_000L),
+                6_500L,
+                sink
+        );
+        notifier.maybeNotify(
+                true,
+                false,
+                true,
+                0f,
+                25.0,
+                null,
+                sample(20.0, 7_000L),
+                7_000L,
+                sink
+        );
+
+        assertEquals(0, sink.decisions.size());
+        assertNull(notifier.activeOrientationCue());
     }
 
     private void notifyAfterDwell(long startMs, long notifyMs) {
@@ -82,6 +151,7 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
+                null,
                 sample(20.0, startMs),
                 startMs,
                 sink
@@ -92,6 +162,7 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
+                null,
                 sample(20.0, notifyMs),
                 notifyMs,
                 sink

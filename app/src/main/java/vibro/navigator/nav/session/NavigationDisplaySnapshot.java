@@ -6,6 +6,8 @@ import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.compass.CompassOrientationCue;
+
 public final class NavigationDisplaySnapshot {
     @NonNull
     final Context context;
@@ -20,6 +22,8 @@ public final class NavigationDisplaySnapshot {
     final Double headingDegrees;
     @Nullable
     final Float headingAccuracyDegrees;
+    @Nullable
+    final CompassOrientationCue orientationCue;
     final long nextEvaluationDeadlineElapsedMs;
     final long nowMs;
     final boolean routeCalculationInProgress;
@@ -37,6 +41,7 @@ public final class NavigationDisplaySnapshot {
         fixedSatelliteCount = builder.fixedSatelliteCount;
         headingDegrees = builder.headingDegrees;
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
+        orientationCue = builder.orientationCue;
         nextEvaluationDeadlineElapsedMs = builder.nextEvaluationDeadlineElapsedMs;
         nowMs = builder.nowMs;
         routeCalculationInProgress = builder.routeCalculationInProgress;
@@ -63,6 +68,8 @@ public final class NavigationDisplaySnapshot {
         private Double headingDegrees;
         @Nullable
         private Float headingAccuracyDegrees;
+        @Nullable
+        private CompassOrientationCue orientationCue;
         private long nextEvaluationDeadlineElapsedMs;
         private long nowMs;
         private boolean routeCalculationInProgress;
@@ -99,6 +106,12 @@ public final class NavigationDisplaySnapshot {
         Builder heading(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees) {
             this.headingDegrees = headingDegrees;
             this.headingAccuracyDegrees = headingAccuracyDegrees;
+            return this;
+        }
+
+        @NonNull
+        Builder orientationCue(@Nullable CompassOrientationCue orientationCue) {
+            this.orientationCue = orientationCue;
             return this;
         }
 

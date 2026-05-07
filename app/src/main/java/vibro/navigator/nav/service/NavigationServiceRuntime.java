@@ -7,7 +7,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession;
@@ -92,10 +92,6 @@ final class NavigationServiceRuntime {
         foregroundController.stopForegroundService();
     }
 
-    void sendOffRouteNotification(@NonNull NavigationRerouteNotice notice) {
-        foregroundController.sendOffRouteNotification(notice);
-    }
-
     void requestRoute(@NonNull NavigationService service, @NonNull NavigationRouteRequestSnapshot snapshot) {
         routing.executor.requestRoute(service, snapshot, routing.callback);
     }
@@ -117,6 +113,11 @@ final class NavigationServiceRuntime {
     @Nullable
     Float displayHeadingAccuracyDegrees() {
         return tracking.orientationController.currentDisplayHeadingAccuracyDegrees();
+    }
+
+    @Nullable
+    CompassOrientationCue activeOrientationCue() {
+        return tracking.orientationController.activeOrientationCue();
     }
 
     long lastRequestedLocationMinTimeMsOrDefault(long defaultIntervalMs) {

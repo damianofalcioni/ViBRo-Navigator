@@ -99,6 +99,7 @@ public final class NavigationSessionRouteDisplayState {
                         compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
                 )
                 .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
+                .orientationCue(snapshot.orientationCue)
                 .nowMs(snapshot.nowMs)
                 .build();
         NavState state = NavStateComposer.from(NavStateBuildInput

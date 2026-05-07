@@ -4,6 +4,7 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
@@ -117,6 +118,12 @@ public final class NavigationSession {
     @Nullable
     public Double currentRouteBearingDegrees() {
         return routeState.currentSegmentBearingDegrees(locationState.getLastFilteredLocation());
+    }
+
+    @Nullable
+    public Double currentTrustedActualBearingDegrees() {
+        Location lastFiltered = locationState.getLastFilteredLocation();
+        return lastFiltered == null ? null : locationState.trustedActualBearingDegreesForReroute(lastFiltered);
     }
 
     @NonNull
@@ -233,6 +240,27 @@ public final class NavigationSession {
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees
     ) {
+        return buildState(
+                context,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                null
+        );
+    }
+
+    @NonNull
+    public NavState buildState(
+            @NonNull Context context,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue
+    ) {
         NavState baseState;
         Location lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
@@ -250,6 +278,7 @@ public final class NavigationSession {
                 .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
                 .gps(fixedSatelliteCount)
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
+                .orientationCue(orientationCue)
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .routeCalculation(
                         routeRequestManager.isRouteCalculationInProgress(),

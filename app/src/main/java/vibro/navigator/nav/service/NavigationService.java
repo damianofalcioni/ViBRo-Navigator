@@ -199,7 +199,7 @@ public class NavigationService extends Service {
         }
         emitState();
         if (rerouteNotice != null) {
-            runtime().sendOffRouteNotification(rerouteNotice);
+            runtime().foregroundController().sendOffRouteNotification(rerouteNotice);
         }
         runtime().requestRoute(this, snapshot);
     }
@@ -211,7 +211,8 @@ public class NavigationService extends Service {
                 System.currentTimeMillis(),
                 runtime().fixedSatelliteCount(),
                 runtime().displayHeadingDegrees(),
-                runtime().displayHeadingAccuracyDegrees()
+                runtime().displayHeadingAccuracyDegrees(),
+                runtime().activeOrientationCue()
         );
         stateBroadcaster.dispatch(s);
     }

@@ -27,8 +27,9 @@ public final class NavigationCompassView extends View {
     private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = 10f;
     private static final float HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES = 5f;
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
-    private static final float CALIBRATION_RING_RADIUS_OFFSET_DP = 5f;
-    private static final float CALIBRATION_RING_STROKE_WIDTH_DP = 3f;
+    private static final float OUTER_COMPASS_LAYER_INNER_SCALE = 0.88f;
+    private static final float OUTER_COMPASS_LAYER_OUTER_SCALE = 0.94f;
+    private static final float OUTER_COMPASS_LAYER_RADIUS_SCALE = 0.91f;
     private static final float PAUSED_RING_RADIUS_OFFSET_DP = 5f;
     private static final float PAUSED_RING_STROKE_WIDTH_DP = 4f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
@@ -54,6 +55,8 @@ public final class NavigationCompassView extends View {
     private final Paint distanceLegendLeftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Path compassClipPath = new Path();
     private final NavigationCompassRouteRenderer routeRenderer = new NavigationCompassRouteRenderer();
+    private final NavigationCompassOrientationCueRenderer orientationCueRenderer =
+            new NavigationCompassOrientationCueRenderer();
     private final NavigationCompassLegendRenderer legendRenderer = new NavigationCompassLegendRenderer();
     private final NavigationCompassCalibrationRing calibrationRing = new NavigationCompassCalibrationRing(this);
 
@@ -94,7 +97,7 @@ public final class NavigationCompassView extends View {
         pausedRingPaint.setStrokeWidth(dp(PAUSED_RING_STROKE_WIDTH_DP));
         pausedRingPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_paused_ring));
 
-        calibrationRing.init(dp(CALIBRATION_RING_STROKE_WIDTH_DP));
+        calibrationRing.init();
     }
 
     private void initTickPaints() {
@@ -193,12 +196,20 @@ public final class NavigationCompassView extends View {
         float cx = width / 2f;
         float cy = height / 2f;
         float radius = Math.min(cx, cy) - dp(10f);
-        float routeRadius = radius * 0.88f;
+        float routeRadius = radius * OUTER_COMPASS_LAYER_INNER_SCALE;
         float headingDegrees = compassState == null ? 0f : compassState.displayMode.headingDegrees;
 
         canvas.drawCircle(cx, cy, radius, surfacePaint);
         drawPausedRing(canvas, cx, cy, radius);
         drawDistanceRings(canvas, cx, cy, radius);
+        calibrationRing.draw(
+                canvas,
+                getContext(),
+                cx,
+                cy,
+                outerCompassLayerRadius(radius),
+                radius * (1f - OUTER_DISTANCE_RING_SCALE)
+        );
         drawOuterCompass(canvas, cx, cy, radius, headingDegrees);
 
         int saveCount = canvas.save();
@@ -221,7 +232,7 @@ public final class NavigationCompassView extends View {
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
-        calibrationRing.draw(canvas, getContext(), cx, cy, radius, dp(CALIBRATION_RING_RADIUS_OFFSET_DP));
+        orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, radius, headingDegrees);
     }
 
     private void drawPausedRing(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -245,7 +256,7 @@ public final class NavigationCompassView extends View {
             double radians = Math.toRadians(angle);
             float cos = (float) Math.cos(radians);
             float sin = (float) Math.sin(radians);
-            float outer = radius * 0.94f;
+            float outer = radius * OUTER_COMPASS_LAYER_OUTER_SCALE;
             boolean accented = i % 3 == 1;
             if (i % 6 == 0) {
                 continue;
@@ -261,12 +272,16 @@ public final class NavigationCompassView extends View {
             );
         }
 
-        float cardinalOrbitRadius = radius * 0.91f;
+        float cardinalOrbitRadius = outerCompassLayerRadius(radius);
         drawCardinal(canvas, cx, cy - cardinalOrbitRadius, "N", radius);
         drawCardinal(canvas, cx + cardinalOrbitRadius, cy, "O", radius);
         drawCardinal(canvas, cx, cy + cardinalOrbitRadius, "S", radius);
         drawCardinal(canvas, cx - cardinalOrbitRadius, cy, "W", radius);
         canvas.restore();
+    }
+
+    float outerCompassLayerRadius(float radius) {
+        return radius * OUTER_COMPASS_LAYER_RADIUS_SCALE;
     }
 
     private void drawCardinal(@NonNull Canvas canvas, float x, float y, @NonNull String label, float radius) {

@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.compass.CompassOrientationCue;
 
 public final class NavigationOrientationController {
 
@@ -83,10 +84,16 @@ public final class NavigationOrientationController {
                 navigationSession.isLikelyStationaryForOrientation(),
                 navigationSession.lastFilteredSpeedMps(),
                 navigationSession.currentRouteBearingDegrees(),
+                navigationSession.currentTrustedActualBearingDegrees(),
                 orientationMonitor.getLatestSample(),
                 android.os.SystemClock.elapsedRealtime(),
                 foregroundController::sendStationaryOrientationNotification
         );
+    }
+
+    @Nullable
+    public CompassOrientationCue activeOrientationCue() {
+        return stationaryOrientationNotifier.activeOrientationCue();
     }
 
     @Nullable

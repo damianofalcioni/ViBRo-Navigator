@@ -12,6 +12,7 @@ import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassStateInput;
@@ -377,6 +378,40 @@ public class NavStateTest {
         assertTrue(state.routeStatus.compassState.displayMode.movingScaleActive);
         assertEquals(13f, state.routeStatus.compassState.radiusState.routeThresholdMeters, 0.01f);
         assertTrue(state.routeStatus.compassState.passedRoutePoints.size() >= 1);
+    }
+
+    @Test
+    public void from_keepsStationaryOrientationCueInCompassState() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.emptyList(),
+                60.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+        android.location.Location currentLocation = locationAt(0.0, 0.0);
+        NavCompassStateInput compassInput = NavCompassStateInput.builder(route, index, currentLocation)
+                .routeProgress(0.0)
+                .motion(0f, true, 5f)
+                .heading(0.0, null)
+                .orientationCue(new CompassOrientationCue(90f))
+                .nowMs(0L)
+                .build();
+
+        NavState state = NavStateComposer.from(NavStateBuildInput.builder(context, route, index, currentLocation)
+                .routeProgress(0.0, -1, 0)
+                .motion(0f, 0f, true, 5f, 5f)
+                .heading(0.0, null)
+                .compass(compassInput)
+                .targets(Collections.singletonList(new NavTarget(DESTINATION, 111.0)))
+                .build());
+
+        assertNotNull(state.routeStatus.compassState);
+        assertNotNull(state.routeStatus.compassState.orientationCue);
+        assertEquals(90f, state.routeStatus.compassState.orientationCue.targetHeadingDegrees, 0.01f);
     }
 
     @Test

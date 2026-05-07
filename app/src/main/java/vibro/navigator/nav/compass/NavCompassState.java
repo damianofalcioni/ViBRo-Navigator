@@ -23,6 +23,8 @@ public final class NavCompassState {
     @NonNull
     public final List<CompassRoutePoint> hintPoints;
     @Nullable
+    public final CompassOrientationCue orientationCue;
+    @Nullable
     private final CompassRouteGeometry routeGeometry;
     private final double currentLatitude;
     private final double currentLongitude;
@@ -170,6 +172,7 @@ public final class NavCompassState {
         this.passedRoutePoints = Collections.unmodifiableList(input.passedRoutePoints);
         this.routePoints = Collections.unmodifiableList(input.routePoints);
         this.hintPoints = Collections.unmodifiableList(input.hintPoints);
+        this.orientationCue = input.orientationCue;
         this.routeGeometry = null;
         this.currentLatitude = Double.NaN;
         this.currentLongitude = Double.NaN;
@@ -232,6 +235,7 @@ public final class NavCompassState {
                 input.routeGeometry.hintSamplePointCount(),
                 true
         );
+        this.orientationCue = input.orientationCue;
     }
 
     @NonNull
@@ -285,7 +289,8 @@ public final class NavCompassState {
                             progressLabels.destinationEastMeters,
                             progressLabels.destinationNorthMeters,
                             targetDestinationWithinRadius
-                    )
+                    ),
+                    orientationCue
             ));
         }
         return fromProjectedPoints(new NavCompassProjectedPointsInput(
@@ -311,7 +316,8 @@ public final class NavCompassState {
                         progressLabels.destinationEastMeters,
                         progressLabels.destinationNorthMeters,
                         targetDestinationWithinRadius
-                )
+                ),
+                orientationCue
         ));
     }
 

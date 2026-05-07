@@ -204,6 +204,32 @@ public class NavigationCompassViewTest {
     }
 
     @Test
+    public void calibrationLayerSitsInsideOuterCompassInsteadOfOutsideArcArea() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassView compassView = new NavigationCompassView(activity);
+
+        assertEquals(91f, compassView.outerCompassLayerRadius(100f), 0.01f);
+    }
+
+    @Test
+    public void orientationCueSweepUsesShortestSignedTurn() {
+        NavigationCompassOrientationCueRenderer renderer = new NavigationCompassOrientationCueRenderer();
+
+        assertEquals(20f, renderer.signedSweepDegrees(350f, 10f), 0.01f);
+        assertEquals(-20f, renderer.signedSweepDegrees(10f, 350f), 0.01f);
+        assertEquals(180f, renderer.signedSweepDegrees(0f, 180f), 0.01f);
+    }
+
+    @Test
+    public void orientationCueArcLeavesGapBeforeTargetMarker() {
+        NavigationCompassOrientationCueRenderer renderer = new NavigationCompassOrientationCueRenderer();
+
+        assertEquals(14f, renderer.arcSweepWithMarkerGap(20f), 0.01f);
+        assertEquals(-14f, renderer.arcSweepWithMarkerGap(-20f), 0.01f);
+        assertEquals(0f, renderer.arcSweepWithMarkerGap(4f), 0.01f);
+    }
+
+    @Test
     public void headingCalibrationNeededOnlyWhenAccuracyIsExplicitlyPoor() {
         assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(null));
         assertFalse(NavigationCompassCalibrationRing.needsHeadingCalibration(compassStateWithHeadingAccuracy(null)));
@@ -236,7 +262,7 @@ public class NavigationCompassViewTest {
         View owner = new View(activity);
         activity.setContentView(owner);
         NavigationCompassCalibrationRing ring = new NavigationCompassCalibrationRing(owner);
-        ring.init(3f);
+        ring.init();
         return ring;
     }
 
