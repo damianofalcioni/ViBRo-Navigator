@@ -13,7 +13,6 @@ public final class StationaryOrientationNotifier {
     }
 
     private static final String TAG = "StationaryOrientation";
-    private static final double MAX_MOVING_ALIGNMENT_DEGREES = 45.0;
 
     private final StationaryOrientationAdvisor advisor;
     private long stationarySinceElapsedRealtimeMs;
@@ -42,7 +41,6 @@ public final class StationaryOrientationNotifier {
             boolean likelyStationary,
             float speedMps,
             @Nullable Double routeBearingDegrees,
-            @Nullable Double actualBearingDegrees,
             @Nullable GeomagneticOrientationMonitor.Sample sample,
             long nowElapsedRealtimeMs,
             @NonNull Sink sink
@@ -52,7 +50,7 @@ public final class StationaryOrientationNotifier {
             return;
         }
         if (!likelyStationary) {
-            handleMovement(routeBearingDegrees, actualBearingDegrees);
+            reset();
             return;
         }
 
@@ -120,28 +118,6 @@ public final class StationaryOrientationNotifier {
         handledForCurrentStop = true;
     }
 
-    private void handleMovement(
-            @Nullable Double routeBearingDegrees,
-            @Nullable Double actualBearingDegrees
-    ) {
-        if (activeOrientationCue == null || isMovingTowardTarget(routeBearingDegrees, actualBearingDegrees)) {
-            reset();
-            return;
-        }
-        stationarySinceElapsedRealtimeMs = 0L;
-        handledForCurrentStop = false;
-    }
-
-    private static boolean isMovingTowardTarget(
-            @Nullable Double routeBearingDegrees,
-            @Nullable Double actualBearingDegrees
-    ) {
-        if (routeBearingDegrees == null || actualBearingDegrees == null) {
-            return false;
-        }
-        return Math.abs(normalizeSignedDegrees(routeBearingDegrees - actualBearingDegrees)) <= MAX_MOVING_ALIGNMENT_DEGREES;
-    }
-
     private void updateActiveTarget(@Nullable Double routeBearingDegrees) {
         if (routeBearingDegrees == null) {
             return;
@@ -149,11 +125,4 @@ public final class StationaryOrientationNotifier {
         activeOrientationCue = new CompassOrientationCue(routeBearingDegrees.floatValue());
     }
 
-    private static double normalizeSignedDegrees(double degrees) {
-        double normalized = ((degrees + 540.0) % 360.0) - 180.0;
-        if (normalized == -180.0) {
-            return 180.0;
-        }
-        return normalized;
-    }
 }

@@ -10,6 +10,7 @@ import vibro.navigator.nav.route.VoiceHint;
 
 final class NavArrivalHintFactory {
     static final int ARRIVAL_COMMAND = 100;
+    static final int INTERMEDIATE_ARRIVAL_COMMAND = 101;
 
     private NavArrivalHintFactory() {
     }

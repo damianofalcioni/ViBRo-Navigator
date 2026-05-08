@@ -420,6 +420,11 @@ public final class NavCompassState {
         return routeGeometry == null ? null : routeGeometry.hintSamplePointAt(index);
     }
 
+    @Nullable
+    public CompassRouteGeometry routeGeometry() {
+        return routeGeometry;
+    }
+
     public double currentLatitude() {
         return currentLatitude;
     }

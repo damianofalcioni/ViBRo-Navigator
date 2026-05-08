@@ -82,4 +82,27 @@ public class CompassRouteGeometryFactoryTest {
         assertNotNull(geometry.hintSamplePointAt(0));
         assertNotNull(geometry.hintSamplePointAt(1));
     }
+
+    @Test
+    public void build_projectsIntermediateStopsForCompassRendering() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.emptyList(),
+                30.0,
+                222.0
+        );
+
+        CompassRouteGeometry geometry = CompassRouteGeometryFactory.build(
+                route,
+                new PolylineIndex(route.track),
+                Collections.singletonList(new LatLon(0.0, 0.001))
+        );
+
+        assertEquals(1, geometry.intermediateSamplePointCount());
+        assertNotNull(geometry.intermediateSamplePointAt(0));
+    }
 }

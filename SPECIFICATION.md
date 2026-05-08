@@ -217,6 +217,7 @@ The app must monitor user position:
 - Off-track reroutes should require confirmation across consecutive samples when the miss only slightly exceeds the threshold, to avoid single-fix GPS spikes causing unnecessary reroutes
 - Clearly large misses beyond the threshold may reroute immediately without waiting for a second confirmation sample
 - The size of that immediate-reroute margin may shrink at higher travel speeds so driving-style use reacts faster without making low-speed walking reroutes twitchy
+- When a route recalculation starts after one or more intermediate stops have been reached, the recalculation must pass only the remaining unreached intermediate stops to BRouter; passed stops must not be reintroduced into the new route request, compass targets, or intermediate-stop progress state
 
 #### 4.4.2 Wrong-direction reroute
 
@@ -261,7 +262,7 @@ The app must monitor user position:
 - In-route imminent maneuver notifications must still be suppressed when the remaining maneuver distance is already too small to be actionable or when route matching is unstable
 - The app must not emit a passed-turn notification whose displayed remaining distance or time would collapse to zero; in that case it should suppress the passed maneuver and move on to the next actionable instruction
 - When the user is already inside the most urgent threshold, the app should emit only the single most urgent imminent-turn notification instead of stacking multiple near-identical alerts
-- When the user's current filtered position enters the destination-reached radius around an intermediate stop, the app must emit a reached guidance notification using the same arrival command presentation as the final destination, then continue guidance toward the following stop or final destination
+- When the user's current filtered position enters the destination-reached radius around an intermediate stop, the app must emit an intermediate-destination-reached guidance notification with the mapped arrival symbol, then continue guidance toward the following stop or final destination
 - When the user's current filtered position enters the destination-reached radius around the final destination point, the app must emit a destination-reached guidance notification instead of silently ending maneuver alerts
 - That destination-reached radius must be based on the final destination point and should be at least the current trusted location-accuracy radius, with a small non-zero minimum floor so arrival still works with very accurate fixes
 - Turn notifications must reuse a single notification entry in the notification list so older direction notifications do not pile up
@@ -272,7 +273,7 @@ The app must monitor user position:
 - Stationary orientation notifications must be suppressed while a route recalculation is in progress so the app does not emit contradictory off-route and turn-yourself prompts at the same time
 - When a stationary orientation notification is emitted and the navigation UI is visible, the compass must show a matching red turn-to-face-route cue: a very thin red partial arc just outside and close to the compass border from the current heading through the target heading, plus a red target triangle inside the compass at the target heading with only its vertex attached to the compass border
 - The stationary orientation target triangle must keep a contrasting compass-surface-colored outline so it remains readable when the selected-heading-source calibration background is red
-- That stationary orientation cue must remain tied to the notification episode and disappear only when the user starts moving with trusted movement bearing aligned with the target route direction, or when the route/notification episode resets
+- That stationary orientation cue must remain tied to the notification episode and disappear as soon as the user starts moving, or when the route/notification episode resets
 - Each notification message must contain:
   - A direction/status symbol
   - The distance left
@@ -300,6 +301,7 @@ The app must monitor user position:
   - `17` exit left
   - `18` exit right
 - The app must also support the arrival command `100` and map it to a distinct destination-reached presentation rather than treating it as a normal turn maneuver
+- The app must support its own synthetic intermediate-arrival command `101` and map it to a distinct intermediate-destination-reached presentation using the same smartband-safe arrival symbol as command `100`
 - User-visible maneuver and notification symbols should favor simple smartband-safe glyphs over ornate emoji presentation so mirrored wearables can render them consistently
 - Unknown or unsupported voice-hint commands must fall back to a neutral unknown-direction presentation instead of pretending to be a normal continue instruction
 
@@ -331,7 +333,7 @@ The navigation UI must show the following in large text:
 - When BRouter reports command `100`, the navigation UI must treat it as the authoritative destination-reached arrival instruction
 - When no further actionable maneuver follows the final maneuver and BRouter has not reported command `100`, the navigation UI must synthesize a destination-reached arrival instruction at the final route point
 - Before the user enters the destination-reached radius, destination-reached instructions must behave like an upcoming direction and include the remaining distance and time, including relative distance and time when shown as the second line after the final maneuver
-- Once the user is inside the destination-reached radius for an intermediate stop, the primary next-direction line must switch to the same synthetic destination-reached arrival instruction used for the final destination while the following actionable maneuver remains available as the secondary line when one exists
+- Once the user is inside the destination-reached radius for an intermediate stop, the primary next-direction line must switch to the synthetic intermediate-destination-reached arrival instruction while the following actionable maneuver remains available as the secondary line when one exists
 - Once the user is inside the destination-reached radius, the primary next-direction line must switch to a destination-reached message using the mapped arrival symbol instead of remaining blank
 - That terminal destination-reached presentation should omit misleading `0 m` or `0 s` countdown fields and behave as a terminal guidance state rather than as another ordinary turn
 - The first upcoming direction must keep the full available instruction row width
@@ -391,6 +393,7 @@ The navigation UI must show the following in large text:
 - When a reroute is applied, the passed-route overlay must be rebuilt from the new active route geometry and must not retain passed geometry from the previous route
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
 - The destination endpoint must only be shown when it falls within the currently visible compass radius; if it lies outside the visible radius, it should not be clamped back onto the compass edge as a detached marker
+- Each remaining intermediate stop must be shown on the compass route with the same opaque white point radius as the destination endpoint and the same transparent destination-reached radius overlay
 
 #### 4.5.3 Shared status block
 

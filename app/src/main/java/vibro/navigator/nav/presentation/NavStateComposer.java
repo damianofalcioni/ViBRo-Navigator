@@ -9,6 +9,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
@@ -224,6 +225,15 @@ public final class NavStateComposer {
             @NonNull PolylineIndex index
     ) {
         return NavCompassStateFactory.buildCompassRouteGeometry(route, index);
+    }
+
+    @NonNull
+    public static CompassRouteGeometry buildCompassRouteGeometry(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<LatLon> intermediateStops
+    ) {
+        return NavCompassStateFactory.buildCompassRouteGeometry(route, index, intermediateStops);
     }
 
     @NonNull

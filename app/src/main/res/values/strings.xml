@@ -112,6 +112,7 @@
     <string name="direction_exit_right">Exit right</string>
     <string name="direction_offroute">Off route</string>
     <string name="direction_arrive">Destination reached</string>
+    <string name="direction_intermediate_arrive">Intermediate destination reached</string>
     <string name="direction_unknown">Unknown direction</string>
     <string name="direction_side_left">left</string>
     <string name="direction_side_right">right</string>

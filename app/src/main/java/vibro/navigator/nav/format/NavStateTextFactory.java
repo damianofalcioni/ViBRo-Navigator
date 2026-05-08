@@ -100,7 +100,7 @@ public final class NavStateTextFactory {
                 context,
                 new VoiceHint(
                         intermediateDestinationReachedTrackIndex,
-                        NavArrivalHintFactory.ARRIVAL_COMMAND,
+                        NavArrivalHintFactory.INTERMEDIATE_ARRIVAL_COMMAND,
                         0,
                         0.0,
                         0

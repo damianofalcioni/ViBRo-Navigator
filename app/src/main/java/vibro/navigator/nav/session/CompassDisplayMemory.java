@@ -12,6 +12,9 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.geo.LatLon;
+
+import java.util.List;
 
 final class CompassDisplayMemory {
     private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
@@ -36,8 +39,12 @@ final class CompassDisplayMemory {
         radiusTransition.reset();
     }
 
-    void onRouteApplied(@NonNull GeoJsonRoute route, @NonNull PolylineIndex polylineIndex) {
-        routeGeometry = NavStateComposer.buildCompassRouteGeometry(route, polylineIndex);
+    void onRouteApplied(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<LatLon> intermediateStops
+    ) {
+        routeGeometry = NavStateComposer.buildCompassRouteGeometry(route, polylineIndex, intermediateStops);
         lastVisibleRadiusMeters = null;
         lastSmoothedAccuracyMeters = Float.NaN;
         lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;

@@ -4,7 +4,6 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.routing.NavigationRouteFailureFormatter;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
-import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateBuildInput;
 import vibro.navigator.nav.presentation.NavStateComposer;
@@ -42,12 +41,12 @@ public final class NavigationSessionRouteDisplayState {
 
     public void onRouteApplied(
             @NonNull Context context,
-            @NonNull NavigationRequest request,
             @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<LatLon> intermediateStops
     ) {
-        compassMemory.onRouteApplied(route, polylineIndex);
-        targets = buildTargets(context, request.stops, polylineIndex);
+        compassMemory.onRouteApplied(route, polylineIndex, intermediateStops);
+        targets = buildTargets(context, intermediateStops, polylineIndex);
     }
 
     @NonNull

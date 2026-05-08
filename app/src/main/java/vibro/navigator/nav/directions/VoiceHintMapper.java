@@ -27,7 +27,7 @@ public final class VoiceHintMapper {
 
     @NonNull
     private static DirectionSpec[] buildCommandDirections() {
-        DirectionSpec[] directions = new DirectionSpec[101];
+        DirectionSpec[] directions = new DirectionSpec[102];
         directions[1] = new DirectionSpec("⬆", R.string.direction_continue, DirectionKind.STRAIGHT);
         directions[2] = new DirectionSpec("←", R.string.direction_turn_left, DirectionKind.LEFT);
         directions[3] = new DirectionSpec("↖", R.string.direction_slight_left, DirectionKind.LEFT);
@@ -47,6 +47,7 @@ public final class VoiceHintMapper {
         directions[17] = new DirectionSpec("←", R.string.direction_exit_left, DirectionKind.LEFT);
         directions[18] = new DirectionSpec("→", R.string.direction_exit_right, DirectionKind.RIGHT);
         directions[100] = new DirectionSpec("■", R.string.direction_arrive, DirectionKind.OTHER);
+        directions[101] = new DirectionSpec("■", R.string.direction_intermediate_arrive, DirectionKind.OTHER);
         return directions;
     }
 

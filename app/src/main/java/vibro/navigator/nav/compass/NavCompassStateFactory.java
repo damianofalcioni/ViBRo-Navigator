@@ -16,6 +16,8 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
+import java.util.List;
+
 public final class NavCompassStateFactory {
     private NavCompassStateFactory() {
     }
@@ -26,6 +28,15 @@ public final class NavCompassStateFactory {
             @NonNull PolylineIndex index
     ) {
         return CompassRouteGeometryFactory.build(route, index);
+    }
+
+    @NonNull
+    public static CompassRouteGeometry buildCompassRouteGeometry(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<LatLon> intermediateStops
+    ) {
+        return CompassRouteGeometryFactory.build(route, index, intermediateStops);
     }
 
     @NonNull

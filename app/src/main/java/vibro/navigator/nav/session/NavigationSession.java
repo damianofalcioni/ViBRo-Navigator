@@ -120,12 +120,6 @@ public final class NavigationSession {
         return routeState.currentSegmentBearingDegrees(locationState.getLastFilteredLocation());
     }
 
-    @Nullable
-    public Double currentTrustedActualBearingDegrees() {
-        Location lastFiltered = locationState.getLastFilteredLocation();
-        return lastFiltered == null ? null : locationState.trustedActualBearingDegreesForReroute(lastFiltered);
-    }
-
     @NonNull
     public NavigationRequest currentNavigationRequest() {
         return currentRequest;
@@ -188,6 +182,7 @@ public final class NavigationSession {
                 force,
                 nowMs,
                 currentRequest,
+                routeState.remainingIntermediateStops(currentRequest.stops),
                 locationState.getLastFilteredLocation(),
                 routeState.copyBlockedPoints(),
                 inProgressNotice
@@ -209,7 +204,6 @@ public final class NavigationSession {
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         return routeState.applyRouteResult(
                 context,
-                currentRequest,
                 snapshot,
                 newRoute,
                 lastFiltered,

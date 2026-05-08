@@ -8,6 +8,7 @@ import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public final class CompassRouteGeometryFactory {
@@ -22,9 +23,19 @@ public final class CompassRouteGeometryFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index
     ) {
+        return build(route, index, Collections.emptyList());
+    }
+
+    @NonNull
+    public static CompassRouteGeometry build(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<LatLon> intermediateStops
+    ) {
         return new CompassRouteGeometry(
                 buildRouteSamplePoints(route, index),
-                buildHintSamplePoints(route, index)
+                buildHintSamplePoints(route, index),
+                buildIntermediateSamplePoints(index, intermediateStops)
         );
     }
 
@@ -121,5 +132,24 @@ public final class CompassRouteGeometryFactory {
                 target.add(hintPoint);
             }
         }
+    }
+
+    @NonNull
+    private static List<LatLon> buildIntermediateSamplePoints(
+            @NonNull PolylineIndex index,
+            @NonNull List<LatLon> intermediateStops
+    ) {
+        List<LatLon> intermediateSamplePoints = new ArrayList<>();
+        for (LatLon stop : intermediateStops) {
+            PolylineIndex.Match match = index.match(stop, -1);
+            if (match == null) {
+                continue;
+            }
+            LatLon point = index.pointAtDistance(match.alongTrackMeters);
+            if (point != null) {
+                intermediateSamplePoints.add(point);
+            }
+        }
+        return intermediateSamplePoints;
     }
 }

@@ -8,8 +8,8 @@ import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
-import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.geo.LatLon;
 import android.content.Context;
 import android.location.Location;
 
@@ -77,6 +77,11 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
+    public List<LatLon> remainingIntermediateStops(@NonNull List<LatLon> fallbackStops) {
+        return intermediateArrivalTracker.remainingStops(fallbackStops);
+    }
+
+    @NonNull
     public List<NogoPoint> copyBlockedPoints() {
         return blockedRouteState.copyBlockedPoints();
     }
@@ -135,7 +140,6 @@ public final class NavigationSessionRouteState {
     @NonNull
     public List<NavigationTurnEvent> applyRouteResult(
             @NonNull Context context,
-            @NonNull NavigationRequest request,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
             @Nullable Location lastFiltered,
@@ -144,7 +148,6 @@ public final class NavigationSessionRouteState {
     ) {
         return applyRouteResult(
                 context,
-                request,
                 snapshot,
                 newRoute,
                 lastFiltered,
@@ -157,7 +160,6 @@ public final class NavigationSessionRouteState {
     @NonNull
     public List<NavigationTurnEvent> applyRouteResult(
             @NonNull Context context,
-            @NonNull NavigationRequest request,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
             @Nullable Location lastFiltered,
@@ -167,7 +169,6 @@ public final class NavigationSessionRouteState {
     ) {
         return routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
                 context,
-                request,
                 snapshot,
                 newRoute,
                 lastFiltered,

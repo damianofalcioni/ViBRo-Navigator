@@ -53,8 +53,13 @@ final class NavigationRouteResultApplier {
     @NonNull
     List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
         geometryState.loadRoute(input.route);
-        displayState.onRouteApplied(input.context, input.request, input.route, geometryState.polylineIndex());
-        intermediateArrivalTracker.onRouteApplied(input.request.stops, input.route, geometryState.polylineIndex());
+        displayState.onRouteApplied(
+                input.context,
+                input.route,
+                geometryState.polylineIndex(),
+                input.snapshot.intermediates
+        );
+        intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, input.route, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
         float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;

@@ -19,10 +19,12 @@ final class NavigationIntermediateArrivalTracker {
     @NonNull
     private final List<IntermediateDestination> destinations = new ArrayList<>();
     private int nextDestinationIndex;
+    private boolean routeApplied;
 
     void reset() {
         destinations.clear();
         nextDestinationIndex = 0;
+        routeApplied = false;
     }
 
     void onRouteApplied(
@@ -30,7 +32,6 @@ final class NavigationIntermediateArrivalTracker {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex
     ) {
-        int previouslyReachedCount = nextDestinationIndex;
         destinations.clear();
         for (LatLon stop : stops) {
             PolylineIndex.Match match = polylineIndex.match(stop, -1);
@@ -41,7 +42,8 @@ final class NavigationIntermediateArrivalTracker {
                 ));
             }
         }
-        nextDestinationIndex = Math.min(previouslyReachedCount, destinations.size());
+        nextDestinationIndex = 0;
+        routeApplied = true;
     }
 
     @Nullable
@@ -55,6 +57,18 @@ final class NavigationIntermediateArrivalTracker {
         }
         nextDestinationIndex++;
         return destination.trackIndex;
+    }
+
+    @NonNull
+    List<LatLon> remainingStops(@NonNull List<LatLon> fallbackStops) {
+        if (!routeApplied) {
+            return new ArrayList<>(fallbackStops);
+        }
+        List<LatLon> remaining = new ArrayList<>();
+        for (int i = nextDestinationIndex; i < destinations.size(); i++) {
+            remaining.add(destinations.get(i).location);
+        }
+        return remaining;
     }
 
     private static boolean isWithinReachedRadius(

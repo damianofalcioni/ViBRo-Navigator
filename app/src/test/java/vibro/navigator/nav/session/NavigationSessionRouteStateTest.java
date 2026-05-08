@@ -85,7 +85,6 @@ public class NavigationSessionRouteStateTest {
 
         List<NavigationTurnEvent> turnEvents = state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -127,7 +126,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -189,7 +187,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithoutHints(),
                 location(0.0, 0.0, 1_000L),
@@ -232,9 +229,9 @@ public class NavigationSessionRouteStateTest {
         assertFalse(stopEvaluation.shouldRecalculateRoute());
         assertEquals(1, stopEvaluation.turnEvents.size());
         assertEquals(NavigationTurnEvent.Type.IMMINENT, stopEvaluation.turnEvents.get(0).type);
-        assertEquals(100, stopEvaluation.turnEvents.get(0).hint.command);
+        assertEquals(101, stopEvaluation.turnEvents.get(0).hint.command);
         assertTrue(repeatedEvaluation.turnEvents.isEmpty());
-        assertEquals("■ Destination reached", navState.routeStatus.guidance.nextLine);
+        assertEquals("■ Intermediate destination reached", navState.routeStatus.guidance.nextLine);
         assertTrue(navState.routeStatus.guidance.afterNextLine.contains(context.getString(R.string.direction_arrive)));
         assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertFalse(navState.routeStatus.progress.destinationLine.equals(context.getString(R.string.nav_destination_reached)));
@@ -254,7 +251,6 @@ public class NavigationSessionRouteStateTest {
 
         List<NavigationTurnEvent> turnEvents = state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithoutHints(),
                 location(0.0, 0.001, 1_000L),
@@ -264,7 +260,42 @@ public class NavigationSessionRouteStateTest {
 
         assertEquals(1, turnEvents.size());
         assertEquals(NavigationTurnEvent.Type.IMMINENT, turnEvents.get(0).type);
-        assertEquals(100, turnEvents.get(0).hint.command);
+        assertEquals(101, turnEvents.get(0).hint.command);
+    }
+
+    @Test
+    public void remainingIntermediateStops_excludesReachedStopsAfterArrival() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        List<LatLon> stops = Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002));
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                stops
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                routeWithoutHints(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        state.evaluateLocation(
+                location(0.0, 0.001, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        List<LatLon> remainingStops = state.remainingIntermediateStops(stops);
+
+        assertEquals(1, remainingStops.size());
+        assertEquals(0.002, remainingStops.get(0).lon, 0.0);
     }
 
     @Test
@@ -279,7 +310,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -314,7 +344,6 @@ public class NavigationSessionRouteStateTest {
         Location startLocation = locationWithSpeed(0.0, 0.0, 1_000L, 0.4f);
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 new GeoJsonRoute(
                         Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.001)),
@@ -380,7 +409,6 @@ public class NavigationSessionRouteStateTest {
 
         List<NavigationTurnEvent> turnEvents = state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 new GeoJsonRoute(
                         Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.001)),
@@ -412,7 +440,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -446,7 +473,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -501,7 +527,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -544,7 +569,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -591,7 +615,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -625,7 +648,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithSharpTurn(),
                 location(0.0, 0.0, 1_000L),
@@ -660,7 +682,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -702,7 +723,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithHint(),
                 location(0.0, 0.0, 1_000L),
@@ -755,7 +775,6 @@ public class NavigationSessionRouteStateTest {
         Location currentLocation = location(0.0, 0.0, 1_000L);
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithoutHints(),
                 currentLocation,
@@ -787,7 +806,6 @@ public class NavigationSessionRouteStateTest {
         Location currentLocation = location(0.0, 0.0, 1_000L);
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithoutHints(),
                 currentLocation,
@@ -828,7 +846,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 new GeoJsonRoute(
                         Arrays.asList(
@@ -913,7 +930,6 @@ public class NavigationSessionRouteStateTest {
         );
         shortRouteState.applyRouteResult(
                 context,
-                shortRouteRequest,
                 snapshot(shortRouteRequest),
                 new GeoJsonRoute(
                         Arrays.asList(
@@ -940,7 +956,6 @@ public class NavigationSessionRouteStateTest {
         );
         longRouteState.applyRouteResult(
                 context,
-                longRouteRequest,
                 snapshot(longRouteRequest),
                 new GeoJsonRoute(
                         Arrays.asList(
@@ -1139,7 +1154,6 @@ public class NavigationSessionRouteStateTest {
         Location currentLocation = location(0.0, 0.0, 1_000L);
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithoutHints(),
                 currentLocation,
@@ -1180,7 +1194,6 @@ public class NavigationSessionRouteStateTest {
         );
         state.applyRouteResult(
                 context,
-                request,
                 snapshot(request),
                 routeWithoutHints(),
                 location(0.0, 0.0, 1_000L),

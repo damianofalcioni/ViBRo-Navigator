@@ -27,6 +27,8 @@ final class NavigationCompassRouteMarkerRenderer {
     private final Paint destinationReachedRadiusPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
     private final NavigationRoutePathRenderer.PlotPoint destinationPoint = new NavigationRoutePathRenderer.PlotPoint();
+    private final NavigationCompassIntermediateDestinationRenderer intermediateDestinationRenderer =
+            new NavigationCompassIntermediateDestinationRenderer();
     private boolean initialized;
 
     void drawDestinationPoint(
@@ -39,6 +41,18 @@ final class NavigationCompassRouteMarkerRenderer {
             float headingDegrees
     ) {
         ensurePaintsInitialized(context);
+        intermediateDestinationRenderer.draw(
+                canvas,
+                state,
+                cx,
+                cy,
+                routeRadius,
+                headingDegrees,
+                dp(context, DESTINATION_MARKER_RADIUS_DP),
+                resolveDestinationReachedRadiusPx(state, routeRadius),
+                destinationPaint,
+                destinationReachedRadiusPaint
+        );
         drawDestinationReachedRadius(canvas, state, cx, cy, routeRadius, headingDegrees);
         NavigationRoutePathRenderer.PlotPoint position =
                 resolveDestinationPosition(state, cx, cy, routeRadius, headingDegrees);
@@ -230,6 +244,7 @@ final class NavigationCompassRouteMarkerRenderer {
             canvas.drawCircle(cx + projectedPoint.x * scale, cy - projectedPoint.y * scale, markerRadius, routeMarkerPaint);
         }
     }
+
 
     private void drawLegacyHintMarkers(
             @NonNull Canvas canvas,

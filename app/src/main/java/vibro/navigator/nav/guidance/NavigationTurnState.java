@@ -122,7 +122,7 @@ public final class NavigationTurnState {
     public List<NavigationTurnEvent> onIntermediateDestinationReached(int trackIndex) {
         initialTurnNotificationSent = true;
         intermediateDestinationReachedTrackIndex = trackIndex;
-        VoiceHint arrivalHint = new VoiceHint(trackIndex, 100, 0, 0.0, 0);
+        VoiceHint arrivalHint = new VoiceHint(trackIndex, 101, 0, 0.0, 0);
         return Collections.singletonList(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 

@@ -28,7 +28,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
-                null,
                 sample(20.0, 1_000L),
                 1_000L,
                 sink
@@ -41,7 +40,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
-                null,
                 sample(20.0, 6_000L),
                 6_500L,
                 sink
@@ -52,7 +50,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
-                null,
                 sample(20.0, 7_000L),
                 7_000L,
                 sink
@@ -73,7 +70,6 @@ public class StationaryOrientationNotifierTest {
                 false,
                 1.2f,
                 90.0,
-                90.0,
                 sample(20.0, 7_000L),
                 7_000L,
                 sink
@@ -85,7 +81,7 @@ public class StationaryOrientationNotifierTest {
     }
 
     @Test
-    public void maybeNotifyKeepsCueWhileMovementIsNotAlignedWithRoute() {
+    public void maybeNotifyClearsCueWhenMovementStartsEvenIfNotAlignedWithRoute() {
         notifyAfterDwell(1_000L, 6_500L);
 
         notifier.maybeNotify(
@@ -94,14 +90,12 @@ public class StationaryOrientationNotifierTest {
                 false,
                 1.2f,
                 90.0,
-                200.0,
                 sample(20.0, 7_000L),
                 7_000L,
                 sink
         );
 
-        assertNotNull(notifier.activeOrientationCue());
-        assertEquals(90.0f, notifier.activeOrientationCue().targetHeadingDegrees, 0.001f);
+        assertNull(notifier.activeOrientationCue());
     }
 
     @Test
@@ -112,7 +106,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 25.0,
-                null,
                 sample(20.0, 1_000L),
                 1_000L,
                 sink
@@ -123,7 +116,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 25.0,
-                null,
                 sample(20.0, 6_000L),
                 6_500L,
                 sink
@@ -134,7 +126,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 25.0,
-                null,
                 sample(20.0, 7_000L),
                 7_000L,
                 sink
@@ -151,7 +142,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
-                null,
                 sample(20.0, startMs),
                 startMs,
                 sink
@@ -162,7 +152,6 @@ public class StationaryOrientationNotifierTest {
                 true,
                 0f,
                 90.0,
-                null,
                 sample(20.0, notifyMs),
                 notifyMs,
                 sink

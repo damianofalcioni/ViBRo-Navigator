@@ -84,7 +84,6 @@ public final class NavigationOrientationController {
                 navigationSession.isLikelyStationaryForOrientation(),
                 navigationSession.lastFilteredSpeedMps(),
                 navigationSession.currentRouteBearingDegrees(),
-                navigationSession.currentTrustedActualBearingDegrees(),
                 orientationMonitor.getLatestSample(),
                 android.os.SystemClock.elapsedRealtime(),
                 foregroundController::sendStationaryOrientationNotification

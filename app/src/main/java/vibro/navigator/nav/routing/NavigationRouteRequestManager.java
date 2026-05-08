@@ -85,6 +85,19 @@ public final class NavigationRouteRequestManager {
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice
     ) {
+        return prepare(force, nowMs, request, request.stops, lastFiltered, blocked, inProgressNotice);
+    }
+
+    @Nullable
+    public NavigationRouteRequestSnapshot prepare(
+            boolean force,
+            long nowMs,
+            @NonNull NavigationRequest request,
+            @NonNull List<LatLon> intermediates,
+            @Nullable Location lastFiltered,
+            @NonNull List<NogoPoint> blocked,
+            @Nullable String inProgressNotice
+    ) {
         if (routeCalculationInProgress) {
             pendingRecalculation = true;
             AppLogger.d(TAG, "Queued route recalculation while previous request is still running");
@@ -106,7 +119,7 @@ public final class NavigationRouteRequestManager {
                 requestNumber,
                 requestToken,
                 new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
-                new ArrayList<>(request.stops),
+                new ArrayList<>(intermediates),
                 request.destination,
                 request.profile,
                 new ArrayList<>(blocked)

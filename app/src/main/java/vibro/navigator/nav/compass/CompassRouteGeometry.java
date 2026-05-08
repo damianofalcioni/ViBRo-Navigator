@@ -25,13 +25,24 @@ public final class CompassRouteGeometry {
     private final List<SamplePoint> routeSamplePoints;
     @NonNull
     private final List<LatLon> hintSamplePoints;
+    @NonNull
+    private final List<LatLon> intermediateSamplePoints;
 
     public CompassRouteGeometry(
             @NonNull List<SamplePoint> routeSamplePoints,
             @NonNull List<LatLon> hintSamplePoints
     ) {
+        this(routeSamplePoints, hintSamplePoints, Collections.emptyList());
+    }
+
+    public CompassRouteGeometry(
+            @NonNull List<SamplePoint> routeSamplePoints,
+            @NonNull List<LatLon> hintSamplePoints,
+            @NonNull List<LatLon> intermediateSamplePoints
+    ) {
         this.routeSamplePoints = Collections.unmodifiableList(routeSamplePoints);
         this.hintSamplePoints = Collections.unmodifiableList(hintSamplePoints);
+        this.intermediateSamplePoints = Collections.unmodifiableList(intermediateSamplePoints);
     }
 
     public int routeSamplePointCount() {
@@ -40,6 +51,10 @@ public final class CompassRouteGeometry {
 
     public int hintSamplePointCount() {
         return hintSamplePoints.size();
+    }
+
+    public int intermediateSamplePointCount() {
+        return intermediateSamplePoints.size();
     }
 
     @Nullable
@@ -56,6 +71,14 @@ public final class CompassRouteGeometry {
             return null;
         }
         return hintSamplePoints.get(index);
+    }
+
+    @Nullable
+    public LatLon intermediateSamplePointAt(int index) {
+        if (index < 0 || index >= intermediateSamplePoints.size()) {
+            return null;
+        }
+        return intermediateSamplePoints.get(index);
     }
 
     public int passedRoutePointCount(double alongTrackMeters) {
