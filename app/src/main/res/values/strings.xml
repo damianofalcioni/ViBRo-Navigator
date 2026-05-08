@@ -69,7 +69,7 @@
     <string name="nav_calculating_route_title">Calculating route</string>
     <string name="nav_calculating_route_body">Getting directions from BRouter.</string>
     <string name="nav_route_unavailable_title">Route unavailable</string>
-    <string name="format_nav_route_unavailable_body">Route unavailable: %1$s</string>
+    <string name="format_nav_route_unavailable_body">Route unavailable: %1$s \n Check BRouter for available segments.</string>
     <string name="nav_route_unavailable_generic">unknown error</string>
     <string name="nav_start_invalid_request">navigation request is incomplete</string>
     <string name="nav_route_notice_no_alternative_keep_current">Could not find an alternative route around the blocked area. Keeping current route.</string>
