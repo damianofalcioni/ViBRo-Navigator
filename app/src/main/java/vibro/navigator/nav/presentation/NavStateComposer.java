@@ -141,6 +141,7 @@ public final class NavStateComposer {
                 input.currentLocation,
                 input.motion.accuracyMeters,
                 input.gps.fixedSatelliteCount,
+                input.gps.acquiredFixCount,
                 input.context
         );
         NavCompassState compassState = input.compassInput == null
@@ -243,6 +244,7 @@ public final class NavStateComposer {
             @Nullable Location currentLocation,
             float accuracyMeters,
             @Nullable Integer fixedSatelliteCount,
+            @Nullable Integer acquiredFixCount,
             @NonNull Context context
     ) {
         return NavCompassStateFactory.buildGpsStatusLine(
@@ -250,12 +252,13 @@ public final class NavStateComposer {
                 currentLocation,
                 accuracyMeters,
                 fixedSatelliteCount,
+                acquiredFixCount,
                 context
         );
     }
 
     @NonNull
     private static String defaultGpsStatusLine(@NonNull Context context) {
-        return buildGpsStatusLine(Float.NaN, null, Float.NaN, null, context);
+        return buildGpsStatusLine(Float.NaN, null, Float.NaN, null, null, context);
     }
 }

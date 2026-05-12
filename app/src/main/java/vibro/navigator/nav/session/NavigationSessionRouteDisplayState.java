@@ -115,7 +115,7 @@ public final class NavigationSessionRouteDisplayState {
                         snapshot.accuracyMeters,
                         compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters)
                 )
-                .gps(snapshot.fixedSatelliteCount)
+                .gps(snapshot.fixedSatelliteCount, snapshot.acquiredFixCount)
                 .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)
                 .compass(compassInput)
                 .timing(snapshot.nextEvaluationDeadlineElapsedMs, snapshot.nowMs)
@@ -146,6 +146,7 @@ public final class NavigationSessionRouteDisplayState {
                     null,
                     Float.NaN,
                     snapshot.fixedSatelliteCount,
+                    snapshot.acquiredFixCount,
                     snapshot.context
             );
         }
@@ -154,6 +155,7 @@ public final class NavigationSessionRouteDisplayState {
                 snapshot.lastFiltered,
                 snapshot.accuracyMeters,
                 snapshot.fixedSatelliteCount,
+                snapshot.acquiredFixCount,
                 snapshot.context
         );
     }

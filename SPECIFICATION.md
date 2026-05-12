@@ -412,8 +412,8 @@ The navigation UI must show the following in large text:
 
 #### 4.5.3.1 GPS status line
 
-- The navigation UI must show a single GPS status line formatted as `<speed> ↑<elev> <bearing> • <accuracy> <bearing-accuracy> • (<sat>) • <countdown>`
-- That line must show the current speed, current elevation, current horizontal accuracy, GPS bearing, GPS bearing accuracy, and the current number of GNSS satellites used in the fix, in that exact order
+- The navigation UI must show a single GPS status line formatted as `<speed> ↑<elev> <bearing> • <accuracy> <bearing-accuracy> • (<sat>) #<fix-count> • <countdown>`
+- That line must show the current speed, current elevation, current horizontal accuracy, GPS bearing, GPS bearing accuracy, the current number of GNSS satellites used in the fix, and the total number of accepted location fixes acquired during the current navigation session, in that exact order
 - The current horizontal accuracy and GPS bearing-accuracy values in that line must be emphasized in orange when they are available
 - That GPS status line must stay on a single line and should reduce its text size as needed instead of wrapping onto a second line
 - When any of those values is unavailable, the UI must show `--` in that field instead of omitting it

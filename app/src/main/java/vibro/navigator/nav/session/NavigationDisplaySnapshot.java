@@ -18,6 +18,7 @@ public final class NavigationDisplaySnapshot {
     final float accuracyMeters;
     @Nullable
     final Integer fixedSatelliteCount;
+    final int acquiredFixCount;
     @Nullable
     final Double headingDegrees;
     @Nullable
@@ -39,6 +40,7 @@ public final class NavigationDisplaySnapshot {
         likelyStationary = builder.likelyStationary;
         accuracyMeters = builder.accuracyMeters;
         fixedSatelliteCount = builder.fixedSatelliteCount;
+        acquiredFixCount = builder.acquiredFixCount;
         headingDegrees = builder.headingDegrees;
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
         orientationCue = builder.orientationCue;
@@ -64,6 +66,7 @@ public final class NavigationDisplaySnapshot {
         private float accuracyMeters = Float.MAX_VALUE;
         @Nullable
         private Integer fixedSatelliteCount;
+        private int acquiredFixCount;
         @Nullable
         private Double headingDegrees;
         @Nullable
@@ -97,8 +100,9 @@ public final class NavigationDisplaySnapshot {
         }
 
         @NonNull
-        Builder gps(@Nullable Integer fixedSatelliteCount) {
+        Builder gps(@Nullable Integer fixedSatelliteCount, int acquiredFixCount) {
             this.fixedSatelliteCount = fixedSatelliteCount;
+            this.acquiredFixCount = acquiredFixCount;
             return this;
         }
 

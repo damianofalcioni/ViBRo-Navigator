@@ -36,6 +36,7 @@ public final class NavigationSession {
     private final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
     private boolean started;
     private boolean paused;
+    private int acquiredFixCount;
 
     @NonNull
     private NavigationRequest currentRequest = new NavigationRequest(null, null, null, Collections.emptyList());
@@ -48,6 +49,7 @@ public final class NavigationSession {
     public boolean start(@NonNull Context context, long nowMs) {
         started = false;
         paused = false;
+        acquiredFixCount = 0;
         locationState.reset();
         routeState.reset();
         warmupController.reset(nowMs);
@@ -131,6 +133,7 @@ public final class NavigationSession {
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
         }
+        acquiredFixCount++;
 
         Location filtered = update.getFilteredLocation();
         routeRequestManager.clearRouteFailure();
@@ -270,7 +273,7 @@ public final class NavigationSession {
         );
         NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(context)
                 .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
-                .gps(fixedSatelliteCount)
+                .gps(fixedSatelliteCount, acquiredFixCount)
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
                 .orientationCue(orientationCue)
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)

@@ -21,7 +21,8 @@ public final class NavigationGpsTextFormatter {
             float accuracyMeters,
             @Nullable Float bearingDegrees,
             @Nullable Float bearingAccuracyDegrees,
-            @Nullable Integer fixedSatelliteCount
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Integer acquiredFixCount
     ) {
         return context.getString(
                 R.string.format_nav_gps_status,
@@ -30,7 +31,8 @@ public final class NavigationGpsTextFormatter {
                 formatGpsBearing(context, bearingDegrees),
                 formatAccuracy(context, accuracyMeters),
                 formatGpsBearingAccuracy(context, bearingAccuracyDegrees),
-                formatFixedSatelliteCount(context, fixedSatelliteCount)
+                formatFixedSatelliteCount(context, fixedSatelliteCount),
+                formatAcquiredFixCount(context, acquiredFixCount)
         );
     }
 
@@ -58,6 +60,17 @@ public final class NavigationGpsTextFormatter {
             return context.getString(R.string.nav_status_unavailable);
         }
         return context.getString(R.string.format_nav_satellite_count_value, fixedSatelliteCount);
+    }
+
+    @NonNull
+    public static String formatAcquiredFixCount(
+            @NonNull Context context,
+            @Nullable Integer acquiredFixCount
+    ) {
+        if (acquiredFixCount == null || acquiredFixCount < 0) {
+            return context.getString(R.string.nav_status_unavailable);
+        }
+        return context.getString(R.string.format_nav_fix_count_value, acquiredFixCount);
     }
 
     @NonNull

@@ -106,9 +106,12 @@ public final class NavStateBuildInput {
     public static final class Gps {
         @Nullable
         public final Integer fixedSatelliteCount;
+        @Nullable
+        public final Integer acquiredFixCount;
 
-        private Gps(@Nullable Integer fixedSatelliteCount) {
+        private Gps(@Nullable Integer fixedSatelliteCount, @Nullable Integer acquiredFixCount) {
             this.fixedSatelliteCount = fixedSatelliteCount;
+            this.acquiredFixCount = acquiredFixCount;
         }
     }
 
@@ -148,7 +151,7 @@ public final class NavStateBuildInput {
         @NonNull
         private Motion motion = new Motion(0f, 0f, false, 0f, 0f);
         @NonNull
-        private Gps gps = new Gps(null);
+        private Gps gps = new Gps(null, null);
         @NonNull
         private Heading heading = new Heading(null, null);
         @Nullable
@@ -192,7 +195,12 @@ public final class NavStateBuildInput {
 
         @NonNull
         public Builder gps(@Nullable Integer fixedSatelliteCount) {
-            gps = new Gps(fixedSatelliteCount);
+            return gps(fixedSatelliteCount, 0);
+        }
+
+        @NonNull
+        public Builder gps(@Nullable Integer fixedSatelliteCount, @Nullable Integer acquiredFixCount) {
+            gps = new Gps(fixedSatelliteCount, acquiredFixCount);
             return this;
         }
 

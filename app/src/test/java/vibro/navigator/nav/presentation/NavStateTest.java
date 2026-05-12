@@ -856,7 +856,7 @@ public class NavStateTest {
                 context
         );
 
-        assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7)", state.gpsStatus.statusLine);
+        assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7) #0", state.gpsStatus.statusLine);
     }
 
     @Test

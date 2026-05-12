@@ -94,6 +94,34 @@ public class NavigationSessionTest {
         assertEquals(0.002, secondSnapshot.intermediates.get(0).lon, 0.0);
     }
 
+    @Test
+    public void buildState_includesAcceptedFixCountInGpsStatus() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        ));
+        assertTrue(session.start(context, 0L));
+        long nowMs = System.currentTimeMillis();
+
+        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
+        session.onRawLocationChanged(context, location(0.0, 0.0001, nowMs + 1_000L), nowMs + 1_000L);
+
+        NavState state = session.buildState(
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 1_000L,
+                7,
+                null,
+                null
+        );
+
+        assertTrue(state.gpsStatus.statusLine.contains("(7) #2"));
+    }
+
     @NonNull
     private static GeoJsonRoute routeWithoutHints() {
         return new GeoJsonRoute(

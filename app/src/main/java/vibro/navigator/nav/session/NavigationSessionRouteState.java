@@ -210,7 +210,7 @@ public final class NavigationSessionRouteState {
     ) {
         return advanceDisplayState(NavigationDisplaySnapshot.builder(context)
                 .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
-                .gps(fixedSatelliteCount)
+                .gps(fixedSatelliteCount, 0)
                 .heading(headingDegrees, headingAccuracyDegrees)
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .routeCalculation(routeCalculationInProgress, routeCalculationNotice, lastRouteFailure)

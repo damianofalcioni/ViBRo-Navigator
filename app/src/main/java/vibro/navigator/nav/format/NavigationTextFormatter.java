@@ -134,7 +134,8 @@ public final class NavigationTextFormatter {
             float accuracyMeters,
             @Nullable Float bearingDegrees,
             @Nullable Float bearingAccuracyDegrees,
-            @Nullable Integer fixedSatelliteCount
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Integer acquiredFixCount
     ) {
         return NavigationGpsTextFormatter.formatGpsStatus(
                 context,
@@ -143,7 +144,8 @@ public final class NavigationTextFormatter {
                 accuracyMeters,
                 bearingDegrees,
                 bearingAccuracyDegrees,
-                fixedSatelliteCount
+                fixedSatelliteCount,
+                acquiredFixCount
         );
     }
 
@@ -173,6 +175,14 @@ public final class NavigationTextFormatter {
             @Nullable Integer fixedSatelliteCount
     ) {
         return NavigationGpsTextFormatter.formatFixedSatelliteCount(context, fixedSatelliteCount);
+    }
+
+    @NonNull
+    public static String formatAcquiredFixCount(
+            @NonNull Context context,
+            @Nullable Integer acquiredFixCount
+    ) {
+        return NavigationGpsTextFormatter.formatAcquiredFixCount(context, acquiredFixCount);
     }
 
     @NonNull

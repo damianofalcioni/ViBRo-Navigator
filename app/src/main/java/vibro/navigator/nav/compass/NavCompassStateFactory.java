@@ -45,6 +45,7 @@ public final class NavCompassStateFactory {
             @Nullable Location currentLocation,
             float accuracyMeters,
             @Nullable Integer fixedSatelliteCount,
+            @Nullable Integer acquiredFixCount,
             @NonNull Context context
     ) {
         return NavigationTextFormatter.formatGpsStatus(
@@ -54,7 +55,8 @@ public final class NavCompassStateFactory {
                 accuracyMeters,
                 bearingDegrees(currentLocation),
                 bearingAccuracyDegrees(currentLocation),
-                fixedSatelliteCount
+                fixedSatelliteCount,
+                acquiredFixCount
         );
     }
 
