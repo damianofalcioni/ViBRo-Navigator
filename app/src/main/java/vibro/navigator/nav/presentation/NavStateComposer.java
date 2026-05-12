@@ -109,6 +109,7 @@ public final class NavStateComposer {
                 input.motion.accuracyMeters,
                 input.destinationReached,
                 input.intermediateDestinationReachedTrackIndex,
+                input.targets,
                 input.context
         );
         String next = directionLines.isEmpty() ? "" : directionLines.get(0);

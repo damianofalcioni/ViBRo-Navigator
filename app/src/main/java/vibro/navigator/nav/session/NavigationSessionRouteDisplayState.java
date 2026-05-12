@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class NavigationSessionRouteDisplayState {
+    private static final double TRACK_INDEX_TOLERANCE_METERS = 1.0;
 
     @NonNull
     private List<NavTarget> targets = new ArrayList<>();
@@ -46,7 +47,7 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull List<LatLon> intermediateStops
     ) {
         compassMemory.onRouteApplied(route, polylineIndex, intermediateStops);
-        targets = buildTargets(context, intermediateStops, polylineIndex);
+        targets = buildTargets(context, intermediateStops, route.track.size(), polylineIndex);
     }
 
     @NonNull
@@ -225,17 +226,36 @@ public final class NavigationSessionRouteDisplayState {
     private List<NavTarget> buildTargets(
             @NonNull Context context,
             @NonNull List<LatLon> intermediates,
+            int trackSize,
             @NonNull PolylineIndex index
     ) {
         List<NavTarget> out = new ArrayList<>();
         for (int i = 0; i < intermediates.size(); i++) {
             PolylineIndex.Match match = index.match(intermediates.get(i), -1);
             if (match != null) {
-                out.add(new NavTarget(context.getString(R.string.format_stop_label, i + 1), match.alongTrackMeters));
+                out.add(new NavTarget(
+                        context.getString(R.string.format_stop_label, i + 1),
+                        match.alongTrackMeters,
+                        trackIndexAtOrAfter(index, trackSize, match.alongTrackMeters)
+                ));
             }
         }
-        out.add(new NavTarget(context.getString(R.string.nav_destination_label), index.totalLengthMeters()));
+        out.add(new NavTarget(
+                context.getString(R.string.nav_destination_label),
+                index.totalLengthMeters(),
+                -1
+        ));
         return out;
+    }
+
+    private static int trackIndexAtOrAfter(@NonNull PolylineIndex index, int trackSize, double alongTrackMeters) {
+        int lastTrackIndex = Math.max(0, trackSize - 1);
+        for (int i = 0; i <= lastTrackIndex; i++) {
+            if (index.distanceAtPointIndex(i) + TRACK_INDEX_TOLERANCE_METERS >= alongTrackMeters) {
+                return i;
+            }
+        }
+        return lastTrackIndex;
     }
 
 }

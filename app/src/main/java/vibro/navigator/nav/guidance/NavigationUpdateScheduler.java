@@ -39,13 +39,43 @@ public final class NavigationUpdateScheduler {
             return MIN_UPDATE_INTERVAL_MS;
         }
 
-        VoiceHint next = route.voiceHints.get(nextHintIdx);
-        Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+        return suggestUpdateInterval(
+                nowMs,
+                fastChecksUntilMs,
+                route,
+                polylineIndex,
+                route.voiceHints.get(nextHintIdx),
+                null,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps
+        );
+    }
+
+    public long suggestUpdateInterval(
+            long nowMs,
+            long fastChecksUntilMs,
+            @Nullable GeoJsonRoute route,
+            @Nullable PolylineIndex polylineIndex,
+            @Nullable VoiceHint next,
+            @Nullable Double nextAlongTrackMeters,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps
+    ) {
+        if (!canEstimateNextHintTime(nowMs, fastChecksUntilMs, route, polylineIndex, next)) {
+            return MIN_UPDATE_INTERVAL_MS;
+        }
+
+        double targetAlongTrackMeters = nextAlongTrackMeters != null
+                ? nextAlongTrackMeters
+                : polylineIndex.distanceAtPointIndex(next.indexInTrack);
+        Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
                 route,
                 polylineIndex,
                 alongTrackMeters,
                 currentSegmentIndex,
-                next.indexInTrack,
+                targetAlongTrackMeters,
                 speedMps
         );
         if (timeToNextSeconds == null) {
@@ -74,6 +104,19 @@ public final class NavigationUpdateScheduler {
                 && !route.voiceHints.isEmpty()
                 && nextHintIdx >= 0
                 && nextHintIdx < route.voiceHints.size();
+    }
+
+    private static boolean canEstimateNextHintTime(
+            long nowMs,
+            long fastChecksUntilMs,
+            @Nullable GeoJsonRoute route,
+            @Nullable PolylineIndex polylineIndex,
+            @Nullable VoiceHint next
+    ) {
+        return nowMs > fastChecksUntilMs
+                && polylineIndex != null
+                && route != null
+                && next != null;
     }
 
     @NonNull

@@ -22,10 +22,9 @@ final class NavArrivalHintFactory {
             double alongTrackMeters,
             int currentSegmentIndex,
             float speedMps,
-            int hintIdx,
-            int collectedHintCount
+            int hintIdx
     ) {
-        if (collectedHintCount >= 2 || hasUpcomingArrivalHint(route, hintIdx) || route.track.isEmpty()) {
+        if (hasUpcomingArrivalHint(route, hintIdx) || route.track.isEmpty()) {
             return null;
         }
         int destinationTrackIndex = route.track.size() - 1;

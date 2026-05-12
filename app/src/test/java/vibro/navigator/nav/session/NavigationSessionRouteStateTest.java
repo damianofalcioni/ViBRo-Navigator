@@ -231,8 +231,8 @@ public class NavigationSessionRouteStateTest {
         assertEquals(NavigationTurnEvent.Type.IMMINENT, stopEvaluation.turnEvents.get(0).type);
         assertEquals(101, stopEvaluation.turnEvents.get(0).hint.command);
         assertTrue(repeatedEvaluation.turnEvents.isEmpty());
-        assertEquals("■ Intermediate destination reached", navState.routeStatus.guidance.nextLine);
-        assertTrue(navState.routeStatus.guidance.afterNextLine.contains(context.getString(R.string.direction_arrive)));
+        assertTrue(navState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_arrive)));
+        assertEquals("", navState.routeStatus.guidance.afterNextLine);
         assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertFalse(navState.routeStatus.progress.destinationLine.equals(context.getString(R.string.nav_destination_reached)));
         assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());

@@ -33,6 +33,7 @@ public final class NavStateTextFactory {
             float accuracyMeters,
             boolean destinationReached,
             int intermediateDestinationReachedTrackIndex,
+            @NonNull List<NavTarget> targets,
             @NonNull Context context
     ) {
         if (route.track.isEmpty()) {
@@ -40,19 +41,6 @@ public final class NavStateTextFactory {
         }
         if (destinationReached) {
             return buildDestinationReachedDirectionLines(route, context);
-        }
-        if (intermediateDestinationReachedTrackIndex >= 0) {
-            return buildIntermediateDestinationReachedDirectionLines(
-                    route,
-                    index,
-                    alongTrackMeters,
-                    hintIdx,
-                    currentSegmentIndex,
-                    speedMps,
-                    accuracyMeters,
-                    intermediateDestinationReachedTrackIndex,
-                    context
-            );
         }
 
         List<NavUpcomingHint> upcomingHints = NavUpcomingHintCollector.collect(
@@ -63,6 +51,8 @@ public final class NavStateTextFactory {
                 currentSegmentIndex,
                 speedMps,
                 accuracyMeters,
+                targets,
+                intermediateDestinationReachedTrackIndex,
                 2
         );
         return formatDirectionLines(route, index, upcomingHints, context);
@@ -81,47 +71,6 @@ public final class NavStateTextFactory {
                         0.0
                 )
         ));
-    }
-
-    @NonNull
-    private static List<String> buildIntermediateDestinationReachedDirectionLines(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex index,
-            double alongTrackMeters,
-            int hintIdx,
-            int currentSegmentIndex,
-            float speedMps,
-            float accuracyMeters,
-            int intermediateDestinationReachedTrackIndex,
-            @NonNull Context context
-    ) {
-        List<String> lines = new ArrayList<>(2);
-        lines.add(NavigationTextFormatter.formatTurnNotification(
-                context,
-                new VoiceHint(
-                        intermediateDestinationReachedTrackIndex,
-                        NavArrivalHintFactory.INTERMEDIATE_ARRIVAL_COMMAND,
-                        0,
-                        0.0,
-                        0
-                ),
-                0.0,
-                0.0
-        ));
-        List<NavUpcomingHint> upcomingHints = NavUpcomingHintCollector.collect(
-                route,
-                index,
-                alongTrackMeters,
-                hintIdx,
-                currentSegmentIndex,
-                speedMps,
-                accuracyMeters,
-                1
-        );
-        if (!upcomingHints.isEmpty()) {
-            addNextDirectionLine(lines, upcomingHints.get(0), context);
-        }
-        return lines;
     }
 
     @NonNull

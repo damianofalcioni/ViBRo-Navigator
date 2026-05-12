@@ -15,6 +15,7 @@ import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
 final class NavigationIntermediateArrivalTracker {
+    private static final double TRACK_INDEX_TOLERANCE_METERS = 1.0;
 
     @NonNull
     private final List<IntermediateDestination> destinations = new ArrayList<>();
@@ -92,7 +93,7 @@ final class NavigationIntermediateArrivalTracker {
     ) {
         int lastTrackIndex = Math.max(0, trackSize - 1);
         for (int i = 0; i <= lastTrackIndex; i++) {
-            if (polylineIndex.distanceAtPointIndex(i) >= alongTrackMeters) {
+            if (polylineIndex.distanceAtPointIndex(i) + TRACK_INDEX_TOLERANCE_METERS >= alongTrackMeters) {
                 return i;
             }
         }

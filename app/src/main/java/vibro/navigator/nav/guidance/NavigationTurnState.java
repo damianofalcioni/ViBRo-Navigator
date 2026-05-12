@@ -11,15 +11,16 @@ import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class NavigationTurnState {
-
     private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
     private final TurnEventPlanner turnEventPlanner = new TurnEventPlanner();
+    private final NavigationGuidanceHintSequence guidanceHints = new NavigationGuidanceHintSequence();
 
     private int nextHintIdx;
+    private int routeHintCount;
     private boolean notified10;
     private boolean notified5;
     private boolean initialTurnNotificationSent;
@@ -27,7 +28,9 @@ public final class NavigationTurnState {
     private int intermediateDestinationReachedTrackIndex = -1;
 
     public void reset() {
+        guidanceHints.reset();
         nextHintIdx = 0;
+        routeHintCount = 0;
         notified10 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
@@ -61,7 +64,9 @@ public final class NavigationTurnState {
         TurnEventPlanner.Progress progress = turnEventPlanner.advance(
                 route,
                 polylineIndex,
-                nextHintIdx,
+                guidanceHints.hints(),
+                guidanceHints.hintAlongTrackMeters(),
+                guidanceHints.nextIndex(),
                 notified10,
                 notified5,
                 alongTrackMeters,
@@ -69,7 +74,8 @@ public final class NavigationTurnState {
                 speedMps,
                 accuracyMeters
         );
-        nextHintIdx = progress.nextHintIdx;
+        guidanceHints.advanceTo(progress.nextHintIdx);
+        syncNextRouteHintIndex(route);
         notified10 = progress.notified10;
         notified5 = progress.notified5;
         clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
@@ -78,7 +84,8 @@ public final class NavigationTurnState {
                 fastChecksUntilMs,
                 route,
                 polylineIndex,
-                nextHintIdx,
+                guidanceHints.nextHint(),
+                guidanceHints.nextAlongTrackMeters(),
                 alongTrackMeters,
                 currentSegmentIndex,
                 speedMps
@@ -94,7 +101,21 @@ public final class NavigationTurnState {
             float speedMps,
             float accuracyMeters
     ) {
-        nextHintIdx = findNextHintIndex(route, polylineIndex, lastFiltered);
+        return onRouteApplied(route, polylineIndex, new ArrayList<>(), lastFiltered, speedMps, accuracyMeters);
+    }
+
+    @NonNull
+    public List<NavigationTurnEvent> onRouteApplied(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<LatLon> intermediateStops,
+            @Nullable Location lastFiltered,
+            float speedMps,
+            float accuracyMeters
+    ) {
+        routeHintCount = route.voiceHints.size();
+        guidanceHints.onRouteApplied(route, polylineIndex, intermediateStops, lastFiltered);
+        syncNextRouteHintIndex(route);
         notified10 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
@@ -106,24 +127,30 @@ public final class NavigationTurnState {
     @NonNull
     public List<NavigationTurnEvent> onDestinationReached(@NonNull GeoJsonRoute route) {
         if (destinationReached || route.track.isEmpty()) {
-            return Collections.emptyList();
+            return noTurnEvents();
         }
         nextHintIdx = route.voiceHints.size();
+        routeHintCount = route.voiceHints.size();
+        guidanceHints.advanceToEnd();
         notified10 = false;
         notified5 = false;
         initialTurnNotificationSent = true;
         destinationReached = true;
         intermediateDestinationReachedTrackIndex = -1;
         VoiceHint arrivalHint = new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0);
-        return Collections.singletonList(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+        return oneTurnEvent(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 
     @NonNull
     public List<NavigationTurnEvent> onIntermediateDestinationReached(int trackIndex) {
         initialTurnNotificationSent = true;
+        notified10 = false;
+        notified5 = false;
         intermediateDestinationReachedTrackIndex = trackIndex;
+        guidanceHints.advancePastIntermediateDestination(trackIndex);
+        syncNextRouteHintIndex();
         VoiceHint arrivalHint = new VoiceHint(trackIndex, 101, 0, 0.0, 0);
-        return Collections.singletonList(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+        return oneTurnEvent(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 
     private void clearIntermediateDestinationReachedIfPassed(
@@ -148,11 +175,12 @@ public final class NavigationTurnState {
             float accuracyMeters
     ) {
         if (initialTurnNotificationSent) {
-            return Collections.emptyList();
+            return noTurnEvents();
         }
-        List<VoiceHint> hints = route.voiceHints;
-        if (hints.isEmpty() || nextHintIdx < 0 || nextHintIdx >= hints.size()) {
-            return Collections.emptyList();
+        if (guidanceHints.hints().isEmpty()
+                || guidanceHints.nextIndex() < 0
+                || guidanceHints.nextIndex() >= guidanceHints.hints().size()) {
+            return noTurnEvents();
         }
 
         RoutePosition routePosition = resolveRoutePosition(polylineIndex, lastFiltered);
@@ -160,7 +188,9 @@ public final class NavigationTurnState {
         TurnEventPlanner.TurnSignal initialSignal = turnEventPlanner.buildInitialSignal(
                 route,
                 polylineIndex,
-                nextHintIdx,
+                guidanceHints.hints(),
+                guidanceHints.hintAlongTrackMeters(),
+                guidanceHints.nextIndex(),
                 initialTurnNotificationSent,
                 routePosition.alongTrackMeters,
                 routePosition.segmentIndex,
@@ -168,10 +198,10 @@ public final class NavigationTurnState {
                 accuracyMeters
         );
         if (initialSignal == null) {
-            return Collections.emptyList();
+            return noTurnEvents();
         }
         initialTurnNotificationSent = true;
-        return Collections.singletonList(toTurnEvent(initialSignal));
+        return oneTurnEvent(toTurnEvent(initialSignal));
     }
 
     @NonNull
@@ -209,42 +239,35 @@ public final class NavigationTurnState {
         }
     }
 
-    private int findNextHintIndex(
-            @NonNull GeoJsonRoute candidateRoute,
-            @NonNull PolylineIndex candidateIndex,
-            @Nullable Location location
-    ) {
-        if (location == null || candidateRoute.voiceHints.isEmpty()) {
-            return 0;
-        }
+    private void syncNextRouteHintIndex(@NonNull GeoJsonRoute route) {
+        nextHintIdx = guidanceHints.nextRouteHintIndex(route.voiceHints.size());
+    }
 
-        PolylineIndex.Match match = candidateIndex.match(
-                new LatLon(location.getLatitude(), location.getLongitude()),
-                -1
-        );
-        if (match == null) {
-            return 0;
-        }
-
-        for (int i = 0; i < candidateRoute.voiceHints.size(); i++) {
-            VoiceHint hint = candidateRoute.voiceHints.get(i);
-            double hintDistance = candidateIndex.distanceAtPointIndex(hint.indexInTrack);
-            if (hintDistance + 5.0 > match.alongTrackMeters) {
-                return i;
-            }
-        }
-        return candidateRoute.voiceHints.size();
+    private void syncNextRouteHintIndex() {
+        nextHintIdx = guidanceHints.nextRouteHintIndex(routeHintCount);
     }
 
     @NonNull
     private List<NavigationTurnEvent> toTurnEvents(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
         if (signals.isEmpty()) {
-            return Collections.emptyList();
+            return noTurnEvents();
         }
         List<NavigationTurnEvent> events = new ArrayList<>(signals.size());
         for (TurnEventPlanner.TurnSignal signal : signals) {
             events.add(toTurnEvent(signal));
         }
+        return events;
+    }
+
+    @NonNull
+    private static List<NavigationTurnEvent> noTurnEvents() {
+        return new ArrayList<>();
+    }
+
+    @NonNull
+    private static List<NavigationTurnEvent> oneTurnEvent(@NonNull NavigationTurnEvent event) {
+        List<NavigationTurnEvent> events = new ArrayList<>(1);
+        events.add(event);
         return events;
     }
 

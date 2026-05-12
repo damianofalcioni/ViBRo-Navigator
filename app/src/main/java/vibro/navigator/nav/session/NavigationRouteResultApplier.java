@@ -87,6 +87,7 @@ final class NavigationRouteResultApplier {
         List<NavigationTurnEvent> initialEvents = turnState.onRouteApplied(
                 input.route,
                 geometryState.polylineIndex(),
+                input.snapshot.intermediates,
                 input.lastFiltered,
                 initialSpeedMps,
                 accuracyMeters
