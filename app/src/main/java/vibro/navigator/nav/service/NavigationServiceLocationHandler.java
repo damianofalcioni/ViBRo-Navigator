@@ -93,6 +93,7 @@ public final class NavigationServiceLocationHandler implements LocationListener 
         if (result.isDropped()) {
             return;
         }
+        controllers.locationController.recordAcceptedLocationUpdate();
         applyRouteUpdateRequest(result, controllers.locationController);
         turnEvents.dispatch(result.turnEvents);
         controllers.orientationController.maybeSendStationaryOrientationNotification(

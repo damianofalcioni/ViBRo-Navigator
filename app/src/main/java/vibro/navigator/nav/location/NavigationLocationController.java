@@ -98,6 +98,7 @@ public final class NavigationLocationController {
                 lastRequestedLocationMinTimeMs,
                 lastRequestedProvider
         )) {
+            refreshNextEvaluationDeadline(minTimeMs);
             return;
         }
 
@@ -113,7 +114,7 @@ public final class NavigationLocationController {
 
         String requestedProviderSummary = NavigationLocationProviderAccess.joinProviders(requestedProviders);
         gnssStatusTracker.updateForRequestedProviders(requestedProviders);
-        nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+        refreshNextEvaluationDeadline(minTimeMs);
         lastRequestedLocationMinTimeMs = minTimeMs;
         lastRequestedProvider = requestedProviderSummary;
         AppLogger.i(TAG, "Requested location updates provider=" + requestedProviderSummary + " minTimeMs=" + minTimeMs);
@@ -144,6 +145,13 @@ public final class NavigationLocationController {
 
     public long getNextEvaluationDeadlineElapsedMs() {
         return nextEvaluationDeadlineElapsedMs;
+    }
+
+    public void recordAcceptedLocationUpdate() {
+        if (lastRequestedLocationMinTimeMs <= 0L || lastRequestedProvider == null) {
+            return;
+        }
+        refreshNextEvaluationDeadline(lastRequestedLocationMinTimeMs);
     }
 
     @Nullable
@@ -200,6 +208,7 @@ public final class NavigationLocationController {
                 lastRequestedLocationMinTimeMs,
                 lastRequestedProvider
         )) {
+            refreshNextEvaluationDeadline(minTimeMs);
             return true;
         }
         removeLegacyUpdates();
@@ -210,11 +219,15 @@ public final class NavigationLocationController {
         }
         currentLocationSeeder.cancelPendingCurrentLocationRequests();
         gnssStatusTracker.reset();
-        nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
+        refreshNextEvaluationDeadline(minTimeMs);
         lastRequestedLocationMinTimeMs = minTimeMs;
         lastRequestedProvider = providerSummary;
         AppLogger.i(TAG, "Requested fused location updates minTimeMs=" + minTimeMs);
         return true;
+    }
+
+    private void refreshNextEvaluationDeadline(long minTimeMs) {
+        nextEvaluationDeadlineElapsedMs = SystemClock.elapsedRealtime() + minTimeMs;
     }
 
     private boolean shouldUseFusedLocation() {

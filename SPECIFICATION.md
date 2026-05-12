@@ -417,6 +417,8 @@ The navigation UI must show the following in large text:
 - The current horizontal accuracy and GPS bearing-accuracy values in that line must be emphasized in orange when they are available
 - That GPS status line must stay on a single line and should reduce its text size as needed instead of wrapping onto a second line
 - When any of those values is unavailable, the UI must show `--` in that field instead of omitting it
+- The `<countdown>` field shows the time remaining until the next scheduled navigation position evaluation based on the current active update interval; it is a scheduling countdown and must not be interpreted as a guarantee that Android or fused location cannot deliver an earlier usable fix
+- When tracking is active and an accepted location fix is processed, the `<countdown>` field should refresh from the active update interval, including when the existing location listener registration is reused rather than torn down and recreated
 
 #### 4.5.4 Blocked road button
 
