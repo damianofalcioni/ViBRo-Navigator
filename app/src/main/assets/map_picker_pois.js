@@ -44,7 +44,7 @@
             ".poi-marker::before{content:\"\";position:absolute;left:7px;top:1px;width:18px;height:18px;",
             "border:2px solid #fff;border-radius:50% 50% 50% 0;background:#151b22;",
             "box-shadow:0 2px 7px rgba(0,0,0,.5);transform:rotate(-45deg);}",
-            ".poi-marker::after{content:\"\";position:absolute;left:14px;top:8px;width:6px;height:6px;",
+            ".poi-marker::after{content:\"\";position:absolute;left:15px;top:9px;width:6px;height:6px;",
             "border-radius:50%;background:#32d074;}",
             ".poi-label{display:none;position:absolute;left:27px;top:3px;max-width:180px;padding:4px 7px;",
             "border-radius:7px;background:rgba(0,0,0,.78);color:#fff;font:12px/1.2 sans-serif;",
