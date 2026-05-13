@@ -75,7 +75,8 @@ final class NavigationRouteEvaluator {
         geometryState.rememberSegment(match);
         double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
         double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
-        displayState.rememberSmoothedAccuracyMeters((float) smoothedAccuracyMeters);
+        float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
+        displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
         float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
                 filtered,
                 match.alongTrackMeters,
@@ -86,7 +87,7 @@ final class NavigationRouteEvaluator {
                 match.alongTrackMeters,
                 nowMs
         );
-        if (arrivalDetector.isDestinationReached(filtered, accuracyMeters)) {
+        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters)) {
             deviationHandler.clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return NavigationSessionRouteState.Evaluation.keepRoute(
@@ -96,7 +97,10 @@ final class NavigationRouteEvaluator {
             );
         }
 
-        Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(filtered, accuracyMeters);
+        Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
+                filtered,
+                trustedAccuracyMeters
+        );
         if (reachedIntermediateTrackIndex != null) {
             deviationHandler.clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);

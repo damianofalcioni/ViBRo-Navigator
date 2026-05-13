@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.route.NavigationRouteGeometryState;
 
 import java.util.Collections;
 import java.util.List;
@@ -64,7 +65,7 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
-                        Math.max(5f, accuracyRadiusMeters),
+                        (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(accuracyRadiusMeters),
                         destinationWithinRadius
                 )
         ));
@@ -95,7 +96,12 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
-                        Math.max(5f, accuracyRadiusMeters),
+                        Math.max(
+                                routeThresholdMeters,
+                                (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(
+                                        accuracyRadiusMeters
+                                )
+                        ),
                         destinationWithinRadius
                 )
         ));

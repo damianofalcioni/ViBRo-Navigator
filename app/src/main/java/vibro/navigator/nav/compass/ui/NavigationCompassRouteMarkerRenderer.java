@@ -102,8 +102,12 @@ final class NavigationCompassRouteMarkerRenderer {
                 || state.progressLabels.destinationReachedRadiusMeters <= 0f) {
             return 0f;
         }
+        float destinationDisplayRadiusMeters = Math.max(
+                0f,
+                state.progressLabels.destinationReachedRadiusMeters - state.radiusState.accuracyRadiusMeters
+        );
         return routeRadius
-                * (state.progressLabels.destinationReachedRadiusMeters / state.radiusState.visibleRadiusMeters);
+                * (destinationDisplayRadiusMeters / state.radiusState.visibleRadiusMeters);
     }
 
     void drawHintMarkers(

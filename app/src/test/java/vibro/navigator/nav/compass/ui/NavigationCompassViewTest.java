@@ -152,10 +152,10 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void destinationReachedRadiusScalesFromVisibleRadius() {
+    public void destinationReachedRadiusUsesRouteThresholdOverlapRadius() {
         NavigationCompassRouteMarkerRenderer renderer = new NavigationCompassRouteMarkerRenderer();
 
-        assertEquals(10f, renderer.resolveDestinationReachedRadiusPx(NavCompassState.fromProjectedPoints(
+        assertEquals(8f, renderer.resolveDestinationReachedRadiusPx(NavCompassState.fromProjectedPoints(
                 0f,
                 null,
                 1f,

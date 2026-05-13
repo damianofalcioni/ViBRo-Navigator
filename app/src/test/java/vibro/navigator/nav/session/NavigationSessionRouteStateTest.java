@@ -176,6 +176,39 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void evaluateLocation_usesRouteThresholdForDestinationArrivalRadius() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation arrivalEvaluation = state.evaluateLocation(
+                location(0.0, 0.0009, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertFalse(arrivalEvaluation.shouldRecalculateRoute());
+        assertEquals(1, arrivalEvaluation.turnEvents.size());
+        assertEquals(100, arrivalEvaluation.turnEvents.get(0).hint.command);
+    }
+
+    @Test
     public void evaluateLocation_emitsIntermediateArrivalEventOnceAndKeepsDestinationActive() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -236,6 +269,39 @@ public class NavigationSessionRouteStateTest {
         assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertFalse(navState.routeStatus.progress.destinationLine.equals(context.getString(R.string.nav_destination_reached)));
         assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
+    }
+
+    @Test
+    public void evaluateLocation_usesRouteThresholdForIntermediateArrivalRadius() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.singletonList(new LatLon(0.0, 0.001))
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                routeWithoutHints(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation stopEvaluation = state.evaluateLocation(
+                location(0.0, 0.0009, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertFalse(stopEvaluation.shouldRecalculateRoute());
+        assertEquals(1, stopEvaluation.turnEvents.size());
+        assertEquals(101, stopEvaluation.turnEvents.get(0).hint.command);
     }
 
     @Test

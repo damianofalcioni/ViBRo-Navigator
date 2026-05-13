@@ -573,6 +573,7 @@ public class NavStateTest {
         assertNotNull(state.routeStatus.compassState);
         assertEquals(9f, state.routeStatus.compassState.radiusState.accuracyRadiusMeters, 0.01f);
         assertEquals(17f, state.routeStatus.compassState.radiusState.routeThresholdMeters, 0.01f);
+        assertEquals(17f, state.routeStatus.compassState.progressLabels.destinationReachedRadiusMeters, 0.01f);
     }
 
     @Test

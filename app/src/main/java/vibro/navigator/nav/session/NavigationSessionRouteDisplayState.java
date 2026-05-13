@@ -86,15 +86,16 @@ public final class NavigationSessionRouteDisplayState {
                 snapshot.accuracyMeters,
                 snapshot.likelyStationary
         );
+        float compassAccuracyMeters = compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters);
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters)
                 .motion(
                         snapshot.speedMps,
                         snapshot.likelyStationary,
-                        compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters)
+                        compassAccuracyMeters
                 )
                 .destinationReachedRadiusMeters((float)
-                        NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(snapshot.accuracyMeters))
+                        NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(compassAccuracyMeters))
                 .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)
                 .radiusMemory(
                         compassMemory.lastVisibleRadiusMeters(),
@@ -113,7 +114,7 @@ public final class NavigationSessionRouteDisplayState {
                         etaSpeedMps,
                         snapshot.likelyStationary,
                         snapshot.accuracyMeters,
-                        compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters)
+                        compassAccuracyMeters
                 )
                 .gps(snapshot.fixedSatelliteCount, snapshot.acquiredFixCount)
                 .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)

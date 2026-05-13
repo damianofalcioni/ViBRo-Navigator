@@ -9,12 +9,11 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 
 public final class NavigationRouteGeometryState {
-
-    private static final double MIN_DESTINATION_REACHED_RADIUS_METERS = 5.0;
 
     @Nullable
     private GeoJsonRoute route;
@@ -85,10 +84,7 @@ public final class NavigationRouteGeometryState {
     }
 
     public static double resolveDestinationReachedRadiusMeters(float accuracyMeters) {
-        return Math.max(
-                MIN_DESTINATION_REACHED_RADIUS_METERS,
-                Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0.0
-        );
+        return RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters);
     }
 
     public boolean isWithinDestinationReachedRadius(@NonNull Location location, float accuracyMeters) {
