@@ -511,6 +511,9 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
+- The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, and BRouter profile selections
+- The about page Settings section must show an Import database button that lets the user select a JSON backup and restore those same app-managed stored data stores
+- Database export and import must use Android's document picker flows so the user chooses the backup file location without requiring broad storage permissions
 - The Use fused location switch must be enabled only in builds that support Google fused location
 - In the F-Droid flavor, the Use fused location switch must be disabled and must not enable Google functionality
 - In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available

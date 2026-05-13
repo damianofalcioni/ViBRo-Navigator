@@ -4,9 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
 import android.app.NotificationManager;
+import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
@@ -23,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowToast;
 
 import java.io.File;
@@ -109,10 +112,14 @@ public class AboutLoggingSettingsRobolectricTest {
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
+        Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
+        Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
         Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
+        assertEquals(View.VISIBLE, exportDatabaseButton.getVisibility());
+        assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
         assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
@@ -157,6 +164,24 @@ public class AboutLoggingSettingsRobolectricTest {
         imperialUnitsSwitch.performClick();
 
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
+    }
+
+    @Test
+    public void aboutPageDatabaseButtonsOpenDocumentPickers() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
+        Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
+
+        exportDatabaseButton.performClick();
+        ShadowActivity.IntentForResult exportIntent = shadowOf(activity).getNextStartedActivityForResult();
+
+        importDatabaseButton.performClick();
+        ShadowActivity.IntentForResult importIntent = shadowOf(activity).getNextStartedActivityForResult();
+
+        assertEquals(Intent.ACTION_CREATE_DOCUMENT, exportIntent.intent.getAction());
+        assertEquals("application/json", exportIntent.intent.getType());
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT, importIntent.intent.getAction());
+        assertEquals("application/json", importIntent.intent.getType());
     }
 
     @Test

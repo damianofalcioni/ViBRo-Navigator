@@ -24,6 +24,8 @@
     <string name="action_zoom_in">+</string>
     <string name="action_zoom_out">-</string>
     <string name="action_current_location">Current location</string>
+    <string name="action_export_database">Export database</string>
+    <string name="action_import_database">Import database</string>
 
     <string name="label_vehicle_profile">BRouter Profile</string>
     <string name="label_destination">Destination</string>
@@ -61,6 +63,10 @@
     <string name="msg_map_poi_zoom_in">Zoom in to load POIs.</string>
     <string name="msg_map_poi_empty">No enabled POIs in this map view.</string>
     <string name="msg_map_poi_categories_empty">No POI categories in this map view.</string>
+    <string name="msg_database_exported">Database exported.</string>
+    <string name="msg_database_export_failed">Could not export database.</string>
+    <string name="msg_database_imported">Database imported.</string>
+    <string name="msg_database_import_failed">Could not import database.</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
     <string name="title_edit_destination_name">Edit destination name</string>
