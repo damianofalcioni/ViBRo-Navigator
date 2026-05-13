@@ -60,6 +60,8 @@ public final class MapPickerActivity extends Activity {
     private Poi initialPoi;
     @Nullable
     private MapPickerLocationController locationController;
+    @Nullable
+    private MapPoiOverlayController poiOverlayController;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -87,6 +89,7 @@ public final class MapPickerActivity extends Activity {
                     }
                 }
         );
+        poiOverlayController = MapPoiOverlayController.attach(this, scriptController);
 
         if (savedInstanceState != null) {
             selectedPoi = restorePoi(
@@ -131,6 +134,10 @@ public final class MapPickerActivity extends Activity {
             locationController.stopLocationUpdates();
             locationController = null;
         }
+        if (poiOverlayController != null) {
+            poiOverlayController.shutdown();
+            poiOverlayController = null;
+        }
         if (mapWebView != null) {
             mapWebView.removeJavascriptInterface("AndroidBridge");
             mapWebView.destroy();
@@ -174,6 +181,7 @@ public final class MapPickerActivity extends Activity {
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 scriptController.onPageLoaded();
+                injectPoiLayerScript();
                 initializeMap();
             }
 
@@ -188,6 +196,10 @@ public final class MapPickerActivity extends Activity {
             }
         });
         mapWebView.loadUrl("file:///android_asset/map_picker.html");
+    }
+
+    private void injectPoiLayerScript() {
+        MapPickerPoiScriptInjector.inject(this, scriptController);
     }
 
     private void initializeMap() {
@@ -294,6 +306,30 @@ public final class MapPickerActivity extends Activity {
                 AppLogger.i(TAG, "Map selection changed lat=" + lat + " lon=" + lon);
             });
         }
+
+        @JavascriptInterface
+        public void onPoiSelected(@Nullable String name, double lat, double lon) {
+            runOnUiThread(() -> {
+                selectedPoi = poiForMapMarker(name, lat, lon);
+                AppLogger.i(TAG, "Map POI selected=" + selectedPoi.displayLabel());
+            });
+        }
+
+        @JavascriptInterface
+        public void onMapViewChanged() {
+            MapPoiOverlayController controller = poiOverlayController;
+            if (controller != null) {
+                runOnUiThread(controller::onMapViewChanged);
+            }
+        }
+    }
+
+    @NonNull
+    private Poi poiForMapMarker(@Nullable String name, double lat, double lon) {
+        if (name != null && !name.trim().isEmpty()) {
+            return new Poi(name.trim(), lat, lon);
+        }
+        return poiForCoordinates(lat, lon);
     }
 }
 

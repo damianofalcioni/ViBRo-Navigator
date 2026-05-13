@@ -234,6 +234,34 @@
             }, PRELOAD_DELAY_MS);
         }
 
+        function currentMapState() {
+            const viewport = getViewport();
+            const centerWorld = project(centerLat, centerLon, zoom);
+            const topLeftX = centerWorld.x - viewport.width / 2;
+            const topLeftY = centerWorld.y - viewport.height / 2;
+            const northWest = unproject(topLeftX, topLeftY, zoom);
+            const southEast = unproject(topLeftX + viewport.width, topLeftY + viewport.height, zoom);
+            return {
+                centerLat: centerLat,
+                centerLon: centerLon,
+                zoom: zoom,
+                width: viewport.width,
+                height: viewport.height,
+                north: Math.min(85.05112878, Math.max(northWest.lat, southEast.lat)),
+                south: Math.max(-85.05112878, Math.min(northWest.lat, southEast.lat)),
+                west: Math.max(-180, Math.min(northWest.lon, southEast.lon)),
+                east: Math.min(180, Math.max(northWest.lon, southEast.lon))
+            };
+        }
+
+        function notifyMapViewChanged() {
+            const state = currentMapState();
+            window.dispatchEvent(new CustomEvent("mapPickerViewChanged", { detail: state }));
+            if (window.AndroidBridge && window.AndroidBridge.onMapViewChanged) {
+                window.AndroidBridge.onMapViewChanged();
+            }
+        }
+
         function render() {
             const viewport = getViewport();
             const bounds = getTileBounds(zoom, viewport, TILE_BUFFER);
@@ -272,12 +300,14 @@
 
             if (selectedLat === null || selectedLon === null) {
                 marker.style.display = "none";
+                notifyMapViewChanged();
                 return;
             }
             const selectedWorld = project(selectedLat, selectedLon, zoom);
             marker.style.display = "block";
             marker.style.left = (selectedWorld.x - topLeftX) + "px";
             marker.style.top = (selectedWorld.y - topLeftY) + "px";
+            notifyMapViewChanged();
         }
 
         function zoomAround(newZoom, focusX, focusY) {
@@ -503,6 +533,15 @@
                 } else {
                     render();
                 }
+            },
+            getState: function () {
+                return currentMapState();
+            },
+            getBoundsJson: function () {
+                return JSON.stringify(currentMapState());
+            },
+            select: function (lat, lon) {
+                setSelection(lat, lon, false);
             }
         };
     })();

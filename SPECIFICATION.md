@@ -104,6 +104,8 @@ Below the routing-profile selector, the app must show an input field for searchi
 - If the destination field does not yet resolve to coordinates, the picker must open centered on the current device location when available, and otherwise fall back gracefully
 - The picker must let the user select a point directly from the map and return that point as the destination
 - The picker must support icon-only controls for confirm, cancel, current location, zoom in, and zoom out
+- The picker must support an icon-only POI category control overlaid on the map. Opening the control must show POI categories dynamically discovered from OpenStreetMap/Overpass tags in the current map view, sorted alphabetically, with each row showing the number of discovered items such as `Fuel (15)`. Category rows must be text-only, support a single active category, highlight the active category, and toggle that category off when tapped again. Category discovery should be initiated by opening the POI control rather than by initial map load. Returned POIs must be drawn with one shared POI pin style, and POI names must appear automatically when the map is zoomed in enough.
+- Map-picker POI requests should be minimized: the category-discovery Overpass response should seed the visible POI marker cache, selected-category rendering should reuse cached markers immediately, and later map movement should query only viewport areas not already covered by cached data for the selected category.
 - The picker must not show extra top or bottom banners; controls should remain overlaid directly on the map
 - Rotating the device while the picker is open must preserve the currently selected point and keep it visible on the map after recreation
 

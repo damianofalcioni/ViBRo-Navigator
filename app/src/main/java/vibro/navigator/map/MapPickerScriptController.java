@@ -5,6 +5,8 @@ import android.webkit.WebView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import org.json.JSONArray;
+
 import vibro.navigator.poi.Poi;
 
 import java.util.Locale;
@@ -62,6 +64,27 @@ final class MapPickerScriptController {
                 zoom,
                 selectPoint ? "true" : "false"
         ));
+    }
+
+    void injectScript(@NonNull String script) {
+        run(script);
+    }
+
+    void requestBounds(@NonNull android.webkit.ValueCallback<String> callback) {
+        WebView view = mapWebView;
+        if (!pageLoaded || view == null) {
+            callback.onReceiveValue(null);
+            return;
+        }
+        view.evaluateJavascript("window.mapPicker.getBoundsJson();", callback);
+    }
+
+    void setPoiMarkers(@NonNull JSONArray markers) {
+        run("window.mapPickerPoiLayer.setPois(" + markers + ");");
+    }
+
+    void clearPoiMarkers() {
+        run("window.mapPickerPoiLayer.clear();");
     }
 
     @NonNull
