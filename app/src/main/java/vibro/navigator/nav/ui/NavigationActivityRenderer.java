@@ -37,6 +37,8 @@ final class NavigationActivityRenderer {
         void onStopNavigation();
 
         void onTogglePaused();
+
+        void onExportRoute();
     }
 
     private static final String TAG = "NavigationActivity";
@@ -53,6 +55,7 @@ final class NavigationActivityRenderer {
     private final NavigationCompassView compass;
     private final TextView gpsStatus;
     private final ImageButton blocked;
+    private final ImageButton export;
     private final ImageButton pauseResume;
     private final ImageButton stop;
     private final Runnable compassTransitionTicker = this::renderCompassState;
@@ -70,6 +73,7 @@ final class NavigationActivityRenderer {
         compass = activity.findViewById(R.id.navigationCompassView);
         gpsStatus = activity.findViewById(R.id.gpsStatusText);
         blocked = activity.findViewById(R.id.blockedRoadButton);
+        export = activity.findViewById(R.id.exportRouteButton);
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
         stop = activity.findViewById(R.id.stopNavButton);
         configureTextScaling();
@@ -81,6 +85,7 @@ final class NavigationActivityRenderer {
             renderCompassState();
         });
         blocked.setOnClickListener(v -> controls.onBlockedRoad());
+        export.setOnClickListener(v -> controls.onExportRoute());
         stop.setOnClickListener(v -> controls.onStopNavigation());
         pauseResume.setOnClickListener(v -> controls.onTogglePaused());
     }
@@ -92,6 +97,7 @@ final class NavigationActivityRenderer {
         destination.setText(state.routeStatus.displayStatusBlock());
         renderCompassState();
         blocked.setEnabled(!state.pauseStatus.paused);
+        export.setEnabled(navBinder != null);
         pauseResume.setEnabled(navBinder != null);
         pauseResume.setImageResource(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause);
         pauseResume.setContentDescription(activity.getString(

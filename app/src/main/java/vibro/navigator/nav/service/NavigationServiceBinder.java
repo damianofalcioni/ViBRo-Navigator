@@ -48,6 +48,9 @@ public final class NavigationServiceBinder extends Binder {
         void pauseNavigation();
 
         void resumeNavigation();
+
+        @Nullable
+        String buildCurrentRouteGpx();
     }
 
     private final Host host;
@@ -110,6 +113,11 @@ public final class NavigationServiceBinder extends Binder {
 
     public boolean isPaused() {
         return host.isNavigationPaused();
+    }
+
+    @Nullable
+    public String buildCurrentRouteGpx() {
+        return host.buildCurrentRouteGpx();
     }
 
     @NonNull

@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 import vibro.navigator.logging.AppLogger;
 
 import java.util.Collections;
@@ -93,6 +94,19 @@ public final class NavigationSession {
 
     public boolean hasActiveRoute() {
         return routeState.hasActiveRoute();
+    }
+
+    @Nullable
+    public String buildCurrentRouteGpx(@NonNull Context context) {
+        GeoJsonRoute route = routeState.currentRoute();
+        if (route == null || route.track.isEmpty()) {
+            return null;
+        }
+        return NavigationRouteGpxExporter.export(
+                context,
+                route,
+                routeState.remainingIntermediateStops(currentRequest.stops)
+        );
     }
 
     public void onProviderDisabled(@NonNull String provider) {

@@ -12,9 +12,11 @@ import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
+import vibro.navigator.nav.export.NavigationRouteGpxViewIntent;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -28,6 +30,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
+import java.io.IOException;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -110,6 +114,11 @@ public class NavigationActivity extends Activity {
             public void onTogglePaused() {
                 togglePausedFromUi();
             }
+
+            @Override
+            public void onExportRoute() {
+                exportCurrentRouteFromUi();
+            }
         });
     }
 
@@ -134,6 +143,35 @@ public class NavigationActivity extends Activity {
             AppLogger.i(TAG, "Pause navigation requested from UI");
             navBinder.pause();
         }
+    }
+
+    private void exportCurrentRouteFromUi() {
+        if (navBinder == null) {
+            AppLogger.w(TAG, "Route export tapped before service binding completed");
+            showShortToast(R.string.msg_route_export_unavailable);
+            return;
+        }
+        String gpx = navBinder.buildCurrentRouteGpx();
+        if (gpx == null) {
+            AppLogger.w(TAG, "Route export requested without an active route");
+            showShortToast(R.string.msg_route_export_unavailable);
+            return;
+        }
+        AppLogger.i(TAG, "Generated route GPX XML\n" + gpx);
+        try {
+            startActivity(NavigationRouteGpxViewIntent.createChooser(this, gpx));
+            AppLogger.i(TAG, "Route GPX ACTION_VIEW launched");
+        } catch (ActivityNotFoundException e) {
+            AppLogger.w(TAG, "No app can open exported GPX route", e);
+            showShortToast(R.string.msg_route_export_no_app);
+        } catch (IOException | RuntimeException e) {
+            AppLogger.w(TAG, "Failed to export current route as GPX", e);
+            showShortToast(R.string.msg_route_export_failed);
+        }
+    }
+
+    private void showShortToast(int messageResId) {
+        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
     @Override

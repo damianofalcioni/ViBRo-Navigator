@@ -124,4 +124,10 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     public void resumeNavigation() {
         resumeNavigation.run();
     }
+
+    @Override
+    @Nullable
+    public String buildCurrentRouteGpx() {
+        return navigationSession.buildCurrentRouteGpx(context);
+    }
 }

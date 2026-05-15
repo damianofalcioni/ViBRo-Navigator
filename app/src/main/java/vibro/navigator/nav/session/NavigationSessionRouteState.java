@@ -76,6 +76,11 @@ public final class NavigationSessionRouteState {
         return geometryState.hasActiveRoute();
     }
 
+    @Nullable
+    public GeoJsonRoute currentRoute() {
+        return geometryState.route();
+    }
+
     @NonNull
     public List<LatLon> remainingIntermediateStops(@NonNull List<LatLon> fallbackStops) {
         return intermediateArrivalTracker.remainingStops(fallbackStops);
