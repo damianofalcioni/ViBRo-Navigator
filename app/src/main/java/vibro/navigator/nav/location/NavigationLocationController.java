@@ -2,6 +2,7 @@ package vibro.navigator.nav.location;
 
 
 import vibro.navigator.nav.model.NavState;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
@@ -236,6 +237,7 @@ public final class NavigationLocationController {
                 && fusedLocationUpdateClient.isAvailable();
     }
 
+    @SuppressLint("MissingPermission")
     private void removeLegacyUpdates() {
         try {
             if (locationManager != null) {

@@ -24,6 +24,7 @@ Core product constraints:
 - Provide a distinctive app logo suitable for use as the app icon
 - Treat map-free use as a primary product mode: navigation guidance must be trustworthy enough that a user who does not see the map can rely on the next direction without visual confirmation
 - When the current position or heading confidence is too weak, prefer delaying or suppressing a direction update over presenting a misleading one
+- Android Auto support is Google Play flavor only. It must use the Android for Cars App Library template model, because Android Auto does not host the phone `Activity` layout directly.
 
 ## Functional specification
 
@@ -477,6 +478,25 @@ The navigation UI must show the following in large text:
 - Navigation must continue running after this backgrounding action as long as the foreground service remains active
 - On Android versions that use predictive back, the navigation screen must keep the same backgrounding behavior through the platform back-dispatch path instead of relying only on legacy `onBackPressed()` callbacks
 
+#### 4.5.8 Android Auto view
+
+- Android Auto support must exist only in the Google Play flavor.
+- The F-Droid flavor and common source set must not include Android for Cars App Library dependencies, Android Auto manifest entries, or Auto-specific runtime classes.
+- Android Auto must expose a `CarAppService` using `androidx.car.app.CarAppService` and declare the `androidx.car.app.category.NAVIGATION` car app category.
+- The Google Play flavor must declare the `template` capability through `automotive_app_desc.xml` so Android Auto can discover the app.
+- The Google Play flavor must declare the Android for Cars surface permission needed to draw the custom navigation surface.
+- The Android Auto service should use the lowest practical `androidx.car.app.minCarApiLevel`, currently `1`, and prefer broadly supported templates and APIs so it remains compatible with as many Android Auto host versions as possible.
+- Android Auto must not try to launch or render the phone `NavigationActivity` directly on the car display. Android Auto hosts a driver-optimized template surface, not arbitrary phone `Activity` layouts.
+- The active Android Auto screen must use an Android for Cars navigation surface to draw a landscape-style navigation view: navigation text and the three-button action row on the left, and the compass route view on the right.
+- The Android Auto surface must mirror the same active navigation state shown by the phone landscape navigation layout, including at least the GPS status, next direction, second direction when available, destination/progress/status text, blocked-road, stop navigation, pause/resume, and the compass route view.
+- The Android Auto compass should reuse the existing `NavigationCompassView` rendering path so compass route geometry, radius behavior, paused-state chrome, orientation cues, and destination/intermediate markers stay consistent with the phone navigation screen.
+- Android Auto should expose the blocked-road, stop, and pause/resume controls both through the drawn surface layout and through the Android for Cars template action strip when required by the host template.
+- Tapping the compass area on the Android Auto surface should preserve the same temporary compass zoom toggle behavior as tapping the phone compass.
+- When no active navigation is available, the Android Auto screen must show a concise no-active-navigation state and provide a way to open the phone app.
+- Android Auto UI state should bind to the existing `NavigationService`/`NavState` listener path rather than duplicating route calculation, location tracking, or guidance logic.
+- Android Auto controls must use the existing navigation binder/service actions for blocked-road, pause/resume, and stop, so phone and car surfaces stay consistent.
+- Android Auto text must come from flavor resources and must not be hardcoded in Java.
+
 ### 4.6 Background behavior
 
 - Navigation functionality must remain active in the background
@@ -580,7 +600,8 @@ The navigation UI must show the following in large text:
 - The repository should remain suitable for official F-Droid inclusion.
 - The Android app must be built with explicit `fdroid` and `gplay` product flavors.
 - The F-Droid flavor must not include Google Play Services dependencies, Google fused-location code, Google POI search code, or any runtime requirement for a Google API key.
-- Google-specific implementation code must live in the `gplay` source set, with F-Droid-safe stubs in the `fdroid` source set and flavor-neutral interfaces in the common source set.
+- Google-specific implementation code and Android Auto implementation code must live in the `gplay` source set, with F-Droid-safe stubs in the `fdroid` source set and flavor-neutral interfaces in the common source set where needed.
+- Android for Cars App Library dependencies and Android Auto manifest/resource declarations must be scoped to the `gplay` flavor only.
 - GitHub Actions and F-Droid metadata must build the `fdroid` flavor for F-Droid readiness and submission paths.
 - Upstream release automation may build both `fdroid` and `gplay` release APKs, with artifacts kept under their flavor-specific Gradle output paths.
 - Upstream app-store metadata should be maintained in the source repository using the `fastlane/metadata/android/en-US/...` layout so F-Droid can reuse the app description, changelog, icon, and screenshots directly from upstream.
@@ -600,7 +621,8 @@ The navigation UI must show the following in large text:
 - Keep active route/polyline geometry ownership in `nav/route`, route-location evaluation in `NavigationRouteEvaluator`, final-arrival checks in `NavigationArrivalDetector`, intermediate-arrival tracking in `NavigationIntermediateArrivalTracker`, blocked-road point selection in `NavigationBlockedPointSelector`, route-result application in `NavigationRouteResultApplier`, route-deviation policy, confirmation, direction-of-progress evidence, and reroute-notice selection in `nav/guidance`, route display branching in `NavigationSessionRouteDisplayState`, compass display memory in `CompassDisplayMemory`, and route display assembly in `nav/presentation`/`nav/format`/`nav/compass` so safety decisions stay easy to review independently. Display memory updates should be explicit display-advance steps rather than hidden side effects of pure state construction.
 - Keep compass display state grouped by display mode, radius state, progress labels, orientation cue, and route points. `NavCompassState` should remain the top-level immutable compass snapshot, while rendering code consumes `CompassDisplayMode`, `CompassRadiusState`, `CompassProgressLabels`, `CompassOrientationCue`, and `CompassRoutePoint` instead of relying on duplicate scalar aliases. Construction should use named factories for projected-point snapshots and route-geometry-backed snapshots, with grouped construction inputs for display metrics, radius metrics, destination projection, and optional orientation cue rather than direct public constructors or long primitive constructor chains.
 - Keep heuristics such as reroute thresholds, bearing trust rules, forward-look route bearing, direction-of-progress checks, polling cadence, synthetic intermediate-arrival sequencing, and turn-alert timing in small policy/planner helpers. Keep POI query/search state shared across destination and stop fields, with text-field selection state, history rename/delete actions, popup-window presentation, and query precedence/debounce/provider search kept in separate collaborators.
-- Keep flavor-specific services behind a small distribution bridge. Common code may call flavor-neutral interfaces, but Google Play Services imports, Google fused-location implementation, Google POI search, and Google parser tests must remain under `app/src/gplay` or `app/src/testGplay`. The `fdroid` source set must provide no-op or OpenStreetMap-only behavior for the same bridge contracts.
+- Keep flavor-specific services behind a small distribution bridge. Common code may call flavor-neutral interfaces, but Google Play Services imports, Google fused-location implementation, Google POI search, Android Auto service/template code, and Google parser tests must remain under `app/src/gplay` or `app/src/testGplay`. The `fdroid` source set must provide no-op or OpenStreetMap-only behavior for the same bridge contracts.
+- Keep the Android Auto entry point in `app/src/gplay/java/vibro/navigator/auto`. Auto screens should consume `nav/model/NavState` through the existing `NavigationService` listener/binder API and translate that state into Android for Cars templates without owning navigation-domain decisions.
 - Keep `nav/model/NavigationRequest` as a pure domain request. Keep the navigation-intent extras contract owned by `nav/intent/NavigationRequestIntentContract` so activities, the foreground service, and resume notifications serialize the same request shape without hand-copying extras. Keep app-wide incoming map/share URI parsing under `intent/`, separate from navigation-start extras.
 - Prefer extending the existing `logging/AppLogger` coverage when touching startup, permissions, routing, background execution, or network search behavior.
 

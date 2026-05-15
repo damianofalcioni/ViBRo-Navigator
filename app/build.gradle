@@ -152,6 +152,8 @@ dependencies {
     implementation "androidx.core:core:1.17.0"
 
     gplayImplementation "com.google.android.gms:play-services-location:21.3.0"
+    gplayImplementation "androidx.car.app:app:1.7.0"
+    gplayImplementation "androidx.car.app:app-projected:1.7.0"
 
     testImplementation "junit:junit:4.13.2"
     testImplementation "androidx.test:core:1.7.0"

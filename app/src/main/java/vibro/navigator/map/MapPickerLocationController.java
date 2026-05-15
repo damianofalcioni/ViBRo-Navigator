@@ -3,6 +3,7 @@ package vibro.navigator.map;
 import vibro.navigator.R;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -122,6 +123,7 @@ final class MapPickerLocationController {
         return true;
     }
 
+    @SuppressLint("MissingPermission")
     void stopLocationUpdates() {
         mainHandler.removeCallbacks(locationTimeoutRunnable);
         if (!requestingLocationUpdate || locationManager == null) {

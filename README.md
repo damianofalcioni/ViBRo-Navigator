@@ -31,12 +31,13 @@
   Uses BRouter for fully offline route calculation.
 
 * **Minimal & dependency-light**
-  Built in pure Java with minimal external dependencies. APK size is ~250Kb for the F-Droid version and ~500Kb for the GPlay version !!
+  Built in pure Java with minimal external dependencies. APK size is ~250Kb for the F-Droid version and ~650Kb for the GPlay version !!
 
 * **Smart POI search**
 
   * History-first suggestions
   * OpenStreetMap search
+  * POI over OpenStreetMap map selection
   * Open from other maps application
 
 * **Map-free compass navigation**
@@ -53,6 +54,11 @@
 
 * **Background navigation**
   Works with screen off via a foreground service.
+  
+* **GPlay only features**
+
+  * Google Fused Location provider
+  * Android Auto integration
 
 ---
 
