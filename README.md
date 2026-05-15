@@ -4,7 +4,7 @@
   <img src="./fastlane/metadata/android/en-US/images/icon.svg" alt="Logo" width="100"/>
 </p>
 
-**ViBRo Navigator** (Vibrating/Vibe-coded BRouter Navigator) is a lightweight, offline-first, and battery-efficient Android navigation app built on top of BRouter. It is designed for **map-free navigation**, delivering directions exclusively through **vibrations and minimal on-screen guidance**, enabling distraction-free and screen-off usage.
+**ViBRo Navigator** (Vibrating/Vibe-coded BRouter Navigator) is a lightweight, offline-first, and battery-efficient Android GPS navigation app built on top of BRouter. It is designed for **map-free navigation**, delivering directions exclusively through **vibrations and minimal on-screen guidance**, enabling distraction-free and screen-off usage.
 
 ---
 
