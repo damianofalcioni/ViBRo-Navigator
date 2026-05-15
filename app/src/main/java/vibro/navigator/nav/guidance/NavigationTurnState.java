@@ -18,6 +18,7 @@ public final class NavigationTurnState {
     private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
     private final TurnEventPlanner turnEventPlanner = new TurnEventPlanner();
     private final NavigationGuidanceHintSequence guidanceHints = new NavigationGuidanceHintSequence();
+    private final NavigationTurnManeuverCueState maneuverCueState = new NavigationTurnManeuverCueState();
 
     private int nextHintIdx;
     private int routeHintCount;
@@ -36,6 +37,7 @@ public final class NavigationTurnState {
         initialTurnNotificationSent = false;
         destinationReached = false;
         intermediateDestinationReachedTrackIndex = -1;
+        maneuverCueState.clear();
     }
 
     public int getNextHintIdx() {
@@ -48,6 +50,11 @@ public final class NavigationTurnState {
 
     public int getIntermediateDestinationReachedTrackIndex() {
         return intermediateDestinationReachedTrackIndex;
+    }
+
+    @Nullable
+    public Integer getActiveTurnManeuverDegrees() {
+        return maneuverCueState.activeTurnManeuverDegrees();
     }
 
     @NonNull
@@ -78,6 +85,7 @@ public final class NavigationTurnState {
         syncNextRouteHintIndex(route);
         notified10 = progress.notified10;
         notified5 = progress.notified5;
+        maneuverCueState.update(progress.signals);
         clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
         long suggestedUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
                 nowMs,
@@ -121,6 +129,7 @@ public final class NavigationTurnState {
         initialTurnNotificationSent = false;
         destinationReached = false;
         intermediateDestinationReachedTrackIndex = -1;
+        maneuverCueState.clear();
         return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps, accuracyMeters);
     }
 
@@ -137,7 +146,14 @@ public final class NavigationTurnState {
         initialTurnNotificationSent = true;
         destinationReached = true;
         intermediateDestinationReachedTrackIndex = -1;
-        VoiceHint arrivalHint = new VoiceHint(route.track.size() - 1, 100, 0, 0.0, 0);
+        maneuverCueState.clear();
+        VoiceHint arrivalHint = new VoiceHint(
+                route.track.size() - 1,
+                NavigationTurnManeuverCueState.DESTINATION_ARRIVAL_COMMAND,
+                0,
+                0.0,
+                0
+        );
         return oneTurnEvent(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 
@@ -147,9 +163,16 @@ public final class NavigationTurnState {
         notified10 = false;
         notified5 = false;
         intermediateDestinationReachedTrackIndex = trackIndex;
+        maneuverCueState.clear();
         guidanceHints.advancePastIntermediateDestination(trackIndex);
         syncNextRouteHintIndex();
-        VoiceHint arrivalHint = new VoiceHint(trackIndex, 101, 0, 0.0, 0);
+        VoiceHint arrivalHint = new VoiceHint(
+                trackIndex,
+                NavigationTurnManeuverCueState.INTERMEDIATE_ARRIVAL_COMMAND,
+                0,
+                0.0,
+                0
+        );
         return oneTurnEvent(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
     }
 

@@ -104,6 +104,7 @@ public final class NavigationSessionRouteDisplayState {
                 )
                 .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
                 .orientationCue(snapshot.orientationCue)
+                .turnManeuverDegrees(turnState.getActiveTurnManeuverDegrees())
                 .nowMs(snapshot.nowMs)
                 .build();
         NavState state = NavStateComposer.from(NavStateBuildInput

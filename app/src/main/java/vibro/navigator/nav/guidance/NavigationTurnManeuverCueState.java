@@ -1,0 +1,54 @@
+package vibro.navigator.nav.guidance;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import vibro.navigator.nav.route.VoiceHint;
+
+import java.util.List;
+
+final class NavigationTurnManeuverCueState {
+    static final int DESTINATION_ARRIVAL_COMMAND = 100;
+    static final int INTERMEDIATE_ARRIVAL_COMMAND = 101;
+    private static final double TURN_CUE_NOTIFICATION_THRESHOLD_SECONDS = 5.0;
+
+    @Nullable
+    private Integer activeTurnManeuverDegrees;
+
+    void clear() {
+        activeTurnManeuverDegrees = null;
+    }
+
+    @Nullable
+    Integer activeTurnManeuverDegrees() {
+        return activeTurnManeuverDegrees;
+    }
+
+    void update(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
+        for (TurnEventPlanner.TurnSignal signal : signals) {
+            update(signal);
+        }
+    }
+
+    private void update(@NonNull TurnEventPlanner.TurnSignal signal) {
+        if (signal.type == TurnEventPlanner.TurnSignal.Type.PASSED) {
+            clear();
+            return;
+        }
+        if (isClosestTurnNotification(signal)) {
+            activeTurnManeuverDegrees = signal.hint.angleDegrees;
+        }
+    }
+
+    private static boolean isClosestTurnNotification(@NonNull TurnEventPlanner.TurnSignal signal) {
+        return signal.type == TurnEventPlanner.TurnSignal.Type.IMMINENT
+                && signal.timeSeconds <= TURN_CUE_NOTIFICATION_THRESHOLD_SECONDS
+                && Double.isFinite(signal.timeSeconds)
+                && !isSyntheticArrivalHint(signal.hint);
+    }
+
+    private static boolean isSyntheticArrivalHint(@NonNull VoiceHint hint) {
+        return hint.command == DESTINATION_ARRIVAL_COMMAND
+                || hint.command == INTERMEDIATE_ARRIVAL_COMMAND;
+    }
+}

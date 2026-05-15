@@ -8,6 +8,8 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -112,6 +114,99 @@ public class NavigationSessionRouteStateTest {
         assertFalse(navState.routeStatus.guidance.nextLine.isEmpty());
         assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
+    }
+
+    @Test
+    public void buildState_showsTurnManeuverCueFromFiveSecondNotificationUntilPassed() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.002),
+                Collections.emptyList()
+        );
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, -75)),
+                30.0,
+                222.0
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                route,
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        Location approachingTurn = location(0.0, 0.00082, 2_000L);
+        NavigationSessionRouteState.Evaluation approachingEvaluation = state.evaluateLocation(
+                approachingTurn,
+                5f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavState approachingState = state.buildState(
+                context,
+                approachingTurn,
+                5f,
+                false,
+                5f,
+                null,
+                90.0,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null,
+                null
+        );
+
+        assertEquals(1, approachingEvaluation.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, approachingEvaluation.turnEvents.get(0).type);
+        assertNotNull(approachingState.routeStatus.compassState);
+        assertNotNull(approachingState.routeStatus.compassState.orientationCue);
+        assertEquals(
+                15.0f,
+                approachingState.routeStatus.compassState.orientationCue.targetHeadingDegrees,
+                0.01f
+        );
+
+        Location passedTurn = location(0.0, 0.0011, 3_000L);
+        state.evaluateLocation(
+                passedTurn,
+                5f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
+        NavState passedState = state.buildState(
+                context,
+                passedTurn,
+                5f,
+                false,
+                5f,
+                null,
+                90.0,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null,
+                null
+        );
+
+        assertNotNull(passedState.routeStatus.compassState);
+        assertNull(passedState.routeStatus.compassState.orientationCue);
     }
 
     @Test

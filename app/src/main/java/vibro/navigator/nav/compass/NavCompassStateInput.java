@@ -36,6 +36,8 @@ public final class NavCompassStateInput {
     public final CompassRadiusTransition radiusTransition;
     @Nullable
     public final CompassOrientationCue orientationCue;
+    @Nullable
+    public final Integer turnManeuverDegrees;
     public final long nowMs;
 
     private NavCompassStateInput(@NonNull Builder builder) {
@@ -55,6 +57,7 @@ public final class NavCompassStateInput {
         routeGeometry = builder.routeGeometry;
         radiusTransition = builder.radiusTransition;
         orientationCue = builder.orientationCue;
+        turnManeuverDegrees = builder.turnManeuverDegrees;
         nowMs = builder.nowMs;
     }
 
@@ -94,6 +97,8 @@ public final class NavCompassStateInput {
         private CompassRadiusTransition radiusTransition;
         @Nullable
         private CompassOrientationCue orientationCue;
+        @Nullable
+        private Integer turnManeuverDegrees;
         private long nowMs;
 
         private Builder(
@@ -160,6 +165,12 @@ public final class NavCompassStateInput {
         @NonNull
         public Builder orientationCue(@Nullable CompassOrientationCue orientationCue) {
             this.orientationCue = orientationCue;
+            return this;
+        }
+
+        @NonNull
+        public Builder turnManeuverDegrees(@Nullable Integer turnManeuverDegrees) {
+            this.turnManeuverDegrees = turnManeuverDegrees;
             return this;
         }
 
