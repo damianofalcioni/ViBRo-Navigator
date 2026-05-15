@@ -102,7 +102,6 @@ public final class NavCompassStateFactory {
                 input.routeGeometry,
                 input.radiusTransition,
                 input.orientationCue,
-                input.turnManeuverDegrees,
                 input.nowMs
         );
     }
@@ -142,7 +141,6 @@ public final class NavCompassStateFactory {
                 compassRouteGeometry,
                 compassRadiusTransition,
                 null,
-                null,
                 nowMs
         );
     }
@@ -165,7 +163,6 @@ public final class NavCompassStateFactory {
             @Nullable CompassRouteGeometry compassRouteGeometry,
             @Nullable CompassRadiusTransition compassRadiusTransition,
             @Nullable CompassOrientationCue orientationCue,
-            @Nullable Integer turnManeuverDegrees,
             long nowMs
     ) {
         if (route.track.isEmpty()) {
@@ -207,11 +204,6 @@ public final class NavCompassStateFactory {
         float routeThresholdMeters =
                 (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
-        CompassOrientationCue resolvedOrientationCue = CompassOrientationCueResolver.resolve(
-                orientationCue,
-                turnManeuverDegrees,
-                resolvedHeading
-        );
         return NavCompassState.fromRouteGeometry(new NavCompassRouteGeometryInput(
                 new CompassDisplayMetrics(
                         resolvedHeading,
@@ -238,7 +230,7 @@ public final class NavCompassStateFactory {
                         destinationReachedRadiusMeters,
                         destinationDistanceMeters <= radiusState.visibleRadiusMeters
                 ),
-                resolvedOrientationCue
+                orientationCue
         ));
     }
 

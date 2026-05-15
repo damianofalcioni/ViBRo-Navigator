@@ -57,6 +57,11 @@ public final class NavigationTurnState {
         return maneuverCueState.activeTurnManeuverDegrees();
     }
 
+    @Nullable
+    public Integer getActiveTurnManeuverTrackIndex() {
+        return maneuverCueState.activeTurnManeuverTrackIndex();
+    }
+
     @NonNull
     public Progress evaluate(
             @NonNull GeoJsonRoute route,
@@ -86,6 +91,7 @@ public final class NavigationTurnState {
         notified10 = progress.notified10;
         notified5 = progress.notified5;
         maneuverCueState.update(progress.signals);
+        maneuverCueState.clearIfPassed(polylineIndex, alongTrackMeters);
         clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
         long suggestedUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
                 nowMs,

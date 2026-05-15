@@ -260,7 +260,7 @@ The app must monitor user position:
   - When 10 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
   - When 5 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
 - The app must suppress or delay turn notifications when the user's route progress is not trustworthy enough to identify the next actionable maneuver
-- When the 5-second imminent notification is emitted for a real BRouter voice hint, the visible navigation compass must show that hint's signed maneuver angle using the same red partial arc and target marker as the stationary orientation cue, resolved relative to the current displayed heading, and must hide that cue once the hint is passed
+- When the 5-second imminent notification is emitted for a real BRouter voice hint, the visible navigation compass must show that hint's signed maneuver angle using the same red partial arc and target marker as the stationary orientation cue, resolved from the incoming route bearing into an absolute target heading so the marker and arc rotate with subsequent compass movement, and must hide that cue once the hint is passed
 - For the initial startup notification, remaining maneuver distance must be trustworthy relative to current location accuracy before the notification is emitted
 - For in-route imminent maneuver notifications, the app may rely primarily on stable route-matched progress rather than raw horizontal accuracy alone, so coarse GPS accuracy does not by itself suppress a 10-second or 5-second alert
 - In-route imminent maneuver notifications must still be suppressed when the remaining maneuver distance is already too small to be actionable or when route matching is unstable

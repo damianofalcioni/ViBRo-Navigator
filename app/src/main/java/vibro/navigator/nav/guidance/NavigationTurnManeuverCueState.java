@@ -3,6 +3,7 @@ package vibro.navigator.nav.guidance;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.List;
@@ -14,9 +15,12 @@ final class NavigationTurnManeuverCueState {
 
     @Nullable
     private Integer activeTurnManeuverDegrees;
+    @Nullable
+    private Integer activeTurnManeuverTrackIndex;
 
     void clear() {
         activeTurnManeuverDegrees = null;
+        activeTurnManeuverTrackIndex = null;
     }
 
     @Nullable
@@ -24,9 +28,23 @@ final class NavigationTurnManeuverCueState {
         return activeTurnManeuverDegrees;
     }
 
+    @Nullable
+    Integer activeTurnManeuverTrackIndex() {
+        return activeTurnManeuverTrackIndex;
+    }
+
     void update(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
         for (TurnEventPlanner.TurnSignal signal : signals) {
             update(signal);
+        }
+    }
+
+    void clearIfPassed(@NonNull PolylineIndex polylineIndex, double alongTrackMeters) {
+        if (activeTurnManeuverTrackIndex == null) {
+            return;
+        }
+        if (alongTrackMeters >= polylineIndex.distanceAtPointIndex(activeTurnManeuverTrackIndex)) {
+            clear();
         }
     }
 
@@ -37,6 +55,7 @@ final class NavigationTurnManeuverCueState {
         }
         if (isClosestTurnNotification(signal)) {
             activeTurnManeuverDegrees = signal.hint.angleDegrees;
+            activeTurnManeuverTrackIndex = signal.hint.indexInTrack;
         }
     }
 

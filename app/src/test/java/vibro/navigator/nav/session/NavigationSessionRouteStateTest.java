@@ -161,7 +161,7 @@ public class NavigationSessionRouteStateTest {
                 false,
                 5f,
                 null,
-                90.0,
+                120.0,
                 null,
                 NavState.NO_DEADLINE,
                 2_000L,
@@ -179,6 +179,56 @@ public class NavigationSessionRouteStateTest {
                 approachingState.routeStatus.compassState.orientationCue.targetHeadingDegrees,
                 0.01f
         );
+        NavState rotatedHeadingState = state.buildState(
+                context,
+                approachingTurn,
+                5f,
+                false,
+                5f,
+                null,
+                45.0,
+                null,
+                NavState.NO_DEADLINE,
+                2_100L,
+                false,
+                null,
+                null
+        );
+
+        assertNotNull(rotatedHeadingState.routeStatus.compassState);
+        assertNotNull(rotatedHeadingState.routeStatus.compassState.orientationCue);
+        assertEquals(
+                15.0f,
+                rotatedHeadingState.routeStatus.compassState.orientationCue.targetHeadingDegrees,
+                0.01f
+        );
+        Location justAfterTurn = location(0.0, 0.00101, 2_500L);
+        state.evaluateLocation(
+                justAfterTurn,
+                5f,
+                5f,
+                90.0,
+                2_500L,
+                0L
+        );
+        NavState justAfterTurnState = state.buildState(
+                context,
+                justAfterTurn,
+                5f,
+                false,
+                5f,
+                null,
+                90.0,
+                null,
+                NavState.NO_DEADLINE,
+                2_500L,
+                false,
+                null,
+                null
+        );
+
+        assertNotNull(justAfterTurnState.routeStatus.compassState);
+        assertNull(justAfterTurnState.routeStatus.compassState.orientationCue);
 
         Location passedTurn = location(0.0, 0.0011, 3_000L);
         state.evaluateLocation(

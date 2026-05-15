@@ -2,6 +2,7 @@ package vibro.navigator.nav.session;
 
 
 import vibro.navigator.nav.routing.NavigationRouteFailureFormatter;
+import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavState;
@@ -87,6 +88,13 @@ public final class NavigationSessionRouteDisplayState {
                 snapshot.likelyStationary
         );
         float compassAccuracyMeters = compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters);
+        CompassOrientationCue orientationCue = compassMemory.resolveOrientationCue(
+                snapshot.orientationCue,
+                turnState.getActiveTurnManeuverDegrees(),
+                turnState.getActiveTurnManeuverTrackIndex(),
+                polylineIndex,
+                snapshot.headingDegrees
+        );
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters)
                 .motion(
@@ -103,8 +111,7 @@ public final class NavigationSessionRouteDisplayState {
                         compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
                 )
                 .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
-                .orientationCue(snapshot.orientationCue)
-                .turnManeuverDegrees(turnState.getActiveTurnManeuverDegrees())
+                .orientationCue(orientationCue)
                 .nowMs(snapshot.nowMs)
                 .build();
         NavState state = NavStateComposer.from(NavStateBuildInput
