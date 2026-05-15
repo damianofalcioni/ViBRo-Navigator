@@ -1,6 +1,7 @@
 package vibro.navigator.nav.location;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -115,6 +116,27 @@ public class NavigationLocationControllerTest {
         controller.recordAcceptedLocationUpdate();
 
         assertTrue(controller.getNextEvaluationDeadlineElapsedMs() >= initialDeadline + 2_000L);
+    }
+
+    @Test
+    public void requestLocationUpdates_afterStopTrackingRequestsProviderAgainWithLastInterval() {
+        Application context = ApplicationProvider.getApplicationContext();
+        AppSettings.setFusedLocationEnabled(context, false);
+        shadowOf(context).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION);
+        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        shadowOf(locationManager).setProviderEnabled(LocationManager.GPS_PROVIDER, true);
+        NavigationLocationController controller = new NavigationLocationController(context, location -> {
+        });
+
+        controller.requestLocationUpdates(10_000L);
+        controller.stopTracking();
+
+        assertEquals(10_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
+        assertTrue(shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).isEmpty());
+
+        controller.requestLocationUpdates(controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
+
+        assertEquals(1, shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).size());
     }
 
 }

@@ -67,6 +67,7 @@ public final class NavigationLocationController {
         currentLocationSeeder.cancelPendingCurrentLocationRequests();
         fusedLocationUpdateClient.removeUpdates();
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+        lastRequestedProvider = null;
         gnssStatusTracker.reset();
         removeLegacyUpdates();
     }
