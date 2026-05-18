@@ -35,16 +35,12 @@ public final class NavigationUpdateScheduler {
             int currentSegmentIndex,
             float speedMps
     ) {
-        if (!canEstimateNextHintTime(nowMs, fastChecksUntilMs, route, polylineIndex, nextHintIdx)) {
-            return MIN_UPDATE_INTERVAL_MS;
-        }
-
         return suggestUpdateInterval(
                 nowMs,
                 fastChecksUntilMs,
                 route,
                 polylineIndex,
-                route.voiceHints.get(nextHintIdx),
+                resolveNextHint(route, nextHintIdx),
                 null,
                 alongTrackMeters,
                 currentSegmentIndex,
@@ -63,13 +59,11 @@ public final class NavigationUpdateScheduler {
             int currentSegmentIndex,
             float speedMps
     ) {
-        if (!canEstimateNextHintTime(nowMs, fastChecksUntilMs, route, polylineIndex, next)) {
+        if (!canEstimateRouteTime(nowMs, fastChecksUntilMs, route, polylineIndex)) {
             return MIN_UPDATE_INTERVAL_MS;
         }
 
-        double targetAlongTrackMeters = nextAlongTrackMeters != null
-                ? nextAlongTrackMeters
-                : polylineIndex.distanceAtPointIndex(next.indexInTrack);
+        double targetAlongTrackMeters = resolveTargetAlongTrackMeters(route, polylineIndex, next, nextAlongTrackMeters);
         Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
                 route,
                 polylineIndex,
@@ -91,32 +85,39 @@ public final class NavigationUpdateScheduler {
         return bucketInterval(intervalMs);
     }
 
-    private static boolean canEstimateNextHintTime(
+    private static boolean canEstimateRouteTime(
             long nowMs,
             long fastChecksUntilMs,
             @Nullable GeoJsonRoute route,
-            @Nullable PolylineIndex polylineIndex,
-            int nextHintIdx
+            @Nullable PolylineIndex polylineIndex
     ) {
         return nowMs > fastChecksUntilMs
                 && polylineIndex != null
                 && route != null
-                && !route.voiceHints.isEmpty()
-                && nextHintIdx >= 0
-                && nextHintIdx < route.voiceHints.size();
+                && !route.track.isEmpty();
     }
 
-    private static boolean canEstimateNextHintTime(
-            long nowMs,
-            long fastChecksUntilMs,
-            @Nullable GeoJsonRoute route,
-            @Nullable PolylineIndex polylineIndex,
-            @Nullable VoiceHint next
+    @Nullable
+    private static VoiceHint resolveNextHint(@Nullable GeoJsonRoute route, int nextHintIdx) {
+        if (route == null || nextHintIdx < 0 || nextHintIdx >= route.voiceHints.size()) {
+            return null;
+        }
+        return route.voiceHints.get(nextHintIdx);
+    }
+
+    private static double resolveTargetAlongTrackMeters(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @Nullable VoiceHint next,
+            @Nullable Double nextAlongTrackMeters
     ) {
-        return nowMs > fastChecksUntilMs
-                && polylineIndex != null
-                && route != null
-                && next != null;
+        if (nextAlongTrackMeters != null) {
+            return nextAlongTrackMeters;
+        }
+        if (next != null) {
+            return polylineIndex.distanceAtPointIndex(next.indexInTrack);
+        }
+        return polylineIndex.distanceAtPointIndex(route.track.size() - 1);
     }
 
     @NonNull

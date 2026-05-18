@@ -109,6 +109,36 @@ public class NavigationTurnStateTest {
     }
 
     @Test
+    public void evaluate_schedulesSyntheticDestinationArrivalByEtaWhenNoRouteHintsRemain() {
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.emptyList(),
+                60.0,
+                111.0
+        );
+        PolylineIndex polylineIndex = new PolylineIndex(route.track);
+        state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 0f, 5f);
+
+        NavigationTurnState.Progress progress = state.evaluate(
+                route,
+                polylineIndex,
+                0.0,
+                0,
+                0f,
+                5f,
+                5_000L,
+                0L
+        );
+
+        assertTrue(progress.turnEvents.isEmpty());
+        assertEquals(12_000L, progress.suggestedUpdateIntervalMs);
+    }
+
+    @Test
     public void evaluate_activatesTurnManeuverCueForSlowFiveSecondSignal() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = new GeoJsonRoute(

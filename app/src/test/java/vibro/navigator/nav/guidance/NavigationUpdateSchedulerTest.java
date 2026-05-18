@@ -87,6 +87,31 @@ public class NavigationUpdateSchedulerTest {
     }
 
     @Test
+    public void suggestUpdateInterval_usesRouteEndWhenNoNextHintRemains() {
+        GeoJsonRoute route = route(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.emptyList()
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+        long intervalMs = scheduler.suggestUpdateInterval(
+                5_000L,
+                1_000L,
+                route,
+                index,
+                null,
+                null,
+                0.0,
+                0,
+                0f
+        );
+
+        assertEquals(30000L, intervalMs);
+    }
+
+    @Test
     public void suggestUpdateInterval_clampsToMaxValue() {
         GeoJsonRoute route = route(
                 Arrays.asList(
