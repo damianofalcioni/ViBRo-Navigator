@@ -22,7 +22,7 @@ public final class NavigationTurnState {
 
     private int nextHintIdx;
     private int routeHintCount;
-    private boolean notified10;
+    private boolean notified20;
     private boolean notified5;
     private boolean initialTurnNotificationSent;
     private boolean destinationReached;
@@ -32,7 +32,7 @@ public final class NavigationTurnState {
         guidanceHints.reset();
         nextHintIdx = 0;
         routeHintCount = 0;
-        notified10 = false;
+        notified20 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
         destinationReached = false;
@@ -79,7 +79,7 @@ public final class NavigationTurnState {
                 guidanceHints.hints(),
                 guidanceHints.hintAlongTrackMeters(),
                 guidanceHints.nextIndex(),
-                notified10,
+                notified20,
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
@@ -88,7 +88,7 @@ public final class NavigationTurnState {
         );
         guidanceHints.advanceTo(progress.nextHintIdx);
         syncNextRouteHintIndex(route);
-        notified10 = progress.notified10;
+        notified20 = progress.notified20;
         notified5 = progress.notified5;
         maneuverCueState.update(progress.signals);
         maneuverCueState.clearIfPassed(polylineIndex, alongTrackMeters);
@@ -130,7 +130,7 @@ public final class NavigationTurnState {
         routeHintCount = route.voiceHints.size();
         guidanceHints.onRouteApplied(route, polylineIndex, intermediateStops, lastFiltered);
         syncNextRouteHintIndex(route);
-        notified10 = false;
+        notified20 = false;
         notified5 = false;
         initialTurnNotificationSent = false;
         destinationReached = false;
@@ -147,7 +147,7 @@ public final class NavigationTurnState {
         nextHintIdx = route.voiceHints.size();
         routeHintCount = route.voiceHints.size();
         guidanceHints.advanceToEnd();
-        notified10 = false;
+        notified20 = false;
         notified5 = false;
         initialTurnNotificationSent = true;
         destinationReached = true;
@@ -166,7 +166,7 @@ public final class NavigationTurnState {
     @NonNull
     public List<NavigationTurnEvent> onIntermediateDestinationReached(int trackIndex) {
         initialTurnNotificationSent = true;
-        notified10 = false;
+        notified20 = false;
         notified5 = false;
         intermediateDestinationReachedTrackIndex = trackIndex;
         maneuverCueState.clear();

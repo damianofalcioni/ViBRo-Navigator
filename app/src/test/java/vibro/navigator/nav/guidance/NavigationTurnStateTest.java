@@ -108,6 +108,38 @@ public class NavigationTurnStateTest {
         }
     }
 
+    @Test
+    public void evaluate_activatesTurnManeuverCueForSlowFiveSecondSignal() {
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 5, 0, 0.0, 90)),
+                0.0,
+                111.0
+        );
+        PolylineIndex polylineIndex = new PolylineIndex(route.track);
+        state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 0.3f, 5f);
+
+        NavigationTurnState.Progress progress = state.evaluate(
+                route,
+                polylineIndex,
+                polylineIndex.totalLengthMeters() - 1.5,
+                0,
+                0.3f,
+                5f,
+                1_000L,
+                0L
+        );
+
+        assertEquals(1, progress.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, progress.turnEvents.get(0).type);
+        assertEquals(Integer.valueOf(90), state.getActiveTurnManeuverDegrees());
+        assertEquals(Integer.valueOf(1), state.getActiveTurnManeuverTrackIndex());
+    }
+
     private static GeoJsonRoute routeWithHint() {
         return new GeoJsonRoute(
                 Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.001)),

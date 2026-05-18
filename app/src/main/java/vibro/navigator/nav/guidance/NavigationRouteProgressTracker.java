@@ -16,7 +16,7 @@ public final class NavigationRouteProgressTracker {
     private static final double MIN_DIRECTION_PROGRESS_METERS = 4.0;
     private static final long MIN_ETA_SPEED_SAMPLE_AGE_MS = 2_000L;
     private static final double MIN_ETA_PROGRESS_METERS = 1.0;
-    private static final float MIN_TRUSTED_ETA_SPEED_MPS = 0.5f;
+    private static final float MIN_TRUSTED_ETA_SPEED_MPS = 0.2f;
 
     private final ArrayDeque<AccuracySample> recentAccuracySamples = new ArrayDeque<>();
     private final ArrayDeque<AlongTrackSample> recentAlongTrackSamples = new ArrayDeque<>();

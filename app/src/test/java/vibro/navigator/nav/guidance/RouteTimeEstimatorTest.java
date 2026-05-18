@@ -88,4 +88,28 @@ public class RouteTimeEstimatorTest {
 
         assertEquals(25.56, seconds, 0.25);
     }
+
+    @Test
+    public void estimateSecondsToAlongTrack_usesSlowWalkingSpeedOnCurrentSegment() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Arrays.asList(),
+                0.0,
+                111.0
+        );
+
+        Double seconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
+                route,
+                new PolylineIndex(route.track),
+                100.0,
+                0,
+                101.5,
+                0.3f
+        );
+
+        assertEquals(5.0, seconds, 0.01);
+    }
 }

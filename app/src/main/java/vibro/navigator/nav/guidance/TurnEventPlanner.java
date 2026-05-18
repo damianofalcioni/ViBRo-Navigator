@@ -14,20 +14,22 @@ import java.util.List;
 public final class TurnEventPlanner {
 
     private static final double PASSED_HINT_BUFFER_METERS = 5.0;
-    private static final double INITIAL_IMMINENT_THRESHOLD_SECONDS = 10.0;
+    private static final double PREPARATORY_IMMINENT_THRESHOLD_SECONDS = 20.0;
     private static final double VERY_IMMINENT_THRESHOLD_SECONDS = 5.0;
     private static final double MIN_TRUSTED_TURN_DISTANCE_METERS = 5.0;
+    private static final double MIN_SLOW_SPEED_TURN_DISTANCE_METERS = 0.75;
+    private static final double MIN_ACTIONABLE_NOTICE_SECONDS = 2.0;
 
     public static final class Progress {
         final int nextHintIdx;
-        final boolean notified10;
+        final boolean notified20;
         final boolean notified5;
         @NonNull
         final List<TurnSignal> signals;
 
-        private Progress(int nextHintIdx, boolean notified10, boolean notified5, @NonNull List<TurnSignal> signals) {
+        private Progress(int nextHintIdx, boolean notified20, boolean notified5, @NonNull List<TurnSignal> signals) {
             this.nextHintIdx = nextHintIdx;
-            this.notified10 = notified10;
+            this.notified20 = notified20;
             this.notified5 = notified5;
             this.signals = signals;
         }
@@ -75,7 +77,7 @@ public final class TurnEventPlanner {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             int nextHintIdx,
-            boolean notified10,
+            boolean notified20,
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
@@ -87,7 +89,7 @@ public final class TurnEventPlanner {
                 polylineIndex,
                 route.voiceHints,
                 nextHintIdx,
-                notified10,
+                notified20,
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
@@ -102,7 +104,7 @@ public final class TurnEventPlanner {
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<VoiceHint> hints,
             int nextHintIdx,
-            boolean notified10,
+            boolean notified20,
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
@@ -115,7 +117,7 @@ public final class TurnEventPlanner {
                 hints,
                 buildHintAlongTrackMeters(polylineIndex, hints),
                 nextHintIdx,
-                notified10,
+                notified20,
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
@@ -131,7 +133,7 @@ public final class TurnEventPlanner {
             @NonNull List<VoiceHint> hints,
             @NonNull List<Double> hintAlongTrackMeters,
             int nextHintIdx,
-            boolean notified10,
+            boolean notified20,
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
@@ -139,7 +141,7 @@ public final class TurnEventPlanner {
             float accuracyMeters
     ) {
         if (hints.isEmpty() || nextHintIdx >= hints.size()) {
-            return new Progress(nextHintIdx, notified10, notified5, Collections.emptyList());
+            return new Progress(nextHintIdx, notified20, notified5, Collections.emptyList());
         }
 
         List<TurnSignal> signals = new ArrayList<>();
@@ -147,7 +149,7 @@ public final class TurnEventPlanner {
                 hints,
                 hintAlongTrackMeters,
                 nextHintIdx,
-                notified10,
+                notified20,
                 notified5,
                 alongTrackMeters,
                 signals
@@ -175,22 +177,22 @@ public final class TurnEventPlanner {
             @NonNull List<VoiceHint> hints,
             @NonNull List<Double> hintAlongTrackMeters,
             int nextHintIdx,
-            boolean notified10,
+            boolean notified20,
             boolean notified5,
             double alongTrackMeters,
             @NonNull List<TurnSignal> signals
     ) {
         int updatedHintIdx = nextHintIdx;
-        boolean updatedNotified10 = notified10;
+        boolean updatedNotified20 = notified20;
         boolean updatedNotified5 = notified5;
         while (updatedHintIdx < hints.size()
                 && hasPassedHint(hintAlongTrackMeters.get(updatedHintIdx), alongTrackMeters)) {
             signals.add(TurnSignal.passed(hints.get(updatedHintIdx)));
             updatedHintIdx++;
-            updatedNotified10 = false;
+            updatedNotified20 = false;
             updatedNotified5 = false;
         }
-        return new AdvanceCursor(updatedHintIdx, updatedNotified10, updatedNotified5);
+        return new AdvanceCursor(updatedHintIdx, updatedNotified20, updatedNotified5);
     }
 
     private static boolean hasPassedHint(
@@ -215,9 +217,6 @@ public final class TurnEventPlanner {
         VoiceHint next = hints.get(cursor.nextHintIdx);
         double hintDistMeters = hintAlongTrackMeters.get(cursor.nextHintIdx);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
-        if (!isImminentTurnDistanceReliable(distanceToNextMeters)) {
-            return cursor.toProgress(signals);
-        }
         Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
                 route,
                 polylineIndex,
@@ -229,35 +228,39 @@ public final class TurnEventPlanner {
         if (timeToNextSeconds == null) {
             return cursor.toProgress(signals);
         }
+        if (!isImminentTurnDistanceReliable(distanceToNextMeters, speedMps, timeToNextSeconds)) {
+            return cursor.toProgress(signals);
+        }
 
-        boolean updatedNotified10 = cursor.notified10;
+        boolean updatedNotified20 = cursor.notified20;
         boolean updatedNotified5 = cursor.notified5;
         if (!cursor.notified5 && timeToNextSeconds <= VERY_IMMINENT_THRESHOLD_SECONDS) {
+            updatedNotified20 = true;
             updatedNotified5 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
-            return new Progress(cursor.nextHintIdx, updatedNotified10, updatedNotified5, signals);
+            return new Progress(cursor.nextHintIdx, updatedNotified20, updatedNotified5, signals);
         }
-        if (!cursor.notified10 && timeToNextSeconds <= INITIAL_IMMINENT_THRESHOLD_SECONDS) {
-            updatedNotified10 = true;
+        if (!cursor.notified20 && timeToNextSeconds <= PREPARATORY_IMMINENT_THRESHOLD_SECONDS) {
+            updatedNotified20 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
         }
-        return new Progress(cursor.nextHintIdx, updatedNotified10, updatedNotified5, signals);
+        return new Progress(cursor.nextHintIdx, updatedNotified20, updatedNotified5, signals);
     }
 
     private static final class AdvanceCursor {
         public final int nextHintIdx;
-        public final boolean notified10;
+        public final boolean notified20;
         public final boolean notified5;
 
-        private AdvanceCursor(int nextHintIdx, boolean notified10, boolean notified5) {
+        private AdvanceCursor(int nextHintIdx, boolean notified20, boolean notified5) {
             this.nextHintIdx = nextHintIdx;
-            this.notified10 = notified10;
+            this.notified20 = notified20;
             this.notified5 = notified5;
         }
 
         @NonNull
         public Progress toProgress(@NonNull List<TurnSignal> signals) {
-            return new Progress(nextHintIdx, notified10, notified5, signals);
+            return new Progress(nextHintIdx, notified20, notified5, signals);
         }
     }
 
@@ -369,8 +372,46 @@ public final class TurnEventPlanner {
         return distanceToNextMeters > minTrustedDistanceMeters;
     }
 
-    private boolean isImminentTurnDistanceReliable(double distanceToNextMeters) {
-        return distanceToNextMeters > MIN_TRUSTED_TURN_DISTANCE_METERS;
+    private boolean isImminentTurnDistanceReliable(
+            double distanceToNextMeters,
+            float speedMps,
+            double timeToNextSeconds
+    ) {
+        return distanceToNextMeters > minimumTrustedImminentDistanceMeters(
+                speedMps,
+                distanceToNextMeters,
+                timeToNextSeconds
+        );
+    }
+
+    private static double minimumTrustedImminentDistanceMeters(
+            float speedMps,
+            double distanceToNextMeters,
+            double timeToNextSeconds
+    ) {
+        double effectiveSpeedMps = resolveEffectiveSpeedMps(speedMps, distanceToNextMeters, timeToNextSeconds);
+        if (effectiveSpeedMps <= 0.0) {
+            return MIN_TRUSTED_TURN_DISTANCE_METERS;
+        }
+        double slowSpeedDistanceMeters = Math.max(
+                MIN_SLOW_SPEED_TURN_DISTANCE_METERS,
+                effectiveSpeedMps * MIN_ACTIONABLE_NOTICE_SECONDS
+        );
+        return Math.min(MIN_TRUSTED_TURN_DISTANCE_METERS, slowSpeedDistanceMeters);
+    }
+
+    private static double resolveEffectiveSpeedMps(
+            float speedMps,
+            double distanceToNextMeters,
+            double timeToNextSeconds
+    ) {
+        if (Float.isFinite(speedMps) && speedMps > 0f) {
+            return speedMps;
+        }
+        if (!Double.isFinite(timeToNextSeconds) || timeToNextSeconds <= 0.0) {
+            return 0.0;
+        }
+        return distanceToNextMeters / timeToNextSeconds;
     }
 
 }

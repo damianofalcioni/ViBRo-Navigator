@@ -52,7 +52,7 @@ public class TurnEventPlannerTest {
         assertEquals(1, progress.nextHintIdx);
         assertEquals(1, progress.signals.size());
         assertEquals(TurnEventPlanner.TurnSignal.Type.PASSED, progress.signals.get(0).type);
-        assertFalse(progress.notified10);
+        assertFalse(progress.notified20);
         assertFalse(progress.notified5);
     }
 
@@ -83,7 +83,70 @@ public class TurnEventPlannerTest {
 
         assertEquals(1, progress.signals.size());
         assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified20);
         assertTrue(progress.notified5);
+    }
+
+    @Test
+    public void advance_emitsPreparatorySignalAtTwentySeconds() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                0.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 100.0,
+                0,
+                5f,
+                5f
+        );
+
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertEquals(20.0, progress.signals.get(0).timeSeconds, 0.01);
+        assertTrue(progress.notified20);
+        assertFalse(progress.notified5);
+    }
+
+    @Test
+    public void advance_waitsWhenMoreThanTwentySecondsRemain() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                0.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 105.0,
+                0,
+                5f,
+                5f
+        );
+
+        assertTrue(progress.signals.isEmpty());
+        assertFalse(progress.notified20);
+        assertFalse(progress.notified5);
     }
 
     @Test
@@ -169,7 +232,49 @@ public class TurnEventPlannerTest {
 
         assertEquals(1, progress.signals.size());
         assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified20);
         assertTrue(progress.notified5);
+    }
+
+    @Test
+    public void advance_doesNotEmitLateTwentySecondSignalAfterFiveSecondSignalFiresFirst() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                30.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress firstProgress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                90.0,
+                0,
+                5f,
+                5f
+        );
+        TurnEventPlanner.Progress secondProgress = planner.advance(
+                route,
+                index,
+                firstProgress.nextHintIdx,
+                firstProgress.notified20,
+                firstProgress.notified5,
+                92.0,
+                0,
+                5f,
+                5f
+        );
+
+        assertTrue(firstProgress.notified20);
+        assertTrue(firstProgress.notified5);
+        assertTrue(secondProgress.signals.isEmpty());
     }
 
     @Test
@@ -198,6 +303,67 @@ public class TurnEventPlannerTest {
         );
 
         assertTrue(progress.signals.isEmpty());
+    }
+
+    @Test
+    public void advance_emitsFiveSecondSignalAtSlowWalkingSpeed() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                0.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 1.5,
+                0,
+                0.3f,
+                5f
+        );
+
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified5);
+    }
+
+    @Test
+    public void advance_emitsFiveSecondSignalWhenRouteTimingIsSlow() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                Arrays.asList(0.0, 370.0),
+                370.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 1.5,
+                0,
+                0f,
+                5f
+        );
+
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified5);
     }
 
     @Test

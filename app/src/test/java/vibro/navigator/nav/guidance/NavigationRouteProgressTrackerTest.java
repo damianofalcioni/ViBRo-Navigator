@@ -43,6 +43,16 @@ public class NavigationRouteProgressTrackerTest {
     }
 
     @Test
+    public void resolveEtaSpeedMps_keepsSlowWalkingProgressUsable() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+
+        float speedMps = tracker.resolveEtaSpeedMps(location(7_000L), 11.8, 2f, false);
+
+        assertEquals(0.3f, speedMps, 0.01f);
+    }
+
+    @Test
     public void resolveEtaSpeedMps_returnsZeroWhenLikelyStationary() {
         NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
         tracker.rememberAlongTrackSample(10.0, 1_000L);
