@@ -319,22 +319,28 @@ public class NavigationActivity extends Activity {
         }
 
         @Override
-        public void showSettingsRedirectDialog(int messageResId, @NonNull Intent settingsIntent) {
+        public void showSettingsRedirectDialog(
+                int messageResId,
+                @NonNull Intent settingsIntent,
+                @NonNull Runnable onCancel
+        ) {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(messageResId)
                     .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsIntent))
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setNegativeButton(android.R.string.cancel, (d, w) -> onCancel.run())
+                    .setOnCancelListener(d -> onCancel.run())
                     .show();
         }
 
         @Override
-        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent) {
+        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent, @NonNull Runnable onCancel) {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_battery_opt_rationale)
                     .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsIntent))
-                    .setNegativeButton(android.R.string.cancel, null)
+                    .setNegativeButton(android.R.string.cancel, (d, w) -> onCancel.run())
+                    .setOnCancelListener(d -> onCancel.run())
                     .show();
         }
 
@@ -345,6 +351,12 @@ public class NavigationActivity extends Activity {
             NavigationRequestIntentContract.putInto(start, request);
             AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
             ContextCompat.startForegroundService(NavigationActivity.this, start);
+        }
+
+        @Override
+        public void cancelNavigationStartup() {
+            AppLogger.i(TAG, "Closing navigation screen after startup cancellation");
+            finish();
         }
 
         private void openSettings(@NonNull Intent settingsIntent) {

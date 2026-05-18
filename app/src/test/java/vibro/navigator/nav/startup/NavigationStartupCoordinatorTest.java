@@ -84,6 +84,74 @@ public class NavigationStartupCoordinatorTest {
         assertEquals(vibro.navigator.R.string.msg_location_disabled, host.settingsDialogMessageResId.intValue());
         assertEquals(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS, host.settingsIntent.getAction());
         assertNull(host.startedRequest);
+        assertNotNull(host.settingsDialogCancelAction);
+    }
+
+    @Test
+    public void settingsDialogCancel_rechecksAndStartsWhenLocationWasEnabledWhileDialogOpen() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                new NavigationStartupCoordinator.PreflightInspector() {
+                    private int callCount;
+
+                    @NonNull
+                    @Override
+                    public NavigationPreflight.Status inspect(@NonNull Activity activity) {
+                        callCount++;
+                        if (callCount == 1) {
+                            return NavigationPreflight.Status.create(
+                                    Collections.emptyList(),
+                                    false,
+                                    false,
+                                    true,
+                                    false
+                            );
+                        }
+                        return NavigationPreflight.Status.create(
+                                Collections.emptyList(),
+                                false,
+                                true,
+                                true,
+                                false
+                        );
+                    }
+                }
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+        assertNull(host.startedRequest);
+
+        host.settingsDialogCancelAction.run();
+
+        assertNotNull(host.startedRequest);
+        assertFalse(host.startupCancelled);
+        assertFalse(coordinator.isAutoStartNavigation());
+    }
+
+    @Test
+    public void settingsDialogCancel_cancelsStartupWhenLocationRemainsDisabled() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                activity -> NavigationPreflight.Status.create(
+                        Collections.emptyList(),
+                        false,
+                        false,
+                        true,
+                        false
+                )
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+
+        host.settingsDialogCancelAction.run();
+
+        assertNull(host.startedRequest);
+        assertTrue(host.startupCancelled);
+        assertFalse(coordinator.isAutoStartNavigation());
     }
 
     @Test
@@ -131,6 +199,7 @@ public class NavigationStartupCoordinatorTest {
                 android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS,
                 host.batteryOptimizationIntent.getAction()
         );
+        assertNotNull(host.batteryOptimizationCancelAction);
         assertNull(host.startedRequest);
         assertTrue(coordinator.isAutoStartNavigation());
     }
@@ -260,8 +329,11 @@ public class NavigationStartupCoordinatorTest {
         private Runnable permissionRationaleAction;
         private Integer settingsDialogMessageResId;
         private Intent settingsIntent;
+        private Runnable settingsDialogCancelAction;
         private Intent batteryOptimizationIntent;
+        private Runnable batteryOptimizationCancelAction;
         private NavigationRequest startedRequest;
+        private boolean startupCancelled;
 
         @NonNull
         @Override
@@ -288,19 +360,30 @@ public class NavigationStartupCoordinatorTest {
         }
 
         @Override
-        public void showSettingsRedirectDialog(int messageResId, @NonNull Intent settingsIntent) {
+        public void showSettingsRedirectDialog(
+                int messageResId,
+                @NonNull Intent settingsIntent,
+                @NonNull Runnable onCancel
+        ) {
             settingsDialogMessageResId = messageResId;
             this.settingsIntent = settingsIntent;
+            settingsDialogCancelAction = onCancel;
         }
 
         @Override
-        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent) {
+        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent, @NonNull Runnable onCancel) {
             batteryOptimizationIntent = settingsIntent;
+            batteryOptimizationCancelAction = onCancel;
         }
 
         @Override
         public void startNavigationService(@NonNull NavigationRequest request) {
             startedRequest = request;
+        }
+
+        @Override
+        public void cancelNavigationStartup() {
+            startupCancelled = true;
         }
     }
 }

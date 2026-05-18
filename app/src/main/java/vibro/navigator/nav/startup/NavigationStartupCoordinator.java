@@ -31,11 +31,17 @@ public final class NavigationStartupCoordinator {
 
         void showPermissionRationale(@NonNull String message, @NonNull Runnable onContinue);
 
-        void showSettingsRedirectDialog(int messageResId, @NonNull Intent settingsIntent);
+        void showSettingsRedirectDialog(
+                int messageResId,
+                @NonNull Intent settingsIntent,
+                @NonNull Runnable onCancel
+        );
 
-        void showBatteryOptimizationDialog(@NonNull Intent settingsIntent);
+        void showBatteryOptimizationDialog(@NonNull Intent settingsIntent, @NonNull Runnable onCancel);
 
         void startNavigationService(@NonNull NavigationRequest request);
+
+        void cancelNavigationStartup();
     }
 
     private static final String TAG = "NavStartup";
@@ -48,6 +54,12 @@ public final class NavigationStartupCoordinator {
     private boolean autoStartNavigation;
     private boolean settingsLaunchInProgress;
     private boolean awaitingSettingsReturn;
+
+    private enum StartupBlocker {
+        LOCATION,
+        NOTIFICATIONS,
+        BATTERY_OPTIMIZATION
+    }
 
     public NavigationStartupCoordinator(@NonNull Host host) {
         this(host, NavigationPreflight::inspect);
@@ -84,7 +96,8 @@ public final class NavigationStartupCoordinator {
             AppLogger.w(TAG, "Location services are disabled");
             host.showSettingsRedirectDialog(
                     R.string.msg_location_disabled,
-                    NavigationPreflight.newLocationSettingsIntent()
+                    NavigationPreflight.newLocationSettingsIntent(),
+                    () -> onStartupBlockerCancelled(StartupBlocker.LOCATION)
             );
             return;
         }
@@ -93,14 +106,18 @@ public final class NavigationStartupCoordinator {
             AppLogger.w(TAG, "Notifications are disabled for the app");
             host.showSettingsRedirectDialog(
                     R.string.msg_enable_notifications,
-                    NavigationPreflight.newNotificationSettingsIntent(activity)
+                    NavigationPreflight.newNotificationSettingsIntent(activity),
+                    () -> onStartupBlockerCancelled(StartupBlocker.NOTIFICATIONS)
             );
             return;
         }
 
         if (status.needsBatteryOptimizationExemption) {
             AppLogger.i(TAG, "Prompting for battery optimization exemption");
-            host.showBatteryOptimizationDialog(NavigationPreflight.newBatteryOptimizationIntent(activity));
+            host.showBatteryOptimizationDialog(
+                    NavigationPreflight.newBatteryOptimizationIntent(activity),
+                    () -> onStartupBlockerCancelled(StartupBlocker.BATTERY_OPTIMIZATION)
+            );
             return;
         } else {
             AppLogger.i(TAG, "Battery optimization exemption already granted");
@@ -140,6 +157,39 @@ public final class NavigationStartupCoordinator {
         settingsLaunchInProgress = false;
         AppLogger.i(TAG, "Returned from external settings, rechecking startup preflight");
         ensureReadyThenStart();
+    }
+
+    private void onStartupBlockerCancelled(@NonNull StartupBlocker blocker) {
+        if (!autoStartNavigation) {
+            return;
+        }
+        NavigationPreflight.Status status = preflightInspector.inspect(host.getActivity());
+        if (isStillBlockedBy(status, blocker)) {
+            autoStartNavigation = false;
+            settingsLaunchInProgress = false;
+            awaitingSettingsReturn = false;
+            AppLogger.i(TAG, "Navigation startup cancelled while blocker remains=" + blocker);
+            host.cancelNavigationStartup();
+            return;
+        }
+        AppLogger.i(TAG, "Startup blocker resolved while dialog was open blocker=" + blocker);
+        ensureReadyThenStart();
+    }
+
+    private static boolean isStillBlockedBy(
+            @NonNull NavigationPreflight.Status status,
+            @NonNull StartupBlocker blocker
+    ) {
+        switch (blocker) {
+            case LOCATION:
+                return !status.locationEnabled;
+            case NOTIFICATIONS:
+                return !status.notificationsEnabled;
+            case BATTERY_OPTIMIZATION:
+                return status.needsBatteryOptimizationExemption;
+            default:
+                return false;
+        }
     }
 
     private void requestMissingPermissions(

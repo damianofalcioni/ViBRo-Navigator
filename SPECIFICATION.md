@@ -20,6 +20,7 @@ Core product constraints:
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
+- If a startup settings dialog is dismissed after the required setting was changed elsewhere, navigation startup must re-check preflight and continue; if the blocker remains unresolved, startup must abort cleanly instead of leaving the navigation screen waiting
 - Provide a README describing ViBRo Navigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app based on BRouter, that vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
 - Treat map-free use as a primary product mode: navigation guidance must be trustworthy enough that a user who does not see the map can rely on the next direction without visual confirmation
