@@ -430,7 +430,7 @@ The navigation UI must show the following in large text:
 - The navigation UI must show an icon-only export button in the top-right corner of the measured compass square
 - The export button must overlay the compass area so it does not shrink, reflow, or otherwise change the compass route view
 - The export button must sit in the square corner outside the compass circle rather than covering the circular compass surface
-- Pressing the export button must transform the current active route into GPX and open it through an Android chooser around an `ACTION_VIEW` intent using the GPX MIME type `application/gpx+xml`, so the user can select which installed GPX-capable app should receive the export
+- Pressing the export button must transform the current active route into GPX and open it through an Android chooser using the GPX MIME type `application/gpx+xml`, with the GPX file provided as a stream and GPX viewer apps offered as explicit targets, so the user can select which installed GPX-capable app should receive the export instead of Android auto-opening a saved default viewer
 - The exported GPX route, track, and metadata name must use `ViBRo-Navigator Export <current datetime>` rather than the destination label
 - The exported GPX must include the active route geometry as GPX route/track geometry, must include turn-instruction waypoints derived from the current route voice hints using the same user-visible instruction text mapping as the navigation UI and turn notifications, and must include explicit waypoint entries for remaining intermediate destinations
 - When the active route has no explicit destination-arrival voice hint, the exported GPX should include a synthetic destination-reached waypoint at the final route point

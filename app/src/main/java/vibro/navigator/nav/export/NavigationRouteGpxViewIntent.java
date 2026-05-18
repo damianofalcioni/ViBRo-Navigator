@@ -1,9 +1,15 @@
 package vibro.navigator.nav.export;
 
 import android.content.ClipData;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
@@ -13,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 import vibro.navigator.R;
 
@@ -38,7 +46,16 @@ public final class NavigationRouteGpxViewIntent {
 
     @NonNull
     static Intent createChooserForIntent(@NonNull Context context, @NonNull Intent actionView) {
-        return Intent.createChooser(actionView, context.getString(R.string.action_export_route));
+        Intent send = createSendIntent(context, actionView);
+        List<Intent> targets = explicitTargets(context, actionView);
+        Intent chooser = Intent.createChooser(send, context.getString(R.string.action_export_route));
+        if (!targets.isEmpty()) {
+            chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS, targets.toArray(new Parcelable[0]));
+        }
+        chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        chooser.setClipData(send.getClipData());
+        chooser.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, false);
+        return chooser;
     }
 
     @NonNull
@@ -72,5 +89,47 @@ public final class NavigationRouteGpxViewIntent {
     @NonNull
     private static String authority(@NonNull Context context) {
         return context.getPackageName() + FILE_PROVIDER_SUFFIX;
+    }
+
+    @NonNull
+    private static Intent createSendIntent(@NonNull Context context, @NonNull Intent actionView) {
+        Intent send = new Intent(Intent.ACTION_SEND);
+        send.setType(actionView.getType());
+        send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        send.setClipData(actionView.getClipData());
+        if (actionView.getData() != null) {
+            send.putExtra(Intent.EXTRA_STREAM, actionView.getData());
+        }
+        send.putExtra(Intent.EXTRA_TITLE, context.getString(R.string.label_exported_route_gpx));
+        return send;
+    }
+
+    @NonNull
+    private static List<Intent> explicitTargets(@NonNull Context context, @NonNull Intent actionView) {
+        List<ResolveInfo> handlers = queryViewHandlers(context, actionView);
+        List<Intent> targets = new ArrayList<>(handlers.size());
+        for (ResolveInfo handler : handlers) {
+            ActivityInfo activityInfo = handler.activityInfo;
+            if (activityInfo == null || activityInfo.packageName == null || activityInfo.name == null) {
+                continue;
+            }
+            targets.add(new Intent(actionView).setComponent(new ComponentName(
+                    activityInfo.packageName,
+                    activityInfo.name
+            )));
+        }
+        return targets;
+    }
+
+    @NonNull
+    private static List<ResolveInfo> queryViewHandlers(@NonNull Context context, @NonNull Intent actionView) {
+        PackageManager packageManager = context.getPackageManager();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            return packageManager.queryIntentActivities(
+                    actionView,
+                    PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY)
+            );
+        }
+        return packageManager.queryIntentActivities(actionView, PackageManager.MATCH_DEFAULT_ONLY);
     }
 }

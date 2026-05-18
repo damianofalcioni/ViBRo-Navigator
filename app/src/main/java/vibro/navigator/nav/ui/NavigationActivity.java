@@ -160,7 +160,7 @@ public class NavigationActivity extends Activity {
         AppLogger.dMultiline(TAG, "Generated route GPX XML", gpx);
         try {
             startActivity(NavigationRouteGpxViewIntent.createChooser(this, gpx));
-            AppLogger.i(TAG, "Route GPX ACTION_VIEW launched");
+            AppLogger.i(TAG, "Route GPX chooser launched");
         } catch (ActivityNotFoundException e) {
             AppLogger.w(TAG, "No app can open exported GPX route", e);
             showShortToast(R.string.msg_route_export_no_app);
