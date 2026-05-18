@@ -58,6 +58,7 @@
 * **GPlay only features**
 
   * Google Fused Location provider
+  * Google Maps Geocoding for POI search
   * Android Auto integration
 
 ---

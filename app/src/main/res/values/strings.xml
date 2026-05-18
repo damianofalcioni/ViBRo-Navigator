@@ -173,6 +173,10 @@
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
     <string name="label_imperial_units_enabled">Use imperial units</string>
+    <string name="label_google_poi_api_key">Google Maps API key</string>
+    <string name="hint_google_poi_api_key">Optional Google Maps key</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps API key cleared.</string>
     <string name="about_diagnostic_title">Diagnostic</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>

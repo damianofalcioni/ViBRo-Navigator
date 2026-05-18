@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -46,6 +47,9 @@ public class AboutActivity extends Activity {
     private Switch logEnabledSwitch;
     private Switch fusedLocationSwitch;
     private Switch imperialUnitsSwitch;
+    private View googlePoiApiKeyContainer;
+    private TextView googlePoiApiKeyEdit;
+    private Button googlePoiApiKeySaveButton;
     private Button exportDatabaseButton;
     private Button importDatabaseButton;
     private Button symbolTestButton;
@@ -59,6 +63,9 @@ public class AboutActivity extends Activity {
         logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
         fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
         imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
+        googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
+        googlePoiApiKeyEdit = findViewById(R.id.aboutGooglePoiApiKeyEdit);
+        googlePoiApiKeySaveButton = findViewById(R.id.aboutGooglePoiApiKeySaveButton);
         exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
         sensorStatusTitle = findViewById(R.id.aboutSensorStatusTitle);
@@ -72,6 +79,7 @@ public class AboutActivity extends Activity {
         });
         configureFusedLocationSwitch();
         configureImperialUnitsSwitch();
+        configureGooglePoiApiKeySetting();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());
         symbolTestButton.setOnClickListener(v -> sendSymbolTestNotification());
@@ -118,9 +126,9 @@ public class AboutActivity extends Activity {
         fusedLocationSwitch.setChecked(DistributionServices.supportsFusedLocation()
                 && AppSettings.isFusedLocationEnabled(this));
         imperialUnitsSwitch.setChecked(AppSettings.isImperialUnitsEnabled(this));
-        sensorStatusTitle.setVisibility(android.view.View.VISIBLE);
-        sensorStatusBody.setVisibility(android.view.View.VISIBLE);
-        symbolTestButton.setVisibility(android.view.View.VISIBLE);
+        sensorStatusTitle.setVisibility(View.VISIBLE);
+        sensorStatusBody.setVisibility(View.VISIBLE);
+        symbolTestButton.setVisibility(View.VISIBLE);
         sensorStatusBody.setText(sensorStatusFormatter.build(this));
     }
 
@@ -159,6 +167,7 @@ public class AboutActivity extends Activity {
             }
             AppDataBackup.importJson(this, readUtf8(in));
             renderDiagnosticSection();
+            renderGooglePoiApiKeySetting();
             Toast.makeText(this, R.string.msg_database_imported, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             AppLogger.w("AboutActivity", "Failed to import database", e);
@@ -193,6 +202,41 @@ public class AboutActivity extends Activity {
             AppSettings.setFusedLocationEnabled(this, isChecked);
             renderDiagnosticSection();
         });
+    }
+
+    private void configureGooglePoiApiKeySetting() {
+        boolean supported = DistributionServices.supportsUserGooglePoiApiKey();
+        googlePoiApiKeyContainer.setVisibility(supported ? View.VISIBLE : View.GONE);
+        googlePoiApiKeyEdit.setEnabled(supported);
+        googlePoiApiKeySaveButton.setEnabled(supported);
+        if (!supported) {
+            return;
+        }
+        renderGooglePoiApiKeySetting();
+        googlePoiApiKeySaveButton.setOnClickListener(v -> saveGooglePoiApiKey());
+    }
+
+    private void renderGooglePoiApiKeySetting() {
+        if (!DistributionServices.supportsUserGooglePoiApiKey()) {
+            return;
+        }
+        googlePoiApiKeyEdit.setText(AppSettings.getGooglePoiApiKey(this));
+    }
+
+    private void saveGooglePoiApiKey() {
+        if (!DistributionServices.supportsUserGooglePoiApiKey()) {
+            return;
+        }
+        AppSettings.setGooglePoiApiKey(this, googlePoiApiKeyEdit.getText().toString());
+        String savedKey = AppSettings.getGooglePoiApiKey(this);
+        googlePoiApiKeyEdit.setText(savedKey);
+        Toast.makeText(
+                this,
+                savedKey.isEmpty()
+                        ? R.string.msg_google_poi_api_key_cleared
+                        : R.string.msg_google_poi_api_key_saved,
+                Toast.LENGTH_SHORT
+        ).show();
     }
 
     private void configureImperialUnitsSwitch() {

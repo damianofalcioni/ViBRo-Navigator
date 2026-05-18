@@ -17,6 +17,7 @@ import android.widget.TextView;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
+import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppSettings;
 
@@ -115,9 +116,14 @@ public class AboutLoggingSettingsRobolectricTest {
         Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
         Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
         Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
+        View googlePoiApiKeyContainer = activity.findViewById(R.id.aboutGooglePoiApiKeyContainer);
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
+        assertEquals(
+                DistributionServices.supportsUserGooglePoiApiKey() ? View.VISIBLE : View.GONE,
+                googlePoiApiKeyContainer.getVisibility()
+        );
         assertEquals(View.VISIBLE, exportDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());

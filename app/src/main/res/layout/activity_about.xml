@@ -3,6 +3,10 @@
     android:id="@+id/aboutRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:descendantFocusability="beforeDescendants"
+    android:fillViewport="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:padding="16dp">
 
     <LinearLayout
@@ -99,6 +103,55 @@
             android:text="@string/label_imperial_units_enabled"
             android:textColor="@color/white"
             android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/aboutGooglePoiApiKeyContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/aboutGooglePoiApiKeyLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/label_google_poi_api_key"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <LinearLayout
+                android:id="@+id/aboutGooglePoiApiKeyRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/aboutGooglePoiApiKeyEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/hint_google_poi_api_key"
+                    android:importantForAutofill="no"
+                    android:imeOptions="actionDone"
+                    android:inputType="textVisiblePassword|textNoSuggestions"
+                    android:maxLines="1"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:textColor="@color/white"
+                    android:textColorHint="@color/gray_700"
+                    android:textSize="14sp" />
+
+                <Button
+                    android:id="@+id/aboutGooglePoiApiKeySaveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:minWidth="80dp"
+                    android:text="@string/action_save" />
+            </LinearLayout>
+        </LinearLayout>
 
         <Button
             android:id="@+id/aboutExportDatabaseButton"

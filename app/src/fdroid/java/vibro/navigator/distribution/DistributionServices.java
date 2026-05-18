@@ -18,6 +18,10 @@ public final class DistributionServices {
         return false;
     }
 
+    public static boolean supportsUserGooglePoiApiKey() {
+        return false;
+    }
+
     public static boolean isFusedLocationRuntimeAvailable(@NonNull Context context) {
         return false;
     }
@@ -36,7 +40,7 @@ public final class DistributionServices {
     }
 
     @Nullable
-    public static PoiSearchClient createGooglePoiSearchClient() {
+    public static PoiSearchClient createGooglePoiSearchClient(@NonNull Context context) {
         return null;
     }
 

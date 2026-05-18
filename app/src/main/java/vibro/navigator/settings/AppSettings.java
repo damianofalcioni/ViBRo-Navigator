@@ -9,6 +9,7 @@ public final class AppSettings {
     private static final String PREFS = "vibro.navigator.settings";
     private static final String KEY_USE_FUSED_LOCATION = "use_fused_location";
     private static final String KEY_USE_IMPERIAL_UNITS = "use_imperial_units";
+    private static final String KEY_GOOGLE_POI_API_KEY = "google_poi_api_key";
 
     private AppSettings() {
     }
@@ -31,6 +32,23 @@ public final class AppSettings {
         prefs(context).edit()
                 .putBoolean(KEY_USE_IMPERIAL_UNITS, enabled)
                 .apply();
+    }
+
+    @NonNull
+    public static String getGooglePoiApiKey(@NonNull Context context) {
+        String apiKey = prefs(context).getString(KEY_GOOGLE_POI_API_KEY, "");
+        return apiKey == null ? "" : apiKey;
+    }
+
+    public static void setGooglePoiApiKey(@NonNull Context context, @NonNull String apiKey) {
+        String trimmed = apiKey.trim();
+        SharedPreferences.Editor editor = prefs(context).edit();
+        if (trimmed.isEmpty()) {
+            editor.remove(KEY_GOOGLE_POI_API_KEY);
+        } else {
+            editor.putString(KEY_GOOGLE_POI_API_KEY, trimmed);
+        }
+        editor.apply();
     }
 
     @NonNull

@@ -67,7 +67,7 @@ public class MainActivity extends Activity {
         }
 
         historyStore = new PoiHistoryStore(this);
-        PoiSearchClient searchClient = PoiSearchClients.createDefault();
+        PoiSearchClient searchClient = PoiSearchClients.createDefault(this);
         AppLogger.i(TAG, "Selected POI search client=" + searchClient.getClass().getSimpleName());
         destinationController = new PoiInputController(
                 this,

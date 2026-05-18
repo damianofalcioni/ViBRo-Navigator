@@ -81,7 +81,7 @@ Below the routing-profile selector, the app must show an input field for searchi
 - On every typed character, but only once the query length is greater than 3, the app must retrieve matching POIs
 - Online provider search must only run when the typed query has no matching history entries and the query length is greater than 3
 - Each result must include the POI full name and coordinates
-- In the Google Play flavor, the data source must be Google Maps REST APIs when a Google API key is defined
+- In the Google Play flavor, the data source must be Google Maps REST APIs when a Google API key is saved in the app settings
 - If the Google API key is not defined, the app must use OpenStreetMap APIs
 - In the F-Droid flavor, POI search must always use OpenStreetMap APIs and must not include Google search code or require a Google API key
 
@@ -549,6 +549,8 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
+- The Google Play flavor must let the user save an optional Google Maps API key for POI search; when this key is present, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
+- The F-Droid flavor must not enable the Google Maps API key setting
 - The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, and BRouter profile selections
 - The about page Settings section must show an Import database button that lets the user select a JSON backup and restore those same app-managed stored data stores
 - Database export and import must use Android's document picker flows so the user chooses the backup file location without requiring broad storage permissions

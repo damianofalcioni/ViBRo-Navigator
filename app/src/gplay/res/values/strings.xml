@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="about_credits">Credits: BRouter for routing. POI search uses Google Maps Geocoding when configured, otherwise OpenStreetMap Nominatim. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
+    <string name="about_credits">Credits: BRouter for routing. POI search uses Google Maps Geocoding when a Google API key is saved in settings, otherwise OpenStreetMap Nominatim. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
     <string name="auto_title">ViBRo Navigator</string>
     <string name="auto_active_navigation_title">Active navigation</string>
     <string name="auto_no_active_navigation_title">No active navigation</string>

@@ -33,6 +33,7 @@ public class AppDataBackupTest {
             "vibenavigator_brouter",
             "app_logging"
     };
+    private static final String GOOGLE_POI_API_KEY = "google-key";
 
     private Context context;
 
@@ -51,6 +52,7 @@ public class AppDataBackupTest {
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppSettings.setGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppLogger.setLoggingEnabled(context, true);
         profiles.saveSelectedProfileKey(context, "trekking");
         profiles.saveCustomProfile(context, Uri.parse("content://profiles/custom.brf"), "custom");
@@ -68,6 +70,7 @@ public class AppDataBackupTest {
         assertEquals(originalPoi.lon, restoredPois.get(0).lon, 0.0d);
         assertFalse(AppSettings.isFusedLocationEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
+        assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
         assertTrue(AppLogger.isLoggingEnabled(context));
         assertEquals("trekking", profiles.getSelectedProfileKey(context));
         assertEquals("custom", profiles.getCustomProfileName(context));
@@ -76,15 +79,19 @@ public class AppDataBackupTest {
     @Test
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppSettings.setGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
 
         JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
         JSONObject sharedPreferences = root.getJSONObject("sharedPreferences");
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
+        JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
 
         assertEquals(1, root.getInt("schemaVersion"));
         assertEquals("boolean", imperialUnits.getString("type"));
         assertTrue(imperialUnits.getBoolean("value"));
+        assertEquals("string", googlePoiApiKey.getString("type"));
+        assertEquals(GOOGLE_POI_API_KEY, googlePoiApiKey.getString("value"));
     }
 
     @Test

@@ -9,17 +9,21 @@ import androidx.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailabilityLight;
 
-import vibro.navigator.BuildConfig;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.poi.search.GoogleGeocodeClient;
 import vibro.navigator.poi.search.PoiSearchClient;
+import vibro.navigator.settings.AppSettings;
 
 public final class DistributionServices {
     private DistributionServices() {
     }
 
     public static boolean supportsFusedLocation() {
+        return true;
+    }
+
+    public static boolean supportsUserGooglePoiApiKey() {
         return true;
     }
 
@@ -42,11 +46,11 @@ public final class DistributionServices {
     }
 
     @Nullable
-    public static PoiSearchClient createGooglePoiSearchClient() {
-        String key = BuildConfig.GOOGLE_MAPS_API_KEY;
-        if (key == null || key.trim().isEmpty()) {
+    public static PoiSearchClient createGooglePoiSearchClient(@NonNull Context context) {
+        String key = AppSettings.getGooglePoiApiKey(context);
+        if (key.isEmpty()) {
             return null;
         }
-        return new GoogleGeocodeClient(key.trim());
+        return new GoogleGeocodeClient(key);
     }
 }
