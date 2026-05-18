@@ -209,7 +209,7 @@ final class NavigationActivityRenderer {
                 + "|" + state.routeStatus.progress.detailBlock
                 + "|" + state.pauseStatus.paused
                 + "|" + (state.routeStatus.compassState == null ? "no-compass"
-                : state.routeStatus.compassState.routePoints.size() + ":" + state.routeStatus.compassState.displayMode.headingDegrees);
+                : state.routeStatus.compassState.routePoints.size());
         if (stateKey.equals(lastRenderedStateKey)) {
             return;
         }

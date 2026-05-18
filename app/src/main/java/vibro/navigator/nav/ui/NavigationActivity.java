@@ -157,7 +157,7 @@ public class NavigationActivity extends Activity {
             showShortToast(R.string.msg_route_export_unavailable);
             return;
         }
-        AppLogger.i(TAG, "Generated route GPX XML\n" + gpx);
+        AppLogger.dMultiline(TAG, "Generated route GPX XML", gpx);
         try {
             startActivity(NavigationRouteGpxViewIntent.createChooser(this, gpx));
             AppLogger.i(TAG, "Route GPX ACTION_VIEW launched");
