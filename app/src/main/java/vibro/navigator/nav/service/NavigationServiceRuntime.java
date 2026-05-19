@@ -92,6 +92,10 @@ final class NavigationServiceRuntime {
         foregroundController.stopForegroundService();
     }
 
+    void stopManeuverSpeech() {
+        routing.maneuverSpeaker.stop();
+    }
+
     void requestRoute(@NonNull NavigationService service, @NonNull NavigationRouteRequestSnapshot snapshot) {
         routing.executor.requestRoute(service, snapshot, routing.callback);
     }
@@ -130,6 +134,10 @@ final class NavigationServiceRuntime {
 
     void shutdownRouteExecutor() {
         routing.executor.shutdown();
+    }
+
+    void shutdownManeuverSpeaker() {
+        routing.maneuverSpeaker.shutdown();
     }
 
     boolean isScreenInteractive() {

@@ -53,6 +53,7 @@ public class AppDataBackupTest {
         AppSettings.setFusedLocationEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
         AppSettings.setGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
+        AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT);
         AppLogger.setLoggingEnabled(context, true);
         profiles.saveSelectedProfileKey(context, "trekking");
         profiles.saveCustomProfile(context, Uri.parse("content://profiles/custom.brf"), "custom");
@@ -71,6 +72,7 @@ public class AppDataBackupTest {
         assertFalse(AppSettings.isFusedLocationEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
+        assertEquals(AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT, AppSettings.getManeuverVoiceName(context));
         assertTrue(AppLogger.isLoggingEnabled(context));
         assertEquals("trekking", profiles.getSelectedProfileKey(context));
         assertEquals("custom", profiles.getCustomProfileName(context));
@@ -80,18 +82,22 @@ public class AppDataBackupTest {
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
         AppSettings.setGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
+        AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT);
 
         JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
         JSONObject sharedPreferences = root.getJSONObject("sharedPreferences");
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
+        JSONObject maneuverVoiceName = appSettings.getJSONObject("maneuver_voice_name");
 
         assertEquals(1, root.getInt("schemaVersion"));
         assertEquals("boolean", imperialUnits.getString("type"));
         assertTrue(imperialUnits.getBoolean("value"));
         assertEquals("string", googlePoiApiKey.getString("type"));
         assertEquals(GOOGLE_POI_API_KEY, googlePoiApiKey.getString("value"));
+        assertEquals("string", maneuverVoiceName.getString("type"));
+        assertEquals(AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT, maneuverVoiceName.getString("value"));
     }
 
     @Test

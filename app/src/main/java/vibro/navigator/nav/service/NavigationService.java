@@ -179,6 +179,7 @@ public class NavigationService extends Service {
         navigationSession.stop();
         foregroundCoordinator.stopMonitoring();
         runtime().stopTrackingAndOrientation();
+        runtime().stopManeuverSpeech();
         stateBroadcaster.clear();
         runtime().stopForegroundService();
     }
@@ -223,6 +224,7 @@ public class NavigationService extends Service {
         stopNavigation();
         if (runtime != null) {
             runtime.stopScreenInteractivityMonitor();
+            runtime.shutdownManeuverSpeaker();
             runtime.shutdownRouteExecutor();
             runtime = null;
         }

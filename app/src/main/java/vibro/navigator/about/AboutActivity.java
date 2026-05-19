@@ -13,6 +13,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,6 +49,7 @@ public class AboutActivity extends Activity {
     private Switch logEnabledSwitch;
     private Switch fusedLocationSwitch;
     private Switch imperialUnitsSwitch;
+    private AboutManeuverVoiceSettings maneuverVoiceSettings;
     private View googlePoiApiKeyContainer;
     private TextView googlePoiApiKeyEdit;
     private Button googlePoiApiKeySaveButton;
@@ -63,6 +66,8 @@ public class AboutActivity extends Activity {
         logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
         fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
         imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
+        Spinner maneuverVoiceSpinner = findViewById(R.id.aboutManeuverVoiceSpinner);
+        ImageButton ttsSettingsButton = findViewById(R.id.aboutTtsSettingsButton);
         googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
         googlePoiApiKeyEdit = findViewById(R.id.aboutGooglePoiApiKeyEdit);
         googlePoiApiKeySaveButton = findViewById(R.id.aboutGooglePoiApiKeySaveButton);
@@ -79,6 +84,8 @@ public class AboutActivity extends Activity {
         });
         configureFusedLocationSwitch();
         configureImperialUnitsSwitch();
+        maneuverVoiceSettings = new AboutManeuverVoiceSettings(this, maneuverVoiceSpinner);
+        ttsSettingsButton.setOnClickListener(v -> AboutTtsSettingsLauncher.open(this));
         configureGooglePoiApiKeySetting();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());
@@ -106,6 +113,14 @@ public class AboutActivity extends Activity {
         sensorStatusHandler.removeCallbacks(sensorStatusRefreshRunnable);
         sensorStatusFormatter.stop();
         super.onStop();
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (maneuverVoiceSettings != null) {
+            maneuverVoiceSettings.shutdown();
+        }
+        super.onDestroy();
     }
 
     @Override
@@ -168,6 +183,9 @@ public class AboutActivity extends Activity {
             AppDataBackup.importJson(this, readUtf8(in));
             renderDiagnosticSection();
             renderGooglePoiApiKeySetting();
+            if (maneuverVoiceSettings != null) {
+                maneuverVoiceSettings.refreshSelection();
+            }
             Toast.makeText(this, R.string.msg_database_imported, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
             AppLogger.w("AboutActivity", "Failed to import database", e);

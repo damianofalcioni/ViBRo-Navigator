@@ -288,6 +288,8 @@ The app must monitor user position:
   - The direction text
   - The exit number for roundabouts when applicable, including alongside the roundabout symbol as well as in the direction text
   - Hyphen (`-`) separators between fields instead of the bullet character
+- When a turn voice is selected in settings, the app must use Android's built-in TextToSpeech service to speak maneuver notifications with the time left first and the direction second, such as `20s turn left`
+- When turn voice is disabled, maneuver notifications must remain vibration/visual-only
 
 #### 4.4.4.1 Guidance vibration patterns
 
@@ -549,6 +551,8 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
+- The about page Settings section must show a Speech directions voice spinner that can disable spoken maneuver notifications, use the system default TextToSpeech voice, or select one of the downloaded/offline Android TextToSpeech voices available on the device
+- The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
 - The Google Play flavor must let the user save an optional Google Maps API key for POI search; when this key is present, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting
 - The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, and BRouter profile selections

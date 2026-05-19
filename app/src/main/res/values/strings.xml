@@ -13,6 +13,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
     <string name="action_open_settings">Open settings</string>
+    <string name="action_open_tts_settings">Open text-to-speech settings</string>
     <string name="action_save">Save Key</string>
     <string name="action_open_map">Map</string>
     <string name="action_cancel">Cancel</string>
@@ -155,6 +156,9 @@
     <string name="format_nav_gps_status">%1$s ↑%2$s %3$s • %4$s %5$s • (%6$s) %7$s</string>
     <string name="format_nav_gps_status_with_countdown">%1$s • %2$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>
+    <string name="format_turn_speech">%1$s %2$s</string>
+    <string name="format_time_speech_s">%1$ds</string>
+    <string name="format_time_speech_min">%1$dmin</string>
     <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
     <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>
     <string name="format_startup_orientation_notification">Turn yourself %1$s %2$s to face the route.</string>
@@ -173,6 +177,10 @@
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
     <string name="label_imperial_units_enabled">Use imperial units</string>
+    <string name="label_maneuver_voice">Speech directions voice</string>
+    <string name="label_maneuver_voice_disabled">Disabled</string>
+    <string name="label_maneuver_voice_system_default">System default</string>
+    <string name="format_maneuver_voice_option">%1$s - %2$s</string>
     <string name="label_google_poi_api_key">Google Maps API key</string>
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>

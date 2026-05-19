@@ -11,6 +11,8 @@ import android.app.NotificationManager;
 import android.content.Intent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -43,6 +45,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
         AppSettings.setImperialUnitsEnabled(context, false);
+        AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
         ShadowToast.reset();
     }
 
@@ -117,9 +120,21 @@ public class AboutLoggingSettingsRobolectricTest {
         Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
         Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
         View googlePoiApiKeyContainer = activity.findViewById(R.id.aboutGooglePoiApiKeyContainer);
+        Spinner maneuverVoiceSpinner = activity.findViewById(R.id.aboutManeuverVoiceSpinner);
+        ImageButton ttsSettingsButton = activity.findViewById(R.id.aboutTtsSettingsButton);
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
+        assertEquals(View.VISIBLE, maneuverVoiceSpinner.getVisibility());
+        assertEquals(View.VISIBLE, ttsSettingsButton.getVisibility());
+        assertEquals(
+                activity.getString(R.string.action_open_tts_settings),
+                ttsSettingsButton.getContentDescription().toString()
+        );
+        assertEquals(
+                activity.getString(R.string.label_maneuver_voice_disabled),
+                maneuverVoiceSpinner.getSelectedItem().toString()
+        );
         assertEquals(
                 DistributionServices.supportsUserGooglePoiApiKey() ? View.VISIBLE : View.GONE,
                 googlePoiApiKeyContainer.getVisibility()
@@ -170,6 +185,17 @@ public class AboutLoggingSettingsRobolectricTest {
         imperialUnitsSwitch.performClick();
 
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
+    }
+
+    @Test
+    public void aboutPageTtsSettingsButtonOpensTextToSpeechSettings() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        ImageButton ttsSettingsButton = activity.findViewById(R.id.aboutTtsSettingsButton);
+
+        ttsSettingsButton.performClick();
+
+        Intent startedIntent = shadowOf(activity).getNextStartedActivity();
+        assertEquals(AboutTtsSettingsLauncher.ACTION_TTS_SETTINGS, startedIntent.getAction());
     }
 
     @Test
