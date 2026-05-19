@@ -4,6 +4,7 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -178,6 +179,7 @@ public final class NavigationSession {
                 filtered,
                 evaluation.shouldRecalculateRoute(),
                 evaluation.rerouteNotice,
+                evaluation.recalculationReason,
                 evaluation.turnEvents,
                 evaluation.getSuggestedUpdateIntervalMs()
         );
@@ -195,6 +197,21 @@ public final class NavigationSession {
 
     @Nullable
     public NavigationRouteRequestSnapshot prepareRouteRequest(boolean force, long nowMs, @Nullable String inProgressNotice) {
+        return prepareRouteRequest(
+                force,
+                nowMs,
+                inProgressNotice,
+                NavigationRouteRecalculationReason.EXPLICIT
+        );
+    }
+
+    @Nullable
+    public NavigationRouteRequestSnapshot prepareRouteRequest(
+            boolean force,
+            long nowMs,
+            @Nullable String inProgressNotice,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
         return routeRequestManager.prepare(
                 force,
                 nowMs,
@@ -202,7 +219,8 @@ public final class NavigationSession {
                 routeState.remainingIntermediateStops(currentRequest.stops),
                 locationState.getLastFilteredLocation(),
                 routeState.copyBlockedPoints(),
-                inProgressNotice
+                inProgressNotice,
+                reason
         );
     }
 

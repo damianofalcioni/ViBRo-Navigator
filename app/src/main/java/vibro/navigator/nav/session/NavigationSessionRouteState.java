@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
 import java.util.Collections;
@@ -227,6 +228,8 @@ public final class NavigationSessionRouteState {
         private final boolean stableOnRouteSample;
         private final long suggestedUpdateIntervalMs;
         @Nullable
+        final NavigationRouteRecalculationReason recalculationReason;
+        @Nullable
         final NavigationRerouteNotice rerouteNotice;
         @NonNull
         final List<NavigationTurnEvent> turnEvents;
@@ -235,19 +238,39 @@ public final class NavigationSessionRouteState {
                 boolean shouldRecalculateRoute,
                 boolean stableOnRouteSample,
                 long suggestedUpdateIntervalMs,
+                @Nullable NavigationRouteRecalculationReason recalculationReason,
                 @Nullable NavigationRerouteNotice rerouteNotice,
                 @NonNull List<NavigationTurnEvent> turnEvents
         ) {
             this.shouldRecalculateRoute = shouldRecalculateRoute;
             this.stableOnRouteSample = stableOnRouteSample;
             this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
+            this.recalculationReason = recalculationReason;
             this.rerouteNotice = rerouteNotice;
             this.turnEvents = turnEvents;
         }
 
         @NonNull
         public static Evaluation requestRecalculation(@Nullable NavigationRerouteNotice rerouteNotice) {
-            return new Evaluation(true, false, NO_SUGGESTED_INTERVAL, rerouteNotice, Collections.emptyList());
+            NavigationRouteRecalculationReason reason = rerouteNotice == null
+                    ? NavigationRouteRecalculationReason.EXPLICIT
+                    : NavigationRouteRecalculationReason.ROUTE_DEVIATION;
+            return requestRecalculation(rerouteNotice, reason);
+        }
+
+        @NonNull
+        public static Evaluation requestRecalculation(
+                @Nullable NavigationRerouteNotice rerouteNotice,
+                @NonNull NavigationRouteRecalculationReason reason
+        ) {
+            return new Evaluation(
+                    true,
+                    false,
+                    NO_SUGGESTED_INTERVAL,
+                    reason,
+                    rerouteNotice,
+                    Collections.emptyList()
+            );
         }
 
         @NonNull
@@ -256,7 +279,14 @@ public final class NavigationSessionRouteState {
                 long suggestedUpdateIntervalMs,
                 boolean stableOnRouteSample
         ) {
-            return new Evaluation(false, stableOnRouteSample, suggestedUpdateIntervalMs, null, turnEvents);
+            return new Evaluation(
+                    false,
+                    stableOnRouteSample,
+                    suggestedUpdateIntervalMs,
+                    null,
+                    null,
+                    turnEvents
+            );
         }
 
         public boolean shouldRecalculateRoute() {

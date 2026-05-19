@@ -7,6 +7,7 @@ import vibro.navigator.nav.location.NavigationLocationFormatter;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.orientation.NavigationOrientationController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
 import android.location.Location;
@@ -21,7 +22,11 @@ import vibro.navigator.logging.AppLogger;
 public final class NavigationServiceLocationHandler implements LocationListener {
 
     public interface RouteRecalculator {
-        void request(boolean force, @Nullable NavigationRerouteNotice rerouteNotice);
+        void request(
+                boolean force,
+                @Nullable NavigationRerouteNotice rerouteNotice,
+                @NonNull NavigationRouteRecalculationReason reason
+        );
     }
 
     private static final String TAG = "NavigationService";
@@ -118,12 +123,20 @@ public final class NavigationServiceLocationHandler implements LocationListener 
             @NonNull NavigationLocationController controller
     ) {
         if (result.shouldRecalculateRoute()) {
-            routeRecalculator.request(false, result.getRerouteNotice());
+            routeRecalculator.request(false, result.getRerouteNotice(), recalculationReason(result));
             return;
         }
         if (result.getSuggestedUpdateIntervalMs() > 0L) {
             controller.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
         }
+    }
+
+    @NonNull
+    private static NavigationRouteRecalculationReason recalculationReason(
+            @NonNull NavigationLocationUpdateResult result
+    ) {
+        NavigationRouteRecalculationReason reason = result.getRecalculationReason();
+        return reason == null ? NavigationRouteRecalculationReason.EXPLICIT : reason;
     }
 
     @Override

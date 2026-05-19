@@ -27,6 +27,11 @@ public final class NavigationRouteRequestManager {
     private boolean routeCalculationInProgress;
     private boolean pendingRecalculation;
     @Nullable
+    private Location activeRequestStartLocation;
+    @NonNull
+    private NavigationRouteRecalculationReason activeRequestReason =
+            NavigationRouteRecalculationReason.EXPLICIT;
+    @Nullable
     private Exception lastRouteFailure;
     @Nullable
     private String inProgressNotice;
@@ -37,6 +42,8 @@ public final class NavigationRouteRequestManager {
         routeRequestCount = 0;
         routeCalculationInProgress = false;
         pendingRecalculation = false;
+        activeRequestStartLocation = null;
+        activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         lastRouteFailure = null;
         inProgressNotice = null;
     }
@@ -45,6 +52,8 @@ public final class NavigationRouteRequestManager {
         routeRequestToken++;
         routeCalculationInProgress = false;
         pendingRecalculation = false;
+        activeRequestStartLocation = null;
+        activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         inProgressNotice = null;
     }
 
@@ -85,7 +94,29 @@ public final class NavigationRouteRequestManager {
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice
     ) {
-        return prepare(force, nowMs, request, request.stops, lastFiltered, blocked, inProgressNotice);
+        return prepare(
+                force,
+                nowMs,
+                request,
+                request.stops,
+                lastFiltered,
+                blocked,
+                inProgressNotice,
+                NavigationRouteRecalculationReason.EXPLICIT
+        );
+    }
+
+    @Nullable
+    public NavigationRouteRequestSnapshot prepare(
+            boolean force,
+            long nowMs,
+            @NonNull NavigationRequest request,
+            @Nullable Location lastFiltered,
+            @NonNull List<NogoPoint> blocked,
+            @Nullable String inProgressNotice,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
+        return prepare(force, nowMs, request, request.stops, lastFiltered, blocked, inProgressNotice, reason);
     }
 
     @Nullable
@@ -98,9 +129,31 @@ public final class NavigationRouteRequestManager {
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice
     ) {
+        return prepare(
+                force,
+                nowMs,
+                request,
+                intermediates,
+                lastFiltered,
+                blocked,
+                inProgressNotice,
+                NavigationRouteRecalculationReason.EXPLICIT
+        );
+    }
+
+    @Nullable
+    public NavigationRouteRequestSnapshot prepare(
+            boolean force,
+            long nowMs,
+            @NonNull NavigationRequest request,
+            @NonNull List<LatLon> intermediates,
+            @Nullable Location lastFiltered,
+            @NonNull List<NogoPoint> blocked,
+            @Nullable String inProgressNotice,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
         if (routeCalculationInProgress) {
-            pendingRecalculation = true;
-            AppLogger.d(TAG, "Queued route recalculation while previous request is still running");
+            updatePendingRecalculation(force, lastFiltered, reason);
             return null;
         }
         if (!force && nowMs - lastRerouteMs < REROUTE_THROTTLE_MS) {
@@ -125,10 +178,13 @@ public final class NavigationRouteRequestManager {
                 new ArrayList<>(blocked)
         );
         routeCalculationInProgress = true;
+        activeRequestStartLocation = new Location(lastFiltered);
+        activeRequestReason = reason;
         lastRouteFailure = null;
         this.inProgressNotice = sanitizeNotice(inProgressNotice);
         AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
                 + " force=" + force
+                + " reason=" + reason
                 + " start=" + formatLatLon(snapshot.start)
                 + " destination=" + formatLatLon(snapshot.destination)
                 + " intermediates=" + snapshot.intermediates.size()
@@ -142,6 +198,8 @@ public final class NavigationRouteRequestManager {
             return false;
         }
         routeCalculationInProgress = false;
+        activeRequestStartLocation = null;
+        activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         lastRouteFailure = null;
         inProgressNotice = null;
         return true;
@@ -157,6 +215,8 @@ public final class NavigationRouteRequestManager {
             return;
         }
         routeCalculationInProgress = false;
+        activeRequestStartLocation = null;
+        activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         lastRouteFailure = error;
         inProgressNotice = null;
         AppLogger.e(TAG, "Route recalculation #" + snapshot.requestNumber + " failed", error);
@@ -170,6 +230,40 @@ public final class NavigationRouteRequestManager {
             return "null";
         }
         return value.lat + "," + value.lon;
+    }
+
+    private void updatePendingRecalculation(
+            boolean force,
+            @Nullable Location latestStart,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
+        if (pendingRecalculation) {
+            AppLogger.d(TAG, "Route recalculation already queued while previous request is still running");
+            return;
+        }
+        if (!shouldQueuePendingRecalculation(force, latestStart, reason)) {
+            AppLogger.i(TAG, "Skipped queued startup route recalculation because latest fix does not "
+                    + "materially improve route start distance="
+                    + StartupRouteRefreshPolicy.distanceMeters(activeRequestStartLocation, latestStart));
+            return;
+        }
+        pendingRecalculation = true;
+        AppLogger.d(TAG, "Queued route recalculation while previous request is still running");
+    }
+
+    private boolean shouldQueuePendingRecalculation(
+            boolean force,
+            @Nullable Location latestStart,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
+        if (force) {
+            return true;
+        }
+        if (reason != NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+                || activeRequestReason != NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE) {
+            return true;
+        }
+        return StartupRouteRefreshPolicy.shouldRefresh(activeRequestStartLocation, latestStart);
     }
 
     @Nullable

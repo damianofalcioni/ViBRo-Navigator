@@ -13,6 +13,7 @@ import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteEvaluator {
@@ -70,7 +71,10 @@ final class NavigationRouteEvaluator {
         PolylineIndex.Match match = geometryState.match(filtered);
         if (match == null) {
             AppLogger.w(TAG, "Route match failed, requesting recalculation");
-            return NavigationSessionRouteState.Evaluation.requestRecalculation(null);
+            return NavigationSessionRouteState.Evaluation.requestRecalculation(
+                    null,
+                    NavigationRouteRecalculationReason.ROUTE_MATCH_FAILED
+            );
         }
         geometryState.rememberSegment(match);
         double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
@@ -121,7 +125,10 @@ final class NavigationRouteEvaluator {
                 nowMs
         );
         if (deviationDecision.shouldRecalculateRoute()) {
-            return NavigationSessionRouteState.Evaluation.requestRecalculation(deviationDecision.getRerouteNotice());
+            return NavigationSessionRouteState.Evaluation.requestRecalculation(
+                    deviationDecision.getRerouteNotice(),
+                    NavigationRouteRecalculationReason.ROUTE_DEVIATION
+            );
         }
         if (deviationDecision.shouldKeepCurrentRoute()) {
             return keepCurrentRoute(
@@ -150,7 +157,10 @@ final class NavigationRouteEvaluator {
             return startupWait;
         }
         AppLogger.i(TAG, "No active route loaded, requesting route calculation");
-        return NavigationSessionRouteState.Evaluation.requestRecalculation(null);
+        return NavigationSessionRouteState.Evaluation.requestRecalculation(
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
     }
 
     @Nullable

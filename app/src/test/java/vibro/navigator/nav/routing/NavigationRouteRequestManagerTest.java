@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 import android.location.Location;
+import android.location.LocationManager;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -24,6 +25,7 @@ import java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationRouteRequestManagerTest {
+    private static final String FUSED_PROVIDER = "fused";
 
     @Test
     public void prepare_throttlesBackToBackRecalculations() {
@@ -79,6 +81,119 @@ public class NavigationRouteRequestManagerTest {
         assertTrue(manager.isRouteCalculationInProgress());
         assertTrue(manager.consumePendingRecalculation());
         assertFalse(manager.consumePendingRecalculation());
+    }
+
+    @Test
+    public void prepare_skipsQueuedStartupRefreshWhenLatestFixDoesNotMateriallyImproveStart() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset(1_000L);
+
+        NavigationRouteRequestSnapshot first = manager.prepare(
+                false,
+                2_000L,
+                navigationRequest(),
+                location(LocationManager.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+        NavigationRouteRequestSnapshot second = manager.prepare(
+                false,
+                3_000L,
+                navigationRequest(),
+                location(FUSED_PROVIDER, 48.19876181016738, 16.3658536569431, 3_000L, 18.256f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+
+        assertNotNull(first);
+        assertNull(second);
+        assertFalse(manager.consumePendingRecalculation());
+    }
+
+    @Test
+    public void prepare_queuesStartupRefreshWhenLatestFixMovesStartMaterially() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset(1_000L);
+
+        manager.prepare(
+                false,
+                2_000L,
+                navigationRequest(),
+                location(LocationManager.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+        NavigationRouteRequestSnapshot second = manager.prepare(
+                false,
+                3_000L,
+                navigationRequest(),
+                location(FUSED_PROVIDER, 48.1989, 16.36595, 3_000L, 18.256f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+
+        assertNull(second);
+        assertTrue(manager.consumePendingRecalculation());
+    }
+
+    @Test
+    public void prepare_queuesStartupRefreshWhenAccuracyImprovesMaterially() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset(1_000L);
+
+        manager.prepare(
+                false,
+                2_000L,
+                navigationRequest(),
+                location(LocationManager.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 24f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+        NavigationRouteRequestSnapshot second = manager.prepare(
+                false,
+                3_000L,
+                navigationRequest(),
+                location(FUSED_PROVIDER, 48.198767, 16.3657927, 3_000L, 10f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+
+        assertNull(second);
+        assertTrue(manager.consumePendingRecalculation());
+    }
+
+    @Test
+    public void prepare_keepsDeviationRerouteQueuedWhenStartIsClose() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset(1_000L);
+
+        manager.prepare(
+                false,
+                2_000L,
+                navigationRequest(),
+                location(LocationManager.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+        );
+        NavigationRouteRequestSnapshot second = manager.prepare(
+                false,
+                3_000L,
+                navigationRequest(),
+                location(FUSED_PROVIDER, 48.19876181016738, 16.3658536569431, 3_000L, 18.256f),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION
+        );
+
+        assertNull(second);
+        assertTrue(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -165,10 +280,18 @@ public class NavigationRouteRequestManagerTest {
 
     @NonNull
     private static Location location(double lat, double lon, long timeMs) {
-        Location location = new Location("gps");
+        return location("gps", lat, lon, timeMs, Float.NaN);
+    }
+
+    @NonNull
+    private static Location location(String provider, double lat, double lon, long timeMs, float accuracyMeters) {
+        Location location = new Location(provider);
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(timeMs);
+        if (!Float.isNaN(accuracyMeters)) {
+            location.setAccuracy(accuracyMeters);
+        }
         return location;
     }
 }

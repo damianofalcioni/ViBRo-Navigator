@@ -4,6 +4,7 @@ package vibro.navigator.nav.service;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
@@ -49,7 +50,7 @@ public class NavigationService extends Service {
             this,
             navigationSession,
             turnEvents,
-            this::requestRouteRecalc,
+            this::requestRouteRecalcForLocation,
             this::emitState
     );
     @Nullable
@@ -185,7 +186,10 @@ public class NavigationService extends Service {
     }
 
     private void requestRouteRecalc(boolean force, @Nullable NavigationRerouteNotice rerouteNotice) {
-        requestRouteRecalc(force, rerouteNotice, null);
+        NavigationRouteRecalculationReason reason = rerouteNotice == null
+                ? NavigationRouteRecalculationReason.EXPLICIT
+                : NavigationRouteRecalculationReason.ROUTE_DEVIATION;
+        requestRouteRecalc(force, rerouteNotice, null, reason);
     }
 
     private void requestRouteRecalc(
@@ -193,8 +197,35 @@ public class NavigationService extends Service {
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable String inProgressNotice
     ) {
+        requestRouteRecalc(
+                force,
+                rerouteNotice,
+                inProgressNotice,
+                NavigationRouteRecalculationReason.EXPLICIT
+        );
+    }
+
+    private void requestRouteRecalcForLocation(
+            boolean force,
+            @Nullable NavigationRerouteNotice rerouteNotice,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
+        requestRouteRecalc(force, rerouteNotice, null, reason);
+    }
+
+    private void requestRouteRecalc(
+            boolean force,
+            @Nullable NavigationRerouteNotice rerouteNotice,
+            @Nullable String inProgressNotice,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
         NavigationRouteRequestSnapshot snapshot =
-                navigationSession.prepareRouteRequest(force, System.currentTimeMillis(), inProgressNotice);
+                navigationSession.prepareRouteRequest(
+                        force,
+                        System.currentTimeMillis(),
+                        inProgressNotice,
+                        reason
+                );
         if (snapshot == null) {
             return;
         }
