@@ -13,7 +13,7 @@
     <string name="action_delete">Delete</string>
     <string name="action_edit">Edit</string>
     <string name="action_open_settings">Open settings</string>
-    <string name="action_save">Save</string>
+    <string name="action_save">Save Key</string>
     <string name="action_open_map">Map</string>
     <string name="action_cancel">Cancel</string>
     <string name="action_open_play_store">Play Store</string>
