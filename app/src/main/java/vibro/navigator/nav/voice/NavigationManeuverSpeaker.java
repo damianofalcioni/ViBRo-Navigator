@@ -3,12 +3,10 @@ package vibro.navigator.nav.voice;
 import android.content.Context;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
-import android.speech.tts.Voice;
+import android.speech.tts.UtteranceProgressListener;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.util.Set;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.route.VoiceHint;
@@ -19,12 +17,14 @@ public final class NavigationManeuverSpeaker {
 
     @NonNull
     private final Context appContext;
+    @NonNull
+    private final NavigationSpeechAudioFocus audioFocus;
+    @NonNull
+    private final NavigationManeuverVoiceApplier voiceApplier;
     @Nullable
     private TextToSpeech tts;
     @Nullable
     private String pendingUtterance;
-    @Nullable
-    private String appliedVoiceName;
     private boolean initCallbackReceived;
     private boolean ready;
     private int initStatus = TextToSpeech.ERROR;
@@ -32,6 +32,8 @@ public final class NavigationManeuverSpeaker {
 
     public NavigationManeuverSpeaker(@NonNull Context context) {
         appContext = context.getApplicationContext();
+        audioFocus = new NavigationSpeechAudioFocus(appContext);
+        voiceApplier = new NavigationManeuverVoiceApplier(appContext);
         prepareEngineIfEnabled();
     }
 
@@ -56,6 +58,7 @@ public final class NavigationManeuverSpeaker {
         if (tts != null) {
             tts.stop();
         }
+        audioFocus.abandonFocus();
     }
 
     public void shutdown() {
@@ -94,6 +97,7 @@ public final class NavigationManeuverSpeaker {
             releaseEngine();
             return;
         }
+        configureEngineAudio();
         ready = true;
         speakPendingIfReady();
     }
@@ -102,7 +106,12 @@ public final class NavigationManeuverSpeaker {
         if (!ready || tts == null || pendingUtterance == null) {
             return;
         }
-        if (!applyConfiguredVoice()) {
+        if (!voiceApplier.applyConfiguredVoice(tts, this::restartEngine, this::clearPendingUtterance)) {
+            return;
+        }
+        if (!audioFocus.requestTransientMayDuckFocus()) {
+            pendingUtterance = null;
+            AppLogger.w(TAG, "Audio focus unavailable for maneuver speech");
             return;
         }
         String utterance = pendingUtterance;
@@ -114,66 +123,60 @@ public final class NavigationManeuverSpeaker {
                 "maneuver-" + (++utteranceSequence)
         );
         if (result == TextToSpeech.ERROR) {
+            audioFocus.abandonFocus();
             AppLogger.w(TAG, "TextToSpeech failed to speak maneuver utterance");
         }
     }
 
-    private boolean applyConfiguredVoice() {
+    private void configureEngineAudio() {
         if (tts == null) {
-            return false;
+            return;
         }
-        String voiceName = AppSettings.getManeuverVoiceName(appContext);
-        if (AppSettings.isSystemDefaultManeuverVoice(voiceName)) {
-            return applySystemDefaultVoice(voiceName);
+        int attributesResult = tts.setAudioAttributes(audioFocus.audioAttributes());
+        if (attributesResult == TextToSpeech.ERROR) {
+            AppLogger.w(TAG, "TextToSpeech rejected navigation audio attributes");
         }
-        if (voiceName.equals(appliedVoiceName)) {
-            return true;
+        int listenerResult = tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+            @Override
+            public void onStart(String utteranceId) {
+            }
+
+            @Override
+            public void onDone(String utteranceId) {
+                audioFocus.abandonFocus();
+            }
+
+            @Override
+            public void onError(String utteranceId) {
+                audioFocus.abandonFocus();
+            }
+
+            @Override
+            public void onError(String utteranceId, int errorCode) {
+                audioFocus.abandonFocus();
+            }
+
+            @Override
+            public void onStop(String utteranceId, boolean interrupted) {
+                audioFocus.abandonFocus();
+            }
+        });
+        if (listenerResult == TextToSpeech.ERROR) {
+            AppLogger.w(TAG, "TextToSpeech rejected maneuver progress listener");
         }
-        Voice voice = findVoice(voiceName);
-        if (voice == null || !NavigationTextToSpeechVoiceAvailability.isOfflineVoiceAvailable(voice)) {
-            AppLogger.w(TAG, "Configured TextToSpeech voice unavailable: " + voiceName);
-            pendingUtterance = null;
-            appliedVoiceName = voiceName;
-            return false;
-        }
-        int result = tts.setVoice(voice);
-        if (result == TextToSpeech.ERROR) {
-            AppLogger.w(TAG, "TextToSpeech rejected configured voice: " + voiceName);
-            pendingUtterance = null;
-            return false;
-        }
-        appliedVoiceName = voiceName;
-        return true;
     }
 
-    private boolean applySystemDefaultVoice(@NonNull String voiceName) {
-        if (appliedVoiceName == null || AppSettings.isSystemDefaultManeuverVoice(appliedVoiceName)) {
-            appliedVoiceName = voiceName;
-            return true;
-        }
+    private void restartEngine() {
         releaseEngine();
         prepareEngineIfEnabled();
-        return false;
     }
 
-    @Nullable
-    private Voice findVoice(@NonNull String voiceName) {
-        if (tts == null) {
-            return null;
-        }
-        Set<Voice> voices = tts.getVoices();
-        if (voices == null) {
-            return null;
-        }
-        for (Voice voice : voices) {
-            if (voiceName.equals(voice.getName())) {
-                return voice;
-            }
-        }
-        return null;
+    private void clearPendingUtterance() {
+        pendingUtterance = null;
     }
 
     private void releaseEngine() {
+        audioFocus.abandonFocus();
         if (tts != null) {
             tts.shutdown();
             tts = null;
@@ -181,6 +184,6 @@ public final class NavigationManeuverSpeaker {
         ready = false;
         initCallbackReceived = false;
         initStatus = TextToSpeech.ERROR;
-        appliedVoiceName = null;
+        voiceApplier.reset();
     }
 }
