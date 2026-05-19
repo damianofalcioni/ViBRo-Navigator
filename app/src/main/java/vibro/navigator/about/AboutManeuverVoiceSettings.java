@@ -107,7 +107,7 @@ final class AboutManeuverVoiceSettings {
                 }
                 Object selected = parent.getItemAtPosition(position);
                 if (selected instanceof VoiceOption) {
-                    AppSettings.setManeuverVoiceName(activity, ((VoiceOption) selected).voiceName);
+                    persistSelectedVoiceIfNeeded((VoiceOption) selected);
                 }
             }
 
@@ -115,6 +115,13 @@ final class AboutManeuverVoiceSettings {
             public void onNothingSelected(AdapterView<?> parent) {
             }
         });
+    }
+
+    private void persistSelectedVoiceIfNeeded(@NonNull VoiceOption selected) {
+        String savedVoiceName = AppSettings.getManeuverVoiceName(activity);
+        if (shouldPersistSelectedVoice(voiceListLoaded, savedVoiceName, selected.voiceName)) {
+            AppSettings.setManeuverVoiceName(activity, selected.voiceName);
+        }
     }
 
     @NonNull
@@ -153,6 +160,24 @@ final class AboutManeuverVoiceSettings {
             }
         }
         return false;
+    }
+
+    static boolean shouldPersistSelectedVoice(
+            boolean voiceListLoaded,
+            @NonNull String savedVoiceName,
+            @NonNull String selectedVoiceName
+    ) {
+        if (selectedVoiceName.equals(savedVoiceName)) {
+            return false;
+        }
+        return voiceListLoaded
+                || isBaseVoiceName(savedVoiceName)
+                || !isBaseVoiceName(selectedVoiceName);
+    }
+
+    private static boolean isBaseVoiceName(@NonNull String voiceName) {
+        return AppSettings.MANEUVER_VOICE_DISABLED.equals(voiceName)
+                || AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT.equals(voiceName);
     }
 
     @NonNull
