@@ -14,6 +14,13 @@
         </shape>
     </item>
 
+    <item android:state_activated="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/outline" />
+        </shape>
+    </item>
+
     <item>
         <shape android:shape="rectangle">
             <corners android:radius="14dp" />

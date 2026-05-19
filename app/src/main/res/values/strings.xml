@@ -181,6 +181,9 @@
     <string name="label_maneuver_voice_disabled">Disabled</string>
     <string name="label_maneuver_voice_system_default">System default</string>
     <string name="format_maneuver_voice_option">%1$s - %2$s</string>
+    <string name="format_maneuver_voice_variant_code">Voice %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Female</string>
+    <string name="label_maneuver_voice_gender_male">Male</string>
     <string name="label_google_poi_api_key">Google Maps API key</string>
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>

@@ -553,6 +553,8 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
 - The about page Settings section must show a Speech directions voice spinner that can disable spoken maneuver notifications, use the system default TextToSpeech voice, or select one of the downloaded/offline Android TextToSpeech voices available on the device
+- Downloaded/offline Speech directions voice options should show user-friendly labels derived from the voice locale and readable voice variant when available, instead of exposing raw TextToSpeech engine identifiers in the spinner label
+- The Speech directions voice spinner dropdown should visually highlight the currently selected voice option
 - The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
 - The Google Play flavor must let the user save an optional Google Maps API key for POI search; when this key is present, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting

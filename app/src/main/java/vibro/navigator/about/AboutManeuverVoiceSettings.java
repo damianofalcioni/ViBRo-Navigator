@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import androidx.annotation.NonNull;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 
 import vibro.navigator.R;
@@ -31,6 +29,8 @@ final class AboutManeuverVoiceSettings {
     private final Spinner spinner;
     @Nullable
     private TextToSpeech tts;
+    @Nullable
+    private AboutManeuverVoiceOptionAdapter voiceAdapter;
     private boolean rendering;
     private boolean initCallbackReceived;
     private boolean voiceListLoaded;
@@ -88,15 +88,10 @@ final class AboutManeuverVoiceSettings {
         List<VoiceOption> options = baseOptions();
         options.addAll(availableVoiceOptions);
 
-        ArrayAdapter<VoiceOption> adapter = new ArrayAdapter<>(
-                activity,
-                R.layout.item_profile_spinner,
-                options
-        );
-        adapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
+        voiceAdapter = new AboutManeuverVoiceOptionAdapter(activity, options);
 
         rendering = true;
-        spinner.setAdapter(adapter);
+        spinner.setAdapter(voiceAdapter);
         selectSavedVoiceOrDisableUnavailable();
         rendering = false;
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -121,6 +116,7 @@ final class AboutManeuverVoiceSettings {
         String savedVoiceName = AppSettings.getManeuverVoiceName(activity);
         if (shouldPersistSelectedVoice(voiceListLoaded, savedVoiceName, selected.voiceName)) {
             AppSettings.setManeuverVoiceName(activity, selected.voiceName);
+            updateSelectedVoiceHighlight(selected.voiceName);
         }
     }
 
@@ -145,6 +141,7 @@ final class AboutManeuverVoiceSettings {
         if (voiceListLoaded) {
             AppSettings.setManeuverVoiceName(activity, AppSettings.MANEUVER_VOICE_DISABLED);
         }
+        updateSelectedVoiceHighlight(AppSettings.MANEUVER_VOICE_DISABLED);
         if (spinner.getCount() > 0) {
             spinner.setSelection(0);
         }
@@ -155,6 +152,7 @@ final class AboutManeuverVoiceSettings {
         for (int i = 0; i < spinner.getCount(); i++) {
             Object item = spinner.getItemAtPosition(i);
             if (item instanceof VoiceOption && ((VoiceOption) item).voiceName.equals(savedVoiceName)) {
+                updateSelectedVoiceHighlight(savedVoiceName);
                 spinner.setSelection(i);
                 return true;
             }
@@ -180,6 +178,12 @@ final class AboutManeuverVoiceSettings {
                 || AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT.equals(voiceName);
     }
 
+    private void updateSelectedVoiceHighlight(@NonNull String voiceName) {
+        if (voiceAdapter != null) {
+            voiceAdapter.setSelectedVoiceName(voiceName);
+        }
+    }
+
     @NonNull
     private List<VoiceOption> buildVoiceOptions(@Nullable Set<Voice> voices) {
         List<VoiceOption> options = new ArrayList<>();
@@ -202,18 +206,10 @@ final class AboutManeuverVoiceSettings {
 
     @NonNull
     private String formatVoiceLabel(@NonNull Voice voice) {
-        Locale locale = voice.getLocale();
-        if (locale == null) {
-            return voice.getName();
-        }
-        return activity.getString(
-                R.string.format_maneuver_voice_option,
-                locale.getDisplayName(),
-                voice.getName()
-        );
+        return AboutManeuverVoiceLabelFormatter.format(activity, voice);
     }
 
-    private static final class VoiceOption {
+    static final class VoiceOption {
         @NonNull
         final String voiceName;
         @NonNull
