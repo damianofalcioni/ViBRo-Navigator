@@ -2,6 +2,25 @@
 
 Primary product requirements live in `SPECIFICATION.md` at the repository root. On the first implementation-oriented interaction in this repository, read `SPECIFICATION.md` before making changes. Use this guide together with that specification, and treat `SPECIFICATION.md` as the source of truth when implementation details or feature expectations are unclear.
 
+## Project rules
+
+- When implementing a user request, do not stop at the narrowest change that merely appears to work. Implement the most correct solution for the product and architecture, accounting for realistic edge cases, failure modes, lifecycle states, flavor boundaries, and existing contracts before closing the task.
+- Keep repository documentation aligned with the code when relevant changes are made. Update `SPECIFICATION.md` when product behavior, requirements, or user-visible flows change. Update `AGENT.md` when architecture, guardrails, workflows, or coding expectations change. Do not make doc-only churn for code changes that do not affect those areas.
+- Keep README/about content aligned at the product-description level. `README.md` and `about_short_description` in `strings.xml` should stay consistent about the app's purpose and core behavior, but they do not need to be literal copies of each other.
+- When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/vibro.navigator.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
+- At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
+
+## Practical review checklist
+
+- Does the change keep the app dependency-light?
+- Are new strings localized through `strings.xml`?
+- Does the change preserve offline-first behavior?
+- Does the change work in both portrait and landscape?
+- Does navigation still work in background and with screen off?
+- Are permissions/settings prompts still reachable for location, notifications, and battery optimization?
+- Are BRouter profile selection and route calculation still intact?
+- Would the resulting turn guidance still be safe to trust without looking at a map?
+
 ## Stack and build
 
 - Single-module Android app at `app/`
@@ -39,6 +58,40 @@ Distribution-related workflows:
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
 - `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
 
+## Test strategy
+
+- Prefer JVM tests. Use Robolectric when Android lifecycle coverage is needed.
+- Do not add emulator/device requirements to the core automated suite unless explicitly requested.
+- Add or update tests when you change navigation state, rerouting, route parsing, voice-hint mapping, geometry helpers, or user-visible behavior.
+- Keep lifecycle rules, heuristics, planners, route export serialization, and policy thresholds in small helpers when practical so they stay directly unit-testable.
+- Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
+- Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
+- `.\gradlew.bat complexityCheck` runs the enforced PMD maintainability baseline over production and JVM test Java sources, including flavor source sets. The task has a zero-violation baseline and should fail on any reported violation across complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related maintainability rules. Treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes. Prefer fixes that remove real reasoning burden, such as extracting named handoff contracts or policy helpers; do not add indirection solely to silence coupling warnings on thin shell/coordinator classes.
+- After any code update, always run the relevant flavor tests and lint before closing the task. For distribution-sensitive changes, run `.\gradlew.bat lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidRelease assembleGplayRelease`.
+- Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
+
+## Editing guidance
+
+Use these guardrails as a change-specific checklist before editing or reviewing related areas. The detailed ownership map is in the Architecture section.
+
+- Keep background route computation separated from main-thread state mutation. Preserve `nav/routing/NavigationRouteExecutor` rather than inlining thread management back into `NavigationService`.
+- Keep BRouter transient-failure classification in `nav/routing/BRouterTransientFailureClassifier`, retry attempt/delay behavior in `NavigationRouteRetryPolicy`, and the default BRouter adapter in `nav/routing/NavigationBRouterRouteCalculator` so `NavigationRouteExecutor` stays focused on route task submission, callback handoff, executor shutdown, and wake-lock scoping.
+- Keep Android service concerns delegated through the existing foreground/location/power/dispatch/broadcast helpers, and keep `NavigationSession` as a coordinator over focused session collaborators.
+- Do not add a wake-lock renewal loop or reintroduce a session-lifetime wake lock to keep navigation alive; if a path needs a wake lock, scope it to the shortest critical section that actually needs CPU residency.
+- If you change reroute thresholds, polling cadence, turn-alert timing, blocked-road escalation, or route-request lifecycle behavior, update the corresponding `nav/` tests.
+- If you change guidance confidence rules, keep map-free use in mind and update tests around bearing trust, forward-look route bearing, direction-of-progress, turn suppression, and duplicate/imminent alert behavior.
+- If you change navigation intent extras, update `nav/intent/NavigationRequestIntentContract` first and keep resume/start flows serialized through it instead of hand-copying extras.
+- If you change startup permission/settings/battery-optimization flow, keep `nav/ui/NavigationActivity` thin and update the startup/lifecycle tests.
+- If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect `brouter/`, `nav/routing/`, `nav/route/`, and `nav/directions/` together and keep mode-9 coverage aligned.
+- If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, history-before-online precedence from the first typed character, shared search dispatch, and history behavior for externally opened locations.
+- If you change fused location, Google POI search, Android Auto, or distribution bridges, verify Google and Android for Cars references remain isolated to `app/src/gplay` and `app/src/testGplay`, and verify the F-Droid runtime classpath does not gain Play Services or Android for Cars dependencies.
+- If you change Android Auto behavior, keep the Auto package as a template adapter over `NavigationService`/`NavState`, keep Auto strings in `app/src/gplay/res/values`, keep manifest, surface permission, and `automotive_app_desc.xml` declarations under `app/src/gplay`, and run both `assembleGplayDebug` and an F-Droid build to catch flavor leakage.
+- If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout. For map POIs, preserve user-initiated category discovery, single active category behavior, category counts, cached marker reuse from discovery responses, and missing-bounds-only Overpass fetches on pan/zoom.
+- If you change logging, keep the shared `buildLogPrefix` plus `AppLogFiles.appendBlock` path intact so formatting, log-enabled gating, file-session selection, trimming, and legacy migration behavior stay consistent.
+- If you change the stored data backup format, update `settings/AppDataBackup`, its tests, and the specification together so import/export compatibility and included data stores remain explicit.
+- When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by flavor lint.
+- If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
+
 ## Architecture
 
 - Main-screen code lives in `main/`. `main/MainActivity` should stay thin and delegate profile selection, stop rows, incoming intents, navigation input validation, BRouter install prompting, view binding, destination restore/save state, and map-picker request/result handling. Keep BRouter install dialog wiring in `MainActivityBRouterInstallPrompt`, destination/stop map-picker request codes and result application in `MainActivityMapPickerCoordinator`, main-screen widget lookup in `MainActivityControls`, destination field state persistence in `MainActivityDestinationState`, navigation input validation/history promotion in `NavigationInputResolver`, and routing-profile spinner option construction and restore-position logic in `ProfileSpinnerOptions`/`ProfileSpinnerOption` rather than folding those state machines back into the activity or spinner controller.
@@ -73,45 +126,6 @@ Distribution-related workflows:
 - `logging/AppLogger` is the shared logging facade. Single-line and multiline writes should continue to use the same `buildLogPrefix` formatting and `AppLogFiles` append path; keep log storage selection in `AppLogStorage` and trimming/migration/recreation in `AppLogFileMaintenance`.
 - Settings database export/import lives in `settings/AppDataBackup` and is launched from the About-page Settings section through Android document picker intents. Keep the backup boundary limited to app-managed stored preferences such as POI history, app settings, logging preference, and BRouter profile selections; do not add broad storage permissions for backup files.
 
-## Test strategy
-
-- Prefer JVM tests. Use Robolectric when Android lifecycle coverage is needed.
-- Do not add emulator/device requirements to the core automated suite unless explicitly requested.
-- Keep lifecycle rules, heuristics, planners, route export serialization, and policy thresholds in small helpers when practical so they stay directly unit-testable.
-- Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
-- Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
-- `.\gradlew.bat complexityCheck` runs the enforced PMD maintainability baseline over production and JVM test Java sources, including flavor source sets. The task has a zero-violation baseline and should fail on any reported violation across complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related maintainability rules. Treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes. Prefer fixes that remove real reasoning burden, such as extracting named handoff contracts or policy helpers; do not add indirection solely to silence coupling warnings on thin shell/coordinator classes.
-- Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
-
-## Project rules
-
-- Keep repository documentation aligned with the code when relevant changes are made. Update `SPECIFICATION.md` when product behavior, requirements, or user-visible flows change. Update `AGENT.md` when architecture, guardrails, workflows, or coding expectations change. Do not make doc-only churn for code changes that do not affect those areas.
-- Keep README/about content aligned at the product-description level. `README.md` and `about_short_description` in `strings.xml` should stay consistent about the app's purpose and core behavior, but they do not need to be literal copies of each other.
-- When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/vibro.navigator.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
-
-## Editing guidance
-
-- Add or update tests when you change navigation state, rerouting, route parsing, voice-hint mapping, geometry helpers, or user-visible behavior.
-- Keep background route computation separated from main-thread state mutation. Preserve `nav/routing/NavigationRouteExecutor` rather than inlining thread management back into `NavigationService`.
-- Keep BRouter transient-failure classification in `nav/routing/BRouterTransientFailureClassifier`, retry attempt/delay behavior in `NavigationRouteRetryPolicy`, and the default BRouter adapter in `nav/routing/NavigationBRouterRouteCalculator` so `NavigationRouteExecutor` stays focused on route task submission, callback handoff, executor shutdown, and wake-lock scoping.
-- Keep Android service concerns delegated through the existing foreground/location/power/dispatch/broadcast helpers, and keep `NavigationSession` as a coordinator over focused session collaborators.
-- Do not add a wake-lock renewal loop or reintroduce a session-lifetime wake lock to keep navigation alive; if a path needs a wake lock, scope it to the shortest critical section that actually needs CPU residency.
-- If you change reroute thresholds, polling cadence, turn-alert timing, blocked-road escalation, or route-request lifecycle behavior, update the corresponding `nav/` tests.
-- If you change guidance confidence rules, keep map-free use in mind and update tests around bearing trust, forward-look route bearing, direction-of-progress, turn suppression, and duplicate/imminent alert behavior.
-- If you change navigation intent extras, update `nav/intent/NavigationRequestIntentContract` first and keep resume/start flows serialized through it instead of hand-copying extras.
-- If you change startup permission/settings/battery-optimization flow, keep `nav/ui/NavigationActivity` thin and update the startup/lifecycle tests.
-- If you change BRouter request parameters, response parsing, or voice-hint mapping, inspect `brouter/`, `nav/routing/`, `nav/route/`, and `nav/directions/` together and keep mode-9 coverage aligned.
-- If you change POI search or incoming intent handling, preserve coordinate entry, empty-field history suggestions, history-before-online precedence from the first typed character, shared search dispatch, and history behavior for externally opened locations.
-- If you change fused location, Google POI search, Android Auto, or distribution bridges, verify Google and Android for Cars references remain isolated to `app/src/gplay` and `app/src/testGplay`, and verify the F-Droid runtime classpath does not gain Play Services or Android for Cars dependencies.
-- If you change Android Auto behavior, keep the Auto package as a template adapter over `NavigationService`/`NavState`, keep Auto strings in `app/src/gplay/res/values`, keep manifest, surface permission, and `automotive_app_desc.xml` declarations under `app/src/gplay`, and run both `assembleGplayDebug` and an F-Droid build to catch flavor leakage.
-- If you change the map picker, preserve the no-external-library constraint, OSM raster tile rendering, current-location fallback when a field has no coordinates yet, restored-selection behavior across rotation, and the icon-only control layout. For map POIs, preserve user-initiated category discovery, single active category behavior, category counts, cached marker reuse from discovery responses, and missing-bounds-only Overpass fetches on pan/zoom.
-- If you change logging, keep the shared `buildLogPrefix` plus `AppLogFiles.appendBlock` path intact so formatting, log-enabled gating, file-session selection, trimming, and legacy migration behavior stay consistent.
-- If you change the stored data backup format, update `settings/AppDataBackup`, its tests, and the specification together so import/export compatibility and included data stores remain explicit.
-- When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by flavor lint.
-- If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
-- After any code update, always run the relevant flavor tests and lint before closing the task. For distribution-sensitive changes, run `.\gradlew.bat lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidRelease assembleGplayRelease`.
-- At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
-
 ## Local config
 
 - Optional Google key for the `gplay` flavor only: save a Google Maps key in the app's About settings. Do not bundle Google API keys into the APK.
@@ -120,14 +134,3 @@ Distribution-related workflows:
 - Destination/stop map picking currently requires only platform WebView plus network access to `tile.openstreetmap.org`; do not replace it with an external map dependency unless explicitly requested
 - `local.properties` is developer-local configuration. Do not make release or F-Droid flows depend on committed machine-specific values.
 - Optional behavior logs are written under the app-specific external files `logs/` directory, preferring a removable memory card when one is mounted. On device, check `/storage/<card-id>/Android/data/vibro.navigator.debug/files/logs/` for debug builds and `/storage/<card-id>/Android/data/vibro.navigator/files/logs/` for release builds; if no removable card is present, check the same package paths under primary external storage such as `/sdcard/Android/data/.../files/logs/`.
-
-## Practical review checklist
-
-- Does the change keep the app dependency-light?
-- Are new strings localized through `strings.xml`?
-- Does the change preserve offline-first behavior when no Google key is present?
-- Does the change keep the destination/stop map picker dependency-free and working in both portrait and landscape?
-- Does navigation still work in background and with screen off?
-- Are permissions/settings prompts still reachable for location, notifications, and battery optimization?
-- Are BRouter profile selection and route calculation still intact?
-- Would the resulting turn guidance still be safe to trust without looking at a map?
