@@ -7,13 +7,10 @@ import static org.junit.Assert.assertNull;
 import android.hardware.SensorManager;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
 public class StationaryOrientationNotifierTest {
 
     private final StationaryOrientationNotifier notifier =

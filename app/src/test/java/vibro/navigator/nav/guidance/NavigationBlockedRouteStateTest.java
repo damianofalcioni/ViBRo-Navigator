@@ -7,13 +7,10 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationBlockedRouteStateTest {
 
     @Test

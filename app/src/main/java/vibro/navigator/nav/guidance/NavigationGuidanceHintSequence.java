@@ -35,6 +35,15 @@ final class NavigationGuidanceHintSequence {
             @NonNull List<LatLon> intermediateStops,
             @Nullable Location location
     ) {
+        onRouteApplied(route, polylineIndex, intermediateStops, toLatLon(location));
+    }
+
+    void onRouteApplied(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<LatLon> intermediateStops,
+            @Nullable LatLon location
+    ) {
         replaceWith(NavigationGuidanceHintSequenceBuilder.build(route, polylineIndex, intermediateStops));
         nextIndex = findNextHintIndex(polylineIndex, location);
     }
@@ -102,15 +111,12 @@ final class NavigationGuidanceHintSequence {
         routeHintIndexes.addAll(builtHints.routeHintIndexes);
     }
 
-    private int findNextHintIndex(@NonNull PolylineIndex polylineIndex, @Nullable Location location) {
+    private int findNextHintIndex(@NonNull PolylineIndex polylineIndex, @Nullable LatLon location) {
         if (location == null || hints.isEmpty()) {
             return 0;
         }
 
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(location.getLatitude(), location.getLongitude()),
-                -1
-        );
+        PolylineIndex.Match match = polylineIndex.match(location, -1);
         if (match == null) {
             return 0;
         }
@@ -121,6 +127,11 @@ final class NavigationGuidanceHintSequence {
             }
         }
         return hints.size();
+    }
+
+    @Nullable
+    private static LatLon toLatLon(@Nullable Location location) {
+        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
     }
 
     private static boolean isPassedByIntermediateArrival(@NonNull VoiceHint hint, int trackIndex) {

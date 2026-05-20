@@ -16,42 +16,101 @@ public final class NavigationStartupLocationSelector {
 
     @Nullable
     public static Location selectBest(@Nullable Location gps, @Nullable Location network, long nowMs) {
-        Location best = null;
-        if (isUsable(gps, nowMs)) {
-            best = gps;
+        Fix gpsFix = toFix(gps);
+        Fix networkFix = toFix(network);
+        CandidateSource source = selectBestSource(gpsFix, networkFix, nowMs);
+        if (source == CandidateSource.GPS) {
+            return new Location(gps);
         }
-        if (isUsable(network, nowMs) && isBetterThan(network, best)) {
-            best = network;
+        if (source == CandidateSource.NETWORK) {
+            return new Location(network);
         }
-        return best == null ? null : new Location(best);
+        return null;
     }
 
     public static boolean isUsable(@Nullable Location location, long nowMs) {
-        if (location == null) {
-            return false;
-        }
-        long ageMs = Math.max(0L, nowMs - location.getTime());
-        return ageMs <= MAX_AGE_MS
-                && accuracyMeters(location) <= MAX_ACCURACY_METERS;
+        return isUsableFix(toFix(location), nowMs);
     }
 
     public static boolean isUsableForRouteStart(@Nullable Location location, long nowMs) {
-        if (location == null) {
+        return isUsableForRouteStartFix(toFix(location), nowMs);
+    }
+
+    @Nullable
+    static Fix selectBestFix(@Nullable Fix gps, @Nullable Fix network, long nowMs) {
+        CandidateSource source = selectBestSource(gps, network, nowMs);
+        if (source == CandidateSource.GPS) {
+            return gps;
+        }
+        if (source == CandidateSource.NETWORK) {
+            return network;
+        }
+        return null;
+    }
+
+    @Nullable
+    private static CandidateSource selectBestSource(@Nullable Fix gps, @Nullable Fix network, long nowMs) {
+        Fix best = null;
+        CandidateSource source = null;
+        if (isUsableFix(gps, nowMs)) {
+            best = gps;
+            source = CandidateSource.GPS;
+        }
+        if (isUsableFix(network, nowMs) && isBetterThan(network, best)) {
+            source = CandidateSource.NETWORK;
+        }
+        return source;
+    }
+
+    static boolean isUsableFix(@Nullable Fix fix, long nowMs) {
+        if (fix == null) {
             return false;
         }
-        long ageMs = Math.max(0L, nowMs - location.getTime());
+        long ageMs = Math.max(0L, nowMs - fix.timeMs);
         return ageMs <= MAX_AGE_MS
-                && accuracyMeters(location) <= MAX_ROUTE_START_ACCURACY_METERS;
+                && fix.accuracyMeters <= MAX_ACCURACY_METERS;
     }
 
-    private static boolean isBetterThan(@NonNull Location candidate, @Nullable Location currentBest) {
+    static boolean isUsableForRouteStartFix(@Nullable Fix fix, long nowMs) {
+        if (fix == null) {
+            return false;
+        }
+        long ageMs = Math.max(0L, nowMs - fix.timeMs);
+        return ageMs <= MAX_AGE_MS
+                && fix.accuracyMeters <= MAX_ROUTE_START_ACCURACY_METERS;
+    }
+
+    private static boolean isBetterThan(@NonNull Fix candidate, @Nullable Fix currentBest) {
         return currentBest == null
-                || candidate.getTime() > currentBest.getTime()
-                || (candidate.getTime() == currentBest.getTime()
-                && accuracyMeters(candidate) < accuracyMeters(currentBest));
+                || candidate.timeMs > currentBest.timeMs
+                || (candidate.timeMs == currentBest.timeMs
+                && candidate.accuracyMeters < currentBest.accuracyMeters);
     }
 
-    private static float accuracyMeters(@NonNull Location location) {
-        return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    @Nullable
+    private static Fix toFix(@Nullable Location location) {
+        if (location == null) {
+            return null;
+        }
+        float accuracyMeters = location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+        return new Fix(location.getProvider(), location.getTime(), accuracyMeters);
+    }
+
+    static final class Fix {
+        @Nullable
+        final String provider;
+        final long timeMs;
+        final float accuracyMeters;
+
+        Fix(@Nullable String provider, long timeMs, float accuracyMeters) {
+            this.provider = provider;
+            this.timeMs = timeMs;
+            this.accuracyMeters = accuracyMeters;
+        }
+    }
+
+    private enum CandidateSource {
+        GPS,
+        NETWORK
     }
 }

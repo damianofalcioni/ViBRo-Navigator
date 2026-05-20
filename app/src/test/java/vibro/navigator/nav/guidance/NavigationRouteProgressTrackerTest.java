@@ -2,13 +2,8 @@ package vibro.navigator.nav.guidance;
 
 import static org.junit.Assert.assertEquals;
 
-import android.location.Location;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationRouteProgressTrackerTest {
 
     @Test
@@ -37,7 +32,7 @@ public class NavigationRouteProgressTrackerTest {
         NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
         tracker.rememberAlongTrackSample(10.0, 1_000L);
 
-        float speedMps = tracker.resolveEtaSpeedMps(location(4_000L), 19.0, 2f, false);
+        float speedMps = tracker.resolveEtaSpeedMps(4_000L, 19.0, 2f, false);
 
         assertEquals(3.0f, speedMps, 0.0f);
     }
@@ -47,7 +42,7 @@ public class NavigationRouteProgressTrackerTest {
         NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
         tracker.rememberAlongTrackSample(10.0, 1_000L);
 
-        float speedMps = tracker.resolveEtaSpeedMps(location(7_000L), 11.8, 2f, false);
+        float speedMps = tracker.resolveEtaSpeedMps(7_000L, 11.8, 2f, false);
 
         assertEquals(0.3f, speedMps, 0.01f);
     }
@@ -57,7 +52,7 @@ public class NavigationRouteProgressTrackerTest {
         NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
         tracker.rememberAlongTrackSample(10.0, 1_000L);
 
-        float speedMps = tracker.resolveEtaSpeedMps(location(4_000L), 19.0, 2f, true);
+        float speedMps = tracker.resolveEtaSpeedMps(4_000L, 19.0, 2f, true);
 
         assertEquals(0.0f, speedMps, 0.0f);
     }
@@ -97,9 +92,4 @@ public class NavigationRouteProgressTrackerTest {
         assertEquals(NavigationRouteProgressTracker.DirectionStatus.UNKNOWN, assessment.status);
     }
 
-    private static Location location(long timeMs) {
-        Location location = new Location("gps");
-        location.setTime(timeMs);
-        return location;
-    }
 }

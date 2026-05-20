@@ -8,10 +8,7 @@ import static org.junit.Assert.assertTrue;
 import android.hardware.SensorManager;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-@RunWith(RobolectricTestRunner.class)
 public class StationaryOrientationAdvisorTest {
 
     private final StationaryOrientationAdvisor advisor = new StationaryOrientationAdvisor();

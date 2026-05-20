@@ -60,7 +60,9 @@ Distribution-related workflows:
 
 ## Test strategy
 
+- Apply the 100% code-coverable principle: production decisions, policy thresholds, parsers, planners, and formatting rules should expose a plain JVM-testable path. When Android objects are only data carriers, add a small value-object or overload boundary so the decision code can be tested without Robolectric.
 - Prefer JVM tests. Use Robolectric when Android lifecycle coverage is needed.
+- Keep Robolectric limited to tests that actually need Android framework execution: Activity/Service lifecycle, resources, `Context`/`SharedPreferences`, package manager/intent resolution, framework services/shadows, view drawing, or Android SDK stubs that are not executable in plain local tests.
 - Do not add emulator/device requirements to the core automated suite unless explicitly requested.
 - Add or update tests when you change navigation state, rerouting, route parsing, voice-hint mapping, geometry helpers, or user-visible behavior.
 - Keep lifecycle rules, heuristics, planners, route export serialization, and policy thresholds in small helpers when practical so they stay directly unit-testable.

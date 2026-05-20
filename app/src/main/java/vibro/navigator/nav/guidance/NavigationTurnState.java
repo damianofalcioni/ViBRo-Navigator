@@ -113,7 +113,14 @@ public final class NavigationTurnState {
             float speedMps,
             float accuracyMeters
     ) {
-        return onRouteApplied(route, polylineIndex, new ArrayList<>(), lastFiltered, speedMps, accuracyMeters);
+        return onRouteApplied(
+                route,
+                polylineIndex,
+                new ArrayList<>(),
+                toLatLon(lastFiltered),
+                speedMps,
+                accuracyMeters
+        );
     }
 
     @NonNull
@@ -122,6 +129,25 @@ public final class NavigationTurnState {
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
             @Nullable Location lastFiltered,
+            float speedMps,
+            float accuracyMeters
+    ) {
+        return onRouteApplied(
+                route,
+                polylineIndex,
+                intermediateStops,
+                toLatLon(lastFiltered),
+                speedMps,
+                accuracyMeters
+        );
+    }
+
+    @NonNull
+    public List<NavigationTurnEvent> onRouteApplied(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<LatLon> intermediateStops,
+            @Nullable LatLon lastFiltered,
             float speedMps,
             float accuracyMeters
     ) {
@@ -197,7 +223,7 @@ public final class NavigationTurnState {
     private List<NavigationTurnEvent> buildInitialTurnEventIfNeeded(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @Nullable Location lastFiltered,
+            @Nullable LatLon lastFiltered,
             float speedMps,
             float accuracyMeters
     ) {
@@ -234,16 +260,18 @@ public final class NavigationTurnState {
     @NonNull
     private static RoutePosition resolveRoutePosition(
             @NonNull PolylineIndex polylineIndex,
-            @Nullable Location lastFiltered
+            @Nullable LatLon lastFiltered
     ) {
         if (lastFiltered == null) {
             return RoutePosition.unknown();
         }
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
-                -1
-        );
+        PolylineIndex.Match match = polylineIndex.match(lastFiltered, -1);
         return match == null ? RoutePosition.unknown() : RoutePosition.from(match);
+    }
+
+    @Nullable
+    private static LatLon toLatLon(@Nullable Location location) {
+        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
     }
 
     private static final class RoutePosition {

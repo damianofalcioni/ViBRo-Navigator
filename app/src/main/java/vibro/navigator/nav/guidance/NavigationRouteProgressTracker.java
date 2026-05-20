@@ -54,11 +54,23 @@ public final class NavigationRouteProgressTracker {
             float accuracyMeters,
             boolean likelyStationary
     ) {
-        if (location == null || likelyStationary) {
+        if (location == null) {
             return 0f;
         }
-        pruneAlongTrackSamples(location.getTime());
-        AlongTrackSample anchor = findEtaAnchor(location.getTime());
+        return resolveEtaSpeedMps(location.getTime(), alongTrackMeters, accuracyMeters, likelyStationary);
+    }
+
+    public float resolveEtaSpeedMps(
+            long locationTimeMs,
+            double alongTrackMeters,
+            float accuracyMeters,
+            boolean likelyStationary
+    ) {
+        if (likelyStationary) {
+            return 0f;
+        }
+        pruneAlongTrackSamples(locationTimeMs);
+        AlongTrackSample anchor = findEtaAnchor(locationTimeMs);
         if (anchor == null) {
             return 0f;
         }
@@ -66,7 +78,7 @@ public final class NavigationRouteProgressTracker {
         if (alongTrackDeltaMeters < minimumEtaProgressMeters(accuracyMeters)) {
             return 0f;
         }
-        double elapsedSeconds = (location.getTime() - anchor.timeMs) / 1000.0;
+        double elapsedSeconds = (locationTimeMs - anchor.timeMs) / 1000.0;
         if (elapsedSeconds <= 0.0) {
             return 0f;
         }

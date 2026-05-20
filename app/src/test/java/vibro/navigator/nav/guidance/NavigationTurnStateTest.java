@@ -3,21 +3,16 @@ package vibro.navigator.nav.guidance;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import android.location.Location;
-
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationTurnStateTest {
 
     @Test
@@ -29,7 +24,14 @@ public class NavigationTurnStateTest {
         state.reset();
         assertEquals(
                 NavigationTurnEvent.Type.INITIAL,
-                state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 5f, 5f).get(0).type
+                state.onRouteApplied(
+                        route,
+                        polylineIndex,
+                        Collections.emptyList(),
+                        location(0.0, 0.0),
+                        5f,
+                        5f
+                ).get(0).type
         );
 
         NavigationTurnState.Progress progress = state.evaluate(
@@ -118,7 +120,7 @@ public class NavigationTurnStateTest {
                 111.0
         );
         PolylineIndex polylineIndex = new PolylineIndex(route.track);
-        state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 0f, 5f);
+        state.onRouteApplied(route, polylineIndex, Collections.emptyList(), location(0.0, 0.0), 0f, 5f);
 
         NavigationTurnState.Progress progress = state.evaluate(
                 route,
@@ -147,7 +149,7 @@ public class NavigationTurnStateTest {
                 111.0
         );
         PolylineIndex polylineIndex = new PolylineIndex(route.track);
-        state.onRouteApplied(route, polylineIndex, location(0.0, 0.0), 2f, 5f);
+        state.onRouteApplied(route, polylineIndex, Collections.emptyList(), location(0.0, 0.0), 2f, 5f);
 
         NavigationTurnState.Progress progress = state.evaluate(
                 route,
@@ -174,10 +176,7 @@ public class NavigationTurnStateTest {
         );
     }
 
-    private static Location location(double lat, double lon) {
-        Location location = new Location("gps");
-        location.setLatitude(lat);
-        location.setLongitude(lon);
-        return location;
+    private static LatLon location(double lat, double lon) {
+        return new LatLon(lat, lon);
     }
 }
