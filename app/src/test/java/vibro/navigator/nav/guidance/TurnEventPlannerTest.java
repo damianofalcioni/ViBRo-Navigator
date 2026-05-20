@@ -45,7 +45,6 @@ public class TurnEventPlannerTest {
                 true,
                 120.0,
                 1,
-                5f,
                 5f
         );
 
@@ -77,7 +76,6 @@ public class TurnEventPlannerTest {
                 false,
                 90.0,
                 0,
-                5f,
                 5f
         );
 
@@ -108,7 +106,6 @@ public class TurnEventPlannerTest {
                 false,
                 index.totalLengthMeters() - 100.0,
                 0,
-                5f,
                 5f
         );
 
@@ -140,7 +137,6 @@ public class TurnEventPlannerTest {
                 false,
                 index.totalLengthMeters() - 105.0,
                 0,
-                5f,
                 5f
         );
 
@@ -206,14 +202,14 @@ public class TurnEventPlannerTest {
     }
 
     @Test
-    public void advance_allowsImminentSignalWithCoarseAccuracyWhenTurnIsStillAhead() {
+    public void advance_emitsFiveSecondSignalAtWalkingSpeedNearTurn() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
                         new LatLon(0.0, 0.001)
                 ),
                 Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
-                60.0,
+                0.0,
                 111.0
         );
         PolylineIndex index = new PolylineIndex(route.track);
@@ -224,14 +220,14 @@ public class TurnEventPlannerTest {
                 0,
                 false,
                 false,
-                90.0,
+                index.totalLengthMeters() - 6.0,
                 0,
-                5f,
-                20f
+                1.2f
         );
 
         assertEquals(1, progress.signals.size());
         assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertEquals(5.0, progress.signals.get(0).timeSeconds, 0.01);
         assertTrue(progress.notified20);
         assertTrue(progress.notified5);
     }
@@ -257,7 +253,6 @@ public class TurnEventPlannerTest {
                 false,
                 90.0,
                 0,
-                5f,
                 5f
         );
         TurnEventPlanner.Progress secondProgress = planner.advance(
@@ -268,7 +263,6 @@ public class TurnEventPlannerTest {
                 firstProgress.notified5,
                 92.0,
                 0,
-                5f,
                 5f
         );
 
@@ -298,7 +292,6 @@ public class TurnEventPlannerTest {
                 false,
                 108.0,
                 0,
-                5f,
                 20f
         );
 
@@ -306,7 +299,7 @@ public class TurnEventPlannerTest {
     }
 
     @Test
-    public void advance_suppressesImminentSignalInsideAccuracyRadiusEvenWhenEtaIsActionable() {
+    public void advance_emitsPreparatorySignalWhenEtaComesFromRouteTiming() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -326,17 +319,17 @@ public class TurnEventPlannerTest {
                 false,
                 index.totalLengthMeters() - 10.0,
                 0,
-                0f,
-                20f
+                0f
         );
 
-        assertTrue(progress.signals.isEmpty());
-        assertFalse(progress.notified20);
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified20);
         assertFalse(progress.notified5);
     }
 
     @Test
-    public void advance_suppressesFiveSecondSignalAtSlowWalkingSpeedInsideAccuracyRadius() {
+    public void advance_emitsFiveSecondSignalAtSlowWalkingSpeed() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -356,16 +349,16 @@ public class TurnEventPlannerTest {
                 false,
                 index.totalLengthMeters() - 1.5,
                 0,
-                0.3f,
-                5f
+                0.3f
         );
 
-        assertTrue(progress.signals.isEmpty());
-        assertFalse(progress.notified5);
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified5);
     }
 
     @Test
-    public void advance_suppressesFiveSecondSignalWhenRouteTimingIsSlowInsideAccuracyRadius() {
+    public void advance_emitsFiveSecondSignalWhenRouteTimingIsSlow() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -386,12 +379,12 @@ public class TurnEventPlannerTest {
                 false,
                 index.totalLengthMeters() - 1.5,
                 0,
-                0f,
-                5f
+                0f
         );
 
-        assertTrue(progress.signals.isEmpty());
-        assertFalse(progress.notified5);
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified5);
     }
 
     @Test

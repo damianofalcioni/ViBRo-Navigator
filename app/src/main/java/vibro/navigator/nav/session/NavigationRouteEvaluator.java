@@ -171,7 +171,6 @@ final class NavigationRouteEvaluator {
             return keepCurrentRoute(
                     match,
                     etaSpeedMps,
-                    accuracyMeters,
                     nowMs,
                     fastChecksUntilMs,
                     deviationDecision.isStableOnRouteSample()
@@ -179,7 +178,7 @@ final class NavigationRouteEvaluator {
         }
 
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-        return keepCurrentRoute(match, etaSpeedMps, accuracyMeters, nowMs, fastChecksUntilMs, true);
+        return keepCurrentRoute(match, etaSpeedMps, nowMs, fastChecksUntilMs, true);
     }
 
     @NonNull
@@ -215,7 +214,6 @@ final class NavigationRouteEvaluator {
         return keepCurrentRoute(
                 match,
                 likelyStationary ? 0f : speedMps,
-                accuracyMeters,
                 nowMs,
                 fastChecksUntilMs,
                 false
@@ -305,7 +303,6 @@ final class NavigationRouteEvaluator {
     private NavigationSessionRouteState.Evaluation keepCurrentRoute(
             @NonNull PolylineIndex.Match match,
             float etaSpeedMps,
-            float accuracyMeters,
             long nowMs,
             long fastChecksUntilMs,
             boolean stableOnRouteSample
@@ -316,7 +313,6 @@ final class NavigationRouteEvaluator {
                 match.alongTrackMeters,
                 match.segmentIndex,
                 etaSpeedMps,
-                accuracyMeters,
                 nowMs,
                 fastChecksUntilMs
         );

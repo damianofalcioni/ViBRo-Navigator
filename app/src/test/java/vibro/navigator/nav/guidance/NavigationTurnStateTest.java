@@ -38,7 +38,6 @@ public class NavigationTurnStateTest {
                 120.0,
                 0,
                 5f,
-                5f,
                 1_000L,
                 0L
         );
@@ -83,7 +82,6 @@ public class NavigationTurnStateTest {
                 120.0,
                 1,
                 20f,
-                5f,
                 1_000L,
                 0L
         );
@@ -98,7 +96,6 @@ public class NavigationTurnStateTest {
                 polylineIndex.distanceAtPointIndex(2),
                 2,
                 20f,
-                5f,
                 2_000L,
                 0L
         );
@@ -129,7 +126,6 @@ public class NavigationTurnStateTest {
                 0.0,
                 0,
                 0f,
-                5f,
                 5_000L,
                 0L
         );
@@ -139,7 +135,7 @@ public class NavigationTurnStateTest {
     }
 
     @Test
-    public void evaluate_activatesTurnManeuverCueForFiveSecondSignalOutsideAccuracyRadius() {
+    public void evaluate_activatesTurnManeuverCueForFiveSecondSignal() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
@@ -159,7 +155,6 @@ public class NavigationTurnStateTest {
                 polylineIndex.totalLengthMeters() - 6.0,
                 0,
                 2f,
-                5f,
                 1_000L,
                 0L
         );

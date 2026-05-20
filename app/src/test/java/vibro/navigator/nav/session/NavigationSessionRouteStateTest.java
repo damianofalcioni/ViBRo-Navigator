@@ -117,7 +117,7 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
-    public void buildState_showsTurnManeuverCueFromFiveSecondNotificationUntilPassed() {
+    public void buildState_showsTurnManeuverCueFromFiveSecondNotificationWithCoarseAccuracyUntilPassed() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -149,7 +149,7 @@ public class NavigationSessionRouteStateTest {
         NavigationSessionRouteState.Evaluation approachingEvaluation = state.evaluateLocation(
                 approachingTurn,
                 5f,
-                5f,
+                25f,
                 90.0,
                 2_000L,
                 0L
@@ -159,7 +159,7 @@ public class NavigationSessionRouteStateTest {
                 approachingTurn,
                 5f,
                 false,
-                5f,
+                25f,
                 null,
                 120.0,
                 null,
@@ -184,7 +184,7 @@ public class NavigationSessionRouteStateTest {
                 approachingTurn,
                 5f,
                 false,
-                5f,
+                25f,
                 null,
                 45.0,
                 null,

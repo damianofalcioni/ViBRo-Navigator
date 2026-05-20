@@ -81,8 +81,7 @@ public final class TurnEventPlanner {
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
-            float speedMps,
-            float accuracyMeters
+            float speedMps
     ) {
         return advance(
                 route,
@@ -93,8 +92,7 @@ public final class TurnEventPlanner {
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps,
-                accuracyMeters
+                speedMps
         );
     }
 
@@ -108,8 +106,7 @@ public final class TurnEventPlanner {
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
-            float speedMps,
-            float accuracyMeters
+            float speedMps
     ) {
         return advance(
                 route,
@@ -121,8 +118,7 @@ public final class TurnEventPlanner {
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps,
-                accuracyMeters
+                speedMps
         );
     }
 
@@ -137,8 +133,7 @@ public final class TurnEventPlanner {
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
-            float speedMps,
-            float accuracyMeters
+            float speedMps
     ) {
         if (hints.isEmpty() || nextHintIdx >= hints.size()) {
             return new Progress(nextHintIdx, notified20, notified5, Collections.emptyList());
@@ -168,7 +163,6 @@ public final class TurnEventPlanner {
                 alongTrackMeters,
                 currentSegmentIndex,
                 speedMps,
-                accuracyMeters,
                 signals
         );
     }
@@ -213,7 +207,6 @@ public final class TurnEventPlanner {
             double alongTrackMeters,
             int currentSegmentIndex,
             float speedMps,
-            float accuracyMeters,
             @NonNull List<TurnSignal> signals
     ) {
         VoiceHint next = hints.get(cursor.nextHintIdx);
@@ -230,7 +223,7 @@ public final class TurnEventPlanner {
         if (timeToNextSeconds == null) {
             return cursor.toProgress(signals);
         }
-        if (!isImminentTurnDistanceReliable(distanceToNextMeters, speedMps, timeToNextSeconds, accuracyMeters)) {
+        if (!isImminentTurnDistanceReliable(distanceToNextMeters, speedMps, timeToNextSeconds)) {
             return cursor.toProgress(signals);
         }
 
@@ -367,7 +360,7 @@ public final class TurnEventPlanner {
     }
 
     private boolean isInitialTurnDistanceReliable(double distanceToNextMeters, float accuracyMeters) {
-        double safeAccuracyMeters = accuracyMeters > 0f
+        double safeAccuracyMeters = Float.isFinite(accuracyMeters) && accuracyMeters > 0f
                 ? accuracyMeters
                 : 0.0;
         double minTrustedDistanceMeters = Math.max(MIN_TRUSTED_TURN_DISTANCE_METERS, safeAccuracyMeters);
@@ -377,19 +370,12 @@ public final class TurnEventPlanner {
     private boolean isImminentTurnDistanceReliable(
             double distanceToNextMeters,
             float speedMps,
-            double timeToNextSeconds,
-            float accuracyMeters
+            double timeToNextSeconds
     ) {
-        double safeAccuracyMeters = accuracyMeters > 0f
-                ? accuracyMeters
-                : 0.0;
-        return distanceToNextMeters > Math.max(
-                Math.max(MIN_TRUSTED_TURN_DISTANCE_METERS, safeAccuracyMeters),
-                minimumTrustedImminentDistanceMeters(
-                        speedMps,
-                        distanceToNextMeters,
-                        timeToNextSeconds
-                )
+        return distanceToNextMeters > minimumTrustedImminentDistanceMeters(
+                speedMps,
+                distanceToNextMeters,
+                timeToNextSeconds
         );
     }
 

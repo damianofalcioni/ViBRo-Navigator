@@ -69,7 +69,6 @@ public final class NavigationTurnState {
             double alongTrackMeters,
             int currentSegmentIndex,
             float speedMps,
-            float accuracyMeters,
             long nowMs,
             long fastChecksUntilMs
     ) {
@@ -83,8 +82,7 @@ public final class NavigationTurnState {
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps,
-                accuracyMeters
+                speedMps
         );
         guidanceHints.advanceTo(progress.nextHintIdx);
         syncNextRouteHintIndex(route);
