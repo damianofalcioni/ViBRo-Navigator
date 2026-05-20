@@ -24,6 +24,8 @@ public final class NavigationUpdateScheduler {
     };
     private static final double DISTANCE_TO_INTERVAL_FACTOR = 250.0;
     private static final double VERY_IMMINENT_HINT_THRESHOLD_SECONDS = 8.0;
+    private static final double MANEUVER_GUARD_TIME_THRESHOLD_SECONDS = 180.0;
+    private static final long MANEUVER_GUARD_MAX_INTERVAL_MS = 20_000L;
 
     public long suggestUpdateInterval(
             long nowMs,
@@ -82,7 +84,7 @@ public final class NavigationUpdateScheduler {
                 MIN_UPDATE_INTERVAL_MS,
                 Math.min(MAX_UPDATE_INTERVAL_MS, timeToNextSeconds * DISTANCE_TO_INTERVAL_FACTOR)
         );
-        return bucketInterval(intervalMs);
+        return bucketInterval(applyManeuverGuard(intervalMs, timeToNextSeconds));
     }
 
     private static boolean canEstimateRouteTime(
@@ -138,6 +140,13 @@ public final class NavigationUpdateScheduler {
             }
         }
         return bestBucketMs;
+    }
+
+    private static long applyManeuverGuard(long intervalMs, double timeToNextSeconds) {
+        if (timeToNextSeconds <= MANEUVER_GUARD_TIME_THRESHOLD_SECONDS) {
+            return Math.min(intervalMs, MANEUVER_GUARD_MAX_INTERVAL_MS);
+        }
+        return intervalMs;
     }
 
     public static final class LongRange {

@@ -673,6 +673,51 @@ public class NavigationSessionRouteStateTest {
     }
 
     @Test
+    public void evaluateLocation_suppressesImmediateDeviationDuringReacquisition() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.001),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                routeWithHint(),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+
+        NavigationSessionRouteState.Evaluation reacquiringEvaluation = state.evaluateLocation(
+                location(0.0003, 0.0, 20_000L),
+                5f,
+                false,
+                5f,
+                90.0,
+                20_000L,
+                80_000L,
+                true
+        );
+        NavigationSessionRouteState.Evaluation followUpEvaluation = state.evaluateLocation(
+                location(0.0003, 0.0, 21_000L),
+                5f,
+                5f,
+                90.0,
+                21_000L,
+                80_000L
+        );
+
+        assertFalse(reacquiringEvaluation.shouldRecalculateRoute());
+        assertFalse(reacquiringEvaluation.isStableOnRouteSample());
+        assertEquals(1_000L, reacquiringEvaluation.getSuggestedUpdateIntervalMs());
+        assertTrue(followUpEvaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, followUpEvaluation.rerouteNotice.reason);
+    }
+
+    @Test
     public void evaluateLocation_surfacesBearingMismatchRerouteNotice() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

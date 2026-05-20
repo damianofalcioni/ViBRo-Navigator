@@ -144,7 +144,7 @@ public final class NavigationSession {
 
     @NonNull
     public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull Location location, long nowMs) {
-        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(location);
+        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(location, nowMs);
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
         }
@@ -165,6 +165,7 @@ public final class NavigationSession {
             );
         }
 
+        long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs);
         NavigationSessionRouteState.Evaluation evaluation = routeState.evaluateLocation(
                 filtered,
                 locationState.speedMps(filtered),
@@ -172,7 +173,8 @@ public final class NavigationSession {
                 locationState.accuracyMeters(filtered),
                 locationState.trustedActualBearingDegreesForReroute(filtered),
                 nowMs,
-                warmupController.getFastChecksUntilMs()
+                fastChecksUntilMs,
+                update.isReacquiringAfterLongGap()
         );
         warmupController.recordEvaluation(evaluation.isStableOnRouteSample(), locationState.accuracyMeters(filtered), nowMs);
         return NavigationLocationUpdateResult.accepted(

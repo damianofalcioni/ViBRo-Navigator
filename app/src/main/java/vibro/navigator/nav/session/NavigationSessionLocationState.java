@@ -4,11 +4,9 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.location.LiveLocationCoordinator;
 import vibro.navigator.nav.location.NavigationLocationMotionModel;
 import android.location.Location;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import vibro.navigator.nav.kalman.LatLonKalmanFilter;
 import vibro.navigator.logging.AppLogger;
@@ -18,13 +16,13 @@ public final class NavigationSessionLocationState {
     private static final String TAG = "NavSessionLocation";
     private static final float MIN_RAW_BEARING_SPEED_MPS = 1.0f;
     private static final float MIN_COURSE_HEADING_DISPLAY_SPEED_MPS = 2.5f;
-    private static final float MIN_TRUSTED_GPS_BEARING_SPEED_MPS = 0.8f;
-    private static final float MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS = 2.5f;
-    private static final float MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES = 25f;
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
     private final NavigationLocationMotionModel motionModel = new NavigationLocationMotionModel();
+    private final NavigationLocationReacquisitionTracker reacquisitionTracker =
+            new NavigationLocationReacquisitionTracker();
+    private final NavigationGpsBearingTrustPolicy bearingTrustPolicy = new NavigationGpsBearingTrustPolicy();
 
     private int locationUpdateCount;
 
@@ -32,6 +30,7 @@ public final class NavigationSessionLocationState {
         kalman.reset();
         motionModel.reset();
         locationUpdateCount = 0;
+        reacquisitionTracker.reset();
         liveLocationCoordinator.reset();
     }
 
@@ -46,6 +45,11 @@ public final class NavigationSessionLocationState {
 
     @NonNull
     public Update onRawLocationChanged(@NonNull Location location) {
+        return onRawLocationChanged(location, System.currentTimeMillis());
+    }
+
+    @NonNull
+    public Update onRawLocationChanged(@NonNull Location location, long nowMs) {
         liveLocationCoordinator.remember(location);
         Location selected = liveLocationCoordinator.selectBestLiveLocation();
         if (selected == null) {
@@ -61,6 +65,14 @@ public final class NavigationSessionLocationState {
         }
         liveLocationCoordinator.markDispatched(selected);
 
+        boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs);
+        if (reacquiringAfterLongGap) {
+            kalman.reset();
+            motionModel.reset();
+            AppLogger.i(TAG, "Reacquiring location after long accepted-fix gap raw="
+                    + formatLocation(selected)
+                    + " gapMs=" + reacquisitionTracker.gapMs(nowMs));
+        }
         Location filtered = kalman.update(selected);
         if (filtered == null) {
             AppLogger.d(TAG, "Kalman filter dropped location " + formatLocation(selected));
@@ -69,10 +81,11 @@ public final class NavigationSessionLocationState {
 
         motionModel.recordFilteredLocation(filtered);
         locationUpdateCount++;
+        reacquisitionTracker.recordAccepted(nowMs);
         AppLogger.d(TAG, "Location update #" + locationUpdateCount
                 + " raw=" + formatLocation(selected)
                 + " filtered=" + formatLocation(filtered));
-        return Update.accepted(filtered);
+        return Update.accepted(filtered, reacquiringAfterLongGap);
     }
 
     public boolean isLikelyStationary() {
@@ -99,9 +112,9 @@ public final class NavigationSessionLocationState {
         if (speedMps(location) < MIN_COURSE_HEADING_DISPLAY_SPEED_MPS) {
             return null;
         }
-        Double gpsBearingDegrees = trustedGpsBearingDegrees(location);
+        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(location, speedMps(location));
         if (gpsBearingDegrees != null) {
-            return new HeadingEstimate(gpsBearingDegrees, currentBearingAccuracyDegrees(location));
+            return new HeadingEstimate(gpsBearingDegrees, bearingTrustPolicy.currentBearingAccuracyDegrees(location));
         }
         Double movementBearingDegrees = motionModel.movementBearingDegrees(location);
         return movementBearingDegrees == null
@@ -111,7 +124,7 @@ public final class NavigationSessionLocationState {
 
     @Nullable
     public Double trustedActualBearingDegreesForReroute(@NonNull Location location) {
-        Double gpsBearingDegrees = trustedGpsBearingDegrees(location);
+        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(location, speedMps(location));
         if (gpsBearingDegrees != null) {
             return gpsBearingDegrees;
         }
@@ -124,26 +137,37 @@ public final class NavigationSessionLocationState {
 
     public static final class Update {
         private final boolean dropped;
+        private final boolean reacquiringAfterLongGap;
         @Nullable
         private final Location filteredLocation;
 
-        private Update(boolean dropped, @Nullable Location filteredLocation) {
+        private Update(boolean dropped, boolean reacquiringAfterLongGap, @Nullable Location filteredLocation) {
             this.dropped = dropped;
+            this.reacquiringAfterLongGap = reacquiringAfterLongGap;
             this.filteredLocation = filteredLocation;
         }
 
         @NonNull
         public static Update dropped() {
-            return new Update(true, null);
+            return new Update(true, false, null);
         }
 
         @NonNull
         public static Update accepted(@NonNull Location filteredLocation) {
-            return new Update(false, filteredLocation);
+            return accepted(filteredLocation, false);
+        }
+
+        @NonNull
+        public static Update accepted(@NonNull Location filteredLocation, boolean reacquiringAfterLongGap) {
+            return new Update(false, reacquiringAfterLongGap, filteredLocation);
         }
 
         public boolean isDropped() {
             return dropped;
+        }
+
+        public boolean isReacquiringAfterLongGap() {
+            return reacquiringAfterLongGap;
         }
 
         @NonNull
@@ -189,45 +213,6 @@ public final class NavigationSessionLocationState {
         }
         sb.append(" time=").append(location.getTime());
         return sb.toString();
-    }
-
-    @Nullable
-    private Double trustedGpsBearingDegrees(@NonNull Location location) {
-        if (!location.hasBearing()) {
-            return null;
-        }
-        float speedMps = speedMps(location);
-        if (speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
-            return null;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
-            if (hasTrustedBearingAccuracy(location)) {
-                return (double) location.getBearing();
-            }
-            return null;
-        }
-        return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
-                ? (double) location.getBearing()
-                : null;
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private static boolean hasTrustedBearingAccuracy(@NonNull Location location) {
-        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
-        return Float.isFinite(bearingAccuracyDegrees)
-                && bearingAccuracyDegrees >= 0f
-                && bearingAccuracyDegrees <= MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES;
-    }
-
-    @Nullable
-    private Float currentBearingAccuracyDegrees(@NonNull Location location) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !location.hasBearingAccuracy()) {
-            return null;
-        }
-        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
-        return Float.isFinite(bearingAccuracyDegrees) && bearingAccuracyDegrees >= 0f
-                ? bearingAccuracyDegrees
-                : null;
     }
 
 }

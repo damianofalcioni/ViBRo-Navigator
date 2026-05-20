@@ -122,6 +122,29 @@ public final class NavigationSessionRouteState {
             long nowMs,
             long fastChecksUntilMs
     ) {
+        return evaluateLocation(
+                filtered,
+                speedMps,
+                likelyStationary,
+                accuracyMeters,
+                actualBearingDegrees,
+                nowMs,
+                fastChecksUntilMs,
+                false
+        );
+    }
+
+    @NonNull
+    public Evaluation evaluateLocation(
+            @NonNull Location filtered,
+            float speedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @Nullable Double actualBearingDegrees,
+            long nowMs,
+            long fastChecksUntilMs,
+            boolean reacquiringAfterLongGap
+    ) {
         return routeEvaluator.evaluateLocation(
                 filtered,
                 speedMps,
@@ -129,7 +152,8 @@ public final class NavigationSessionRouteState {
                 accuracyMeters,
                 actualBearingDegrees,
                 nowMs,
-                fastChecksUntilMs
+                fastChecksUntilMs,
+                reacquiringAfterLongGap
         );
     }
 

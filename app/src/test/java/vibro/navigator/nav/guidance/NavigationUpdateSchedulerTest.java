@@ -87,7 +87,7 @@ public class NavigationUpdateSchedulerTest {
     }
 
     @Test
-    public void suggestUpdateInterval_usesRouteEndWhenNoNextHintRemains() {
+    public void suggestUpdateInterval_capsRouteEndChecksWhenArrivalIsWithinGuardWindow() {
         GeoJsonRoute route = route(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -108,7 +108,31 @@ public class NavigationUpdateSchedulerTest {
                 0f
         );
 
-        assertEquals(30000L, intervalMs);
+        assertEquals(20000L, intervalMs);
+    }
+
+    @Test
+    public void suggestUpdateInterval_capsModerateEtaChecksBeforeNextHint() {
+        GeoJsonRoute route = route(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0))
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+        long intervalMs = scheduler.suggestUpdateInterval(
+                5_000L,
+                1_000L,
+                route,
+                index,
+                0,
+                0.0,
+                0,
+                0.7f
+        );
+
+        assertEquals(20000L, intervalMs);
     }
 
     @Test

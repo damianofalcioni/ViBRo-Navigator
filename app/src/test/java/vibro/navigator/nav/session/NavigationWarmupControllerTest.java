@@ -61,4 +61,32 @@ public class NavigationWarmupControllerTest {
 
         assertEquals(61_000L, controller.getFastChecksUntilMs());
     }
+
+    @Test
+    public void fastChecksUntilMsForEvaluation_resumesFastPollingAfterLongEvaluationGap() {
+        NavigationWarmupController controller = new NavigationWarmupController();
+        controller.reset(1_000L);
+
+        for (int i = 0; i < 5; i++) {
+            controller.recordEvaluation(true, 10f, 2_000L + i);
+        }
+
+        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(20_000L);
+
+        assertEquals(80_000L, fastChecksUntilMs);
+    }
+
+    @Test
+    public void fastChecksUntilMsForEvaluation_keepsDynamicIntervalAfterShortEvaluationGap() {
+        NavigationWarmupController controller = new NavigationWarmupController();
+        controller.reset(1_000L);
+
+        for (int i = 0; i < 5; i++) {
+            controller.recordEvaluation(true, 10f, 2_000L + i);
+        }
+
+        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(10_000L);
+
+        assertTrue(fastChecksUntilMs < 10_000L);
+    }
 }

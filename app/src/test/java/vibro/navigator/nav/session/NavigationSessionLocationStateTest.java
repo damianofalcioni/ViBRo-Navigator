@@ -191,6 +191,42 @@ public class NavigationSessionLocationStateTest {
         assertEquals(restartLocation.getLongitude(), filtered.getLongitude(), 0.0);
     }
 
+    @Test
+    public void onRawLocationChanged_reinitializesFilterAndMotionAfterLongAcceptedFixGap() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 1_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
+
+        Location reacquiredLocation = locationWithoutSpeed(
+                System.currentTimeMillis(),
+                48.2100000,
+                16.3800000
+        );
+        NavigationSessionLocationState.Update accepted =
+                state.onRawLocationChanged(reacquiredLocation, 17_000L);
+        Location filtered = accepted.getFilteredLocation();
+
+        assertTrue(accepted.isReacquiringAfterLongGap());
+        assertEquals(reacquiredLocation.getLatitude(), filtered.getLatitude(), 0.0);
+        assertEquals(reacquiredLocation.getLongitude(), filtered.getLongitude(), 0.0);
+        assertEquals(0.0f, state.speedMps(filtered), 0.0f);
+    }
+
+    @Test
+    public void onRawLocationChanged_doesNotReacquireAfterShortAcceptedFixGap() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 1_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(
+                location(System.currentTimeMillis(), 48.2082600, 16.3738000, 1.0f),
+                5_000L
+        );
+
+        assertFalse(accepted.isReacquiringAfterLongGap());
+    }
+
     private static Location location(long timeMs, double lat, double lon, float speedMps) {
         Location location = new Location(LocationManager.GPS_PROVIDER);
         location.setLatitude(lat);
@@ -198,6 +234,15 @@ public class NavigationSessionLocationStateTest {
         location.setTime(timeMs);
         location.setAccuracy(5f);
         location.setSpeed(speedMps);
+        return location;
+    }
+
+    private static Location locationWithoutSpeed(long timeMs, double lat, double lon) {
+        Location location = new Location(LocationManager.GPS_PROVIDER);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(5f);
         return location;
     }
 }

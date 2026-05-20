@@ -3,6 +3,7 @@ package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import static org.junit.Assert.assertFalse;
@@ -28,14 +29,16 @@ import java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationSessionTest {
+    private static final String DESTINATION = "Destination";
+    private static final String TREKKING_PROFILE = "trekking";
 
     @Test
     public void buildState_marksPausedSessionsAndClearsPauseStateOnResume() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         ));
@@ -73,8 +76,8 @@ public class NavigationSessionTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.003),
                 Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
         ));
@@ -99,8 +102,8 @@ public class NavigationSessionTest {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
-                "trekking",
-                "Destination",
+                TREKKING_PROFILE,
+                DESTINATION,
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         ));
@@ -120,6 +123,39 @@ public class NavigationSessionTest {
         );
 
         assertTrue(state.gpsStatus.statusLine.contains("(7) #2"));
+    }
+
+    @Test
+    public void onRawLocationChanged_resumesFastPollingAfterLongAcceptedFixGap() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        ));
+        long nowMs = System.currentTimeMillis();
+        assertTrue(session.start(context, nowMs));
+
+        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
+        assertNotNull(snapshot);
+        session.applyRouteResult(context, snapshot, routeWithoutHints(), nowMs);
+        for (int i = 1; i <= 5; i++) {
+            long sampleTimeMs = nowMs + i * 1_000L;
+            session.onRawLocationChanged(context, location(0.0, i * 0.0001, sampleTimeMs), sampleTimeMs);
+        }
+
+        long resumedTimeMs = nowMs + 21_000L;
+        NavigationLocationUpdateResult result = session.onRawLocationChanged(
+                context,
+                location(0.0, 0.0006, resumedTimeMs),
+                resumedTimeMs
+        );
+
+        assertFalse(result.isDropped());
+        assertEquals(1_000L, result.getSuggestedUpdateIntervalMs());
     }
 
     @NonNull
