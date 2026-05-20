@@ -3,14 +3,11 @@ package vibro.navigator.poi.search;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.List;
 
 import vibro.navigator.poi.Poi;
 
-@RunWith(RobolectricTestRunner.class)
 public class GoogleGeocodeResponseParserTest {
 
     @Test

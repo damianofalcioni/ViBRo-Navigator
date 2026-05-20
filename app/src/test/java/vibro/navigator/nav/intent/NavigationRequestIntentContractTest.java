@@ -1,13 +1,9 @@
 package vibro.navigator.nav.intent;
 
-import android.content.Intent;
-
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRequest;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,11 +12,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationRequestIntentContractTest {
 
     @Test
-    public void putInto_thenFromIntent_roundTripsRequestFields() {
+    public void toExtras_thenFromExtras_roundTripsRequestFields() {
         NavigationRequest original = new NavigationRequest(
                 "trekking",
                 "Vienna Center",
@@ -31,10 +26,8 @@ public class NavigationRequestIntentContractTest {
                 )
         );
 
-        Intent intent = new Intent();
-        NavigationRequestIntentContract.putInto(intent, original);
-
-        NavigationRequest restored = NavigationRequestIntentContract.fromIntent(intent);
+        NavigationRequestIntentContract.Extras extras = NavigationRequestIntentContract.toExtras(original);
+        NavigationRequest restored = NavigationRequestIntentContract.fromExtras(extras);
 
         assertTrue(restored.isComplete());
         assertEquals("trekking", restored.profile);
@@ -49,17 +42,16 @@ public class NavigationRequestIntentContractTest {
     }
 
     @Test
-    public void fromIntent_discardsInvalidStopsAndRequiresProfile() {
-        Intent intent = new Intent();
-        intent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_NAME, "Test destination");
-        intent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
-        intent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
-        intent.putStringArrayListExtra(
-                NavigationRequestIntentContract.EXTRA_STOPS,
+    public void fromExtras_discardsInvalidStopsAndRequiresProfile() {
+        NavigationRequestIntentContract.Extras extras = new NavigationRequestIntentContract.Extras(
+                null,
+                "Test destination",
+                48.2082d,
+                16.3738d,
                 new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12"))
         );
 
-        NavigationRequest restored = NavigationRequestIntentContract.fromIntent(intent);
+        NavigationRequest restored = NavigationRequestIntentContract.fromExtras(extras);
 
         assertFalse(restored.isComplete());
         assertEquals("Test destination", restored.destinationName);

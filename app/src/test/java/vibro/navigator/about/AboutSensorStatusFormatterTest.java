@@ -2,29 +2,26 @@ package vibro.navigator.about;
 
 import static org.junit.Assert.assertTrue;
 
-import android.location.Location;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-@RunWith(RobolectricTestRunner.class)
 public class AboutSensorStatusFormatterTest {
 
     @Test
     public void describeLocationValue_includesExtendedGpsDetails() {
-        long nowMs = System.currentTimeMillis();
-        Location location = new Location("gps");
-        location.setLatitude(48.2082d);
-        location.setLongitude(16.3738d);
-        location.setAccuracy(5f);
-        location.setAltitude(245.4d);
-        location.setSpeed(4.5f);
-        location.setBearing(182.2f);
-        location.setBearingAccuracyDegrees(9.4f);
-        location.setTime(nowMs - 2_000L);
+        long nowMs = 100_000L;
+        AboutSensorValueFormatter.LocationSnapshot location =
+                new AboutSensorValueFormatter.LocationSnapshot(
+                        48.2082d,
+                        16.3738d,
+                        nowMs - 2_000L,
+                        5f,
+                        245.4d,
+                        4.5f,
+                        182.2f,
+                        9.4f
+                );
 
-        String value = AboutSensorValueFormatter.describeLocationValue(location, 7);
+        String value = AboutSensorValueFormatter.describeLocationValue(location, 7, nowMs);
 
         assertTrue(value.contains("lat=48.208200 lon=16.373800"));
         assertTrue(value.contains("acc=5.0m"));

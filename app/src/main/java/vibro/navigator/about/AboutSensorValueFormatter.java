@@ -17,28 +17,41 @@ final class AboutSensorValueFormatter {
 
     @NonNull
     static String describeLocationValue(@NonNull Location location, @Nullable Integer fixedSatelliteCount) {
+        return describeLocationValue(
+                toSnapshot(location),
+                fixedSatelliteCount,
+                System.currentTimeMillis()
+        );
+    }
+
+    @NonNull
+    static String describeLocationValue(
+            @NonNull LocationSnapshot location,
+            @Nullable Integer fixedSatelliteCount,
+            long nowMs
+    ) {
         StringBuilder sb = new StringBuilder("value=");
         sb.append(String.format(
                 Locale.US,
                 "lat=%.6f lon=%.6f",
-                location.getLatitude(),
-                location.getLongitude()
+                location.lat,
+                location.lon
         ));
-        if (location.hasAccuracy()) {
-            sb.append(String.format(Locale.US, " acc=%.1fm", location.getAccuracy()));
+        if (location.accuracyMeters != null) {
+            sb.append(String.format(Locale.US, " acc=%.1fm", location.accuracyMeters));
         }
-        if (location.hasAltitude()) {
-            sb.append(String.format(Locale.US, " alt=%.1fm", location.getAltitude()));
+        if (location.altitudeMeters != null) {
+            sb.append(String.format(Locale.US, " alt=%.1fm", location.altitudeMeters));
         }
-        if (location.hasSpeed()) {
-            sb.append(String.format(Locale.US, " speed=%.1fkm/h", location.getSpeed() * 3.6f));
+        if (location.speedMps != null) {
+            sb.append(String.format(Locale.US, " speed=%.1fkm/h", location.speedMps * 3.6f));
         }
-        if (location.hasBearing()) {
-            sb.append(String.format(Locale.US, " bearing=%.0fdeg", location.getBearing()));
+        if (location.bearingDegrees != null) {
+            sb.append(String.format(Locale.US, " bearing=%.0fdeg", location.bearingDegrees));
         }
-        appendBearingAccuracy(sb, location);
+        appendBearingAccuracy(sb, location.bearingAccuracyDegrees);
         appendSatelliteCount(sb, fixedSatelliteCount);
-        long ageSeconds = Math.max(0L, (System.currentTimeMillis() - location.getTime()) / 1000L);
+        long ageSeconds = Math.max(0L, (nowMs - location.timeMs) / 1000L);
         sb.append(" age=").append(ageSeconds).append("s");
         return sb.toString();
     }
@@ -111,9 +124,9 @@ final class AboutSensorValueFormatter {
         );
     }
 
-    private static void appendBearingAccuracy(@NonNull StringBuilder sb, @NonNull Location location) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
-            sb.append(String.format(Locale.US, " bearingAcc=%.0fdeg", location.getBearingAccuracyDegrees()));
+    private static void appendBearingAccuracy(@NonNull StringBuilder sb, @Nullable Float bearingAccuracyDegrees) {
+        if (bearingAccuracyDegrees != null) {
+            sb.append(String.format(Locale.US, " bearingAcc=%.0fdeg", bearingAccuracyDegrees));
         }
     }
 
@@ -164,5 +177,63 @@ final class AboutSensorValueFormatter {
         }
         sb.append("]");
         return sb.toString();
+    }
+
+    @NonNull
+    private static LocationSnapshot toSnapshot(@NonNull Location location) {
+        return new LocationSnapshot(
+                location.getLatitude(),
+                location.getLongitude(),
+                location.getTime(),
+                location.hasAccuracy() ? location.getAccuracy() : null,
+                location.hasAltitude() ? location.getAltitude() : null,
+                location.hasSpeed() ? location.getSpeed() : null,
+                location.hasBearing() ? location.getBearing() : null,
+                bearingAccuracyDegrees(location)
+        );
+    }
+
+    @Nullable
+    private static Float bearingAccuracyDegrees(@NonNull Location location) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
+            return location.getBearingAccuracyDegrees();
+        }
+        return null;
+    }
+
+    static final class LocationSnapshot {
+        final double lat;
+        final double lon;
+        final long timeMs;
+        @Nullable
+        final Float accuracyMeters;
+        @Nullable
+        final Double altitudeMeters;
+        @Nullable
+        final Float speedMps;
+        @Nullable
+        final Float bearingDegrees;
+        @Nullable
+        final Float bearingAccuracyDegrees;
+
+        LocationSnapshot(
+                double lat,
+                double lon,
+                long timeMs,
+                @Nullable Float accuracyMeters,
+                @Nullable Double altitudeMeters,
+                @Nullable Float speedMps,
+                @Nullable Float bearingDegrees,
+                @Nullable Float bearingAccuracyDegrees
+        ) {
+            this.lat = lat;
+            this.lon = lon;
+            this.timeMs = timeMs;
+            this.accuracyMeters = accuracyMeters;
+            this.altitudeMeters = altitudeMeters;
+            this.speedMps = speedMps;
+            this.bearingDegrees = bearingDegrees;
+            this.bearingAccuracyDegrees = bearingAccuracyDegrees;
+        }
     }
 }

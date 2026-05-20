@@ -26,43 +26,66 @@ public final class NavigationRequestIntentContract {
     @NonNull
     public static NavigationRequest fromIntent(@Nullable Intent intent) {
         if (intent == null) {
+            return fromExtras(null);
+        }
+
+        return fromExtras(new Extras(
+                intent.getStringExtra(EXTRA_PROFILE),
+                intent.getStringExtra(EXTRA_DEST_NAME),
+                intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN),
+                intent.getDoubleExtra(EXTRA_DEST_LON, Double.NaN),
+                intent.getStringArrayListExtra(EXTRA_STOPS)
+        ));
+    }
+
+    @NonNull
+    static NavigationRequest fromExtras(@Nullable Extras extras) {
+        if (extras == null) {
             return new NavigationRequest(null, null, null, Collections.emptyList());
         }
 
-        String profile = intent.getStringExtra(EXTRA_PROFILE);
-        String destinationName = intent.getStringExtra(EXTRA_DEST_NAME);
-        double lat = intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN);
-        double lon = intent.getDoubleExtra(EXTRA_DEST_LON, Double.NaN);
-        LatLon destination = (!Double.isNaN(lat) && !Double.isNaN(lon)) ? new LatLon(lat, lon) : null;
-
-        ArrayList<String> rawStops = intent.getStringArrayListExtra(EXTRA_STOPS);
+        LatLon destination = (!Double.isNaN(extras.destinationLat) && !Double.isNaN(extras.destinationLon))
+                ? new LatLon(extras.destinationLat, extras.destinationLon)
+                : null;
         List<LatLon> stops = new ArrayList<>();
-        if (rawStops != null) {
-            for (String rawStop : rawStops) {
-                LatLon stop = parseLatLon(rawStop);
-                if (stop != null) {
-                    stops.add(stop);
-                }
+        for (String rawStop : extras.stops) {
+            LatLon stop = parseLatLon(rawStop);
+            if (stop != null) {
+                stops.add(stop);
             }
         }
 
-        return new NavigationRequest(profile, destinationName, destination, stops);
+        return new NavigationRequest(extras.profile, extras.destinationName, destination, stops);
     }
 
     public static void putInto(@NonNull Intent intent, @NonNull NavigationRequest request) {
-        if (request.profile != null) {
-            intent.putExtra(EXTRA_PROFILE, request.profile);
+        Extras extras = toExtras(request);
+        if (extras.profile != null) {
+            intent.putExtra(EXTRA_PROFILE, extras.profile);
         }
-        if (request.destinationName != null) {
-            intent.putExtra(EXTRA_DEST_NAME, request.destinationName);
+        if (extras.destinationName != null) {
+            intent.putExtra(EXTRA_DEST_NAME, extras.destinationName);
         }
-        if (request.destination != null) {
-            intent.putExtra(EXTRA_DEST_LAT, request.destination.lat);
-            intent.putExtra(EXTRA_DEST_LON, request.destination.lon);
+        if (!Double.isNaN(extras.destinationLat) && !Double.isNaN(extras.destinationLon)) {
+            intent.putExtra(EXTRA_DEST_LAT, extras.destinationLat);
+            intent.putExtra(EXTRA_DEST_LON, extras.destinationLon);
         }
-        if (!request.stops.isEmpty()) {
-            intent.putStringArrayListExtra(EXTRA_STOPS, toStopStrings(request.stops));
+        if (!extras.stops.isEmpty()) {
+            intent.putStringArrayListExtra(EXTRA_STOPS, extras.stops);
         }
+    }
+
+    @NonNull
+    static Extras toExtras(@NonNull NavigationRequest request) {
+        double destinationLat = request.destination == null ? Double.NaN : request.destination.lat;
+        double destinationLon = request.destination == null ? Double.NaN : request.destination.lon;
+        return new Extras(
+                request.profile,
+                request.destinationName,
+                destinationLat,
+                destinationLon,
+                toStopStrings(request.stops)
+        );
     }
 
     @NonNull
@@ -89,6 +112,31 @@ public final class NavigationRequestIntentContract {
             return new LatLon(lat, lon);
         } catch (NumberFormatException ignored) {
             return null;
+        }
+    }
+
+    static final class Extras {
+        @Nullable
+        final String profile;
+        @Nullable
+        final String destinationName;
+        final double destinationLat;
+        final double destinationLon;
+        @NonNull
+        final ArrayList<String> stops;
+
+        Extras(
+                @Nullable String profile,
+                @Nullable String destinationName,
+                double destinationLat,
+                double destinationLon,
+                @Nullable ArrayList<String> stops
+        ) {
+            this.profile = profile;
+            this.destinationName = destinationName;
+            this.destinationLat = destinationLat;
+            this.destinationLon = destinationLon;
+            this.stops = stops == null ? new ArrayList<>() : new ArrayList<>(stops);
         }
     }
 }
