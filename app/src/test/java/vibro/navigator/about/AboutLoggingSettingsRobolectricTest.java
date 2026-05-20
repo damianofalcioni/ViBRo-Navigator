@@ -116,9 +116,12 @@ public class AboutLoggingSettingsRobolectricTest {
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
+        TextView symbolTestTitle = activity.findViewById(R.id.aboutSymbolTestTitle);
         Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
         Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
-        Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
+        Button symbolTestLeftButton = activity.findViewById(R.id.aboutSymbolTestLeftButton);
+        Button symbolTestOtherButton = activity.findViewById(R.id.aboutSymbolTestOtherButton);
+        Button symbolTestRightButton = activity.findViewById(R.id.aboutSymbolTestRightButton);
         View googlePoiApiKeyContainer = activity.findViewById(R.id.aboutGooglePoiApiKeyContainer);
         Spinner maneuverVoiceSpinner = activity.findViewById(R.id.aboutManeuverVoiceSpinner);
         ImageButton ttsSettingsButton = activity.findViewById(R.id.aboutTtsSettingsButton);
@@ -143,7 +146,17 @@ public class AboutLoggingSettingsRobolectricTest {
         assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
-        assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestTitle.getVisibility());
+        assertEquals(
+                activity.getString(R.string.label_direction_notification_tests),
+                symbolTestTitle.getText().toString()
+        );
+        assertEquals(View.VISIBLE, symbolTestLeftButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestOtherButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestRightButton.getVisibility());
+        assertEquals(activity.getString(R.string.action_test_left_notification), symbolTestLeftButton.getText().toString());
+        assertEquals(activity.getString(R.string.action_test_other_notification), symbolTestOtherButton.getText().toString());
+        assertEquals(activity.getString(R.string.action_test_right_notification), symbolTestRightButton.getText().toString());
         assertTrue(sensorStatusBody.getText().toString().contains(
                 activity.getString(R.string.label_sensor_gps_provider)
         ));
@@ -219,18 +232,25 @@ public class AboutLoggingSettingsRobolectricTest {
     @Test
     public void aboutPageCanSendSymbolTestNotificationFromDiagnostics() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
-        Button symbolTestButton = activity.findViewById(R.id.aboutSymbolTestButton);
+        Button symbolTestLeftButton = activity.findViewById(R.id.aboutSymbolTestLeftButton);
+        Button symbolTestOtherButton = activity.findViewById(R.id.aboutSymbolTestOtherButton);
+        Button symbolTestRightButton = activity.findViewById(R.id.aboutSymbolTestRightButton);
         NotificationManager notificationManager = activity.getSystemService(NotificationManager.class);
+        notificationManager.cancelAll();
 
-        assertEquals(View.VISIBLE, symbolTestButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestLeftButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestOtherButton.getVisibility());
+        assertEquals(View.VISIBLE, symbolTestRightButton.getVisibility());
 
-        symbolTestButton.performClick();
+        symbolTestLeftButton.performClick();
+        symbolTestOtherButton.performClick();
+        symbolTestRightButton.performClick();
 
         assertEquals(
                 activity.getString(R.string.msg_symbol_test_notification_sent),
                 ShadowToast.getTextOfLatestToast()
         );
-        assertTrue(notificationManager.getActiveNotifications().length > 0);
+        assertEquals(3, notificationManager.getActiveNotifications().length);
     }
 
     private static void performFiveTaps(View view) {

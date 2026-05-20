@@ -235,12 +235,61 @@
             android:textColor="@color/gray_700"
             android:textSize="14sp" />
 
-        <Button
-            android:id="@+id/aboutSymbolTestButton"
-            style="@style/Widget.ViBRoNavigator.Button.Primary"
+        <TextView
+            android:id="@+id/aboutSymbolTestTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/action_send_symbol_test_notification" />
+            android:text="@string/label_direction_notification_tests"
+            android:textColor="@color/white"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/aboutSymbolTestButtonRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/aboutSymbolTestLeftButton"
+                style="@style/Widget.ViBRoNavigator.Button.Primary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:text="@string/action_test_left_notification"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/aboutSymbolTestOtherButton"
+                style="@style/Widget.ViBRoNavigator.Button.Primary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:text="@string/action_test_other_notification"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/aboutSymbolTestRightButton"
+                style="@style/Widget.ViBRoNavigator.Button.Primary"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:maxLines="1"
+                android:paddingStart="8dp"
+                android:paddingEnd="8dp"
+                android:text="@string/action_test_right_notification"
+                android:textSize="14sp" />
+        </LinearLayout>
     </LinearLayout>
 </ScrollView>

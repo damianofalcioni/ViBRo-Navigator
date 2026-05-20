@@ -41,8 +41,18 @@ public class NavigationForegroundControllerTest {
         assertNotNull(notificationManager);
 
         notificationManager.createNotificationChannel(new NotificationChannel(
+                "navigator.alerts.v1",
+                "Legacy alerts",
+                NotificationManager.IMPORTANCE_HIGH
+        ));
+        notificationManager.createNotificationChannel(new NotificationChannel(
                 "navigator.turn.left",
                 "Legacy left",
+                NotificationManager.IMPORTANCE_HIGH
+        ));
+        notificationManager.createNotificationChannel(new NotificationChannel(
+                "navigator.turn.left.v2",
+                "Legacy left v2",
                 NotificationManager.IMPORTANCE_HIGH
         ));
         notificationManager.createNotificationChannel(new NotificationChannel(
@@ -50,12 +60,20 @@ public class NavigationForegroundControllerTest {
                 "Legacy right",
                 NotificationManager.IMPORTANCE_HIGH
         ));
+        notificationManager.createNotificationChannel(new NotificationChannel(
+                "navigator.turn.right.v2",
+                "Legacy right v2",
+                NotificationManager.IMPORTANCE_HIGH
+        ));
 
         NavigationForegroundController controller = new NavigationForegroundController(service);
         controller.ensureChannels();
 
+        assertNull(notificationManager.getNotificationChannel("navigator.alerts.v1"));
         assertNull(notificationManager.getNotificationChannel("navigator.turn.left"));
+        assertNull(notificationManager.getNotificationChannel("navigator.turn.left.v2"));
         assertNull(notificationManager.getNotificationChannel("navigator.turn.right"));
+        assertNull(notificationManager.getNotificationChannel("navigator.turn.right.v2"));
 
         NotificationChannel navChannel = notificationManager.getNotificationChannel(NavigationService.CHANNEL_ID_NAV);
         assertNotNull(navChannel);
@@ -65,17 +83,17 @@ public class NavigationForegroundControllerTest {
         NotificationChannel alertChannel = notificationManager.getNotificationChannel(NavigationService.CHANNEL_ID_ALERT);
         assertNotNull(alertChannel);
         assertTrue(alertChannel.shouldVibrate());
-        assertArrayEquals(new long[]{0L, 140L, 90L, 140L}, alertChannel.getVibrationPattern());
+        assertArrayEquals(new long[]{0L, 600L}, alertChannel.getVibrationPattern());
         assertNull(alertChannel.getSound());
 
         NotificationChannel leftChannel = notificationManager.getNotificationChannel(NavigationService.CHANNEL_ID_TURN_LEFT);
         assertNotNull(leftChannel);
-        assertArrayEquals(new long[]{0L, 80L, 80L, 220L}, leftChannel.getVibrationPattern());
+        assertArrayEquals(new long[]{0L, 300L, 100L, 300L}, leftChannel.getVibrationPattern());
         assertNull(leftChannel.getSound());
 
         NotificationChannel rightChannel = notificationManager.getNotificationChannel(NavigationService.CHANNEL_ID_TURN_RIGHT);
         assertNotNull(rightChannel);
-        assertArrayEquals(new long[]{0L, 220L, 80L, 80L}, rightChannel.getVibrationPattern());
+        assertArrayEquals(new long[]{0L, 300L, 100L, 300L, 100L, 300L}, rightChannel.getVibrationPattern());
         assertNull(rightChannel.getSound());
 
         serviceController.destroy();

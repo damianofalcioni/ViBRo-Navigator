@@ -38,9 +38,9 @@ public class NavigationService extends Service {
     public static final int NOTIFICATION_ID_ONGOING = 1;
     public static final int NOTIFICATION_ID_TURN = 2;
     public static final String CHANNEL_ID_NAV = "navigator.navigation";
-    public static final String CHANNEL_ID_ALERT = "navigator.alerts.v1";
-    public static final String CHANNEL_ID_TURN_LEFT = "navigator.turn.left.v2";
-    public static final String CHANNEL_ID_TURN_RIGHT = "navigator.turn.right.v2";
+    public static final String CHANNEL_ID_ALERT = "navigator.alerts.v2";
+    public static final String CHANNEL_ID_TURN_LEFT = "navigator.turn.left.v3";
+    public static final String CHANNEL_ID_TURN_RIGHT = "navigator.turn.right.v3";
 
     private final NavigationSession navigationSession = new NavigationSession();
     private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();

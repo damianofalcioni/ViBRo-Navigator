@@ -21,7 +21,9 @@
     <string name="action_open_fdroid">F-Droid</string>
     <string name="action_use_selected_point">Use selected point</string>
     <string name="action_map_poi_categories">POI categories</string>
-    <string name="action_send_symbol_test_notification">Send symbol test notification</string>
+    <string name="action_test_left_notification">Lefts</string>
+    <string name="action_test_other_notification">Others</string>
+    <string name="action_test_right_notification">Rights</string>
     <string name="action_zoom_in">+</string>
     <string name="action_zoom_out">-</string>
     <string name="action_current_location">Current location</string>
@@ -189,6 +191,7 @@
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>
     <string name="msg_google_poi_api_key_cleared">Google Maps API key cleared.</string>
     <string name="about_diagnostic_title">Diagnostic</string>
+    <string name="label_direction_notification_tests">Directions notifications tests</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>
     <string name="label_sensor_network_provider">Network provider</string>

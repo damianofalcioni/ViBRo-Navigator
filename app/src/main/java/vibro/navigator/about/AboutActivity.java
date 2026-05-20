@@ -4,7 +4,6 @@ package vibro.navigator.about;
 import vibro.navigator.BuildConfig;
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
-import vibro.navigator.nav.foreground.NavigationNotificationDebugHelper;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
@@ -12,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -52,10 +50,10 @@ public class AboutActivity extends Activity {
     private AboutManeuverVoiceSettings maneuverVoiceSettings;
     private View googlePoiApiKeyContainer;
     private TextView googlePoiApiKeyEdit;
-    private Button googlePoiApiKeySaveButton;
-    private Button exportDatabaseButton;
-    private Button importDatabaseButton;
-    private Button symbolTestButton;
+    private View googlePoiApiKeySaveButton;
+    private View exportDatabaseButton;
+    private View importDatabaseButton;
+    private AboutSymbolTestButtons symbolTestButtons;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +73,7 @@ public class AboutActivity extends Activity {
         importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
         sensorStatusTitle = findViewById(R.id.aboutSensorStatusTitle);
         sensorStatusBody = findViewById(R.id.aboutSensorStatusBody);
-        symbolTestButton = findViewById(R.id.aboutSymbolTestButton);
+        symbolTestButtons = new AboutSymbolTestButtons(this);
         sensorStatusFormatter = new AboutSensorStatusFormatter(this);
         logEnabledSwitch.setChecked(AppLogger.isLoggingEnabled(this));
         logEnabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
@@ -89,7 +87,6 @@ public class AboutActivity extends Activity {
         configureGooglePoiApiKeySetting();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());
-        symbolTestButton.setOnClickListener(v -> sendSymbolTestNotification());
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
         renderDiagnosticSection();
@@ -143,7 +140,7 @@ public class AboutActivity extends Activity {
         imperialUnitsSwitch.setChecked(AppSettings.isImperialUnitsEnabled(this));
         sensorStatusTitle.setVisibility(View.VISIBLE);
         sensorStatusBody.setVisibility(View.VISIBLE);
-        symbolTestButton.setVisibility(View.VISIBLE);
+        symbolTestButtons.show();
         sensorStatusBody.setText(sensorStatusFormatter.build(this));
     }
 
@@ -201,11 +198,6 @@ public class AboutActivity extends Activity {
             out.write(buffer, 0, read);
         }
         return new String(out.toByteArray(), StandardCharsets.UTF_8);
-    }
-
-    private void sendSymbolTestNotification() {
-        NavigationNotificationDebugHelper.postSymbolTestNotification(this);
-        Toast.makeText(this, R.string.msg_symbol_test_notification_sent, Toast.LENGTH_SHORT).show();
     }
 
     private void configureFusedLocationSwitch() {

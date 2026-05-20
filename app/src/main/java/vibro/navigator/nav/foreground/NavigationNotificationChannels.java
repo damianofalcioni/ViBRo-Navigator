@@ -16,8 +16,11 @@ import vibro.navigator.logging.AppLogger;
 public final class NavigationNotificationChannels {
 
     private static final String TAG = "NavNotifChannels";
+    private static final String LEGACY_CHANNEL_ID_ALERT_V1 = "navigator.alerts.v1";
     private static final String LEGACY_CHANNEL_ID_TURN_LEFT = "navigator.turn.left";
+    private static final String LEGACY_CHANNEL_ID_TURN_LEFT_V2 = "navigator.turn.left.v2";
     private static final String LEGACY_CHANNEL_ID_TURN_RIGHT = "navigator.turn.right";
+    private static final String LEGACY_CHANNEL_ID_TURN_RIGHT_V2 = "navigator.turn.right.v2";
 
     private NavigationNotificationChannels() {
     }
@@ -77,23 +80,26 @@ public final class NavigationNotificationChannels {
 
     @NonNull
     public static long[] genericAlertVibrationPattern() {
-        return new long[]{0, 140, 90, 140};
+        return new long[]{0, 600};
     }
 
     @NonNull
     public static long[] leftVibrationPattern() {
-        return new long[]{0, 80, 80, 220};
+        return new long[]{0, 300, 100, 300};
     }
 
     @NonNull
     public static long[] rightVibrationPattern() {
-        return new long[]{0, 220, 80, 80};
+        return new long[]{0, 300, 100, 300, 100, 300};
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private static void deleteObsoleteChannels(@NonNull NotificationManager notificationManager) {
+        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_ALERT_V1);
         deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_LEFT);
+        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_LEFT_V2);
         deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_RIGHT);
+        deleteChannelIfPresent(notificationManager, LEGACY_CHANNEL_ID_TURN_RIGHT_V2);
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
