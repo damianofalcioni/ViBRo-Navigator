@@ -13,12 +13,11 @@ import java.util.List;
 
 public final class TurnEventPlanner {
 
-    private static final double PASSED_HINT_BUFFER_METERS = 5.0;
     private static final double PREPARATORY_IMMINENT_THRESHOLD_SECONDS = 20.0;
     private static final double VERY_IMMINENT_THRESHOLD_SECONDS = 5.0;
     private static final double MIN_TRUSTED_TURN_DISTANCE_METERS = 5.0;
     private static final double MIN_SLOW_SPEED_TURN_DISTANCE_METERS = 0.75;
-    private static final double MIN_ACTIONABLE_NOTICE_SECONDS = 2.0;
+    static final double MIN_ACTIONABLE_NOTICE_SECONDS = 2.0;
 
     public static final class Progress {
         final int nextHintIdx;
@@ -140,14 +139,23 @@ public final class TurnEventPlanner {
         }
 
         List<TurnSignal> signals = new ArrayList<>();
-        AdvanceCursor cursor = consumePassedHints(
+        TurnHintAdvancePolicy.Result consumed = TurnHintAdvancePolicy.consumePassedAndRetiredHints(
+                route,
+                polylineIndex,
                 hints,
                 hintAlongTrackMeters,
                 nextHintIdx,
                 notified20,
                 notified5,
                 alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
                 signals
+        );
+        AdvanceCursor cursor = new AdvanceCursor(
+                consumed.nextHintIdx,
+                consumed.notified20,
+                consumed.notified5
         );
 
         if (cursor.nextHintIdx >= hints.size()) {
@@ -165,36 +173,6 @@ public final class TurnEventPlanner {
                 speedMps,
                 signals
         );
-    }
-
-    @NonNull
-    private AdvanceCursor consumePassedHints(
-            @NonNull List<VoiceHint> hints,
-            @NonNull List<Double> hintAlongTrackMeters,
-            int nextHintIdx,
-            boolean notified20,
-            boolean notified5,
-            double alongTrackMeters,
-            @NonNull List<TurnSignal> signals
-    ) {
-        int updatedHintIdx = nextHintIdx;
-        boolean updatedNotified20 = notified20;
-        boolean updatedNotified5 = notified5;
-        while (updatedHintIdx < hints.size()
-                && hasPassedHint(hintAlongTrackMeters.get(updatedHintIdx), alongTrackMeters)) {
-            signals.add(TurnSignal.passed(hints.get(updatedHintIdx)));
-            updatedHintIdx++;
-            updatedNotified20 = false;
-            updatedNotified5 = false;
-        }
-        return new AdvanceCursor(updatedHintIdx, updatedNotified20, updatedNotified5);
-    }
-
-    private static boolean hasPassedHint(
-            double hintAlongTrackMeters,
-            double alongTrackMeters
-    ) {
-        return alongTrackMeters >= hintAlongTrackMeters + PASSED_HINT_BUFFER_METERS;
     }
 
     @NonNull

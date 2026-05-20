@@ -299,6 +299,43 @@ public class TurnEventPlannerTest {
     }
 
     @Test
+    public void advance_surfacesCloseFollowingTurnWhenNotifiedTurnIsTooLateToRepeat() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.001027),
+                        new LatLon(0.0, 0.002)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 5, 0, 0.0, 0),
+                        new VoiceHint(2, 2, 0, 0.0, 0)
+                ),
+                222.0,
+                222.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                true,
+                true,
+                index.distanceAtPointIndex(1) - 5.5,
+                0,
+                3f
+        );
+
+        assertEquals(1, progress.nextHintIdx);
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertEquals(2, progress.signals.get(0).hint.indexInTrack);
+        assertTrue(progress.notified20);
+        assertTrue(progress.notified5);
+    }
+
+    @Test
     public void advance_emitsPreparatorySignalWhenEtaComesFromRouteTiming() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
