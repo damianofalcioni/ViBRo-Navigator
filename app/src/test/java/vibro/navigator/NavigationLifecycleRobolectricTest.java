@@ -14,6 +14,7 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.content.ServiceConnection;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -66,6 +67,7 @@ public class NavigationLifecycleRobolectricTest {
         ShadowService shadowService = shadowOf(service);
         assertEquals(NavigationService.NOTIFICATION_ID_ONGOING, shadowService.getLastForegroundNotificationId());
         assertNotNull(shadowService.getLastForegroundNotification());
+        assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION, service.getForegroundServiceType());
 
         service.stopForeground(true);
         assertTrue(shadowService.isForegroundStopped());
@@ -76,6 +78,7 @@ public class NavigationLifecycleRobolectricTest {
 
         assertEquals(NavigationService.NOTIFICATION_ID_ONGOING, shadowService.getLastForegroundNotificationId());
         assertNotNull(shadowService.getLastForegroundNotification());
+        assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION, service.getForegroundServiceType());
         assertFalse(shadowService.isForegroundStopped());
     }
 

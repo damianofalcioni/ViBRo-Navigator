@@ -90,7 +90,7 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
     }
 
     @NonNull
-    private static LocationRequest buildRequest(long minTimeMs, boolean fineGranted) {
+    static LocationRequest buildRequest(long minTimeMs, boolean fineGranted) {
         long intervalMs = Math.max(MIN_FASTEST_INTERVAL_MS, minTimeMs);
         long fastestMs = Math.max(MIN_FASTEST_INTERVAL_MS, intervalMs / 2L);
         int priority = fineGranted
@@ -98,7 +98,11 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
                 : Priority.PRIORITY_BALANCED_POWER_ACCURACY;
         return new LocationRequest.Builder(priority, intervalMs)
                 .setMinUpdateIntervalMillis(fastestMs)
-                .setWaitForAccurateLocation(fineGranted)
+                .setMaxUpdateDelayMillis(intervalMs)
+                .setMinUpdateDistanceMeters(0f)
+                // Route guidance filters decide whether a delivered fix is usable; waiting here can starve
+                // screen-off navigation callbacks on some devices.
+                .setWaitForAccurateLocation(false)
                 .build();
     }
 

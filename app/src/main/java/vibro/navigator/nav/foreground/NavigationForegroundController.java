@@ -12,6 +12,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.pm.ServiceInfo;
 import android.os.Build;
 import android.service.notification.StatusBarNotification;
 
@@ -41,13 +42,21 @@ public final class NavigationForegroundController {
         NavigationNotificationChannels.ensure(service);
     }
 
+    @SuppressWarnings("deprecation")
     public void promoteToForeground(@NonNull NavigationRequest request, boolean paused) {
-        service.startForeground(
-                NavigationService.NOTIFICATION_ID_ONGOING,
-                buildOngoingNotification(request, paused)
-        );
+        Notification notification = buildOngoingNotification(request, paused);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            service.startForeground(
+                    NavigationService.NOTIFICATION_ID_ONGOING,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            );
+            return;
+        }
+        service.startForeground(NavigationService.NOTIFICATION_ID_ONGOING, notification);
     }
 
+    @SuppressWarnings("deprecation")
     public void stopForegroundService() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             service.stopForeground(Service.STOP_FOREGROUND_REMOVE);
