@@ -10,12 +10,16 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailabilityLight;
+import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
+import com.google.android.gms.tasks.CancellationTokenSource;
+
+import java.util.Collections;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
@@ -23,6 +27,8 @@ import vibro.navigator.nav.location.FusedLocationUpdateClient;
 final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient {
     private static final String TAG = "FusedLocation";
     private static final long MIN_FASTEST_INTERVAL_MS = 500L;
+    private static final long CURRENT_LOCATION_SEED_DURATION_MS = 15_000L;
+    private static final long CURRENT_LOCATION_SEED_MAX_UPDATE_AGE_MS = 15_000L;
 
     @NonNull
     private final Context context;
@@ -30,6 +36,7 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
     private final FusedLocationProviderClient client;
     @NonNull
     private final LocationCallback callback;
+    private CancellationTokenSource currentLocationSeedCancellation;
 
     GplayFusedLocationUpdateClient(
             @NonNull Context context,
@@ -74,7 +81,31 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
     }
 
     @Override
+    @SuppressLint("MissingPermission")
+    public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
+        if (!isAvailable() || (!fineGranted && !coarseGranted)) {
+            return;
+        }
+        cancelCurrentLocationSeed();
+        currentLocationSeedCancellation = new CancellationTokenSource();
+        try {
+            CurrentLocationRequest request = buildCurrentLocationSeedRequest(fineGranted);
+            client.getCurrentLocation(request, currentLocationSeedCancellation.getToken())
+                    .addOnSuccessListener(this::dispatchCurrentLocationSeed)
+                    .addOnFailureListener(error -> AppLogger.w(TAG, "Fused current location seed failed", error));
+            AppLogger.d(TAG, "Requested fused current location seed");
+        } catch (SecurityException e) {
+            cancelCurrentLocationSeed();
+            AppLogger.w(TAG, "Permission denied while requesting fused current location seed", e);
+        } catch (RuntimeException e) {
+            cancelCurrentLocationSeed();
+            AppLogger.w(TAG, "Failed to request fused current location seed", e);
+        }
+    }
+
+    @Override
     public void removeUpdates() {
+        cancelCurrentLocationSeed();
         try {
             client.removeLocationUpdates(callback)
                     .addOnFailureListener(error -> AppLogger.w(TAG, "Failed to remove fused updates", error));
@@ -104,6 +135,35 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
                 // screen-off navigation callbacks on some devices.
                 .setWaitForAccurateLocation(false)
                 .build();
+    }
+
+    @NonNull
+    static CurrentLocationRequest buildCurrentLocationSeedRequest(boolean fineGranted) {
+        int priority = fineGranted
+                ? Priority.PRIORITY_HIGH_ACCURACY
+                : Priority.PRIORITY_BALANCED_POWER_ACCURACY;
+        return new CurrentLocationRequest.Builder()
+                .setPriority(priority)
+                .setDurationMillis(CURRENT_LOCATION_SEED_DURATION_MS)
+                .setMaxUpdateAgeMillis(CURRENT_LOCATION_SEED_MAX_UPDATE_AGE_MS)
+                .build();
+    }
+
+    private void dispatchCurrentLocationSeed(Location location) {
+        currentLocationSeedCancellation = null;
+        if (location == null) {
+            AppLogger.d(TAG, "Fused current location seed returned null");
+            return;
+        }
+        AppLogger.i(TAG, "Received fused current location seed");
+        callback.onLocationResult(LocationResult.create(Collections.singletonList(location)));
+    }
+
+    private void cancelCurrentLocationSeed() {
+        if (currentLocationSeedCancellation != null) {
+            currentLocationSeedCancellation.cancel();
+            currentLocationSeedCancellation = null;
+        }
     }
 
     private int googlePlayServicesStatus() {

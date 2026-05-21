@@ -3,6 +3,7 @@ package vibro.navigator.distribution;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
+import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.Priority;
 
@@ -21,5 +22,21 @@ public class GplayFusedLocationUpdateClientTest {
         assertEquals(0f, request.getMinUpdateDistanceMeters(), 0f);
         assertFalse(request.isBatched());
         assertFalse(request.isWaitForAccurateLocation());
+    }
+
+    @Test
+    public void buildCurrentLocationSeedRequest_usesFreshHighAccuracySeedForFineLocation() {
+        CurrentLocationRequest request = GplayFusedLocationUpdateClient.buildCurrentLocationSeedRequest(true);
+
+        assertEquals(Priority.PRIORITY_HIGH_ACCURACY, request.getPriority());
+        assertEquals(15_000L, request.getDurationMillis());
+        assertEquals(15_000L, request.getMaxUpdateAgeMillis());
+    }
+
+    @Test
+    public void buildCurrentLocationSeedRequest_usesBalancedSeedForCoarseOnlyLocation() {
+        CurrentLocationRequest request = GplayFusedLocationUpdateClient.buildCurrentLocationSeedRequest(false);
+
+        assertEquals(Priority.PRIORITY_BALANCED_POWER_ACCURACY, request.getPriority());
     }
 }

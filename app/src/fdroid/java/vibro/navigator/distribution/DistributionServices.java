@@ -68,6 +68,10 @@ public final class DistributionServices {
         }
 
         @Override
+        public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
+        }
+
+        @Override
         public void removeUpdates() {
         }
 

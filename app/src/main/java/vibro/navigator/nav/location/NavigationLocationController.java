@@ -7,7 +7,6 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
@@ -18,7 +17,6 @@ import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppSettings;
 
-import java.util.List;
 import java.util.concurrent.Executor;
 
 public final class NavigationLocationController {
@@ -32,6 +30,7 @@ public final class NavigationLocationController {
     private final NavigationGnssStatusTracker gnssStatusTracker;
     private final NavigationCurrentLocationSeeder currentLocationSeeder;
     private final FusedLocationUpdateClient fusedLocationUpdateClient;
+    private final NavigationLocationUpdateRequester updateRequester;
     private final Context appContext;
 
     private long lastRequestedLocationMinTimeMs = -1L;
@@ -46,6 +45,13 @@ public final class NavigationLocationController {
         this.providerAccess = new NavigationLocationProviderAccess(context, locationManager, listener);
         this.gnssStatusTracker = new NavigationGnssStatusTracker(locationManager);
         this.fusedLocationUpdateClient = DistributionServices.createFusedLocationUpdateClient(context, listener);
+        this.updateRequester = new NavigationLocationUpdateRequester(
+                providerAccess,
+                fusedLocationUpdateClient,
+                gnssStatusTracker,
+                this::removeLegacyUpdates,
+                this::describeAvailability
+        );
         Executor locationCallbackExecutor = ContextCompat.getMainExecutor(context);
         this.currentLocationSeeder = new NavigationCurrentLocationSeeder(
                 locationManager,
@@ -73,72 +79,39 @@ public final class NavigationLocationController {
     }
 
     public void requestLocationUpdates(long minTimeMs) {
-        boolean fineGranted = providerAccess.hasFineLocationPermission();
-        boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
-        if (!NavigationLocationProviderAccess.hasAnyLocationPermission(fineGranted, coarseGranted)) {
-            AppLogger.w(TAG, "Location permission unavailable, cannot request updates");
-            return;
-        }
-        if (requestFusedLocationUpdatesIfEnabled(minTimeMs, fineGranted, coarseGranted)) {
-            return;
-        }
-        if (locationManager == null) {
-            AppLogger.w(TAG, "LocationManager unavailable, cannot request updates");
-            return;
-        }
-
-        List<String> providers = providerAccess.enabledPermittedProviders(fineGranted, coarseGranted);
-        String providerSummary = NavigationLocationProviderAccess.joinProviders(providers);
-        if (providers.isEmpty()) {
-            clearActiveLocationRequest();
-            AppLogger.w(TAG, "No enabled location provider available for updates " + describeAvailability());
-            return;
-        }
-        if (shouldReuseActiveLocationRequest(
+        NavigationLocationUpdateRequester.Result result = updateRequester.request(
                 minTimeMs,
-                providerSummary,
+                shouldUseFusedLocation(),
                 lastRequestedLocationMinTimeMs,
                 lastRequestedProvider
-        )) {
-            refreshNextEvaluationDeadline(minTimeMs);
-            return;
-        }
-
-        fusedLocationUpdateClient.removeUpdates();
-        removeLegacyUpdates();
-
-        List<String> requestedProviders = providerAccess.requestProviderUpdates(providers, minTimeMs);
-        if (requestedProviders.isEmpty()) {
+        );
+        if (result.shouldClearActiveRequest()) {
             clearActiveLocationRequest();
-            AppLogger.w(TAG, "Failed to request location updates from permitted providers " + describeAvailability());
             return;
         }
-
-        String requestedProviderSummary = NavigationLocationProviderAccess.joinProviders(requestedProviders);
-        gnssStatusTracker.updateForRequestedProviders(requestedProviders);
+        if (!result.hasActiveRequest()) {
+            return;
+        }
         refreshNextEvaluationDeadline(minTimeMs);
         lastRequestedLocationMinTimeMs = minTimeMs;
-        lastRequestedProvider = requestedProviderSummary;
-        AppLogger.i(TAG, "Requested location updates provider=" + requestedProviderSummary + " minTimeMs=" + minTimeMs);
+        lastRequestedProvider = result.activeProviderSummary();
     }
 
     public void requestCurrentLocationSeeds() {
-        if (locationManager == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+        boolean fineGranted = providerAccess.hasFineLocationPermission();
+        boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
+        if (!NavigationLocationProviderAccess.hasAnyLocationPermission(fineGranted, coarseGranted)) {
             return;
         }
         if (shouldUseFusedLocation()) {
-            return;
+            fusedLocationUpdateClient.requestCurrentLocationSeed(fineGranted, coarseGranted);
         }
-        boolean fineGranted = providerAccess.hasFineLocationPermission();
-        boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
         currentLocationSeeder.requestSeeds(fineGranted, coarseGranted);
     }
 
     public void onProviderEnabled(@NonNull String provider, long fallbackMinTimeMs) {
         requestLocationUpdates(fallbackMinTimeMs);
-        if (!shouldUseFusedLocation()) {
-            currentLocationSeeder.requestSeedForEnabledProvider(provider);
-        }
+        currentLocationSeeder.requestSeedForEnabledProvider(provider);
     }
 
     public long getLastRequestedLocationMinTimeMsOrDefault(long fallbackMinTimeMs) {
@@ -193,39 +166,6 @@ public final class NavigationLocationController {
         gnssStatusTracker.reset();
         fusedLocationUpdateClient.removeUpdates();
         removeLegacyUpdates();
-    }
-
-    private boolean requestFusedLocationUpdatesIfEnabled(
-            long minTimeMs,
-            boolean fineGranted,
-            boolean coarseGranted
-    ) {
-        if (!shouldUseFusedLocation()) {
-            return false;
-        }
-        String providerSummary = LiveLocationCoordinator.FUSED_PROVIDER;
-        if (shouldReuseActiveLocationRequest(
-                minTimeMs,
-                providerSummary,
-                lastRequestedLocationMinTimeMs,
-                lastRequestedProvider
-        )) {
-            refreshNextEvaluationDeadline(minTimeMs);
-            return true;
-        }
-        removeLegacyUpdates();
-        if (!fusedLocationUpdateClient.requestUpdates(minTimeMs, fineGranted, coarseGranted)) {
-            AppLogger.w(TAG, "Fused location unavailable, falling back to legacy providers "
-                    + fusedLocationUpdateClient.describeAvailability());
-            return false;
-        }
-        currentLocationSeeder.cancelPendingCurrentLocationRequests();
-        gnssStatusTracker.reset();
-        refreshNextEvaluationDeadline(minTimeMs);
-        lastRequestedLocationMinTimeMs = minTimeMs;
-        lastRequestedProvider = providerSummary;
-        AppLogger.i(TAG, "Requested fused location updates minTimeMs=" + minTimeMs);
-        return true;
     }
 
     private void refreshNextEvaluationDeadline(long minTimeMs) {

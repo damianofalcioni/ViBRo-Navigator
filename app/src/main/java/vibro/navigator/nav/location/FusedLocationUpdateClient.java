@@ -7,6 +7,8 @@ public interface FusedLocationUpdateClient {
 
     boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted);
 
+    void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted);
+
     void removeUpdates();
 
     @NonNull
