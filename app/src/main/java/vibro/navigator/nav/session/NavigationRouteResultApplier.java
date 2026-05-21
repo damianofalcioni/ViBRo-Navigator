@@ -12,6 +12,8 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
+import vibro.navigator.nav.route.RouteStartConnector;
+import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.logging.AppLogger;
 
 final class NavigationRouteResultApplier {
@@ -52,40 +54,62 @@ final class NavigationRouteResultApplier {
 
     @NonNull
     List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
-        geometryState.loadRoute(input.route);
+        float accuracyMeters = accuracyOf(input.lastFiltered);
+        RouteStartConnector.Result connectedRoute = RouteStartConnector.apply(
+                input.route,
+                input.snapshot.start,
+                accuracyMeters
+        );
+        GeoJsonRoute route = connectedRoute.route;
+        logConnectedStartIfNeeded(connectedRoute);
+        geometryState.loadRoute(route);
         displayState.onRouteApplied(
                 input.context,
-                input.route,
+                route,
                 geometryState.polylineIndex(),
                 input.snapshot.intermediates
         );
-        intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, input.route, geometryState.polylineIndex());
+        intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
         float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;
 
-        float accuracyMeters = accuracyOf(input.lastFiltered);
-        List<NavigationTurnEvent> turnEvents = buildRouteAppliedTurnEvents(input, initialSpeedMps, accuracyMeters);
+        List<NavigationTurnEvent> turnEvents = buildRouteAppliedTurnEvents(
+                input,
+                route,
+                initialSpeedMps,
+                accuracyMeters
+        );
         AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
-                + " trackPoints=" + input.route.track.size()
-                + " voiceHints=" + input.route.voiceHints.size()
-                + " lengthMeters=" + input.route.trackLengthMeters);
+                + " trackPoints=" + route.track.size()
+                + " voiceHints=" + route.voiceHints.size()
+                + " lengthMeters=" + route.trackLengthMeters);
         return turnEvents;
+    }
+
+    private void logConnectedStartIfNeeded(@NonNull RouteStartConnector.Result connectedRoute) {
+        if (!connectedRoute.connectorAdded) {
+            return;
+        }
+        AppLogger.i(TAG, "Prepended synthetic beeline route-start connector distance="
+                + connectedRoute.connectorDistanceMeters
+                + " threshold=" + connectedRoute.thresholdMeters);
     }
 
     @NonNull
     private List<NavigationTurnEvent> buildRouteAppliedTurnEvents(
             @NonNull NavigationRouteResultInput input,
+            @NonNull GeoJsonRoute route,
             float initialSpeedMps,
             float accuracyMeters
     ) {
         if (input.lastFiltered != null && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
-            return turnState.onDestinationReached(input.route);
+            return turnState.onDestinationReached(route);
         }
 
         List<NavigationTurnEvent> initialEvents = turnState.onRouteApplied(
-                input.route,
+                route,
                 geometryState.polylineIndex(),
                 input.snapshot.intermediates,
                 input.lastFiltered,
