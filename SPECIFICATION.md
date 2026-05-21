@@ -189,7 +189,7 @@ The implementation must use BRouter integration compatible with these references
 - The app must request BRouter GeoJSON output using the Android-service parameters that produce a GeoJSON `FeatureCollection`
 - The app must request BRouter native turn-instruction mode `9` so GeoJSON `voicehints` preserve distinct exit-left, exit-right, and beeline commands
 - When BRouter includes per-track GeoJSON `times`, the app must parse and retain them as route timing metadata that can be reused for maneuver-time estimation when live speed is not yet trustworthy or not yet available
-- When BRouter snaps the requested start to a routable network point outside the current off-track threshold, the app should prepend a synthetic beeline connector from the requested start to BRouter's first returned route point using command `16`, so the applied route matches the current fix before normal off-track reroute evaluation resumes
+- When BRouter snaps the requested start to a routable network point outside the current off-track threshold, the app should keep BRouter's original route geometry for route matching and treat the snapped route start as a beeline approach target using command `16`; while that approach target is active, off-track rerouting must remain suppressed so the user may reach the original route corridor by any path, and normal route-following guidance should begin only after the user is inside the original route threshold
 
 #### 4.4 Navigation update loop
 
@@ -361,6 +361,7 @@ The navigation UI must show the following in large text:
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
 - The compass must draw the destination-reached radius around the destination marker using the same transparent red treatment as the route-threshold overlay
+- While a route-start beeline approach target is active, the compass should show a live target marker and bearing line from the current position toward the snapped original route start, without drawing that approach as part of the off-track route corridor
 - While the user is moving at course-style speeds of at least 2.5 m/s, the displayed compass heading should prefer trusted GPS/course heading to reduce jitter; at walking speeds below that threshold, the displayed compass should prefer the live heading sensor when available
 - At course-style speeds, the displayed compass heading should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees

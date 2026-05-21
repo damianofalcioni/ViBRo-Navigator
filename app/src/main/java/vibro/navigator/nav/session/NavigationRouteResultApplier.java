@@ -12,7 +12,7 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
-import vibro.navigator.nav.route.RouteStartConnector;
+import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.logging.AppLogger;
 
@@ -33,6 +33,8 @@ final class NavigationRouteResultApplier {
     private final NavigationArrivalDetector arrivalDetector;
     @NonNull
     private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
+    @NonNull
+    private final RouteStartApproachState routeStartApproachState;
 
     NavigationRouteResultApplier(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -41,7 +43,8 @@ final class NavigationRouteResultApplier {
             @NonNull NavigationRouteProgressTracker progressTracker,
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationArrivalDetector arrivalDetector,
-            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker
+            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
+            @NonNull RouteStartApproachState routeStartApproachState
     ) {
         this.geometryState = geometryState;
         this.displayState = displayState;
@@ -50,24 +53,27 @@ final class NavigationRouteResultApplier {
         this.turnState = turnState;
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
+        this.routeStartApproachState = routeStartApproachState;
     }
 
     @NonNull
     List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
         float accuracyMeters = accuracyOf(input.lastFiltered);
-        RouteStartConnector.Result connectedRoute = RouteStartConnector.apply(
+        RouteStartApproach.Plan approachPlan = RouteStartApproach.plan(
                 input.route,
                 input.snapshot.start,
                 accuracyMeters
         );
-        GeoJsonRoute route = connectedRoute.route;
-        logConnectedStartIfNeeded(connectedRoute);
+        GeoJsonRoute route = input.route;
+        routeStartApproachState.apply(approachPlan);
+        logRouteStartApproachIfNeeded(approachPlan);
         geometryState.loadRoute(route);
         displayState.onRouteApplied(
                 input.context,
                 route,
                 geometryState.polylineIndex(),
-                input.snapshot.intermediates
+                input.snapshot.intermediates,
+                routeStartApproachState.target()
         );
         intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
@@ -78,7 +84,8 @@ final class NavigationRouteResultApplier {
                 input,
                 route,
                 initialSpeedMps,
-                accuracyMeters
+                accuracyMeters,
+                routeStartApproachState.isActive()
         );
         AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
@@ -88,13 +95,13 @@ final class NavigationRouteResultApplier {
         return turnEvents;
     }
 
-    private void logConnectedStartIfNeeded(@NonNull RouteStartConnector.Result connectedRoute) {
-        if (!connectedRoute.connectorAdded) {
+    private void logRouteStartApproachIfNeeded(@NonNull RouteStartApproach.Plan approachPlan) {
+        if (!approachPlan.active) {
             return;
         }
-        AppLogger.i(TAG, "Prepended synthetic beeline route-start connector distance="
-                + connectedRoute.connectorDistanceMeters
-                + " threshold=" + connectedRoute.thresholdMeters);
+        AppLogger.i(TAG, "Holding route-start approach target distance="
+                + approachPlan.distanceMeters
+                + " threshold=" + approachPlan.thresholdMeters);
     }
 
     @NonNull
@@ -102,7 +109,8 @@ final class NavigationRouteResultApplier {
             @NonNull NavigationRouteResultInput input,
             @NonNull GeoJsonRoute route,
             float initialSpeedMps,
-            float accuracyMeters
+            float accuracyMeters,
+            boolean suppressInitialTurnEvent
     ) {
         if (input.lastFiltered != null && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
             return turnState.onDestinationReached(route);
@@ -114,7 +122,7 @@ final class NavigationRouteResultApplier {
                 input.snapshot.intermediates,
                 input.lastFiltered,
                 initialSpeedMps,
-                accuracyMeters
+                suppressInitialTurnEvent ? Float.MAX_VALUE : accuracyMeters
         );
         if (input.lastFiltered == null) {
             return initialEvents;

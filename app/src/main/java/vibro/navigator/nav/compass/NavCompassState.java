@@ -16,6 +16,8 @@ public final class NavCompassState {
     public final CompassRadiusState radiusState;
     @NonNull
     public final CompassProgressLabels progressLabels;
+    @Nullable
+    public final CompassDestinationProjection routeStartApproachProjection;
 
     @NonNull
     public final List<CompassRoutePoint> passedRoutePoints;
@@ -180,6 +182,7 @@ public final class NavCompassState {
                 input.destinationProjection.reachedRadiusMeters,
                 input.destinationProjection.withinRadius
         );
+        this.routeStartApproachProjection = input.routeStartApproachProjection;
         this.passedRoutePoints = Collections.unmodifiableList(input.passedRoutePoints);
         this.routePoints = Collections.unmodifiableList(input.routePoints);
         this.hintPoints = Collections.unmodifiableList(input.hintPoints);
@@ -213,6 +216,7 @@ public final class NavCompassState {
                 input.destinationProjection.reachedRadiusMeters,
                 input.destinationProjection.withinRadius
         );
+        this.routeStartApproachProjection = input.routeStartApproachProjection;
         this.routeGeometry = input.routeGeometry;
         this.currentLatitude = input.currentLatitude;
         this.currentLongitude = input.currentLongitude;
@@ -303,6 +307,7 @@ public final class NavCompassState {
                             progressLabels.destinationReachedRadiusMeters,
                             targetDestinationWithinRadius
                     ),
+                    routeStartApproachProjection,
                     orientationCue
             ));
         }
@@ -331,6 +336,7 @@ public final class NavCompassState {
                         progressLabels.destinationReachedRadiusMeters,
                         targetDestinationWithinRadius
                 ),
+                routeStartApproachProjection,
                 orientationCue
         ));
     }

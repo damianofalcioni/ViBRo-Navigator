@@ -16,6 +16,8 @@ final class NavCompassRouteGeometryInput {
     @NonNull
     public final CompassDestinationProjection destinationProjection;
     @Nullable
+    public final CompassDestinationProjection routeStartApproachProjection;
+    @Nullable
     public final CompassOrientationCue orientationCue;
 
     NavCompassRouteGeometryInput(
@@ -35,6 +37,7 @@ final class NavCompassRouteGeometryInput {
                 currentLongitude,
                 passedRouteSamplePointCount,
                 destinationProjection,
+                null,
                 null
         );
     }
@@ -49,6 +52,30 @@ final class NavCompassRouteGeometryInput {
             @NonNull CompassDestinationProjection destinationProjection,
             @Nullable CompassOrientationCue orientationCue
     ) {
+        this(
+                displayMetrics,
+                radiusMetrics,
+                routeGeometry,
+                currentLatitude,
+                currentLongitude,
+                passedRouteSamplePointCount,
+                destinationProjection,
+                null,
+                orientationCue
+        );
+    }
+
+    NavCompassRouteGeometryInput(
+            @NonNull CompassDisplayMetrics displayMetrics,
+            @NonNull CompassRadiusMetrics radiusMetrics,
+            @NonNull CompassRouteGeometry routeGeometry,
+            double currentLatitude,
+            double currentLongitude,
+            int passedRouteSamplePointCount,
+            @NonNull CompassDestinationProjection destinationProjection,
+            @Nullable CompassDestinationProjection routeStartApproachProjection,
+            @Nullable CompassOrientationCue orientationCue
+    ) {
         this.displayMetrics = displayMetrics;
         this.radiusMetrics = radiusMetrics;
         this.routeGeometry = routeGeometry;
@@ -56,6 +83,7 @@ final class NavCompassRouteGeometryInput {
         this.currentLongitude = currentLongitude;
         this.passedRouteSamplePointCount = passedRouteSamplePointCount;
         this.destinationProjection = destinationProjection;
+        this.routeStartApproachProjection = routeStartApproachProjection;
         this.orientationCue = orientationCue;
     }
 }

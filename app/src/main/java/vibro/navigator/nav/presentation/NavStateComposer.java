@@ -185,6 +185,23 @@ public final class NavStateComposer {
     }
 
     @NonNull
+    public static NavState withGuidanceLines(
+            @NonNull NavState base,
+            @NonNull String nextLine,
+            @NonNull String afterNextLine
+    ) {
+        return new NavState(
+                new NavRouteStatus(
+                        new NavGuidanceStatus(nextLine, afterNextLine),
+                        base.routeStatus.progress,
+                        base.routeStatus.compassState
+                ),
+                base.gpsStatus,
+                base.pauseStatus
+        );
+    }
+
+    @NonNull
     public static NavState withPauseState(@NonNull Context context, @NonNull NavState base, boolean paused) {
         String detail = base.routeStatus.progress.detailBlock;
         if (paused) {

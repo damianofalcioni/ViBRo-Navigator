@@ -19,6 +19,8 @@ final class NavCompassProjectedPointsInput {
     @NonNull
     public final CompassDestinationProjection destinationProjection;
     @Nullable
+    public final CompassDestinationProjection routeStartApproachProjection;
+    @Nullable
     public final CompassOrientationCue orientationCue;
 
     NavCompassProjectedPointsInput(
@@ -41,12 +43,35 @@ final class NavCompassProjectedPointsInput {
             @NonNull CompassDestinationProjection destinationProjection,
             @Nullable CompassOrientationCue orientationCue
     ) {
+        this(
+                displayMetrics,
+                radiusMetrics,
+                passedRoutePoints,
+                routePoints,
+                hintPoints,
+                destinationProjection,
+                null,
+                orientationCue
+        );
+    }
+
+    NavCompassProjectedPointsInput(
+            @NonNull CompassDisplayMetrics displayMetrics,
+            @NonNull CompassRadiusMetrics radiusMetrics,
+            @NonNull List<CompassRoutePoint> passedRoutePoints,
+            @NonNull List<CompassRoutePoint> routePoints,
+            @NonNull List<CompassRoutePoint> hintPoints,
+            @NonNull CompassDestinationProjection destinationProjection,
+            @Nullable CompassDestinationProjection routeStartApproachProjection,
+            @Nullable CompassOrientationCue orientationCue
+    ) {
         this.displayMetrics = displayMetrics;
         this.radiusMetrics = radiusMetrics;
         this.passedRoutePoints = passedRoutePoints;
         this.routePoints = routePoints;
         this.hintPoints = hintPoints;
         this.destinationProjection = destinationProjection;
+        this.routeStartApproachProjection = routeStartApproachProjection;
         this.orientationCue = orientationCue;
     }
 }

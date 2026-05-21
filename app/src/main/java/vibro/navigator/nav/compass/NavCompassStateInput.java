@@ -5,6 +5,7 @@ import android.location.Location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -36,6 +37,8 @@ public final class NavCompassStateInput {
     public final CompassRadiusTransition radiusTransition;
     @Nullable
     public final CompassOrientationCue orientationCue;
+    @Nullable
+    public final LatLon routeStartApproachTarget;
     public final long nowMs;
 
     private NavCompassStateInput(@NonNull Builder builder) {
@@ -55,6 +58,7 @@ public final class NavCompassStateInput {
         routeGeometry = builder.routeGeometry;
         radiusTransition = builder.radiusTransition;
         orientationCue = builder.orientationCue;
+        routeStartApproachTarget = builder.routeStartApproachTarget;
         nowMs = builder.nowMs;
     }
 
@@ -94,6 +98,8 @@ public final class NavCompassStateInput {
         private CompassRadiusTransition radiusTransition;
         @Nullable
         private CompassOrientationCue orientationCue;
+        @Nullable
+        private LatLon routeStartApproachTarget;
         private long nowMs;
 
         private Builder(
@@ -160,6 +166,12 @@ public final class NavCompassStateInput {
         @NonNull
         public Builder orientationCue(@Nullable CompassOrientationCue orientationCue) {
             this.orientationCue = orientationCue;
+            return this;
+        }
+
+        @NonNull
+        public Builder routeStartApproachTarget(@Nullable LatLon routeStartApproachTarget) {
+            this.routeStartApproachTarget = routeStartApproachTarget;
             return this;
         }
 

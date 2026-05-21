@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import java.util.Collections;
 
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
@@ -22,6 +23,7 @@ final class NavigationRouteEvaluator {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS = 1_000L;
     private static final long REACQUISITION_FOLLOW_UP_INTERVAL_MS = 1_000L;
+    private static final long ROUTE_START_APPROACH_INTERVAL_MS = 1_000L;
 
     @NonNull
     private final NavigationRouteGeometryState geometryState;
@@ -37,6 +39,8 @@ final class NavigationRouteEvaluator {
     private final NavigationArrivalDetector arrivalDetector;
     @NonNull
     private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
+    @NonNull
+    private final RouteStartApproachState routeStartApproachState;
 
     NavigationRouteEvaluator(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -45,7 +49,8 @@ final class NavigationRouteEvaluator {
             @NonNull NavigationRouteDeviationHandler deviationHandler,
             @NonNull NavigationSessionRouteDisplayState displayState,
             @NonNull NavigationArrivalDetector arrivalDetector,
-            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker
+            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
+            @NonNull RouteStartApproachState routeStartApproachState
     ) {
         this.geometryState = geometryState;
         this.turnState = turnState;
@@ -54,6 +59,7 @@ final class NavigationRouteEvaluator {
         this.displayState = displayState;
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
+        this.routeStartApproachState = routeStartApproachState;
     }
 
     @NonNull
@@ -90,7 +96,6 @@ final class NavigationRouteEvaluator {
                     fastChecksUntilMs
             );
         }
-        geometryState.rememberSegment(match);
         return evaluateMatchedRoute(
                 filtered,
                 match,
@@ -114,10 +119,16 @@ final class NavigationRouteEvaluator {
             long nowMs,
             long fastChecksUntilMs
     ) {
-        double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
         double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
         float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
         displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
+        NavigationSessionRouteState.Evaluation routeStartApproach =
+                evaluateRouteStartApproachIfNeeded(filtered, match, speedMps, likelyStationary, trustedAccuracyMeters);
+        if (routeStartApproach != null) {
+            return routeStartApproach;
+        }
+        geometryState.rememberSegment(match);
+        double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
         float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
                 filtered,
                 match.alongTrackMeters,
@@ -179,6 +190,41 @@ final class NavigationRouteEvaluator {
 
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         return keepCurrentRoute(match, etaSpeedMps, nowMs, fastChecksUntilMs, true);
+    }
+
+    @Nullable
+    private NavigationSessionRouteState.Evaluation evaluateRouteStartApproachIfNeeded(
+            @NonNull Location filtered,
+            @NonNull PolylineIndex.Match match,
+            float speedMps,
+            boolean likelyStationary,
+            float trustedAccuracyMeters
+    ) {
+        if (!routeStartApproachState.isActive()) {
+            return null;
+        }
+        if (!routeStartApproachState.isReached(match, trustedAccuracyMeters)) {
+            deviationHandler.clearDeviationEvidence();
+            return NavigationSessionRouteState.Evaluation.keepRoute(
+                    Collections.emptyList(),
+                    ROUTE_START_APPROACH_INTERVAL_MS,
+                    false
+            );
+        }
+        routeStartApproachState.reset();
+        displayState.clearRouteStartApproachTarget();
+        geometryState.rememberSegment(match);
+        return NavigationSessionRouteState.Evaluation.keepRoute(
+                turnState.buildInitialTurnEventIfNeeded(
+                        geometryState.route(),
+                        geometryState.polylineIndex(),
+                        new LatLon(filtered.getLatitude(), filtered.getLongitude()),
+                        likelyStationary ? 0f : speedMps,
+                        trustedAccuracyMeters
+                ),
+                ROUTE_START_APPROACH_INTERVAL_MS,
+                true
+        );
     }
 
     @NonNull

@@ -40,6 +40,7 @@ public final class NavigationSessionRouteState {
     private final NavigationArrivalDetector arrivalDetector = new NavigationArrivalDetector(geometryState);
     private final NavigationIntermediateArrivalTracker intermediateArrivalTracker =
             new NavigationIntermediateArrivalTracker();
+    private final RouteStartApproachState routeStartApproachState = new RouteStartApproachState();
     private final NavigationRouteEvaluator routeEvaluator = new NavigationRouteEvaluator(
             geometryState,
             turnState,
@@ -47,7 +48,8 @@ public final class NavigationSessionRouteState {
             deviationHandler,
             displayState,
             arrivalDetector,
-            intermediateArrivalTracker
+            intermediateArrivalTracker,
+            routeStartApproachState
     );
     private final NavigationBlockedPointSelector blockedPointSelector = new NavigationBlockedPointSelector(
             geometryState,
@@ -60,7 +62,8 @@ public final class NavigationSessionRouteState {
             progressTracker,
             turnState,
             arrivalDetector,
-            intermediateArrivalTracker
+            intermediateArrivalTracker,
+            routeStartApproachState
     );
 
     public void reset() {
@@ -71,6 +74,7 @@ public final class NavigationSessionRouteState {
         blockedRouteState.reset();
         turnState.reset();
         intermediateArrivalTracker.reset();
+        routeStartApproachState.reset();
     }
 
     public boolean hasActiveRoute() {

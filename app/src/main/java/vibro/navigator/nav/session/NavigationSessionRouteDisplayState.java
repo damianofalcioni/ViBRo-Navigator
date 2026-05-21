@@ -6,6 +6,7 @@ import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.presentation.NavStateBuildInput;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.model.NavTarget;
@@ -20,6 +21,8 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.RouteStartApproach;
+import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,9 +34,12 @@ public final class NavigationSessionRouteDisplayState {
     private List<NavTarget> targets = new ArrayList<>();
     @NonNull
     private final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
+    @Nullable
+    private LatLon routeStartApproachTarget;
 
     public void reset() {
         targets = new ArrayList<>();
+        routeStartApproachTarget = null;
         compassMemory.reset();
     }
 
@@ -45,10 +51,16 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull Context context,
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops
+            @NonNull List<LatLon> intermediateStops,
+            @Nullable LatLon routeStartApproachTarget
     ) {
         compassMemory.onRouteApplied(route, polylineIndex, intermediateStops);
+        this.routeStartApproachTarget = copy(routeStartApproachTarget);
         targets = buildTargets(context, intermediateStops, route.track.size(), polylineIndex);
+    }
+
+    public void clearRouteStartApproachTarget() {
+        routeStartApproachTarget = null;
     }
 
     @NonNull
@@ -111,6 +123,7 @@ public final class NavigationSessionRouteDisplayState {
                         compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
                 )
                 .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
+                .routeStartApproachTarget(routeStartApproachTarget)
                 .orientationCue(orientationCue)
                 .nowMs(snapshot.nowMs)
                 .build();
@@ -132,6 +145,13 @@ public final class NavigationSessionRouteDisplayState {
                 .intermediateDestinationReachedTrackIndex(turnState.getIntermediateDestinationReachedTrackIndex())
                 .targets(targets)
                 .build());
+        if (routeStartApproachTarget != null) {
+            state = NavStateComposer.withGuidanceLines(
+                    state,
+                    buildRouteStartApproachLine(snapshot, routeStartApproachTarget),
+                    ""
+            );
+        }
         return withLastRouteFailureNotice(snapshot, state);
     }
 
@@ -267,6 +287,33 @@ public final class NavigationSessionRouteDisplayState {
             }
         }
         return lastTrackIndex;
+    }
+
+    @NonNull
+    private static String buildRouteStartApproachLine(
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @NonNull LatLon target
+    ) {
+        double distanceMeters = RouteStartApproach.distanceMeters(
+                new LatLon(snapshot.lastFiltered.getLatitude(), snapshot.lastFiltered.getLongitude()),
+                target
+        );
+        double timeSeconds = RouteStartApproach.estimateApproachTimeSeconds(
+                distanceMeters,
+                snapshot.speedMps,
+                snapshot.likelyStationary
+        );
+        return NavigationTextFormatter.formatTurnNotification(
+                snapshot.context,
+                new VoiceHint(0, RouteStartApproach.BEELINE_COMMAND, 0, 0.0, 0),
+                distanceMeters,
+                timeSeconds
+        );
+    }
+
+    @Nullable
+    private static LatLon copy(@Nullable LatLon point) {
+        return point == null ? null : new LatLon(point.lat, point.lon);
     }
 
 }

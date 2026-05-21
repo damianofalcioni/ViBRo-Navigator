@@ -220,7 +220,7 @@ public final class NavigationTurnState {
     }
 
     @NonNull
-    private List<NavigationTurnEvent> buildInitialTurnEventIfNeeded(
+    public List<NavigationTurnEvent> buildInitialTurnEventIfNeeded(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @Nullable LatLon lastFiltered,

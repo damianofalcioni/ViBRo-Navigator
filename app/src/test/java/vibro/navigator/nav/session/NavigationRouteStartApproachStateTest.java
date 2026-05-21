@@ -1,0 +1,157 @@
+package vibro.navigator.nav.session;
+
+import android.content.Context;
+import android.location.Location;
+
+import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import vibro.navigator.R;
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(RobolectricTestRunner.class)
+public class NavigationRouteStartApproachStateTest {
+    private static final String DESTINATION = "Destination";
+    private static final String TREKKING_PROFILE = "trekking";
+
+    @Test
+    public void routeStartApproachHoldsOriginalRouteUntilUserReachesRouteThreshold() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        );
+        Location requestedStart = location(0.0, 0.0, 1_000L);
+
+        List<NavigationTurnEvent> appliedEvents = state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                routeStartingAwayFromRequestedStart(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+        NavigationSessionRouteState.Evaluation approachEvaluation = state.evaluateLocation(
+                requestedStart,
+                1.4f,
+                3f,
+                90.0,
+                1_000L,
+                0L
+        );
+        NavState approachState = buildState(context, state, requestedStart, 1_000L);
+
+        assertTrue(appliedEvents.isEmpty());
+        assertFalse(approachEvaluation.shouldRecalculateRoute());
+        assertFalse(approachEvaluation.isStableOnRouteSample());
+        assertEquals(1_000L, approachEvaluation.getSuggestedUpdateIntervalMs());
+        assertTrue(approachState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_beeline)));
+        assertNotNull(approachState.routeStatus.compassState);
+        assertNotNull(approachState.routeStatus.compassState.routeStartApproachProjection);
+
+        Location routeStart = location(0.0, 0.001, 2_000L);
+        NavigationSessionRouteState.Evaluation reachedEvaluation = state.evaluateLocation(
+                routeStart,
+                1.4f,
+                3f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavState reachedState = buildState(context, state, routeStart, 2_000L);
+
+        assertFalse(reachedEvaluation.shouldRecalculateRoute());
+        assertTrue(reachedEvaluation.isStableOnRouteSample());
+        assertEquals(1, reachedEvaluation.turnEvents.size());
+        assertFalse(reachedState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_beeline)));
+        assertNotNull(reachedState.routeStatus.compassState);
+        assertNull(reachedState.routeStatus.compassState.routeStartApproachProjection);
+    }
+
+    @NonNull
+    private static NavState buildState(
+            @NonNull Context context,
+            @NonNull NavigationSessionRouteState state,
+            @NonNull Location location,
+            long nowMs
+    ) {
+        return state.buildState(
+                context,
+                location,
+                1.4f,
+                false,
+                3f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                nowMs,
+                false,
+                null,
+                null
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute routeStartingAwayFromRequestedStart() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002),
+                        new LatLon(0.0, 0.003)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                120.0,
+                222.0
+        );
+    }
+
+    @NonNull
+    private static NavigationRouteRequestSnapshot snapshot(
+            @NonNull NavigationRequest request,
+            @NonNull LatLon start
+    ) {
+        return new NavigationRouteRequestSnapshot(
+                1,
+                1,
+                start,
+                request.stops,
+                request.destination,
+                request.profile,
+                Collections.emptyList()
+        );
+    }
+
+    @NonNull
+    private static Location location(double lat, double lon, long timeMs) {
+        Location location = new Location("gps");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(3f);
+        return location;
+    }
+}

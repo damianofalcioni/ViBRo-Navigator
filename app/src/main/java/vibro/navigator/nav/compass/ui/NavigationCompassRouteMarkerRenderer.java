@@ -249,7 +249,6 @@ final class NavigationCompassRouteMarkerRenderer {
         }
     }
 
-
     private void drawLegacyHintMarkers(
             @NonNull Canvas canvas,
             @NonNull NavCompassState state,

@@ -28,6 +28,8 @@ final class NavigationCompassRouteRenderer {
     private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final NavigationCompassRouteMarkerRenderer markerRenderer = new NavigationCompassRouteMarkerRenderer();
+    private final NavigationCompassRouteStartApproachRenderer routeStartApproachRenderer =
+            new NavigationCompassRouteStartApproachRenderer();
     private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
     private boolean initialized;
 
@@ -45,6 +47,7 @@ final class NavigationCompassRouteRenderer {
         drawRoute(canvas, context, state, cx, cy, routeRadius, headingDegrees);
         markerRenderer.drawStartPoint(canvas, context, state, cx, cy, routeRadius, headingDegrees);
         markerRenderer.drawHintMarkers(canvas, context, state, cx, cy, routeRadius, headingDegrees);
+        routeStartApproachRenderer.draw(canvas, context, state, cx, cy, routeRadius, headingDegrees);
     }
 
     void drawDestinationPoint(

@@ -102,6 +102,7 @@ public final class NavCompassStateFactory {
                 input.routeGeometry,
                 input.radiusTransition,
                 input.orientationCue,
+                input.routeStartApproachTarget,
                 input.nowMs
         );
     }
@@ -141,6 +142,7 @@ public final class NavCompassStateFactory {
                 compassRouteGeometry,
                 compassRadiusTransition,
                 null,
+                null,
                 nowMs
         );
     }
@@ -163,6 +165,7 @@ public final class NavCompassStateFactory {
             @Nullable CompassRouteGeometry compassRouteGeometry,
             @Nullable CompassRadiusTransition compassRadiusTransition,
             @Nullable CompassOrientationCue orientationCue,
+            @Nullable LatLon routeStartApproachTarget,
             long nowMs
     ) {
         if (route.track.isEmpty()) {
@@ -179,9 +182,21 @@ public final class NavCompassStateFactory {
         float destinationEastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, routeEndPoint.lat, routeEndPoint.lon);
         float destinationNorthMeters = (float) GeoMath.northMeters(currentLat, routeEndPoint.lat);
         double destinationDistanceMeters = Math.hypot(destinationEastMeters, destinationNorthMeters);
+        float routeThresholdMeters =
+                (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
+        CompassDestinationProjection routeStartApproachProjection = CompassRouteStartApproachProjectionFactory.resolve(
+                currentLat,
+                currentLon,
+                routeStartApproachTarget,
+                routeThresholdMeters
+        );
         double furthestDistanceMeters = Math.max(
                 resolveFurthestRouteSampleDistanceMeters(routeGeometry, currentLat, currentLon),
                 destinationDistanceMeters
+        );
+        furthestDistanceMeters = CompassRouteStartApproachProjectionFactory.extendFurthestDistance(
+                furthestDistanceMeters,
+                routeStartApproachProjection
         );
         CompassRadiusResolver.State radiusState = CompassRadiusResolver.resolve(
                 furthestDistanceMeters,
@@ -201,8 +216,6 @@ public final class NavCompassStateFactory {
         float referenceSpeedMps = radiusState.usingMovingScale
                 ? CompassRadiusResolver.movingLegendReferenceSpeedMps(radiusState.visibleRadiusMeters)
                 : fullRouteReferenceSpeedMps;
-        float routeThresholdMeters =
-                (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return NavCompassState.fromRouteGeometry(new NavCompassRouteGeometryInput(
                 new CompassDisplayMetrics(
@@ -230,6 +243,7 @@ public final class NavCompassStateFactory {
                         destinationReachedRadiusMeters,
                         destinationDistanceMeters <= radiusState.visibleRadiusMeters
                 ),
+                routeStartApproachProjection,
                 orientationCue
         ));
     }
