@@ -47,6 +47,70 @@ public class NavigationDisplayHeadingTest {
     }
 
     @Test
+    public void headingAccuracyDegreesUsesFreshLegacyOrientationLowAccuracyAsVeto() {
+        GeomagneticOrientationMonitor.Sample sample = sample(
+                45.0,
+                3.0,
+                SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                SensorManager.SENSOR_STATUS_ACCURACY_LOW,
+                1_050L,
+                1_000L
+        );
+
+        Float headingAccuracyDegrees = NavigationDisplayHeading.headingAccuracyDegrees(sample, true, 1_100L);
+
+        assertEquals(35f, headingAccuracyDegrees, 0.001f);
+    }
+
+    @Test
+    public void headingAccuracyDegreesTreatsFreshLegacyOrientationUnreliableAsExplicitPoorAccuracy() {
+        GeomagneticOrientationMonitor.Sample sample = sample(
+                45.0,
+                3.0,
+                SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                SensorManager.SENSOR_STATUS_UNRELIABLE,
+                1_050L,
+                1_000L
+        );
+
+        Float headingAccuracyDegrees = NavigationDisplayHeading.headingAccuracyDegrees(sample, true, 1_100L);
+
+        assertEquals(90f, headingAccuracyDegrees, 0.001f);
+    }
+
+    @Test
+    public void headingAccuracyDegreesIgnoresStaleLegacyOrientationAccuracy() {
+        GeomagneticOrientationMonitor.Sample sample = sample(
+                45.0,
+                3.0,
+                SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                SensorManager.SENSOR_STATUS_ACCURACY_LOW,
+                1_000L,
+                6_000L
+        );
+
+        Float headingAccuracyDegrees = NavigationDisplayHeading.headingAccuracyDegrees(sample, true, 6_100L);
+
+        assertEquals(3f, headingAccuracyDegrees, 0.001f);
+    }
+
+    @Test
+    public void headingAccuracyDegreesKeepsExplicitAccuracyWhenLegacyOrientationIsHigh() {
+        GeomagneticOrientationMonitor.Sample sample = sample(
+                45.0,
+                3.0,
+                SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                1_050L,
+                1_000L
+        );
+
+        Float headingAccuracyDegrees = NavigationDisplayHeading.headingAccuracyDegrees(sample, true, 1_100L);
+
+        assertEquals(3f, headingAccuracyDegrees, 0.001f);
+    }
+
+    @Test
     public void headingAccuracyDegreesMapsSensorStatusFallbacks() {
         assertEquals(10f, NavigationDisplayHeading.headingAccuracyDegrees(
                 sample(45.0, null, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 1_000L),
@@ -81,6 +145,26 @@ public class NavigationDisplayHeadingTest {
                 0.0,
                 0.0,
                 accuracy,
+                headingAccuracyDegrees,
+                elapsedRealtimeMs
+        );
+    }
+
+    private static GeomagneticOrientationMonitor.Sample sample(
+            double headingDegrees,
+            Double headingAccuracyDegrees,
+            int accuracy,
+            int legacyOrientationAccuracy,
+            long legacyOrientationAccuracyElapsedRealtimeMs,
+            long elapsedRealtimeMs
+    ) {
+        return new GeomagneticOrientationMonitor.Sample(
+                headingDegrees,
+                0.0,
+                0.0,
+                accuracy,
+                legacyOrientationAccuracy,
+                legacyOrientationAccuracyElapsedRealtimeMs,
                 headingAccuracyDegrees,
                 elapsedRealtimeMs
         );

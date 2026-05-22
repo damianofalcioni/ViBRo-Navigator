@@ -114,6 +114,52 @@ public class StationaryOrientationAdvisorTest {
     }
 
     @Test
+    public void evaluate_waitsWhenFreshLegacyOrientationAccuracyIsTooLow() {
+        StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
+                0.0f,
+                1_000L,
+                90.0,
+                sample(
+                        20.0,
+                        0.0,
+                        0.0,
+                        SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                        SensorManager.SENSOR_STATUS_ACCURACY_LOW,
+                        5_500L,
+                        3.0,
+                        5_500L
+                ),
+                6_000L
+        );
+
+        assertEquals(StationaryOrientationAdvisor.Outcome.WAITING_FOR_CALIBRATION, evaluation.outcome);
+        assertNull(evaluation.decision);
+    }
+
+    @Test
+    public void evaluate_ignoresStaleLegacyOrientationAccuracy() {
+        StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
+                0.0f,
+                1_000L,
+                90.0,
+                sample(
+                        20.0,
+                        0.0,
+                        0.0,
+                        SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                        SensorManager.SENSOR_STATUS_ACCURACY_LOW,
+                        500L,
+                        3.0,
+                        5_500L
+                ),
+                6_000L
+        );
+
+        assertEquals(StationaryOrientationAdvisor.Outcome.NOTIFY, evaluation.outcome);
+        assertNotNull(evaluation.decision);
+    }
+
+    @Test
     public void evaluate_fallsBackToCalibrationStatusWhenHeadingAccuracyEstimateIsUnavailable() {
         StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
                 0.0f,
@@ -140,6 +186,28 @@ public class StationaryOrientationAdvisorTest {
                 pitchDegrees,
                 rollDegrees,
                 accuracy,
+                headingAccuracyDegrees,
+                elapsedRealtimeMs
+        );
+    }
+
+    private static GeomagneticOrientationMonitor.Sample sample(
+            double headingDegrees,
+            double pitchDegrees,
+            double rollDegrees,
+            int accuracy,
+            int legacyOrientationAccuracy,
+            long legacyOrientationAccuracyElapsedRealtimeMs,
+            Double headingAccuracyDegrees,
+            long elapsedRealtimeMs
+    ) {
+        return new GeomagneticOrientationMonitor.Sample(
+                headingDegrees,
+                pitchDegrees,
+                rollDegrees,
+                accuracy,
+                legacyOrientationAccuracy,
+                legacyOrientationAccuracyElapsedRealtimeMs,
                 headingAccuracyDegrees,
                 elapsedRealtimeMs
         );

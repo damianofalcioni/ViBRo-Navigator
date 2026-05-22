@@ -91,7 +91,7 @@ public final class StationaryOrientationAdvisor {
         if (absoluteTurnDegrees < MIN_NOTIFICATION_TURN_DEGREES) {
             return Evaluation.of(Outcome.ALIGNED);
         }
-        if (!hasReliableAccuracy(sample, absoluteTurnDegrees)) {
+        if (!hasReliableAccuracy(sample, absoluteTurnDegrees, nowElapsedRealtimeMs)) {
             return Evaluation.of(Outcome.WAITING_FOR_CALIBRATION);
         }
         return Evaluation.notify(new Decision(signedTurnDegrees));
@@ -114,10 +114,15 @@ public final class StationaryOrientationAdvisor {
 
     private static boolean hasReliableAccuracy(
             @NonNull GeomagneticOrientationMonitor.Sample sample,
-            double absoluteTurnDegrees
+            double absoluteTurnDegrees,
+            long nowElapsedRealtimeMs
     ) {
-        return sample.isAccuracyHighEnough()
-                && sample.isHeadingAccuracyHighEnough(absoluteTurnDegrees, MIN_NOTIFICATION_TURN_DEGREES);
+        return sample.isAccuracyHighEnough(nowElapsedRealtimeMs)
+                && sample.isHeadingAccuracyHighEnough(
+                        absoluteTurnDegrees,
+                        MIN_NOTIFICATION_TURN_DEGREES,
+                        nowElapsedRealtimeMs
+                );
     }
 
     private static double normalizeSignedDegrees(double degrees) {

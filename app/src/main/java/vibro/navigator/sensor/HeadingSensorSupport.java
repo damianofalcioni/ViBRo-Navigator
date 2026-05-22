@@ -40,8 +40,22 @@ public final class HeadingSensorSupport {
         return sensorManager.getDefaultSensor(sensorType);
     }
 
+    @Nullable
+    public static Sensor findLegacyOrientationSensor(@Nullable SensorManager sensorManager) {
+        return sensorManager == null ? null : sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+    }
+
     public static boolean matchesSelectedSensor(@Nullable Sensor selectedSensor, int eventSensorType) {
         return selectedSensor != null && selectedSensor.getType() == eventSensorType;
+    }
+
+    public static boolean matchesLegacyOrientationSensor(
+            @Nullable Sensor legacyOrientationSensor,
+            int eventSensorType
+    ) {
+        return legacyOrientationSensor != null
+                && eventSensorType == Sensor.TYPE_ORIENTATION
+                && legacyOrientationSensor.getType() == eventSensorType;
     }
 
     @StringRes

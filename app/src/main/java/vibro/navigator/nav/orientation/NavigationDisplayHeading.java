@@ -1,6 +1,5 @@
 package vibro.navigator.nav.orientation;
 
-import android.hardware.SensorManager;
 import android.view.Surface;
 
 import androidx.annotation.Nullable;
@@ -32,7 +31,10 @@ public final class NavigationDisplayHeading {
             long nowElapsedRealtimeMs
     ) {
         GeomagneticOrientationMonitor.Sample freshSample = freshSample(sample, monitoringActive, nowElapsedRealtimeMs);
-        return freshSample == null ? null : accuracyDegrees(freshSample);
+        Double headingAccuracyDegrees = freshSample == null
+                ? null
+                : freshSample.effectiveHeadingAccuracyDegrees(nowElapsedRealtimeMs);
+        return headingAccuracyDegrees == null ? null : headingAccuracyDegrees.floatValue();
     }
 
     public static double remapDegreesForDisplayRotation(double headingDegrees, int displayRotation) {
@@ -51,24 +53,6 @@ public final class NavigationDisplayHeading {
             return null;
         }
         return nowElapsedRealtimeMs - sample.elapsedRealtimeMs > MAX_SAMPLE_AGE_MS ? null : sample;
-    }
-
-    @Nullable
-    private static Float accuracyDegrees(GeomagneticOrientationMonitor.Sample sample) {
-        if (sample.headingAccuracyDegrees != null) {
-            return sample.headingAccuracyDegrees.floatValue();
-        }
-        switch (sample.accuracy) {
-            case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
-                return 10f;
-            case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
-                return 20f;
-            case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
-                return 35f;
-            case SensorManager.SENSOR_STATUS_UNRELIABLE:
-            default:
-                return null;
-        }
     }
 
     private static double rotationOffsetDegrees(int displayRotation) {
