@@ -1,21 +1,19 @@
 package vibro.navigator.nav.format;
 
 
-import vibro.navigator.nav.location.NavigationGpsTextFormatter;
-import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.R;
-import vibro.navigator.nav.directions.DirectionInfo;
-import vibro.navigator.nav.directions.VoiceHintMapper;
-import vibro.navigator.nav.route.VoiceHint;
-
 import java.util.Calendar;
 import java.util.Locale;
+
+import vibro.navigator.nav.directions.DirectionInfo;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.location.NavigationGpsTextFormatter;
+import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
+import vibro.navigator.nav.route.VoiceHint;
 
 public final class NavigationTextFormatter {
 
@@ -29,24 +27,11 @@ public final class NavigationTextFormatter {
             double distanceMeters,
             double timeSeconds
     ) {
-        DirectionInfo direction = VoiceHintMapper.toDirection(hint);
-        String directionText = direction.exitNumber > 0
-                ? context.getString(direction.labelRes, direction.exitNumber)
-                : context.getString(direction.labelRes);
-        if (isReachedArrival(hint) && distanceMeters <= 0.0 && timeSeconds <= 0.0) {
-            return String.format(
-                    Locale.getDefault(),
-                    "%s %s",
-                    formatDirectionSymbol(direction),
-                    directionText
-            );
-        }
-        return context.getString(
-                R.string.format_turn_notification,
-                formatDirectionSymbol(direction),
-                formatDistance(context, distanceMeters),
-                formatTimeSeconds(context, timeSeconds),
-                directionText
+        return NavigationTextFormatterRules.formatTurnNotification(
+                new AndroidNavigationTextResources(context),
+                hint,
+                distanceMeters,
+                timeSeconds
         );
     }
 
@@ -63,24 +48,10 @@ public final class NavigationTextFormatter {
             @NonNull Context context,
             @NonNull NavigationRerouteNotice rerouteNotice
     ) {
-        switch (rerouteNotice.reason) {
-            case OFF_TRACK:
-                return context.getString(
-                        R.string.format_off_route_off_track_notification,
-                        formatDistance(context, rerouteNotice.distanceToTrackMeters),
-                        formatDistance(context, rerouteNotice.offTrackThresholdMeters)
-                );
-            case BEARING_MISMATCH:
-                return context.getString(
-                        R.string.format_off_route_bearing_notification,
-                        formatBearingDegrees(context, rerouteNotice.bearingDiffDegrees),
-                        formatBearingDegrees(context, rerouteNotice.expectedBearingDegrees),
-                        formatBearingDegrees(context, rerouteNotice.actualBearingDegrees)
-                );
-            case NONE:
-            default:
-                return context.getString(R.string.notification_off_route_title);
-        }
+        return NavigationTextFormatterRules.formatOffRouteNotification(
+                new AndroidNavigationTextResources(context),
+                rerouteNotice
+        );
     }
 
     @NonNull
@@ -88,12 +59,9 @@ public final class NavigationTextFormatter {
             @NonNull Context context,
             @NonNull StationaryOrientationAdvisor.Decision decision
     ) {
-        return context.getString(
-                R.string.format_startup_orientation_notification,
-                formatBearingDegrees(context, decision.absoluteTurnDegrees()),
-                context.getString(decision.turnRight()
-                        ? R.string.direction_side_right
-                        : R.string.direction_side_left)
+        return NavigationTextFormatterRules.formatStationaryOrientationNotification(
+                new AndroidNavigationTextResources(context),
+                decision
         );
     }
 
@@ -104,25 +72,25 @@ public final class NavigationTextFormatter {
 
     @NonNull
     public static String formatTimeSeconds(@NonNull Context context, int seconds) {
-        if (seconds >= 60) {
-            return context.getString(R.string.format_time_min, (int) Math.round(seconds / 60.0));
-        }
-        return context.getString(R.string.format_time_s, Math.max(0, seconds));
+        return NavigationTextFormatterRules.formatTimeSeconds(
+                new AndroidNavigationTextResources(context),
+                seconds
+        );
     }
 
     @NonNull
     public static String formatTimeSeconds(@NonNull Context context, double seconds) {
-        if (!Double.isFinite(seconds) || seconds < 0.0) {
-            return context.getString(R.string.nav_status_unavailable);
-        }
-        return formatTimeSeconds(context, (int) Math.round(seconds));
+        return NavigationTextFormatterRules.formatTimeSeconds(
+                new AndroidNavigationTextResources(context),
+                seconds
+        );
     }
 
     @NonNull
     public static String formatBearingDegrees(@NonNull Context context, @Nullable Double degrees) {
-        return context.getString(
-                R.string.format_bearing_degrees,
-                degrees == null ? 0.0 : degrees
+        return NavigationTextFormatterRules.formatBearingDegrees(
+                new AndroidNavigationTextResources(context),
+                degrees
         );
     }
 
@@ -147,11 +115,6 @@ public final class NavigationTextFormatter {
                 fixedSatelliteCount,
                 acquiredFixCount
         );
-    }
-
-    private static boolean isReachedArrival(@NonNull VoiceHint hint) {
-        return hint.command == NavArrivalHintFactory.ARRIVAL_COMMAND
-                || hint.command == NavArrivalHintFactory.INTERMEDIATE_ARRIVAL_COMMAND;
     }
 
     @NonNull

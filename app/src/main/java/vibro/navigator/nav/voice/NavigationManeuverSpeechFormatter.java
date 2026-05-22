@@ -7,6 +7,8 @@ import androidx.annotation.NonNull;
 import java.util.Locale;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.route.VoiceHint;
@@ -24,35 +26,50 @@ public final class NavigationManeuverSpeechFormatter {
             @NonNull VoiceHint hint,
             double timeSeconds
     ) {
-        DirectionInfo direction = VoiceHintMapper.toDirection(hint);
-        String directionText = firstCharLowercase(formatDirectionText(context, direction));
-        if (isReachedArrival(hint) && timeSeconds <= 0.0) {
-            return directionText;
-        }
-        String timeText = formatTimeSecondsForSpeech(context, timeSeconds);
-        if (timeText.isEmpty()) {
-            return "";
-        }
-        return context.getString(R.string.format_turn_speech, timeText, directionText);
+        return formatTurnSpeech(new AndroidNavigationTextResources(context), hint, timeSeconds);
     }
 
     @NonNull
-    private static String formatTimeSecondsForSpeech(@NonNull Context context, double seconds) {
+    static String formatTurnSpeech(
+            @NonNull NavigationTextResources resources,
+            @NonNull VoiceHint hint,
+            double timeSeconds
+    ) {
+        DirectionInfo direction = VoiceHintMapper.toDirection(hint);
+        String directionText = firstCharLowercase(formatDirectionText(resources, direction));
+        if (isReachedArrival(hint) && timeSeconds <= 0.0) {
+            return directionText;
+        }
+        String timeText = formatTimeSecondsForSpeech(resources, timeSeconds);
+        if (timeText.isEmpty()) {
+            return "";
+        }
+        return resources.getString(R.string.format_turn_speech, timeText, directionText);
+    }
+
+    @NonNull
+    private static String formatTimeSecondsForSpeech(@NonNull NavigationTextResources resources, double seconds) {
         if (!Double.isFinite(seconds) || seconds < 0.0) {
             return "";
         }
         int roundedSeconds = Math.max(0, (int) Math.round(seconds));
         if (roundedSeconds >= 60) {
-            return context.getString(R.string.format_time_speech_min, (int) Math.round(roundedSeconds / 60.0));
+            return resources.getString(
+                    R.string.format_time_speech_min,
+                    (int) Math.round(roundedSeconds / 60.0)
+            );
         }
-        return context.getString(R.string.format_time_speech_s, roundedSeconds);
+        return resources.getString(R.string.format_time_speech_s, roundedSeconds);
     }
 
     @NonNull
-    private static String formatDirectionText(@NonNull Context context, @NonNull DirectionInfo direction) {
+    private static String formatDirectionText(
+            @NonNull NavigationTextResources resources,
+            @NonNull DirectionInfo direction
+    ) {
         return direction.exitNumber > 0
-                ? context.getString(direction.labelRes, direction.exitNumber)
-                : context.getString(direction.labelRes);
+                ? resources.getString(direction.labelRes, direction.exitNumber)
+                : resources.getString(direction.labelRes);
     }
 
     @NonNull

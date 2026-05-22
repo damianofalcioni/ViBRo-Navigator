@@ -1,0 +1,122 @@
+package vibro.navigator.nav.format;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.StringRes;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import vibro.navigator.R;
+
+public final class TestNavigationTextResources implements NavigationTextResources {
+    private static final Map<Integer, String> STRINGS = buildStrings();
+
+    private final boolean imperialUnitsEnabled;
+
+    private TestNavigationTextResources(boolean imperialUnitsEnabled) {
+        this.imperialUnitsEnabled = imperialUnitsEnabled;
+    }
+
+    @NonNull
+    public static TestNavigationTextResources metric() {
+        return new TestNavigationTextResources(false);
+    }
+
+    @NonNull
+    public static TestNavigationTextResources imperial() {
+        return new TestNavigationTextResources(true);
+    }
+
+    @NonNull
+    @Override
+    public String getString(@StringRes int resId, Object... formatArgs) {
+        String pattern = STRINGS.get(resId);
+        if (pattern == null) {
+            throw new IllegalArgumentException("Unhandled test string resource: " + resId);
+        }
+        return formatArgs.length == 0 ? pattern : String.format(Locale.US, pattern, formatArgs);
+    }
+
+    @Override
+    public boolean isImperialUnitsEnabled() {
+        return imperialUnitsEnabled;
+    }
+
+    @NonNull
+    private static Map<Integer, String> buildStrings() {
+        Map<Integer, String> strings = new HashMap<>();
+        addDirectionStrings(strings);
+        addMeasurementStrings(strings);
+        addNavigationStatusStrings(strings);
+        return strings;
+    }
+
+    private static void addDirectionStrings(@NonNull Map<Integer, String> strings) {
+        strings.put(R.string.direction_continue, "Continue");
+        strings.put(R.string.direction_keep_left, "Keep left");
+        strings.put(R.string.direction_keep_right, "Keep right");
+        strings.put(R.string.direction_turn_left, "Turn left");
+        strings.put(R.string.direction_turn_right, "Turn right");
+        strings.put(R.string.direction_slight_left, "Slight left");
+        strings.put(R.string.direction_slight_right, "Slight right");
+        strings.put(R.string.direction_sharp_left, "Sharp left");
+        strings.put(R.string.direction_sharp_right, "Sharp right");
+        strings.put(R.string.direction_uturn_left, "U-turn left");
+        strings.put(R.string.direction_uturn, "U-turn");
+        strings.put(R.string.direction_uturn_right, "U-turn right");
+        strings.put(R.string.direction_roundabout_exit, "Roundabout, exit %1$d");
+        strings.put(R.string.direction_roundabout_exit_left, "Roundabout, exit %1$d");
+        strings.put(R.string.direction_beeline, "Beeline");
+        strings.put(R.string.direction_exit_left, "Exit left");
+        strings.put(R.string.direction_exit_right, "Exit right");
+        strings.put(R.string.direction_offroute, "Off route");
+        strings.put(R.string.direction_arrive, "Destination reached");
+        strings.put(R.string.direction_intermediate_arrive, "Intermediate destination reached");
+        strings.put(R.string.direction_unknown, "Unknown direction");
+        strings.put(R.string.direction_side_left, "left");
+        strings.put(R.string.direction_side_right, "right");
+    }
+
+    private static void addMeasurementStrings(@NonNull Map<Integer, String> strings) {
+        strings.put(R.string.format_distance_m, "%1$.0f m");
+        strings.put(R.string.format_distance_km, "%1$.1f km");
+        strings.put(R.string.format_distance_ft, "%1$.0f ft");
+        strings.put(R.string.format_distance_mi, "%1$.1f mi");
+        strings.put(R.string.format_bearing_degrees, "%1$.0f°");
+        strings.put(R.string.format_time_s, "%1$d s");
+        strings.put(R.string.format_time_min, "%1$d min");
+        strings.put(R.string.format_nav_speed_value, "%1$.0f km/h");
+        strings.put(R.string.format_nav_speed_mph_value, "%1$.0f mph");
+        strings.put(R.string.format_nav_elevation_value, "%1$.0f m");
+        strings.put(R.string.format_nav_elevation_ft_value, "%1$.0f ft");
+        strings.put(R.string.format_nav_accuracy_value, "±%1$.0f m");
+        strings.put(R.string.format_nav_accuracy_ft_value, "±%1$.0f ft");
+        strings.put(R.string.format_nav_bearing_value, "%1$.0f°");
+        strings.put(R.string.format_nav_bearing_accuracy_value, "%1$.0f°");
+        strings.put(R.string.format_nav_satellite_count_value, "%1$d");
+        strings.put(R.string.format_nav_fix_count_value, "#%1$d");
+        strings.put(R.string.format_nav_gps_status, "%1$s ↑%2$s %3$s • %4$s %5$s • (%6$s) %7$s");
+    }
+
+    private static void addNavigationStatusStrings(@NonNull Map<Integer, String> strings) {
+        strings.put(R.string.nav_status_unavailable, "--");
+        strings.put(R.string.notification_off_route_title, "Off route");
+        strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
+        strings.put(R.string.format_turn_speech, "%1$s %2$s");
+        strings.put(R.string.format_time_speech_s, "%1$ds");
+        strings.put(R.string.format_time_speech_min, "%1$dmin");
+        strings.put(
+                R.string.format_off_route_off_track_notification,
+                "Off-track detected. Distance %1$s, threshold %2$s. Recalculating route."
+        );
+        strings.put(
+                R.string.format_off_route_bearing_notification,
+                "Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route."
+        );
+        strings.put(
+                R.string.format_startup_orientation_notification,
+                "Turn yourself %1$s %2$s to face the route."
+        );
+    }
+}
