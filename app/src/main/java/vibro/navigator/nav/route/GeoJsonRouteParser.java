@@ -49,6 +49,7 @@ public final class GeoJsonRouteParser {
                 parseTrack(trackFeature.optJSONObject("geometry")),
                 parseVoiceHints(props),
                 parseTimes(props != null ? props.optJSONArray("times") : null),
+                GeoJsonRouteSpeedLimitParser.parse(props != null ? props.optJSONArray("messages") : null),
                 parseDouble(routeMetric(props, "total-time")),
                 parseDouble(routeMetric(props, "track-length"))
         );

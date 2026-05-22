@@ -189,6 +189,7 @@ The implementation must use BRouter integration compatible with these references
 - The app must request BRouter GeoJSON output using the Android-service parameters that produce a GeoJSON `FeatureCollection`
 - The app must request BRouter native turn-instruction mode `9` so GeoJSON `voicehints` preserve distinct exit-left, exit-right, and beeline commands
 - When BRouter includes per-track GeoJSON `times`, the app must parse and retain them as route timing metadata that can be reused for maneuver-time estimation when live speed is not yet trustworthy or not yet available
+- When BRouter includes GeoJSON `messages` rows with a `maxspeed` value in `WayTags`, the app should parse those rows as route speed-limit sections and display the current section's speed limit during active navigation
 - When BRouter snaps the requested start to a routable network point outside the current off-track threshold, the app should keep BRouter's original route geometry for route matching and treat the snapped route start as a beeline approach target using command `16`; while that approach target is active, off-track rerouting must remain suppressed so the user may reach the original route corridor by any path, and normal route-following guidance should begin only after the user is inside the original route threshold
 
 #### 4.4 Navigation update loop

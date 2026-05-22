@@ -3,6 +3,7 @@ package vibro.navigator.nav.route;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class GeoJsonRouteParserTest {
 
@@ -36,5 +37,42 @@ public class GeoJsonRouteParserTest {
         assertEquals(-10, route.voiceHints.get(0).angleDegrees);
         assertEquals(6, route.timesSeconds.size());
         assertEquals(300.0, route.timesSeconds.get(5), 0.0);
+    }
+
+    @Test
+    public void parsesSpeedLimitSegmentsFromMessagesWayTags() {
+        String geoJson = "{"
+                + "\"type\":\"FeatureCollection\","
+                + "\"features\":[{"
+                + "\"type\":\"Feature\","
+                + "\"properties\":{"
+                + "\"messages\":["
+                + "[\"Longitude\",\"Latitude\",\"Elevation\",\"Distance\",\"CostPerKm\",\"ElevCost\","
+                + "\"TurnCost\",\"NodeCost\",\"InitialCost\",\"WayTags\",\"NodeTags\",\"Time\",\"Energy\"],"
+                + "[\"0\",\"0\",\"0\",\"50\",\"0\",\"0\",\"0\",\"0\",\"0\","
+                + "\"highway=residential surface=asphalt maxspeed=30\",\"\",\"0\",\"0\"],"
+                + "[\"0\",\"0\",\"0\",\"75\",\"0\",\"0\",\"0\",\"0\",\"0\","
+                + "\"highway=primary maxspeed=50 mph\",\"\",\"0\",\"0\"],"
+                + "[\"0\",\"0\",\"0\",\"25\",\"0\",\"0\",\"0\",\"0\",\"0\","
+                + "\"highway=service surface=paved\",\"\",\"0\",\"0\"]"
+                + "]"
+                + "},"
+                + "\"geometry\":{"
+                + "\"type\":\"LineString\","
+                + "\"coordinates\":[[16.0,48.0],[16.001,48.0],[16.002,48.0]]"
+                + "}"
+                + "}]"
+                + "}";
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(2, route.speedLimitSegments.size());
+        assertEquals(0.0, route.speedLimitSegments.get(0).startMeters, 0.0);
+        assertEquals(50.0, route.speedLimitSegments.get(0).endMeters, 0.0);
+        assertEquals(30, route.speedLimitSegments.get(0).speedLimit.value);
+        assertEquals(RouteSpeedLimit.Unit.KILOMETERS_PER_HOUR, route.speedLimitAt(10.0).unit);
+        assertEquals(50, route.speedLimitAt(60.0).value);
+        assertEquals(RouteSpeedLimit.Unit.MILES_PER_HOUR, route.speedLimitAt(60.0).unit);
+        assertNull(route.speedLimitAt(140.0));
     }
 }

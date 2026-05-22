@@ -5,10 +5,12 @@ import vibro.navigator.nav.compass.ui.NavigationCompassView;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
+import vibro.navigator.nav.route.RouteSpeedLimit;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.SystemClock;
@@ -16,6 +18,7 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.util.TypedValue;
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -54,6 +57,7 @@ final class NavigationActivityRenderer {
     private final TextView destination;
     private final NavigationCompassView compass;
     private final TextView gpsStatus;
+    private final TextView speedLimit;
     private final ImageButton blocked;
     private final ImageButton export;
     private final ImageButton pauseResume;
@@ -72,6 +76,7 @@ final class NavigationActivityRenderer {
         destination = activity.findViewById(R.id.destinationText);
         compass = activity.findViewById(R.id.navigationCompassView);
         gpsStatus = activity.findViewById(R.id.gpsStatusText);
+        speedLimit = activity.findViewById(R.id.speedLimitText);
         blocked = activity.findViewById(R.id.blockedRoadButton);
         export = activity.findViewById(R.id.exportRouteButton);
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
@@ -96,6 +101,7 @@ final class NavigationActivityRenderer {
         afterNext.setText(state.routeStatus.guidance.afterNextLine);
         destination.setText(state.routeStatus.displayStatusBlock());
         renderCompassState();
+        renderSpeedLimit(state.routeStatus.speedLimit);
         blocked.setEnabled(!state.pauseStatus.paused);
         export.setEnabled(navBinder != null);
         pauseResume.setEnabled(navBinder != null);
@@ -160,6 +166,13 @@ final class NavigationActivityRenderer {
                 1,
                 TypedValue.COMPLEX_UNIT_SP
         );
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
+                speedLimit,
+                10,
+                16,
+                1,
+                TypedValue.COMPLEX_UNIT_SP
+        );
     }
 
     private void renderCompassState() {
@@ -170,6 +183,20 @@ final class NavigationActivityRenderer {
         if (compassModeController.isTransitionInProgress()) {
             uiHandler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
         }
+    }
+
+    private void renderSpeedLimit(@Nullable RouteSpeedLimit routeSpeedLimit) {
+        if (routeSpeedLimit == null) {
+            speedLimit.setVisibility(View.GONE);
+            speedLimit.setText("");
+            speedLimit.setContentDescription(null);
+            return;
+        }
+        speedLimit.setText(NavigationSpeedLimitFormatter.formatBadge(routeSpeedLimit));
+        speedLimit.setContentDescription(
+                NavigationSpeedLimitFormatter.formatContentDescription(activity, routeSpeedLimit)
+        );
+        speedLimit.setVisibility(View.VISIBLE);
     }
 
     @NonNull
@@ -208,6 +235,7 @@ final class NavigationActivityRenderer {
                 + "|" + state.routeStatus.progress.stopProgressBlock
                 + "|" + state.routeStatus.progress.detailBlock
                 + "|" + state.pauseStatus.paused
+                + "|" + formatLogSpeedLimit(state.routeStatus.speedLimit)
                 + "|" + (state.routeStatus.compassState == null ? "no-compass"
                 : state.routeStatus.compassState.routePoints.size());
         if (stateKey.equals(lastRenderedStateKey)) {
@@ -221,10 +249,16 @@ final class NavigationActivityRenderer {
                 + " destination=" + state.routeStatus.progress.destinationLine
                 + " stops=" + state.routeStatus.progress.stopProgressBlock
                 + " paused=" + state.pauseStatus.paused
+                + " speedLimit=" + formatLogSpeedLimit(state.routeStatus.speedLimit)
                 + " compass=" + (state.routeStatus.compassState == null ? "none"
                 : ("points=" + state.routeStatus.compassState.routePoints.size()
                 + " heading=" + state.routeStatus.compassState.displayMode.headingDegrees))
                 + " detail=" + state.routeStatus.progress.detailBlock);
+    }
+
+    @NonNull
+    private static String formatLogSpeedLimit(@Nullable RouteSpeedLimit routeSpeedLimit) {
+        return routeSpeedLimit == null ? "none" : routeSpeedLimit.value + " " + routeSpeedLimit.unit;
     }
 }
 

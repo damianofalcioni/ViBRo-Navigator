@@ -22,6 +22,7 @@ import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.RouteSpeedLimit;
 
 public final class NavStateComposer {
     private NavStateComposer() {
@@ -156,6 +157,7 @@ public final class NavStateComposer {
                 input.timing.nextEvaluationDeadlineElapsedMs,
                 "",
                 compassState,
+                input.route.speedLimitAt(input.routeProgress.alongTrackMeters),
                 false
         );
     }
@@ -194,7 +196,8 @@ public final class NavStateComposer {
                 new NavRouteStatus(
                         new NavGuidanceStatus(nextLine, afterNextLine),
                         base.routeStatus.progress,
-                        base.routeStatus.compassState
+                        base.routeStatus.compassState,
+                        base.routeStatus.speedLimit
                 ),
                 base.gpsStatus,
                 base.pauseStatus
@@ -227,11 +230,39 @@ public final class NavStateComposer {
             @Nullable NavCompassState compassState,
             boolean paused
     ) {
+        return create(
+                nextLine,
+                afterNextLine,
+                destinationLine,
+                stopProgressBlock,
+                gpsStatusLine,
+                nextEvaluationDeadlineElapsedMs,
+                detailBlock,
+                compassState,
+                null,
+                paused
+        );
+    }
+
+    @NonNull
+    private static NavState create(
+            @NonNull String nextLine,
+            @NonNull String afterNextLine,
+            @NonNull String destinationLine,
+            @NonNull String stopProgressBlock,
+            @NonNull String gpsStatusLine,
+            long nextEvaluationDeadlineElapsedMs,
+            @NonNull String detailBlock,
+            @Nullable NavCompassState compassState,
+            @Nullable RouteSpeedLimit speedLimit,
+            boolean paused
+    ) {
         return new NavState(
                 new NavRouteStatus(
                         new NavGuidanceStatus(nextLine, afterNextLine),
                         new NavProgressStatus(destinationLine, stopProgressBlock, detailBlock),
-                        compassState
+                        compassState,
+                        speedLimit
                 ),
                 new NavGpsStatus(gpsStatusLine, nextEvaluationDeadlineElapsedMs),
                 new NavPauseStatus(paused)
