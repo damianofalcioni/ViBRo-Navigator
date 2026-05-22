@@ -6,12 +6,16 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.app.AlertDialog;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Intent;
+import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -28,12 +32,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowToast;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Collections;
 
 @RunWith(RobolectricTestRunner.class)
 public class AboutLoggingSettingsRobolectricTest {
@@ -46,6 +53,8 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.init(context);
         AppSettings.setImperialUnitsEnabled(context, false);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
+        AppSettings.setMapPoiCategoryFilterEnabled(context, false);
+        AppSettings.setMapPoiCategoryNames(context, Collections.emptyList());
         ShadowToast.reset();
     }
 
@@ -114,6 +123,9 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
+        TextView poiCategoriesLabel = activity.findViewById(R.id.aboutPoiCategoriesLabel);
+        ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
+        Switch poiCategoriesSwitch = activity.findViewById(R.id.aboutPoiCategoriesSwitch);
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         TextView symbolTestTitle = activity.findViewById(R.id.aboutSymbolTestTitle);
@@ -128,6 +140,12 @@ public class AboutLoggingSettingsRobolectricTest {
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
+        assertEquals(activity.getString(R.string.label_poi_categories), poiCategoriesLabel.getText().toString());
+        assertEquals(
+                activity.getString(R.string.action_edit_poi_categories),
+                poiCategoriesButton.getContentDescription().toString()
+        );
+        assertFalse(poiCategoriesSwitch.isChecked());
         assertEquals(View.VISIBLE, maneuverVoiceSpinner.getVisibility());
         assertEquals(View.VISIBLE, ttsSettingsButton.getVisibility());
         assertEquals(
@@ -201,6 +219,45 @@ public class AboutLoggingSettingsRobolectricTest {
     }
 
     @Test
+    public void aboutPagePoiCategorySwitchPersistsPreference() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Switch poiCategoriesSwitch = activity.findViewById(R.id.aboutPoiCategoriesSwitch);
+
+        assertFalse(AppSettings.isMapPoiCategoryFilterEnabled(activity));
+
+        poiCategoriesSwitch.performClick();
+
+        assertTrue(AppSettings.isMapPoiCategoryFilterEnabled(activity));
+    }
+
+    @Test
+    public void aboutPagePoiCategoryDialogSavesDynamicRows() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
+
+        poiCategoriesButton.performClick();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        LinearLayout categoryList = dialog.findViewById(R.id.aboutPoiCategoryDialogList);
+        EditText firstField = categoryFieldAt(categoryList, 0);
+
+        assertFalse(firstField.hasFocus());
+        assertEquals(activity.getString(R.string.hint_poi_category_name), firstField.getHint().toString());
+
+        firstField.setText("Fuel");
+        categorySwitchAt(categoryList, 0).setChecked(true);
+        ImageButton addButton = dialog.findViewById(R.id.aboutPoiCategoryAddButton);
+        addButton.performClick();
+        categoryFieldAt(categoryList, 1).setText("Restaurant");
+        categorySwitchAt(categoryList, 1).setChecked(false);
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(Arrays.asList("Fuel", "Restaurant"), AppSettings.getMapPoiCategoryNames(activity));
+        assertEquals(Arrays.asList("Fuel"), AppSettings.getEnabledMapPoiCategoryNames(activity));
+    }
+
+    @Test
     public void aboutPageTtsSettingsButtonOpensTextToSpeechSettings() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         ImageButton ttsSettingsButton = activity.findViewById(R.id.aboutTtsSettingsButton);
@@ -257,5 +314,15 @@ public class AboutLoggingSettingsRobolectricTest {
         for (int i = 0; i < 5; i++) {
             view.performClick();
         }
+    }
+
+    private static EditText categoryFieldAt(LinearLayout categoryList, int rowIndex) {
+        LinearLayout row = (LinearLayout) categoryList.getChildAt(rowIndex);
+        return (EditText) row.getChildAt(0);
+    }
+
+    private static Switch categorySwitchAt(LinearLayout categoryList, int rowIndex) {
+        LinearLayout row = (LinearLayout) categoryList.getChildAt(rowIndex);
+        return (Switch) row.getChildAt(1);
     }
 }

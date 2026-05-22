@@ -4,7 +4,9 @@ import androidx.annotation.NonNull;
 
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -28,18 +30,23 @@ final class MapPoiCategory {
     final String key;
     @NonNull
     final String value;
+    @NonNull
+    private final List<Tag> tags;
 
     private MapPoiCategory(
+            @NonNull String id,
             @NonNull String key,
             @NonNull String value,
             @NonNull String label,
-            int count
+            int count,
+            @NonNull List<Tag> tags
     ) {
         this.key = key;
         this.value = value;
-        this.id = key + "=" + value;
+        this.id = id;
         this.label = label;
         this.count = count;
+        this.tags = tags;
     }
 
     @NonNull
@@ -73,16 +80,51 @@ final class MapPoiCategory {
 
     @NonNull
     static MapPoiCategory fromTag(@NonNull String key, @NonNull String value, int count) {
-        return new MapPoiCategory(key, value, labelFor(key, value), count);
+        return new MapPoiCategory(
+                key + "=" + value,
+                key,
+                value,
+                labelFor(key, value),
+                count,
+                Collections.singletonList(new Tag(key, value))
+        );
+    }
+
+    @NonNull
+    MapPoiCategory withCount(int nextCount) {
+        return new MapPoiCategory(id, key, value, label, nextCount, tags);
+    }
+
+    @NonNull
+    static MapPoiCategory fromName(@NonNull String name, @NonNull List<Tag> tags) {
+        String trimmed = name.trim();
+        String value = tags.isEmpty() ? normalizeValue(trimmed) : tags.get(0).value;
+        return new MapPoiCategory(
+                "name=" + normalizeValue(trimmed),
+                tags.isEmpty() ? KEY_AMENITY : tags.get(0).key,
+                value,
+                labelFromName(trimmed),
+                0,
+                new ArrayList<>(tags)
+        );
     }
 
     boolean matches(@NonNull JSONObject tags) {
-        return value.equals(tags.optString(key, ""));
+        for (Tag tag : this.tags) {
+            if (tag.matches(tags)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @NonNull
     List<String> overpassSelectors() {
-        return Arrays.asList(exactSelector(key, value));
+        List<String> selectors = new ArrayList<>();
+        for (Tag tag : tags) {
+            selectors.add(exactSelector(tag.key, tag.value));
+        }
+        return selectors;
     }
 
     @NonNull
@@ -117,6 +159,19 @@ final class MapPoiCategory {
     }
 
     @NonNull
+    private static String labelFromName(@NonNull String name) {
+        String normalized = normalizeValue(name);
+        return normalized.isEmpty() ? name : titleize(normalized);
+    }
+
+    @NonNull
+    static String normalizeValue(@NonNull String value) {
+        String normalized = value.trim().toLowerCase(Locale.US).replace('-', '_');
+        normalized = normalized.replaceAll("[^a-z0-9]+", "_");
+        return normalized.replaceAll("^_+|_+$", "");
+    }
+
+    @NonNull
     private static String keySelector(@NonNull String key) {
         return SELECTOR_PREFIX + key + SELECTOR_SUFFIX;
     }
@@ -129,5 +184,21 @@ final class MapPoiCategory {
     @NonNull
     private static String regexSelector(@NonNull String key, @NonNull String valueRegex) {
         return "[\"" + key + "\"~\"" + valueRegex + "\"]";
+    }
+
+    static final class Tag {
+        @NonNull
+        final String key;
+        @NonNull
+        final String value;
+
+        Tag(@NonNull String key, @NonNull String value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        boolean matches(@NonNull JSONObject tags) {
+            return value.equals(tags.optString(key, ""));
+        }
     }
 }

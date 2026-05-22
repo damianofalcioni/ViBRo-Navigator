@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -53,6 +52,7 @@ public class AboutActivity extends Activity {
     private View googlePoiApiKeySaveButton;
     private View exportDatabaseButton;
     private View importDatabaseButton;
+    private AboutPoiCategorySettings poiCategorySettings;
     private AboutSymbolTestButtons symbolTestButtons;
 
     @Override
@@ -64,8 +64,10 @@ public class AboutActivity extends Activity {
         logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
         fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
         imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
+        Switch poiCategoriesSwitch = findViewById(R.id.aboutPoiCategoriesSwitch);
+        View poiCategoriesButton = findViewById(R.id.aboutPoiCategoriesButton);
         Spinner maneuverVoiceSpinner = findViewById(R.id.aboutManeuverVoiceSpinner);
-        ImageButton ttsSettingsButton = findViewById(R.id.aboutTtsSettingsButton);
+        View ttsSettingsButton = findViewById(R.id.aboutTtsSettingsButton);
         googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
         googlePoiApiKeyEdit = findViewById(R.id.aboutGooglePoiApiKeyEdit);
         googlePoiApiKeySaveButton = findViewById(R.id.aboutGooglePoiApiKeySaveButton);
@@ -82,6 +84,8 @@ public class AboutActivity extends Activity {
         });
         configureFusedLocationSwitch();
         configureImperialUnitsSwitch();
+        poiCategorySettings = new AboutPoiCategorySettings(this, poiCategoriesButton, poiCategoriesSwitch);
+        poiCategorySettings.configure();
         maneuverVoiceSettings = new AboutManeuverVoiceSettings(this, maneuverVoiceSpinner);
         ttsSettingsButton.setOnClickListener(v -> AboutTtsSettingsLauncher.open(this));
         configureGooglePoiApiKeySetting();
@@ -144,6 +148,12 @@ public class AboutActivity extends Activity {
         sensorStatusBody.setText(sensorStatusFormatter.build(this));
     }
 
+    private void renderPoiCategorySetting() {
+        if (poiCategorySettings != null) {
+            poiCategorySettings.refresh();
+        }
+    }
+
     private void openExportDatabasePicker() {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
@@ -180,6 +190,7 @@ public class AboutActivity extends Activity {
             AppDataBackup.importJson(this, readUtf8(in));
             renderDiagnosticSection();
             renderGooglePoiApiKeySetting();
+            renderPoiCategorySetting();
             if (maneuverVoiceSettings != null) {
                 maneuverVoiceSettings.refreshSelection();
             }

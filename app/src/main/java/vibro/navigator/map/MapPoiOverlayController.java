@@ -9,10 +9,7 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
@@ -35,25 +32,29 @@ final class MapPoiOverlayController {
     @NonNull
     private final MapPoiLoader poiLoader;
     @NonNull
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final MapPoiCategoryFilter categoryFilter;
     @NonNull
-    private final OsmMapPoiClient client = new OsmMapPoiClient();
+    private final MapPoiDiscoveryRunner discoveryRunner;
     @NonNull
     private final Runnable refreshRunnable = this::refreshNow;
     @NonNull
     private final Runnable discoveryRunnable = this::discoverCategoriesNow;
 
-    private int discoveryGeneration;
-
     MapPoiOverlayController(
             @NonNull MapPoiOverlayView view,
-            @NonNull MapPickerScriptController scriptController
+            @NonNull MapPickerScriptController scriptController,
+            @NonNull MapPoiCategoryFilter categoryFilter
     ) {
         this.view = view;
         this.scriptController = scriptController;
+        this.categoryFilter = categoryFilter;
         this.statusController = new MapPoiStatusController(view, mainHandler);
         this.poiLoader = new MapPoiLoader(mainHandler);
+        this.discoveryRunner = new MapPoiDiscoveryRunner(mainHandler, poiLoader);
         view.setPanelListener(this::scheduleCategoryDiscovery);
+        if (categoryFilter.isEnabled()) {
+            selection.setCategories(categoryFilter.categories());
+        }
         renderCategories();
     }
 
@@ -62,7 +63,11 @@ final class MapPoiOverlayController {
             @NonNull Activity activity,
             @NonNull MapPickerScriptController scriptController
     ) {
-        return new MapPoiOverlayController(MapPoiOverlayView.bind(activity), scriptController);
+        return new MapPoiOverlayController(
+                MapPoiOverlayView.bind(activity),
+                scriptController,
+                MapPoiCategoryFilter.fromSettings(activity)
+        );
     }
 
     void onMapViewChanged() {
@@ -76,7 +81,7 @@ final class MapPoiOverlayController {
         mainHandler.removeCallbacks(discoveryRunnable);
         statusController.hide();
         poiLoader.shutdown();
-        executor.shutdownNow();
+        discoveryRunner.shutdown();
     }
 
     private void renderCategories() {
@@ -112,8 +117,38 @@ final class MapPoiOverlayController {
     }
 
     private void discoverCategoriesNow() {
+        if (categoryFilter.isEnabled()) {
+            discoverFilteredCategoriesNow();
+            return;
+        }
         statusController.show(R.string.msg_map_poi_loading);
         scriptController.requestBounds(this::handleDiscoveryBoundsResult);
+    }
+
+    private void discoverFilteredCategoriesNow() {
+        selection.setCategories(categoryFilter.categories());
+        renderCategories();
+        if (!categoryFilter.hasCategories()) {
+            clearPois();
+            statusController.show(R.string.msg_map_poi_categories_empty);
+            return;
+        }
+        statusController.show(R.string.msg_map_poi_loading);
+        scriptController.requestBounds(this::handleFilteredDiscoveryBoundsResult);
+    }
+
+    private void handleFilteredDiscoveryBoundsResult(@Nullable String value) {
+        try {
+            MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
+            if (bounds == null || !bounds.isReadyForPoiFetch()) {
+                showZoomInMessage();
+                return;
+            }
+            discoveryRunner.discoverFiltered(bounds, categoryFilter.categories(), new CategoryDiscoveryListener());
+        } catch (JSONException e) {
+            AppLogger.w(TAG, "Failed to parse map bounds for filtered POI category discovery", e);
+            showUnavailableMessage();
+        }
     }
 
     private void handleDiscoveryBoundsResult(@Nullable String value) {
@@ -125,31 +160,14 @@ final class MapPoiOverlayController {
                 showZoomInMessage();
                 return;
             }
-            fetchCategories(bounds);
+            discoveryRunner.discoverAll(bounds, new CategoryDiscoveryListener());
         } catch (JSONException e) {
             AppLogger.w(TAG, "Failed to parse map bounds for POI category discovery", e);
             showUnavailableMessage();
         }
     }
 
-    private void fetchCategories(@NonNull MapPickerBounds bounds) {
-        int discoveryId = ++discoveryGeneration;
-        executor.execute(() -> {
-            try {
-                OsmMapPoiDiscoveryResult discovery = client.discover(bounds);
-                poiLoader.rememberDiscovery(bounds, discovery);
-                mainHandler.post(() -> applyCategoryResult(discoveryId, discovery.categories));
-            } catch (IOException e) {
-                AppLogger.w(TAG, "Failed to discover map POI categories", e);
-                mainHandler.post(() -> applyCategoryFailure(discoveryId));
-            }
-        });
-    }
-
-    private void applyCategoryResult(int discoveryId, @NonNull List<MapPoiCategory> discovered) {
-        if (discoveryId != discoveryGeneration) {
-            return;
-        }
+    private void applyCategoryResult(@NonNull List<MapPoiCategory> discovered) {
         selection.setCategories(discovered);
         renderCategories();
         if (!selection.hasCategories()) {
@@ -159,12 +177,6 @@ final class MapPoiOverlayController {
             statusController.hide();
         } else {
             refreshNow();
-        }
-    }
-
-    private void applyCategoryFailure(int discoveryId) {
-        if (discoveryId == discoveryGeneration) {
-            showUnavailableMessage();
         }
     }
 
@@ -217,6 +229,18 @@ final class MapPoiOverlayController {
     private void showUnavailableMessage() {
         scriptController.clearPoiMarkers();
         statusController.showTransient(R.string.msg_map_poi_unavailable);
+    }
+
+    private final class CategoryDiscoveryListener implements MapPoiDiscoveryRunner.Listener {
+        @Override
+        public void onDiscoveryComplete(@NonNull OsmMapPoiDiscoveryResult discovery) {
+            applyCategoryResult(discovery.categories);
+        }
+
+        @Override
+        public void onDiscoveryFailure() {
+            showUnavailableMessage();
+        }
     }
 
     private final class PoiLoadListener implements MapPoiLoader.Listener {

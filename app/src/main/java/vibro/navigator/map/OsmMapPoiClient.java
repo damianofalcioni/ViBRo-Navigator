@@ -13,7 +13,10 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -41,6 +44,15 @@ final class OsmMapPoiClient {
     }
 
     @NonNull
+    OsmMapPoiDiscoveryResult discover(
+            @NonNull MapPickerBounds bounds,
+            @NonNull List<MapPoiCategory> categories
+    ) throws IOException {
+        List<MapPoiMarker> markers = search(bounds, categories);
+        return new OsmMapPoiDiscoveryResult(withMarkerCounts(categories, markers), markers);
+    }
+
+    @NonNull
     List<MapPoiMarker> search(
             @NonNull MapPickerBounds bounds,
             @NonNull List<MapPoiCategory> categories
@@ -56,6 +68,24 @@ final class OsmMapPoiClient {
         } finally {
             conn.disconnect();
         }
+    }
+
+    @NonNull
+    private static List<MapPoiCategory> withMarkerCounts(
+            @NonNull List<MapPoiCategory> categories,
+            @NonNull List<MapPoiMarker> markers
+    ) {
+        Map<String, Integer> counts = new HashMap<>();
+        for (MapPoiMarker marker : markers) {
+            Integer count = counts.get(marker.category.id);
+            counts.put(marker.category.id, count == null ? 1 : count + 1);
+        }
+        List<MapPoiCategory> out = new ArrayList<>();
+        for (MapPoiCategory category : categories) {
+            Integer count = counts.get(category.id);
+            out.add(category.withCount(count == null ? 0 : count));
+        }
+        return out;
     }
 
     @NonNull

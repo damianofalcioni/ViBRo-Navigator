@@ -105,6 +105,41 @@
             android:textSize="16sp" />
 
         <LinearLayout
+            android:id="@+id/aboutPoiCategoriesRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/aboutPoiCategoriesLabel"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/label_poi_categories"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+
+            <ImageButton
+                android:id="@+id/aboutPoiCategoriesButton"
+                style="@style/Widget.ViBRoNavigator.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:contentDescription="@string/action_edit_poi_categories"
+                android:src="@drawable/ic_list" />
+
+            <Switch
+                android:id="@+id/aboutPoiCategoriesSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:minHeight="48dp"
+                android:showText="false" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/aboutManeuverVoiceContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

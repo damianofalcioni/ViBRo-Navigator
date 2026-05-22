@@ -107,6 +107,7 @@ Below the routing-profile selector, the app must show an input field for searchi
 - The picker must let the user select a point directly from the map and return that point as the destination
 - The picker must support icon-only controls for confirm, cancel, current location, zoom in, and zoom out
 - The picker must support an icon-only POI category control overlaid on the map. Opening the control must show POI categories dynamically discovered from OpenStreetMap/Overpass tags in the current map view, sorted alphabetically, with each row showing the number of discovered items such as `Fuel (15)`. Category rows must be text-only, support a single active category, highlight the active category, and toggle that category off when tapped again. Category discovery should be initiated by opening the POI control rather than by initial map load. Returned POIs must be drawn with one shared POI pin style, and POI names must appear automatically when the map is zoomed in enough.
+- When the POI category filter setting is enabled, opening the POI category control must show only the configured and enabled category names and must query Overpass only for selectors derived from those configured names instead of running broad category discovery.
 - Map-picker POI requests should be minimized: the category-discovery Overpass response should seed the visible POI marker cache, selected-category rendering should reuse cached markers immediately, and later map movement should query only viewport areas not already covered by cached data for the selected category.
 - The picker must not show extra top or bottom banners; controls should remain overlaid directly on the map
 - Rotating the device while the picker is open must preserve the currently selected point and keep it visible on the map after recreation
@@ -559,6 +560,10 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
+- The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
+- The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and an `X` remove button, plus a centered `+` button that adds another field
+- Fresh installs must prefill the POI categories filter editor with commonly needed categories for driving, walking/running, and cycling: `Bicycle Repair Station`, `Drinking Water`, `Fuel`, `Hospital`, `Parking`, `Pharmacy`, `Police`, `Public Transport Stop Position`, `Supermarket Shop`, `Taxi`, and `Toilets`
+- Fresh installs must enable the POI category filter by default
 - The about page Settings section must show a Speech directions voice spinner that can disable spoken maneuver notifications, use the system default TextToSpeech voice, or select one of the downloaded/offline Android TextToSpeech voices available on the device
 - Downloaded/offline Speech directions voice options should show user-friendly labels derived from the voice locale and readable voice variant when available, instead of exposing raw TextToSpeech engine identifiers in the spinner label
 - The Speech directions voice spinner dropdown should visually highlight the currently selected voice option
