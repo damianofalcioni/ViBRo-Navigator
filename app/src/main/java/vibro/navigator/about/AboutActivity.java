@@ -8,8 +8,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.Spinner;
 import android.widget.Switch;
@@ -29,21 +27,9 @@ import java.nio.charset.StandardCharsets;
 public class AboutActivity extends Activity {
 
     private static final String TAG = "AboutActivity";
-    private static final long SENSOR_STATUS_REFRESH_INTERVAL_MS = 1000L;
     private static final int REQ_EXPORT_DATABASE = 4001;
     private static final int REQ_IMPORT_DATABASE = 4002;
 
-    private final Handler sensorStatusHandler = new Handler(Looper.getMainLooper());
-    private final Runnable sensorStatusRefreshRunnable = new Runnable() {
-        @Override
-        public void run() {
-            renderDiagnosticSection();
-            sensorStatusHandler.postDelayed(this, SENSOR_STATUS_REFRESH_INTERVAL_MS);
-        }
-    };
-    private AboutSensorStatusFormatter sensorStatusFormatter;
-    private TextView sensorStatusTitle;
-    private TextView sensorStatusBody;
     private Switch logEnabledSwitch;
     private Switch fusedLocationSwitch;
     private Switch imperialUnitsSwitch;
@@ -54,7 +40,7 @@ public class AboutActivity extends Activity {
     private View exportDatabaseButton;
     private View importDatabaseButton;
     private AboutPoiCategorySettings poiCategorySettings;
-    private AboutSymbolTestButtons symbolTestButtons;
+    private AboutDiagnosticSection diagnosticSection;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,10 +60,7 @@ public class AboutActivity extends Activity {
         googlePoiApiKeySaveButton = findViewById(R.id.aboutGooglePoiApiKeySaveButton);
         exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
-        sensorStatusTitle = findViewById(R.id.aboutSensorStatusTitle);
-        sensorStatusBody = findViewById(R.id.aboutSensorStatusBody);
-        symbolTestButtons = new AboutSymbolTestButtons(this);
-        sensorStatusFormatter = new AboutSensorStatusFormatter(this);
+        diagnosticSection = new AboutDiagnosticSection(this);
         logEnabledSwitch.setChecked(AppLogger.isLoggingEnabled(this));
         logEnabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
             AppLogger.setLoggingEnabled(this, isChecked);
@@ -107,14 +90,12 @@ public class AboutActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        sensorStatusFormatter.start();
-        sensorStatusHandler.post(sensorStatusRefreshRunnable);
+        diagnosticSection.start();
     }
 
     @Override
     protected void onStop() {
-        sensorStatusHandler.removeCallbacks(sensorStatusRefreshRunnable);
-        sensorStatusFormatter.stop();
+        diagnosticSection.stop();
         super.onStop();
     }
 
@@ -144,10 +125,7 @@ public class AboutActivity extends Activity {
         fusedLocationSwitch.setChecked(DistributionServices.supportsFusedLocation()
                 && AppSettings.isFusedLocationEnabled(this));
         imperialUnitsSwitch.setChecked(AppSettings.isImperialUnitsEnabled(this));
-        sensorStatusTitle.setVisibility(View.VISIBLE);
-        sensorStatusBody.setVisibility(View.VISIBLE);
-        symbolTestButtons.show();
-        sensorStatusBody.setText(sensorStatusFormatter.build(this));
+        diagnosticSection.render();
     }
 
     private void renderPoiCategorySetting() {

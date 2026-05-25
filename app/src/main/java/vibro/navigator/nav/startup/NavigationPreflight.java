@@ -110,6 +110,11 @@ public final class NavigationPreflight {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
         }
+        return newAppDetailsSettingsIntent(activity);
+    }
+
+    @NonNull
+    public static Intent newAppDetailsSettingsIntent(@NonNull Activity activity) {
         return new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
                 .setData(Uri.fromParts("package", activity.getPackageName(), null));
     }

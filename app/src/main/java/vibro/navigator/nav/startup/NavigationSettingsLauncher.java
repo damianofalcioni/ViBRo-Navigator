@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
-import android.provider.Settings;
 
 import androidx.annotation.NonNull;
 
@@ -22,8 +21,7 @@ public final class NavigationSettingsLauncher {
             return true;
         }
 
-        Intent fallbackIntent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                .setData(Uri.fromParts("package", activity.getPackageName(), null));
+        Intent fallbackIntent = NavigationPreflight.newAppDetailsSettingsIntent(activity);
         if (sameTarget(primaryIntent, fallbackIntent)) {
             AppLogger.w(TAG, "No resolvable settings activity for intent action=" + primaryIntent.getAction());
             return false;

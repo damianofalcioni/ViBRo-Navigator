@@ -206,7 +206,16 @@
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>
     <string name="msg_google_poi_api_key_cleared">Google Maps API key cleared.</string>
     <string name="about_diagnostic_title">Diagnostic</string>
+    <string name="about_permission_status_title">Required access</string>
+    <string name="about_sensor_status_title">Sensor status</string>
     <string name="label_direction_notification_tests">Directions notifications tests</string>
+    <string name="label_permission_location">Location permission</string>
+    <string name="label_permission_location_services">Device location</string>
+    <string name="label_permission_notifications">Notifications</string>
+    <string name="label_permission_battery">Battery optimization</string>
+    <string name="permission_status_ok">OK</string>
+    <string name="permission_status_needs_attention">Needs attention</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Opens settings.</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>
     <string name="label_sensor_network_provider">Network provider</string>

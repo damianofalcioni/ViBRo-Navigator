@@ -591,6 +591,13 @@ The navigation UI must show the following in large text:
   - rotation vector heading sensor
   - geomagnetic rotation vector heading sensor
   - deprecated orientation sensor, used by navigation only as a calibration cross-check when available
+- Before the sensor-status list, the Diagnostic section must show a Required access block for the navigation preflight requirements:
+  - location permission
+  - device location services
+  - app notifications
+  - battery optimization exemption
+- Each Required access row must show a green OK or red needs-attention mark and a short status label
+- Tapping a Required access row must open the most specific relevant Android settings page available, falling back to app details when needed in the same OEM-compatible style as navigation startup settings redirects
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available
