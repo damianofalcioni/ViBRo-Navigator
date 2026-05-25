@@ -3,21 +3,19 @@ package vibro.navigator.about;
 import android.app.Activity;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
+import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
+import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.nav.voice.NavigationTextToSpeechVoiceAvailability;
 import vibro.navigator.settings.AppSettings;
 
 final class AboutManeuverVoiceSettings {
@@ -26,25 +24,35 @@ final class AboutManeuverVoiceSettings {
     @NonNull
     private final Activity activity;
     @NonNull
-    private final Spinner spinner;
+    private final Switch enabledSwitch;
     @Nullable
     private TextToSpeech tts;
     @Nullable
     private AboutManeuverVoiceOptionAdapter voiceAdapter;
-    private boolean rendering;
+    @Nullable
+    private Spinner dialogSpinner;
+    private boolean renderingVoiceSelection;
+    private boolean renderingEnabledSwitch;
     private boolean initCallbackReceived;
     private boolean voiceListLoaded;
     private int initStatus = TextToSpeech.ERROR;
 
-    AboutManeuverVoiceSettings(@NonNull Activity activity, @NonNull Spinner spinner) {
+    AboutManeuverVoiceSettings(
+            @NonNull Activity activity,
+            @NonNull View settingsButton,
+            @NonNull Switch enabledSwitch
+    ) {
         this.activity = activity;
-        this.spinner = spinner;
+        this.enabledSwitch = enabledSwitch;
         renderOptions(Collections.emptyList());
+        configureEnabledSwitch();
+        settingsButton.setOnClickListener(v -> showDialog());
         initializeTextToSpeech();
     }
 
     void refreshSelection() {
-        selectSavedVoiceOrDisableUnavailable();
+        refreshEnabledSwitch();
+        selectSavedVoiceOrUseFallback();
     }
 
     void shutdown() {
@@ -81,23 +89,74 @@ final class AboutManeuverVoiceSettings {
         }
         Set<Voice> voices = tts.getVoices();
         voiceListLoaded = true;
-        activity.runOnUiThread(() -> renderOptions(buildVoiceOptions(voices)));
+        activity.runOnUiThread(() -> renderOptions(AboutManeuverVoiceOptions.buildAvailable(activity, voices)));
     }
 
     private void renderOptions(@NonNull List<VoiceOption> availableVoiceOptions) {
-        List<VoiceOption> options = baseOptions();
-        options.addAll(availableVoiceOptions);
+        List<VoiceOption> options = AboutManeuverVoiceOptions.withBaseOptions(activity, availableVoiceOptions);
 
         voiceAdapter = new AboutManeuverVoiceOptionAdapter(activity, options);
 
-        rendering = true;
+        if (dialogSpinner != null) {
+            configureSpinner(dialogSpinner);
+            return;
+        }
+        selectSavedVoiceOrUseFallback();
+    }
+
+    private void configureEnabledSwitch() {
+        refreshEnabledSwitch();
+        enabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (renderingEnabledSwitch) {
+                return;
+            }
+            AppSettings.setManeuverSpeechEnabled(activity, isChecked);
+        });
+    }
+
+    private void refreshEnabledSwitch() {
+        renderingEnabledSwitch = true;
+        enabledSwitch.setChecked(AppSettings.isManeuverSpeechEnabled(activity));
+        renderingEnabledSwitch = false;
+    }
+
+    private void showDialog() {
+        AboutManeuverVoiceDialog.show(activity, new AboutManeuverVoiceDialog.VoiceSpinnerHandler() {
+            @Override
+            public void configure(@NonNull Spinner spinner) {
+                dialogSpinner = spinner;
+                configureSpinner(spinner);
+            }
+
+            @Override
+            public void playSelectedVoice() {
+                speakSelectedVoicePreview();
+            }
+
+            @Override
+            public void clear() {
+                dialogSpinner = null;
+            }
+        });
+    }
+
+    private void speakSelectedVoicePreview() {
+        VoiceOption selected = AboutManeuverVoiceOptions.selectedVoiceOption(dialogSpinner);
+        if (selected != null) {
+            AboutManeuverVoicePreview.speak(activity, tts, selected.voiceName);
+        }
+    }
+
+    private void configureSpinner(@NonNull Spinner spinner) {
+        renderingVoiceSelection = true;
+        spinner.setOnItemSelectedListener(null);
         spinner.setAdapter(voiceAdapter);
-        selectSavedVoiceOrDisableUnavailable();
-        rendering = false;
+        selectSavedVoiceOrUseFallback();
+        renderingVoiceSelection = false;
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, android.view.View view, int position, long id) {
-                if (rendering) {
+                if (renderingVoiceSelection) {
                     return;
                 }
                 Object selected = parent.getItemAtPosition(position);
@@ -120,44 +179,40 @@ final class AboutManeuverVoiceSettings {
         }
     }
 
-    @NonNull
-    private List<VoiceOption> baseOptions() {
-        List<VoiceOption> options = new ArrayList<>();
-        options.add(new VoiceOption(
-                AppSettings.MANEUVER_VOICE_DISABLED,
-                activity.getString(R.string.label_maneuver_voice_disabled)
-        ));
-        options.add(new VoiceOption(
-                AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT,
-                activity.getString(R.string.label_maneuver_voice_system_default)
-        ));
-        return options;
-    }
-
-    private void selectSavedVoiceOrDisableUnavailable() {
-        if (selectSavedVoice()) {
+    private void selectSavedVoiceOrUseFallback() {
+        String fallbackVoiceName = AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT;
+        if (selectVoice(AppSettings.getManeuverVoiceName(activity))) {
             return;
         }
-        if (voiceListLoaded) {
-            AppSettings.setManeuverVoiceName(activity, AppSettings.MANEUVER_VOICE_DISABLED);
+        if (voiceListLoaded && AppSettings.isManeuverSpeechEnabled(activity)) {
+            AppSettings.setManeuverVoiceName(activity, fallbackVoiceName);
         }
-        updateSelectedVoiceHighlight(AppSettings.MANEUVER_VOICE_DISABLED);
-        if (spinner.getCount() > 0) {
-            spinner.setSelection(0);
-        }
+        selectVoice(fallbackVoiceName);
     }
 
-    private boolean selectSavedVoice() {
-        String savedVoiceName = AppSettings.getManeuverVoiceName(activity);
-        for (int i = 0; i < spinner.getCount(); i++) {
-            Object item = spinner.getItemAtPosition(i);
-            if (item instanceof VoiceOption && ((VoiceOption) item).voiceName.equals(savedVoiceName)) {
-                updateSelectedVoiceHighlight(savedVoiceName);
-                spinner.setSelection(i);
-                return true;
+    private boolean selectVoice(@NonNull String voiceName) {
+        int position = findVoicePosition(voiceName);
+        if (position < 0) {
+            return false;
+        }
+        updateSelectedVoiceHighlight(voiceName);
+        if (dialogSpinner != null && dialogSpinner.getCount() > position) {
+            dialogSpinner.setSelection(position);
+        }
+        return true;
+    }
+
+    private int findVoicePosition(@NonNull String voiceName) {
+        if (voiceAdapter == null) {
+            return -1;
+        }
+        for (int i = 0; i < voiceAdapter.getCount(); i++) {
+            VoiceOption option = voiceAdapter.getItem(i);
+            if (option != null && option.voiceName.equals(voiceName)) {
+                return i;
             }
         }
-        return false;
+        return -1;
     }
 
     static boolean shouldPersistSelectedVoice(
@@ -165,48 +220,17 @@ final class AboutManeuverVoiceSettings {
             @NonNull String savedVoiceName,
             @NonNull String selectedVoiceName
     ) {
-        if (selectedVoiceName.equals(savedVoiceName)) {
-            return false;
-        }
-        return voiceListLoaded
-                || isBaseVoiceName(savedVoiceName)
-                || !isBaseVoiceName(selectedVoiceName);
-    }
-
-    private static boolean isBaseVoiceName(@NonNull String voiceName) {
-        return AppSettings.MANEUVER_VOICE_DISABLED.equals(voiceName)
-                || AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT.equals(voiceName);
+        return AboutManeuverVoiceOptions.shouldPersistSelectedVoice(
+                voiceListLoaded,
+                savedVoiceName,
+                selectedVoiceName
+        );
     }
 
     private void updateSelectedVoiceHighlight(@NonNull String voiceName) {
         if (voiceAdapter != null) {
             voiceAdapter.setSelectedVoiceName(voiceName);
         }
-    }
-
-    @NonNull
-    private List<VoiceOption> buildVoiceOptions(@Nullable Set<Voice> voices) {
-        List<VoiceOption> options = new ArrayList<>();
-        if (voices == null) {
-            return options;
-        }
-        for (Voice voice : voices) {
-            if (NavigationTextToSpeechVoiceAvailability.isOfflineVoiceAvailable(voice)) {
-                options.add(new VoiceOption(voice.getName(), formatVoiceLabel(voice)));
-            }
-        }
-        Collections.sort(options, new Comparator<VoiceOption>() {
-            @Override
-            public int compare(VoiceOption first, VoiceOption second) {
-                return String.CASE_INSENSITIVE_ORDER.compare(first.label, second.label);
-            }
-        });
-        return options;
-    }
-
-    @NonNull
-    private String formatVoiceLabel(@NonNull Voice voice) {
-        return AboutManeuverVoiceLabelFormatter.format(activity, voice);
     }
 
     static final class VoiceOption {

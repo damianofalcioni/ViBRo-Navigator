@@ -14,6 +14,9 @@
     <string name="action_edit">Edit</string>
     <string name="action_open_settings">Open settings</string>
     <string name="action_open_tts_settings">Open text-to-speech settings</string>
+    <string name="action_open_speech_directions_settings">Open speech directions settings</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_test_maneuver_voice">Test speech directions voice</string>
     <string name="action_save">Save Key</string>
     <string name="action_save_poi_categories">Save</string>
     <string name="action_open_map">Map</string>
@@ -194,7 +197,8 @@
     <string name="label_imperial_units_enabled">Use imperial units</string>
     <string name="label_poi_categories">POI categories filter</string>
     <string name="hint_poi_category_name">POI Category Name</string>
-    <string name="label_maneuver_voice">Speech directions voice</string>
+    <string name="label_maneuver_voice">Speech directions</string>
+    <string name="label_maneuver_voice_spinner">Voice</string>
     <string name="label_maneuver_voice_disabled">Disabled</string>
     <string name="label_maneuver_voice_system_default">System default</string>
     <string name="format_maneuver_voice_option">%1$s - %2$s</string>

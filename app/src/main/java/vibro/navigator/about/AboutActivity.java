@@ -9,7 +9,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,8 +52,8 @@ public class AboutActivity extends Activity {
         imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
         Switch poiCategoriesSwitch = findViewById(R.id.aboutPoiCategoriesSwitch);
         View poiCategoriesButton = findViewById(R.id.aboutPoiCategoriesButton);
-        Spinner maneuverVoiceSpinner = findViewById(R.id.aboutManeuverVoiceSpinner);
-        View ttsSettingsButton = findViewById(R.id.aboutTtsSettingsButton);
+        View maneuverVoiceSettingsButton = findViewById(R.id.aboutManeuverVoiceSettingsButton);
+        Switch maneuverVoiceSwitch = findViewById(R.id.aboutManeuverVoiceSwitch);
         googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
         googlePoiApiKeyEdit = findViewById(R.id.aboutGooglePoiApiKeyEdit);
         googlePoiApiKeySaveButton = findViewById(R.id.aboutGooglePoiApiKeySaveButton);
@@ -70,8 +69,11 @@ public class AboutActivity extends Activity {
         configureImperialUnitsSwitch();
         poiCategorySettings = new AboutPoiCategorySettings(this, poiCategoriesButton, poiCategoriesSwitch);
         poiCategorySettings.configure();
-        maneuverVoiceSettings = new AboutManeuverVoiceSettings(this, maneuverVoiceSpinner);
-        ttsSettingsButton.setOnClickListener(v -> AboutTtsSettingsLauncher.open(this));
+        maneuverVoiceSettings = new AboutManeuverVoiceSettings(
+                this,
+                maneuverVoiceSettingsButton,
+                maneuverVoiceSwitch
+        );
         configureGooglePoiApiKeySetting();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());

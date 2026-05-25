@@ -137,8 +137,9 @@ public class AboutLoggingSettingsRobolectricTest {
         Button symbolTestOtherButton = activity.findViewById(R.id.aboutSymbolTestOtherButton);
         Button symbolTestRightButton = activity.findViewById(R.id.aboutSymbolTestRightButton);
         View googlePoiApiKeyContainer = activity.findViewById(R.id.aboutGooglePoiApiKeyContainer);
-        Spinner maneuverVoiceSpinner = activity.findViewById(R.id.aboutManeuverVoiceSpinner);
-        ImageButton ttsSettingsButton = activity.findViewById(R.id.aboutTtsSettingsButton);
+        TextView maneuverVoiceLabel = activity.findViewById(R.id.aboutManeuverVoiceLabel);
+        ImageButton maneuverVoiceSettingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
+        Switch maneuverVoiceSwitch = activity.findViewById(R.id.aboutManeuverVoiceSwitch);
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
@@ -148,15 +149,13 @@ public class AboutLoggingSettingsRobolectricTest {
                 poiCategoriesButton.getContentDescription().toString()
         );
         assertFalse(poiCategoriesSwitch.isChecked());
-        assertEquals(View.VISIBLE, maneuverVoiceSpinner.getVisibility());
-        assertEquals(View.VISIBLE, ttsSettingsButton.getVisibility());
+        assertEquals(activity.getString(R.string.label_maneuver_voice), maneuverVoiceLabel.getText().toString());
+        assertEquals(View.VISIBLE, maneuverVoiceSettingsButton.getVisibility());
+        assertEquals(View.VISIBLE, maneuverVoiceSwitch.getVisibility());
+        assertFalse(maneuverVoiceSwitch.isChecked());
         assertEquals(
-                activity.getString(R.string.action_open_tts_settings),
-                ttsSettingsButton.getContentDescription().toString()
-        );
-        assertEquals(
-                activity.getString(R.string.label_maneuver_voice_disabled),
-                maneuverVoiceSpinner.getSelectedItem().toString()
+                activity.getString(R.string.action_open_speech_directions_settings),
+                maneuverVoiceSettingsButton.getContentDescription().toString()
         );
         assertEquals(
                 DistributionServices.supportsUserGooglePoiApiKey() ? View.VISIBLE : View.GONE,
@@ -223,6 +222,23 @@ public class AboutLoggingSettingsRobolectricTest {
     }
 
     @Test
+    public void aboutPageSpeechDirectionsSwitchPersistsEnabledWithoutClearingPreferredVoice() {
+        Application context = ApplicationProvider.getApplicationContext();
+        String preferredVoice = "preferred-offline-voice";
+        AppSettings.setManeuverVoiceName(context, preferredVoice);
+        AppSettings.setManeuverSpeechEnabled(context, true);
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Switch maneuverVoiceSwitch = activity.findViewById(R.id.aboutManeuverVoiceSwitch);
+
+        assertTrue(maneuverVoiceSwitch.isChecked());
+
+        maneuverVoiceSwitch.performClick();
+
+        assertFalse(AppSettings.isManeuverSpeechEnabled(activity));
+        assertEquals(preferredVoice, AppSettings.getManeuverVoiceName(activity));
+    }
+
+    @Test
     public void aboutPagePoiCategorySwitchPersistsPreference() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Switch poiCategoriesSwitch = activity.findViewById(R.id.aboutPoiCategoriesSwitch);
@@ -262,10 +278,47 @@ public class AboutLoggingSettingsRobolectricTest {
     }
 
     @Test
+    public void aboutPageSpeechDirectionsDialogOmitsDisabledVoiceOption() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        ImageButton settingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
+
+        settingsButton.performClick();
+
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        TextView voiceLabel = dialog.findViewById(R.id.aboutManeuverVoiceDialogVoiceLabel);
+        Spinner spinner = dialog.findViewById(R.id.aboutManeuverVoiceSpinner);
+        ImageButton playButton = dialog.findViewById(R.id.aboutManeuverVoicePlayButton);
+
+        assertEquals(activity.getString(R.string.label_maneuver_voice_spinner), voiceLabel.getText().toString());
+        assertEquals(
+                activity.getString(R.string.action_test_maneuver_voice),
+                playButton.getContentDescription().toString()
+        );
+        assertEquals(
+                activity.getString(R.string.label_maneuver_voice_system_default),
+                spinner.getItemAtPosition(0).toString()
+        );
+        for (int i = 0; i < spinner.getCount(); i++) {
+            assertNotEquals(
+                    activity.getString(R.string.label_maneuver_voice_disabled),
+                    spinner.getItemAtPosition(i).toString()
+            );
+        }
+    }
+
+    @Test
     public void aboutPageTtsSettingsButtonOpensTextToSpeechSettings() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
-        ImageButton ttsSettingsButton = activity.findViewById(R.id.aboutTtsSettingsButton);
+        ImageButton settingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
 
+        settingsButton.performClick();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        Button ttsSettingsButton = dialog.findViewById(R.id.aboutTtsSettingsButton);
+
+        assertEquals(
+                activity.getString(R.string.action_android_tts_settings_short),
+                ttsSettingsButton.getText().toString()
+        );
         ttsSettingsButton.performClick();
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();

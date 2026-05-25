@@ -178,45 +178,38 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/aboutManeuverVoiceContainer"
+            android:id="@+id/aboutManeuverVoiceRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="vertical">
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/aboutManeuverVoiceLabel"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="@string/label_maneuver_voice"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
 
-            <LinearLayout
-                android:id="@+id/aboutManeuverVoiceRow"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/aboutManeuverVoiceSettingsButton"
+                style="@style/Widget.ViBRoNavigator.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:contentDescription="@string/action_open_speech_directions_settings"
+                android:src="@drawable/ic_settings" />
+
+            <Switch
+                android:id="@+id/aboutManeuverVoiceSwitch"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <Spinner
-                    android:id="@+id/aboutManeuverVoiceSpinner"
-                    style="@style/Widget.ViBRoNavigator.Spinner"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:minHeight="48dp" />
-
-                <ImageButton
-                    android:id="@+id/aboutTtsSettingsButton"
-                    style="@style/Widget.ViBRoNavigator.IconButton"
-                    android:layout_width="44dp"
-                    android:layout_height="44dp"
-                    android:layout_marginStart="8dp"
-                    android:contentDescription="@string/action_open_tts_settings"
-                    android:src="@drawable/ic_settings" />
-            </LinearLayout>
+                android:layout_marginStart="8dp"
+                android:minHeight="48dp"
+                android:showText="false" />
         </LinearLayout>
 
         <LinearLayout

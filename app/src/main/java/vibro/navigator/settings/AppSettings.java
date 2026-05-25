@@ -13,6 +13,7 @@ public final class AppSettings {
     private static final String KEY_USE_FUSED_LOCATION = "use_fused_location";
     private static final String KEY_USE_IMPERIAL_UNITS = "use_imperial_units";
     private static final String KEY_GOOGLE_POI_API_KEY = "google_poi_api_key";
+    private static final String KEY_MANEUVER_SPEECH_ENABLED = "maneuver_speech_enabled";
     private static final String KEY_MANEUVER_VOICE_NAME = "maneuver_voice_name";
     private static final String KEY_MAP_POI_CATEGORY_FILTER_ENABLED = "map_poi_category_filter_enabled";
     private static final String KEY_MAP_POI_CATEGORY_NAMES = "map_poi_category_names";
@@ -74,8 +75,8 @@ public final class AppSettings {
 
     @NonNull
     public static String getManeuverVoiceName(@NonNull Context context) {
-        String voiceName = prefs(context).getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_DISABLED);
-        return voiceName == null || voiceName.trim().isEmpty() ? MANEUVER_VOICE_DISABLED : voiceName;
+        String voiceName = prefs(context).getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_SYSTEM_DEFAULT);
+        return normalizeManeuverVoiceName(voiceName);
     }
 
     public static void setManeuverVoiceName(@NonNull Context context, @NonNull String voiceName) {
@@ -83,6 +84,7 @@ public final class AppSettings {
         SharedPreferences.Editor editor = prefs(context).edit();
         if (trimmed.isEmpty() || MANEUVER_VOICE_DISABLED.equals(trimmed)) {
             editor.remove(KEY_MANEUVER_VOICE_NAME);
+            editor.putBoolean(KEY_MANEUVER_SPEECH_ENABLED, false);
         } else {
             editor.putString(KEY_MANEUVER_VOICE_NAME, trimmed);
         }
@@ -90,7 +92,18 @@ public final class AppSettings {
     }
 
     public static boolean isManeuverSpeechEnabled(@NonNull Context context) {
-        return !MANEUVER_VOICE_DISABLED.equals(getManeuverVoiceName(context));
+        SharedPreferences sharedPreferences = prefs(context);
+        if (sharedPreferences.contains(KEY_MANEUVER_SPEECH_ENABLED)) {
+            return sharedPreferences.getBoolean(KEY_MANEUVER_SPEECH_ENABLED, false);
+        }
+        String voiceName = sharedPreferences.getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_DISABLED);
+        return !MANEUVER_VOICE_DISABLED.equals(voiceName);
+    }
+
+    public static void setManeuverSpeechEnabled(@NonNull Context context, boolean enabled) {
+        prefs(context).edit()
+                .putBoolean(KEY_MANEUVER_SPEECH_ENABLED, enabled)
+                .apply();
     }
 
     public static boolean isSystemDefaultManeuverVoice(@NonNull String voiceName) {
@@ -153,6 +166,18 @@ public final class AppSettings {
     @NonNull
     private static SharedPreferences prefs(@NonNull Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    @NonNull
+    private static String normalizeManeuverVoiceName(String voiceName) {
+        if (voiceName == null) {
+            return MANEUVER_VOICE_SYSTEM_DEFAULT;
+        }
+        String trimmed = voiceName.trim();
+        if (trimmed.isEmpty() || MANEUVER_VOICE_DISABLED.equals(trimmed)) {
+            return MANEUVER_VOICE_SYSTEM_DEFAULT;
+        }
+        return trimmed;
     }
 
     @NonNull
