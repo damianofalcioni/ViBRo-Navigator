@@ -23,6 +23,8 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         void onStopNavigation();
 
         void onTogglePaused();
+
+        void onExportRoute();
     }
 
     private static final String TAG = "ViBRoAutoSurface";

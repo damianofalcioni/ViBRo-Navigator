@@ -28,7 +28,7 @@ final class ViBRoAutoSurfacePainter {
     ) {
         this.carContext = carContext;
         textColumnPainter = new ViBRoAutoTextColumnPainter(carContext, controls);
-        compassPainter = new ViBRoAutoCompassPainter(carContext);
+        compassPainter = new ViBRoAutoCompassPainter(carContext, controls);
     }
 
     void draw(

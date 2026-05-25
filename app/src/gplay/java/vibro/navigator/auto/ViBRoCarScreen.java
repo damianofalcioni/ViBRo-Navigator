@@ -4,6 +4,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.ActivityNotFoundException;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -11,6 +12,7 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.car.app.AppManager;
+import androidx.car.app.CarToast;
 import androidx.car.app.CarContext;
 import androidx.car.app.Screen;
 import androidx.car.app.model.Action;
@@ -25,9 +27,12 @@ import androidx.core.graphics.drawable.IconCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import java.io.IOException;
+
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.main.MainActivity;
+import vibro.navigator.nav.export.NavigationRouteGpxViewIntent;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -181,6 +186,12 @@ public final class ViBRoCarScreen extends Screen {
                         this::togglePaused,
                         true
                 ))
+                .addAction(buildIconAction(
+                        R.string.action_export_route,
+                        R.drawable.ic_export,
+                        this::exportCurrentRoute,
+                        true
+                ))
                 .build();
     }
 
@@ -260,6 +271,37 @@ public final class ViBRoCarScreen extends Screen {
         navBinder.stop();
     }
 
+    private void exportCurrentRoute() {
+        if (navBinder == null) {
+            AppLogger.w(TAG, "Route export requested before service binding completed");
+            showToast(R.string.msg_route_export_unavailable);
+            return;
+        }
+        String gpx = navBinder.buildCurrentRouteGpx();
+        if (gpx == null) {
+            AppLogger.w(TAG, "Route export requested without an active route");
+            showToast(R.string.msg_route_export_unavailable);
+            return;
+        }
+        AppLogger.dMultiline(TAG, "Generated route GPX XML from Android Auto", gpx);
+        try {
+            Intent chooser = NavigationRouteGpxViewIntent.createChooser(carContext, gpx)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            carContext.startActivity(chooser);
+            AppLogger.i(TAG, "Route GPX chooser launched from Android Auto");
+        } catch (ActivityNotFoundException e) {
+            AppLogger.w(TAG, "No app can open exported GPX route from Android Auto", e);
+            showToast(R.string.msg_route_export_no_app);
+        } catch (IOException | RuntimeException e) {
+            AppLogger.w(TAG, "Failed to export current route as GPX from Android Auto", e);
+            showToast(R.string.msg_route_export_failed);
+        }
+    }
+
+    private void showToast(int messageResId) {
+        CarToast.makeText(carContext, messageResId, CarToast.LENGTH_SHORT).show();
+    }
+
     private void openPhoneApp() {
         Intent intent = new Intent(carContext, MainActivity.class)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -293,6 +335,11 @@ public final class ViBRoCarScreen extends Screen {
         @Override
         public void onTogglePaused() {
             togglePaused();
+        }
+
+        @Override
+        public void onExportRoute() {
+            exportCurrentRoute();
         }
     }
 

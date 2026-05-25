@@ -16,10 +16,15 @@ final class ViBRoAutoCompassPainter {
 
     private final NavigationCompassModeController compassModeController = new NavigationCompassModeController();
     private final NavigationCompassView compassView;
+    private final ViBRoAutoCompassOverlayPainter overlayPainter;
     private final RectF bounds = new RectF();
 
-    ViBRoAutoCompassPainter(@NonNull CarContext carContext) {
+    ViBRoAutoCompassPainter(
+            @NonNull CarContext carContext,
+            @NonNull ViBRoAutoSurfaceRenderer.Controls controls
+    ) {
         compassView = new NavigationCompassView(carContext);
+        overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
     }
 
     void draw(@NonNull Canvas canvas, @NonNull NavState state, float left, float top, float size) {
@@ -35,9 +40,13 @@ final class ViBRoAutoCompassPainter {
         canvas.translate(left, top);
         compassView.draw(canvas);
         canvas.restoreToCount(saveCount);
+        overlayPainter.draw(canvas, state, bounds);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
+        if (overlayPainter.handleClick(x, y)) {
+            return true;
+        }
         if (!bounds.contains(x, y)) {
             return false;
         }
