@@ -76,23 +76,39 @@ public class NavigationNotificationDebugHelperTest {
 
     @Test
     public void postSymbolTestNotificationUsesLeftChannelForLeftSymbols() {
-        assertPostedGroup(SymbolTestGroup.LEFT, NavigationService.CHANNEL_ID_TURN_LEFT, "← ↖ <← U↙ <○2");
+        assertPostedGroup(
+                SymbolTestGroup.LEFT,
+                NavigationService.CHANNEL_ID_TURN_LEFT,
+                "← ↖ <← U↙ <○2",
+                R.string.notification_symbol_test_left_title
+        );
     }
 
     @Test
     public void postSymbolTestNotificationUsesAlertChannelForOtherSymbols() {
-        assertPostedGroup(SymbolTestGroup.OTHER, NavigationService.CHANNEL_ID_ALERT, "⬆ U↓ !!× ◉ ■ ? 42°");
+        assertPostedGroup(
+                SymbolTestGroup.OTHER,
+                NavigationService.CHANNEL_ID_ALERT,
+                "⬆ U↓ !!× ◉ ■ ? 42°",
+                R.string.notification_symbol_test_other_title
+        );
     }
 
     @Test
     public void postSymbolTestNotificationUsesRightChannelForRightSymbols() {
-        assertPostedGroup(SymbolTestGroup.RIGHT, NavigationService.CHANNEL_ID_TURN_RIGHT, "→ ↗ →> U↘ ○>3");
+        assertPostedGroup(
+                SymbolTestGroup.RIGHT,
+                NavigationService.CHANNEL_ID_TURN_RIGHT,
+                "→ ↗ →> U↘ ○>3",
+                R.string.notification_symbol_test_right_title
+        );
     }
 
     private static void assertPostedGroup(
             SymbolTestGroup group,
             String expectedChannelId,
-            String expectedSummary
+            String expectedSummary,
+            int expectedTitleRes
     ) {
         NotificationManager notificationManager = ApplicationProvider.getApplicationContext()
                 .getSystemService(NotificationManager.class);
@@ -106,7 +122,7 @@ public class NavigationNotificationDebugHelperTest {
         Notification notification = notifications[0].getNotification();
         assertEquals(expectedChannelId, notification.getChannelId());
         assertEquals(
-                ApplicationProvider.getApplicationContext().getString(R.string.notification_symbol_test_title),
+                ApplicationProvider.getApplicationContext().getString(expectedTitleRes),
                 notification.extras.getString(Notification.EXTRA_TITLE)
         );
         assertEquals(

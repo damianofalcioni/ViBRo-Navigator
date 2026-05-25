@@ -3,9 +3,12 @@ package vibro.navigator.nav.compass.ui;
 
 import vibro.navigator.nav.compass.NavCompassState;
 import android.app.Activity;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.os.Looper;
 import android.view.View;
+import androidx.core.content.ContextCompat;
+import vibro.navigator.R;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -237,6 +240,17 @@ public class NavigationCompassViewTest {
         assertEquals(91f, compassView.outerCompassLayerRadius(100f), 0.01f);
         assertEquals(0.18f, NavigationCompassView.OUTER_COMPASS_LAYER_STROKE_SCALE, 0.01f);
         assertEquals(NavigationCompassCalibrationRing.BACKGROUND_ALPHA, pausedRingPaint.getAlpha());
+    }
+
+    @Test
+    public void routeStartApproachLineUsesDottedRedPaint() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteStartApproachRenderer renderer = new NavigationCompassRouteStartApproachRenderer();
+        Paint linePaint = renderer.targetLinePaintForTest(activity);
+
+        assertEquals(ContextCompat.getColor(activity, R.color.compass_route), linePaint.getColor());
+        assertEquals(220, linePaint.getAlpha());
+        assertTrue(linePaint.getPathEffect() instanceof DashPathEffect);
     }
 
     @Test

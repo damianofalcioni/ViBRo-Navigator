@@ -67,7 +67,7 @@ public final class NavigationNotificationDebugHelper {
                 channelIdForGroup(group)
         )
                 .setSmallIcon(R.drawable.ic_notification)
-                .setContentTitle(context.getString(R.string.notification_symbol_test_title))
+                .setContentTitle(titleForGroup(context, group))
                 .setContentText(summary)
                 .setStyle(new NotificationCompat.BigTextStyle()
                         .bigText(message)
@@ -204,6 +204,17 @@ public final class NavigationNotificationDebugHelper {
             return NavigationService.CHANNEL_ID_TURN_RIGHT;
         }
         return NavigationService.CHANNEL_ID_ALERT;
+    }
+
+    @NonNull
+    private static String titleForGroup(@NonNull Context context, @NonNull SymbolTestGroup group) {
+        if (group == SymbolTestGroup.LEFT) {
+            return context.getString(R.string.notification_symbol_test_left_title);
+        }
+        if (group == SymbolTestGroup.RIGHT) {
+            return context.getString(R.string.notification_symbol_test_right_title);
+        }
+        return context.getString(R.string.notification_symbol_test_other_title);
     }
 
     @NonNull

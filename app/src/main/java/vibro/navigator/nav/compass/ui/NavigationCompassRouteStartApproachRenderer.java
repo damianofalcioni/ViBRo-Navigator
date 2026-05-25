@@ -2,6 +2,7 @@ package vibro.navigator.nav.compass.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.util.TypedValue;
 
@@ -16,6 +17,8 @@ import vibro.navigator.nav.compass.NavCompassState;
 final class NavigationCompassRouteStartApproachRenderer {
     private static final float TARGET_MARKER_RADIUS_DP = 5f;
     private static final float TARGET_STROKE_WIDTH_DP = 2f;
+    private static final float TARGET_DOT_LENGTH_DP = 2f;
+    private static final float TARGET_DOT_GAP_DP = 6f;
     private static final int TARGET_LINE_ALPHA = 220;
 
     private final Paint targetLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -90,12 +93,24 @@ final class NavigationCompassRouteStartApproachRenderer {
         targetLinePaint.setStyle(Paint.Style.STROKE);
         targetLinePaint.setStrokeWidth(dp(context, TARGET_STROKE_WIDTH_DP));
         targetLinePaint.setStrokeCap(Paint.Cap.ROUND);
-        targetLinePaint.setColor(ContextCompat.getColor(context, R.color.compass_accent));
+        targetLinePaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
         targetLinePaint.setAlpha(TARGET_LINE_ALPHA);
+        targetLinePaint.setPathEffect(new DashPathEffect(
+                new float[] {
+                        dp(context, TARGET_DOT_LENGTH_DP),
+                        dp(context, TARGET_DOT_GAP_DP)
+                },
+                0f
+        ));
 
         targetPaint.setStyle(Paint.Style.FILL);
-        targetPaint.setColor(ContextCompat.getColor(context, R.color.compass_accent));
+        targetPaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
         initialized = true;
+    }
+
+    Paint targetLinePaintForTest(@NonNull Context context) {
+        ensurePaintsInitialized(context);
+        return targetLinePaint;
     }
 
     private float dp(@NonNull Context context, float value) {

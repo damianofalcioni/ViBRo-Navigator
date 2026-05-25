@@ -363,7 +363,7 @@ The navigation UI must show the following in large text:
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view
 - The compass must draw the destination-reached radius around the destination marker using the same transparent red treatment as the route-threshold overlay
-- While a route-start beeline approach target is active, the compass should show a live target marker and bearing line from the current position toward the snapped original route start, without drawing that approach as part of the off-track route corridor
+- While a route-start beeline approach target is active, the compass should show a live target marker and dotted red bearing line from the current position toward the snapped original route start, without drawing that approach as part of the off-track route corridor
 - While the user is moving at course-style speeds of at least 2.5 m/s, the displayed compass heading should prefer trusted GPS/course heading to reduce jitter; at walking speeds below that threshold, the displayed compass should prefer the live heading sensor when available
 - At course-style speeds, the displayed compass heading should fall back to a movement-derived course when GPS/course heading is unavailable or too inaccurate
 - The displayed compass heading must be compensated for the current screen rotation so portrait and landscape show the same real-world forward direction at the top of the view instead of drifting by 90 or 180 degrees
@@ -550,6 +550,7 @@ The navigation UI must show the following in large text:
 - The about page must contain:
   - The app version
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
+  - Links immediately after the summary to the project source code and the GitHub new-issue page
   - Copyright and license text
   - API/data-source attribution stating the active POI search data source and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
   - A Settings section below the about text
@@ -594,9 +595,10 @@ The navigation UI must show the following in large text:
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available
 - Heading-sensor details should include the selected sensor type plus the latest available heading/orientation-derived values and sample age when available
-- The about page Diagnostic section must also show an action to send a notification-symbol test
-- Triggering that action must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
-- That test notification must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
+- The about page Diagnostic section must also show actions to send notification-symbol tests for left, other, and right guidance notifications
+- Triggering any of those actions must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
+- Those test notifications must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
+- The test notification titles must identify the tested group as `test all lefts notifications`, `test all others notifications`, or `test all rights notifications`
 - Those test symbols should remain simple enough to render on generic smart bands rather than assuming full emoji support
 
 ### 6. Shared/opened coordinates and addresses

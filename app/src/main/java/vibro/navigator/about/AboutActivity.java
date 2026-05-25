@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 
 public class AboutActivity extends Activity {
 
+    private static final String TAG = "AboutActivity";
     private static final long SENSOR_STATUS_REFRESH_INTERVAL_MS = 1000L;
     private static final int REQ_EXPORT_DATABASE = 4001;
     private static final int REQ_IMPORT_DATABASE = 4002;
@@ -91,6 +92,7 @@ public class AboutActivity extends Activity {
         configureGooglePoiApiKeySetting();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());
+        AboutProjectLinks.configure(this);
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
         renderDiagnosticSection();
@@ -177,7 +179,7 @@ public class AboutActivity extends Activity {
             out.write(AppDataBackup.exportJson(this).getBytes(StandardCharsets.UTF_8));
             Toast.makeText(this, R.string.msg_database_exported, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            AppLogger.w("AboutActivity", "Failed to export database", e);
+            AppLogger.w(TAG, "Failed to export database", e);
             Toast.makeText(this, R.string.msg_database_export_failed, Toast.LENGTH_SHORT).show();
         }
     }
@@ -196,7 +198,7 @@ public class AboutActivity extends Activity {
             }
             Toast.makeText(this, R.string.msg_database_imported, Toast.LENGTH_SHORT).show();
         } catch (Exception e) {
-            AppLogger.w("AboutActivity", "Failed to import database", e);
+            AppLogger.w(TAG, "Failed to import database", e);
             Toast.makeText(this, R.string.msg_database_import_failed, Toast.LENGTH_SHORT).show();
         }
     }

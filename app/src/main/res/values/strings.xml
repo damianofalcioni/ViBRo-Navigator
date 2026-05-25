@@ -79,6 +79,7 @@
     <string name="msg_route_export_unavailable">No active route to export.</string>
     <string name="msg_route_export_failed">Could not export route.</string>
     <string name="msg_route_export_no_app">No app can open GPX routes.</string>
+    <string name="msg_open_url_failed">Could not open link on this device.</string>
     <string name="label_exported_route_gpx">ViBRo route GPX</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
@@ -116,7 +117,9 @@
     <string name="notification_nav_paused">Navigation paused</string>
     <string name="notification_nav_paused_text">ViBRo Navigator navigation is paused</string>
     <string name="notification_off_route_title">Off route</string>
-    <string name="notification_symbol_test_title">Smartband symbol test</string>
+    <string name="notification_symbol_test_left_title">test all lefts notifications</string>
+    <string name="notification_symbol_test_other_title">test all others notifications</string>
+    <string name="notification_symbol_test_right_title">test all rights notifications</string>
 
     <string name="direction_continue">Continue</string>
     <string name="direction_keep_left">Keep left</string>
@@ -181,6 +184,8 @@
     <string name="about_title">ViBRo Navigator</string>
     <string name="format_version">Version %1$s</string>
     <string name="about_short_description">A lightweight, battery-efficient, and offline-first GPS navigation app that vibrates directions, built around BRouter.</string>
+    <string name="about_source_code_link"><u>Source Code on GitHub</u></string>
+    <string name="about_report_issue_link"><u>Report an issue</u></string>
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>
     <string name="about_credits">Credits: BRouter for routing. POI search uses OpenStreetMap Nominatim; map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
     <string name="about_settings_title">Settings</string>

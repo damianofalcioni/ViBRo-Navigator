@@ -129,6 +129,8 @@ public class AboutLoggingSettingsRobolectricTest {
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         TextView symbolTestTitle = activity.findViewById(R.id.aboutSymbolTestTitle);
+        TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
+        TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
         Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
         Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
         Button symbolTestLeftButton = activity.findViewById(R.id.aboutSymbolTestLeftButton);
@@ -162,6 +164,8 @@ public class AboutLoggingSettingsRobolectricTest {
         );
         assertEquals(View.VISIBLE, exportDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
+        assertEquals(activity.getString(R.string.about_source_code_link), sourceCodeLink.getText().toString());
+        assertEquals(activity.getString(R.string.about_report_issue_link), reportIssueLink.getText().toString());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
         assertEquals(View.VISIBLE, symbolTestTitle.getVisibility());
@@ -284,6 +288,23 @@ public class AboutLoggingSettingsRobolectricTest {
         assertEquals("application/json", exportIntent.intent.getType());
         assertEquals(Intent.ACTION_OPEN_DOCUMENT, importIntent.intent.getAction());
         assertEquals("application/json", importIntent.intent.getType());
+    }
+
+    @Test
+    public void aboutPageLinksOpenProjectUrls() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
+        TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
+
+        sourceCodeLink.performClick();
+        Intent sourceIntent = shadowOf(activity).getNextStartedActivity();
+        reportIssueLink.performClick();
+        Intent issueIntent = shadowOf(activity).getNextStartedActivity();
+
+        assertEquals(Intent.ACTION_VIEW, sourceIntent.getAction());
+        assertEquals("https://github.com/damianofalcioni/ViBRo-Navigator", sourceIntent.getDataString());
+        assertEquals(Intent.ACTION_VIEW, issueIntent.getAction());
+        assertEquals("https://github.com/damianofalcioni/ViBRo-Navigator/issues/new", issueIntent.getDataString());
     }
 
     @Test

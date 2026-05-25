@@ -40,6 +40,44 @@
             android:textColor="@color/white"
             android:textSize="16sp" />
 
+        <LinearLayout
+            android:id="@+id/aboutLinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/aboutSourceCodeLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_star"
+                android:drawablePadding="8dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:text="@string/about_source_code_link"
+                android:textColor="@color/success"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/aboutReportIssueLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_bug"
+                android:drawablePadding="8dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:text="@string/about_report_issue_link"
+                android:textColor="@color/success"
+                android:textSize="15sp" />
+        </LinearLayout>
+
         <TextView
             android:id="@+id/aboutLegal"
             android:layout_width="match_parent"
