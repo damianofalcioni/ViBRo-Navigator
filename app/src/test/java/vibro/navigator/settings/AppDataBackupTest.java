@@ -37,6 +37,8 @@ public class AppDataBackupTest {
     };
     private static final String GOOGLE_POI_API_KEY = "google-key";
     private static final String BACKUP_TYPE = "type";
+    private static final String BACKUP_TYPE_BOOLEAN = "boolean";
+    private static final String BACKUP_TYPE_STRING = "string";
     private static final String BACKUP_VALUE = "value";
     private static final String CATEGORY_FUEL = "Fuel";
     private static final String CATEGORY_RESTAURANT = "Restaurant";
@@ -58,7 +60,8 @@ public class AppDataBackupTest {
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
-        AppSettings.setGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
+        AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
+        AppSettings.setGooglePoiSearchEnabled(context, false);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT);
         AppSettings.setMapPoiCategoryFilterEnabled(context, true);
         AppSettings.setMapPoiCategorySettings(context, Arrays.asList(
@@ -83,6 +86,8 @@ public class AppDataBackupTest {
         assertFalse(AppSettings.isFusedLocationEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
+        assertTrue(AppSettings.hasValidGooglePoiApiKey(context));
+        assertFalse(AppSettings.isGooglePoiSearchEnabled(context));
         assertEquals(AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT, AppSettings.getManeuverVoiceName(context));
         assertTrue(AppSettings.isMapPoiCategoryFilterEnabled(context));
         assertEquals(Arrays.asList(CATEGORY_FUEL, CATEGORY_RESTAURANT), AppSettings.getMapPoiCategoryNames(context));
@@ -95,7 +100,8 @@ public class AppDataBackupTest {
     @Test
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
-        AppSettings.setGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
+        AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
+        AppSettings.setGooglePoiSearchEnabled(context, false);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT);
         AppSettings.setMapPoiCategoryFilterEnabled(context, true);
         AppSettings.setMapPoiCategorySettings(context, Arrays.asList(
@@ -108,20 +114,26 @@ public class AppDataBackupTest {
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
+        JSONObject googlePoiApiKeyValid = appSettings.getJSONObject("google_poi_api_key_valid");
+        JSONObject googlePoiSearchEnabled = appSettings.getJSONObject("google_poi_search_enabled");
         JSONObject maneuverVoiceName = appSettings.getJSONObject("maneuver_voice_name");
         JSONObject mapPoiCategoryFilterEnabled = appSettings.getJSONObject("map_poi_category_filter_enabled");
         JSONObject mapPoiCategoryNames = appSettings.getJSONObject("map_poi_category_names");
 
         assertEquals(1, root.getInt("schemaVersion"));
-        assertEquals("boolean", imperialUnits.getString(BACKUP_TYPE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, imperialUnits.getString(BACKUP_TYPE));
         assertTrue(imperialUnits.getBoolean(BACKUP_VALUE));
-        assertEquals("string", googlePoiApiKey.getString(BACKUP_TYPE));
+        assertEquals(BACKUP_TYPE_STRING, googlePoiApiKey.getString(BACKUP_TYPE));
         assertEquals(GOOGLE_POI_API_KEY, googlePoiApiKey.getString(BACKUP_VALUE));
-        assertEquals("string", maneuverVoiceName.getString(BACKUP_TYPE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, googlePoiApiKeyValid.getString(BACKUP_TYPE));
+        assertTrue(googlePoiApiKeyValid.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, googlePoiSearchEnabled.getString(BACKUP_TYPE));
+        assertFalse(googlePoiSearchEnabled.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_STRING, maneuverVoiceName.getString(BACKUP_TYPE));
         assertEquals(AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT, maneuverVoiceName.getString(BACKUP_VALUE));
-        assertEquals("boolean", mapPoiCategoryFilterEnabled.getString(BACKUP_TYPE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, mapPoiCategoryFilterEnabled.getString(BACKUP_TYPE));
         assertTrue(mapPoiCategoryFilterEnabled.getBoolean(BACKUP_VALUE));
-        assertEquals("string", mapPoiCategoryNames.getString(BACKUP_TYPE));
+        assertEquals(BACKUP_TYPE_STRING, mapPoiCategoryNames.getString(BACKUP_TYPE));
         JSONArray categories = new JSONArray(mapPoiCategoryNames.getString(BACKUP_VALUE));
         assertEquals(CATEGORY_FUEL, categories.getJSONObject(0).getString("name"));
         assertTrue(categories.getJSONObject(0).getBoolean("enabled"));

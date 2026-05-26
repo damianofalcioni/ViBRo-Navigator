@@ -13,6 +13,8 @@ public final class AppSettings {
     private static final String KEY_USE_FUSED_LOCATION = "use_fused_location";
     private static final String KEY_USE_IMPERIAL_UNITS = "use_imperial_units";
     private static final String KEY_GOOGLE_POI_API_KEY = "google_poi_api_key";
+    private static final String KEY_GOOGLE_POI_API_KEY_VALID = "google_poi_api_key_valid";
+    private static final String KEY_GOOGLE_POI_SEARCH_ENABLED = "google_poi_search_enabled";
     private static final String KEY_MANEUVER_SPEECH_ENABLED = "maneuver_speech_enabled";
     private static final String KEY_MANEUVER_VOICE_NAME = "maneuver_voice_name";
     private static final String KEY_MAP_POI_CATEGORY_FILTER_ENABLED = "map_poi_category_filter_enabled";
@@ -67,10 +69,40 @@ public final class AppSettings {
         SharedPreferences.Editor editor = prefs(context).edit();
         if (trimmed.isEmpty()) {
             editor.remove(KEY_GOOGLE_POI_API_KEY);
+            editor.remove(KEY_GOOGLE_POI_API_KEY_VALID);
+            editor.remove(KEY_GOOGLE_POI_SEARCH_ENABLED);
         } else {
             editor.putString(KEY_GOOGLE_POI_API_KEY, trimmed);
+            editor.putBoolean(KEY_GOOGLE_POI_API_KEY_VALID, false);
+            editor.putBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, false);
         }
         editor.apply();
+    }
+
+    public static void setValidatedGooglePoiApiKey(@NonNull Context context, @NonNull String apiKey) {
+        String trimmed = apiKey.trim();
+        boolean valid = !trimmed.isEmpty();
+        prefs(context).edit()
+                .putString(KEY_GOOGLE_POI_API_KEY, trimmed)
+                .putBoolean(KEY_GOOGLE_POI_API_KEY_VALID, valid)
+                .putBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, valid)
+                .apply();
+    }
+
+    public static boolean hasValidGooglePoiApiKey(@NonNull Context context) {
+        boolean storedValid = prefs(context).getBoolean(KEY_GOOGLE_POI_API_KEY_VALID, false);
+        return Boolean.logicalAnd(!getGooglePoiApiKey(context).trim().isEmpty(), storedValid);
+    }
+
+    public static boolean isGooglePoiSearchEnabled(@NonNull Context context) {
+        return hasValidGooglePoiApiKey(context)
+                && prefs(context).getBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, true);
+    }
+
+    public static void setGooglePoiSearchEnabled(@NonNull Context context, boolean enabled) {
+        prefs(context).edit()
+                .putBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, enabled && hasValidGooglePoiApiKey(context))
+                .apply();
     }
 
     @NonNull

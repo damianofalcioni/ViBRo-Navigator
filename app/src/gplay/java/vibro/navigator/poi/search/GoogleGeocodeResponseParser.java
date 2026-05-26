@@ -12,6 +12,8 @@ import java.util.List;
 import vibro.navigator.poi.Poi;
 
 final class GoogleGeocodeResponseParser {
+    private static final String STATUS_OK = "OK";
+    private static final String STATUS_REQUEST_DENIED = "REQUEST_DENIED";
 
     private GoogleGeocodeResponseParser() {
     }
@@ -31,6 +33,20 @@ final class GoogleGeocodeResponseParser {
             }
         }
         return out;
+    }
+
+    @NonNull
+    static String parseStatus(@NonNull String body) throws JSONException {
+        JSONObject root = new JSONObject(body);
+        return root.optString("status", "");
+    }
+
+    static boolean isOkStatus(@NonNull String body) throws JSONException {
+        return STATUS_OK.equals(parseStatus(body));
+    }
+
+    static boolean isRequestDeniedStatus(@NonNull String body) throws JSONException {
+        return STATUS_REQUEST_DENIED.equals(parseStatus(body));
     }
 
     private static Poi parseResult(JSONObject result) {

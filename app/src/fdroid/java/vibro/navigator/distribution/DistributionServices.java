@@ -22,6 +22,11 @@ public final class DistributionServices {
         return false;
     }
 
+    @NonNull
+    public static GooglePoiApiKeyValidationResult validateUserGooglePoiApiKey(@NonNull String apiKey) {
+        return GooglePoiApiKeyValidationResult.ERROR;
+    }
+
     public static boolean isFusedLocationRuntimeAvailable(@NonNull Context context) {
         return false;
     }

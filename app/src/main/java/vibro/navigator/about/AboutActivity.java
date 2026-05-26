@@ -33,9 +33,7 @@ public class AboutActivity extends Activity {
     private Switch fusedLocationSwitch;
     private Switch imperialUnitsSwitch;
     private AboutManeuverVoiceSettings maneuverVoiceSettings;
-    private View googlePoiApiKeyContainer;
-    private TextView googlePoiApiKeyEdit;
-    private View googlePoiApiKeySaveButton;
+    private AboutGooglePoiApiKeySettings googlePoiApiKeySettings;
     private View exportDatabaseButton;
     private View importDatabaseButton;
     private AboutPoiCategorySettings poiCategorySettings;
@@ -54,9 +52,9 @@ public class AboutActivity extends Activity {
         View poiCategoriesButton = findViewById(R.id.aboutPoiCategoriesButton);
         View maneuverVoiceSettingsButton = findViewById(R.id.aboutManeuverVoiceSettingsButton);
         Switch maneuverVoiceSwitch = findViewById(R.id.aboutManeuverVoiceSwitch);
-        googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
-        googlePoiApiKeyEdit = findViewById(R.id.aboutGooglePoiApiKeyEdit);
-        googlePoiApiKeySaveButton = findViewById(R.id.aboutGooglePoiApiKeySaveButton);
+        View googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
+        View googlePoiApiKeyButton = findViewById(R.id.aboutGooglePoiApiKeyButton);
+        Switch googlePoiSearchSwitch = findViewById(R.id.aboutGooglePoiSearchSwitch);
         exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
         diagnosticSection = new AboutDiagnosticSection(this);
@@ -74,7 +72,13 @@ public class AboutActivity extends Activity {
                 maneuverVoiceSettingsButton,
                 maneuverVoiceSwitch
         );
-        configureGooglePoiApiKeySetting();
+        googlePoiApiKeySettings = new AboutGooglePoiApiKeySettings(
+                this,
+                googlePoiApiKeyContainer,
+                googlePoiApiKeyButton,
+                googlePoiSearchSwitch
+        );
+        googlePoiApiKeySettings.configure();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());
         AboutProjectLinks.configure(this);
@@ -105,6 +109,9 @@ public class AboutActivity extends Activity {
     protected void onDestroy() {
         if (maneuverVoiceSettings != null) {
             maneuverVoiceSettings.shutdown();
+        }
+        if (googlePoiApiKeySettings != null) {
+            googlePoiApiKeySettings.shutdown();
         }
         super.onDestroy();
     }
@@ -207,39 +214,10 @@ public class AboutActivity extends Activity {
         });
     }
 
-    private void configureGooglePoiApiKeySetting() {
-        boolean supported = DistributionServices.supportsUserGooglePoiApiKey();
-        googlePoiApiKeyContainer.setVisibility(supported ? View.VISIBLE : View.GONE);
-        googlePoiApiKeyEdit.setEnabled(supported);
-        googlePoiApiKeySaveButton.setEnabled(supported);
-        if (!supported) {
-            return;
-        }
-        renderGooglePoiApiKeySetting();
-        googlePoiApiKeySaveButton.setOnClickListener(v -> saveGooglePoiApiKey());
-    }
-
     private void renderGooglePoiApiKeySetting() {
-        if (!DistributionServices.supportsUserGooglePoiApiKey()) {
-            return;
+        if (googlePoiApiKeySettings != null) {
+            googlePoiApiKeySettings.refresh();
         }
-        googlePoiApiKeyEdit.setText(AppSettings.getGooglePoiApiKey(this));
-    }
-
-    private void saveGooglePoiApiKey() {
-        if (!DistributionServices.supportsUserGooglePoiApiKey()) {
-            return;
-        }
-        AppSettings.setGooglePoiApiKey(this, googlePoiApiKeyEdit.getText().toString());
-        String savedKey = AppSettings.getGooglePoiApiKey(this);
-        googlePoiApiKeyEdit.setText(savedKey);
-        Toast.makeText(
-                this,
-                savedKey.isEmpty()
-                        ? R.string.msg_google_poi_api_key_cleared
-                        : R.string.msg_google_poi_api_key_saved,
-                Toast.LENGTH_SHORT
-        ).show();
     }
 
     private void configureImperialUnitsSwitch() {

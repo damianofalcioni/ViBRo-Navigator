@@ -2,6 +2,9 @@ package vibro.navigator.poi.search;
 
 import androidx.annotation.NonNull;
 
+import org.json.JSONException;
+
+import vibro.navigator.distribution.GooglePoiApiKeyValidationResult;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.Poi;
 
@@ -20,11 +23,25 @@ import java.util.Locale;
 public final class GoogleGeocodeClient implements PoiSearchClient {
 
     private static final String TAG = "GoogleGeocode";
+    private static final String VALIDATION_QUERY = "Vienna, Austria";
 
     private final String apiKey;
 
     public GoogleGeocodeClient(@NonNull String apiKey) {
         this.apiKey = apiKey;
+    }
+
+    @NonNull
+    public static GooglePoiApiKeyValidationResult validateApiKey(@NonNull String apiKey) {
+        if (apiKey.trim().isEmpty()) {
+            return GooglePoiApiKeyValidationResult.INVALID;
+        }
+        try {
+            return validateApiKeyWithService(apiKey);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to validate Google API key", e);
+            return GooglePoiApiKeyValidationResult.ERROR;
+        }
     }
 
     @NonNull
@@ -52,6 +69,27 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
     }
 
     @NonNull
+    private static GooglePoiApiKeyValidationResult validateApiKeyWithService(@NonNull String apiKey)
+            throws IOException, JSONException {
+        HttpURLConnection conn = openConnection(buildSearchUrl(VALIDATION_QUERY, apiKey));
+        try {
+            int code = conn.getResponseCode();
+            String body = readValidationBody(conn, code);
+            if (code >= 200 && code < 300 && GoogleGeocodeResponseParser.isOkStatus(body)) {
+                return GooglePoiApiKeyValidationResult.VALID;
+            }
+            if (code == HttpURLConnection.HTTP_UNAUTHORIZED
+                    || code == HttpURLConnection.HTTP_FORBIDDEN
+                    || GoogleGeocodeResponseParser.isRequestDeniedStatus(body)) {
+                return GooglePoiApiKeyValidationResult.INVALID;
+            }
+            return GooglePoiApiKeyValidationResult.ERROR;
+        } finally {
+            conn.disconnect();
+        }
+    }
+
+    @NonNull
     private static String buildSearchUrl(@NonNull String query, @NonNull String apiKey) throws IOException {
         String q = URLEncoder.encode(query, "UTF-8");
         return String.format(Locale.US,
@@ -72,6 +110,15 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
 
     private static InputStream responseStream(@NonNull HttpURLConnection conn, int code) throws IOException {
         return code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
+    }
+
+    @NonNull
+    private static String readValidationBody(@NonNull HttpURLConnection conn, int code) throws IOException {
+        InputStream is = responseStream(conn, code);
+        if (is == null) {
+            return "";
+        }
+        return readAll(is);
     }
 
     @NonNull

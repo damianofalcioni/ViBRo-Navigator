@@ -161,6 +161,7 @@ public class AboutLoggingSettingsRobolectricTest {
                 DistributionServices.supportsUserGooglePoiApiKey() ? View.VISIBLE : View.GONE,
                 googlePoiApiKeyContainer.getVisibility()
         );
+        assertGooglePoiApiKeySetting(activity);
         assertEquals(View.VISIBLE, exportDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
         assertEquals(activity.getString(R.string.about_source_code_link), sourceCodeLink.getText().toString());
@@ -398,5 +399,23 @@ public class AboutLoggingSettingsRobolectricTest {
     private static Switch categorySwitchAt(LinearLayout categoryList, int rowIndex) {
         LinearLayout row = (LinearLayout) categoryList.getChildAt(rowIndex);
         return (Switch) row.getChildAt(1);
+    }
+
+    private static void assertGooglePoiApiKeySetting(AboutActivity activity) {
+        TextView label = activity.findViewById(R.id.aboutGooglePoiApiKeyLabel);
+        ImageButton button = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
+        Switch enabledSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
+
+        assertEquals(activity.getString(R.string.label_google_poi_api_key), label.getText().toString());
+        assertEquals(
+                activity.getString(R.string.action_edit_google_poi_api_key),
+                button.getContentDescription().toString()
+        );
+        assertEquals(
+                activity.getString(R.string.action_enable_google_poi_search),
+                enabledSwitch.getContentDescription().toString()
+        );
+        assertFalse(enabledSwitch.isEnabled());
+        assertFalse(enabledSwitch.isChecked());
     }
 }

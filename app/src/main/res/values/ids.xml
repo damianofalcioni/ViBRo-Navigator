@@ -2,6 +2,7 @@
 <resources>
     <item name="aboutPoiCategoryDialogList" type="id" />
     <item name="aboutPoiCategoryAddButton" type="id" />
+    <item name="aboutGooglePoiApiKeyEdit" type="id" />
     <item name="aboutManeuverVoiceDialogVoiceLabel" type="id" />
     <item name="aboutManeuverVoiceSpinner" type="id" />
     <item name="aboutManeuverVoicePlayButton" type="id" />

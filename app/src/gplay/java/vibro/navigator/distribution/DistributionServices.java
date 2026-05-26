@@ -27,6 +27,11 @@ public final class DistributionServices {
         return true;
     }
 
+    @NonNull
+    public static GooglePoiApiKeyValidationResult validateUserGooglePoiApiKey(@NonNull String apiKey) {
+        return GoogleGeocodeClient.validateApiKey(apiKey);
+    }
+
     public static boolean isFusedLocationRuntimeAvailable(@NonNull Context context) {
         return GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context)
                 == ConnectionResult.SUCCESS;
@@ -47,8 +52,11 @@ public final class DistributionServices {
 
     @Nullable
     public static PoiSearchClient createGooglePoiSearchClient(@NonNull Context context) {
+        if (!AppSettings.isGooglePoiSearchEnabled(context)) {
+            return null;
+        }
         String key = AppSettings.getGooglePoiApiKey(context);
-        if (key.isEmpty()) {
+        if (key.trim().isEmpty()) {
             return null;
         }
         return new GoogleGeocodeClient(key);

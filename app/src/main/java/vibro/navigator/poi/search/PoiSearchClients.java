@@ -36,10 +36,10 @@ public final class PoiSearchClients {
         public List<Poi> search(@NonNull String query, int limit) throws IOException {
             PoiSearchClient googleClient = DistributionServices.createGooglePoiSearchClient(context);
             if (googleClient != null) {
-                AppLogger.i(TAG, "Using Google POI search because API key is configured");
+                AppLogger.i(TAG, "Using Google POI search because it is enabled");
                 return googleClient.search(query, limit);
             }
-            AppLogger.i(TAG, "Using OsmNominatimClient because no Google API key is configured");
+            AppLogger.i(TAG, "Using OsmNominatimClient because Google POI search is unavailable");
             return osmClient.search(query, limit);
         }
     }

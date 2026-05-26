@@ -1,6 +1,8 @@
 package vibro.navigator.poi.search;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -34,5 +36,12 @@ public class GoogleGeocodeResponseParserTest {
         List<Poi> results = GoogleGeocodeResponseParser.parseResults("{\"status\":\"ZERO_RESULTS\"}", 5);
 
         assertEquals(0, results.size());
+    }
+
+    @Test
+    public void statusHelpersRecognizeValidationStatuses() throws Exception {
+        assertTrue(GoogleGeocodeResponseParser.isOkStatus("{\"status\":\"OK\"}"));
+        assertTrue(GoogleGeocodeResponseParser.isRequestDeniedStatus("{\"status\":\"REQUEST_DENIED\"}"));
+        assertFalse(GoogleGeocodeResponseParser.isOkStatus("{\"status\":\"REQUEST_DENIED\"}"));
     }
 }

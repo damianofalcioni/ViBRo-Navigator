@@ -32,6 +32,8 @@
     <string name="action_zoom_out">-</string>
     <string name="action_current_location">Current location</string>
     <string name="action_edit_poi_categories">Edit POI categories</string>
+    <string name="action_edit_google_poi_api_key">Edit Google Maps API key</string>
+    <string name="action_enable_google_poi_search">Enable Google search</string>
     <string name="action_add_poi_category">Add POI category</string>
     <string name="action_remove_poi_category">Remove POI category</string>
     <string name="action_enable_poi_category">Enable POI category</string>
@@ -211,6 +213,10 @@
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>
     <string name="msg_google_poi_api_key_cleared">Google Maps API key cleared.</string>
+    <string name="msg_google_poi_api_key_required">Add a Google Maps API key before enabling Google search.</string>
+    <string name="msg_google_poi_api_key_validating">Validating Google Maps API key…</string>
+    <string name="msg_google_poi_api_key_invalid">Google Maps API key is not valid.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Could not validate Google Maps API key.</string>
     <string name="about_diagnostic_title">Diagnostic</string>
     <string name="about_permission_status_title">Required access</string>
     <string name="about_sensor_status_title">Sensor status</string>

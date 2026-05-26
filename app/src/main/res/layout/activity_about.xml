@@ -217,49 +217,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:minHeight="48dp"
+            android:orientation="horizontal"
             android:visibility="gone">
 
             <TextView
                 android:id="@+id/aboutGooglePoiApiKeyLabel"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
                 android:text="@string/label_google_poi_api_key"
                 android:textColor="@color/white"
                 android:textSize="16sp" />
 
-            <LinearLayout
-                android:id="@+id/aboutGooglePoiApiKeyRow"
-                android:layout_width="match_parent"
+            <ImageButton
+                android:id="@+id/aboutGooglePoiApiKeyButton"
+                style="@style/Widget.ViBRoNavigator.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:contentDescription="@string/action_edit_google_poi_api_key"
+                android:src="@drawable/ic_password" />
+
+            <Switch
+                android:id="@+id/aboutGooglePoiSearchSwitch"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/aboutGooglePoiApiKeyEdit"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:hint="@string/hint_google_poi_api_key"
-                    android:importantForAutofill="no"
-                    android:imeOptions="actionDone"
-                    android:inputType="textVisiblePassword|textNoSuggestions"
-                    android:maxLines="1"
-                    android:selectAllOnFocus="true"
-                    android:singleLine="true"
-                    android:textColor="@color/white"
-                    android:textColorHint="@color/gray_700"
-                    android:textSize="14sp" />
-
-                <Button
-                    android:id="@+id/aboutGooglePoiApiKeySaveButton"
-                    style="@style/Widget.ViBRoNavigator.Button.Primary"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:minWidth="80dp"
-                    android:text="@string/action_save" />
-            </LinearLayout>
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/action_enable_google_poi_search"
+                android:minHeight="48dp"
+                android:showText="false" />
         </LinearLayout>
 
         <Button

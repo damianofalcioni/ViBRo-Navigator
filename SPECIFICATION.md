@@ -81,8 +81,8 @@ Below the routing-profile selector, the app must show an input field for searchi
 - On every typed character, but only once the query length is greater than 3, the app must retrieve matching POIs
 - Online provider search must only run when the typed query has no matching history entries and the query length is greater than 3
 - Each result must include the POI full name and coordinates
-- In the Google Play flavor, the data source must be Google Maps REST APIs when a Google API key is saved in the app settings
-- If the Google API key is not defined, the app must use OpenStreetMap APIs
+- In the Google Play flavor, the data source must be Google Maps REST APIs when Google search is enabled and a valid Google API key is saved in the app settings
+- If the Google API key is not defined or Google search is disabled, the app must use OpenStreetMap APIs
 - In the F-Droid flavor, POI search must always use OpenStreetMap APIs and must not include Google search code or require a Google API key
 
 #### 2.3 Search results dropdown
@@ -569,7 +569,7 @@ The navigation UI must show the following in large text:
 - Downloaded/offline Speech directions voice options should show user-friendly labels derived from the voice locale and readable voice variant when available, instead of exposing raw TextToSpeech engine identifiers in the spinner label
 - The Speech directions voice spinner dropdown should visually highlight the currently selected voice option
 - The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
-- The Google Play flavor must let the user save an optional Google Maps API key for POI search; when this key is present, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
+- The Google Play flavor must let the user save an optional Google Maps API key for POI search and enable or disable Google search; the app must validate a non-empty key through Google Maps Geocoding before marking it valid, and when Google search is enabled with a valid key, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting
 - The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, and BRouter profile selections
 - The about page Settings section must show an Import database button that lets the user select a JSON backup and restore those same app-managed stored data stores
