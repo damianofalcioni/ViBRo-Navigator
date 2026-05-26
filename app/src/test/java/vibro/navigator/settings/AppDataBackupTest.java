@@ -62,6 +62,7 @@ public class AppDataBackupTest {
         AppSettings.setImperialUnitsEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppSettings.setGooglePoiSearchEnabled(context, false);
+        AppAndroidAutoSettings.setIntegrationEnabled(context, false);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT);
         AppSettings.setMapPoiCategoryFilterEnabled(context, true);
         AppSettings.setMapPoiCategorySettings(context, Arrays.asList(
@@ -88,6 +89,7 @@ public class AppDataBackupTest {
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
         assertTrue(AppSettings.hasValidGooglePoiApiKey(context));
         assertFalse(AppSettings.isGooglePoiSearchEnabled(context));
+        assertFalse(AppAndroidAutoSettings.isIntegrationEnabled(context));
         assertEquals(AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT, AppSettings.getManeuverVoiceName(context));
         assertTrue(AppSettings.isMapPoiCategoryFilterEnabled(context));
         assertEquals(Arrays.asList(CATEGORY_FUEL, CATEGORY_RESTAURANT), AppSettings.getMapPoiCategoryNames(context));
@@ -102,6 +104,7 @@ public class AppDataBackupTest {
         AppSettings.setImperialUnitsEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppSettings.setGooglePoiSearchEnabled(context, false);
+        AppAndroidAutoSettings.setIntegrationEnabled(context, false);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT);
         AppSettings.setMapPoiCategoryFilterEnabled(context, true);
         AppSettings.setMapPoiCategorySettings(context, Arrays.asList(
@@ -116,6 +119,7 @@ public class AppDataBackupTest {
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
         JSONObject googlePoiApiKeyValid = appSettings.getJSONObject("google_poi_api_key_valid");
         JSONObject googlePoiSearchEnabled = appSettings.getJSONObject("google_poi_search_enabled");
+        JSONObject androidAutoIntegrationEnabled = appSettings.getJSONObject("android_auto_integration_enabled");
         JSONObject maneuverVoiceName = appSettings.getJSONObject("maneuver_voice_name");
         JSONObject mapPoiCategoryFilterEnabled = appSettings.getJSONObject("map_poi_category_filter_enabled");
         JSONObject mapPoiCategoryNames = appSettings.getJSONObject("map_poi_category_names");
@@ -129,6 +133,8 @@ public class AppDataBackupTest {
         assertTrue(googlePoiApiKeyValid.getBoolean(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, googlePoiSearchEnabled.getString(BACKUP_TYPE));
         assertFalse(googlePoiSearchEnabled.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, androidAutoIntegrationEnabled.getString(BACKUP_TYPE));
+        assertFalse(androidAutoIntegrationEnabled.getBoolean(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_STRING, maneuverVoiceName.getString(BACKUP_TYPE));
         assertEquals(AppSettings.MANEUVER_VOICE_SYSTEM_DEFAULT, maneuverVoiceName.getString(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, mapPoiCategoryFilterEnabled.getString(BACKUP_TYPE));

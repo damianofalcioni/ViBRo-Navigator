@@ -22,6 +22,13 @@ public final class DistributionServices {
         return false;
     }
 
+    public static boolean supportsAndroidAutoIntegration() {
+        return false;
+    }
+
+    public static void configureAndroidAutoIntegration(@NonNull Context context, boolean enabled) {
+    }
+
     @NonNull
     public static GooglePoiApiKeyValidationResult validateUserGooglePoiApiKey(@NonNull String apiKey) {
         return GooglePoiApiKeyValidationResult.ERROR;

@@ -7,7 +7,9 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppAndroidAutoSettings;
 
 public final class ViBRoNavigatorApp extends Application {
 
@@ -20,6 +22,10 @@ public final class ViBRoNavigatorApp extends Application {
     public void onCreate() {
         super.onCreate();
         AppLogger.init(this);
+        DistributionServices.configureAndroidAutoIntegration(
+                this,
+                AppAndroidAutoSettings.isIntegrationEnabled(this)
+        );
         AppLogger.i(TAG, "Application started version=" + BuildConfig.VERSION_NAME
                 + " logFile=" + AppLogger.getLogFilePath(this));
         installActivityLifecycleLogging();

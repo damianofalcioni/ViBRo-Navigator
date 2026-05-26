@@ -509,6 +509,7 @@ The navigation UI must show the following in large text:
 
 - Android Auto support must exist only in the Google Play flavor.
 - The F-Droid flavor and common source set must not include Android for Cars App Library dependencies, Android Auto manifest entries, or Auto-specific runtime classes.
+- The Google Play flavor must let the user enable or disable Android Auto integration from the about page Settings section; disabling it must disable the Android Auto service component, while the F-Droid flavor must not expose an enabled Android Auto setting.
 - Android Auto must expose a `CarAppService` using `androidx.car.app.CarAppService` and declare the `androidx.car.app.category.NAVIGATION` car app category.
 - The Google Play flavor must declare the `template` capability through `automotive_app_desc.xml` so Android Auto can discover the app.
 - The Google Play flavor must declare the Android for Cars surface permission needed to draw the custom navigation surface.
@@ -561,6 +562,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial distance units (ft/mi) switch for distance, speed, elevation, and accuracy display values
+- The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and an `X` remove button, plus a centered `+` button that adds another field
 - Fresh installs must prefill the POI categories filter editor with commonly needed categories for driving, walking/running, and cycling: `Bicycle Repair Station`, `Drinking Water`, `Fuel`, `Hospital`, `Parking`, `Pharmacy`, `Police`, `Public Transport Stop Position`, `Supermarket Shop`, `Taxi`, and `Toilets`

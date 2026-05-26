@@ -25,6 +25,7 @@ import androidx.test.core.app.ApplicationProvider;
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppAndroidAutoSettings;
 import vibro.navigator.settings.AppSettings;
 
 import org.junit.Before;
@@ -52,6 +53,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
         AppSettings.setImperialUnitsEnabled(context, false);
+        AppAndroidAutoSettings.setIntegrationEnabled(context, true);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
         AppSettings.setMapPoiCategoryFilterEnabled(context, false);
         AppSettings.setMapPoiCategoryNames(context, Collections.emptyList());
@@ -123,6 +125,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
+        Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
         TextView poiCategoriesLabel = activity.findViewById(R.id.aboutPoiCategoriesLabel);
         ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
         Switch poiCategoriesSwitch = activity.findViewById(R.id.aboutPoiCategoriesSwitch);
@@ -143,6 +146,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
+        assertAndroidAutoSetting(activity, androidAutoSwitch);
         assertEquals(activity.getString(R.string.label_poi_categories), poiCategoriesLabel.getText().toString());
         assertEquals(
                 activity.getString(R.string.action_edit_poi_categories),
@@ -222,6 +226,25 @@ public class AboutLoggingSettingsRobolectricTest {
         imperialUnitsSwitch.performClick();
 
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
+    }
+
+    @Test
+    public void aboutPageAndroidAutoSwitchPersistsPreferenceWhenSupported() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
+
+        if (!DistributionServices.supportsAndroidAutoIntegration()) {
+            assertEquals(View.GONE, androidAutoSwitch.getVisibility());
+            return;
+        }
+
+        assertTrue(AppAndroidAutoSettings.isIntegrationEnabled(activity));
+        assertTrue(androidAutoSwitch.isChecked());
+
+        androidAutoSwitch.performClick();
+
+        assertFalse(AppAndroidAutoSettings.isIntegrationEnabled(activity));
+        assertFalse(androidAutoSwitch.isChecked());
     }
 
     @Test
@@ -419,6 +442,16 @@ public class AboutLoggingSettingsRobolectricTest {
         );
         assertFalse(enabledSwitch.isEnabled());
         assertFalse(enabledSwitch.isChecked());
+    }
+
+    private static void assertAndroidAutoSetting(AboutActivity activity, Switch enabledSwitch) {
+        boolean supported = DistributionServices.supportsAndroidAutoIntegration();
+
+        assertEquals(activity.getString(R.string.label_android_auto_integration_enabled),
+                enabledSwitch.getText().toString());
+        assertEquals(supported ? View.VISIBLE : View.GONE, enabledSwitch.getVisibility());
+        assertEquals(supported, enabledSwitch.isEnabled());
+        assertEquals(supported, enabledSwitch.isChecked());
     }
 
     private static void assertHasStartIcon(Button button) {

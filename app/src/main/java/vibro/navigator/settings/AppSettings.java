@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class AppSettings {
-    private static final String PREFS = "vibro.navigator.settings";
+    static final String PREFS = "vibro.navigator.settings";
     private static final String KEY_USE_FUSED_LOCATION = "use_fused_location";
     private static final String KEY_USE_IMPERIAL_UNITS = "use_imperial_units";
     private static final String KEY_GOOGLE_POI_API_KEY = "google_poi_api_key";

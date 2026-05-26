@@ -34,6 +34,7 @@ public class AboutActivity extends Activity {
     private Switch imperialUnitsSwitch;
     private AboutManeuverVoiceSettings maneuverVoiceSettings;
     private AboutGooglePoiApiKeySettings googlePoiApiKeySettings;
+    private AboutAndroidAutoSettings androidAutoSettings;
     private View exportDatabaseButton;
     private View importDatabaseButton;
     private AboutPoiCategorySettings poiCategorySettings;
@@ -55,6 +56,7 @@ public class AboutActivity extends Activity {
         View googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
         View googlePoiApiKeyButton = findViewById(R.id.aboutGooglePoiApiKeyButton);
         Switch googlePoiSearchSwitch = findViewById(R.id.aboutGooglePoiSearchSwitch);
+        Switch androidAutoSwitch = findViewById(R.id.aboutAndroidAutoSwitch);
         exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
         diagnosticSection = new AboutDiagnosticSection(this);
@@ -79,6 +81,8 @@ public class AboutActivity extends Activity {
                 googlePoiSearchSwitch
         );
         googlePoiApiKeySettings.configure();
+        androidAutoSettings = new AboutAndroidAutoSettings(this, androidAutoSwitch);
+        androidAutoSettings.configure();
         exportDatabaseButton.setOnClickListener(v -> openExportDatabasePicker());
         importDatabaseButton.setOnClickListener(v -> openImportDatabasePicker());
         AboutProjectLinks.configure(this);
@@ -179,6 +183,7 @@ public class AboutActivity extends Activity {
             AppDataBackup.importJson(this, readUtf8(in));
             renderDiagnosticSection();
             renderGooglePoiApiKeySetting();
+            renderAndroidAutoSetting();
             renderPoiCategorySetting();
             if (maneuverVoiceSettings != null) {
                 maneuverVoiceSettings.refreshSelection();
@@ -217,6 +222,12 @@ public class AboutActivity extends Activity {
     private void renderGooglePoiApiKeySetting() {
         if (googlePoiApiKeySettings != null) {
             googlePoiApiKeySettings.refresh();
+        }
+    }
+
+    private void renderAndroidAutoSetting() {
+        if (androidAutoSettings != null) {
+            androidAutoSettings.refresh();
         }
     }
 
