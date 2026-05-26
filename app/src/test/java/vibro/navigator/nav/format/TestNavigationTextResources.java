@@ -103,9 +103,11 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.nav_status_unavailable, "--");
         strings.put(R.string.notification_off_route_title, "Off route");
         strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
-        strings.put(R.string.format_turn_speech, "%1$s %2$s");
-        strings.put(R.string.format_time_speech_s, "%1$ds");
-        strings.put(R.string.format_time_speech_min, "%1$dmin");
+        strings.put(R.string.format_turn_speech, "%1$s, %2$s");
+        strings.put(R.string.format_time_speech_second, "%1$d second");
+        strings.put(R.string.format_time_speech_seconds, "%1$d seconds");
+        strings.put(R.string.format_time_speech_minute, "%1$d minute");
+        strings.put(R.string.format_time_speech_minutes, "%1$d minutes");
         strings.put(
                 R.string.format_off_route_off_track_notification,
                 "Off-track detected. Distance %1$s, threshold %2$s. Recalculating route."

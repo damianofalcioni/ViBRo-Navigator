@@ -18,7 +18,7 @@ public class NavigationManeuverSpeechFormatterTest {
                 20.0
         );
 
-        assertEquals("20s turn left", message);
+        assertEquals("20 seconds, turn left", message);
     }
 
     @Test
@@ -29,7 +29,29 @@ public class NavigationManeuverSpeechFormatterTest {
                 65.0
         );
 
-        assertEquals("1min roundabout, exit 3", message);
+        assertEquals("1 minute, roundabout, exit 3", message);
+    }
+
+    @Test
+    public void formatTurnSpeech_usesSingularSeconds() {
+        String message = NavigationManeuverSpeechFormatter.formatTurnSpeech(
+                RESOURCES,
+                new VoiceHint(0, 2, 0, 0.0, 0),
+                1.0
+        );
+
+        assertEquals("1 second, turn left", message);
+    }
+
+    @Test
+    public void formatTurnSpeech_usesPluralMinutes() {
+        String message = NavigationManeuverSpeechFormatter.formatTurnSpeech(
+                RESOURCES,
+                new VoiceHint(0, 5, 0, 0.0, 0),
+                121.0
+        );
+
+        assertEquals("2 minutes, turn right", message);
     }
 
     @Test
