@@ -196,7 +196,7 @@
     <string name="about_settings_title">Settings</string>
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
-    <string name="label_imperial_units_enabled">Use imperial units</string>
+    <string name="label_imperial_units_enabled">Use imperial distance units (ft/mi)</string>
     <string name="label_poi_categories">POI categories filter</string>
     <string name="hint_poi_category_name">POI Category Name</string>
     <string name="label_maneuver_voice">Speech directions</string>
@@ -220,7 +220,7 @@
     <string name="label_permission_notifications">Notifications</string>
     <string name="label_permission_battery">Battery optimization</string>
     <string name="permission_status_ok">OK</string>
-    <string name="permission_status_needs_attention">Needs attention</string>
+    <string name="permission_status_needs_attention">KO</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Opens settings.</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>

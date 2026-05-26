@@ -560,7 +560,7 @@ The navigation UI must show the following in large text:
 
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
-- The about page Settings section must show a Use imperial units switch for distance, speed, elevation, and accuracy display values
+- The about page Settings section must show a Use imperial distance units (ft/mi) switch for distance, speed, elevation, and accuracy display values
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and an `X` remove button, plus a centered `+` button that adds another field
 - Fresh installs must prefill the POI categories filter editor with commonly needed categories for driving, walking/running, and cycling: `Bicycle Repair Station`, `Drinking Water`, `Fuel`, `Hospital`, `Parking`, `Pharmacy`, `Police`, `Public Transport Stop Position`, `Supermarket Shop`, `Taxi`, and `Toilets`
@@ -596,7 +596,7 @@ The navigation UI must show the following in large text:
   - device location services
   - app notifications
   - battery optimization exemption
-- Each Required access row must show a green OK or red needs-attention mark and a short status label
+- Each Required access row must show a green OK or red KO mark and a short status label
 - Tapping a Required access row must open the most specific relevant Android settings page available, falling back to app details when needed in the same OEM-compatible style as navigation startup settings redirects
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
 - Each listed item must show both its current status and its latest available value details
