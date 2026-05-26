@@ -164,6 +164,8 @@ public class AboutLoggingSettingsRobolectricTest {
         assertGooglePoiApiKeySetting(activity);
         assertEquals(View.VISIBLE, exportDatabaseButton.getVisibility());
         assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
+        assertHasStartIcon(exportDatabaseButton);
+        assertHasStartIcon(importDatabaseButton);
         assertEquals(activity.getString(R.string.about_source_code_link), sourceCodeLink.getText().toString());
         assertEquals(activity.getString(R.string.about_report_issue_link), reportIssueLink.getText().toString());
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
@@ -417,5 +419,10 @@ public class AboutLoggingSettingsRobolectricTest {
         );
         assertFalse(enabledSwitch.isEnabled());
         assertFalse(enabledSwitch.isChecked());
+    }
+
+    private static void assertHasStartIcon(Button button) {
+        assertTrue(button.getCompoundDrawablesRelative()[0] != null);
+        assertTrue(button.getCompoundDrawablePadding() > 0);
     }
 }
