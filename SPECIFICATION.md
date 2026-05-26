@@ -561,7 +561,7 @@ The navigation UI must show the following in large text:
 
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
-- The about page Settings section must show a Use imperial distance units (ft/mi) switch for distance, speed, elevation, and accuracy display values
+- The about page Settings section must show a Use imperial units (ft/mi/mph) switch for distance, speed, elevation, and accuracy display values
 - The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and an `X` remove button, plus a centered `+` button that adds another field
