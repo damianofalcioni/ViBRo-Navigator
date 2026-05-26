@@ -48,6 +48,8 @@ The main UI must include a routing-profile selector at the top.
 - When no external `profiles2` folder is discoverable, the selector must fall back to bundled BRouter profiles if bundled profiles are available
 - When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show a single custom-profile entry so the user can pick a `.brf` file manually
 - The selector must continue to behave like a normal dropdown even when a custom profile is currently selected
+- Bundled BRouter profile rows in the opened selector must include an info control that opens a UI showing the profile title, strengths, weaknesses, and distinctive usage guidance; custom or unknown external profiles must not get bundled-profile descriptions
+- Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
 - The selector must include a single custom-profile entry; when the user chooses that custom entry from the opened dropdown, the app must open the custom `.brf` picker even if that same custom entry is already the current selection
 - The first time the user chooses the custom-profile entry and no persisted directory access exists yet, the app must first request Storage Access Framework directory access to the BRouter `profiles2` folder, then continue to the `.brf` file picker
 - After the app has a persisted readable `profiles2` tree grant, subsequent custom-profile selections should continue directly to the `.brf` file picker while reusing that granted tree for external-profile discovery and picker startup

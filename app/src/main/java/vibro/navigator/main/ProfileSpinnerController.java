@@ -6,7 +6,6 @@ import android.content.Context;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -15,8 +14,6 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
-
-import java.util.ArrayList;
 
 final class ProfileSpinnerController {
 
@@ -30,7 +27,7 @@ final class ProfileSpinnerController {
     private final Spinner spinner;
     private final BRouterProfilesRepository profilesRepository;
     private final Listener listener;
-    private final ArrayAdapter<ProfileSpinnerOption> adapter;
+    private final ProfileSpinnerAdapter adapter;
     private final ProfileSpinnerOptions options = new ProfileSpinnerOptions();
 
     private boolean suppressSelectionCallback;
@@ -46,8 +43,7 @@ final class ProfileSpinnerController {
         this.spinner = spinner;
         this.profilesRepository = profilesRepository;
         this.listener = listener;
-        this.adapter = new ArrayAdapter<>(context, R.layout.item_profile_spinner, new ArrayList<>());
-        this.adapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
+        this.adapter = new ProfileSpinnerAdapter(context);
         this.spinner.setAdapter(adapter);
         this.spinner.setOnTouchListener((v, event) -> {
             if (event == null) {
