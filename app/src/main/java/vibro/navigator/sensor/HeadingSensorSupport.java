@@ -11,6 +11,8 @@ import vibro.navigator.R;
 public final class HeadingSensorSupport {
 
     public static final int SENSOR_TYPE_UNAVAILABLE = -1;
+    @SuppressWarnings("deprecation")
+    private static final int LEGACY_ORIENTATION_SENSOR_TYPE = Sensor.TYPE_ORIENTATION;
 
     private HeadingSensorSupport() {
     }
@@ -42,7 +44,7 @@ public final class HeadingSensorSupport {
 
     @Nullable
     public static Sensor findLegacyOrientationSensor(@Nullable SensorManager sensorManager) {
-        return sensorManager == null ? null : sensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION);
+        return sensorManager == null ? null : sensorManager.getDefaultSensor(LEGACY_ORIENTATION_SENSOR_TYPE);
     }
 
     public static boolean matchesSelectedSensor(@Nullable Sensor selectedSensor, int eventSensorType) {
@@ -54,7 +56,7 @@ public final class HeadingSensorSupport {
             int eventSensorType
     ) {
         return legacyOrientationSensor != null
-                && eventSensorType == Sensor.TYPE_ORIENTATION
+                && eventSensorType == LEGACY_ORIENTATION_SENSOR_TYPE
                 && legacyOrientationSensor.getType() == eventSensorType;
     }
 

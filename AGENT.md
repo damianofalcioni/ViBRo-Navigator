@@ -27,10 +27,10 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 - Language: Java only
 - UI base: platform `Activity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
 - Keep navigation back handling compatible with predictive back using platform callbacks; do not migrate the app shell to `ComponentActivity` unless explicitly requested
-- Gradle: `9.4.1`
-- Android Gradle Plugin: `9.1.1`
+- Gradle: `9.5.1`
+- Android Gradle Plugin: `9.2.0`
 - Java toolchain: `17`
-- SDKs in repo today: `compileSdk 36`, `targetSdk 36`, `minSdk 21`
+- SDKs in repo today: `compileSdk 37`, `targetSdk 37`, `minSdk 21`
 - Runtime dependencies are intentionally minimal in the common/F-Droid code path: `androidx.core`
 - The app has two distribution flavors: `fdroid` and `gplay`
 - Google Play Services is allowed only in the `gplay` source set/dependency graph. Keep F-Droid and common source sets free of Google Play Services classes, API clients, and build requirements.
@@ -69,7 +69,7 @@ Distribution-related workflows:
 - Keep focused coverage around navigation startup/preflight, request serialization, reroute heuristics, blocked-road escalation, turn progression, route-request lifecycle handling, foreground-notification monitoring, route callback handoff, turn-event dispatch, and state broadcasting.
 - Changes to pause/resume behavior should add or update focused JVM coverage for session state and any service-policy decisions that depend on paused navigation.
 - `.\gradlew.bat complexityCheck` runs the enforced PMD maintainability baseline over production and JVM test Java sources, including flavor source sets. The task has a zero-violation baseline and should fail on any reported violation across complexity, size, coupling, nested-flow, dead-code, duplicate-literal, and related maintainability rules. Treat violations as refactor candidates, with priority for navigation/routing safety logic and frequently edited classes. Prefer fixes that remove real reasoning burden, such as extracting named handoff contracts or policy helpers; do not add indirection solely to silence coupling warnings on thin shell/coordinator classes.
-- After any code update, always run the relevant flavor tests and lint before closing the task. For distribution-sensitive changes, run `.\gradlew.bat lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidRelease assembleGplayRelease`.
+- After any code update, always run the relevant flavor tests and lint before closing the task. Treat test, lint, Java compiler, Gradle, and PMD warnings as actionable and address them in the best meaningful way before closing: prefer real fixes, API-version-safe alternatives, small compatibility helpers, or focused tests over suppressions; use suppressions such as `@SuppressWarnings("deprecation")` only when the deprecated API is intentionally required for min-SDK compatibility, framework callback coverage, or Robolectric/test visibility and no better supported path exists. One explicit exception may remain: the suppressed `androidx.core:core` version warning while `1.18.0` requires `minSdk 23` and the app supports `minSdk 21`. For distribution-sensitive changes, run `.\gradlew.bat lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidRelease assembleGplayRelease`.
 - Refactors that only move unchanged wiring into thin helpers do not need new tests by default. Behavior changes do.
 
 ## Editing guidance

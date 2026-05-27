@@ -9,7 +9,6 @@ import android.widget.ListPopupWindow;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.ViewCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.poi.Poi;
@@ -69,7 +68,7 @@ final class PoiSuggestionPopupController {
         if (!anchor.hasFocus()) {
             return false;
         }
-        boolean attached = ViewCompat.isAttachedToWindow(anchor);
+        boolean attached = anchor.isAttachedToWindow();
         boolean hasWindowToken = anchor.getWindowToken() != null;
         boolean viewVisible = anchor.getVisibility() == View.VISIBLE;
         boolean windowVisible = anchor.getWindowVisibility() == View.VISIBLE;

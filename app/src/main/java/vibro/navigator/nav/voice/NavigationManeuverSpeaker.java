@@ -147,6 +147,7 @@ public final class NavigationManeuverSpeaker {
             }
 
             @Override
+            @SuppressWarnings("deprecation")
             public void onError(String utteranceId) {
                 audioFocus.abandonFocus();
             }

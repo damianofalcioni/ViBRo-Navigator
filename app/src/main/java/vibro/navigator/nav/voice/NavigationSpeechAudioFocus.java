@@ -1,6 +1,5 @@
 package vibro.navigator.nav.voice;
 
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.AudioAttributes;
 import android.media.AudioFocusRequest;
@@ -9,6 +8,7 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.RequiresApi;
 
 final class NavigationSpeechAudioFocus {
     private static final int FOCUS_GAIN = AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK;
@@ -42,7 +42,7 @@ final class NavigationSpeechAudioFocus {
         }
         int result = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 ? requestTransientMayDuckFocusApi26()
-                : audioManager.requestAudioFocus(focusChangeListener, LEGACY_STREAM_TYPE, FOCUS_GAIN);
+                : requestLegacyTransientMayDuckFocus(audioManager, focusChangeListener);
         focusHeld = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED;
         return focusHeld;
     }
@@ -54,7 +54,7 @@ final class NavigationSpeechAudioFocus {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && audioFocusRequest != null) {
             Api26.abandonAudioFocus(audioManager, audioFocusRequest);
         } else {
-            audioManager.abandonAudioFocus(focusChangeListener);
+            abandonLegacyFocus(audioManager, focusChangeListener);
         }
         focusHeld = false;
     }
@@ -67,7 +67,7 @@ final class NavigationSpeechAudioFocus {
                 .build();
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    @RequiresApi(Build.VERSION_CODES.O)
     private int requestTransientMayDuckFocusApi26() {
         if (audioFocusRequest == null) {
             audioFocusRequest = Api26.createAudioFocusRequest(audioAttributes);
@@ -75,7 +75,23 @@ final class NavigationSpeechAudioFocus {
         return Api26.requestAudioFocus(audioManager, audioFocusRequest);
     }
 
-    @TargetApi(Build.VERSION_CODES.O)
+    @SuppressWarnings("deprecation")
+    private static int requestLegacyTransientMayDuckFocus(
+            @NonNull AudioManager audioManager,
+            @NonNull AudioManager.OnAudioFocusChangeListener listener
+    ) {
+        return audioManager.requestAudioFocus(listener, LEGACY_STREAM_TYPE, FOCUS_GAIN);
+    }
+
+    @SuppressWarnings("deprecation")
+    private static void abandonLegacyFocus(
+            @NonNull AudioManager audioManager,
+            @NonNull AudioManager.OnAudioFocusChangeListener listener
+    ) {
+        audioManager.abandonAudioFocus(listener);
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private static final class Api26 {
         private Api26() {
         }

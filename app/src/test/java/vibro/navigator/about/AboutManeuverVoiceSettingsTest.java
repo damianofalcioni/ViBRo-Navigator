@@ -29,6 +29,7 @@ import vibro.navigator.nav.voice.NavigationTextToSpeechVoiceAvailability;
 import vibro.navigator.settings.AppSettings;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class AboutManeuverVoiceSettingsTest {
     private static final String CUSTOM_VOICE = "custom-voice";
     private static final String OTHER_VOICE = "other-voice";

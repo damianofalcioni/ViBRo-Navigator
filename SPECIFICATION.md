@@ -14,7 +14,7 @@ Core product constraints:
 - Avoid dependencies as much as possible. Google Play Services may be used only in the Google Play distribution flavor for explicitly requested Google features; the F-Droid flavor and common source set must remain free of Google Play Services dependencies.
 - Keep generated and maintained code minimal while still implementing the features
 - Target the latest practical Android SDK while keeping `minSdk 21`
-- The current repository baseline is `compileSdk 36` and `targetSdk 36` while keeping `minSdk 21`
+- The current repository baseline is `compileSdk 37` and `targetSdk 37` while keeping `minSdk 21`
 - Use a black theme
 - Do not hardcode user-facing text in code
 - Support both portrait and landscape orientations

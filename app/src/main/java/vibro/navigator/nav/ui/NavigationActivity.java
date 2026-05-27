@@ -261,6 +261,7 @@ public class NavigationActivity extends Activity {
 
     @Override
     @SuppressLint("GestureBackNavigation")
+    @SuppressWarnings("deprecation")
     public void onBackPressed() {
         backHandler.onLegacyBackPressed();
     }
@@ -272,6 +273,7 @@ public class NavigationActivity extends Activity {
         startupCoordinator.onRequestPermissionsResult(requestCode);
     }
 
+    @SuppressWarnings("deprecation")
     private void runLegacyBackFallback() {
         super.onBackPressed();
     }

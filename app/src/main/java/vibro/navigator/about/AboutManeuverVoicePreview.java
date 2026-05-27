@@ -91,7 +91,7 @@ final class AboutManeuverVoicePreview {
     private static String sampleText(@NonNull Context context) {
         return context.getString(
                 R.string.format_turn_speech,
-                context.getString(R.string.format_time_speech_seconds, 20),
+                context.getResources().getQuantityString(R.plurals.format_time_speech_seconds, 20, 20),
                 context.getString(R.string.direction_turn_left)
         );
     }

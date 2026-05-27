@@ -18,6 +18,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class BRouterInstallLauncherTest {
 
     @Test

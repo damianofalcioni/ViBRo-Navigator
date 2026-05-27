@@ -83,7 +83,7 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
                 R.string.format_profile_info_content_description,
                 context.getString(info.titleRes())
         ));
-        holder.row.setOnTouchListener((view, event) -> handleRowTouch(holder, info, event));
+        holder.row.setOnTouchListener(new ProfileInfoTouchListener(holder, info));
     }
 
     private static void configurePassiveInfoButton(@NonNull ImageButton infoButton) {
@@ -91,38 +91,6 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
         infoButton.setClickable(false);
         infoButton.setFocusable(false);
         infoButton.setFocusableInTouchMode(false);
-    }
-
-    private boolean handleRowTouch(
-            @NonNull DropDownHolder holder,
-            @NonNull BundledProfileInfo info,
-            @Nullable MotionEvent event
-    ) {
-        if (event == null) {
-            return false;
-        }
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            holder.infoTouchActive = isInsideInfoButton(holder, event);
-            return holder.infoTouchActive;
-        }
-        if (!holder.infoTouchActive) {
-            return false;
-        }
-        return finishInfoTouch(holder, info, event);
-    }
-
-    private boolean finishInfoTouch(
-            @NonNull DropDownHolder holder,
-            @NonNull BundledProfileInfo info,
-            @NonNull MotionEvent event
-    ) {
-        if (event.getAction() == MotionEvent.ACTION_UP && isInsideInfoButton(holder, event)) {
-            showInfoDialog(info);
-        }
-        if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
-            holder.infoTouchActive = false;
-        }
-        return true;
     }
 
     private static boolean isInsideInfoButton(
@@ -156,6 +124,50 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
             label = view.findViewById(android.R.id.text1);
             attentionIcon = view.findViewById(R.id.profileAttentionIcon);
             infoButton = view.findViewById(R.id.profileInfoButton);
+        }
+    }
+
+    private final class ProfileInfoTouchListener implements View.OnTouchListener {
+        @NonNull
+        private final DropDownHolder holder;
+        @NonNull
+        private final BundledProfileInfo info;
+
+        private ProfileInfoTouchListener(@NonNull DropDownHolder holder, @NonNull BundledProfileInfo info) {
+            this.holder = holder;
+            this.info = info;
+        }
+
+        @Override
+        public boolean onTouch(@NonNull View view, @Nullable MotionEvent event) {
+            if (event == null) {
+                return false;
+            }
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    holder.infoTouchActive = isInsideInfoButton(holder, event);
+                    return holder.infoTouchActive;
+                case MotionEvent.ACTION_UP:
+                    if (!holder.infoTouchActive) {
+                        return false;
+                    }
+                    if (isInsideInfoButton(holder, event)) {
+                        showInfoDialog(info);
+                        view.performClick();
+                    }
+                    holder.infoTouchActive = false;
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    return clearInfoTouch();
+                default:
+                    return holder.infoTouchActive;
+            }
+        }
+
+        private boolean clearInfoTouch() {
+            boolean wasActive = holder.infoTouchActive;
+            holder.infoTouchActive = false;
+            return wasActive;
         }
     }
 }

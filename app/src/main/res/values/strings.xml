@@ -234,10 +234,14 @@
     <string name="format_nav_gps_status_with_countdown">%1$s • %2$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>
     <string name="format_turn_speech">%1$s, %2$s</string>
-    <string name="format_time_speech_second">%1$d second</string>
-    <string name="format_time_speech_seconds">%1$d seconds</string>
-    <string name="format_time_speech_minute">%1$d minute</string>
-    <string name="format_time_speech_minutes">%1$d minutes</string>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
     <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
     <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>
     <string name="format_startup_orientation_notification">Turn yourself %1$s %2$s to face the route.</string>

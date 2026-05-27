@@ -32,6 +32,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
 
     private boolean started;
 
+    @SuppressWarnings("deprecation")
     AboutSensorStatusFormatter(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
         locationManager = (LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);

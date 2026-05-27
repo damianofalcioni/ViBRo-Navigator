@@ -1,6 +1,7 @@
 package vibro.navigator.nav.format;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
 
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import vibro.navigator.R;
 
 public final class TestNavigationTextResources implements NavigationTextResources {
     private static final Map<Integer, String> STRINGS = buildStrings();
+    private static final Map<Integer, PluralStrings> PLURALS = buildPlurals();
 
     private final boolean imperialUnitsEnabled;
 
@@ -35,6 +37,17 @@ public final class TestNavigationTextResources implements NavigationTextResource
         if (pattern == null) {
             throw new IllegalArgumentException("Unhandled test string resource: " + resId);
         }
+        return formatArgs.length == 0 ? pattern : String.format(Locale.US, pattern, formatArgs);
+    }
+
+    @NonNull
+    @Override
+    public String getQuantityString(@PluralsRes int resId, int quantity, Object... formatArgs) {
+        PluralStrings pluralStrings = PLURALS.get(resId);
+        if (pluralStrings == null) {
+            throw new IllegalArgumentException("Unhandled test plural resource: " + resId);
+        }
+        String pattern = pluralStrings.patternFor(quantity);
         return formatArgs.length == 0 ? pattern : String.format(Locale.US, pattern, formatArgs);
     }
 
@@ -104,10 +117,6 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.notification_off_route_title, "Off route");
         strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
         strings.put(R.string.format_turn_speech, "%1$s, %2$s");
-        strings.put(R.string.format_time_speech_second, "%1$d second");
-        strings.put(R.string.format_time_speech_seconds, "%1$d seconds");
-        strings.put(R.string.format_time_speech_minute, "%1$d minute");
-        strings.put(R.string.format_time_speech_minutes, "%1$d minutes");
         strings.put(
                 R.string.format_off_route_off_track_notification,
                 "Off-track detected. Distance %1$s, threshold %2$s. Recalculating route."
@@ -120,5 +129,30 @@ public final class TestNavigationTextResources implements NavigationTextResource
                 R.string.format_startup_orientation_notification,
                 "Turn yourself %1$s %2$s to face the route."
         );
+    }
+
+    @NonNull
+    private static Map<Integer, PluralStrings> buildPlurals() {
+        Map<Integer, PluralStrings> plurals = new HashMap<>();
+        plurals.put(R.plurals.format_time_speech_seconds, new PluralStrings("%1$d second", "%1$d seconds"));
+        plurals.put(R.plurals.format_time_speech_minutes, new PluralStrings("%1$d minute", "%1$d minutes"));
+        return plurals;
+    }
+
+    private static final class PluralStrings {
+        @NonNull
+        private final String one;
+        @NonNull
+        private final String other;
+
+        private PluralStrings(@NonNull String one, @NonNull String other) {
+            this.one = one;
+            this.other = other;
+        }
+
+        @NonNull
+        private String patternFor(int quantity) {
+            return quantity == 1 ? one : other;
+        }
     }
 }

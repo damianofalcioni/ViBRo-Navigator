@@ -3,17 +3,6 @@ plugins {
     id "pmd"
 }
 
-configurations.configureEach {
-    resolutionStrategy {
-        force(
-                "org.jetbrains.kotlin:kotlin-stdlib:1.8.22",
-                "org.jetbrains.kotlin:kotlin-stdlib-common:1.8.22",
-                "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.22",
-                "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.22"
-        )
-    }
-}
-
 pmd {
     consoleOutput = true
     toolVersion = "7.24.0"
@@ -60,14 +49,18 @@ tasks.named("check").configure {
     dependsOn("complexityCheck")
 }
 
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ["-Xlint:deprecation"]
+}
+
 android {
     namespace = "vibro.navigator"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "vibro.navigator"
         minSdk = 21
-        targetSdk = 36
+        targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
 
@@ -135,6 +128,7 @@ android {
 }
 
 dependencies {
+    //noinspection GradleDependency: androidx.core 1.18.0 raises minSdk to 23; this app supports minSdk 21.
     implementation "androidx.core:core:1.17.0"
 
     gplayImplementation "com.google.android.gms:play-services-location:21.3.0"
@@ -143,6 +137,6 @@ dependencies {
 
     testImplementation "junit:junit:4.13.2"
     testImplementation "androidx.test:core:1.7.0"
-    testImplementation "org.json:json:20251224"
+    testImplementation "org.json:json:20260522"
     testImplementation "org.robolectric:robolectric:4.16.1"
 }

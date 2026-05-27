@@ -203,6 +203,6 @@ public final class AppLogger {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_LOG_ENABLED, enabled)
-                .commit();
+                .apply();
     }
 }

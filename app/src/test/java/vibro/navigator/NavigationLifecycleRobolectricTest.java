@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class NavigationLifecycleRobolectricTest {
     private static final String TEST_PROFILE = "test-profile";
 

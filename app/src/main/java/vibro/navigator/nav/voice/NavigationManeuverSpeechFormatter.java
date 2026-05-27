@@ -55,13 +55,15 @@ public final class NavigationManeuverSpeechFormatter {
         int roundedSeconds = Math.max(0, (int) Math.round(seconds));
         if (roundedSeconds >= 60) {
             int minutes = (int) Math.round(roundedSeconds / 60.0);
-            return resources.getString(
-                    minutes == 1 ? R.string.format_time_speech_minute : R.string.format_time_speech_minutes,
+            return resources.getQuantityString(
+                    R.plurals.format_time_speech_minutes,
+                    minutes,
                     minutes
             );
         }
-        return resources.getString(
-                roundedSeconds == 1 ? R.string.format_time_speech_second : R.string.format_time_speech_seconds,
+        return resources.getQuantityString(
+                R.plurals.format_time_speech_seconds,
+                roundedSeconds,
                 roundedSeconds
         );
     }

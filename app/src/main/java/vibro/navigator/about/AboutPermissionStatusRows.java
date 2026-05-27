@@ -3,6 +3,7 @@ package vibro.navigator.about;
 import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Build;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,6 +78,9 @@ final class AboutPermissionStatusRows {
     }
 
     private static boolean hasNotificationAccess(@NonNull NavigationPreflight.Status status) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return status.notificationsEnabled;
+        }
         return !status.missingPermissions.contains(Manifest.permission.POST_NOTIFICATIONS)
                 && status.notificationsEnabled;
     }

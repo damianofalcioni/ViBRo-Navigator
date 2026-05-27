@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class NavigationLocationUpdateRequesterTest {
 
     @Test

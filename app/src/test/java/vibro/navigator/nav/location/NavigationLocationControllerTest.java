@@ -23,6 +23,7 @@ import java.time.Duration;
 import vibro.navigator.settings.AppSettings;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class NavigationLocationControllerTest {
     private static final String GPS_AND_NETWORK = "gps+network";
 

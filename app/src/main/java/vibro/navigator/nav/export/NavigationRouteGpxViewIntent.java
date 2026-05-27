@@ -54,7 +54,9 @@ public final class NavigationRouteGpxViewIntent {
         }
         chooser.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         chooser.setClipData(send.getClipData());
-        chooser.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, false);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            chooser.putExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, false);
+        }
         return chooser;
     }
 

@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 public final class NavigationRouteExecutor {
 
-    @VisibleForTesting
     public interface Sleeper {
         public void sleep(long delayMs) throws InterruptedException;
     }

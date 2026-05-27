@@ -3,6 +3,7 @@ package vibro.navigator.nav.format;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
 
 import vibro.navigator.settings.AppSettings;
@@ -19,6 +20,12 @@ public final class AndroidNavigationTextResources implements NavigationTextResou
     @Override
     public String getString(@StringRes int resId, Object... formatArgs) {
         return context.getString(resId, formatArgs);
+    }
+
+    @NonNull
+    @Override
+    public String getQuantityString(@PluralsRes int resId, int quantity, Object... formatArgs) {
+        return context.getResources().getQuantityString(resId, quantity, formatArgs);
     }
 
     @Override

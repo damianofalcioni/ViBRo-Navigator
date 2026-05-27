@@ -27,7 +27,7 @@ final class AppDataBackupPreferences {
 
     static void clearAll(@NonNull Context context) {
         for (String prefsName : AppDataBackupContract.BACKED_UP_PREFERENCES) {
-            context.getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit().clear().commit();
+            context.getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit().clear().apply();
         }
     }
 
@@ -62,6 +62,6 @@ final class AppDataBackupPreferences {
         for (AppDataBackupPreferenceValue value : preferenceFile.values) {
             AppDataBackupValueWriter.put(editor, value);
         }
-        editor.commit();
+        editor.apply();
     }
 }

@@ -2,15 +2,8 @@
 <resources>
     <string name="about_credits">Credits: BRouter for routing. POI search uses Google Maps Geocoding when Google search is enabled with a saved API key, otherwise OpenStreetMap Nominatim. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
     <string name="auto_title">ViBRo Navigator</string>
-    <string name="auto_active_navigation_title">Active navigation</string>
     <string name="auto_no_active_navigation_title">No active navigation</string>
     <string name="auto_no_active_navigation_text">Start navigation on the phone to show guidance here.</string>
     <string name="auto_open_phone">Open phone app</string>
-    <string name="auto_next_label">Next</string>
-    <string name="auto_then_label">Then</string>
-    <string name="auto_destination_label">Destination</string>
-    <string name="auto_progress_label">Progress</string>
-    <string name="auto_status_label">Status</string>
-    <string name="auto_gps_label">GPS</string>
     <string name="auto_connecting">Connecting to navigation service.</string>
 </resources>

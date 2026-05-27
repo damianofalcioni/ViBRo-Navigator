@@ -21,6 +21,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowPackageManager;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class NavigationSettingsLauncherTest {
 
     @Test

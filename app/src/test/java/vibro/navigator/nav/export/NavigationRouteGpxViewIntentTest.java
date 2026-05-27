@@ -27,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class NavigationRouteGpxViewIntentTest {
     private final Context context = ApplicationProvider.getApplicationContext();
 

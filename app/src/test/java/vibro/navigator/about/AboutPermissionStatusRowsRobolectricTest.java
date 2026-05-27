@@ -27,6 +27,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.startup.NavigationPreflight;
 
 @RunWith(RobolectricTestRunner.class)
+@SuppressWarnings("deprecation")
 public class AboutPermissionStatusRowsRobolectricTest {
 
     @Before
