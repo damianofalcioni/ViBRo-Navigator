@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.ResolveInfo;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.Settings;
@@ -21,7 +21,6 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowPackageManager;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class NavigationSettingsLauncherTest {
 
     @Test
@@ -79,10 +78,17 @@ public class NavigationSettingsLauncherTest {
 
     private static void registerResolvableIntent(Activity activity, Intent intent) {
         ShadowPackageManager shadowPackageManager = shadowOf(activity.getPackageManager());
-        ResolveInfo resolveInfo = new ResolveInfo();
-        resolveInfo.activityInfo = new ActivityInfo();
-        resolveInfo.activityInfo.packageName = "com.android.settings";
-        resolveInfo.activityInfo.name = "com.android.settings.SettingsActivity";
-        shadowPackageManager.addResolveInfoForIntent(intent, resolveInfo);
+        ComponentName component = new ComponentName("com.android.settings", "com.android.settings.SettingsActivity");
+        shadowPackageManager.addActivityIfNotPresent(component);
+        shadowPackageManager.addIntentFilterForActivity(component, intentFilterFor(intent));
+    }
+
+    private static IntentFilter intentFilterFor(Intent intent) {
+        IntentFilter filter = new IntentFilter(intent.getAction());
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        if (intent.getData() != null && intent.getData().getScheme() != null) {
+            filter.addDataScheme(intent.getData().getScheme());
+        }
+        return filter;
     }
 }

@@ -26,7 +26,6 @@ final class MainActivityMapPickerCoordinator {
         this.activity = activity;
     }
 
-    @SuppressWarnings("deprecation")
     void openDestinationMapPicker(@NonNull PoiInputController destinationController) {
         AppLogger.i(TAG, "Opening map picker for destination");
         activity.startActivityForResult(
@@ -39,7 +38,6 @@ final class MainActivityMapPickerCoordinator {
         );
     }
 
-    @SuppressWarnings("deprecation")
     void openStopMapPicker(int stopIndex, @Nullable Poi initialPoi) {
         AppLogger.i(TAG, "Opening map picker for stop index=" + stopIndex);
         activity.startActivityForResult(

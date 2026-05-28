@@ -6,9 +6,9 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.ResolveInfo;
+import android.content.IntentFilter;
 import android.net.Uri;
 
 import org.junit.Test;
@@ -18,7 +18,6 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class BRouterInstallLauncherTest {
 
     @Test
@@ -86,10 +85,17 @@ public class BRouterInstallLauncherTest {
 
     private static void registerResolvableIntent(Activity activity, Intent intent, String packageName) {
         ShadowPackageManager shadowPackageManager = shadowOf(activity.getPackageManager());
-        ResolveInfo resolveInfo = new ResolveInfo();
-        resolveInfo.activityInfo = new ActivityInfo();
-        resolveInfo.activityInfo.packageName = packageName;
-        resolveInfo.activityInfo.name = packageName + ".StoreActivity";
-        shadowPackageManager.addResolveInfoForIntent(intent, resolveInfo);
+        ComponentName component = new ComponentName(packageName, packageName + ".StoreActivity");
+        shadowPackageManager.addActivityIfNotPresent(component);
+        shadowPackageManager.addIntentFilterForActivity(component, intentFilterFor(intent));
+    }
+
+    private static IntentFilter intentFilterFor(Intent intent) {
+        IntentFilter filter = new IntentFilter(intent.getAction());
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        if (intent.getData() != null && intent.getData().getScheme() != null) {
+            filter.addDataScheme(intent.getData().getScheme());
+        }
+        return filter;
     }
 }

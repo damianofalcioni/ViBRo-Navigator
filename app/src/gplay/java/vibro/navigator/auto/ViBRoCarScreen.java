@@ -18,6 +18,7 @@ import androidx.car.app.Screen;
 import androidx.car.app.model.Action;
 import androidx.car.app.model.ActionStrip;
 import androidx.car.app.model.CarIcon;
+import androidx.car.app.model.Header;
 import androidx.car.app.model.Pane;
 import androidx.car.app.model.PaneTemplate;
 import androidx.car.app.model.Row;
@@ -38,7 +39,7 @@ import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 
 // Android Auto requires templates, so the active screen renders the phone landscape UI onto the car map surface.
-@SuppressWarnings({"PMD.TooManyMethods", "deprecation", "PMD.CouplingBetweenObjects"})
+@SuppressWarnings({"PMD.TooManyMethods", "PMD.CouplingBetweenObjects"})
 public final class ViBRoCarScreen extends Screen {
 
     private static final String TAG = "ViBRoCarScreen";
@@ -208,8 +209,10 @@ public final class ViBRoCarScreen extends Screen {
     @NonNull
     private Template buildPaneTemplate(@NonNull String title, @NonNull Pane pane) {
         return new PaneTemplate.Builder(pane)
-                .setTitle(title)
-                .setHeaderAction(Action.APP_ICON)
+                .setHeader(new Header.Builder()
+                        .setTitle(title)
+                        .setStartHeaderAction(Action.APP_ICON)
+                        .build())
                 .build();
     }
 

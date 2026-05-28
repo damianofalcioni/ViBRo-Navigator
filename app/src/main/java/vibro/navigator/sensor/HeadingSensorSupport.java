@@ -11,6 +11,7 @@ import vibro.navigator.R;
 public final class HeadingSensorSupport {
 
     public static final int SENSOR_TYPE_UNAVAILABLE = -1;
+    // Keep the legacy fallback explicit for devices without rotation-vector sensors.
     @SuppressWarnings("deprecation")
     private static final int LEGACY_ORIENTATION_SENSOR_TYPE = Sensor.TYPE_ORIENTATION;
 
@@ -45,6 +46,10 @@ public final class HeadingSensorSupport {
     @Nullable
     public static Sensor findLegacyOrientationSensor(@Nullable SensorManager sensorManager) {
         return sensorManager == null ? null : sensorManager.getDefaultSensor(LEGACY_ORIENTATION_SENSOR_TYPE);
+    }
+
+    public static int legacyOrientationSensorType() {
+        return LEGACY_ORIENTATION_SENSOR_TYPE;
     }
 
     public static boolean matchesSelectedSensor(@Nullable Sensor selectedSensor, int eventSensorType) {

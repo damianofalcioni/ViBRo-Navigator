@@ -48,7 +48,6 @@ final class MainActivityProfilePicker {
         controller.refresh();
     }
 
-    @SuppressWarnings("deprecation")
     void startCustomProfilePicker() {
         if (!profilesRepository.hasPersistedProfilesTreeAccess(activity)) {
             startProfilesTreePicker();
@@ -57,7 +56,6 @@ final class MainActivityProfilePicker {
         startCustomProfileDocumentPicker();
     }
 
-    @SuppressWarnings("deprecation")
     private void startProfilesTreePicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -73,7 +71,6 @@ final class MainActivityProfilePicker {
         activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE_TREE);
     }
 
-    @SuppressWarnings("deprecation")
     private void startCustomProfileDocumentPicker() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);

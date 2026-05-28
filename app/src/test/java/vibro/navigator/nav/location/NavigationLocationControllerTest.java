@@ -23,7 +23,6 @@ import java.time.Duration;
 import vibro.navigator.settings.AppSettings;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class NavigationLocationControllerTest {
     private static final String GPS_AND_NETWORK = "gps+network";
 
@@ -133,11 +132,11 @@ public class NavigationLocationControllerTest {
         controller.stopTracking();
 
         assertEquals(10_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
-        assertTrue(shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).isEmpty());
+        assertTrue(shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).isEmpty());
 
         controller.requestLocationUpdates(controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
 
-        assertEquals(1, shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).size());
+        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).size());
     }
 
 }

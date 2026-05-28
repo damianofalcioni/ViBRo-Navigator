@@ -13,6 +13,8 @@ import android.os.SystemClock;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.sensor.HeadingSensorSupport;
+
 final class AboutSensorStatusFormatter implements SensorEventListener {
 
     @Nullable
@@ -32,7 +34,6 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
 
     private boolean started;
 
-    @SuppressWarnings("deprecation")
     AboutSensorStatusFormatter(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
         locationManager = (LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);
@@ -52,7 +53,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         );
         orientationDiagnostic = new HeadingSensorDiagnostic(
                 sensorManager,
-                Sensor.TYPE_ORIENTATION,
+                HeadingSensorSupport.legacyOrientationSensorType(),
                 R.string.label_sensor_orientation,
                 HeadingSensorValueFormat.ORIENTATION
         );

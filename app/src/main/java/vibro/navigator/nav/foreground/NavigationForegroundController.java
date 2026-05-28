@@ -18,6 +18,7 @@ import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.core.app.ServiceCompat;
 
 import vibro.navigator.main.MainActivity;
 import vibro.navigator.nav.ui.NavigationActivity;
@@ -42,28 +43,18 @@ public final class NavigationForegroundController {
         NavigationNotificationChannels.ensure(service);
     }
 
-    @SuppressWarnings("deprecation")
     public void promoteToForeground(@NonNull NavigationRequest request, boolean paused) {
         Notification notification = buildOngoingNotification(request, paused);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            service.startForeground(
-                    NavigationService.NOTIFICATION_ID_ONGOING,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-            );
-            return;
-        }
-        service.startForeground(NavigationService.NOTIFICATION_ID_ONGOING, notification);
+        ServiceCompat.startForeground(
+                service,
+                NavigationService.NOTIFICATION_ID_ONGOING,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+        );
     }
 
-    @SuppressWarnings("deprecation")
     public void stopForegroundService() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            service.stopForeground(Service.STOP_FOREGROUND_REMOVE);
-        } else {
-            //noinspection deprecation
-            service.stopForeground(true);
-        }
+        ServiceCompat.stopForeground(service, ServiceCompat.STOP_FOREGROUND_REMOVE);
     }
 
     public boolean isOngoingNotificationVisible() {

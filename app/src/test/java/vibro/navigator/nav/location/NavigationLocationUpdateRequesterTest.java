@@ -18,7 +18,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class NavigationLocationUpdateRequesterTest {
 
     @Test
@@ -33,8 +32,8 @@ public class NavigationLocationUpdateRequesterTest {
         assertTrue(result.hasActiveRequest());
         assertEquals("fused+gps+network", result.activeProviderSummary());
         assertEquals(1, fused.requestUpdatesCount);
-        assertEquals(1, shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).size());
-        assertEquals(1, shadowOf(locationManager).getLocationUpdateListeners(LocationManager.NETWORK_PROVIDER).size());
+        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).size());
+        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.NETWORK_PROVIDER).size());
     }
 
     @Test
@@ -49,8 +48,8 @@ public class NavigationLocationUpdateRequesterTest {
         assertTrue(result.hasActiveRequest());
         assertEquals("gps+network", result.activeProviderSummary());
         assertEquals(1, fused.requestUpdatesCount);
-        assertEquals(1, shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).size());
-        assertEquals(1, shadowOf(locationManager).getLocationUpdateListeners(LocationManager.NETWORK_PROVIDER).size());
+        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).size());
+        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.NETWORK_PROVIDER).size());
     }
 
     @Test
@@ -66,8 +65,8 @@ public class NavigationLocationUpdateRequesterTest {
         assertTrue(result.hasActiveRequest());
         assertEquals("fused+gps+network", result.activeProviderSummary());
         assertEquals(0, fused.requestUpdatesCount);
-        assertTrue(shadowOf(locationManager).getLocationUpdateListeners(LocationManager.GPS_PROVIDER).isEmpty());
-        assertTrue(shadowOf(locationManager).getLocationUpdateListeners(LocationManager.NETWORK_PROVIDER).isEmpty());
+        assertTrue(shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).isEmpty());
+        assertTrue(shadowOf(locationManager).getLegacyLocationRequests(LocationManager.NETWORK_PROVIDER).isEmpty());
     }
 
     @NonNull

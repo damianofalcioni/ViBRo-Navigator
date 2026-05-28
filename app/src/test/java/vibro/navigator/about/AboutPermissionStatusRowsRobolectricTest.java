@@ -5,9 +5,9 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
+import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.ResolveInfo;
+import android.content.IntentFilter;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -27,7 +27,6 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.startup.NavigationPreflight;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class AboutPermissionStatusRowsRobolectricTest {
 
     @Before
@@ -111,10 +110,17 @@ public class AboutPermissionStatusRowsRobolectricTest {
 
     private static void registerResolvableIntent(AboutActivity activity, Intent intent) {
         ShadowPackageManager shadowPackageManager = shadowOf(activity.getPackageManager());
-        ResolveInfo resolveInfo = new ResolveInfo();
-        resolveInfo.activityInfo = new ActivityInfo();
-        resolveInfo.activityInfo.packageName = "com.android.settings";
-        resolveInfo.activityInfo.name = "com.android.settings.SettingsActivity";
-        shadowPackageManager.addResolveInfoForIntent(intent, resolveInfo);
+        ComponentName component = new ComponentName("com.android.settings", "com.android.settings.SettingsActivity");
+        shadowPackageManager.addActivityIfNotPresent(component);
+        shadowPackageManager.addIntentFilterForActivity(component, intentFilterFor(intent));
+    }
+
+    private static IntentFilter intentFilterFor(Intent intent) {
+        IntentFilter filter = new IntentFilter(intent.getAction());
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        if (intent.getData() != null && intent.getData().getScheme() != null) {
+            filter.addDataScheme(intent.getData().getScheme());
+        }
+        return filter;
     }
 }

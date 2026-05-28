@@ -18,6 +18,7 @@ import android.content.pm.ServiceInfo;
 import android.content.ServiceConnection;
 
 import androidx.test.core.app.ApplicationProvider;
+import androidx.core.app.ServiceCompat;
 
 
 import org.junit.Test;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class NavigationLifecycleRobolectricTest {
     private static final String TEST_PROFILE = "test-profile";
 
@@ -70,7 +70,7 @@ public class NavigationLifecycleRobolectricTest {
         assertNotNull(shadowService.getLastForegroundNotification());
         assertEquals(ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION, service.getForegroundServiceType());
 
-        service.stopForeground(true);
+        ServiceCompat.stopForeground(service, ServiceCompat.STOP_FOREGROUND_REMOVE);
         assertTrue(shadowService.isForegroundStopped());
 
         NavigationServiceBinder binder =

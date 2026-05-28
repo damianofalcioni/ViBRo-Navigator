@@ -9,12 +9,12 @@ import static org.robolectric.Shadows.shadowOf;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.pm.ResolveInfo;
+import android.content.IntentFilter;
 import android.net.Uri;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.IntentCompat;
 import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
@@ -27,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class NavigationRouteGpxViewIntentTest {
     private final Context context = ApplicationProvider.getApplicationContext();
 
@@ -60,7 +59,7 @@ public class NavigationRouteGpxViewIntentTest {
         Intent actionView = new Intent(Intent.ACTION_VIEW);
 
         Intent chooser = NavigationRouteGpxViewIntent.createChooserForIntent(context, actionView);
-        Intent send = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        Intent send = IntentCompat.getParcelableExtra(chooser, Intent.EXTRA_INTENT, Intent.class);
 
         assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
         assertEquals(Intent.ACTION_SEND, send.getAction());
@@ -78,10 +77,11 @@ public class NavigationRouteGpxViewIntentTest {
 
         Intent chooser = NavigationRouteGpxViewIntent.createChooserForIntent(context, actionView);
 
-        Intent primary = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
-        Parcelable[] initialIntents = chooser.getParcelableArrayExtra(Intent.EXTRA_INITIAL_INTENTS);
+        Intent primary = IntentCompat.getParcelableExtra(chooser, Intent.EXTRA_INTENT, Intent.class);
+        Parcelable[] initialIntents =
+                IntentCompat.getParcelableArrayExtra(chooser, Intent.EXTRA_INITIAL_INTENTS, Intent.class);
         assertEquals(Intent.ACTION_SEND, primary.getAction());
-        assertEquals(actionView.getData(), primary.getParcelableExtra(Intent.EXTRA_STREAM));
+        assertEquals(actionView.getData(), IntentCompat.getParcelableExtra(primary, Intent.EXTRA_STREAM, Uri.class));
         assertNotNull(initialIntents);
         assertEquals(2, initialIntents.length);
         assertEquals(
@@ -103,10 +103,25 @@ public class NavigationRouteGpxViewIntentTest {
 
     private void registerResolvableIntent(@NonNull Intent intent, @NonNull String packageName, @NonNull String name) {
         ShadowPackageManager shadowPackageManager = shadowOf(context.getPackageManager());
-        ResolveInfo resolveInfo = new ResolveInfo();
-        resolveInfo.activityInfo = new ActivityInfo();
-        resolveInfo.activityInfo.packageName = packageName;
-        resolveInfo.activityInfo.name = name;
-        shadowPackageManager.addResolveInfoForIntent(intent, resolveInfo);
+        ComponentName component = new ComponentName(packageName, name);
+        shadowPackageManager.addActivityIfNotPresent(component);
+        shadowPackageManager.addIntentFilterForActivity(component, intentFilterFor(intent));
+    }
+
+    @NonNull
+    private static IntentFilter intentFilterFor(@NonNull Intent intent) {
+        IntentFilter filter = new IntentFilter(intent.getAction());
+        filter.addCategory(Intent.CATEGORY_DEFAULT);
+        if (intent.getData() != null && intent.getData().getScheme() != null) {
+            filter.addDataScheme(intent.getData().getScheme());
+        }
+        if (intent.getType() != null) {
+            try {
+                filter.addDataType(intent.getType());
+            } catch (IntentFilter.MalformedMimeTypeException e) {
+                throw new AssertionError("Invalid test MIME type", e);
+            }
+        }
+        return filter;
     }
 }

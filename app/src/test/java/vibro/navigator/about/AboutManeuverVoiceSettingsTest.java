@@ -29,7 +29,6 @@ import vibro.navigator.nav.voice.NavigationTextToSpeechVoiceAvailability;
 import vibro.navigator.settings.AppSettings;
 
 @RunWith(RobolectricTestRunner.class)
-@SuppressWarnings("deprecation")
 public class AboutManeuverVoiceSettingsTest {
     private static final String CUSTOM_VOICE = "custom-voice";
     private static final String OTHER_VOICE = "other-voice";
@@ -102,7 +101,7 @@ public class AboutManeuverVoiceSettingsTest {
                 Voice.QUALITY_NORMAL,
                 Voice.LATENCY_NORMAL,
                 true,
-                Collections.singleton(TextToSpeech.Engine.KEY_FEATURE_NETWORK_SYNTHESIS)
+                Collections.emptySet()
         );
 
         assertFalse(NavigationTextToSpeechVoiceAvailability.isOfflineVoiceAvailable(voice));
