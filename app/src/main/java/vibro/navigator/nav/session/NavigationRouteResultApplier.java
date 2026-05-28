@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
@@ -120,7 +121,7 @@ final class NavigationRouteResultApplier {
                 route,
                 geometryState.polylineIndex(),
                 input.snapshot.intermediates,
-                input.lastFiltered,
+                toLatLon(input.lastFiltered),
                 initialSpeedMps,
                 suppressInitialTurnEvent ? Float.MAX_VALUE : accuracyMeters
         );
@@ -138,5 +139,10 @@ final class NavigationRouteResultApplier {
 
     private float accuracyOf(@Nullable Location location) {
         return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    @Nullable
+    private static LatLon toLatLon(@Nullable Location location) {
+        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
     }
 }

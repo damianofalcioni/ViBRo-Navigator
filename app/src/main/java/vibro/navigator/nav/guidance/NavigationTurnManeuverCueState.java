@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
+import java.util.ArrayList;
 import java.util.List;
 
 final class NavigationTurnManeuverCueState {
@@ -46,6 +47,24 @@ final class NavigationTurnManeuverCueState {
         if (alongTrackMeters >= polylineIndex.distanceAtPointIndex(activeTurnManeuverTrackIndex)) {
             clear();
         }
+    }
+
+    @NonNull
+    static List<NavigationTurnEvent> destinationArrival(int trackIndex) {
+        return arrival(trackIndex, DESTINATION_ARRIVAL_COMMAND);
+    }
+
+    @NonNull
+    static List<NavigationTurnEvent> intermediateArrival(int trackIndex) {
+        return arrival(trackIndex, INTERMEDIATE_ARRIVAL_COMMAND);
+    }
+
+    @NonNull
+    private static List<NavigationTurnEvent> arrival(int trackIndex, int command) {
+        VoiceHint arrivalHint = new VoiceHint(trackIndex, command, 0, 0.0, 0);
+        List<NavigationTurnEvent> events = new ArrayList<>(1);
+        events.add(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+        return events;
     }
 
     private void update(@NonNull TurnEventPlanner.TurnSignal signal) {

@@ -1,19 +1,15 @@
 package vibro.navigator.nav.guidance;
 
-import android.location.Location;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class NavigationTurnState {
     private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
     private final TurnEventPlanner turnEventPlanner = new TurnEventPlanner();
@@ -109,43 +105,6 @@ public final class NavigationTurnState {
     public List<NavigationTurnEvent> onRouteApplied(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @Nullable Location lastFiltered,
-            float speedMps,
-            float accuracyMeters
-    ) {
-        return onRouteApplied(
-                route,
-                polylineIndex,
-                new ArrayList<>(),
-                toLatLon(lastFiltered),
-                speedMps,
-                accuracyMeters
-        );
-    }
-
-    @NonNull
-    public List<NavigationTurnEvent> onRouteApplied(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops,
-            @Nullable Location lastFiltered,
-            float speedMps,
-            float accuracyMeters
-    ) {
-        return onRouteApplied(
-                route,
-                polylineIndex,
-                intermediateStops,
-                toLatLon(lastFiltered),
-                speedMps,
-                accuracyMeters
-        );
-    }
-
-    @NonNull
-    public List<NavigationTurnEvent> onRouteApplied(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
             @Nullable LatLon lastFiltered,
             float speedMps,
@@ -177,14 +136,7 @@ public final class NavigationTurnState {
         destinationReached = true;
         intermediateDestinationReachedTrackIndex = -1;
         maneuverCueState.clear();
-        VoiceHint arrivalHint = new VoiceHint(
-                route.track.size() - 1,
-                NavigationTurnManeuverCueState.DESTINATION_ARRIVAL_COMMAND,
-                0,
-                0.0,
-                0
-        );
-        return oneTurnEvent(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+        return NavigationTurnManeuverCueState.destinationArrival(route.track.size() - 1);
     }
 
     @NonNull
@@ -196,14 +148,7 @@ public final class NavigationTurnState {
         maneuverCueState.clear();
         guidanceHints.advancePastIntermediateDestination(trackIndex);
         syncNextRouteHintIndex();
-        VoiceHint arrivalHint = new VoiceHint(
-                trackIndex,
-                NavigationTurnManeuverCueState.INTERMEDIATE_ARRIVAL_COMMAND,
-                0,
-                0.0,
-                0
-        );
-        return oneTurnEvent(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
+        return NavigationTurnManeuverCueState.intermediateArrival(trackIndex);
     }
 
     private void clearIntermediateDestinationReachedIfPassed(
@@ -230,13 +175,13 @@ public final class NavigationTurnState {
         if (initialTurnNotificationSent) {
             return noTurnEvents();
         }
-        if (guidanceHints.hints().isEmpty()
-                || guidanceHints.nextIndex() < 0
-                || guidanceHints.nextIndex() >= guidanceHints.hints().size()) {
+        if (!hasPendingInitialTurnSignal()) {
             return noTurnEvents();
         }
 
-        RoutePosition routePosition = resolveRoutePosition(polylineIndex, lastFiltered);
+        PolylineIndex.Match match = lastFiltered == null ? null : polylineIndex.match(lastFiltered, -1);
+        double alongTrackMeters = match == null ? 0.0 : match.alongTrackMeters;
+        int segmentIndex = match == null ? -1 : match.segmentIndex;
 
         TurnEventPlanner.TurnSignal initialSignal = turnEventPlanner.buildInitialSignal(
                 route,
@@ -245,8 +190,8 @@ public final class NavigationTurnState {
                 guidanceHints.hintAlongTrackMeters(),
                 guidanceHints.nextIndex(),
                 initialTurnNotificationSent,
-                routePosition.alongTrackMeters,
-                routePosition.segmentIndex,
+                alongTrackMeters,
+                segmentIndex,
                 speedMps,
                 accuracyMeters
         );
@@ -257,41 +202,10 @@ public final class NavigationTurnState {
         return oneTurnEvent(toTurnEvent(initialSignal));
     }
 
-    @NonNull
-    private static RoutePosition resolveRoutePosition(
-            @NonNull PolylineIndex polylineIndex,
-            @Nullable LatLon lastFiltered
-    ) {
-        if (lastFiltered == null) {
-            return RoutePosition.unknown();
-        }
-        PolylineIndex.Match match = polylineIndex.match(lastFiltered, -1);
-        return match == null ? RoutePosition.unknown() : RoutePosition.from(match);
-    }
-
-    @Nullable
-    private static LatLon toLatLon(@Nullable Location location) {
-        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
-    }
-
-    private static final class RoutePosition {
-        public final double alongTrackMeters;
-        public final int segmentIndex;
-
-        private RoutePosition(double alongTrackMeters, int segmentIndex) {
-            this.alongTrackMeters = alongTrackMeters;
-            this.segmentIndex = segmentIndex;
-        }
-
-        @NonNull
-        public static RoutePosition unknown() {
-            return new RoutePosition(0.0, -1);
-        }
-
-        @NonNull
-        public static RoutePosition from(@NonNull PolylineIndex.Match match) {
-            return new RoutePosition(match.alongTrackMeters, match.segmentIndex);
-        }
+    private boolean hasPendingInitialTurnSignal() {
+        return !guidanceHints.hints().isEmpty()
+                && guidanceHints.nextIndex() >= 0
+                && guidanceHints.nextIndex() < guidanceHints.hints().size();
     }
 
     private void syncNextRouteHintIndex(@NonNull GeoJsonRoute route) {

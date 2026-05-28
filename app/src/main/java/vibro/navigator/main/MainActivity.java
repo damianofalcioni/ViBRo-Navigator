@@ -22,7 +22,6 @@ import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.logging.AppLogger;
 
 // Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class MainActivity extends Activity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";

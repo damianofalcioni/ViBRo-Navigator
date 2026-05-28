@@ -54,7 +54,7 @@ public class NavigationRouteStartApproachStateTest {
                 1.4f,
                 500L
         );
-        NavigationSessionRouteState.Evaluation approachEvaluation = state.evaluateLocation(
+        NavigationRouteEvaluation approachEvaluation = state.evaluateLocation(
                 requestedStart,
                 1.4f,
                 3f,
@@ -73,7 +73,7 @@ public class NavigationRouteStartApproachStateTest {
         assertNotNull(approachState.routeStatus.compassState.routeStartApproachProjection);
 
         Location routeStart = location(0.0, 0.001, 2_000L);
-        NavigationSessionRouteState.Evaluation reachedEvaluation = state.evaluateLocation(
+        NavigationRouteEvaluation reachedEvaluation = state.evaluateLocation(
                 routeStart,
                 1.4f,
                 3f,

@@ -3,9 +3,6 @@ package vibro.navigator.nav.service;
 
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
-import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
-import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -21,7 +18,6 @@ import androidx.annotation.Nullable;
 import vibro.navigator.logging.AppLogger;
 
 // Android service shell: explicit collaborators keep lifecycle ownership visible and behavior isolated in helpers.
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public class NavigationService extends Service {
 
     private static final String TAG = "NavigationService";
@@ -46,11 +42,13 @@ public class NavigationService extends Service {
     private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();
     private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
     private final NavigationServiceTurnEvents turnEvents = new NavigationServiceTurnEvents(navigationSession);
+    private final NavigationServiceRouteRecalculator routeRecalculator =
+            new NavigationServiceRouteRecalculator(this, navigationSession, this::runtime, this::emitState);
     private final NavigationServiceLocationHandler locationHandler = new NavigationServiceLocationHandler(
             this,
             navigationSession,
             turnEvents,
-            this::requestRouteRecalcForLocation,
+            routeRecalculator::requestForLocation,
             this::emitState
     );
     @Nullable
@@ -76,7 +74,7 @@ public class NavigationService extends Service {
             navigationSession,
             uiVisibility,
             this::emitState,
-            notice -> requestRouteRecalc(true, null, notice),
+            notice -> routeRecalculator.request(true, null, notice),
             () -> {
                 stopNavigation();
                 stopSelf();
@@ -103,7 +101,7 @@ public class NavigationService extends Service {
                 locationHandler,
                 uiVisibility,
                 this::emitState,
-                this::requestRouteRecalc
+                routeRecalculator::request
         );
         AppLogger.i(TAG, "Service created");
     }
@@ -183,57 +181,6 @@ public class NavigationService extends Service {
         runtime().stopManeuverSpeech();
         stateBroadcaster.clear();
         runtime().stopForegroundService();
-    }
-
-    private void requestRouteRecalc(boolean force, @Nullable NavigationRerouteNotice rerouteNotice) {
-        NavigationRouteRecalculationReason reason = rerouteNotice == null
-                ? NavigationRouteRecalculationReason.EXPLICIT
-                : NavigationRouteRecalculationReason.ROUTE_DEVIATION;
-        requestRouteRecalc(force, rerouteNotice, null, reason);
-    }
-
-    private void requestRouteRecalc(
-            boolean force,
-            @Nullable NavigationRerouteNotice rerouteNotice,
-            @Nullable String inProgressNotice
-    ) {
-        requestRouteRecalc(
-                force,
-                rerouteNotice,
-                inProgressNotice,
-                NavigationRouteRecalculationReason.EXPLICIT
-        );
-    }
-
-    private void requestRouteRecalcForLocation(
-            boolean force,
-            @Nullable NavigationRerouteNotice rerouteNotice,
-            @NonNull NavigationRouteRecalculationReason reason
-    ) {
-        requestRouteRecalc(force, rerouteNotice, null, reason);
-    }
-
-    private void requestRouteRecalc(
-            boolean force,
-            @Nullable NavigationRerouteNotice rerouteNotice,
-            @Nullable String inProgressNotice,
-            @NonNull NavigationRouteRecalculationReason reason
-    ) {
-        NavigationRouteRequestSnapshot snapshot =
-                navigationSession.prepareRouteRequest(
-                        force,
-                        System.currentTimeMillis(),
-                        inProgressNotice,
-                        reason
-                );
-        if (snapshot == null) {
-            return;
-        }
-        emitState();
-        if (rerouteNotice != null) {
-            runtime().foregroundController().sendOffRouteNotification(rerouteNotice);
-        }
-        runtime().requestRoute(this, snapshot);
     }
 
     private void emitState() {

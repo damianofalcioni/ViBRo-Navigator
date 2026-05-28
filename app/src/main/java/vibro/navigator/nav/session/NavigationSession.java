@@ -2,43 +2,32 @@ package vibro.navigator.nav.session;
 
 
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
-import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
 import android.content.Context;
 import android.location.Location;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.route.GeoJsonRoute;
 
 import java.util.Collections;
 import java.util.List;
 
 // Session coordinator: explicit state collaborators make navigation handoffs auditable without a generic facade.
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class NavigationSession {
 
     private static final String TAG = "NavigationSession";
-    private static final long NO_SUGGESTED_INTERVAL = -1L;
 
-    private final NavigationSessionLocationState locationState = new NavigationSessionLocationState();
-    private final NavigationSessionHeadingResolver headingResolver =
-            new NavigationSessionHeadingResolver(locationState);
-    private final NavigationSessionRouteState routeState = new NavigationSessionRouteState();
-    private final NavigationWarmupController warmupController = new NavigationWarmupController();
-    private final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
+    private final NavigationSessionComponents components = new NavigationSessionComponents();
     private boolean started;
     private boolean paused;
-    private int acquiredFixCount;
 
     @NonNull
     private NavigationRequest currentRequest = new NavigationRequest(null, null, null, Collections.emptyList());
@@ -51,14 +40,10 @@ public final class NavigationSession {
     public boolean start(@NonNull Context context, long nowMs) {
         started = false;
         paused = false;
-        acquiredFixCount = 0;
-        locationState.reset();
-        routeState.reset();
-        warmupController.reset(nowMs);
-        routeRequestManager.reset(nowMs);
+        components.reset(nowMs);
 
         if (!currentRequest.isComplete()) {
-            routeRequestManager.markInvalidRequest(context);
+            components.routeRequestManager.markInvalidRequest(context);
             AppLogger.e(TAG, "Navigation start aborted because the request is incomplete "
                     + currentRequest.describe(), null);
             return false;
@@ -70,7 +55,7 @@ public final class NavigationSession {
     public void stop() {
         started = false;
         paused = false;
-        routeRequestManager.stop();
+        components.routeRequestManager.stop();
     }
 
     public boolean pause() {
@@ -94,47 +79,39 @@ public final class NavigationSession {
     }
 
     public boolean hasActiveRoute() {
-        return routeState.hasActiveRoute();
+        return components.routeState.hasActiveRoute();
     }
 
     @Nullable
     public String buildCurrentRouteGpx(@NonNull Context context) {
-        GeoJsonRoute route = routeState.currentRoute();
-        if (route == null || route.track.isEmpty()) {
-            return null;
-        }
-        return NavigationRouteGpxExporter.export(
-                context,
-                route,
-                routeState.remainingIntermediateStops(currentRequest.stops)
-        );
+        return NavigationSessionRouteExporter.export(context, components.routeState, currentRequest);
     }
 
     public void onProviderDisabled(@NonNull String provider) {
-        locationState.onProviderDisabled(provider);
+        components.locationState.onProviderDisabled(provider);
     }
 
     @Nullable
     public Location getLastFilteredLocation() {
-        return locationState.getLastFilteredLocation();
+        return components.locationState.getLastFilteredLocation();
     }
 
     public float lastFilteredSpeedMps() {
-        Location lastFiltered = locationState.getLastFilteredLocation();
-        return lastFiltered == null ? 0f : locationState.speedMps(lastFiltered);
+        Location lastFiltered = components.locationState.getLastFilteredLocation();
+        return lastFiltered == null ? 0f : components.locationState.speedMps(lastFiltered);
     }
 
     public boolean isLikelyStationaryForOrientation() {
-        return locationState.isLikelyStationary();
+        return components.locationState.isLikelyStationary();
     }
 
     public boolean isRouteCalculationInProgress() {
-        return routeRequestManager.isRouteCalculationInProgress();
+        return components.routeRequestManager.isRouteCalculationInProgress();
     }
 
     @Nullable
     public Double currentRouteBearingDegrees() {
-        return routeState.currentSegmentBearingDegrees(locationState.getLastFilteredLocation());
+        return components.routeState.currentSegmentBearingDegrees(components.locationState.getLastFilteredLocation());
     }
 
     @NonNull
@@ -144,52 +121,15 @@ public final class NavigationSession {
 
     @NonNull
     public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull Location location, long nowMs) {
-        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(location, nowMs);
-        if (update.isDropped()) {
-            return NavigationLocationUpdateResult.dropped();
-        }
-        acquiredFixCount++;
-
-        Location filtered = update.getFilteredLocation();
-        routeRequestManager.clearRouteFailure();
-        if (!currentRequest.isComplete()) {
-            routeRequestManager.markInvalidRequest(context);
-            AppLogger.e(TAG, "Skipping route evaluation because the request is incomplete "
-                    + currentRequest.describe(), null);
-            return NavigationLocationUpdateResult.accepted(
-                    filtered,
-                    true,
-                    null,
-                    Collections.emptyList(),
-                    NO_SUGGESTED_INTERVAL
-            );
-        }
-
-        long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs);
-        NavigationSessionRouteState.Evaluation evaluation = routeState.evaluateLocation(
-                filtered,
-                locationState.speedMps(filtered),
-                locationState.isLikelyStationary(),
-                locationState.accuracyMeters(filtered),
-                locationState.trustedActualBearingDegreesForReroute(filtered),
-                nowMs,
-                fastChecksUntilMs,
-                update.isReacquiringAfterLongGap()
-        );
-        warmupController.recordEvaluation(evaluation.isStableOnRouteSample(), locationState.accuracyMeters(filtered), nowMs);
-        return NavigationLocationUpdateResult.accepted(
-                filtered,
-                evaluation.shouldRecalculateRoute(),
-                evaluation.rerouteNotice,
-                evaluation.recalculationReason,
-                evaluation.turnEvents,
-                evaluation.getSuggestedUpdateIntervalMs()
-        );
+        return components.locationEvaluator.onRawLocationChanged(context, currentRequest, location, nowMs);
     }
 
     @NonNull
     public List<?> addBlockedPointsAhead() {
-        return routeState.addBlockedPointsAhead(locationState.getLastFilteredLocation(), System.currentTimeMillis());
+        return components.routeState.addBlockedPointsAhead(
+                components.locationState.getLastFilteredLocation(),
+                System.currentTimeMillis()
+        );
     }
 
     @Nullable
@@ -214,13 +154,13 @@ public final class NavigationSession {
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
-        return routeRequestManager.prepare(
+        return components.routeRequestManager.prepare(
                 force,
                 nowMs,
                 currentRequest,
-                routeState.remainingIntermediateStops(currentRequest.stops),
-                locationState.getLastFilteredLocation(),
-                routeState.copyBlockedPoints(),
+                components.routeState.remainingIntermediateStops(currentRequest.stops),
+                components.locationState.getLastFilteredLocation(),
+                components.routeState.copyBlockedPoints(),
                 inProgressNotice,
                 reason
         );
@@ -233,19 +173,19 @@ public final class NavigationSession {
             @NonNull GeoJsonRoute newRoute,
             long beganAt
     ) {
-        if (!routeRequestManager.onRouteApplied(snapshot)) {
+        if (!components.routeRequestManager.onRouteApplied(snapshot)) {
             return Collections.emptyList();
         }
-        warmupController.onRouteApplied();
-        Location lastFiltered = locationState.getLastFilteredLocation();
-        float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
-        return routeState.applyRouteResult(
+        components.warmupController.onRouteApplied();
+        Location lastFiltered = components.locationState.getLastFilteredLocation();
+        float speedMps = lastFiltered != null ? components.locationState.speedMps(lastFiltered) : 0f;
+        return components.routeState.applyRouteResult(
                 context,
                 snapshot,
                 newRoute,
                 lastFiltered,
                 speedMps,
-                locationState.isLikelyStationary(),
+                components.locationState.isLikelyStationary(),
                 beganAt
         );
     }
@@ -255,11 +195,11 @@ public final class NavigationSession {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        routeRequestManager.onRouteFailure(context, snapshot, error);
+        components.routeRequestManager.onRouteFailure(context, snapshot, error);
     }
 
     public boolean consumePendingRouteRecalculation() {
-        return routeRequestManager.consumePendingRecalculation();
+        return components.routeRequestManager.consumePendingRecalculation();
     }
 
     @NonNull
@@ -292,33 +232,17 @@ public final class NavigationSession {
             @Nullable Float displayHeadingAccuracyDegrees,
             @Nullable CompassOrientationCue orientationCue
     ) {
-        NavState baseState;
-        Location lastFiltered = locationState.getLastFilteredLocation();
-        float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
-        boolean likelyStationary = locationState.isLikelyStationary();
-        float accuracyMeters = lastFiltered != null
-                ? locationState.accuracyMeters(lastFiltered)
-                : Float.MAX_VALUE;
-        NavigationSessionHeadingResolver.Selection heading = headingResolver.selectHeading(
-                lastFiltered,
-                likelyStationary,
+        return components.stateBuilder.build(
+                context,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
                 displayHeadingDegrees,
-                displayHeadingAccuracyDegrees
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                components.locationEvaluator.acquiredFixCount(),
+                paused
         );
-        NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(context)
-                .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
-                .gps(fixedSatelliteCount, acquiredFixCount)
-                .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
-                .orientationCue(orientationCue)
-                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
-                .routeCalculation(
-                        routeRequestManager.isRouteCalculationInProgress(),
-                        routeRequestManager.getInProgressNotice(),
-                        routeRequestManager.getLastRouteFailure()
-                )
-                .build();
-        baseState = routeState.advanceDisplayState(snapshot);
-        return NavStateComposer.withPauseState(context, baseState, paused);
     }
 
 }

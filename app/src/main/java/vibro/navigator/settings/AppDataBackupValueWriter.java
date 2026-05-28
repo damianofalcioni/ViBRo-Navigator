@@ -4,6 +4,7 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import java.util.HashSet;
 import java.util.Set;
 
 final class AppDataBackupValueWriter {
@@ -11,7 +12,6 @@ final class AppDataBackupValueWriter {
     private AppDataBackupValueWriter() {
     }
 
-    @SuppressWarnings("unchecked")
     static void put(
             @NonNull SharedPreferences.Editor editor,
             @NonNull AppDataBackupPreferenceValue preferenceValue
@@ -29,7 +29,18 @@ final class AppDataBackupValueWriter {
         } else if (raw instanceof Float) {
             editor.putFloat(key, (Float) raw);
         } else if (raw instanceof Set<?>) {
-            editor.putStringSet(key, (Set<String>) raw);
+            editor.putStringSet(key, stringSet((Set<?>) raw));
         }
+    }
+
+    @NonNull
+    private static Set<String> stringSet(@NonNull Set<?> rawValues) {
+        Set<String> values = new HashSet<>();
+        for (Object value : rawValues) {
+            if (value instanceof String) {
+                values.add((String) value);
+            }
+        }
+        return values;
     }
 }

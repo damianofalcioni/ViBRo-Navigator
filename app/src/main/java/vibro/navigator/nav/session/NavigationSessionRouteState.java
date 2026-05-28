@@ -1,13 +1,7 @@
 package vibro.navigator.nav.session;
 
 
-import vibro.navigator.nav.guidance.NavigationBlockedRouteState;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
-import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
-import vibro.navigator.nav.route.NavigationRouteGeometryState;
-import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
-import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.geo.LatLon;
 import android.content.Context;
@@ -18,86 +12,40 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
-import java.util.Collections;
 import java.util.List;
 
 // Route coordinator: route safety policies stay split across named helpers even though they meet in this class.
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class NavigationSessionRouteState {
 
-    private static final long NO_SUGGESTED_INTERVAL = -1L;
-
-    private final NavigationRouteGeometryState geometryState = new NavigationRouteGeometryState();
-    private final NavigationBlockedRouteState blockedRouteState = new NavigationBlockedRouteState();
-    private final NavigationTurnState turnState = new NavigationTurnState();
-    private final NavigationRouteProgressTracker progressTracker = new NavigationRouteProgressTracker();
-    private final NavigationRouteDeviationHandler deviationHandler =
-            new NavigationRouteDeviationHandler(progressTracker);
-    private final NavigationSessionRouteDisplayState displayState = new NavigationSessionRouteDisplayState();
-    private final NavigationArrivalDetector arrivalDetector = new NavigationArrivalDetector(geometryState);
-    private final NavigationIntermediateArrivalTracker intermediateArrivalTracker =
-            new NavigationIntermediateArrivalTracker();
-    private final RouteStartApproachState routeStartApproachState = new RouteStartApproachState();
-    private final NavigationRouteEvaluator routeEvaluator = new NavigationRouteEvaluator(
-            geometryState,
-            turnState,
-            progressTracker,
-            deviationHandler,
-            displayState,
-            arrivalDetector,
-            intermediateArrivalTracker,
-            routeStartApproachState
-    );
-    private final NavigationBlockedPointSelector blockedPointSelector = new NavigationBlockedPointSelector(
-            geometryState,
-            blockedRouteState
-    );
-    private final NavigationRouteResultApplier routeResultApplier = new NavigationRouteResultApplier(
-            geometryState,
-            displayState,
-            deviationHandler,
-            progressTracker,
-            turnState,
-            arrivalDetector,
-            intermediateArrivalTracker,
-            routeStartApproachState
-    );
+    private final NavigationSessionRouteComponents components = new NavigationSessionRouteComponents();
 
     public void reset() {
-        geometryState.reset();
-        displayState.reset();
-        deviationHandler.clearDeviationEvidence();
-        progressTracker.reset();
-        blockedRouteState.reset();
-        turnState.reset();
-        intermediateArrivalTracker.reset();
-        routeStartApproachState.reset();
+        components.reset();
     }
 
     public boolean hasActiveRoute() {
-        return geometryState.hasActiveRoute();
+        return components.geometryState.hasActiveRoute();
     }
 
     @Nullable
     public GeoJsonRoute currentRoute() {
-        return geometryState.route();
+        return components.geometryState.route();
     }
 
     @NonNull
     public List<LatLon> remainingIntermediateStops(@NonNull List<LatLon> fallbackStops) {
-        return intermediateArrivalTracker.remainingStops(fallbackStops);
+        return components.intermediateArrivalTracker.remainingStops(fallbackStops);
     }
 
     @NonNull
     public List<NogoPoint> copyBlockedPoints() {
-        return blockedRouteState.copyBlockedPoints();
+        return components.blockedRouteState.copyBlockedPoints();
     }
 
     @NonNull
-    public Evaluation evaluateLocation(
+    public NavigationRouteEvaluation evaluateLocation(
             @NonNull Location filtered,
             float speedMps,
             float accuracyMeters,
@@ -117,7 +65,7 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
-    public Evaluation evaluateLocation(
+    public NavigationRouteEvaluation evaluateLocation(
             @NonNull Location filtered,
             float speedMps,
             boolean likelyStationary,
@@ -139,7 +87,7 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
-    public Evaluation evaluateLocation(
+    public NavigationRouteEvaluation evaluateLocation(
             @NonNull Location filtered,
             float speedMps,
             boolean likelyStationary,
@@ -149,7 +97,7 @@ public final class NavigationSessionRouteState {
             long fastChecksUntilMs,
             boolean reacquiringAfterLongGap
     ) {
-        return routeEvaluator.evaluateLocation(
+        return components.routeEvaluator.evaluateLocation(
                 filtered,
                 speedMps,
                 likelyStationary,
@@ -163,12 +111,12 @@ public final class NavigationSessionRouteState {
 
     @Nullable
     public Double currentSegmentBearingDegrees(@Nullable Location lastFiltered) {
-        return geometryState.currentSegmentBearingDegrees(lastFiltered);
+        return components.geometryState.currentSegmentBearingDegrees(lastFiltered);
     }
 
     @NonNull
     public List<NogoPoint> addBlockedPointsAhead(@Nullable Location lastFiltered, long nowMs) {
-        return blockedPointSelector.addBlockedPointsAhead(lastFiltered, nowMs);
+        return components.blockedPointSelector.addBlockedPointsAhead(lastFiltered, nowMs);
     }
 
     @NonNull
@@ -201,7 +149,7 @@ public final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
-        return routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
+        return components.routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
                 context,
                 snapshot,
                 newRoute,
@@ -214,15 +162,15 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public NavState advanceDisplayState(@NonNull NavigationDisplaySnapshot snapshot) {
-        NavState state = displayState.buildState(
+        NavState state = components.displayState.buildState(
                 snapshot,
-                geometryState.route(),
-                geometryState.polylineIndex(),
-                geometryState.lastSegmentIndex(),
-                turnState,
-                progressTracker
+                components.geometryState.route(),
+                components.geometryState.polylineIndex(),
+                components.geometryState.lastSegmentIndex(),
+                components.turnState,
+                components.progressTracker
         );
-        displayState.rememberRenderedState(state, snapshot);
+        components.displayState.rememberRenderedState(state, snapshot);
         return state;
     }
 
@@ -249,85 +197,6 @@ public final class NavigationSessionRouteState {
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .routeCalculation(routeCalculationInProgress, routeCalculationNotice, lastRouteFailure)
                 .build());
-    }
-
-    public static final class Evaluation {
-        private final boolean shouldRecalculateRoute;
-        private final boolean stableOnRouteSample;
-        private final long suggestedUpdateIntervalMs;
-        @Nullable
-        final NavigationRouteRecalculationReason recalculationReason;
-        @Nullable
-        final NavigationRerouteNotice rerouteNotice;
-        @NonNull
-        final List<NavigationTurnEvent> turnEvents;
-
-        private Evaluation(
-                boolean shouldRecalculateRoute,
-                boolean stableOnRouteSample,
-                long suggestedUpdateIntervalMs,
-                @Nullable NavigationRouteRecalculationReason recalculationReason,
-                @Nullable NavigationRerouteNotice rerouteNotice,
-                @NonNull List<NavigationTurnEvent> turnEvents
-        ) {
-            this.shouldRecalculateRoute = shouldRecalculateRoute;
-            this.stableOnRouteSample = stableOnRouteSample;
-            this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
-            this.recalculationReason = recalculationReason;
-            this.rerouteNotice = rerouteNotice;
-            this.turnEvents = turnEvents;
-        }
-
-        @NonNull
-        public static Evaluation requestRecalculation(@Nullable NavigationRerouteNotice rerouteNotice) {
-            NavigationRouteRecalculationReason reason = rerouteNotice == null
-                    ? NavigationRouteRecalculationReason.EXPLICIT
-                    : NavigationRouteRecalculationReason.ROUTE_DEVIATION;
-            return requestRecalculation(rerouteNotice, reason);
-        }
-
-        @NonNull
-        public static Evaluation requestRecalculation(
-                @Nullable NavigationRerouteNotice rerouteNotice,
-                @NonNull NavigationRouteRecalculationReason reason
-        ) {
-            return new Evaluation(
-                    true,
-                    false,
-                    NO_SUGGESTED_INTERVAL,
-                    reason,
-                    rerouteNotice,
-                    Collections.emptyList()
-            );
-        }
-
-        @NonNull
-        public static Evaluation keepRoute(
-                @NonNull List<NavigationTurnEvent> turnEvents,
-                long suggestedUpdateIntervalMs,
-                boolean stableOnRouteSample
-        ) {
-            return new Evaluation(
-                    false,
-                    stableOnRouteSample,
-                    suggestedUpdateIntervalMs,
-                    null,
-                    null,
-                    turnEvents
-            );
-        }
-
-        public boolean shouldRecalculateRoute() {
-            return shouldRecalculateRoute;
-        }
-
-        public boolean isStableOnRouteSample() {
-            return stableOnRouteSample;
-        }
-
-        public long getSuggestedUpdateIntervalMs() {
-            return suggestedUpdateIntervalMs;
-        }
     }
 
 }
