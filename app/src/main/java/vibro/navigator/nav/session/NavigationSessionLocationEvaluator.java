@@ -1,7 +1,7 @@
 package vibro.navigator.nav.session;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 
@@ -50,16 +50,16 @@ final class NavigationSessionLocationEvaluator {
     NavigationLocationUpdateResult onRawLocationChanged(
             @NonNull Context context,
             @NonNull NavigationRequest currentRequest,
-            @NonNull Location location,
+            @NonNull NavigationLocation NavigationLocation,
             long nowMs
     ) {
-        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(location, nowMs);
+        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(NavigationLocation, nowMs);
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
         }
         acquiredFixCount++;
 
-        Location filtered = update.getFilteredLocation();
+        NavigationLocation filtered = update.getFilteredLocation();
         routeRequestManager.clearRouteFailure();
         if (!currentRequest.isComplete()) {
             routeRequestManager.markInvalidRequest(context);

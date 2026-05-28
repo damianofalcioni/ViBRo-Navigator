@@ -4,7 +4,6 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
-import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
@@ -18,6 +17,8 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import vibro.navigator.android.location.AndroidLocationSettings;
 
 public final class NavigationPreflight {
 
@@ -155,19 +156,7 @@ public final class NavigationPreflight {
     }
 
     private static boolean isLocationEnabled(@NonNull Activity activity) {
-        LocationManager locationManager = (LocationManager) activity.getSystemService(Activity.LOCATION_SERVICE);
-        if (locationManager == null) {
-            return false;
-        }
-        boolean gpsEnabled = false;
-        boolean networkEnabled = false;
-        try {
-            gpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-            networkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ignored) {
-            return false;
-        }
-        return gpsEnabled || networkEnabled;
+        return AndroidLocationSettings.isLocationEnabled(activity);
     }
 
     private static boolean needsBatteryOptimizationExemption(@NonNull Activity activity) {

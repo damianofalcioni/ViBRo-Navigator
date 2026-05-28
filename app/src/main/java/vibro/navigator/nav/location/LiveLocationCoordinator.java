@@ -1,8 +1,5 @@
 package vibro.navigator.nav.location;
 
-import android.location.Location;
-import android.location.LocationManager;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -10,19 +7,19 @@ public final class LiveLocationCoordinator {
     public static final String FUSED_PROVIDER = "fused";
 
     @Nullable
-    private Location latestGpsLocation;
+    private NavigationLocation latestGpsLocation;
     @Nullable
-    private Location latestNetworkLocation;
+    private NavigationLocation latestNetworkLocation;
     @Nullable
-    private Location latestFusedLocation;
+    private NavigationLocation latestFusedLocation;
     @Nullable
-    private LiveLocationFix latestGpsFix;
+    private NavigationLocationFix latestGpsFix;
     @Nullable
-    private LiveLocationFix latestNetworkFix;
+    private NavigationLocationFix latestNetworkFix;
     @Nullable
-    private LiveLocationFix latestFusedFix;
+    private NavigationLocationFix latestFusedFix;
     @Nullable
-    private LiveLocationFix lastDispatchedRawFix;
+    private NavigationLocationFix lastDispatchedRawFix;
 
     public void reset() {
         latestGpsLocation = null;
@@ -34,13 +31,13 @@ public final class LiveLocationCoordinator {
         lastDispatchedRawFix = null;
     }
 
-    public void remember(@NonNull Location location) {
-        Location copy = new Location(location);
-        LiveLocationFix fix = toFix(copy);
-        if (LocationManager.GPS_PROVIDER.equals(fix.provider)) {
+    public void remember(@NonNull NavigationLocation location) {
+        NavigationLocation copy = new NavigationLocation(location);
+        NavigationLocationFix fix = NavigationLocationFix.from(copy);
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(fix.provider)) {
             latestGpsLocation = copy;
             latestGpsFix = fix;
-        } else if (LocationManager.NETWORK_PROVIDER.equals(fix.provider)) {
+        } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(fix.provider)) {
             latestNetworkLocation = copy;
             latestNetworkFix = fix;
         } else {
@@ -49,11 +46,11 @@ public final class LiveLocationCoordinator {
         }
     }
 
-    void remember(@NonNull LiveLocationFix fix) {
-        if (LocationManager.GPS_PROVIDER.equals(fix.provider)) {
+    void remember(@NonNull NavigationLocationFix fix) {
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(fix.provider)) {
             latestGpsLocation = null;
             latestGpsFix = fix;
-        } else if (LocationManager.NETWORK_PROVIDER.equals(fix.provider)) {
+        } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(fix.provider)) {
             latestNetworkLocation = null;
             latestNetworkFix = fix;
         } else {
@@ -63,10 +60,10 @@ public final class LiveLocationCoordinator {
     }
 
     public void clearProvider(@NonNull String provider) {
-        if (LocationManager.GPS_PROVIDER.equals(provider)) {
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(provider)) {
             latestGpsLocation = null;
             latestGpsFix = null;
-        } else if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+        } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(provider)) {
             latestNetworkLocation = null;
             latestNetworkFix = null;
         } else if (FUSED_PROVIDER.equals(provider)) {
@@ -76,73 +73,60 @@ public final class LiveLocationCoordinator {
     }
 
     @Nullable
-    public Location selectBestLiveLocation() {
+    public NavigationLocation selectBestLiveLocation() {
         long nowMs = System.currentTimeMillis();
-        LiveLocationFix selected = selectBestLiveFix(nowMs);
+        NavigationLocationFix selected = selectBestLiveFix(nowMs);
         return copyOf(locationFor(selected));
     }
 
     @Nullable
-    LiveLocationFix selectBestLiveFix(long nowMs) {
+    NavigationLocationFix selectBestLiveFix(long nowMs) {
         return LiveLocationPolicy.selectBestFix(latestGpsFix, latestNetworkFix, latestFusedFix, nowMs);
     }
 
     @Nullable
-    private static Location copyOf(@Nullable Location location) {
-        return location == null ? null : new Location(location);
+    private static NavigationLocation copyOf(@Nullable NavigationLocation location) {
+        return location == null ? null : new NavigationLocation(location);
     }
 
-    public boolean shouldDispatch(@NonNull Location candidate) {
-        return shouldDispatch(toFix(candidate));
+    public boolean shouldDispatch(@NonNull NavigationLocation candidate) {
+        return shouldDispatch(NavigationLocationFix.from(candidate));
     }
 
-    boolean shouldDispatch(@NonNull LiveLocationFix candidate) {
+    boolean shouldDispatch(@NonNull NavigationLocationFix candidate) {
         return LiveLocationPolicy.shouldDispatch(lastDispatchedRawFix, candidate);
     }
 
-    public void markDispatched(@NonNull Location location) {
-        lastDispatchedRawFix = toFix(location);
+    public void markDispatched(@NonNull NavigationLocation location) {
+        lastDispatchedRawFix = NavigationLocationFix.from(location);
     }
 
-    void markDispatched(@NonNull LiveLocationFix fix) {
+    void markDispatched(@NonNull NavigationLocationFix fix) {
         lastDispatchedRawFix = fix;
     }
 
     @Nullable
-    private Location locationFor(@Nullable LiveLocationFix selected) {
+    private NavigationLocation locationFor(@Nullable NavigationLocationFix selected) {
         if (selected == null) {
             return null;
         }
-        Location gps = locationIfSame(selected, latestGpsFix, latestGpsLocation);
+        NavigationLocation gps = locationIfSame(selected, latestGpsFix, latestGpsLocation);
         if (gps != null) {
             return gps;
         }
-        Location network = locationIfSame(selected, latestNetworkFix, latestNetworkLocation);
+        NavigationLocation network = locationIfSame(selected, latestNetworkFix, latestNetworkLocation);
         return network != null ? network : locationIfSame(selected, latestFusedFix, latestFusedLocation);
     }
 
     @Nullable
-    private static Location locationIfSame(
-            @NonNull LiveLocationFix selected,
-            @Nullable LiveLocationFix candidateFix,
-            @Nullable Location candidateLocation
+    private static NavigationLocation locationIfSame(
+            @NonNull NavigationLocationFix selected,
+            @Nullable NavigationLocationFix candidateFix,
+            @Nullable NavigationLocation candidateLocation
     ) {
         return candidateFix != null && LiveLocationPolicy.sameFix(selected, candidateFix)
                 ? candidateLocation
                 : null;
     }
 
-    @Nullable
-    private static LiveLocationFix toFix(@Nullable Location location) {
-        if (location == null) {
-            return null;
-        }
-        return new LiveLocationFix(
-                location.getProvider(),
-                location.getTime(),
-                location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE,
-                location.getLatitude(),
-                location.getLongitude()
-        );
-    }
 }

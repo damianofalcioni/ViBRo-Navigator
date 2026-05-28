@@ -2,7 +2,6 @@ package vibro.navigator.distribution;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.location.LocationListener;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
@@ -11,9 +10,12 @@ import androidx.annotation.Nullable;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailabilityLight;
 
+import vibro.navigator.android.location.GplayFusedLocationDiagnosticClient;
+import vibro.navigator.android.location.GplayFusedLocationUpdateClient;
 import vibro.navigator.auto.ViBRoCarAppService;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
+import vibro.navigator.nav.location.NavigationLocationListener;
 import vibro.navigator.poi.search.GoogleGeocodeClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.settings.AppSettings;
@@ -59,7 +61,7 @@ public final class DistributionServices {
     @NonNull
     public static FusedLocationUpdateClient createFusedLocationUpdateClient(
             @NonNull Context context,
-            @NonNull LocationListener listener
+            @NonNull NavigationLocationListener listener
     ) {
         return new GplayFusedLocationUpdateClient(context, listener);
     }

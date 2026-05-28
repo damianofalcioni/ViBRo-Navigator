@@ -1,7 +1,6 @@
 package vibro.navigator.nav.location;
 
-import android.location.Location;
-import android.location.LocationManager;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,48 +14,50 @@ public final class LastKnownLocationSelector {
 
     public interface ProviderReader {
         @Nullable
-        Location getLastKnownLocation(@NonNull String provider);
+        NavigationLocation getLastKnownLocation(@NonNull String provider);
     }
 
     private LastKnownLocationSelector() {
     }
 
     @Nullable
-    public static Location findBest(@NonNull ProviderReader reader, @NonNull List<String> providers) {
-        Location best = null;
+    public static NavigationLocation findBest(@NonNull ProviderReader reader, @NonNull List<String> providers) {
+        NavigationLocation best = null;
         for (String provider : providers) {
-            Location candidate = reader.getLastKnownLocation(provider);
+            NavigationLocation candidate = reader.getLastKnownLocation(provider);
             if (candidate != null && (best == null || isBetterLocation(candidate, best))) {
                 best = candidate;
             }
         }
-        return best == null ? null : new Location(best);
+        return best == null ? null : new NavigationLocation(best);
     }
 
     @Nullable
-    public static Location findBestForMapPicker(@NonNull ProviderReader reader) {
+    public static NavigationLocation findBestForMapPicker(@NonNull ProviderReader reader) {
         return findBest(reader, Arrays.asList(
-                LocationManager.GPS_PROVIDER,
-                LocationManager.NETWORK_PROVIDER,
-                LocationManager.PASSIVE_PROVIDER
+                NavigationLocationProviders.GPS_PROVIDER,
+                NavigationLocationProviders.NETWORK_PROVIDER,
+                NavigationLocationProviders.PASSIVE_PROVIDER
         ));
     }
 
     @Nullable
-    public static Location findBestStartup(
+    public static NavigationLocation findBestStartup(
             @NonNull ProviderReader reader,
             boolean fineGranted,
             boolean coarseGranted,
             long nowMs
     ) {
-        Location gps = fineGranted ? reader.getLastKnownLocation(LocationManager.GPS_PROVIDER) : null;
-        Location network = fineGranted || coarseGranted
-                ? reader.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
+        NavigationLocation gps = fineGranted
+                ? reader.getLastKnownLocation(NavigationLocationProviders.GPS_PROVIDER)
+                : null;
+        NavigationLocation network = fineGranted || coarseGranted
+                ? reader.getLastKnownLocation(NavigationLocationProviders.NETWORK_PROVIDER)
                 : null;
         return NavigationStartupLocationSelector.selectBest(gps, network, nowMs);
     }
 
-    private static boolean isBetterLocation(@NonNull Location candidate, @NonNull Location best) {
+    private static boolean isBetterLocation(@NonNull NavigationLocation candidate, @NonNull NavigationLocation best) {
         if (candidate.hasAccuracy() && best.hasAccuracy()) {
             float accuracyDelta = candidate.getAccuracy() - best.getAccuracy();
             if (accuracyDelta < -10f) {

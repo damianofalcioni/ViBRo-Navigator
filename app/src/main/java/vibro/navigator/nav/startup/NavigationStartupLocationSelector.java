@@ -1,9 +1,11 @@
 package vibro.navigator.nav.startup;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import vibro.navigator.nav.location.NavigationLocationFix;
 
 public final class NavigationStartupLocationSelector {
 
@@ -15,29 +17,33 @@ public final class NavigationStartupLocationSelector {
     }
 
     @Nullable
-    public static Location selectBest(@Nullable Location gps, @Nullable Location network, long nowMs) {
-        Fix gpsFix = toFix(gps);
-        Fix networkFix = toFix(network);
+    public static NavigationLocation selectBest(@Nullable NavigationLocation gps, @Nullable NavigationLocation network, long nowMs) {
+        NavigationLocationFix gpsFix = NavigationLocationFix.from(gps);
+        NavigationLocationFix networkFix = NavigationLocationFix.from(network);
         CandidateSource source = selectBestSource(gpsFix, networkFix, nowMs);
         if (source == CandidateSource.GPS) {
-            return new Location(gps);
+            return new NavigationLocation(gps);
         }
         if (source == CandidateSource.NETWORK) {
-            return new Location(network);
+            return new NavigationLocation(network);
         }
         return null;
     }
 
-    public static boolean isUsable(@Nullable Location location, long nowMs) {
-        return isUsableFix(toFix(location), nowMs);
+    public static boolean isUsable(@Nullable NavigationLocation location, long nowMs) {
+        return isUsableFix(NavigationLocationFix.from(location), nowMs);
     }
 
-    public static boolean isUsableForRouteStart(@Nullable Location location, long nowMs) {
-        return isUsableForRouteStartFix(toFix(location), nowMs);
+    public static boolean isUsableForRouteStart(@Nullable NavigationLocation location, long nowMs) {
+        return isUsableForRouteStartFix(NavigationLocationFix.from(location), nowMs);
     }
 
     @Nullable
-    static Fix selectBestFix(@Nullable Fix gps, @Nullable Fix network, long nowMs) {
+    static NavigationLocationFix selectBestFix(
+            @Nullable NavigationLocationFix gps,
+            @Nullable NavigationLocationFix network,
+            long nowMs
+    ) {
         CandidateSource source = selectBestSource(gps, network, nowMs);
         if (source == CandidateSource.GPS) {
             return gps;
@@ -49,8 +55,12 @@ public final class NavigationStartupLocationSelector {
     }
 
     @Nullable
-    private static CandidateSource selectBestSource(@Nullable Fix gps, @Nullable Fix network, long nowMs) {
-        Fix best = null;
+    private static CandidateSource selectBestSource(
+            @Nullable NavigationLocationFix gps,
+            @Nullable NavigationLocationFix network,
+            long nowMs
+    ) {
+        NavigationLocationFix best = null;
         CandidateSource source = null;
         if (isUsableFix(gps, nowMs)) {
             best = gps;
@@ -62,7 +72,7 @@ public final class NavigationStartupLocationSelector {
         return source;
     }
 
-    static boolean isUsableFix(@Nullable Fix fix, long nowMs) {
+    static boolean isUsableFix(@Nullable NavigationLocationFix fix, long nowMs) {
         if (fix == null) {
             return false;
         }
@@ -71,7 +81,7 @@ public final class NavigationStartupLocationSelector {
                 && fix.accuracyMeters <= MAX_ACCURACY_METERS;
     }
 
-    static boolean isUsableForRouteStartFix(@Nullable Fix fix, long nowMs) {
+    static boolean isUsableForRouteStartFix(@Nullable NavigationLocationFix fix, long nowMs) {
         if (fix == null) {
             return false;
         }
@@ -80,33 +90,14 @@ public final class NavigationStartupLocationSelector {
                 && fix.accuracyMeters <= MAX_ROUTE_START_ACCURACY_METERS;
     }
 
-    private static boolean isBetterThan(@NonNull Fix candidate, @Nullable Fix currentBest) {
+    private static boolean isBetterThan(
+            @NonNull NavigationLocationFix candidate,
+            @Nullable NavigationLocationFix currentBest
+    ) {
         return currentBest == null
                 || candidate.timeMs > currentBest.timeMs
                 || (candidate.timeMs == currentBest.timeMs
                 && candidate.accuracyMeters < currentBest.accuracyMeters);
-    }
-
-    @Nullable
-    private static Fix toFix(@Nullable Location location) {
-        if (location == null) {
-            return null;
-        }
-        float accuracyMeters = location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
-        return new Fix(location.getProvider(), location.getTime(), accuracyMeters);
-    }
-
-    static final class Fix {
-        @Nullable
-        final String provider;
-        final long timeMs;
-        final float accuracyMeters;
-
-        Fix(@Nullable String provider, long timeMs, float accuracyMeters) {
-            this.provider = provider;
-            this.timeMs = timeMs;
-            this.accuracyMeters = accuracyMeters;
-        }
     }
 
     private enum CandidateSource {

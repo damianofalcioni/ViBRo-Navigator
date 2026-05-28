@@ -1,7 +1,7 @@
 package vibro.navigator.nav.presentation;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -289,7 +289,7 @@ public final class NavStateComposer {
     @NonNull
     public static String buildGpsStatusLine(
             float speedMps,
-            @Nullable Location currentLocation,
+            @Nullable NavigationLocation currentLocation,
             float accuracyMeters,
             @Nullable Integer fixedSatelliteCount,
             @Nullable Integer acquiredFixCount,

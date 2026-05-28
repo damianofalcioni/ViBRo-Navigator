@@ -1,7 +1,7 @@
 package vibro.navigator.nav.session;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,7 +45,7 @@ final class NavigationSessionStateBuilder {
             int acquiredFixCount,
             boolean paused
     ) {
-        Location lastFiltered = locationState.getLastFilteredLocation();
+        NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         boolean likelyStationary = locationState.isLikelyStationary();
         float accuracyMeters = lastFiltered != null

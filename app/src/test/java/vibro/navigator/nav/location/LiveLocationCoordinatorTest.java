@@ -19,7 +19,7 @@ public class LiveLocationCoordinatorTest {
         coordinator.remember(newFix(NETWORK_PROVIDER, 500L, 35f, 48.20d, 16.37d));
         coordinator.remember(newFix(GPS_PROVIDER, 700L, 5f, 48.21d, 16.38d));
 
-        LiveLocationFix selected = coordinator.selectBestLiveFix(NOW_MS);
+        NavigationLocationFix selected = coordinator.selectBestLiveFix(NOW_MS);
 
         assertNotNull(selected);
         assertEquals(GPS_PROVIDER, selected.provider);
@@ -33,7 +33,7 @@ public class LiveLocationCoordinatorTest {
         coordinator.remember(newFix(GPS_PROVIDER, 12_000L, 8f, 48.20d, 16.37d));
         coordinator.remember(newFix(NETWORK_PROVIDER, 1_000L, 12f, 48.25d, 16.40d));
 
-        LiveLocationFix selected = coordinator.selectBestLiveFix(NOW_MS);
+        NavigationLocationFix selected = coordinator.selectBestLiveFix(NOW_MS);
 
         assertNotNull(selected);
         assertEquals(NETWORK_PROVIDER, selected.provider);
@@ -44,13 +44,13 @@ public class LiveLocationCoordinatorTest {
     @Test
     public void shouldDispatch_rejectsSameFixButAcceptsAccuracyImprovement() {
         LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
-        LiveLocationFix initial =
+        NavigationLocationFix initial =
                 newFix(GPS_PROVIDER, 500L, 30f, 48.20d, 16.37d);
         coordinator.markDispatched(initial);
 
         assertFalse(coordinator.shouldDispatch(initial));
 
-        LiveLocationFix improved =
+        NavigationLocationFix improved =
                 newFix(GPS_PROVIDER, 500L, 10f, 48.20d, 16.37d);
 
         assertTrue(coordinator.shouldDispatch(improved));
@@ -61,7 +61,7 @@ public class LiveLocationCoordinatorTest {
         LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
         coordinator.remember(newFix(LiveLocationCoordinator.FUSED_PROVIDER, 500L, 8f, 48.30d, 16.41d));
 
-        LiveLocationFix selected = coordinator.selectBestLiveFix(NOW_MS);
+        NavigationLocationFix selected = coordinator.selectBestLiveFix(NOW_MS);
 
         assertNotNull(selected);
         assertEquals(LiveLocationCoordinator.FUSED_PROVIDER, selected.provider);
@@ -69,13 +69,13 @@ public class LiveLocationCoordinatorTest {
         assertEquals(16.41d, selected.lon, 0.0);
     }
 
-    private static LiveLocationFix newFix(
+    private static NavigationLocationFix newFix(
             String provider,
             long ageMs,
             float accuracyMeters,
             double lat,
             double lon
     ) {
-        return new LiveLocationFix(provider, NOW_MS - ageMs, accuracyMeters, lat, lon);
+        return new NavigationLocationFix(provider, NOW_MS - ageMs, accuracyMeters, lat, lon);
     }
 }

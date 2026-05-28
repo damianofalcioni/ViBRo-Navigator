@@ -13,7 +13,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -49,13 +49,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                location(0.0003, 0.0, 2_000L),
+                NavigationLocation(0.0003, 0.0, 2_000L),
                 5f,
                 5f,
                 90.0,
@@ -82,13 +82,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation reacquiringEvaluation = state.evaluateLocation(
-                location(0.0003, 0.0, 20_000L),
+                NavigationLocation(0.0003, 0.0, 20_000L),
                 5f,
                 false,
                 5f,
@@ -98,7 +98,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 true
         );
         NavigationRouteEvaluation followUpEvaluation = state.evaluateLocation(
-                location(0.0003, 0.0, 21_000L),
+                NavigationLocation(0.0003, 0.0, 21_000L),
                 5f,
                 5f,
                 90.0,
@@ -127,13 +127,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation seedEvaluation = state.evaluateLocation(
-                location(0.0, 0.00035, 2_000L),
+                NavigationLocation(0.0, 0.00035, 2_000L),
                 5f,
                 5f,
                 90.0,
@@ -141,7 +141,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation firstMismatchEvaluation = state.evaluateLocation(
-                location(0.0, 0.00018, 5_500L),
+                NavigationLocation(0.0, 0.00018, 5_500L),
                 5f,
                 5f,
                 270.0,
@@ -149,7 +149,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation secondMismatchEvaluation = state.evaluateLocation(
-                location(0.0, 0.00008, 6_500L),
+                NavigationLocation(0.0, 0.00008, 6_500L),
                 5f,
                 5f,
                 270.0,
@@ -181,13 +181,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation firstEvaluation = state.evaluateLocation(
-                location(0.00018, 0.0001, 2_000L),
+                NavigationLocation(0.00018, 0.0001, 2_000L),
                 5f,
                 5f,
                 90.0,
@@ -195,7 +195,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation secondEvaluation = state.evaluateLocation(
-                location(0.00018, 0.00015, 3_000L),
+                NavigationLocation(0.00018, 0.00015, 3_000L),
                 5f,
                 5f,
                 90.0,
@@ -223,17 +223,17 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 1.0f,
                 500L
         );
 
-        state.evaluateLocation(location(0.0, 0.00005, 2_000L), 1.0f, 5f, 90.0, 2_000L, 0L);
-        state.evaluateLocation(location(0.0, 0.00010, 3_000L), 1.0f, 5f, 90.0, 3_000L, 0L);
-        state.evaluateLocation(location(0.0, 0.00015, 4_000L), 1.0f, 5f, 90.0, 4_000L, 0L);
+        state.evaluateLocation(NavigationLocation(0.0, 0.00005, 2_000L), 1.0f, 5f, 90.0, 2_000L, 0L);
+        state.evaluateLocation(NavigationLocation(0.0, 0.00010, 3_000L), 1.0f, 5f, 90.0, 3_000L, 0L);
+        state.evaluateLocation(NavigationLocation(0.0, 0.00015, 4_000L), 1.0f, 5f, 90.0, 4_000L, 0L);
 
         NavigationRouteEvaluation firstEvaluation = state.evaluateLocation(
-                location(0.00018, 0.00012, 5_000L, 30f),
+                NavigationLocation(0.00018, 0.00012, 5_000L, 30f),
                 1.0f,
                 30f,
                 90.0,
@@ -241,7 +241,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation secondEvaluation = state.evaluateLocation(
-                location(0.00018, 0.00017, 6_000L, 30f),
+                NavigationLocation(0.00018, 0.00017, 6_000L, 30f),
                 1.0f,
                 30f,
                 90.0,
@@ -269,13 +269,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 10f,
                 500L
         );
 
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                location(0.00018, 0.0, 2_000L),
+                NavigationLocation(0.00018, 0.0, 2_000L),
                 10f,
                 5f,
                 90.0,
@@ -302,20 +302,20 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithSharpTurn(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 1.4f,
                 500L
         );
 
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                location(0.0, 0.00016, 2_000L),
+                NavigationLocation(0.0, 0.00016, 2_000L),
                 1.4f,
                 5f,
                 0.0,
                 2_000L,
                 0L
         );
-        Double routeBearingDegrees = state.currentSegmentBearingDegrees(location(0.0, 0.00016, 2_000L));
+        Double routeBearingDegrees = state.currentSegmentBearingDegrees(NavigationLocation(0.0, 0.00016, 2_000L));
 
         assertFalse(evaluation.shouldRecalculateRoute());
         assertTrue(evaluation.isStableOnRouteSample());
@@ -336,13 +336,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 1.2f,
                 500L
         );
 
         NavigationRouteEvaluation seedEvaluation = state.evaluateLocation(
-                location(0.0, 0.00008, 2_000L),
+                NavigationLocation(0.0, 0.00008, 2_000L),
                 1.2f,
                 5f,
                 90.0,
@@ -350,7 +350,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation mismatchEvaluation = state.evaluateLocation(
-                location(0.0, 0.00018, 5_500L),
+                NavigationLocation(0.0, 0.00018, 5_500L),
                 1.2f,
                 5f,
                 180.0,
@@ -377,13 +377,13 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 context,
                 snapshot(request),
                 routeWithHint(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 1.2f,
                 500L
         );
 
         NavigationRouteEvaluation seedEvaluation = state.evaluateLocation(
-                location(0.0, 0.00035, 2_000L),
+                NavigationLocation(0.0, 0.00035, 2_000L),
                 1.2f,
                 5f,
                 90.0,
@@ -391,7 +391,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation firstMismatchEvaluation = state.evaluateLocation(
-                location(0.0, 0.00018, 5_500L),
+                NavigationLocation(0.0, 0.00018, 5_500L),
                 1.2f,
                 5f,
                 270.0,
@@ -399,7 +399,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation secondMismatchEvaluation = state.evaluateLocation(
-                location(0.0, 0.00008, 6_500L),
+                NavigationLocation(0.0, 0.00008, 6_500L),
                 1.2f,
                 5f,
                 270.0,
@@ -424,7 +424,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 new LatLon(0.0, 0.003),
                 Collections.emptyList()
         );
-        Location currentLocation = location(0.0, 0.0, 1_000L);
+        NavigationLocation currentLocation = NavigationLocation(0.0, 0.0, 1_000L);
         state.applyRouteResult(
                 context,
                 snapshot(request),

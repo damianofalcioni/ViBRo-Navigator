@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -137,12 +137,12 @@ final class NavigationRouteResultApplier {
                 : initialEvents;
     }
 
-    private float accuracyOf(@Nullable Location location) {
-        return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    private float accuracyOf(@Nullable NavigationLocation NavigationLocation) {
+        return NavigationLocation != null && NavigationLocation.hasAccuracy() ? NavigationLocation.getAccuracy() : Float.MAX_VALUE;
     }
 
     @Nullable
-    private static LatLon toLatLon(@Nullable Location location) {
-        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
+    private static LatLon toLatLon(@Nullable NavigationLocation NavigationLocation) {
+        return NavigationLocation == null ? null : new LatLon(NavigationLocation.getLatitude(), NavigationLocation.getLongitude());
     }
 }

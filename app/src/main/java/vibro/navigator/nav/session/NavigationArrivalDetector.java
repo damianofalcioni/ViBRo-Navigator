@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 
@@ -14,7 +14,7 @@ final class NavigationArrivalDetector {
         this.geometryState = geometryState;
     }
 
-    boolean isDestinationReached(@NonNull Location location, float accuracyMeters) {
-        return geometryState.isWithinDestinationReachedRadius(location, accuracyMeters);
+    boolean isDestinationReached(@NonNull NavigationLocation NavigationLocation, float accuracyMeters) {
+        return geometryState.isWithinDestinationReachedRadius(NavigationLocation, accuracyMeters);
     }
 }

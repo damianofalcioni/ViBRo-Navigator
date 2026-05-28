@@ -1,4 +1,4 @@
-package vibro.navigator.nav.location;
+package vibro.navigator.android.location;
 
 import static org.junit.Assert.assertEquals;
 

@@ -1,7 +1,7 @@
 package vibro.navigator.nav.session;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,7 +17,7 @@ final class NavigationRouteResultInput {
     @NonNull
     public final GeoJsonRoute route;
     @Nullable
-    public final Location lastFiltered;
+    public final NavigationLocation lastFiltered;
     public final float speedMps;
     public final boolean likelyStationary;
     public final long beganAt;
@@ -26,7 +26,7 @@ final class NavigationRouteResultInput {
             @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute route,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             float speedMps,
             boolean likelyStationary,
             long beganAt

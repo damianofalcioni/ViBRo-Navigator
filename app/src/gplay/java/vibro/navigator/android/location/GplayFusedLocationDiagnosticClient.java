@@ -1,9 +1,7 @@
-package vibro.navigator.distribution;
+package vibro.navigator.android.location;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.location.Location;
-
 import androidx.annotation.NonNull;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -14,7 +12,7 @@ import com.google.android.gms.location.LocationServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 
-final class GplayFusedLocationDiagnosticClient implements FusedLocationDiagnosticClient {
+public final class GplayFusedLocationDiagnosticClient implements FusedLocationDiagnosticClient {
     private static final String TAG = "FusedLocation";
 
     @NonNull
@@ -22,7 +20,7 @@ final class GplayFusedLocationDiagnosticClient implements FusedLocationDiagnosti
     @NonNull
     private final FusedLocationProviderClient client;
 
-    GplayFusedLocationDiagnosticClient(@NonNull Context context) {
+    public GplayFusedLocationDiagnosticClient(@NonNull Context context) {
         this.context = context.getApplicationContext();
         this.client = LocationServices.getFusedLocationProviderClient(this.context);
     }
@@ -41,7 +39,8 @@ final class GplayFusedLocationDiagnosticClient implements FusedLocationDiagnosti
         }
         try {
             client.getLastLocation()
-                    .addOnSuccessListener(callback::onLocation)
+                    .addOnSuccessListener(location ->
+                            callback.onLocation(AndroidLocationConverter.toNavigationLocation(location)))
                     .addOnFailureListener(error -> {
                         AppLogger.w(TAG, "Failed to read fused last known location", error);
                         callback.onFailure("unavailable");

@@ -1,9 +1,8 @@
-package vibro.navigator.distribution;
+package vibro.navigator.android.location;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Looper;
 
 import androidx.annotation.NonNull;
@@ -22,9 +21,11 @@ import com.google.android.gms.tasks.CancellationTokenSource;
 import java.util.Collections;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationListener;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 
-final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient {
+public final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient {
     private static final String TAG = "FusedLocation";
     private static final long MIN_FASTEST_INTERVAL_MS = 500L;
     private static final long CURRENT_LOCATION_SEED_DURATION_MS = 15_000L;
@@ -38,9 +39,9 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
     private final LocationCallback callback;
     private CancellationTokenSource currentLocationSeedCancellation;
 
-    GplayFusedLocationUpdateClient(
+    public GplayFusedLocationUpdateClient(
             @NonNull Context context,
-            @NonNull LocationListener listener
+            @NonNull NavigationLocationListener listener
     ) {
         this.context = context.getApplicationContext();
         this.client = LocationServices.getFusedLocationProviderClient(this.context);
@@ -48,7 +49,10 @@ final class GplayFusedLocationUpdateClient implements FusedLocationUpdateClient 
             @Override
             public void onLocationResult(@NonNull LocationResult result) {
                 for (Location location : result.getLocations()) {
-                    listener.onLocationChanged(location);
+                    NavigationLocation navigationLocation = AndroidLocationConverter.toNavigationLocation(location);
+                    if (navigationLocation != null) {
+                        listener.onLocationChanged(navigationLocation);
+                    }
                 }
             }
         };

@@ -1,4 +1,4 @@
-package vibro.navigator.nav.location;
+package vibro.navigator.android.location;
 
 import android.annotation.SuppressLint;
 import android.location.Location;
@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.NavigationLocationFormatter;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
@@ -43,11 +45,14 @@ public final class NavigationCurrentLocationSeeder {
         if (!isCurrentLocationSeedSupported()) {
             return;
         }
-        if (fineGranted && isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            gpsCurrentLocationCancellation = requestCurrentLocationSeed(LocationManager.GPS_PROVIDER);
+        if (fineGranted && isProviderEnabled(NavigationLocationProviders.GPS_PROVIDER)) {
+            gpsCurrentLocationCancellation =
+                    requestCurrentLocationSeed(NavigationLocationProviders.GPS_PROVIDER);
         }
-        if ((fineGranted || coarseGranted) && isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-            networkCurrentLocationCancellation = requestCurrentLocationSeed(LocationManager.NETWORK_PROVIDER);
+        if ((fineGranted || coarseGranted)
+                && isProviderEnabled(NavigationLocationProviders.NETWORK_PROVIDER)) {
+            networkCurrentLocationCancellation =
+                    requestCurrentLocationSeed(NavigationLocationProviders.NETWORK_PROVIDER);
         }
     }
 
@@ -55,9 +60,9 @@ public final class NavigationCurrentLocationSeeder {
         if (!isCurrentLocationSeedSupported()) {
             return;
         }
-        if (LocationManager.GPS_PROVIDER.equals(provider)) {
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(provider)) {
             gpsCurrentLocationCancellation = requestCurrentLocationSeed(provider);
-        } else if (LocationManager.NETWORK_PROVIDER.equals(provider)) {
+        } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(provider)) {
             networkCurrentLocationCancellation = requestCurrentLocationSeed(provider);
         }
     }
@@ -103,7 +108,8 @@ public final class NavigationCurrentLocationSeeder {
                 return;
             }
             AppLogger.i(TAG, "Received current location seed provider=" + provider
-                    + " location=" + NavigationLocationFormatter.format(location));
+                    + " location=" + NavigationLocationFormatter.format(
+                    AndroidLocationConverter.toNavigationLocation(location)));
             listener.onLocationChanged(location);
         };
         try {
@@ -125,9 +131,10 @@ public final class NavigationCurrentLocationSeeder {
             @NonNull String provider,
             @NonNull CancellationSignal cancellationSignal
     ) {
-        if (LocationManager.GPS_PROVIDER.equals(provider) && gpsCurrentLocationCancellation == cancellationSignal) {
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(provider)
+                && gpsCurrentLocationCancellation == cancellationSignal) {
             gpsCurrentLocationCancellation = null;
-        } else if (LocationManager.NETWORK_PROVIDER.equals(provider)
+        } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(provider)
                 && networkCurrentLocationCancellation == cancellationSignal) {
             networkCurrentLocationCancellation = null;
         }

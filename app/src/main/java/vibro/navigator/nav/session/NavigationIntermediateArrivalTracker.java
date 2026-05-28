@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,12 +48,12 @@ final class NavigationIntermediateArrivalTracker {
     }
 
     @Nullable
-    Integer reachedTrackIndex(@NonNull Location location, float accuracyMeters) {
+    Integer reachedTrackIndex(@NonNull NavigationLocation NavigationLocation, float accuracyMeters) {
         if (nextDestinationIndex >= destinations.size()) {
             return null;
         }
         IntermediateDestination destination = destinations.get(nextDestinationIndex);
-        if (!isWithinReachedRadius(location, accuracyMeters, destination.location)) {
+        if (!isWithinReachedRadius(NavigationLocation, accuracyMeters, destination.location)) {
             return null;
         }
         nextDestinationIndex++;
@@ -73,13 +73,13 @@ final class NavigationIntermediateArrivalTracker {
     }
 
     private static boolean isWithinReachedRadius(
-            @NonNull Location location,
+            @NonNull NavigationLocation NavigationLocation,
             float accuracyMeters,
             @NonNull LatLon destination
     ) {
         double distanceMeters = GeoMath.distanceMeters(
-                location.getLatitude(),
-                location.getLongitude(),
+                NavigationLocation.getLatitude(),
+                NavigationLocation.getLongitude(),
                 destination.lat,
                 destination.lon
         );

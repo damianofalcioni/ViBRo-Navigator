@@ -1,6 +1,6 @@
 package vibro.navigator.nav.guidance;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -49,15 +49,15 @@ public final class NavigationRouteProgressTracker {
     }
 
     public float resolveEtaSpeedMps(
-            @Nullable Location location,
+            @Nullable NavigationLocation NavigationLocation,
             double alongTrackMeters,
             float accuracyMeters,
             boolean likelyStationary
     ) {
-        if (location == null) {
+        if (NavigationLocation == null) {
             return 0f;
         }
-        return resolveEtaSpeedMps(location.getTime(), alongTrackMeters, accuracyMeters, likelyStationary);
+        return resolveEtaSpeedMps(NavigationLocation.getTime(), alongTrackMeters, accuracyMeters, likelyStationary);
     }
 
     public float resolveEtaSpeedMps(

@@ -3,7 +3,7 @@ package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.location.LiveLocationCoordinator;
 import vibro.navigator.nav.location.NavigationLocationMotionModel;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -39,27 +39,27 @@ public final class NavigationSessionLocationState {
     }
 
     @Nullable
-    public Location getLastFilteredLocation() {
+    public NavigationLocation getLastFilteredLocation() {
         return motionModel.getLastFilteredLocation();
     }
 
     @NonNull
-    public Update onRawLocationChanged(@NonNull Location location) {
-        return onRawLocationChanged(location, System.currentTimeMillis());
+    public Update onRawLocationChanged(@NonNull NavigationLocation NavigationLocation) {
+        return onRawLocationChanged(NavigationLocation, System.currentTimeMillis());
     }
 
     @NonNull
-    public Update onRawLocationChanged(@NonNull Location location, long nowMs) {
-        liveLocationCoordinator.remember(location);
-        Location selected = liveLocationCoordinator.selectBestLiveLocation();
+    public Update onRawLocationChanged(@NonNull NavigationLocation NavigationLocation, long nowMs) {
+        liveLocationCoordinator.remember(NavigationLocation);
+        NavigationLocation selected = liveLocationCoordinator.selectBestLiveLocation();
         if (selected == null) {
-            AppLogger.d(TAG, "Dropped location because no recent candidate is available raw="
-                    + formatLocation(location));
+            AppLogger.d(TAG, "Dropped NavigationLocation because no recent candidate is available raw="
+                    + formatLocation(NavigationLocation));
             return Update.dropped();
         }
         if (!liveLocationCoordinator.shouldDispatch(selected)) {
-            AppLogger.d(TAG, "Dropped location because selected candidate is unchanged raw="
-                    + formatLocation(location)
+            AppLogger.d(TAG, "Dropped NavigationLocation because selected candidate is unchanged raw="
+                    + formatLocation(NavigationLocation)
                     + " selected=" + formatLocation(selected));
             return Update.dropped();
         }
@@ -69,20 +69,20 @@ public final class NavigationSessionLocationState {
         if (reacquiringAfterLongGap) {
             kalman.reset();
             motionModel.reset();
-            AppLogger.i(TAG, "Reacquiring location after long accepted-fix gap raw="
+            AppLogger.i(TAG, "Reacquiring NavigationLocation after long accepted-fix gap raw="
                     + formatLocation(selected)
                     + " gapMs=" + reacquisitionTracker.gapMs(nowMs));
         }
-        Location filtered = kalman.update(selected);
+        NavigationLocation filtered = kalman.update(selected);
         if (filtered == null) {
-            AppLogger.d(TAG, "Kalman filter dropped location " + formatLocation(selected));
+            AppLogger.d(TAG, "Kalman filter dropped NavigationLocation " + formatLocation(selected));
             return Update.dropped();
         }
 
         motionModel.recordFilteredLocation(filtered);
         locationUpdateCount++;
         reacquisitionTracker.recordAccepted(nowMs);
-        AppLogger.d(TAG, "Location update #" + locationUpdateCount
+        AppLogger.d(TAG, "NavigationLocation update #" + locationUpdateCount
                 + " raw=" + formatLocation(selected)
                 + " filtered=" + formatLocation(filtered));
         return Update.accepted(filtered, reacquiringAfterLongGap);
@@ -92,56 +92,56 @@ public final class NavigationSessionLocationState {
         return motionModel.isLikelyStationary();
     }
 
-    public float speedMps(@NonNull Location location) {
-        return motionModel.speedMps(location);
+    public float speedMps(@NonNull NavigationLocation NavigationLocation) {
+        return motionModel.speedMps(NavigationLocation);
     }
 
     @Nullable
-    public Double actualBearingDegrees(@NonNull Location location) {
-        if (location.hasBearing() && speedMps(location) > MIN_RAW_BEARING_SPEED_MPS) {
-            return (double) location.getBearing();
+    public Double actualBearingDegrees(@NonNull NavigationLocation NavigationLocation) {
+        if (NavigationLocation.hasBearing() && speedMps(NavigationLocation) > MIN_RAW_BEARING_SPEED_MPS) {
+            return (double) NavigationLocation.getBearing();
         }
-        return motionModel.movementBearingDegrees(location);
+        return motionModel.movementBearingDegrees(NavigationLocation);
     }
 
     @Nullable
-    public HeadingEstimate preferredCompassHeading(@NonNull Location location, boolean likelyStationary) {
+    public HeadingEstimate preferredCompassHeading(@NonNull NavigationLocation NavigationLocation, boolean likelyStationary) {
         if (likelyStationary) {
             return null;
         }
-        if (speedMps(location) < MIN_COURSE_HEADING_DISPLAY_SPEED_MPS) {
+        if (speedMps(NavigationLocation) < MIN_COURSE_HEADING_DISPLAY_SPEED_MPS) {
             return null;
         }
-        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(location, speedMps(location));
+        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(NavigationLocation, speedMps(NavigationLocation));
         if (gpsBearingDegrees != null) {
-            return new HeadingEstimate(gpsBearingDegrees, bearingTrustPolicy.currentBearingAccuracyDegrees(location));
+            return new HeadingEstimate(gpsBearingDegrees, bearingTrustPolicy.currentBearingAccuracyDegrees(NavigationLocation));
         }
-        Double movementBearingDegrees = motionModel.movementBearingDegrees(location);
+        Double movementBearingDegrees = motionModel.movementBearingDegrees(NavigationLocation);
         return movementBearingDegrees == null
                 ? null
                 : new HeadingEstimate(movementBearingDegrees, null);
     }
 
     @Nullable
-    public Double trustedActualBearingDegreesForReroute(@NonNull Location location) {
-        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(location, speedMps(location));
+    public Double trustedActualBearingDegreesForReroute(@NonNull NavigationLocation NavigationLocation) {
+        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(NavigationLocation, speedMps(NavigationLocation));
         if (gpsBearingDegrees != null) {
             return gpsBearingDegrees;
         }
-        return motionModel.movementBearingDegrees(location);
+        return motionModel.movementBearingDegrees(NavigationLocation);
     }
 
-    public float accuracyMeters(@NonNull Location location) {
-        return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    public float accuracyMeters(@NonNull NavigationLocation NavigationLocation) {
+        return NavigationLocation.hasAccuracy() ? NavigationLocation.getAccuracy() : Float.MAX_VALUE;
     }
 
     public static final class Update {
         private final boolean dropped;
         private final boolean reacquiringAfterLongGap;
         @Nullable
-        private final Location filteredLocation;
+        private final NavigationLocation filteredLocation;
 
-        private Update(boolean dropped, boolean reacquiringAfterLongGap, @Nullable Location filteredLocation) {
+        private Update(boolean dropped, boolean reacquiringAfterLongGap, @Nullable NavigationLocation filteredLocation) {
             this.dropped = dropped;
             this.reacquiringAfterLongGap = reacquiringAfterLongGap;
             this.filteredLocation = filteredLocation;
@@ -153,12 +153,12 @@ public final class NavigationSessionLocationState {
         }
 
         @NonNull
-        public static Update accepted(@NonNull Location filteredLocation) {
+        public static Update accepted(@NonNull NavigationLocation filteredLocation) {
             return accepted(filteredLocation, false);
         }
 
         @NonNull
-        public static Update accepted(@NonNull Location filteredLocation, boolean reacquiringAfterLongGap) {
+        public static Update accepted(@NonNull NavigationLocation filteredLocation, boolean reacquiringAfterLongGap) {
             return new Update(false, reacquiringAfterLongGap, filteredLocation);
         }
 
@@ -171,9 +171,9 @@ public final class NavigationSessionLocationState {
         }
 
         @NonNull
-        public Location getFilteredLocation() {
+        public NavigationLocation getFilteredLocation() {
             if (filteredLocation == null) {
-                throw new IllegalStateException("Filtered location is unavailable for a dropped update");
+                throw new IllegalStateException("Filtered NavigationLocation is unavailable for a dropped update");
             }
             return filteredLocation;
         }
@@ -191,27 +191,27 @@ public final class NavigationSessionLocationState {
     }
 
     @NonNull
-    private static String formatLocation(@Nullable Location location) {
-        if (location == null) {
+    private static String formatLocation(@Nullable NavigationLocation NavigationLocation) {
+        if (NavigationLocation == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(location.getProvider())
+        sb.append(NavigationLocation.getProvider())
                 .append("(")
-                .append(location.getLatitude())
+                .append(NavigationLocation.getLatitude())
                 .append(",")
-                .append(location.getLongitude())
+                .append(NavigationLocation.getLongitude())
                 .append(")");
-        if (location.hasAccuracy()) {
-            sb.append(" acc=").append(location.getAccuracy());
+        if (NavigationLocation.hasAccuracy()) {
+            sb.append(" acc=").append(NavigationLocation.getAccuracy());
         }
-        if (location.hasSpeed()) {
-            sb.append(" speed=").append(location.getSpeed());
+        if (NavigationLocation.hasSpeed()) {
+            sb.append(" speed=").append(NavigationLocation.getSpeed());
         }
-        if (location.hasBearing()) {
-            sb.append(" bearing=").append(location.getBearing());
+        if (NavigationLocation.hasBearing()) {
+            sb.append(" bearing=").append(NavigationLocation.getBearing());
         }
-        sb.append(" time=").append(location.getTime());
+        sb.append(" time=").append(NavigationLocation.getTime());
         return sb.toString();
     }
 

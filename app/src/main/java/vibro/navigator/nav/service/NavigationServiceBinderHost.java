@@ -4,7 +4,7 @@ package vibro.navigator.nav.service;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -89,7 +89,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
 
     @Override
     @Nullable
-    public Location getLastFilteredLocation() {
+    public NavigationLocation getLastFilteredLocation() {
         return navigationSession.getLastFilteredLocation();
     }
 

@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -64,7 +64,7 @@ final class NavigationRouteEvaluator {
 
     @NonNull
     NavigationRouteEvaluation evaluateLocation(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,
@@ -110,7 +110,7 @@ final class NavigationRouteEvaluator {
 
     @NonNull
     private NavigationRouteEvaluation evaluateMatchedRoute(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
@@ -194,7 +194,7 @@ final class NavigationRouteEvaluator {
 
     @Nullable
     private NavigationRouteEvaluation evaluateRouteStartApproachIfNeeded(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
@@ -229,7 +229,7 @@ final class NavigationRouteEvaluator {
 
     @NonNull
     private NavigationRouteEvaluation keepRouteWhileReacquiring(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match match,
             float speedMps,
             float accuracyMeters,
@@ -274,7 +274,7 @@ final class NavigationRouteEvaluator {
             geometryState.rememberSegment(match);
             return true;
         }
-        AppLogger.i(TAG, "Holding route segment memory during location reacquisition distance="
+        AppLogger.i(TAG, "Holding route segment memory during NavigationLocation reacquisition distance="
                 + match.distanceToTrackMeters
                 + " threshold=" + offTrackThresholdMeters);
         return false;
@@ -282,7 +282,7 @@ final class NavigationRouteEvaluator {
 
     @Nullable
     private NavigationRouteEvaluation reachedTargetWhileReacquiring(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float trustedAccuracyMeters,
             boolean trustedRouteMatch
     ) {
@@ -311,7 +311,7 @@ final class NavigationRouteEvaluator {
 
     @NonNull
     private NavigationRouteEvaluation evaluateUnavailableRoute(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float accuracyMeters,
             long nowMs
     ) {
@@ -329,14 +329,14 @@ final class NavigationRouteEvaluator {
 
     @Nullable
     private NavigationRouteEvaluation waitForAccurateStartupLocationIfNeeded(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float accuracyMeters,
             long nowMs
     ) {
         if (NavigationStartupLocationSelector.isUsableForRouteStart(filtered, nowMs)) {
             return null;
         }
-        AppLogger.i(TAG, "Waiting for accurate startup location before first route calculation"
+        AppLogger.i(TAG, "Waiting for accurate startup NavigationLocation before first route calculation"
                 + " accuracyMeters=" + accuracyMeters);
         return NavigationRouteEvaluation.keepRoute(
                 Collections.emptyList(),

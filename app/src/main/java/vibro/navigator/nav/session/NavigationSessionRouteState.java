@@ -5,7 +5,7 @@ import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.geo.LatLon;
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -46,7 +46,7 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public NavigationRouteEvaluation evaluateLocation(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float speedMps,
             float accuracyMeters,
             @Nullable Double actualBearingDegrees,
@@ -66,7 +66,7 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public NavigationRouteEvaluation evaluateLocation(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,
@@ -88,7 +88,7 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public NavigationRouteEvaluation evaluateLocation(
-            @NonNull Location filtered,
+            @NonNull NavigationLocation filtered,
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,
@@ -110,12 +110,12 @@ public final class NavigationSessionRouteState {
     }
 
     @Nullable
-    public Double currentSegmentBearingDegrees(@Nullable Location lastFiltered) {
+    public Double currentSegmentBearingDegrees(@Nullable NavigationLocation lastFiltered) {
         return components.geometryState.currentSegmentBearingDegrees(lastFiltered);
     }
 
     @NonNull
-    public List<NogoPoint> addBlockedPointsAhead(@Nullable Location lastFiltered, long nowMs) {
+    public List<NogoPoint> addBlockedPointsAhead(@Nullable NavigationLocation lastFiltered, long nowMs) {
         return components.blockedPointSelector.addBlockedPointsAhead(lastFiltered, nowMs);
     }
 
@@ -124,7 +124,7 @@ public final class NavigationSessionRouteState {
             @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             float speedMps,
             long beganAt
     ) {
@@ -144,7 +144,7 @@ public final class NavigationSessionRouteState {
             @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             float speedMps,
             boolean likelyStationary,
             long beganAt
@@ -177,7 +177,7 @@ public final class NavigationSessionRouteState {
     @NonNull
     NavState buildState(
             @NonNull Context context,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,

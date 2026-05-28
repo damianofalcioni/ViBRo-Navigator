@@ -3,7 +3,7 @@ package vibro.navigator.about;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -26,7 +26,7 @@ final class AboutFusedLocationDiagnostic {
     private final FusedLocationDiagnosticClient client;
 
     @Nullable
-    private Location latestLocation;
+    private NavigationLocation latestLocation;
     @Nullable
     private String valueOverride;
     private boolean refreshInFlight;
@@ -74,7 +74,7 @@ final class AboutFusedLocationDiagnostic {
         refreshInFlight = true;
         client.requestLastKnownLocation(new FusedLocationDiagnosticClient.Callback() {
             @Override
-            public void onLocation(@Nullable Location location) {
+            public void onLocation(@Nullable NavigationLocation location) {
                 latestLocation = location;
                 valueOverride = location == null ? VALUE_NONE : null;
                 refreshInFlight = false;

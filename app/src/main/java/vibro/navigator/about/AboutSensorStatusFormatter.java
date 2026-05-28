@@ -6,19 +6,20 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.location.AndroidLocationDiagnostics;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 import vibro.navigator.sensor.HeadingSensorSupport;
 
 final class AboutSensorStatusFormatter implements SensorEventListener {
 
-    @Nullable
-    private final LocationManager locationManager;
+    @NonNull
+    private final AndroidLocationDiagnostics locationDiagnostics;
     @Nullable
     private final SensorManager sensorManager;
     @NonNull
@@ -30,13 +31,12 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
     @NonNull
     private final HeadingSensorDiagnostic orientationDiagnostic;
     @NonNull
-    private final AboutGnssStatusTracker gnssStatusTracker;
 
     private boolean started;
 
     AboutSensorStatusFormatter(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
-        locationManager = (LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);
+        locationDiagnostics = new AndroidLocationDiagnostics(appContext);
         sensorManager = (SensorManager) appContext.getSystemService(Context.SENSOR_SERVICE);
         fusedLocationDiagnostic = new AboutFusedLocationDiagnostic(appContext);
         rotationVectorDiagnostic = new HeadingSensorDiagnostic(
@@ -57,7 +57,6 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
                 R.string.label_sensor_orientation,
                 HeadingSensorValueFormat.ORIENTATION
         );
-        gnssStatusTracker = new AboutGnssStatusTracker(locationManager);
     }
 
     void start() {
@@ -68,7 +67,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         boolean geomagneticRotationVectorStarted = registerHeadingSensor(geomagneticRotationVectorDiagnostic);
         boolean orientationStarted = registerHeadingSensor(orientationDiagnostic);
         boolean sensorStarted = rotationVectorStarted || geomagneticRotationVectorStarted || orientationStarted;
-        boolean gnssStarted = gnssStatusTracker.start();
+        boolean gnssStarted = locationDiagnostics.startFixedSatelliteTracking();
         started = sensorStarted || gnssStarted;
     }
 
@@ -76,7 +75,7 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         if (sensorManager != null && started) {
             sensorManager.unregisterListener(this);
         }
-        gnssStatusTracker.stop();
+        locationDiagnostics.stopFixedSatelliteTracking();
         started = false;
     }
 
@@ -96,15 +95,15 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
                 context,
                 sb,
                 R.string.label_sensor_gps_provider,
-                describeProviderStatus(LocationManager.GPS_PROVIDER),
-                describeLocationValue(LocationManager.GPS_PROVIDER)
+                locationDiagnostics.providerStatusResId(NavigationLocationProviders.GPS_PROVIDER),
+                describeLocationValue(NavigationLocationProviders.GPS_PROVIDER)
         );
         appendLine(
                 context,
                 sb,
                 R.string.label_sensor_network_provider,
-                describeProviderStatus(LocationManager.NETWORK_PROVIDER),
-                describeLocationValue(LocationManager.NETWORK_PROVIDER)
+                locationDiagnostics.providerStatusResId(NavigationLocationProviders.NETWORK_PROVIDER),
+                describeLocationValue(NavigationLocationProviders.NETWORK_PROVIDER)
         );
         appendLine(
                 context,
@@ -148,38 +147,20 @@ final class AboutSensorStatusFormatter implements SensorEventListener {
         ));
     }
 
-    private int describeProviderStatus(@NonNull String provider) {
-        if (locationManager == null) {
-            return R.string.sensor_status_unavailable;
-        }
-        try {
-            return locationManager.isProviderEnabled(provider)
-                    ? R.string.sensor_status_enabled
-                    : R.string.sensor_status_disabled;
-        } catch (SecurityException ignored) {
-            return R.string.sensor_status_permission_denied;
-        } catch (Exception ignored) {
-            return R.string.sensor_status_unavailable;
-        }
-    }
-
     @NonNull
     private String describeLocationValue(@NonNull String provider) {
-        if (locationManager == null) {
-            return "value=none";
-        }
-        final Location location;
+        final NavigationLocation location;
         try {
-            location = locationManager.getLastKnownLocation(provider);
-        } catch (SecurityException ignored) {
-            return "value=permission denied";
-        } catch (Exception ignored) {
-            return "value=unavailable";
+            location = locationDiagnostics.lastKnownLocation(provider);
+        } catch (AndroidLocationDiagnostics.LocationDiagnosticException e) {
+            return e.error == AndroidLocationDiagnostics.LocationDiagnosticError.PERMISSION_DENIED
+                    ? "value=permission denied"
+                    : "value=unavailable";
         }
         if (location == null) {
             return "value=none";
         }
-        return AboutSensorValueFormatter.describeLocationValue(location, gnssStatusTracker.fixedSatelliteCount());
+        return AboutSensorValueFormatter.describeLocationValue(location, locationDiagnostics.fixedSatelliteCount());
     }
 
     private boolean registerHeadingSensor(@NonNull HeadingSensorDiagnostic diagnostic) {

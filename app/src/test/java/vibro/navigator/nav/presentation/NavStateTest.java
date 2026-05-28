@@ -8,6 +8,8 @@ import static org.junit.Assert.assertTrue;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+
+import vibro.navigator.nav.location.NavigationLocation;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
@@ -454,7 +456,7 @@ public class NavStateTest {
                 180.0,
                 130.0
         );
-        android.location.Location movingLocation = locationAt(48.2000, 16.3600);
+        NavigationLocation movingLocation = locationAt(48.2000, 16.3600);
         movingLocation.setSpeed(2.5f);
 
         NavState state = from(
@@ -506,7 +508,7 @@ public class NavStateTest {
                 111.0
         );
         PolylineIndex index = new PolylineIndex(route.track);
-        android.location.Location currentLocation = locationAt(0.0, 0.0);
+        NavigationLocation currentLocation = locationAt(0.0, 0.0);
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, index, currentLocation)
                 .routeProgress(0.0)
                 .motion(0f, true, 5f)
@@ -540,7 +542,7 @@ public class NavStateTest {
                 180.0,
                 130.0
         );
-        android.location.Location movingLocation = locationAt(48.2000, 16.3600);
+        NavigationLocation movingLocation = locationAt(48.2000, 16.3600);
         movingLocation.setSpeed(2.5f);
 
         NavState state = from(
@@ -697,7 +699,7 @@ public class NavStateTest {
                 context
         );
 
-        android.location.Location movingLocation = locationAt(0.0, 0.0);
+        NavigationLocation movingLocation = locationAt(0.0, 0.0);
         movingLocation.setSpeed(20f);
         NavState movingState = from(
                 route,
@@ -830,7 +832,7 @@ public class NavStateTest {
                 120.0,
                 140.0
         );
-        android.location.Location location = locationAt(48.2000, 16.3600);
+        NavigationLocation location = locationAt(48.2000, 16.3600);
         location.setAltitude(245.4d);
         location.setBearing(182.2f);
         location.setBearingAccuracyDegrees(9.4f);
@@ -1003,7 +1005,7 @@ public class NavStateTest {
             float speedMps,
             boolean likelyStationary,
             float accuracyMeters,
-            @NonNull android.location.Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             Integer fixedSatelliteCount,
             Double headingDegrees,
             Float headingAccuracyDegrees,
@@ -1054,7 +1056,7 @@ public class NavStateTest {
             float etaSpeedMps,
             boolean likelyStationary,
             float accuracyMeters,
-            @NonNull android.location.Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             Integer fixedSatelliteCount,
             Double headingDegrees,
             Float headingAccuracyDegrees,
@@ -1106,7 +1108,7 @@ public class NavStateTest {
             boolean likelyStationary,
             float accuracyMeters,
             float compassAccuracyMeters,
-            @NonNull android.location.Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             Integer fixedSatelliteCount,
             Double headingDegrees,
             Float headingAccuracyDegrees,
@@ -1146,8 +1148,8 @@ public class NavStateTest {
     }
 
     @NonNull
-    private static android.location.Location locationAt(double lat, double lon) {
-        android.location.Location location = new android.location.Location("test");
+    private static NavigationLocation locationAt(double lat, double lon) {
+        NavigationLocation location = new NavigationLocation("test");
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(1L);

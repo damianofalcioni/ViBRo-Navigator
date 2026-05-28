@@ -1,35 +1,26 @@
 package vibro.navigator.nav.location;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.robolectric.Shadows.shadowOf;
 
-import android.Manifest;
-import android.app.Application;
-import android.content.Context;
-import android.location.LocationManager;
+import vibro.navigator.nav.location.NavigationLocation;
 
-import androidx.test.core.app.ApplicationProvider;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
-import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowSystemClock;
 
-import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import vibro.navigator.settings.AppSettings;
-
-@RunWith(RobolectricTestRunner.class)
 public class NavigationLocationControllerTest {
+    private static final String GPS_PROVIDER = "gps";
+    private static final String NETWORK_PROVIDER = "network";
+    private static final String PASSIVE_PROVIDER = "passive";
     private static final String GPS_AND_NETWORK = "gps+network";
-
-    @After
-    public void resetSettings() {
-        AppSettings.setFusedLocationEnabled(ApplicationProvider.getApplicationContext(), true);
-    }
 
     @Test
     public void shouldReuseActiveLocationRequest_returnsTrueForMatchingIntervalAndProviders() {
@@ -55,7 +46,7 @@ public class NavigationLocationControllerTest {
     public void shouldReuseActiveLocationRequest_returnsFalseForChangedProviders() {
         assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
                 1_000L,
-                "gps",
+                GPS_PROVIDER,
                 1_000L,
                 GPS_AND_NETWORK
         ));
@@ -74,12 +65,12 @@ public class NavigationLocationControllerTest {
     @Test
     public void canUseProvider_requiresFinePermissionForGps() {
         assertFalse(NavigationLocationController.canUseProvider(
-                LocationManager.GPS_PROVIDER,
+                GPS_PROVIDER,
                 false,
                 true
         ));
         assertTrue(NavigationLocationController.canUseProvider(
-                LocationManager.GPS_PROVIDER,
+                GPS_PROVIDER,
                 true,
                 false
         ));
@@ -88,12 +79,12 @@ public class NavigationLocationControllerTest {
     @Test
     public void canUseProvider_allowsNetworkWithCoarsePermission() {
         assertTrue(NavigationLocationController.canUseProvider(
-                LocationManager.NETWORK_PROVIDER,
+                NETWORK_PROVIDER,
                 false,
                 true
         ));
         assertTrue(NavigationLocationController.canUseProvider(
-                LocationManager.PASSIVE_PROVIDER,
+                PASSIVE_PROVIDER,
                 false,
                 true
         ));
@@ -101,42 +92,174 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void recordAcceptedLocationUpdate_refreshesActiveRequestDeadline() {
-        Application context = ApplicationProvider.getApplicationContext();
-        AppSettings.setFusedLocationEnabled(context, false);
-        shadowOf(context).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION);
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        shadowOf(locationManager).setProviderEnabled(LocationManager.GPS_PROVIDER, true);
-        NavigationLocationController controller = new NavigationLocationController(context, location -> {
-        });
+        MutableClock clock = new MutableClock(5_000L);
+        NavigationLocationController controller = controller(clock, GPS_PROVIDER);
 
         controller.requestLocationUpdates(10_000L);
         long initialDeadline = controller.getNextEvaluationDeadlineElapsedMs();
 
-        ShadowSystemClock.advanceBy(Duration.ofSeconds(2));
+        clock.nowMs += 2_000L;
         controller.recordAcceptedLocationUpdate();
 
-        assertTrue(controller.getNextEvaluationDeadlineElapsedMs() >= initialDeadline + 2_000L);
+        assertEquals(initialDeadline + 2_000L, controller.getNextEvaluationDeadlineElapsedMs());
     }
 
     @Test
     public void requestLocationUpdates_afterStopTrackingRequestsProviderAgainWithLastInterval() {
-        Application context = ApplicationProvider.getApplicationContext();
-        AppSettings.setFusedLocationEnabled(context, false);
-        shadowOf(context).grantPermissions(Manifest.permission.ACCESS_FINE_LOCATION);
-        LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        shadowOf(locationManager).setProviderEnabled(LocationManager.GPS_PROVIDER, true);
-        NavigationLocationController controller = new NavigationLocationController(context, location -> {
-        });
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
 
         controller.requestLocationUpdates(10_000L);
         controller.stopTracking();
 
         assertEquals(10_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
-        assertTrue(shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).isEmpty());
+        assertTrue(provider.requestedProviders.isEmpty());
 
         controller.requestLocationUpdates(controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
 
-        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).size());
+        assertEquals(Collections.singletonList(GPS_PROVIDER), provider.requestedProviders);
+        assertEquals(2, provider.requestProviderUpdatesCount);
     }
 
+    @NonNull
+    private static NavigationLocationController controller(
+            @NonNull MutableClock clock,
+            @NonNull String... enabledProviders
+    ) {
+        return controller(new FakeLocationProvider(enabledProviders), clock);
+    }
+
+    @NonNull
+    private static NavigationLocationController controller(
+            @NonNull FakeLocationProvider provider,
+            @NonNull MutableClock clock
+    ) {
+        return new NavigationLocationController(
+                provider,
+                new FakeGnssTracker(),
+                new FakeFusedLocationUpdateClient(),
+                () -> false,
+                clock::elapsedRealtime
+        );
+    }
+
+    private static final class MutableClock {
+        private long nowMs;
+
+        MutableClock(long nowMs) {
+            this.nowMs = nowMs;
+        }
+
+        long elapsedRealtime() {
+            return nowMs;
+        }
+    }
+
+    private static final class FakeLocationProvider implements NavigationLocationProvider {
+        @NonNull
+        private final List<String> enabledProviders;
+        @NonNull
+        private List<String> requestedProviders = Collections.emptyList();
+        private int requestProviderUpdatesCount;
+
+        FakeLocationProvider(@NonNull String... enabledProviders) {
+            this.enabledProviders = Arrays.asList(enabledProviders);
+        }
+
+        @Override
+        public boolean hasFineLocationPermission() {
+            return true;
+        }
+
+        @Override
+        public boolean hasCoarseLocationPermission() {
+            return true;
+        }
+
+        @NonNull
+        @Override
+        public List<String> enabledPermittedProviders(boolean fineGranted, boolean coarseGranted) {
+            return enabledProviders;
+        }
+
+        @NonNull
+        @Override
+        public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
+            requestProviderUpdatesCount++;
+            requestedProviders = new ArrayList<>(providers);
+            return new ArrayList<>(providers);
+        }
+
+        @Nullable
+        @Override
+        public NavigationLocation getLastKnownLocationQuietly(@NonNull String provider) {
+            return null;
+        }
+
+        @Override
+        public void requestCurrentLocationSeeds(boolean fineGranted, boolean coarseGranted) {
+        }
+
+        @Override
+        public void requestSeedForEnabledProvider(@NonNull String provider) {
+        }
+
+        @Override
+        public void cancelPendingCurrentLocationRequests() {
+        }
+
+        @Override
+        public void removeUpdates() {
+            requestedProviders = Collections.emptyList();
+        }
+
+        @NonNull
+        @Override
+        public String describeAvailability() {
+            return "fake provider";
+        }
+    }
+
+    private static final class FakeGnssTracker implements NavigationGnssTracker {
+        @Nullable
+        @Override
+        public Integer getFixedSatelliteCount() {
+            return null;
+        }
+
+        @Override
+        public void updateForRequestedProviders(@NonNull List<String> requestedProviders) {
+        }
+
+        @Override
+        public void reset() {
+        }
+    }
+
+    private static final class FakeFusedLocationUpdateClient implements FusedLocationUpdateClient {
+        @Override
+        public boolean isAvailable() {
+            return false;
+        }
+
+        @Override
+        public boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted) {
+            return false;
+        }
+
+        @Override
+        public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
+        }
+
+        @Override
+        public void removeUpdates() {
+        }
+
+        @NonNull
+        @Override
+        public String describeAvailability() {
+            return "fake fused";
+        }
+    }
 }

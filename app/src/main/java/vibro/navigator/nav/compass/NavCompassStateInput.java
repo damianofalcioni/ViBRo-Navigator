@@ -1,6 +1,6 @@
 package vibro.navigator.nav.compass;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,7 +17,7 @@ public final class NavCompassStateInput {
     public final PolylineIndex index;
     public final double alongTrackMeters;
     @NonNull
-    public final Location currentLocation;
+    public final NavigationLocation currentLocation;
     public final float speedMps;
     public final boolean likelyStationary;
     public final float accuracyMeters;
@@ -66,7 +66,7 @@ public final class NavCompassStateInput {
     public static Builder builder(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
-            @NonNull Location currentLocation
+            @NonNull NavigationLocation currentLocation
     ) {
         return new Builder(route, index, currentLocation);
     }
@@ -77,7 +77,7 @@ public final class NavCompassStateInput {
         @NonNull
         private final PolylineIndex index;
         @NonNull
-        private final Location currentLocation;
+        private final NavigationLocation currentLocation;
         private double alongTrackMeters;
         private float speedMps;
         private boolean likelyStationary;
@@ -105,7 +105,7 @@ public final class NavCompassStateInput {
         private Builder(
                 @NonNull GeoJsonRoute route,
                 @NonNull PolylineIndex index,
-                @NonNull Location currentLocation
+                @NonNull NavigationLocation currentLocation
         ) {
             this.route = route;
             this.index = index;

@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +15,7 @@ public final class NavigationSessionHeadingResolver {
 
     @NonNull
     public Selection selectHeading(
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             boolean likelyStationary,
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees
@@ -31,7 +31,7 @@ public final class NavigationSessionHeadingResolver {
     }
 
     @NonNull
-    private Selection selectCompassHeading(@Nullable Location lastFiltered, boolean likelyStationary) {
+    private Selection selectCompassHeading(@Nullable NavigationLocation lastFiltered, boolean likelyStationary) {
         if (lastFiltered == null) {
             return Selection.none();
         }
@@ -47,7 +47,7 @@ public final class NavigationSessionHeadingResolver {
     }
 
     @Nullable
-    private Double actualBearingDegrees(@Nullable Location lastFiltered) {
+    private Double actualBearingDegrees(@Nullable NavigationLocation lastFiltered) {
         return lastFiltered != null ? locationState.actualBearingDegrees(lastFiltered) : null;
     }
 

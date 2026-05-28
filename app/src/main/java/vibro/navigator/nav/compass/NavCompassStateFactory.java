@@ -4,7 +4,7 @@ package vibro.navigator.nav.compass;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -42,7 +42,7 @@ public final class NavCompassStateFactory {
     @NonNull
     public static String buildGpsStatusLine(
             float speedMps,
-            @Nullable Location currentLocation,
+            @Nullable NavigationLocation currentLocation,
             float accuracyMeters,
             @Nullable Integer fixedSatelliteCount,
             @Nullable Integer acquiredFixCount,
@@ -61,21 +61,21 @@ public final class NavCompassStateFactory {
     }
 
     @Nullable
-    private static Double elevationMeters(@Nullable Location currentLocation) {
+    private static Double elevationMeters(@Nullable NavigationLocation currentLocation) {
         return currentLocation != null && currentLocation.hasAltitude()
                 ? currentLocation.getAltitude()
                 : null;
     }
 
     @Nullable
-    private static Float bearingDegrees(@Nullable Location currentLocation) {
+    private static Float bearingDegrees(@Nullable NavigationLocation currentLocation) {
         return currentLocation != null && currentLocation.hasBearing()
                 ? currentLocation.getBearing()
                 : null;
     }
 
     @Nullable
-    private static Float bearingAccuracyDegrees(@Nullable Location currentLocation) {
+    private static Float bearingAccuracyDegrees(@Nullable NavigationLocation currentLocation) {
         return currentLocation != null
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && currentLocation.hasBearingAccuracy()
@@ -112,7 +112,7 @@ public final class NavCompassStateFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             double alongTrackMeters,
-            @NonNull Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             float speedMps,
             boolean likelyStationary,
             float compassAccuracyMeters,
@@ -152,7 +152,7 @@ public final class NavCompassStateFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             double alongTrackMeters,
-            @NonNull Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             float speedMps,
             boolean likelyStationary,
             float compassAccuracyMeters,
@@ -249,7 +249,7 @@ public final class NavCompassStateFactory {
     }
 
     public static boolean hasReliableMovingSpeed(
-            @NonNull Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             boolean likelyStationary
     ) {
         return CompassRadiusResolver.hasReliableMovingSpeed(currentLocation, likelyStationary);

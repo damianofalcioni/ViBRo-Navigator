@@ -1,4 +1,4 @@
-package vibro.navigator.map;
+package vibro.navigator.android.location;
 
 import vibro.navigator.R;
 
@@ -19,20 +19,21 @@ import androidx.annotation.StringRes;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
-import vibro.navigator.nav.location.LastKnownLocationSelector;
-import vibro.navigator.logging.AppLogger;
-
 import java.util.ArrayList;
 import java.util.List;
 
-final class MapPickerLocationController {
+import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.LastKnownLocationSelector;
+import vibro.navigator.nav.location.NavigationLocation;
+
+public final class AndroidMapPickerLocationController {
 
     private static final String TAG = "MapPickerLocation";
     private static final int REQUEST_LOCATION_PERMISSION = 4001;
     private static final long LOCATION_TIMEOUT_MS = 10_000L;
 
-    interface Callback {
-        void onCurrentLocation(@NonNull Location location, boolean selectPoint);
+    public interface Callback {
+        void onCurrentLocation(@NonNull NavigationLocation location, boolean selectPoint);
 
         void onLocationMessage(@StringRes int messageResId);
     }
@@ -53,7 +54,7 @@ final class MapPickerLocationController {
     private boolean requestingLocationUpdate;
     private boolean pendingCurrentLocationSelection = true;
 
-    MapPickerLocationController(@NonNull Activity activity, @NonNull Callback callback) {
+    public AndroidMapPickerLocationController(@NonNull Activity activity, @NonNull Callback callback) {
         this.activity = activity;
         this.callback = callback;
         locationManager = (LocationManager) activity.getSystemService(Context.LOCATION_SERVICE);
@@ -65,17 +66,21 @@ final class MapPickerLocationController {
         singleFixListener = new LocationListener() {
             @Override
             public void onLocationChanged(@NonNull Location location) {
-                AppLogger.i(TAG, "Received current location provider=" + safeProvider(location)
-                        + " lat=" + location.getLatitude()
-                        + " lon=" + location.getLongitude());
+                NavigationLocation navigationLocation = AndroidLocationConverter.toNavigationLocation(location);
+                if (navigationLocation == null) {
+                    return;
+                }
+                AppLogger.i(TAG, "Received current location provider=" + safeProvider(navigationLocation)
+                        + " lat=" + navigationLocation.getLatitude()
+                        + " lon=" + navigationLocation.getLongitude());
                 boolean selectPoint = pendingCurrentLocationSelection;
                 stopLocationUpdates();
-                callback.onCurrentLocation(location, selectPoint);
+                callback.onCurrentLocation(navigationLocation, selectPoint);
             }
         };
     }
 
-    void centerOnCurrentLocation(boolean selectPoint) {
+    public void centerOnCurrentLocation(boolean selectPoint) {
         if (!hasLocationPermission()) {
             ActivityCompat.requestPermissions(
                     activity,
@@ -88,7 +93,7 @@ final class MapPickerLocationController {
             return;
         }
 
-        Location bestLastKnownLocation = findBestLastKnownLocation();
+        NavigationLocation bestLastKnownLocation = findBestLastKnownLocation();
         if (bestLastKnownLocation != null) {
             AppLogger.i(TAG, "Using last known location provider=" + safeProvider(bestLastKnownLocation));
             callback.onCurrentLocation(bestLastKnownLocation, selectPoint);
@@ -111,7 +116,7 @@ final class MapPickerLocationController {
         requestFreshLocation(providers, selectPoint);
     }
 
-    boolean onRequestPermissionsResult(int requestCode) {
+    public boolean onRequestPermissionsResult(int requestCode) {
         if (requestCode != REQUEST_LOCATION_PERMISSION) {
             return false;
         }
@@ -124,7 +129,7 @@ final class MapPickerLocationController {
     }
 
     @SuppressLint("MissingPermission")
-    void stopLocationUpdates() {
+    public void stopLocationUpdates() {
         mainHandler.removeCallbacks(locationTimeoutRunnable);
         if (!requestingLocationUpdate || locationManager == null) {
             requestingLocationUpdate = false;
@@ -171,7 +176,7 @@ final class MapPickerLocationController {
     }
 
     @Nullable
-    private Location findBestLastKnownLocation() {
+    private NavigationLocation findBestLastKnownLocation() {
         if (locationManager == null || !hasLocationPermission()) {
             return null;
         }
@@ -179,9 +184,9 @@ final class MapPickerLocationController {
     }
 
     @Nullable
-    private Location lastKnownLocation(@NonNull String provider) {
+    private NavigationLocation lastKnownLocation(@NonNull String provider) {
         try {
-            return locationManager.getLastKnownLocation(provider);
+            return AndroidLocationConverter.toNavigationLocation(locationManager.getLastKnownLocation(provider));
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Failed to read last known location provider=" + provider, e);
             return null;
@@ -201,9 +206,8 @@ final class MapPickerLocationController {
     }
 
     @NonNull
-    private static String safeProvider(@NonNull Location location) {
+    private static String safeProvider(@NonNull NavigationLocation location) {
         String provider = location.getProvider();
         return provider == null ? "unknown" : provider;
     }
 }
-

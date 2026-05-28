@@ -1,4 +1,4 @@
-package vibro.navigator.nav.location;
+package vibro.navigator.android.location;
 
 import android.location.GnssStatus;
 import android.location.LocationManager;
@@ -11,10 +11,12 @@ import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.NavigationGnssTracker;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import java.util.List;
 
-public final class NavigationGnssStatusTracker {
+public final class NavigationGnssStatusTracker implements NavigationGnssTracker {
 
     private static final String TAG = "NavGnssStatus";
 
@@ -30,10 +32,12 @@ public final class NavigationGnssStatusTracker {
     }
 
     @Nullable
+    @Override
     public Integer getFixedSatelliteCount() {
         return fixedSatelliteCount;
     }
 
+    @Override
     public void updateForRequestedProviders(@NonNull List<String> requestedProviders) {
         if (shouldTrackGnssStatus(requestedProviders)) {
             ensureTracking();
@@ -42,13 +46,14 @@ public final class NavigationGnssStatusTracker {
         }
     }
 
+    @Override
     public void reset() {
         fixedSatelliteCount = null;
         stopTracking();
     }
 
     private static boolean shouldTrackGnssStatus(@NonNull List<String> requestedProviders) {
-        return requestedProviders.contains(LocationManager.GPS_PROVIDER)
+        return requestedProviders.contains(NavigationLocationProviders.GPS_PROVIDER)
                 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N;
     }
 

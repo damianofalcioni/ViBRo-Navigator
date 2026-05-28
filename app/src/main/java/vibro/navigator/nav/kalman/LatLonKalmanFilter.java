@@ -1,6 +1,6 @@
 package vibro.navigator.nav.kalman;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,7 +23,7 @@ public final class LatLonKalmanFilter {
     }
 
     @Nullable
-    public Location update(@NonNull Location in) {
+    public NavigationLocation update(@NonNull NavigationLocation in) {
         long t = in.getTime();
         if (!initialized) {
             refLat = in.getLatitude();
@@ -67,8 +67,8 @@ public final class LatLonKalmanFilter {
         return new LatLon(lat, lon);
     }
 
-    private static Location copyWithLatLon(@NonNull Location base, double lat, double lon) {
-        Location out = new Location(base);
+    private static NavigationLocation copyWithLatLon(@NonNull NavigationLocation base, double lat, double lon) {
+        NavigationLocation out = new NavigationLocation(base);
         out.setLatitude(lat);
         out.setLongitude(lon);
         return out;

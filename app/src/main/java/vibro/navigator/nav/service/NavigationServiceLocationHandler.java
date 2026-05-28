@@ -10,16 +10,15 @@ import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
-import android.location.Location;
-import android.location.LocationListener;
-import android.os.Bundle;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationListener;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 
-public final class NavigationServiceLocationHandler implements LocationListener {
+public final class NavigationServiceLocationHandler implements NavigationLocationListener {
 
     public interface RouteRecalculator {
         void request(
@@ -73,7 +72,7 @@ public final class NavigationServiceLocationHandler implements LocationListener 
         if (controller == null) {
             return;
         }
-        Location seed = controller.getBestStartupLastKnownLocation();
+        NavigationLocation seed = controller.getBestStartupLastKnownLocation();
         if (seed != null) {
             AppLogger.i(TAG, "Using last known location as seed " + NavigationLocationFormatter.format(seed));
             onLocationChanged(seed);
@@ -84,7 +83,7 @@ public final class NavigationServiceLocationHandler implements LocationListener 
     }
 
     @Override
-    public void onLocationChanged(@NonNull Location location) {
+    public void onLocationChanged(@NonNull NavigationLocation location) {
         Controllers controllers = controllers();
         if (controllers == null) {
             return;
@@ -173,8 +172,7 @@ public final class NavigationServiceLocationHandler implements LocationListener 
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public void onStatusChanged(@Nullable String provider, int status, @Nullable Bundle extras) {
+    public void onProviderStatusChanged(@Nullable String provider, int status) {
         AppLogger.d(TAG, "Location provider status changed provider=" + provider + " status=" + status);
     }
 

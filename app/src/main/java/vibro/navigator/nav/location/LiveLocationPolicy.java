@@ -14,21 +14,21 @@ final class LiveLocationPolicy {
     }
 
     @Nullable
-    static LiveLocationFix selectBestFix(
-            @Nullable LiveLocationFix gps,
-            @Nullable LiveLocationFix network,
-            @Nullable LiveLocationFix fused,
+    static NavigationLocationFix selectBestFix(
+            @Nullable NavigationLocationFix gps,
+            @Nullable NavigationLocationFix network,
+            @Nullable NavigationLocationFix fused,
             long nowMs
     ) {
-        LiveLocationFix recentGps = isRecentFix(gps, nowMs) ? gps : null;
-        LiveLocationFix recentNetwork = isRecentFix(network, nowMs) ? network : null;
-        LiveLocationFix recentFused = isRecentFix(fused, nowMs) ? fused : null;
+        NavigationLocationFix recentGps = isRecentFix(gps, nowMs) ? gps : null;
+        NavigationLocationFix recentNetwork = isRecentFix(network, nowMs) ? network : null;
+        NavigationLocationFix recentFused = isRecentFix(fused, nowMs) ? fused : null;
         return resolveBestFix(resolveBestFix(recentGps, recentNetwork, nowMs), recentFused, nowMs);
     }
 
     static boolean shouldDispatch(
-            @Nullable LiveLocationFix lastDispatched,
-            @NonNull LiveLocationFix candidate
+            @Nullable NavigationLocationFix lastDispatched,
+            @NonNull NavigationLocationFix candidate
     ) {
         if (lastDispatched == null) {
             return true;
@@ -53,11 +53,11 @@ final class LiveLocationPolicy {
         return candidateAccuracy <= lastAccuracy + LOCATION_ACCURACY_BIAS_METERS;
     }
 
-    static boolean isRecentFix(@Nullable LiveLocationFix fix, long nowMs) {
+    static boolean isRecentFix(@Nullable NavigationLocationFix fix, long nowMs) {
         return fix != null && ageMs(fix, nowMs) <= LOCATION_STALE_MS;
     }
 
-    static boolean sameFix(@NonNull LiveLocationFix first, @NonNull LiveLocationFix second) {
+    static boolean sameFix(@NonNull NavigationLocationFix first, @NonNull NavigationLocationFix second) {
         return first.timeMs == second.timeMs
                 && safeProvider(first.provider).equals(safeProvider(second.provider))
                 && Double.compare(first.lat, second.lat) == 0
@@ -65,9 +65,9 @@ final class LiveLocationPolicy {
     }
 
     @Nullable
-    private static LiveLocationFix resolveBestFix(
-            @Nullable LiveLocationFix first,
-            @Nullable LiveLocationFix second,
+    private static NavigationLocationFix resolveBestFix(
+            @Nullable NavigationLocationFix first,
+            @Nullable NavigationLocationFix second,
             long nowMs
     ) {
         if (first == null) {
@@ -115,7 +115,7 @@ final class LiveLocationPolicy {
         return Math.abs(firstAgeMs - secondAgeMs) >= LOCATION_FRESHNESS_BIAS_MS;
     }
 
-    private static long ageMs(@NonNull LiveLocationFix fix, long nowMs) {
+    private static long ageMs(@NonNull NavigationLocationFix fix, long nowMs) {
         return Math.max(0L, nowMs - fix.timeMs);
     }
 

@@ -9,7 +9,7 @@ import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -92,12 +92,12 @@ public final class NavigationSession {
     }
 
     @Nullable
-    public Location getLastFilteredLocation() {
+    public NavigationLocation getLastFilteredLocation() {
         return components.locationState.getLastFilteredLocation();
     }
 
     public float lastFilteredSpeedMps() {
-        Location lastFiltered = components.locationState.getLastFilteredLocation();
+        NavigationLocation lastFiltered = components.locationState.getLastFilteredLocation();
         return lastFiltered == null ? 0f : components.locationState.speedMps(lastFiltered);
     }
 
@@ -120,8 +120,8 @@ public final class NavigationSession {
     }
 
     @NonNull
-    public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull Location location, long nowMs) {
-        return components.locationEvaluator.onRawLocationChanged(context, currentRequest, location, nowMs);
+    public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull NavigationLocation NavigationLocation, long nowMs) {
+        return components.locationEvaluator.onRawLocationChanged(context, currentRequest, NavigationLocation, nowMs);
     }
 
     @NonNull
@@ -177,7 +177,7 @@ public final class NavigationSession {
             return Collections.emptyList();
         }
         components.warmupController.onRouteApplied();
-        Location lastFiltered = components.locationState.getLastFilteredLocation();
+        NavigationLocation lastFiltered = components.locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? components.locationState.speedMps(lastFiltered) : 0f;
         return components.routeState.applyRouteResult(
                 context,

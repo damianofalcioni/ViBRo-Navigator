@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -28,7 +28,7 @@ final class NavigationBlockedPointSelector {
     }
 
     @NonNull
-    List<NogoPoint> addBlockedPointsAhead(@Nullable Location lastFiltered, long nowMs) {
+    List<NogoPoint> addBlockedPointsAhead(@Nullable NavigationLocation lastFiltered, long nowMs) {
         List<NogoPoint> added = new ArrayList<>();
         if (lastFiltered == null || geometryState.isRouteUnavailable()) {
             return added;

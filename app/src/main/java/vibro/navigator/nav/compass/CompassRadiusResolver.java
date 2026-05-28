@@ -1,6 +1,6 @@
 package vibro.navigator.nav.compass;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,7 +16,7 @@ public final class CompassRadiusResolver {
     @NonNull
     public static State resolve(
             double furthestDistanceMeters,
-            @NonNull Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             float speedMps,
             boolean likelyStationary,
             @Nullable Float previousVisibleRadiusMeters,
@@ -66,7 +66,7 @@ public final class CompassRadiusResolver {
     }
 
     public static boolean hasReliableMovingSpeed(
-            @NonNull Location currentLocation,
+            @NonNull NavigationLocation currentLocation,
             boolean likelyStationary
     ) {
         return !likelyStationary

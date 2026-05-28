@@ -1,7 +1,7 @@
 package vibro.navigator.nav.routing;
 
-import android.location.Location;
-import android.location.LocationManager;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,8 +15,8 @@ final class StartupRouteRefreshPolicy {
     }
 
     public static boolean shouldRefresh(
-            @Nullable Location activeRequestStart,
-            @Nullable Location latestStart
+            @Nullable NavigationLocation activeRequestStart,
+            @Nullable NavigationLocation latestStart
     ) {
         if (activeRequestStart == null || latestStart == null) {
             return true;
@@ -27,8 +27,8 @@ final class StartupRouteRefreshPolicy {
     }
 
     public static float distanceMeters(
-            @Nullable Location activeRequestStart,
-            @Nullable Location latestStart
+            @Nullable NavigationLocation activeRequestStart,
+            @Nullable NavigationLocation latestStart
     ) {
         if (activeRequestStart == null || latestStart == null) {
             return Float.NaN;
@@ -37,30 +37,30 @@ final class StartupRouteRefreshPolicy {
     }
 
     private static boolean hasMovedMaterially(
-            @NonNull Location activeRequestStart,
-            @NonNull Location latestStart
+            @NonNull NavigationLocation activeRequestStart,
+            @NonNull NavigationLocation latestStart
     ) {
         return activeRequestStart.distanceTo(latestStart) >= MIN_START_MOVE_METERS;
     }
 
     private static boolean hasAccuracyImprovedMaterially(
-            @NonNull Location activeRequestStart,
-            @NonNull Location latestStart
+            @NonNull NavigationLocation activeRequestStart,
+            @NonNull NavigationLocation latestStart
     ) {
         return accuracyMeters(activeRequestStart) - accuracyMeters(latestStart)
                 >= MIN_ACCURACY_IMPROVEMENT_METERS;
     }
 
     private static boolean isStrongGpsUpgrade(
-            @NonNull Location activeRequestStart,
-            @NonNull Location latestStart
+            @NonNull NavigationLocation activeRequestStart,
+            @NonNull NavigationLocation latestStart
     ) {
-        return LocationManager.GPS_PROVIDER.equals(latestStart.getProvider())
-                && !LocationManager.GPS_PROVIDER.equals(activeRequestStart.getProvider())
+        return NavigationLocationProviders.GPS_PROVIDER.equals(latestStart.getProvider())
+                && !NavigationLocationProviders.GPS_PROVIDER.equals(activeRequestStart.getProvider())
                 && accuracyMeters(latestStart) <= GPS_REFRESH_ACCURACY_METERS;
     }
 
-    private static float accuracyMeters(@NonNull Location location) {
+    private static float accuracyMeters(@NonNull NavigationLocation location) {
         return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 }

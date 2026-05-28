@@ -13,7 +13,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -91,25 +91,25 @@ abstract class NavigationSessionRouteStateTestSupport {
     }
 
     @NonNull
-    static Location location(double lat, double lon, long timeMs) {
-        return location(lat, lon, timeMs, 5f);
+    static NavigationLocation NavigationLocation(double lat, double lon, long timeMs) {
+        return NavigationLocation(lat, lon, timeMs, 5f);
     }
 
     @NonNull
-    static Location locationWithSpeed(double lat, double lon, long timeMs, float speedMetersPerSecond) {
-        Location location = location(lat, lon, timeMs, 5f);
-        location.setSpeed(speedMetersPerSecond);
-        return location;
+    static NavigationLocation locationWithSpeed(double lat, double lon, long timeMs, float speedMetersPerSecond) {
+        NavigationLocation NavigationLocation = NavigationLocation(lat, lon, timeMs, 5f);
+        NavigationLocation.setSpeed(speedMetersPerSecond);
+        return NavigationLocation;
     }
 
     @NonNull
-    static Location location(double lat, double lon, long timeMs, float accuracyMeters) {
-        Location location = new Location("gps");
-        location.setLatitude(lat);
-        location.setLongitude(lon);
-        location.setTime(timeMs);
-        location.setAccuracy(accuracyMeters);
-        return location;
+    static NavigationLocation NavigationLocation(double lat, double lon, long timeMs, float accuracyMeters) {
+        NavigationLocation NavigationLocation = new NavigationLocation("gps");
+        NavigationLocation.setLatitude(lat);
+        NavigationLocation.setLongitude(lon);
+        NavigationLocation.setTime(timeMs);
+        NavigationLocation.setAccuracy(accuracyMeters);
+        return NavigationLocation;
     }
 
     static float normalizedTransitionProgress(float start, float current, float end) {

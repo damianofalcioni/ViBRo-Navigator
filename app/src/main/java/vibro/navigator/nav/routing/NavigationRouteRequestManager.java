@@ -3,7 +3,7 @@ package vibro.navigator.nav.routing;
 
 import vibro.navigator.nav.model.NavigationRequest;
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,7 +27,7 @@ public final class NavigationRouteRequestManager {
     private boolean routeCalculationInProgress;
     private boolean pendingRecalculation;
     @Nullable
-    private Location activeRequestStartLocation;
+    private NavigationLocation activeRequestStartLocation;
     @NonNull
     private NavigationRouteRecalculationReason activeRequestReason =
             NavigationRouteRecalculationReason.EXPLICIT;
@@ -90,7 +90,7 @@ public final class NavigationRouteRequestManager {
             boolean force,
             long nowMs,
             @NonNull NavigationRequest request,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice
     ) {
@@ -111,7 +111,7 @@ public final class NavigationRouteRequestManager {
             boolean force,
             long nowMs,
             @NonNull NavigationRequest request,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
@@ -125,7 +125,7 @@ public final class NavigationRouteRequestManager {
             long nowMs,
             @NonNull NavigationRequest request,
             @NonNull List<LatLon> intermediates,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice
     ) {
@@ -147,7 +147,7 @@ public final class NavigationRouteRequestManager {
             long nowMs,
             @NonNull NavigationRequest request,
             @NonNull List<LatLon> intermediates,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             @NonNull List<NogoPoint> blocked,
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
@@ -161,7 +161,7 @@ public final class NavigationRouteRequestManager {
             return null;
         }
         if (lastFiltered == null) {
-            AppLogger.w(TAG, "Cannot recalculate route without a filtered location");
+            AppLogger.w(TAG, "Cannot recalculate route without a filtered NavigationLocation");
             return null;
         }
 
@@ -178,7 +178,7 @@ public final class NavigationRouteRequestManager {
                 new ArrayList<>(blocked)
         );
         routeCalculationInProgress = true;
-        activeRequestStartLocation = new Location(lastFiltered);
+        activeRequestStartLocation = new NavigationLocation(lastFiltered);
         activeRequestReason = reason;
         lastRouteFailure = null;
         this.inProgressNotice = sanitizeNotice(inProgressNotice);
@@ -234,7 +234,7 @@ public final class NavigationRouteRequestManager {
 
     private void updatePendingRecalculation(
             boolean force,
-            @Nullable Location latestStart,
+            @Nullable NavigationLocation latestStart,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
         if (pendingRecalculation) {
@@ -253,7 +253,7 @@ public final class NavigationRouteRequestManager {
 
     private boolean shouldQueuePendingRecalculation(
             boolean force,
-            @Nullable Location latestStart,
+            @Nullable NavigationLocation latestStart,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
         if (force) {

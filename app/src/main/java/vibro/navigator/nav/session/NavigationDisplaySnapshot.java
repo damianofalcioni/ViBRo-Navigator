@@ -1,7 +1,7 @@
 package vibro.navigator.nav.session;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,7 +12,7 @@ public final class NavigationDisplaySnapshot {
     @NonNull
     final Context context;
     @Nullable
-    final Location lastFiltered;
+    final NavigationLocation lastFiltered;
     final float speedMps;
     final boolean likelyStationary;
     final float accuracyMeters;
@@ -60,7 +60,7 @@ public final class NavigationDisplaySnapshot {
         @NonNull
         private final Context context;
         @Nullable
-        private Location lastFiltered;
+        private NavigationLocation lastFiltered;
         private float speedMps;
         private boolean likelyStationary;
         private float accuracyMeters = Float.MAX_VALUE;
@@ -87,7 +87,7 @@ public final class NavigationDisplaySnapshot {
 
         @NonNull
         Builder location(
-                @Nullable Location lastFiltered,
+                @Nullable NavigationLocation lastFiltered,
                 float speedMps,
                 boolean likelyStationary,
                 float accuracyMeters

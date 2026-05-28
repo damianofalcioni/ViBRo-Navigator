@@ -1,10 +1,9 @@
-package vibro.navigator.nav.location;
+package vibro.navigator.android.location;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
@@ -14,12 +13,17 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationFormatter;
+import vibro.navigator.nav.location.NavigationLocationListener;
+import vibro.navigator.nav.location.NavigationLocationProvider;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-public final class NavigationLocationProviderAccess {
+public final class NavigationLocationProviderAccess implements NavigationLocationProvider {
 
     private static final String TAG = "NavLocation";
 
@@ -28,36 +32,56 @@ public final class NavigationLocationProviderAccess {
     private final LocationManager locationManager;
     private final LocationListener listener;
     private final Executor locationCallbackExecutor;
+    private final NavigationCurrentLocationSeeder currentLocationSeeder;
 
     public NavigationLocationProviderAccess(
             @NonNull Context context,
             @Nullable LocationManager locationManager,
-            @NonNull LocationListener listener
+            @NonNull NavigationLocationListener listener
     ) {
         this.context = context;
         this.locationManager = locationManager;
-        this.listener = listener;
+        this.listener = new AndroidLocationListenerAdapter(listener);
         this.locationCallbackExecutor = ContextCompat.getMainExecutor(context);
+        this.currentLocationSeeder = new NavigationCurrentLocationSeeder(
+                locationManager,
+                this.listener,
+                locationCallbackExecutor
+        );
     }
 
+    @Override
     public boolean hasFineLocationPermission() {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
+    @Override
     public boolean hasCoarseLocationPermission() {
         return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED;
     }
 
+    @Override
     @NonNull
     public List<String> enabledPermittedProviders(boolean fineGranted, boolean coarseGranted) {
         List<String> providers = new ArrayList<>(2);
-        addEnabledProviderIfPermitted(providers, LocationManager.GPS_PROVIDER, fineGranted, coarseGranted);
-        addEnabledProviderIfPermitted(providers, LocationManager.NETWORK_PROVIDER, fineGranted, coarseGranted);
+        addEnabledProviderIfPermitted(
+                providers,
+                NavigationLocationProviders.GPS_PROVIDER,
+                fineGranted,
+                coarseGranted
+        );
+        addEnabledProviderIfPermitted(
+                providers,
+                NavigationLocationProviders.NETWORK_PROVIDER,
+                fineGranted,
+                coarseGranted
+        );
         return providers;
     }
 
+    @Override
     @NonNull
     public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
         List<String> requestedProviders = new ArrayList<>(providers.size());
@@ -69,13 +93,14 @@ public final class NavigationLocationProviderAccess {
         return requestedProviders;
     }
 
+    @Override
     @Nullable
-    public Location getLastKnownLocationQuietly(@NonNull String provider) {
+    public NavigationLocation getLastKnownLocationQuietly(@NonNull String provider) {
         if (locationManager == null) {
             return null;
         }
         try {
-            return locationManager.getLastKnownLocation(provider);
+            return AndroidLocationConverter.toNavigationLocation(locationManager.getLastKnownLocation(provider));
         } catch (SecurityException e) {
             AppLogger.w(TAG, "Permission denied while reading last known location provider=" + provider, e);
             return null;
@@ -85,6 +110,27 @@ public final class NavigationLocationProviderAccess {
         }
     }
 
+    @Override
+    public void requestCurrentLocationSeeds(boolean fineGranted, boolean coarseGranted) {
+        currentLocationSeeder.requestSeeds(fineGranted, coarseGranted);
+    }
+
+    @Override
+    public void requestSeedForEnabledProvider(@NonNull String provider) {
+        currentLocationSeeder.requestSeedForEnabledProvider(provider);
+    }
+
+    @Override
+    public void cancelPendingCurrentLocationRequests() {
+        currentLocationSeeder.cancelPendingCurrentLocationRequests();
+    }
+
+    @Override
+    public void removeUpdates() {
+        NavigationLegacyLocationUpdates.remove(locationManager, listener);
+    }
+
+    @Override
     @NonNull
     public String describeAvailability() {
         if (locationManager == null) {
@@ -92,18 +138,20 @@ public final class NavigationLocationProviderAccess {
         }
         boolean fineGranted = hasFineLocationPermission();
         boolean coarseGranted = hasCoarseLocationPermission();
-        boolean gpsEnabled = isProviderEnabled(LocationManager.GPS_PROVIDER);
-        boolean networkEnabled = isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        boolean gpsEnabled = isProviderEnabled(NavigationLocationProviders.GPS_PROVIDER);
+        boolean networkEnabled = isProviderEnabled(NavigationLocationProviders.NETWORK_PROVIDER);
+        NavigationLocation lastGps = fineGranted
+                ? getLastKnownLocationQuietly(NavigationLocationProviders.GPS_PROVIDER)
+                : null;
+        NavigationLocation lastNetwork = NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)
+                ? getLastKnownLocationQuietly(NavigationLocationProviders.NETWORK_PROVIDER)
+                : null;
         return "fineGranted=" + fineGranted
                 + ", coarseGranted=" + coarseGranted
                 + ", gpsEnabled=" + gpsEnabled
                 + ", networkEnabled=" + networkEnabled
-                + ", lastGps=" + NavigationLocationFormatter.format(fineGranted
-                ? getLastKnownLocationQuietly(LocationManager.GPS_PROVIDER)
-                : null)
-                + ", lastNetwork=" + NavigationLocationFormatter.format(hasAnyLocationPermission(fineGranted, coarseGranted)
-                ? getLastKnownLocationQuietly(LocationManager.NETWORK_PROVIDER)
-                : null);
+                + ", lastGps=" + NavigationLocationFormatter.format(lastGps)
+                + ", lastNetwork=" + NavigationLocationFormatter.format(lastNetwork);
     }
 
     private void addEnabledProviderIfPermitted(
@@ -112,7 +160,7 @@ public final class NavigationLocationProviderAccess {
             boolean fineGranted,
             boolean coarseGranted
     ) {
-        if (canUseProvider(provider, fineGranted, coarseGranted)
+        if (NavigationLocationProviders.canUseProvider(provider, fineGranted, coarseGranted)
                 && isProviderEnabled(provider)) {
             providers.add(provider);
         }
@@ -148,44 +196,4 @@ public final class NavigationLocationProviderAccess {
         }
     }
 
-    public static boolean hasAnyLocationPermission(boolean fineGranted, boolean coarseGranted) {
-        return fineGranted || coarseGranted;
-    }
-
-    public static boolean canUseProvider(@NonNull String provider, boolean fineGranted, boolean coarseGranted) {
-        if (LocationManager.GPS_PROVIDER.equals(provider)) {
-            return fineGranted;
-        }
-        if (LocationManager.NETWORK_PROVIDER.equals(provider)
-                || LocationManager.PASSIVE_PROVIDER.equals(provider)) {
-            return hasAnyLocationPermission(fineGranted, coarseGranted);
-        }
-        return hasAnyLocationPermission(fineGranted, coarseGranted);
-    }
-
-    @Nullable
-    public static String joinProviders(@NonNull List<String> providers) {
-        if (providers.isEmpty()) {
-            return null;
-        }
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < providers.size(); i++) {
-            if (i > 0) {
-                sb.append("+");
-            }
-            sb.append(providers.get(i));
-        }
-        return sb.toString();
-    }
-
-    public static boolean shouldReuseActiveLocationRequest(
-            long minTimeMs,
-            @Nullable String providerSummary,
-            long lastRequestedLocationMinTimeMs,
-            @Nullable String lastRequestedProvider
-    ) {
-        return providerSummary != null
-                && minTimeMs == lastRequestedLocationMinTimeMs
-                && providerSummary.equals(lastRequestedProvider);
-    }
 }

@@ -6,17 +6,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.location.LocationManager;
-
 import org.junit.Test;
 
+import vibro.navigator.nav.location.NavigationLocationFix;
+
 public class NavigationStartupLocationSelectorTest {
+    private static final String GPS_PROVIDER = "gps";
+    private static final String NETWORK_PROVIDER = "network";
 
     @Test
     public void isUsable_rejectsStaleFix() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix location =
-                location(LocationManager.GPS_PROVIDER, nowMs - 16_000L, 8f);
+        NavigationLocationFix location =
+                location(GPS_PROVIDER, nowMs - 16_000L, 8f);
 
         assertFalse(NavigationStartupLocationSelector.isUsableFix(location, nowMs));
     }
@@ -24,8 +26,8 @@ public class NavigationStartupLocationSelectorTest {
     @Test
     public void isUsable_rejectsLowQualityFix() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix location =
-                location(LocationManager.NETWORK_PROVIDER, nowMs - 2_000L, 75f);
+        NavigationLocationFix location =
+                location(NETWORK_PROVIDER, nowMs - 2_000L, 75f);
 
         assertFalse(NavigationStartupLocationSelector.isUsableFix(location, nowMs));
     }
@@ -33,27 +35,27 @@ public class NavigationStartupLocationSelectorTest {
     @Test
     public void selectBest_prefersFreshUsableFix() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix staleGps =
-                location(LocationManager.GPS_PROVIDER, nowMs - 30_000L, 5f);
-        NavigationStartupLocationSelector.Fix freshNetwork =
-                location(LocationManager.NETWORK_PROVIDER, nowMs - 1_000L, 20f);
+        NavigationLocationFix staleGps =
+                location(GPS_PROVIDER, nowMs - 30_000L, 5f);
+        NavigationLocationFix freshNetwork =
+                location(NETWORK_PROVIDER, nowMs - 1_000L, 20f);
 
-        NavigationStartupLocationSelector.Fix selected =
+        NavigationLocationFix selected =
                 NavigationStartupLocationSelector.selectBestFix(staleGps, freshNetwork, nowMs);
 
         assertNotNull(selected);
-        assertEquals(LocationManager.NETWORK_PROVIDER, selected.provider);
+        assertEquals(NETWORK_PROVIDER, selected.provider);
     }
 
     @Test
     public void selectBest_returnsNullWhenNoUsableFixExists() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix staleGps =
-                location(LocationManager.GPS_PROVIDER, nowMs - 20_000L, 5f);
-        NavigationStartupLocationSelector.Fix inaccurateNetwork =
-                location(LocationManager.NETWORK_PROVIDER, nowMs - 1_000L, 120f);
+        NavigationLocationFix staleGps =
+                location(GPS_PROVIDER, nowMs - 20_000L, 5f);
+        NavigationLocationFix inaccurateNetwork =
+                location(NETWORK_PROVIDER, nowMs - 1_000L, 120f);
 
-        NavigationStartupLocationSelector.Fix selected =
+        NavigationLocationFix selected =
                 NavigationStartupLocationSelector.selectBestFix(staleGps, inaccurateNetwork, nowMs);
 
         assertNull(selected);
@@ -62,8 +64,8 @@ public class NavigationStartupLocationSelectorTest {
     @Test
     public void isUsable_acceptsFreshAccurateFix() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix location =
-                location(LocationManager.GPS_PROVIDER, nowMs - 5_000L, 12f);
+        NavigationLocationFix location =
+                location(GPS_PROVIDER, nowMs - 5_000L, 12f);
 
         assertTrue(NavigationStartupLocationSelector.isUsableFix(location, nowMs));
     }
@@ -71,8 +73,8 @@ public class NavigationStartupLocationSelectorTest {
     @Test
     public void isUsableForRouteStart_rejectsFixAboveWarmupAccuracy() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix location =
-                location(LocationManager.GPS_PROVIDER, nowMs - 2_000L, 30f);
+        NavigationLocationFix location =
+                location(GPS_PROVIDER, nowMs - 2_000L, 30f);
 
         assertFalse(NavigationStartupLocationSelector.isUsableForRouteStartFix(location, nowMs));
     }
@@ -80,17 +82,17 @@ public class NavigationStartupLocationSelectorTest {
     @Test
     public void isUsableForRouteStart_acceptsFreshWarmupAccurateFix() {
         long nowMs = 100_000L;
-        NavigationStartupLocationSelector.Fix location =
-                location(LocationManager.GPS_PROVIDER, nowMs - 2_000L, 25f);
+        NavigationLocationFix location =
+                location(GPS_PROVIDER, nowMs - 2_000L, 25f);
 
         assertTrue(NavigationStartupLocationSelector.isUsableForRouteStartFix(location, nowMs));
     }
 
-    private static NavigationStartupLocationSelector.Fix location(
+    private static NavigationLocationFix location(
             String provider,
             long timeMs,
             float accuracyMeters
     ) {
-        return new NavigationStartupLocationSelector.Fix(provider, timeMs, accuracyMeters);
+        return NavigationLocationFix.qualityOnly(provider, timeMs, accuracyMeters);
     }
 }

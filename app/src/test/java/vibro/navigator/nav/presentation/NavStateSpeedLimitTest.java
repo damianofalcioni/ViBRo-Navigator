@@ -1,7 +1,7 @@
 package vibro.navigator.nav.presentation;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -66,11 +66,11 @@ public class NavStateSpeedLimitTest {
     }
 
     @NonNull
-    private static Location locationAt(double lat, double lon) {
-        Location location = new Location("test");
-        location.setLatitude(lat);
-        location.setLongitude(lon);
-        location.setTime(1L);
-        return location;
+    private static NavigationLocation locationAt(double lat, double lon) {
+        NavigationLocation NavigationLocation = new NavigationLocation("test");
+        NavigationLocation.setLatitude(lat);
+        NavigationLocation.setLongitude(lon);
+        NavigationLocation.setTime(1L);
+        return NavigationLocation;
     }
 }

@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 import android.os.Build;
 
 import androidx.annotation.NonNull;
@@ -13,35 +13,35 @@ final class NavigationGpsBearingTrustPolicy {
     private static final float MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES = 25f;
 
     @Nullable
-    Double trustedBearingDegrees(@NonNull Location location, float speedMps) {
-        if (!location.hasBearing()) {
+    Double trustedBearingDegrees(@NonNull NavigationLocation NavigationLocation, float speedMps) {
+        if (!NavigationLocation.hasBearing()) {
             return null;
         }
         if (speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
             return null;
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
-            return hasTrustedBearingAccuracy(location) ? (double) location.getBearing() : null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && NavigationLocation.hasBearingAccuracy()) {
+            return hasTrustedBearingAccuracy(NavigationLocation) ? (double) NavigationLocation.getBearing() : null;
         }
         return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
-                ? (double) location.getBearing()
+                ? (double) NavigationLocation.getBearing()
                 : null;
     }
 
     @Nullable
-    Float currentBearingAccuracyDegrees(@NonNull Location location) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !location.hasBearingAccuracy()) {
+    Float currentBearingAccuracyDegrees(@NonNull NavigationLocation NavigationLocation) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || !NavigationLocation.hasBearingAccuracy()) {
             return null;
         }
-        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
+        float bearingAccuracyDegrees = NavigationLocation.getBearingAccuracyDegrees();
         return Float.isFinite(bearingAccuracyDegrees) && bearingAccuracyDegrees >= 0f
                 ? bearingAccuracyDegrees
                 : null;
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private static boolean hasTrustedBearingAccuracy(@NonNull Location location) {
-        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
+    private static boolean hasTrustedBearingAccuracy(@NonNull NavigationLocation NavigationLocation) {
+        float bearingAccuracyDegrees = NavigationLocation.getBearingAccuracyDegrees();
         return Float.isFinite(bearingAccuracyDegrees)
                 && bearingAccuracyDegrees >= 0f
                 && bearingAccuracyDegrees <= MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES;

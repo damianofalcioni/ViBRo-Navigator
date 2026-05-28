@@ -4,7 +4,7 @@ package vibro.navigator.nav.location;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,7 +23,7 @@ public final class NavigationLocationUpdateResult {
     @Nullable
     private final NavigationRouteRecalculationReason recalculationReason;
     @Nullable
-    public final Location filteredLocation;
+    public final NavigationLocation filteredLocation;
     @NonNull
     public final List<NavigationTurnEvent> turnEvents;
 
@@ -33,7 +33,7 @@ public final class NavigationLocationUpdateResult {
             long suggestedUpdateIntervalMs,
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable NavigationRouteRecalculationReason recalculationReason,
-            @Nullable Location filteredLocation,
+            @Nullable NavigationLocation filteredLocation,
             @NonNull List<NavigationTurnEvent> turnEvents
     ) {
         this.dropped = dropped;
@@ -60,7 +60,7 @@ public final class NavigationLocationUpdateResult {
 
     @NonNull
     public static NavigationLocationUpdateResult accepted(
-            @Nullable Location filteredLocation,
+            @Nullable NavigationLocation filteredLocation,
             boolean shouldRecalculateRoute,
             @Nullable NavigationRerouteNotice rerouteNotice,
             @NonNull List<NavigationTurnEvent> turnEvents,
@@ -78,7 +78,7 @@ public final class NavigationLocationUpdateResult {
 
     @NonNull
     public static NavigationLocationUpdateResult accepted(
-            @Nullable Location filteredLocation,
+            @Nullable NavigationLocation filteredLocation,
             boolean shouldRecalculateRoute,
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable NavigationRouteRecalculationReason recalculationReason,

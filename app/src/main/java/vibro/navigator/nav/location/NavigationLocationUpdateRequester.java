@@ -22,20 +22,20 @@ final class NavigationLocationUpdateRequester {
     private static final String TAG = "NavLocation";
 
     @NonNull
-    private final NavigationLocationProviderAccess providerAccess;
+    private final NavigationLocationProvider providerAccess;
     @NonNull
     private final FusedLocationUpdateClient fusedLocationUpdateClient;
     @NonNull
-    private final NavigationGnssStatusTracker gnssStatusTracker;
+    private final NavigationGnssTracker gnssStatusTracker;
     @NonNull
     private final LegacyUpdatesRemover legacyUpdatesRemover;
     @NonNull
     private final AvailabilityDescriptor availabilityDescriptor;
 
     NavigationLocationUpdateRequester(
-            @NonNull NavigationLocationProviderAccess providerAccess,
+            @NonNull NavigationLocationProvider providerAccess,
             @NonNull FusedLocationUpdateClient fusedLocationUpdateClient,
-            @NonNull NavigationGnssStatusTracker gnssStatusTracker,
+            @NonNull NavigationGnssTracker gnssStatusTracker,
             @NonNull LegacyUpdatesRemover legacyUpdatesRemover,
             @NonNull AvailabilityDescriptor availabilityDescriptor
     ) {
@@ -55,7 +55,7 @@ final class NavigationLocationUpdateRequester {
     ) {
         boolean fineGranted = providerAccess.hasFineLocationPermission();
         boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
-        if (!NavigationLocationProviderAccess.hasAnyLocationPermission(fineGranted, coarseGranted)) {
+        if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
             AppLogger.w(TAG, "Location permission unavailable, cannot request updates");
             return Result.unchanged();
         }
@@ -67,7 +67,7 @@ final class NavigationLocationUpdateRequester {
                     + availabilityDescriptor.describeAvailability());
             return Result.clearActiveRequest();
         }
-        if (NavigationLocationProviderAccess.shouldReuseActiveLocationRequest(
+        if (NavigationLocationProviders.shouldReuseActiveLocationRequest(
                 minTimeMs,
                 desiredProviderSummary,
                 lastRequestedLocationMinTimeMs,
@@ -127,7 +127,7 @@ final class NavigationLocationUpdateRequester {
             providers.add(LiveLocationCoordinator.FUSED_PROVIDER);
         }
         providers.addAll(legacyProviders);
-        return NavigationLocationProviderAccess.joinProviders(providers);
+        return NavigationLocationProviders.join(providers);
     }
 
     static final class Result {

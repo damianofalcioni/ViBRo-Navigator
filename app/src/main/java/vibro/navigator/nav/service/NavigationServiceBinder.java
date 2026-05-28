@@ -2,7 +2,7 @@ package vibro.navigator.nav.service;
 
 
 import vibro.navigator.nav.location.NavigationLocationFormatter;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 import android.os.Binder;
 
 import androidx.annotation.NonNull;
@@ -33,7 +33,7 @@ public final class NavigationServiceBinder extends Binder {
         boolean isNavigationPaused();
 
         @Nullable
-        Location getLastFilteredLocation();
+        NavigationLocation getLastFilteredLocation();
 
         @NonNull
         List<?> addBlockedPointsAhead();
@@ -83,9 +83,9 @@ public final class NavigationServiceBinder extends Binder {
             AppLogger.w(TAG, "Blocked waypoint requested while navigation is paused");
             return;
         }
-        Location location = host.getLastFilteredLocation();
-        if (location == null) {
-            AppLogger.w(TAG, "Blocked waypoint requested without a current filtered location");
+        NavigationLocation NavigationLocation = host.getLastFilteredLocation();
+        if (NavigationLocation == null) {
+            AppLogger.w(TAG, "Blocked waypoint requested without a current filtered NavigationLocation");
             return;
         }
         List<?> added = host.addBlockedPointsAhead();
@@ -94,7 +94,7 @@ public final class NavigationServiceBinder extends Binder {
             return;
         }
         AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
-                + " location=" + NavigationLocationFormatter.format(location));
+                + " NavigationLocation=" + NavigationLocationFormatter.format(NavigationLocation));
         host.requestBlockedRoadRouteRecalculation(host.getString(R.string.nav_route_notice_blocked_road_recalculating));
     }
 

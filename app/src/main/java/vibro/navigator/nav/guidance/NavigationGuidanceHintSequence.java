@@ -1,6 +1,6 @@
 package vibro.navigator.nav.guidance;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -33,19 +33,19 @@ final class NavigationGuidanceHintSequence {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
-            @Nullable Location location
+            @Nullable NavigationLocation NavigationLocation
     ) {
-        onRouteApplied(route, polylineIndex, intermediateStops, toLatLon(location));
+        onRouteApplied(route, polylineIndex, intermediateStops, toLatLon(NavigationLocation));
     }
 
     void onRouteApplied(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
-            @Nullable LatLon location
+            @Nullable LatLon NavigationLocation
     ) {
         replaceWith(NavigationGuidanceHintSequenceBuilder.build(route, polylineIndex, intermediateStops));
-        nextIndex = findNextHintIndex(polylineIndex, location);
+        nextIndex = findNextHintIndex(polylineIndex, NavigationLocation);
     }
 
     @NonNull
@@ -111,12 +111,12 @@ final class NavigationGuidanceHintSequence {
         routeHintIndexes.addAll(builtHints.routeHintIndexes);
     }
 
-    private int findNextHintIndex(@NonNull PolylineIndex polylineIndex, @Nullable LatLon location) {
-        if (location == null || hints.isEmpty()) {
+    private int findNextHintIndex(@NonNull PolylineIndex polylineIndex, @Nullable LatLon NavigationLocation) {
+        if (NavigationLocation == null || hints.isEmpty()) {
             return 0;
         }
 
-        PolylineIndex.Match match = polylineIndex.match(location, -1);
+        PolylineIndex.Match match = polylineIndex.match(NavigationLocation, -1);
         if (match == null) {
             return 0;
         }
@@ -130,8 +130,8 @@ final class NavigationGuidanceHintSequence {
     }
 
     @Nullable
-    private static LatLon toLatLon(@Nullable Location location) {
-        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
+    private static LatLon toLatLon(@Nullable NavigationLocation NavigationLocation) {
+        return NavigationLocation == null ? null : new LatLon(NavigationLocation.getLatitude(), NavigationLocation.getLongitude());
     }
 
     private static boolean isPassedByIntermediateArrival(@NonNull VoiceHint hint, int trackIndex) {

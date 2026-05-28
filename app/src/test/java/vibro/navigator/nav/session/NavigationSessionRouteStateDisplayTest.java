@@ -13,7 +13,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -45,7 +45,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
                 new LatLon(0.0, 0.003),
                 Collections.emptyList()
         );
-        Location currentLocation = location(0.0, 0.0, 1_000L);
+        NavigationLocation currentLocation = NavigationLocation(0.0, 0.0, 1_000L);
         state.applyRouteResult(
                 context,
                 snapshot(request),
@@ -137,7 +137,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
         );
         NavState resumedState = state.buildState(
                 context,
-                location(0.0, 0.0005, 3_000L),
+                NavigationLocation(0.0, 0.0005, 3_000L),
                 20f,
                 false,
                 5f,
@@ -365,7 +365,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
         NavState navState = state.buildState(
                 context,
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 false,
                 5f,
@@ -393,7 +393,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
                 new LatLon(0.0, 0.003),
                 Collections.singletonList(new LatLon(0.0, 0.002))
         );
-        Location currentLocation = location(0.0, 0.0, 1_000L);
+        NavigationLocation currentLocation = NavigationLocation(0.0, 0.0, 1_000L);
         state.applyRouteResult(
                 context,
                 snapshot(request),
@@ -438,14 +438,14 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
                 context,
                 snapshot(request),
                 routeWithoutHints(),
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavState beforeFirstStop = state.buildState(
                 context,
-                location(0.0, 0.0, 1_000L),
+                NavigationLocation(0.0, 0.0, 1_000L),
                 5f,
                 false,
                 5f,
@@ -460,7 +460,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
         );
         NavState afterFirstStop = state.buildState(
                 context,
-                location(0.0, 0.0015, 2_000L),
+                NavigationLocation(0.0, 0.0015, 2_000L),
                 5f,
                 false,
                 5f,
@@ -484,7 +484,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
     public void buildState_showsBlockedRoadNoticeWhileRouteRecalculationIsRunning() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
-        Location currentLocation = location(0.0, 0.0, 1_000L);
+        NavigationLocation currentLocation = NavigationLocation(0.0, 0.0, 1_000L);
 
         NavState navState = state.buildState(
                 context,

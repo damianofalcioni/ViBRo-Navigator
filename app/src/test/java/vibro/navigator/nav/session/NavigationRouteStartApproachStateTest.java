@@ -1,7 +1,7 @@
 package vibro.navigator.nav.session;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
@@ -44,7 +44,7 @@ public class NavigationRouteStartApproachStateTest {
                 new LatLon(0.0, 0.003),
                 Collections.emptyList()
         );
-        Location requestedStart = location(0.0, 0.0, 1_000L);
+        NavigationLocation requestedStart = NavigationLocation(0.0, 0.0, 1_000L);
 
         List<NavigationTurnEvent> appliedEvents = state.applyRouteResult(
                 context,
@@ -72,7 +72,7 @@ public class NavigationRouteStartApproachStateTest {
         assertNotNull(approachState.routeStatus.compassState);
         assertNotNull(approachState.routeStatus.compassState.routeStartApproachProjection);
 
-        Location routeStart = location(0.0, 0.001, 2_000L);
+        NavigationLocation routeStart = NavigationLocation(0.0, 0.001, 2_000L);
         NavigationRouteEvaluation reachedEvaluation = state.evaluateLocation(
                 routeStart,
                 1.4f,
@@ -95,12 +95,12 @@ public class NavigationRouteStartApproachStateTest {
     private static NavState buildState(
             @NonNull Context context,
             @NonNull NavigationSessionRouteState state,
-            @NonNull Location location,
+            @NonNull NavigationLocation NavigationLocation,
             long nowMs
     ) {
         return state.buildState(
                 context,
-                location,
+                NavigationLocation,
                 1.4f,
                 false,
                 3f,
@@ -146,12 +146,12 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @NonNull
-    private static Location location(double lat, double lon, long timeMs) {
-        Location location = new Location("gps");
-        location.setLatitude(lat);
-        location.setLongitude(lon);
-        location.setTime(timeMs);
-        location.setAccuracy(3f);
-        return location;
+    private static NavigationLocation NavigationLocation(double lat, double lon, long timeMs) {
+        NavigationLocation NavigationLocation = new NavigationLocation("gps");
+        NavigationLocation.setLatitude(lat);
+        NavigationLocation.setLongitude(lon);
+        NavigationLocation.setTime(timeMs);
+        NavigationLocation.setAccuracy(3f);
+        return NavigationLocation;
     }
 }

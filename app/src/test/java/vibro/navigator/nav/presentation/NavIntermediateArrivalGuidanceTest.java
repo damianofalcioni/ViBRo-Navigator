@@ -7,6 +7,8 @@ import static org.junit.Assert.assertTrue;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+
+import vibro.navigator.nav.location.NavigationLocation;
 import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
@@ -94,7 +96,7 @@ public class NavIntermediateArrivalGuidanceTest {
             int currentSegmentIndex,
             int intermediateReachedTrackIndex,
             @NonNull List<NavTarget> targets,
-            @NonNull android.location.Location location
+            @NonNull NavigationLocation location
     ) {
         return NavStateComposer.from(NavStateBuildInput
                 .builder(context, route, index, location)
@@ -126,8 +128,8 @@ public class NavIntermediateArrivalGuidanceTest {
     }
 
     @NonNull
-    private static android.location.Location locationAt(double lat, double lon) {
-        android.location.Location location = new android.location.Location("test");
+    private static NavigationLocation locationAt(double lat, double lon) {
+        NavigationLocation location = new NavigationLocation("test");
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(1L);

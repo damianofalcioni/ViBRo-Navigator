@@ -1,6 +1,6 @@
 package vibro.navigator.nav.location;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,27 +11,27 @@ public final class NavigationLocationFormatter {
     }
 
     @NonNull
-    public static String format(@Nullable Location location) {
-        if (location == null) {
+    public static String format(@Nullable NavigationLocation NavigationLocation) {
+        if (NavigationLocation == null) {
             return "null";
         }
         StringBuilder sb = new StringBuilder();
-        sb.append(location.getProvider())
+        sb.append(NavigationLocation.getProvider())
                 .append("(")
-                .append(location.getLatitude())
+                .append(NavigationLocation.getLatitude())
                 .append(",")
-                .append(location.getLongitude())
+                .append(NavigationLocation.getLongitude())
                 .append(")");
-        if (location.hasAccuracy()) {
-            sb.append(" acc=").append(location.getAccuracy());
+        if (NavigationLocation.hasAccuracy()) {
+            sb.append(" acc=").append(NavigationLocation.getAccuracy());
         }
-        if (location.hasSpeed()) {
-            sb.append(" speed=").append(location.getSpeed());
+        if (NavigationLocation.hasSpeed()) {
+            sb.append(" speed=").append(NavigationLocation.getSpeed());
         }
-        if (location.hasBearing()) {
-            sb.append(" bearing=").append(location.getBearing());
+        if (NavigationLocation.hasBearing()) {
+            sb.append(" bearing=").append(NavigationLocation.getBearing());
         }
-        sb.append(" time=").append(location.getTime());
+        sb.append(" time=").append(NavigationLocation.getTime());
         return sb.toString();
     }
 }

@@ -1,63 +1,58 @@
 package vibro.navigator.nav.location;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.robolectric.Shadows.shadowOf;
 
-import android.Manifest;
-import android.app.Application;
-import android.content.Context;
-import android.location.LocationManager;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
+import androidx.annotation.Nullable;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-@RunWith(RobolectricTestRunner.class)
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public class NavigationLocationUpdateRequesterTest {
+    private static final String GPS_PROVIDER = "gps";
+    private static final String NETWORK_PROVIDER = "network";
 
     @Test
     public void request_whenFusedEnabled_requestsFusedAndLegacyProvidersInParallel() {
-        Application context = preparedContext();
-        LocationManager locationManager = locationManager(context);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER, NETWORK_PROVIDER);
         FakeFusedLocationUpdateClient fused = new FakeFusedLocationUpdateClient(true);
-        NavigationLocationUpdateRequester requester = requester(context, locationManager, fused);
+        NavigationLocationUpdateRequester requester = requester(provider, fused);
 
         NavigationLocationUpdateRequester.Result result = requester.request(1_000L, true, -1L, null);
 
         assertTrue(result.hasActiveRequest());
         assertEquals("fused+gps+network", result.activeProviderSummary());
         assertEquals(1, fused.requestUpdatesCount);
-        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).size());
-        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.NETWORK_PROVIDER).size());
+        assertEquals(Arrays.asList(GPS_PROVIDER, NETWORK_PROVIDER), provider.requestedProviders);
+        assertEquals(1_000L, provider.requestedMinTimeMs);
     }
 
     @Test
     public void request_whenFusedRequestFails_keepsLegacyProvidersActive() {
-        Application context = preparedContext();
-        LocationManager locationManager = locationManager(context);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER, NETWORK_PROVIDER);
         FakeFusedLocationUpdateClient fused = new FakeFusedLocationUpdateClient(false);
-        NavigationLocationUpdateRequester requester = requester(context, locationManager, fused);
+        NavigationLocationUpdateRequester requester = requester(provider, fused);
 
         NavigationLocationUpdateRequester.Result result = requester.request(1_000L, true, -1L, null);
 
         assertTrue(result.hasActiveRequest());
         assertEquals("gps+network", result.activeProviderSummary());
         assertEquals(1, fused.requestUpdatesCount);
-        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).size());
-        assertEquals(1, shadowOf(locationManager).getLegacyLocationRequests(LocationManager.NETWORK_PROVIDER).size());
+        assertEquals(Arrays.asList(GPS_PROVIDER, NETWORK_PROVIDER), provider.requestedProviders);
     }
 
     @Test
     public void request_whenProviderSummaryMatches_reusesExistingSubscription() {
-        Application context = preparedContext();
-        LocationManager locationManager = locationManager(context);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER, NETWORK_PROVIDER);
         FakeFusedLocationUpdateClient fused = new FakeFusedLocationUpdateClient(true);
-        NavigationLocationUpdateRequester requester = requester(context, locationManager, fused);
+        NavigationLocationUpdateRequester requester = requester(provider, fused);
 
         NavigationLocationUpdateRequester.Result result =
                 requester.request(1_000L, true, 1_000L, "fused+gps+network");
@@ -65,48 +60,102 @@ public class NavigationLocationUpdateRequesterTest {
         assertTrue(result.hasActiveRequest());
         assertEquals("fused+gps+network", result.activeProviderSummary());
         assertEquals(0, fused.requestUpdatesCount);
-        assertTrue(shadowOf(locationManager).getLegacyLocationRequests(LocationManager.GPS_PROVIDER).isEmpty());
-        assertTrue(shadowOf(locationManager).getLegacyLocationRequests(LocationManager.NETWORK_PROVIDER).isEmpty());
-    }
-
-    @NonNull
-    private static Application preparedContext() {
-        Application context = ApplicationProvider.getApplicationContext();
-        shadowOf(context).grantPermissions(
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-        );
-        LocationManager locationManager = locationManager(context);
-        shadowOf(locationManager).setProviderEnabled(LocationManager.GPS_PROVIDER, true);
-        shadowOf(locationManager).setProviderEnabled(LocationManager.NETWORK_PROVIDER, true);
-        return context;
-    }
-
-    @NonNull
-    private static LocationManager locationManager(@NonNull Context context) {
-        return (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        assertTrue(provider.requestedProviders.isEmpty());
     }
 
     @NonNull
     private static NavigationLocationUpdateRequester requester(
-            @NonNull Context context,
-            @NonNull LocationManager locationManager,
+            @NonNull NavigationLocationProvider provider,
             @NonNull FusedLocationUpdateClient fused
     ) {
-        NavigationLocationProviderAccess providerAccess = new NavigationLocationProviderAccess(
-                context,
-                locationManager,
-                location -> {
-                }
-        );
         return new NavigationLocationUpdateRequester(
-                providerAccess,
+                provider,
                 fused,
-                new NavigationGnssStatusTracker(locationManager),
+                new FakeGnssTracker(),
                 () -> {
                 },
                 () -> "test availability"
         );
+    }
+
+    private static final class FakeLocationProvider implements NavigationLocationProvider {
+        @NonNull
+        private final List<String> enabledProviders;
+        @NonNull
+        private List<String> requestedProviders = Collections.emptyList();
+        private long requestedMinTimeMs = -1L;
+
+        FakeLocationProvider(@NonNull String... enabledProviders) {
+            this.enabledProviders = Arrays.asList(enabledProviders);
+        }
+
+        @Override
+        public boolean hasFineLocationPermission() {
+            return true;
+        }
+
+        @Override
+        public boolean hasCoarseLocationPermission() {
+            return true;
+        }
+
+        @NonNull
+        @Override
+        public List<String> enabledPermittedProviders(boolean fineGranted, boolean coarseGranted) {
+            return enabledProviders;
+        }
+
+        @NonNull
+        @Override
+        public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
+            requestedProviders = new ArrayList<>(providers);
+            requestedMinTimeMs = minTimeMs;
+            return new ArrayList<>(providers);
+        }
+
+        @Nullable
+        @Override
+        public NavigationLocation getLastKnownLocationQuietly(@NonNull String provider) {
+            return null;
+        }
+
+        @Override
+        public void requestCurrentLocationSeeds(boolean fineGranted, boolean coarseGranted) {
+        }
+
+        @Override
+        public void requestSeedForEnabledProvider(@NonNull String provider) {
+        }
+
+        @Override
+        public void cancelPendingCurrentLocationRequests() {
+        }
+
+        @Override
+        public void removeUpdates() {
+        }
+
+        @NonNull
+        @Override
+        public String describeAvailability() {
+            return "fake provider";
+        }
+    }
+
+    private static final class FakeGnssTracker implements NavigationGnssTracker {
+        @Nullable
+        @Override
+        public Integer getFixedSatelliteCount() {
+            return null;
+        }
+
+        @Override
+        public void updateForRequestedProviders(@NonNull List<String> requestedProviders) {
+        }
+
+        @Override
+        public void reset() {
+        }
     }
 
     private static final class FakeFusedLocationUpdateClient implements FusedLocationUpdateClient {

@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -22,6 +21,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import vibro.navigator.android.location.AndroidMapPickerLocationController;
+import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.logging.AppLogger;
 
@@ -59,7 +60,7 @@ public final class MapPickerActivity extends Activity {
     @Nullable
     private Poi initialPoi;
     @Nullable
-    private MapPickerLocationController locationController;
+    private AndroidMapPickerLocationController locationController;
     @Nullable
     private MapPoiOverlayController poiOverlayController;
 
@@ -75,11 +76,11 @@ public final class MapPickerActivity extends Activity {
         ImageButton mapCurrentLocationButton = findViewById(R.id.mapCurrentLocationButton);
         ImageButton mapCancelButton = findViewById(R.id.mapCancelButton);
         ImageButton mapUseSelectionButton = findViewById(R.id.mapUseSelectionButton);
-        locationController = new MapPickerLocationController(
+        locationController = new AndroidMapPickerLocationController(
                 this,
-                new MapPickerLocationController.Callback() {
+                new AndroidMapPickerLocationController.Callback() {
                     @Override
-                    public void onCurrentLocation(@NonNull Location location, boolean selectPoint) {
+                    public void onCurrentLocation(@NonNull NavigationLocation location, boolean selectPoint) {
                         showCurrentLocation(location, selectPoint);
                     }
 
@@ -276,7 +277,7 @@ public final class MapPickerActivity extends Activity {
         }
     }
 
-    private void showCurrentLocation(@NonNull Location location, boolean selectPoint) {
+    private void showCurrentLocation(@NonNull NavigationLocation location, boolean selectPoint) {
         Poi poi = poiForCoordinates(location.getLatitude(), location.getLongitude());
         if (selectPoint) {
             selectedPoi = poi;

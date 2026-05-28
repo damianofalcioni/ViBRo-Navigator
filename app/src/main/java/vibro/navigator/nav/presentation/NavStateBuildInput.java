@@ -1,7 +1,7 @@
 package vibro.navigator.nav.presentation;
 
 import android.content.Context;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,7 +23,7 @@ public final class NavStateBuildInput {
     @NonNull
     public final PolylineIndex index;
     @NonNull
-    public final Location currentLocation;
+    public final NavigationLocation currentLocation;
     @NonNull
     public final Context context;
     @NonNull
@@ -64,7 +64,7 @@ public final class NavStateBuildInput {
             @NonNull Context context,
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
-            @NonNull Location currentLocation
+            @NonNull NavigationLocation currentLocation
     ) {
         return new Builder(context, route, index, currentLocation);
     }
@@ -145,7 +145,7 @@ public final class NavStateBuildInput {
         @NonNull
         private final PolylineIndex index;
         @NonNull
-        private final Location currentLocation;
+        private final NavigationLocation currentLocation;
         @NonNull
         private RouteProgress routeProgress = new RouteProgress(0.0, 0, 0);
         @NonNull
@@ -167,7 +167,7 @@ public final class NavStateBuildInput {
                 @NonNull Context context,
                 @NonNull GeoJsonRoute route,
                 @NonNull PolylineIndex index,
-                @NonNull Location currentLocation
+                @NonNull NavigationLocation currentLocation
         ) {
             this.context = context;
             this.route = route;

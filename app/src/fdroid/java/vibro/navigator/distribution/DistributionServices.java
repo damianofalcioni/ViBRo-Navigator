@@ -1,13 +1,15 @@
 package vibro.navigator.distribution;
 
 import android.content.Context;
-import android.location.LocationListener;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.location.NoOpFusedLocationDiagnosticClient;
+import vibro.navigator.android.location.NoOpFusedLocationUpdateClient;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
+import vibro.navigator.nav.location.NavigationLocationListener;
 import vibro.navigator.poi.search.PoiSearchClient;
 
 public final class DistributionServices {
@@ -41,7 +43,7 @@ public final class DistributionServices {
     @NonNull
     public static FusedLocationUpdateClient createFusedLocationUpdateClient(
             @NonNull Context context,
-            @NonNull LocationListener listener
+            @NonNull NavigationLocationListener listener
     ) {
         return new NoOpFusedLocationUpdateClient();
     }
@@ -54,43 +56,5 @@ public final class DistributionServices {
     @Nullable
     public static PoiSearchClient createGooglePoiSearchClient(@NonNull Context context) {
         return null;
-    }
-
-    private static final class NoOpFusedLocationDiagnosticClient implements FusedLocationDiagnosticClient {
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public void requestLastKnownLocation(@NonNull Callback callback) {
-            callback.onFailure("unavailable");
-        }
-    }
-
-    private static final class NoOpFusedLocationUpdateClient implements FusedLocationUpdateClient {
-        @Override
-        public boolean isAvailable() {
-            return false;
-        }
-
-        @Override
-        public boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted) {
-            return false;
-        }
-
-        @Override
-        public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
-        }
-
-        @Override
-        public void removeUpdates() {
-        }
-
-        @NonNull
-        @Override
-        public String describeAvailability() {
-            return "fusedLocation=false";
-        }
     }
 }

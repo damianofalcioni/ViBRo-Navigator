@@ -1,8 +1,6 @@
 package vibro.navigator.about;
 
 import android.hardware.SensorManager;
-import android.location.Location;
-import android.os.Build;
 import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
@@ -10,13 +8,15 @@ import androidx.annotation.Nullable;
 
 import java.util.Locale;
 
+import vibro.navigator.nav.location.NavigationLocation;
+
 final class AboutSensorValueFormatter {
 
     private AboutSensorValueFormatter() {
     }
 
     @NonNull
-    static String describeLocationValue(@NonNull Location location, @Nullable Integer fixedSatelliteCount) {
+    static String describeLocationValue(@NonNull NavigationLocation location, @Nullable Integer fixedSatelliteCount) {
         return describeLocationValue(
                 toSnapshot(location),
                 fixedSatelliteCount,
@@ -180,7 +180,7 @@ final class AboutSensorValueFormatter {
     }
 
     @NonNull
-    private static LocationSnapshot toSnapshot(@NonNull Location location) {
+    private static LocationSnapshot toSnapshot(@NonNull NavigationLocation location) {
         return new LocationSnapshot(
                 location.getLatitude(),
                 location.getLongitude(),
@@ -194,11 +194,8 @@ final class AboutSensorValueFormatter {
     }
 
     @Nullable
-    private static Float bearingAccuracyDegrees(@NonNull Location location) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasBearingAccuracy()) {
-            return location.getBearingAccuracyDegrees();
-        }
-        return null;
+    private static Float bearingAccuracyDegrees(@NonNull NavigationLocation location) {
+        return location.hasBearingAccuracy() ? location.getBearingAccuracyDegrees() : null;
     }
 
     static final class LocationSnapshot {

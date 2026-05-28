@@ -1,6 +1,6 @@
 package vibro.navigator.nav.session;
 
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -112,7 +112,7 @@ final class CompassDisplayMemory {
     void rememberCompassState(
             @NonNull NavState state,
             long nowMs,
-            @Nullable Location lastFiltered,
+            @Nullable NavigationLocation lastFiltered,
             boolean likelyStationary
     ) {
         if (state.routeStatus.compassState == null) {

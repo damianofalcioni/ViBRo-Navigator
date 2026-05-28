@@ -2,7 +2,7 @@ package vibro.navigator.nav.route;
 
 
 import vibro.navigator.nav.orientation.NavigationExpectedBearingResolver;
-import android.location.Location;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -60,18 +60,18 @@ public final class NavigationRouteGeometryState {
     }
 
     @Nullable
-    public PolylineIndex.Match match(@NonNull Location location) {
+    public PolylineIndex.Match match(@NonNull NavigationLocation NavigationLocation) {
         if (polylineIndex == null) {
             return null;
         }
         return polylineIndex.match(
-                new LatLon(location.getLatitude(), location.getLongitude()),
+                new LatLon(NavigationLocation.getLatitude(), NavigationLocation.getLongitude()),
                 lastSegmentIndex
         );
     }
 
     @Nullable
-    public Double currentSegmentBearingDegrees(@Nullable Location lastFiltered) {
+    public Double currentSegmentBearingDegrees(@Nullable NavigationLocation lastFiltered) {
         if (lastFiltered == null || isRouteUnavailable()) {
             return null;
         }
@@ -87,14 +87,14 @@ public final class NavigationRouteGeometryState {
         return RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters);
     }
 
-    public boolean isWithinDestinationReachedRadius(@NonNull Location location, float accuracyMeters) {
+    public boolean isWithinDestinationReachedRadius(@NonNull NavigationLocation NavigationLocation, float accuracyMeters) {
         if (route == null || route.track.isEmpty()) {
             return false;
         }
         LatLon destination = route.track.get(route.track.size() - 1);
         double destinationDistanceMeters = GeoMath.distanceMeters(
-                location.getLatitude(),
-                location.getLongitude(),
+                NavigationLocation.getLatitude(),
+                NavigationLocation.getLongitude(),
                 destination.lat,
                 destination.lon
         );
