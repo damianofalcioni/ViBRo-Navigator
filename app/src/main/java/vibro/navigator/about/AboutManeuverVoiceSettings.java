@@ -1,8 +1,6 @@
 package vibro.navigator.about;
 
 import android.app.Activity;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.Voice;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
@@ -13,9 +11,10 @@ import androidx.annotation.Nullable;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsClient;
+import vibro.navigator.nav.voice.NavigationVoiceOption;
 import vibro.navigator.settings.AppSettings;
 
 final class AboutManeuverVoiceSettings {
@@ -26,16 +25,14 @@ final class AboutManeuverVoiceSettings {
     @NonNull
     private final Switch enabledSwitch;
     @Nullable
-    private TextToSpeech tts;
+    private NavigationTextToSpeechSettingsClient voiceClient;
     @Nullable
     private AboutManeuverVoiceOptionAdapter voiceAdapter;
     @Nullable
     private Spinner dialogSpinner;
     private boolean renderingVoiceSelection;
     private boolean renderingEnabledSwitch;
-    private boolean initCallbackReceived;
     private boolean voiceListLoaded;
-    private int initStatus = TextToSpeech.ERROR;
 
     AboutManeuverVoiceSettings(
             @NonNull Activity activity,
@@ -47,7 +44,7 @@ final class AboutManeuverVoiceSettings {
         renderOptions(Collections.emptyList());
         configureEnabledSwitch();
         settingsButton.setOnClickListener(v -> showDialog());
-        initializeTextToSpeech();
+        initializeVoiceClient();
     }
 
     void refreshSelection() {
@@ -56,44 +53,33 @@ final class AboutManeuverVoiceSettings {
     }
 
     void shutdown() {
-        if (tts == null) {
+        if (voiceClient == null) {
             return;
         }
-        tts.shutdown();
-        tts = null;
+        voiceClient.shutdown();
+        voiceClient = null;
     }
 
-    private void initializeTextToSpeech() {
+    private void initializeVoiceClient() {
         try {
-            TextToSpeech engine = new TextToSpeech(activity.getApplicationContext(), this::onTextToSpeechInit);
-            tts = engine;
-            handleTextToSpeechInitIfReady();
+            NavigationTextToSpeechSettingsClient client = new NavigationTextToSpeechSettingsClient(
+                    activity.getApplicationContext(),
+                    this::onAvailableVoicesLoaded
+            );
+            voiceClient = client;
+            client.initialize();
         } catch (RuntimeException e) {
-            AppLogger.w(TAG, "Failed to initialize TextToSpeech for voice settings", e);
+            AppLogger.w(TAG, "Failed to initialize maneuver voice settings client", e);
         }
     }
 
-    private void onTextToSpeechInit(int status) {
-        initStatus = status;
-        initCallbackReceived = true;
-        handleTextToSpeechInitIfReady();
-    }
-
-    private void handleTextToSpeechInitIfReady() {
-        if (!initCallbackReceived || tts == null) {
-            return;
-        }
-        if (initStatus != TextToSpeech.SUCCESS) {
-            AppLogger.w(TAG, "TextToSpeech voice listing unavailable status=" + initStatus);
-            return;
-        }
-        Set<Voice> voices = tts.getVoices();
+    private void onAvailableVoicesLoaded(@NonNull List<NavigationVoiceOption> options) {
         voiceListLoaded = true;
-        activity.runOnUiThread(() -> renderOptions(AboutManeuverVoiceOptions.buildAvailable(activity, voices)));
+        activity.runOnUiThread(() -> renderOptions(options));
     }
 
-    private void renderOptions(@NonNull List<VoiceOption> availableVoiceOptions) {
-        List<VoiceOption> options = AboutManeuverVoiceOptions.withBaseOptions(activity, availableVoiceOptions);
+    private void renderOptions(@NonNull List<NavigationVoiceOption> availableVoiceOptions) {
+        List<NavigationVoiceOption> options = AboutManeuverVoiceOptions.withBaseOptions(activity, availableVoiceOptions);
 
         voiceAdapter = new AboutManeuverVoiceOptionAdapter(activity, options);
 
@@ -141,9 +127,9 @@ final class AboutManeuverVoiceSettings {
     }
 
     private void speakSelectedVoicePreview() {
-        VoiceOption selected = AboutManeuverVoiceOptions.selectedVoiceOption(dialogSpinner);
-        if (selected != null) {
-            AboutManeuverVoicePreview.speak(activity, tts, selected.voiceName);
+        NavigationVoiceOption selected = AboutManeuverVoiceOptions.selectedVoiceOption(dialogSpinner);
+        if (selected != null && voiceClient != null) {
+            voiceClient.speakPreview(selected.voiceName);
         }
     }
 
@@ -160,8 +146,8 @@ final class AboutManeuverVoiceSettings {
                     return;
                 }
                 Object selected = parent.getItemAtPosition(position);
-                if (selected instanceof VoiceOption) {
-                    persistSelectedVoiceIfNeeded((VoiceOption) selected);
+                if (selected instanceof NavigationVoiceOption) {
+                    persistSelectedVoiceIfNeeded((NavigationVoiceOption) selected);
                 }
             }
 
@@ -171,7 +157,7 @@ final class AboutManeuverVoiceSettings {
         });
     }
 
-    private void persistSelectedVoiceIfNeeded(@NonNull VoiceOption selected) {
+    private void persistSelectedVoiceIfNeeded(@NonNull NavigationVoiceOption selected) {
         String savedVoiceName = AppSettings.getManeuverVoiceName(activity);
         if (shouldPersistSelectedVoice(voiceListLoaded, savedVoiceName, selected.voiceName)) {
             AppSettings.setManeuverVoiceName(activity, selected.voiceName);
@@ -207,7 +193,7 @@ final class AboutManeuverVoiceSettings {
             return -1;
         }
         for (int i = 0; i < voiceAdapter.getCount(); i++) {
-            VoiceOption option = voiceAdapter.getItem(i);
+            NavigationVoiceOption option = voiceAdapter.getItem(i);
             if (option != null && option.voiceName.equals(voiceName)) {
                 return i;
             }
@@ -230,24 +216,6 @@ final class AboutManeuverVoiceSettings {
     private void updateSelectedVoiceHighlight(@NonNull String voiceName) {
         if (voiceAdapter != null) {
             voiceAdapter.setSelectedVoiceName(voiceName);
-        }
-    }
-
-    static final class VoiceOption {
-        @NonNull
-        final String voiceName;
-        @NonNull
-        final String label;
-
-        VoiceOption(@NonNull String voiceName, @NonNull String label) {
-            this.voiceName = voiceName;
-            this.label = label;
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return label;
         }
     }
 }

@@ -5,8 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.hardware.SensorManager;
-
 import org.junit.Test;
 
 public class StationaryOrientationAdvisorTest {
@@ -19,7 +17,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 10.0,
-                sample(350.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
+                sample(350.0, 0.0, 0.0, HeadingAccuracyStatus.HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -35,7 +33,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 2_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 2_500L),
+                sample(20.0, 0.0, 0.0, HeadingAccuracyStatus.HIGH, 3.0, 2_500L),
                 6_000L
         );
 
@@ -49,7 +47,7 @@ public class StationaryOrientationAdvisorTest {
                 1.2f,
                 1_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
+                sample(20.0, 0.0, 0.0, HeadingAccuracyStatus.HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -63,7 +61,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM, 3.0, 5_500L),
+                sample(20.0, 0.0, 0.0, HeadingAccuracyStatus.MEDIUM, 3.0, 5_500L),
                 6_000L
         );
 
@@ -77,7 +75,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 90.0,
-                sample(20.0, 30.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
+                sample(20.0, 30.0, 0.0, HeadingAccuracyStatus.HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -91,7 +89,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 12.0,
-                sample(2.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 3.0, 5_500L),
+                sample(2.0, 0.0, 0.0, HeadingAccuracyStatus.HIGH, 3.0, 5_500L),
                 6_000L
         );
 
@@ -105,7 +103,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 90.0,
-                sample(70.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, 10.0, 5_500L),
+                sample(70.0, 0.0, 0.0, HeadingAccuracyStatus.HIGH, 10.0, 5_500L),
                 6_000L
         );
 
@@ -123,8 +121,8 @@ public class StationaryOrientationAdvisorTest {
                         20.0,
                         0.0,
                         0.0,
-                        SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
-                        SensorManager.SENSOR_STATUS_ACCURACY_LOW,
+                        HeadingAccuracyStatus.HIGH,
+                        HeadingAccuracyStatus.LOW,
                         5_500L,
                         3.0,
                         5_500L
@@ -146,8 +144,8 @@ public class StationaryOrientationAdvisorTest {
                         20.0,
                         0.0,
                         0.0,
-                        SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
-                        SensorManager.SENSOR_STATUS_ACCURACY_LOW,
+                        HeadingAccuracyStatus.HIGH,
+                        HeadingAccuracyStatus.LOW,
                         500L,
                         3.0,
                         5_500L
@@ -165,7 +163,7 @@ public class StationaryOrientationAdvisorTest {
                 0.0f,
                 1_000L,
                 90.0,
-                sample(20.0, 0.0, 0.0, SensorManager.SENSOR_STATUS_ACCURACY_HIGH, null, 5_500L),
+                sample(20.0, 0.0, 0.0, HeadingAccuracyStatus.HIGH, null, 5_500L),
                 6_000L
         );
 

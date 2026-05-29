@@ -25,7 +25,9 @@ import java.util.Collections;
 import java.util.Locale;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.voice.NavigationManeuverVoiceLabelFormatter;
 import vibro.navigator.nav.voice.NavigationTextToSpeechVoiceAvailability;
+import vibro.navigator.nav.voice.NavigationVoiceOption;
 import vibro.navigator.settings.AppSettings;
 
 @RunWith(RobolectricTestRunner.class)
@@ -128,7 +130,7 @@ public class AboutManeuverVoiceSettingsTest {
 
         assertEquals(
                 voiceLabel(context, Locale.US, "Female 1"),
-                AboutManeuverVoiceLabelFormatter.format(context, voice)
+                NavigationManeuverVoiceLabelFormatter.format(context, voice)
         );
     }
 
@@ -139,7 +141,7 @@ public class AboutManeuverVoiceSettingsTest {
 
         assertEquals(
                 voiceLabel(context, Locale.US, "Male 2"),
-                AboutManeuverVoiceLabelFormatter.format(context, voice)
+                NavigationManeuverVoiceLabelFormatter.format(context, voice)
         );
     }
 
@@ -150,7 +152,7 @@ public class AboutManeuverVoiceSettingsTest {
 
         assertEquals(
                 voiceLabel(context, Locale.US, "Voice IOL"),
-                AboutManeuverVoiceLabelFormatter.format(context, voice)
+                NavigationManeuverVoiceLabelFormatter.format(context, voice)
         );
     }
 
@@ -161,7 +163,7 @@ public class AboutManeuverVoiceSettingsTest {
 
         assertEquals(
                 voiceLabel(context, Locale.US, "Default"),
-                AboutManeuverVoiceLabelFormatter.format(context, voice)
+                NavigationManeuverVoiceLabelFormatter.format(context, voice)
         );
     }
 
@@ -203,8 +205,8 @@ public class AboutManeuverVoiceSettingsTest {
         return new AboutManeuverVoiceOptionAdapter(
                 activity,
                 Arrays.asList(
-                        new AboutManeuverVoiceSettings.VoiceOption(OTHER_VOICE, "Other"),
-                        new AboutManeuverVoiceSettings.VoiceOption(SELECTED_VOICE, "Selected")
+                        new NavigationVoiceOption(OTHER_VOICE, "Other"),
+                        new NavigationVoiceOption(SELECTED_VOICE, "Selected")
                 )
         );
     }

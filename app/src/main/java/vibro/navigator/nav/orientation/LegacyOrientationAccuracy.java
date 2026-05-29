@@ -1,28 +1,26 @@
 package vibro.navigator.nav.orientation;
 
-import android.hardware.SensorManager;
-
 import androidx.annotation.Nullable;
 
-final class LegacyOrientationAccuracy {
+public final class LegacyOrientationAccuracy {
 
-    private int accuracy = SensorManager.SENSOR_STATUS_UNRELIABLE;
+    private int accuracy = HeadingAccuracyStatus.UNRELIABLE;
     private long elapsedRealtimeMs = -1L;
     private boolean hasAccuracy;
 
-    void reset() {
-        accuracy = SensorManager.SENSOR_STATUS_UNRELIABLE;
+    public void reset() {
+        accuracy = HeadingAccuracyStatus.UNRELIABLE;
         elapsedRealtimeMs = -1L;
         hasAccuracy = false;
     }
 
-    void remember(int updatedAccuracy, long nowElapsedRealtimeMs) {
+    public void remember(int updatedAccuracy, long nowElapsedRealtimeMs) {
         accuracy = updatedAccuracy;
         elapsedRealtimeMs = nowElapsedRealtimeMs;
         hasAccuracy = true;
     }
 
-    boolean refreshTimestamp(long nowElapsedRealtimeMs) {
+    public boolean refreshTimestamp(long nowElapsedRealtimeMs) {
         if (!hasAccuracy) {
             return false;
         }
@@ -31,7 +29,7 @@ final class LegacyOrientationAccuracy {
     }
 
     @Nullable
-    Integer freshAccuracy(long nowElapsedRealtimeMs) {
+    public Integer freshAccuracy(long nowElapsedRealtimeMs) {
         if (!hasAccuracy || elapsedRealtimeMs < 0L) {
             return null;
         }
@@ -41,7 +39,7 @@ final class LegacyOrientationAccuracy {
                 : null;
     }
 
-    long freshElapsedRealtimeMs(long nowElapsedRealtimeMs) {
+    public long freshElapsedRealtimeMs(long nowElapsedRealtimeMs) {
         return freshAccuracy(nowElapsedRealtimeMs) == null ? -1L : elapsedRealtimeMs;
     }
 }

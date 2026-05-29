@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import android.hardware.SensorManager;
-
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -160,7 +158,7 @@ public class StationaryOrientationNotifierTest {
                 headingDegrees,
                 0.0,
                 0.0,
-                SensorManager.SENSOR_STATUS_ACCURACY_HIGH,
+                HeadingAccuracyStatus.HIGH,
                 3.0,
                 elapsedRealtimeMs
         );

@@ -1,7 +1,5 @@
 package vibro.navigator.nav.orientation;
 
-import android.hardware.SensorManager;
-
 import androidx.annotation.Nullable;
 
 final class HeadingAccuracyPolicy {
@@ -27,9 +25,9 @@ final class HeadingAccuracyPolicy {
                 legacyOrientationAccuracyElapsedRealtimeMs,
                 nowElapsedRealtimeMs
         );
-        return selectedAccuracy >= SensorManager.SENSOR_STATUS_ACCURACY_HIGH
+        return selectedAccuracy >= HeadingAccuracyStatus.HIGH
                 && (freshLegacyAccuracy == null
-                || freshLegacyAccuracy >= SensorManager.SENSOR_STATUS_ACCURACY_HIGH);
+                || freshLegacyAccuracy >= HeadingAccuracyStatus.HIGH);
     }
 
     @Nullable
@@ -107,13 +105,13 @@ final class HeadingAccuracyPolicy {
     @Nullable
     private static Double statusHeadingAccuracyDegrees(int accuracy, boolean unreliableIsExplicitPoor) {
         switch (accuracy) {
-            case SensorManager.SENSOR_STATUS_ACCURACY_HIGH:
+            case HeadingAccuracyStatus.HIGH:
                 return unreliableIsExplicitPoor ? null : HIGH_HEADING_ACCURACY_DEGREES;
-            case SensorManager.SENSOR_STATUS_ACCURACY_MEDIUM:
+            case HeadingAccuracyStatus.MEDIUM:
                 return MEDIUM_HEADING_ACCURACY_DEGREES;
-            case SensorManager.SENSOR_STATUS_ACCURACY_LOW:
+            case HeadingAccuracyStatus.LOW:
                 return LOW_HEADING_ACCURACY_DEGREES;
-            case SensorManager.SENSOR_STATUS_UNRELIABLE:
+            case HeadingAccuracyStatus.UNRELIABLE:
             default:
                 return unreliableIsExplicitPoor ? UNRELIABLE_LEGACY_HEADING_ACCURACY_DEGREES : null;
         }

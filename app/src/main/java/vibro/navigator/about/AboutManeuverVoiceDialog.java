@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 
 final class AboutManeuverVoiceDialog {
     private AboutManeuverVoiceDialog() {
@@ -142,7 +143,7 @@ final class AboutManeuverVoiceDialog {
         button.setPadding(dp(activity, 18), 0, dp(activity, 16), 0);
         button.setTextColor(Color.WHITE);
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        button.setOnClickListener(v -> AboutTtsSettingsLauncher.open(activity));
+        button.setOnClickListener(v -> NavigationTextToSpeechSettingsLauncher.open(activity));
         return button;
     }
 

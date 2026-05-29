@@ -14,9 +14,10 @@ import androidx.core.content.ContextCompat;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.voice.NavigationVoiceOption;
 
 final class AboutManeuverVoiceOptionAdapter
-        extends ArrayAdapter<AboutManeuverVoiceSettings.VoiceOption> {
+        extends ArrayAdapter<NavigationVoiceOption> {
     @NonNull
     private final Context context;
     @NonNull
@@ -24,7 +25,7 @@ final class AboutManeuverVoiceOptionAdapter
 
     AboutManeuverVoiceOptionAdapter(
             @NonNull Context context,
-            @NonNull List<AboutManeuverVoiceSettings.VoiceOption> options
+            @NonNull List<NavigationVoiceOption> options
     ) {
         super(context, R.layout.item_profile_spinner, options);
         this.context = context;
@@ -58,7 +59,7 @@ final class AboutManeuverVoiceOptionAdapter
         return view;
     }
 
-    private boolean isSelectedVoice(@Nullable AboutManeuverVoiceSettings.VoiceOption option) {
+    private boolean isSelectedVoice(@Nullable NavigationVoiceOption option) {
         return option != null && option.voiceName.equals(selectedVoiceName);
     }
 

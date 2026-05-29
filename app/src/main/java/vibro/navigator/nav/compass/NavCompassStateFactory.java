@@ -1,17 +1,15 @@
 package vibro.navigator.nav.compass;
 
-
-import vibro.navigator.nav.guidance.RouteDeviationPolicy;
-import vibro.navigator.nav.format.NavigationTextFormatter;
 import android.content.Context;
-import vibro.navigator.nav.location.NavigationLocation;
-import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextFormatter;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -77,7 +75,6 @@ public final class NavCompassStateFactory {
     @Nullable
     private static Float bearingAccuracyDegrees(@Nullable NavigationLocation currentLocation) {
         return currentLocation != null
-                && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O
                 && currentLocation.hasBearingAccuracy()
                 ? currentLocation.getBearingAccuracyDegrees()
                 : null;

@@ -25,6 +25,7 @@ import androidx.test.core.app.ApplicationProvider;
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 import vibro.navigator.settings.AppSettings;
 
@@ -348,7 +349,7 @@ public class AboutLoggingSettingsRobolectricTest {
         ttsSettingsButton.performClick();
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();
-        assertEquals(AboutTtsSettingsLauncher.ACTION_TTS_SETTINGS, startedIntent.getAction());
+        assertEquals(NavigationTextToSpeechSettingsLauncher.ACTION_TTS_SETTINGS, startedIntent.getAction());
     }
 
     @Test

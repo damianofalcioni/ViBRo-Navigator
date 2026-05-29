@@ -1,7 +1,5 @@
 package vibro.navigator.nav.orientation;
 
-import android.view.Surface;
-
 import androidx.annotation.Nullable;
 
 public final class NavigationDisplayHeading {
@@ -57,13 +55,13 @@ public final class NavigationDisplayHeading {
 
     private static double rotationOffsetDegrees(int displayRotation) {
         switch (displayRotation) {
-            case Surface.ROTATION_90:
+            case DisplayRotation.ROTATION_90:
                 return 90.0;
-            case Surface.ROTATION_180:
+            case DisplayRotation.ROTATION_180:
                 return 180.0;
-            case Surface.ROTATION_270:
+            case DisplayRotation.ROTATION_270:
                 return 270.0;
-            case Surface.ROTATION_0:
+            case DisplayRotation.ROTATION_0:
             default:
                 return 0.0;
         }

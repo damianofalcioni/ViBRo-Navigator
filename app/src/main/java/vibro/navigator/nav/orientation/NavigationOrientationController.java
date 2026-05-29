@@ -1,19 +1,17 @@
 package vibro.navigator.nav.orientation;
 
-
-import vibro.navigator.nav.foreground.NavigationForegroundController;
-import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
-import android.hardware.display.DisplayManager;
 import android.os.Handler;
-import android.view.Display;
-import android.view.Surface;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.display.AndroidDisplayRotationProvider;
+import vibro.navigator.android.sensor.AndroidGeomagneticOrientationMonitor;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassOrientationCue;
+import vibro.navigator.nav.foreground.NavigationForegroundController;
+import vibro.navigator.nav.session.NavigationSession;
 
 public final class NavigationOrientationController {
 
@@ -28,10 +26,10 @@ public final class NavigationOrientationController {
     private static final String TAG = "NavigationOrientation";
     private static final long MIN_COMPASS_UI_UPDATE_INTERVAL_MS = 100L;
 
-    private final Context context;
     private final Handler uiHandler;
     private final CompassUiState compassUiState;
-    private final GeomagneticOrientationMonitor orientationMonitor;
+    private final NavigationHeadingMonitor orientationMonitor;
+    private final DisplayRotationProvider displayRotationProvider;
     private final StationaryOrientationNotifier stationaryOrientationNotifier =
             new StationaryOrientationNotifier(new StationaryOrientationAdvisor());
 
@@ -43,10 +41,10 @@ public final class NavigationOrientationController {
             @NonNull Handler uiHandler,
             @NonNull CompassUiState compassUiState
     ) {
-        this.context = context;
         this.uiHandler = uiHandler;
         this.compassUiState = compassUiState;
-        orientationMonitor = new GeomagneticOrientationMonitor(context, sample -> onGeomagneticSampleUpdated());
+        orientationMonitor = new AndroidGeomagneticOrientationMonitor(context, sample -> onGeomagneticSampleUpdated());
+        displayRotationProvider = new AndroidDisplayRotationProvider(context);
     }
 
     public void start() {
@@ -142,14 +140,6 @@ public final class NavigationOrientationController {
     }
 
     private int currentDisplayRotation() {
-        DisplayManager displayManager = (DisplayManager) context.getSystemService(Context.DISPLAY_SERVICE);
-        if (displayManager == null) {
-            return Surface.ROTATION_0;
-        }
-        Display defaultDisplay = displayManager.getDisplay(Display.DEFAULT_DISPLAY);
-        if (defaultDisplay == null) {
-            return Surface.ROTATION_0;
-        }
-        return defaultDisplay.getRotation();
+        return displayRotationProvider.currentDisplayRotation();
     }
 }
