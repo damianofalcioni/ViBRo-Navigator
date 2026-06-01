@@ -3,7 +3,7 @@ package vibro.navigator.nav.orientation;
 
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
-import android.os.SystemClock;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,9 +23,15 @@ public final class NavigationCompassModeController {
     @Nullable
     private Float lastResolvedVisibleRadiusMeters;
     private long lastRadiusTransitionUpdateElapsedMs = NO_UPDATE_TIME;
+    @NonNull
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
+
+    public NavigationCompassModeController(@NonNull ElapsedRealtimeClock elapsedRealtimeClock) {
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
+    }
 
     public void onCompassTapped(@Nullable NavCompassState automaticState) {
-        onCompassTapped(automaticState, SystemClock.elapsedRealtime());
+        onCompassTapped(automaticState, elapsedRealtimeClock.elapsedRealtimeMs());
     }
 
     public void onCompassTapped(@Nullable NavCompassState automaticState, long nowElapsedMs) {
@@ -48,7 +54,7 @@ public final class NavigationCompassModeController {
 
     @Nullable
     public NavCompassState resolve(@Nullable NavCompassState automaticState) {
-        return resolve(automaticState, SystemClock.elapsedRealtime());
+        return resolve(automaticState, elapsedRealtimeClock.elapsedRealtimeMs());
     }
 
     @Nullable

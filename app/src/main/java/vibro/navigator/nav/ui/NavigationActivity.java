@@ -3,6 +3,7 @@ package vibro.navigator.nav.ui;
 import vibro.navigator.R;
 
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -91,7 +92,7 @@ public class NavigationActivity extends Activity {
         backHandler = new NavigationActivityBackHandler(this, lifecyclePolicy, this::runLegacyBackFallback);
         backHandler.registerPredictiveBackCallbackIfSupported();
 
-        renderer = new NavigationActivityRenderer(this, uiHandler);
+        renderer = new NavigationActivityRenderer(this, uiHandler, AndroidElapsedRealtimeClock.INSTANCE);
         render(NavStateComposer.waiting(this));
         configureControls();
 

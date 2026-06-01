@@ -12,6 +12,7 @@ import androidx.car.app.CarContext;
 import androidx.car.app.SurfaceCallback;
 import androidx.car.app.SurfaceContainer;
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
 
@@ -42,7 +43,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private boolean renderPosted;
 
     ViBRoAutoSurfaceRenderer(@NonNull CarContext carContext, @NonNull Controls controls) {
-        painter = new ViBRoAutoSurfacePainter(carContext, controls);
+        painter = new ViBRoAutoSurfacePainter(carContext, controls, AndroidElapsedRealtimeClock.INSTANCE);
     }
 
     void setState(@Nullable NavState state) {

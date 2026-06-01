@@ -3,7 +3,6 @@ package vibro.navigator.auto;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
-import android.os.SystemClock;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.TypedValue;
@@ -14,19 +13,23 @@ import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class ViBRoAutoTextColumnPainter {
 
     private final CarContext carContext;
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint ellipsizePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final ViBRoAutoButtonRow buttonRow;
 
     ViBRoAutoTextColumnPainter(
             @NonNull CarContext carContext,
-            @NonNull ViBRoAutoSurfaceRenderer.Controls controls
+            @NonNull ViBRoAutoSurfaceRenderer.Controls controls,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         this.carContext = carContext;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
         buttonRow = new ViBRoAutoButtonRow(carContext, controls);
         textPaint.setColor(ContextCompat.getColor(carContext, R.color.white));
         textPaint.setSubpixelText(true);
@@ -131,7 +134,7 @@ final class ViBRoAutoTextColumnPainter {
     @NonNull
     private String nextEvaluationValue(@NonNull NavState state) {
         long deadline = state.gpsStatus.nextEvaluationDeadlineElapsedMs;
-        long remainingMs = Math.max(0L, deadline - SystemClock.elapsedRealtime());
+        long remainingMs = Math.max(0L, deadline - elapsedRealtimeClock.elapsedRealtimeMs());
         if (deadline == NavState.NO_DEADLINE || remainingMs <= 0L) {
             return carContext.getString(R.string.nav_status_unavailable);
         }

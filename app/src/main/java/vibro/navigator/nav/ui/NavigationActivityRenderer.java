@@ -11,9 +11,9 @@ import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.RouteSpeedLimit;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import android.app.Activity;
 import android.os.Handler;
-import android.os.SystemClock;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -51,7 +51,8 @@ final class NavigationActivityRenderer {
 
     private final Activity activity;
     private final Handler uiHandler;
-    private final NavigationCompassModeController compassModeController = new NavigationCompassModeController();
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
+    private final NavigationCompassModeController compassModeController;
     private final TextView next;
     private final TextView afterNext;
     private final TextView destination;
@@ -68,9 +69,15 @@ final class NavigationActivityRenderer {
     private NavState currentState;
     private String lastRenderedStateKey = "";
 
-    NavigationActivityRenderer(@NonNull Activity activity, @NonNull Handler uiHandler) {
+    NavigationActivityRenderer(
+            @NonNull Activity activity,
+            @NonNull Handler uiHandler,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
+    ) {
         this.activity = activity;
         this.uiHandler = uiHandler;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
+        compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         next = activity.findViewById(R.id.nextDirectionText);
         afterNext = activity.findViewById(R.id.afterNextDirectionText);
         destination = activity.findViewById(R.id.destinationText);
@@ -126,7 +133,7 @@ final class NavigationActivityRenderer {
         }
         String nextEvaluationValue = activity.getString(R.string.nav_status_unavailable);
         long nextEvaluationDeadlineElapsedMs = currentState.gpsStatus.nextEvaluationDeadlineElapsedMs;
-        long remainingMs = Math.max(0L, nextEvaluationDeadlineElapsedMs - SystemClock.elapsedRealtime());
+        long remainingMs = Math.max(0L, nextEvaluationDeadlineElapsedMs - elapsedRealtimeClock.elapsedRealtimeMs());
         if (nextEvaluationDeadlineElapsedMs != NavState.NO_DEADLINE && remainingMs > 0L) {
             long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
             nextEvaluationValue = activity.getString(R.string.format_nav_next_position_check_value, remainingSeconds);

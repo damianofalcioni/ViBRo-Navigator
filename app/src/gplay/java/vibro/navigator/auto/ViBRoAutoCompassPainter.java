@@ -11,18 +11,21 @@ import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.ui.NavigationCompassView;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class ViBRoAutoCompassPainter {
 
-    private final NavigationCompassModeController compassModeController = new NavigationCompassModeController();
+    private final NavigationCompassModeController compassModeController;
     private final NavigationCompassView compassView;
     private final ViBRoAutoCompassOverlayPainter overlayPainter;
     private final RectF bounds = new RectF();
 
     ViBRoAutoCompassPainter(
             @NonNull CarContext carContext,
-            @NonNull ViBRoAutoSurfaceRenderer.Controls controls
+            @NonNull ViBRoAutoSurfaceRenderer.Controls controls,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
+        compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         compassView = new NavigationCompassView(carContext);
         overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
     }

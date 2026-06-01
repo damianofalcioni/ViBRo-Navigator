@@ -5,6 +5,7 @@ import android.os.Handler;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.location.AndroidNavigationLocationControllerFactory;
+import vibro.navigator.android.orientation.AndroidNavigationOrientationControllerFactory;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.orientation.NavigationOrientationController;
@@ -35,7 +36,7 @@ final class NavigationTrackingRuntime {
                 service,
                 locationHandler
         );
-        NavigationOrientationController orientationController = new NavigationOrientationController(
+        NavigationOrientationController orientationController = AndroidNavigationOrientationControllerFactory.create(
                 service,
                 handler,
                 uiVisibility

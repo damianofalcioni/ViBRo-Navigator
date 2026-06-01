@@ -19,7 +19,7 @@ public class NavigationCompassModeControllerTest {
 
     @Test
     public void tapWhileStationarySmoothlyTogglesBetweenFullRouteAndSixtySecondView() {
-        NavigationCompassModeController controller = new NavigationCompassModeController();
+        NavigationCompassModeController controller = newController();
         NavCompassState automaticState = stationaryState();
 
         NavCompassState initialState = controller.resolve(automaticState, 1_000L);
@@ -60,7 +60,7 @@ public class NavigationCompassModeControllerTest {
 
     @Test
     public void tapWhileMovingShowsFullRouteTemporarilyThenSmoothlyRestoresSixtySecondView() {
-        NavigationCompassModeController controller = new NavigationCompassModeController();
+        NavigationCompassModeController controller = newController();
         NavCompassState automaticState = movingState();
 
         controller.onCompassTapped(automaticState, 1_000L);
@@ -86,7 +86,7 @@ public class NavigationCompassModeControllerTest {
 
     @Test
     public void secondTapWhileMovingClearsTemporaryFullRouteOverrideWithSmoothRadiusRestore() {
-        NavigationCompassModeController controller = new NavigationCompassModeController();
+        NavigationCompassModeController controller = newController();
         NavCompassState automaticState = movingState();
 
         controller.onCompassTapped(automaticState, 1_000L);
@@ -106,7 +106,7 @@ public class NavigationCompassModeControllerTest {
 
     @Test
     public void manualStationarySixtySecondOverrideClearsOnceAutomaticMovingViewMatchesIt() {
-        NavigationCompassModeController controller = new NavigationCompassModeController();
+        NavigationCompassModeController controller = newController();
 
         controller.onCompassTapped(stationaryState(), 1_000L);
         NavCompassState resolvedState = controller.resolve(movingState(), 2_000L);
@@ -121,6 +121,10 @@ public class NavigationCompassModeControllerTest {
 
     private static NavCompassState movingState() {
         return compassState(true, 2_000f, 300f, 5f, 5f);
+    }
+
+    private static NavigationCompassModeController newController() {
+        return new NavigationCompassModeController(() -> 0L);
     }
 
     private static NavCompassState compassState(

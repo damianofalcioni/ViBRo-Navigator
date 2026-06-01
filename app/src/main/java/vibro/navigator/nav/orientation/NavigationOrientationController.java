@@ -1,19 +1,24 @@
 package vibro.navigator.nav.orientation;
 
-import android.content.Context;
-import android.os.Handler;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.display.AndroidDisplayRotationProvider;
-import vibro.navigator.android.sensor.AndroidGeomagneticOrientationMonitor;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 public final class NavigationOrientationController {
+
+    public interface HeadingMonitorFactory {
+        @NonNull
+        NavigationHeadingMonitor create(@NonNull GeomagneticOrientationMonitor.Callback callback);
+    }
+
+    public interface UiDispatcher {
+        void post(@NonNull Runnable runnable);
+    }
 
     public interface CompassUiState {
         boolean shouldDispatchCompassUi();
@@ -26,10 +31,11 @@ public final class NavigationOrientationController {
     private static final String TAG = "NavigationOrientation";
     private static final long MIN_COMPASS_UI_UPDATE_INTERVAL_MS = 100L;
 
-    private final Handler uiHandler;
     private final CompassUiState compassUiState;
     private final NavigationHeadingMonitor orientationMonitor;
     private final DisplayRotationProvider displayRotationProvider;
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
+    private final UiDispatcher uiDispatcher;
     private final StationaryOrientationNotifier stationaryOrientationNotifier =
             new StationaryOrientationNotifier(new StationaryOrientationAdvisor());
 
@@ -37,14 +43,17 @@ public final class NavigationOrientationController {
     private boolean monitoringActive;
 
     public NavigationOrientationController(
-            @NonNull Context context,
-            @NonNull Handler uiHandler,
+            @NonNull HeadingMonitorFactory headingMonitorFactory,
+            @NonNull DisplayRotationProvider displayRotationProvider,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock,
+            @NonNull UiDispatcher uiDispatcher,
             @NonNull CompassUiState compassUiState
     ) {
-        this.uiHandler = uiHandler;
         this.compassUiState = compassUiState;
-        orientationMonitor = new AndroidGeomagneticOrientationMonitor(context, sample -> onGeomagneticSampleUpdated());
-        displayRotationProvider = new AndroidDisplayRotationProvider(context);
+        this.displayRotationProvider = displayRotationProvider;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
+        this.uiDispatcher = uiDispatcher;
+        orientationMonitor = headingMonitorFactory.create(sample -> onGeomagneticSampleUpdated());
     }
 
     public void start() {
@@ -83,7 +92,7 @@ public final class NavigationOrientationController {
                 navigationSession.lastFilteredSpeedMps(),
                 navigationSession.currentRouteBearingDegrees(),
                 orientationMonitor.getLatestSample(),
-                android.os.SystemClock.elapsedRealtime(),
+                elapsedRealtimeClock.elapsedRealtimeMs(),
                 foregroundController::sendStationaryOrientationNotification
         );
     }
@@ -98,7 +107,7 @@ public final class NavigationOrientationController {
         return NavigationDisplayHeading.headingDegrees(
                 orientationMonitor.getLatestSample(),
                 monitoringActive,
-                android.os.SystemClock.elapsedRealtime(),
+                elapsedRealtimeClock.elapsedRealtimeMs(),
                 currentDisplayRotation()
         );
     }
@@ -108,7 +117,7 @@ public final class NavigationOrientationController {
         return NavigationDisplayHeading.headingAccuracyDegrees(
                 orientationMonitor.getLatestSample(),
                 monitoringActive,
-                android.os.SystemClock.elapsedRealtime()
+                elapsedRealtimeClock.elapsedRealtimeMs()
         );
     }
 
@@ -131,12 +140,12 @@ public final class NavigationOrientationController {
         if (!compassUiState.shouldDispatchCompassUi() || !compassUiState.hasStateListeners()) {
             return;
         }
-        long nowElapsedRealtimeMs = android.os.SystemClock.elapsedRealtime();
+        long nowElapsedRealtimeMs = elapsedRealtimeClock.elapsedRealtimeMs();
         if (nowElapsedRealtimeMs - lastCompassUiUpdateElapsedRealtimeMs < MIN_COMPASS_UI_UPDATE_INTERVAL_MS) {
             return;
         }
         lastCompassUiUpdateElapsedRealtimeMs = nowElapsedRealtimeMs;
-        uiHandler.post(compassUiState::requestStateRefresh);
+        uiDispatcher.post(compassUiState::requestStateRefresh);
     }
 
     private int currentDisplayRotation() {

@@ -12,6 +12,7 @@ import androidx.car.app.SurfaceContainer;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class ViBRoAutoSurfacePainter {
 
@@ -24,11 +25,12 @@ final class ViBRoAutoSurfacePainter {
 
     ViBRoAutoSurfacePainter(
             @NonNull CarContext carContext,
-            @NonNull ViBRoAutoSurfaceRenderer.Controls controls
+            @NonNull ViBRoAutoSurfaceRenderer.Controls controls,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         this.carContext = carContext;
-        textColumnPainter = new ViBRoAutoTextColumnPainter(carContext, controls);
-        compassPainter = new ViBRoAutoCompassPainter(carContext, controls);
+        textColumnPainter = new ViBRoAutoTextColumnPainter(carContext, controls, elapsedRealtimeClock);
+        compassPainter = new ViBRoAutoCompassPainter(carContext, controls, elapsedRealtimeClock);
     }
 
     void draw(
