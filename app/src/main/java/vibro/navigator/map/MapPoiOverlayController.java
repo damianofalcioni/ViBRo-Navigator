@@ -1,7 +1,5 @@
 package vibro.navigator.map;
 
-import android.os.Handler;
-import android.os.Looper;
 import android.app.Activity;
 
 import androidx.annotation.NonNull;
@@ -12,6 +10,8 @@ import org.json.JSONException;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 
 final class MapPoiOverlayController {
@@ -26,7 +26,7 @@ final class MapPoiOverlayController {
     @NonNull
     private final MapPoiCategorySelection selection = new MapPoiCategorySelection();
     @NonNull
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final TaskScheduler mainThreadScheduler = AndroidTaskScheduler.main();
     @NonNull
     private final MapPoiStatusController statusController;
     @NonNull
@@ -48,9 +48,9 @@ final class MapPoiOverlayController {
         this.view = view;
         this.scriptController = scriptController;
         this.categoryFilter = categoryFilter;
-        this.statusController = new MapPoiStatusController(view, mainHandler);
-        this.poiLoader = new MapPoiLoader(mainHandler);
-        this.discoveryRunner = new MapPoiDiscoveryRunner(mainHandler, poiLoader);
+        this.statusController = new MapPoiStatusController(view, mainThreadScheduler);
+        this.poiLoader = new MapPoiLoader(mainThreadScheduler);
+        this.discoveryRunner = new MapPoiDiscoveryRunner(mainThreadScheduler, poiLoader);
         view.setPanelListener(this::scheduleCategoryDiscovery);
         if (categoryFilter.isEnabled()) {
             selection.setCategories(categoryFilter.categories());
@@ -77,8 +77,8 @@ final class MapPoiOverlayController {
     }
 
     void shutdown() {
-        mainHandler.removeCallbacks(refreshRunnable);
-        mainHandler.removeCallbacks(discoveryRunnable);
+        mainThreadScheduler.removeCallbacks(refreshRunnable);
+        mainThreadScheduler.removeCallbacks(discoveryRunnable);
         statusController.hide();
         poiLoader.shutdown();
         discoveryRunner.shutdown();
@@ -100,20 +100,20 @@ final class MapPoiOverlayController {
     }
 
     private void clearPois() {
-        mainHandler.removeCallbacks(refreshRunnable);
+        mainThreadScheduler.removeCallbacks(refreshRunnable);
         statusController.hide();
         poiLoader.cancel();
         scriptController.clearPoiMarkers();
     }
 
     private void scheduleRefresh() {
-        mainHandler.removeCallbacks(refreshRunnable);
-        mainHandler.postDelayed(refreshRunnable, REFRESH_DELAY_MS);
+        mainThreadScheduler.removeCallbacks(refreshRunnable);
+        mainThreadScheduler.postDelayed(refreshRunnable, REFRESH_DELAY_MS);
     }
 
     private void scheduleCategoryDiscovery() {
-        mainHandler.removeCallbacks(discoveryRunnable);
-        mainHandler.postDelayed(discoveryRunnable, DISCOVERY_DELAY_MS);
+        mainThreadScheduler.removeCallbacks(discoveryRunnable);
+        mainThreadScheduler.postDelayed(discoveryRunnable, DISCOVERY_DELAY_MS);
     }
 
     private void discoverCategoriesNow() {

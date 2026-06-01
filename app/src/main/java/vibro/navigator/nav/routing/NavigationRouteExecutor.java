@@ -2,9 +2,9 @@ package vibro.navigator.nav.routing;
 
 
 import vibro.navigator.android.power.AndroidPartialWakeLock;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.power.NavigationWakeLockController;
 import android.content.Context;
-import android.os.Handler;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
@@ -52,10 +52,6 @@ public final class NavigationRouteExecutor {
         ) throws Exception;
     }
 
-    public interface MainThreadPoster {
-        void post(@NonNull Runnable runnable);
-    }
-
     @VisibleForTesting
     public interface RouteCalculationGuard {
         @NonNull
@@ -71,19 +67,19 @@ public final class NavigationRouteExecutor {
 
     private final RouteCalculator routeCalculator;
     private final ExecutorService executorService;
-    private final MainThreadPoster mainThreadPoster;
+    private final TaskScheduler mainThreadScheduler;
     private final RouteCalculationGuard routeCalculationGuard;
     private final NavigationRouteRetryPolicy routeRetryPolicy;
 
     public NavigationRouteExecutor(
             @NonNull RouteCalculator routeCalculator,
             @NonNull ExecutorService executorService,
-            @NonNull MainThreadPoster mainThreadPoster
+            @NonNull TaskScheduler mainThreadScheduler
     ) {
         this(
                 routeCalculator,
                 executorService,
-                mainThreadPoster,
+                mainThreadScheduler,
                 noWakeLockGuard(),
                 DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES,
                 DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS,
@@ -95,7 +91,7 @@ public final class NavigationRouteExecutor {
     public NavigationRouteExecutor(
             @NonNull RouteCalculator routeCalculator,
             @NonNull ExecutorService executorService,
-            @NonNull MainThreadPoster mainThreadPoster,
+            @NonNull TaskScheduler mainThreadScheduler,
             int maxTransientRouteRetries,
             long transientRouteRetryDelayMs,
             @NonNull Sleeper sleeper
@@ -103,7 +99,7 @@ public final class NavigationRouteExecutor {
         this(
                 routeCalculator,
                 executorService,
-                mainThreadPoster,
+                mainThreadScheduler,
                 noWakeLockGuard(),
                 maxTransientRouteRetries,
                 transientRouteRetryDelayMs,
@@ -115,7 +111,7 @@ public final class NavigationRouteExecutor {
     public NavigationRouteExecutor(
             @NonNull RouteCalculator routeCalculator,
             @NonNull ExecutorService executorService,
-            @NonNull MainThreadPoster mainThreadPoster,
+            @NonNull TaskScheduler mainThreadScheduler,
             @NonNull RouteCalculationGuard routeCalculationGuard,
             int maxTransientRouteRetries,
             long transientRouteRetryDelayMs,
@@ -123,7 +119,7 @@ public final class NavigationRouteExecutor {
     ) {
         this.routeCalculator = routeCalculator;
         this.executorService = executorService;
-        this.mainThreadPoster = mainThreadPoster;
+        this.mainThreadScheduler = mainThreadScheduler;
         this.routeCalculationGuard = routeCalculationGuard;
         this.routeRetryPolicy = new NavigationRouteRetryPolicy(
                 maxTransientRouteRetries,
@@ -133,13 +129,16 @@ public final class NavigationRouteExecutor {
     }
 
     @NonNull
-    public static NavigationRouteExecutor createDefault(@NonNull Context context, @NonNull Handler handler) {
+    public static NavigationRouteExecutor createDefault(
+            @NonNull Context context,
+            @NonNull TaskScheduler mainThreadScheduler
+    ) {
         NavigationWakeLockController wakeLockController =
                 new NavigationWakeLockController(new AndroidPartialWakeLock(context));
         return new NavigationRouteExecutor(
                 new NavigationBRouterRouteCalculator(),
                 Executors.newSingleThreadExecutor(),
-                new HandlerPoster(handler),
+                mainThreadScheduler,
                 routeCalculation -> wakeLockController.runWithWakeLock(
                         ROUTE_WAKE_LOCK_TAG,
                         ROUTE_WAKE_LOCK_TIMEOUT_MS,
@@ -167,9 +166,9 @@ public final class NavigationRouteExecutor {
                     if (newRoute.track.isEmpty()) {
                         throw new IllegalStateException("BRouter returned an empty route");
                     }
-                    mainThreadPoster.post(() -> callback.onRouteApplied(snapshot, newRoute, beganAt));
+                    mainThreadScheduler.post(() -> callback.onRouteApplied(snapshot, newRoute, beganAt));
                 } catch (Exception e) {
-                    mainThreadPoster.post(() -> callback.onRouteFailure(snapshot, e));
+                    mainThreadScheduler.post(() -> callback.onRouteFailure(snapshot, e));
                 }
             });
         } catch (RejectedExecutionException e) {
@@ -217,19 +216,5 @@ public final class NavigationRouteExecutor {
     @NonNull
     private static RouteCalculationGuard noWakeLockGuard() {
         return routeCalculation -> routeCalculation.call();
-    }
-
-    @VisibleForTesting
-    public static final class HandlerPoster implements MainThreadPoster {
-        private final Handler handler;
-
-        public HandlerPoster(@NonNull Handler handler) {
-            this.handler = handler;
-        }
-
-        @Override
-        public void post(@NonNull Runnable runnable) {
-            handler.post(runnable);
-        }
     }
 }

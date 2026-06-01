@@ -1,15 +1,13 @@
 package vibro.navigator.brouter;
 
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.pm.ApplicationInfo;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.packageinfo.AndroidPackages;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.logging.AppLogger;
 
 import java.io.InputStream;
@@ -45,37 +43,9 @@ class BRouterProfileLister {
 
     @NonNull
     List<String> listProfilesFromTree(@NonNull Context context, @NonNull Uri treeUri) {
-        ContentResolver cr = context.getContentResolver();
-        Uri docUri = DocumentsContract.buildDocumentUriUsingTree(
-                treeUri,
-                DocumentsContract.getTreeDocumentId(treeUri)
-        );
-        Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-                treeUri,
-                DocumentsContract.getDocumentId(docUri)
-        );
-
         List<String> out = new ArrayList<>();
-        try (Cursor c = cr.query(childrenUri,
-                new String[]{
-                        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-                        DocumentsContract.Document.COLUMN_MIME_TYPE
-                },
-                null,
-                null,
-                null
-        )) {
-            if (c == null) {
-                AppLogger.w(TAG, "Profiles tree query returned null cursor uri=" + treeUri);
-                return Collections.emptyList();
-            }
-            int nameCol = c.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME);
-            while (c.moveToNext()) {
-                addProfileName(out, c.getString(nameCol));
-            }
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to list profiles from tree uri=" + treeUri, e);
-            return Collections.emptyList();
+        for (String displayName : AndroidDocumentAccess.childDisplayNames(context, treeUri)) {
+            addProfileName(out, displayName);
         }
         Collections.sort(out);
         AppLogger.i(TAG, "Listed external profiles uri=" + treeUri + " count=" + out.size());
@@ -85,11 +55,12 @@ class BRouterProfileLister {
     @NonNull
     List<String> listBundledProfiles(@NonNull Context context) {
         try {
-            ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(
-                    BRouterProfilesRepository.BROUTER_PACKAGE_NAME,
-                    0
-            );
-            try (ZipFile apk = new ZipFile(appInfo.sourceDir)) {
+            String sourceDir = AndroidPackages.sourceDir(context, BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
+            if (sourceDir == null) {
+                AppLogger.w(TAG, "BRouter APK source path unavailable");
+                return Collections.emptyList();
+            }
+            try (ZipFile apk = new ZipFile(sourceDir)) {
                 ZipEntry profilesZipEntry = apk.getEntry(BROUTER_PROFILES_ZIP);
                 if (profilesZipEntry == null) {
                     AppLogger.w(TAG, "Bundled profiles zip missing inside BRouter APK");

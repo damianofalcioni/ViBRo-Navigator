@@ -3,8 +3,6 @@ package vibro.navigator.about;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.InputType;
 import android.text.method.PasswordTransformationMethod;
 import android.util.TypedValue;
@@ -21,6 +19,8 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.distribution.GooglePoiApiKeyValidationResult;
 import vibro.navigator.settings.AppSettings;
@@ -226,7 +226,7 @@ final class AboutGooglePoiApiKeySettings {
         @NonNull
         private final ExecutorService executor = Executors.newSingleThreadExecutor();
         @NonNull
-        private final Handler handler = new Handler(Looper.getMainLooper());
+        private final TaskScheduler scheduler = AndroidTaskScheduler.main();
 
         @Override
         public void validate(
@@ -235,7 +235,7 @@ final class AboutGooglePoiApiKeySettings {
         ) {
             executor.execute(() -> {
                 GooglePoiApiKeyValidationResult result = DistributionServices.validateUserGooglePoiApiKey(apiKey);
-                handler.post(() -> callback.onResult(result));
+                scheduler.post(() -> callback.onResult(result));
             });
         }
 

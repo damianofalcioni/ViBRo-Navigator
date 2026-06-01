@@ -1,18 +1,14 @@
 package vibro.navigator.distribution;
 
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailabilityLight;
-
+import vibro.navigator.android.location.GplayFusedLocationRuntimeAvailability;
 import vibro.navigator.android.location.GplayFusedLocationDiagnosticClient;
 import vibro.navigator.android.location.GplayFusedLocationUpdateClient;
-import vibro.navigator.auto.ViBRoCarAppService;
+import vibro.navigator.auto.AndroidAutoIntegration;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
@@ -37,15 +33,7 @@ public final class DistributionServices {
     }
 
     public static void configureAndroidAutoIntegration(@NonNull Context context, boolean enabled) {
-        int state = enabled
-                ? PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
-                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        ComponentName componentName = new ComponentName(context, ViBRoCarAppService.class);
-        context.getPackageManager().setComponentEnabledSetting(
-                componentName,
-                state,
-                PackageManager.DONT_KILL_APP
-        );
+        AndroidAutoIntegration.configure(context, enabled);
     }
 
     @NonNull
@@ -54,8 +42,7 @@ public final class DistributionServices {
     }
 
     public static boolean isFusedLocationRuntimeAvailable(@NonNull Context context) {
-        return GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context)
-                == ConnectionResult.SUCCESS;
+        return GplayFusedLocationRuntimeAvailability.isAvailable(context);
     }
 
     @NonNull

@@ -1,20 +1,18 @@
 package vibro.navigator.brouter;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.net.Uri;
-import android.provider.DocumentsContract;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.logging.AppLogger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 final class BRouterProfileDirectories {
-    private static final String EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY = "com.android.externalstorage.documents";
     private static final String TAG = "BRouterProfiles";
 
     private final BRouterProfileDirectoryCandidates directoryCandidates =
@@ -28,7 +26,7 @@ final class BRouterProfileDirectories {
             @Nullable Uri customProfileUri
     ) {
         if (hasProfilesTreeReadPermission) {
-            Uri treeDocumentUri = toTreeDocumentUri(profilesTreeUri);
+            Uri treeDocumentUri = profilesTreeUri == null ? null : AndroidDocumentAccess.buildTreeDocumentUri(profilesTreeUri);
             return treeDocumentUri != null ? treeDocumentUri : profilesTreeUri;
         }
         if (customProfileUri != null) {
@@ -73,10 +71,13 @@ final class BRouterProfileDirectories {
     @Nullable
     private String toParentDocumentId(@NonNull Uri documentUri) {
         try {
-            if (!EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY.equals(documentUri.getAuthority())) {
+            if (!AndroidDocumentAccess.isExternalStorageDocument(documentUri)) {
                 return null;
             }
-            String documentId = DocumentsContract.getDocumentId(documentUri);
+            String documentId = AndroidDocumentAccess.documentId(documentUri);
+            if (documentId == null) {
+                return null;
+            }
             int slash = documentId.lastIndexOf('/');
             if (slash <= 0) {
                 return null;
@@ -84,20 +85,6 @@ final class BRouterProfileDirectories {
             return documentId.substring(0, slash);
         } catch (Exception e) {
             AppLogger.w(TAG, "Failed to derive parent document URI from custom profile uri=" + documentUri, e);
-            return null;
-        }
-    }
-
-    @Nullable
-    private Uri toTreeDocumentUri(@Nullable Uri treeUri) {
-        if (treeUri == null) {
-            return null;
-        }
-        try {
-            String treeDocumentId = DocumentsContract.getTreeDocumentId(treeUri);
-            return DocumentsContract.buildDocumentUriUsingTree(treeUri, treeDocumentId);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to derive document URI from tree uri=" + treeUri, e);
             return null;
         }
     }
@@ -148,35 +135,15 @@ final class BRouterProfileDirectories {
 
     @NonNull
     private Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-        return DocumentsContract.buildDocumentUri(
-                EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
-                documentId
-        );
+        return AndroidDocumentAccess.buildExternalStorageDocumentUri(documentId);
     }
 
     @NonNull
     private Uri buildExternalStorageTreeUri(@NonNull String documentId) {
-        return DocumentsContract.buildTreeDocumentUri(
-                EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY,
-                documentId
-        );
+        return AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
     }
 
     private boolean documentExists(@NonNull Context context, @NonNull String documentId) {
-        Uri treeUri = DocumentsContract.buildTreeDocumentUri(EXTERNAL_STORAGE_DOCUMENTS_AUTHORITY, documentId);
-        Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
-        try (Cursor cursor = context.getContentResolver().query(
-                documentUri,
-                new String[]{DocumentsContract.Document.COLUMN_DOCUMENT_ID},
-                null,
-                null,
-                null
-        )) {
-            return cursor != null && cursor.moveToFirst();
-        } catch (Exception e) {
-            AppLogger.d(TAG, "Profiles path not accessible documentId=" + documentId
-                    + " error=" + e.getClass().getSimpleName());
-            return false;
-        }
+        return AndroidDocumentAccess.externalStorageDocumentExists(context, documentId);
     }
 }

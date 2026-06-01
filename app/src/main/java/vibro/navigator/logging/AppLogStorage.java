@@ -10,6 +10,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
+import vibro.navigator.android.storage.AndroidAppStorageDirs;
+
 final class AppLogStorage {
 
     private static final String LOG_DIR = "logs";
@@ -44,51 +46,15 @@ final class AppLogStorage {
 
     @NonNull
     static File legacyInternalLogFile(@NonNull Context context) {
-        return new File(new File(context.getFilesDir(), LOG_DIR), "app-behavior.log");
+        return new File(new File(AndroidAppStorageDirs.internalFilesDir(context), LOG_DIR), "app-behavior.log");
     }
 
     @NonNull
     private static File resolveLogDir(@NonNull Context context) {
-        File externalBase = resolvePreferredExternalFilesDir(context);
+        File externalBase = AndroidAppStorageDirs.preferredExternalFilesDir(context);
         if (externalBase != null) {
             return new File(externalBase, LOG_DIR);
         }
-        return new File(context.getFilesDir(), LOG_DIR);
-    }
-
-    @Nullable
-    private static File resolvePreferredExternalFilesDir(@NonNull Context context) {
-        File[] dirs = context.getExternalFilesDirs(null);
-        if (dirs != null) {
-            File removableDir = firstRemovableExternalFilesDir(dirs);
-            if (removableDir != null) {
-                return removableDir;
-            }
-            File firstDir = firstAvailableExternalFilesDir(dirs);
-            if (firstDir != null) {
-                return firstDir;
-            }
-        }
-        return context.getExternalFilesDir(null);
-    }
-
-    @Nullable
-    private static File firstRemovableExternalFilesDir(@NonNull File[] dirs) {
-        for (File dir : dirs) {
-            if (dir != null && android.os.Environment.isExternalStorageRemovable(dir)) {
-                return dir;
-            }
-        }
-        return null;
-    }
-
-    @Nullable
-    private static File firstAvailableExternalFilesDir(@NonNull File[] dirs) {
-        for (File dir : dirs) {
-            if (dir != null) {
-                return dir;
-            }
-        }
-        return null;
+        return new File(AndroidAppStorageDirs.internalFilesDir(context), LOG_DIR);
     }
 }

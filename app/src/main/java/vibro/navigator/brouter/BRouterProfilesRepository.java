@@ -2,13 +2,13 @@ package vibro.navigator.brouter;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.UriPermission;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.packageinfo.AndroidPackages;
+import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.logging.AppLogger;
 
 import java.util.List;
@@ -124,14 +124,12 @@ public class BRouterProfilesRepository {
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
-        try {
-            context.getPackageManager().getPackageInfo(BROUTER_PACKAGE_NAME, 0);
+        if (AndroidPackages.isInstalled(context, BROUTER_PACKAGE_NAME)) {
             AppLogger.d(TAG, "BRouter package detected");
             return true;
-        } catch (PackageManager.NameNotFoundException e) {
-            AppLogger.w(TAG, "BRouter package not installed");
-            return false;
         }
+        AppLogger.w(TAG, "BRouter package not installed");
+        return false;
     }
 
     @NonNull
@@ -155,17 +153,6 @@ public class BRouterProfilesRepository {
     }
 
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        if (uri == null) {
-            return false;
-        }
-        for (UriPermission permission : context.getContentResolver().getPersistedUriPermissions()) {
-            if (!permission.isReadPermission()) {
-                continue;
-            }
-            if (uri.equals(permission.getUri())) {
-                return true;
-            }
-        }
-        return false;
+        return AndroidPersistedUriPermissions.hasReadPermission(context, uri);
     }
 }

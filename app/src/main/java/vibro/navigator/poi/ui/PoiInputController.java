@@ -1,8 +1,6 @@
 package vibro.navigator.poi.ui;
 
 import android.content.Context;
-import android.os.Handler;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
@@ -11,6 +9,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
@@ -34,7 +34,7 @@ public final class PoiInputController {
     private final PoiSuggestionPopupController popupController;
     private final PoiHistoryActionController historyActions;
 
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final TaskScheduler mainThreadScheduler = AndroidTaskScheduler.main();
     private final String logTag;
     private final PoiSuggestionSearchController searchController;
 
@@ -97,7 +97,7 @@ public final class PoiInputController {
     @NonNull
     private PoiSuggestionSearchController createSearchController(@NonNull PoiSearchClient searchClient) {
         return new PoiSuggestionSearchController(
-                mainHandler,
+                mainThreadScheduler,
                 history,
                 searchClient,
                 logTag,

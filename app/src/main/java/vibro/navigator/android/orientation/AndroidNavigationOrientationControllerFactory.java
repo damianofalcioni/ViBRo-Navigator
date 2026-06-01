@@ -1,7 +1,6 @@
 package vibro.navigator.android.orientation;
 
 import android.content.Context;
-import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
@@ -17,14 +16,14 @@ public final class AndroidNavigationOrientationControllerFactory {
     @NonNull
     public static NavigationOrientationController create(
             @NonNull Context context,
-            @NonNull Handler uiHandler,
+            @NonNull NavigationOrientationController.UiDispatcher uiDispatcher,
             @NonNull NavigationOrientationController.CompassUiState compassUiState
     ) {
         return new NavigationOrientationController(
                 callback -> new AndroidGeomagneticOrientationMonitor(context, callback),
                 new AndroidDisplayRotationProvider(context),
                 AndroidElapsedRealtimeClock.INSTANCE,
-                uiHandler::post,
+                uiDispatcher,
                 compassUiState
         );
     }

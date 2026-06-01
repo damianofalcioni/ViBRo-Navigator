@@ -1,14 +1,14 @@
 package vibro.navigator.about;
 
 import android.app.Activity;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 
 final class AboutDiagnosticSection {
 
@@ -17,13 +17,13 @@ final class AboutDiagnosticSection {
     @NonNull
     private final Activity activity;
     @NonNull
-    private final Handler sensorStatusHandler = new Handler(Looper.getMainLooper());
+    private final TaskScheduler sensorStatusScheduler = AndroidTaskScheduler.main();
     @NonNull
     private final Runnable sensorStatusRefreshRunnable = new Runnable() {
         @Override
         public void run() {
             render();
-            sensorStatusHandler.postDelayed(this, SENSOR_STATUS_REFRESH_INTERVAL_MS);
+            sensorStatusScheduler.postDelayed(this, SENSOR_STATUS_REFRESH_INTERVAL_MS);
         }
     };
     @NonNull
@@ -56,11 +56,11 @@ final class AboutDiagnosticSection {
 
     void start() {
         sensorStatusFormatter.start();
-        sensorStatusHandler.post(sensorStatusRefreshRunnable);
+        sensorStatusScheduler.post(sensorStatusRefreshRunnable);
     }
 
     void stop() {
-        sensorStatusHandler.removeCallbacks(sensorStatusRefreshRunnable);
+        sensorStatusScheduler.removeCallbacks(sensorStatusRefreshRunnable);
         sensorStatusFormatter.stop();
     }
 }

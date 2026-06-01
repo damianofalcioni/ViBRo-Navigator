@@ -5,8 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.os.DeadObjectException;
-
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.brouter.BRouterRouteException;
@@ -245,12 +243,12 @@ public class NavigationRouteExecutorTest {
     }
 
     @Test
-    public void requestRouteRetriesDeadObjectFailure() throws Exception {
+    public void requestRouteRetriesAdapterMappedBinderFailure() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
                 (context, start, intermediates, destination, profile, blocked) -> {
                     if (attempts.incrementAndGet() == 1) {
-                        throw new DeadObjectException();
+                        throw BRouterRouteException.serviceUnavailable("BRouter binder died during route request");
                     }
                     return new GeoJsonRoute(
                             Arrays.asList(start, destination),

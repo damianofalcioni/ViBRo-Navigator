@@ -13,7 +13,6 @@ import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.RouteSpeedLimit;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import android.app.Activity;
-import android.os.Handler;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -30,6 +29,7 @@ import androidx.core.widget.TextViewCompat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 
 final class NavigationActivityRenderer {
@@ -50,7 +50,7 @@ final class NavigationActivityRenderer {
             Pattern.compile("• ([^ ]+ [^ ]+) ([^•]+) •");
 
     private final Activity activity;
-    private final Handler uiHandler;
+    private final TaskScheduler uiScheduler;
     private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final NavigationCompassModeController compassModeController;
     private final TextView next;
@@ -71,11 +71,11 @@ final class NavigationActivityRenderer {
 
     NavigationActivityRenderer(
             @NonNull Activity activity,
-            @NonNull Handler uiHandler,
+            @NonNull TaskScheduler uiScheduler,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         this.activity = activity;
-        this.uiHandler = uiHandler;
+        this.uiScheduler = uiScheduler;
         this.elapsedRealtimeClock = elapsedRealtimeClock;
         compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         next = activity.findViewById(R.id.nextDirectionText);
@@ -147,7 +147,7 @@ final class NavigationActivityRenderer {
     }
 
     void cancelPendingCompassTransition() {
-        uiHandler.removeCallbacks(compassTransitionTicker);
+        uiScheduler.removeCallbacks(compassTransitionTicker);
     }
 
     private void configureTextScaling() {
@@ -188,7 +188,7 @@ final class NavigationActivityRenderer {
         compass.setCompassState(compassModeController.resolve(compassState));
         cancelPendingCompassTransition();
         if (compassModeController.isTransitionInProgress()) {
-            uiHandler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
+            uiScheduler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
         }
     }
 

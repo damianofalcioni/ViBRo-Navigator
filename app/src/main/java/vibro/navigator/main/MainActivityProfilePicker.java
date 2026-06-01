@@ -4,17 +4,14 @@ import vibro.navigator.R;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.database.Cursor;
 import android.net.Uri;
-import android.os.Build;
-import android.provider.DocumentsContract;
-import android.provider.OpenableColumns;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.logging.AppLogger;
 
 final class MainActivityProfilePicker {
@@ -57,33 +54,15 @@ final class MainActivityProfilePicker {
     }
 
     private void startProfilesTreePicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        Uri initialUri = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
-            if (initialUri != null) {
-                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
-            }
-        }
+        Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+        Intent intent = AndroidDocumentAccess.openDocumentTreeIntent(initialUri);
         AppLogger.i(TAG, "Launching profiles tree picker initialUri=" + safe(initialUri));
         activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE_TREE);
     }
 
     private void startCustomProfileDocumentPicker() {
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-        Uri initialUri = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
-            if (initialUri != null) {
-                intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, initialUri);
-            }
-        }
+        Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+        Intent intent = AndroidDocumentAccess.openDocumentIntent(initialUri);
         AppLogger.i(TAG, "Launching custom profile document picker initialUri=" + safe(initialUri));
         activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE);
     }
@@ -112,17 +91,7 @@ final class MainActivityProfilePicker {
             controller.onCustomProfilePickerCancelled();
             return;
         }
-        try {
-            if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
-                activity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                AppLogger.i(TAG, "Persisted profiles tree permission uri=" + uri);
-            } else {
-                AppLogger.w(TAG, "Profiles tree picker returned without persistable read grant uri=" + uri);
-                controller.onCustomProfilePickerCancelled();
-                return;
-            }
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Failed to persist profiles tree permission uri=" + uri, e);
+        if (!AndroidDocumentAccess.persistReadPermission(activity, data, uri)) {
             controller.onCustomProfilePickerCancelled();
             return;
         }
@@ -143,17 +112,8 @@ final class MainActivityProfilePicker {
             controller.onCustomProfilePickerCancelled();
             return;
         }
-        try {
-            if ((data.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0) {
-                activity.getContentResolver().takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                AppLogger.i(TAG, "Persisted custom profile permission uri=" + uri);
-            } else {
-                AppLogger.w(TAG, "Custom profile picker returned without persistable read grant uri=" + uri);
-            }
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Failed to persist custom profile permission uri=" + uri, e);
-        }
-        String displayName = queryDisplayName(uri);
+        AndroidDocumentAccess.persistReadPermission(activity, data, uri);
+        String displayName = AndroidDocumentAccess.displayName(activity, uri);
         String profileName = profilesRepository.normalizeProfileName(displayName);
         if (profileName == null) {
             AppLogger.w(TAG, "Custom profile picker returned a non-.brf file uri=" + uri
@@ -164,27 +124,6 @@ final class MainActivityProfilePicker {
         }
         profilesRepository.saveCustomProfile(activity, uri, profileName);
         controller.onCustomProfileSaved();
-    }
-
-    @Nullable
-    private String queryDisplayName(@NonNull Uri uri) {
-        try (Cursor cursor = activity.getContentResolver().query(
-                uri,
-                new String[]{OpenableColumns.DISPLAY_NAME},
-                null,
-                null,
-                null
-        )) {
-            if (cursor != null && cursor.moveToFirst()) {
-                int nameCol = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-                if (nameCol >= 0) {
-                    return cursor.getString(nameCol);
-                }
-            }
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to query display name for uri=" + uri, e);
-        }
-        return uri.getLastPathSegment();
     }
 
     @NonNull

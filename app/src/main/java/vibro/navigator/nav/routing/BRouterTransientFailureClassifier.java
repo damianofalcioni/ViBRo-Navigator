@@ -1,8 +1,5 @@
 package vibro.navigator.nav.routing;
 
-import android.os.DeadObjectException;
-import android.os.RemoteException;
-
 import androidx.annotation.NonNull;
 
 import java.util.Locale;
@@ -17,18 +14,13 @@ public final class BRouterTransientFailureClassifier {
     public static boolean isTransient(@NonNull Throwable error) {
         Throwable current = error;
         while (current != null) {
-            if (isTransientExceptionType(current)
-                    || isTransientBRouterRouteException(current)
+            if (isTransientBRouterRouteException(current)
                     || hasTransientBRouterMessage(current)) {
                 return true;
             }
             current = current.getCause();
         }
         return false;
-    }
-
-    private static boolean isTransientExceptionType(@NonNull Throwable error) {
-        return error instanceof DeadObjectException || error instanceof RemoteException;
     }
 
     private static boolean isTransientBRouterRouteException(@NonNull Throwable error) {

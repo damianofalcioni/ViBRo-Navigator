@@ -1,31 +1,27 @@
 package vibro.navigator.nav.foreground;
 
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import static org.junit.Assert.assertEquals;
 
-import android.os.Handler;
-import android.os.Looper;
-
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
 
-import java.util.concurrent.TimeUnit;
+import java.util.Objects;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationForegroundCoordinatorTest {
 
     private TestHost host;
+    private TestScheduler scheduler;
     private NavigationForegroundCoordinator coordinator;
 
     @Before
     public void setUp() {
         host = new TestHost();
+        scheduler = new TestScheduler();
         coordinator = new NavigationForegroundCoordinator(
-                new Handler(Looper.getMainLooper()),
+                scheduler,
                 new NavigationLifecyclePolicy(),
                 5_000L,
                 host
@@ -46,7 +42,7 @@ public class NavigationForegroundCoordinatorTest {
         host.notificationVisible = false;
 
         coordinator.startMonitoring();
-        Shadows.shadowOf(Looper.getMainLooper()).idleFor(5, TimeUnit.SECONDS);
+        scheduler.runDelayedTask();
 
         assertEquals(1, host.stopNavigationCalls);
         assertEquals(1, host.stopSelfCalls);
@@ -58,7 +54,7 @@ public class NavigationForegroundCoordinatorTest {
 
         coordinator.startMonitoring();
         coordinator.stopMonitoring();
-        Shadows.shadowOf(Looper.getMainLooper()).idleFor(5, TimeUnit.SECONDS);
+        scheduler.runDelayedTask();
 
         assertEquals(0, host.stopNavigationCalls);
         assertEquals(0, host.stopSelfCalls);
@@ -88,6 +84,35 @@ public class NavigationForegroundCoordinatorTest {
         @Override
         public void stopSelf() {
             stopSelfCalls++;
+        }
+    }
+
+    private static final class TestScheduler implements TaskScheduler {
+        private Runnable delayedTask;
+
+        @Override
+        public void post(Runnable runnable) {
+            runnable.run();
+        }
+
+        @Override
+        public void postDelayed(Runnable runnable, long delayMs) {
+            delayedTask = runnable;
+        }
+
+        @Override
+        public void removeCallbacks(Runnable runnable) {
+            if (Objects.equals(delayedTask, runnable)) {
+                delayedTask = null;
+            }
+        }
+
+        private void runDelayedTask() {
+            Runnable task = delayedTask;
+            delayedTask = null;
+            if (task != null) {
+                task.run();
+            }
         }
     }
 }

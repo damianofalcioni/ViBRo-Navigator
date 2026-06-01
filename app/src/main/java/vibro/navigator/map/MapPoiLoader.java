@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 
 final class MapPoiLoader {
@@ -22,7 +23,7 @@ final class MapPoiLoader {
     }
 
     @NonNull
-    private final android.os.Handler mainHandler;
+    private final TaskScheduler mainThreadScheduler;
     @NonNull
     private final MapPoiCache cache = new MapPoiCache();
     @NonNull
@@ -32,8 +33,8 @@ final class MapPoiLoader {
 
     private int generation;
 
-    MapPoiLoader(@NonNull android.os.Handler mainHandler) {
-        this.mainHandler = mainHandler;
+    MapPoiLoader(@NonNull TaskScheduler mainThreadScheduler) {
+        this.mainThreadScheduler = mainThreadScheduler;
     }
 
     void shutdown() {
@@ -78,10 +79,10 @@ final class MapPoiLoader {
             try {
                 fetchRequests(requests);
                 List<MapPoiMarker> visible = cache.visibleMarkers(bounds, categories);
-                mainHandler.post(() -> applyResult(loadId, visible, listener));
+                mainThreadScheduler.post(() -> applyResult(loadId, visible, listener));
             } catch (IOException e) {
                 AppLogger.w(TAG, "Failed to load map POIs", e);
-                mainHandler.post(() -> applyFailure(loadId, listener));
+                mainThreadScheduler.post(() -> applyFailure(loadId, listener));
             }
         });
     }

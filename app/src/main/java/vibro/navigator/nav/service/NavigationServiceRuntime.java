@@ -1,10 +1,9 @@
 package vibro.navigator.nav.service;
 
-import android.os.Handler;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.compass.CompassOrientationCue;
@@ -36,7 +35,7 @@ final class NavigationServiceRuntime {
     @NonNull
     static NavigationServiceRuntime create(
             @NonNull NavigationService service,
-            @NonNull Handler handler,
+            @NonNull TaskScheduler uiScheduler,
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull NavigationServiceLocationHandler locationHandler,
@@ -46,7 +45,7 @@ final class NavigationServiceRuntime {
     ) {
         NavigationServiceDependencies dependencies = NavigationServiceDependencies.create(
                 service,
-                handler,
+                uiScheduler,
                 navigationSession,
                 turnEvents,
                 locationHandler,

@@ -1,6 +1,8 @@
 package vibro.navigator.nav.service;
 
 
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.session.NavigationSession;
@@ -9,9 +11,7 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import android.app.Service;
 import android.content.Intent;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -40,7 +40,7 @@ public class NavigationService extends Service {
 
     private final NavigationSession navigationSession = new NavigationSession();
     private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();
-    private final Handler notificationMonitorHandler = new Handler(Looper.getMainLooper());
+    private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private final NavigationServiceTurnEvents turnEvents = new NavigationServiceTurnEvents(navigationSession);
     private final NavigationServiceRouteRecalculator routeRecalculator =
             new NavigationServiceRouteRecalculator(this, navigationSession, this::runtime, this::emitState);
@@ -57,7 +57,7 @@ public class NavigationService extends Service {
             new NavigationServiceUiVisibility(navigationSession, stateBroadcaster, this::emitState);
     private final NavigationForegroundCoordinator foregroundCoordinator =
             new NavigationForegroundCoordinator(
-                    notificationMonitorHandler,
+                    uiScheduler,
                     new NavigationLifecyclePolicy(),
                     FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS,
                     new NavigationServiceForegroundHost(
@@ -95,7 +95,7 @@ public class NavigationService extends Service {
         super.onCreate();
         runtime = NavigationServiceRuntime.create(
                 this,
-                notificationMonitorHandler,
+                uiScheduler,
                 navigationSession,
                 turnEvents,
                 locationHandler,

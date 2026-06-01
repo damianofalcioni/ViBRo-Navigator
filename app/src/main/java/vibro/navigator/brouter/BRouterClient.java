@@ -43,7 +43,7 @@ public final class BRouterClient implements AutoCloseable {
                 return svc.getTrackFromParams(params);
             } catch (RemoteException e) {
                 if (!recoverFromRouteRequestFailure(attempt, e)) {
-                    throw e;
+                    throw BRouterRouteException.serviceUnavailable(routeRequestFailureLogMessage(e), e);
                 }
             }
         }

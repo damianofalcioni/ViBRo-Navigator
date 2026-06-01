@@ -1,9 +1,8 @@
 package vibro.navigator.nav.service;
 
-import android.os.Handler;
-
 import androidx.annotation.NonNull;
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.session.NavigationSession;
 
 final class NavigationServiceDependencies {
@@ -27,7 +26,7 @@ final class NavigationServiceDependencies {
     @NonNull
     static NavigationServiceDependencies create(
             @NonNull NavigationService service,
-            @NonNull Handler handler,
+            @NonNull TaskScheduler uiScheduler,
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull NavigationServiceLocationHandler locationHandler,
@@ -38,14 +37,14 @@ final class NavigationServiceDependencies {
         NavigationForegroundRuntime foreground = NavigationForegroundRuntime.create(service, uiVisibility);
         NavigationTrackingRuntime tracking = NavigationTrackingRuntime.create(
                 service,
-                handler,
+                uiScheduler,
                 uiVisibility,
                 locationHandler,
                 foreground.controller
         );
         NavigationRoutingRuntime routing = NavigationRoutingRuntime.create(
                 service,
-                handler,
+                uiScheduler,
                 navigationSession,
                 tracking.orientationController,
                 foreground.controller,

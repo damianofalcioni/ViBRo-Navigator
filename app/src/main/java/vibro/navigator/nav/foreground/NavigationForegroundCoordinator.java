@@ -2,11 +2,11 @@ package vibro.navigator.nav.foreground;
 
 
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
-import android.os.Handler;
 
 import androidx.annotation.NonNull;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.dispatch.TaskScheduler;
 
 public final class NavigationForegroundCoordinator {
 
@@ -22,7 +22,7 @@ public final class NavigationForegroundCoordinator {
 
     private static final String TAG = "NavForegroundCoord";
 
-    private final Handler handler;
+    private final TaskScheduler scheduler;
     private final NavigationLifecyclePolicy lifecyclePolicy;
     private final long notificationCheckIntervalMs;
     private final Host host;
@@ -37,17 +37,17 @@ public final class NavigationForegroundCoordinator {
                 host.stopSelf();
                 return;
             }
-            handler.postDelayed(this, notificationCheckIntervalMs);
+            scheduler.postDelayed(this, notificationCheckIntervalMs);
         }
     };
 
     public NavigationForegroundCoordinator(
-            @NonNull Handler handler,
+            @NonNull TaskScheduler scheduler,
             @NonNull NavigationLifecyclePolicy lifecyclePolicy,
             long notificationCheckIntervalMs,
             @NonNull Host host
     ) {
-        this.handler = handler;
+        this.scheduler = scheduler;
         this.lifecyclePolicy = lifecyclePolicy;
         this.notificationCheckIntervalMs = notificationCheckIntervalMs;
         this.host = host;
@@ -64,11 +64,11 @@ public final class NavigationForegroundCoordinator {
 
     public void startMonitoring() {
         stopMonitoring();
-        handler.postDelayed(notificationMonitor, notificationCheckIntervalMs);
+        scheduler.postDelayed(notificationMonitor, notificationCheckIntervalMs);
     }
 
     public void stopMonitoring() {
-        handler.removeCallbacks(notificationMonitor);
+        scheduler.removeCallbacks(notificationMonitor);
     }
 
     public boolean shouldStopOnTaskRemoved() {

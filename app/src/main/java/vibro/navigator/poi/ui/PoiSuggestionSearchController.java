@@ -1,9 +1,8 @@
 package vibro.navigator.poi.ui;
 
-import android.os.Handler;
-
 import androidx.annotation.NonNull;
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
@@ -32,7 +31,7 @@ final class PoiSuggestionSearchController {
         void clearSuggestionsAndDismiss();
     }
 
-    private final Handler mainHandler;
+    private final TaskScheduler mainThreadScheduler;
     private final PoiHistoryStore history;
     private final PoiSearchClient searchClient;
     private final String logTag;
@@ -43,13 +42,13 @@ final class PoiSuggestionSearchController {
     private int searchGeneration;
 
     PoiSuggestionSearchController(
-            @NonNull Handler mainHandler,
+            @NonNull TaskScheduler mainThreadScheduler,
             @NonNull PoiHistoryStore history,
             @NonNull PoiSearchClient searchClient,
             @NonNull String logTag,
             @NonNull Presenter presenter
     ) {
-        this.mainHandler = mainHandler;
+        this.mainThreadScheduler = mainThreadScheduler;
         this.history = history;
         this.searchClient = searchClient;
         this.logTag = logTag;
@@ -66,12 +65,12 @@ final class PoiSuggestionSearchController {
 
         pendingSearch = () -> runSearch(query);
         AppLogger.d(logTag, "Scheduling search query=" + query);
-        mainHandler.postDelayed(pendingSearch, SEARCH_DELAY_MS);
+        mainThreadScheduler.postDelayed(pendingSearch, SEARCH_DELAY_MS);
     }
 
     void cancelPendingSearch() {
         if (pendingSearch != null) {
-            mainHandler.removeCallbacks(pendingSearch);
+            mainThreadScheduler.removeCallbacks(pendingSearch);
             pendingSearch = null;
         }
     }
@@ -132,10 +131,10 @@ final class PoiSuggestionSearchController {
         inFlight = PoiSearchDispatcher.submit(() -> {
             try {
                 List<PoiSuggestion> suggestions = performSearch(query);
-                mainHandler.post(() -> handleSearchSuccess(query, generation, suggestions));
+                mainThreadScheduler.post(() -> handleSearchSuccess(query, generation, suggestions));
             } catch (IOException e) {
                 AppLogger.e(logTag, "Search failed query=" + query, e);
-                mainHandler.post(() -> handleSearchFailure(generation));
+                mainThreadScheduler.post(() -> handleSearchFailure(generation));
             }
         });
     }

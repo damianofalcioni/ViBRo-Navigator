@@ -1,9 +1,7 @@
 package vibro.navigator.android.location;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
@@ -52,14 +50,12 @@ public final class NavigationLocationProviderAccess implements NavigationLocatio
 
     @Override
     public boolean hasFineLocationPermission() {
-        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED;
+        return AndroidLocationPermissions.hasFineLocationPermission(context);
     }
 
     @Override
     public boolean hasCoarseLocationPermission() {
-        return ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED;
+        return AndroidLocationPermissions.hasCoarseLocationPermission(context);
     }
 
     @Override

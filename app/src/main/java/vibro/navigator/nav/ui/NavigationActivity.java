@@ -3,8 +3,10 @@ package vibro.navigator.nav.ui;
 import vibro.navigator.R;
 
 
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -22,9 +24,7 @@ import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -45,7 +45,7 @@ public class NavigationActivity extends Activity {
     private NavigationServiceBinder navBinder;
     private boolean bound;
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
-    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private NavigationActivityRenderer renderer;
     private NavigationActivityBackHandler backHandler;
     private final NavigationStartupCoordinator startupCoordinator =
@@ -54,11 +54,11 @@ public class NavigationActivity extends Activity {
         @Override
         public void run() {
             renderer.renderGpsStatus();
-            uiHandler.postDelayed(this, 1000L);
+            uiScheduler.postDelayed(this, 1000L);
         }
     };
 
-    private final NavigationService.Listener navListener = state -> runOnUiThread(() -> render(state));
+    private final NavigationService.Listener navListener = state -> uiScheduler.post(() -> render(state));
 
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
@@ -92,7 +92,7 @@ public class NavigationActivity extends Activity {
         backHandler = new NavigationActivityBackHandler(this, lifecyclePolicy, this::runLegacyBackFallback);
         backHandler.registerPredictiveBackCallbackIfSupported();
 
-        renderer = new NavigationActivityRenderer(this, uiHandler, AndroidElapsedRealtimeClock.INSTANCE);
+        renderer = new NavigationActivityRenderer(this, uiScheduler, AndroidElapsedRealtimeClock.INSTANCE);
         render(NavStateComposer.waiting(this));
         configureControls();
 
@@ -188,7 +188,7 @@ public class NavigationActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        uiHandler.post(countdownTicker);
+        uiScheduler.post(countdownTicker);
         AppLogger.i(TAG, "Binding NavigationService");
         bindService(new Intent(this, NavigationService.class), connection, BIND_AUTO_CREATE);
     }
@@ -209,7 +209,7 @@ public class NavigationActivity extends Activity {
     protected void onStop() {
         super.onStop();
         AppLogger.i(TAG, "onStop bound=" + bound);
-        uiHandler.removeCallbacks(countdownTicker);
+        uiScheduler.removeCallbacks(countdownTicker);
         renderer.cancelPendingCompassTransition();
         if (bound) {
             try {

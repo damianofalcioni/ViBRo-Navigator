@@ -1,15 +1,13 @@
 package vibro.navigator.about;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.location.AndroidLocationPermissions;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.settings.AppSettings;
@@ -55,7 +53,7 @@ final class AboutFusedLocationDiagnostic {
         if (!shouldDisplay() || !client.isAvailable()) {
             return VALUE_UNAVAILABLE;
         }
-        if (!hasAnyLocationPermission()) {
+        if (!AndroidLocationPermissions.hasAnyLocationPermission(appContext)) {
             return VALUE_PERMISSION_DENIED;
         }
         if (latestLocation != null) {
@@ -92,14 +90,7 @@ final class AboutFusedLocationDiagnostic {
     private boolean canRefresh() {
         return shouldDisplay()
                 && client.isAvailable()
-                && hasAnyLocationPermission()
+                && AndroidLocationPermissions.hasAnyLocationPermission(appContext)
                 && !refreshInFlight;
-    }
-
-    private boolean hasAnyLocationPermission() {
-        return ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED
-                || ContextCompat.checkSelfPermission(appContext, Manifest.permission.ACCESS_COARSE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED;
     }
 }

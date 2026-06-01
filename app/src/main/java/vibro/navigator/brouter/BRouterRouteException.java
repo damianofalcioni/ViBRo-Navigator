@@ -26,9 +26,27 @@ public final class BRouterRouteException extends Exception {
         this.rawMessage = rawMessage;
     }
 
+    private BRouterRouteException(
+            @NonNull Reason reason,
+            @NonNull String rawMessage,
+            @NonNull Throwable cause
+    ) {
+        super(rawMessage, cause);
+        this.reason = reason;
+        this.rawMessage = rawMessage;
+    }
+
     @NonNull
     public static BRouterRouteException serviceUnavailable(@NonNull String rawMessage) {
         return new BRouterRouteException(Reason.SERVICE_UNAVAILABLE, sanitize(rawMessage));
+    }
+
+    @NonNull
+    public static BRouterRouteException serviceUnavailable(
+            @NonNull String rawMessage,
+            @NonNull Throwable cause
+    ) {
+        return new BRouterRouteException(Reason.SERVICE_UNAVAILABLE, sanitize(rawMessage), cause);
     }
 
     @NonNull

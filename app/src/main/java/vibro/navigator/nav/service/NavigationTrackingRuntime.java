@@ -1,11 +1,10 @@
 package vibro.navigator.nav.service;
 
-import android.os.Handler;
-
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.location.AndroidNavigationLocationControllerFactory;
 import vibro.navigator.android.orientation.AndroidNavigationOrientationControllerFactory;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.orientation.NavigationOrientationController;
@@ -27,7 +26,7 @@ final class NavigationTrackingRuntime {
     @NonNull
     static NavigationTrackingRuntime create(
             @NonNull NavigationService service,
-            @NonNull Handler handler,
+            @NonNull TaskScheduler uiScheduler,
             @NonNull NavigationServiceUiVisibility uiVisibility,
             @NonNull NavigationServiceLocationHandler locationHandler,
             @NonNull NavigationForegroundController foregroundController
@@ -38,7 +37,7 @@ final class NavigationTrackingRuntime {
         );
         NavigationOrientationController orientationController = AndroidNavigationOrientationControllerFactory.create(
                 service,
-                handler,
+                uiScheduler::post,
                 uiVisibility
         );
         locationHandler.attachControllers(locationController, orientationController, foregroundController);

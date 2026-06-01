@@ -1,7 +1,5 @@
 package vibro.navigator.map;
 
-import android.os.Handler;
-
 import androidx.annotation.NonNull;
 
 import java.io.IOException;
@@ -9,6 +7,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 
 final class MapPoiDiscoveryRunner {
@@ -21,7 +20,7 @@ final class MapPoiDiscoveryRunner {
     }
 
     @NonNull
-    private final Handler mainHandler;
+    private final TaskScheduler mainThreadScheduler;
     @NonNull
     private final MapPoiLoader poiLoader;
     @NonNull
@@ -32,10 +31,10 @@ final class MapPoiDiscoveryRunner {
     private int generation;
 
     MapPoiDiscoveryRunner(
-            @NonNull Handler mainHandler,
+            @NonNull TaskScheduler mainThreadScheduler,
             @NonNull MapPoiLoader poiLoader
     ) {
-        this.mainHandler = mainHandler;
+        this.mainThreadScheduler = mainThreadScheduler;
         this.poiLoader = poiLoader;
     }
 
@@ -69,10 +68,10 @@ final class MapPoiDiscoveryRunner {
             try {
                 OsmMapPoiDiscoveryResult discovery = request.fetch();
                 poiLoader.rememberDiscovery(bounds, discovery);
-                mainHandler.post(() -> applyResult(discoveryId, discovery, listener));
+                mainThreadScheduler.post(() -> applyResult(discoveryId, discovery, listener));
             } catch (IOException e) {
                 AppLogger.w(TAG, "Failed to discover map POI categories", e);
-                mainHandler.post(() -> applyFailure(discoveryId, listener));
+                mainThreadScheduler.post(() -> applyFailure(discoveryId, listener));
             }
         });
     }
