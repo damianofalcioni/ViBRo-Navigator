@@ -1,7 +1,5 @@
-package vibro.navigator.nav.foreground;
+package vibro.navigator.android.foreground;
 
-
-import vibro.navigator.nav.service.NavigationService;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
@@ -12,8 +10,9 @@ import androidx.annotation.RequiresApi;
 
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.service.NavigationService;
 
-public final class NavigationNotificationChannels {
+public final class AndroidNavigationNotificationChannels {
 
     private static final String TAG = "NavNotifChannels";
     private static final String LEGACY_CHANNEL_ID_ALERT_V1 = "navigator.alerts.v1";
@@ -22,7 +21,7 @@ public final class NavigationNotificationChannels {
     private static final String LEGACY_CHANNEL_ID_TURN_RIGHT = "navigator.turn.right";
     private static final String LEGACY_CHANNEL_ID_TURN_RIGHT_V2 = "navigator.turn.right.v2";
 
-    private NavigationNotificationChannels() {
+    private AndroidNavigationNotificationChannels() {
     }
 
     public static void ensure(@NonNull Context context) {

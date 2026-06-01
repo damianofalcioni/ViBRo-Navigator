@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.service.notification.StatusBarNotification;
 
+import vibro.navigator.android.foreground.AndroidNavigationForegroundController;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
@@ -66,7 +67,7 @@ public class NavigationForegroundControllerTest {
                 NotificationManager.IMPORTANCE_HIGH
         ));
 
-        NavigationForegroundController controller = new NavigationForegroundController(service);
+        NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
         controller.ensureChannels();
 
         assertNull(notificationManager.getNotificationChannel("navigator.alerts.v1"));
@@ -106,7 +107,7 @@ public class NavigationForegroundControllerTest {
         NotificationManager notificationManager = service.getSystemService(NotificationManager.class);
         assertNotNull(notificationManager);
 
-        NavigationForegroundController controller = new NavigationForegroundController(service);
+        NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
         controller.ensureChannels();
 
         controller.sendImminentTurnNotification(new VoiceHint(0, 2, 0, 0.0, 0), 50.0, 5.0);

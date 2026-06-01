@@ -2,6 +2,8 @@ package vibro.navigator.nav.service;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.android.foreground.AndroidNavigationForegroundController;
+import vibro.navigator.android.foreground.AndroidScreenInteractivityMonitor;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 
@@ -27,9 +29,9 @@ final class NavigationForegroundRuntime {
             @NonNull NavigationService service,
             @NonNull NavigationServiceUiVisibility uiVisibility
     ) {
-        NavigationForegroundController controller = new NavigationForegroundController(service);
+        NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
         NavigationScreenInteractivityMonitor screenInteractivityMonitor =
-                new NavigationScreenInteractivityMonitor(service, uiVisibility::onScreenInteractiveChanged);
+                new AndroidScreenInteractivityMonitor(service, uiVisibility::onScreenInteractiveChanged);
         controller.ensureChannels();
         return new NavigationForegroundRuntime(
                 controller,

@@ -4,10 +4,10 @@ import vibro.navigator.R;
 
 
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
 import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
-import vibro.navigator.nav.startup.NavigationSettingsLauncher;
 import vibro.navigator.nav.startup.NavigationStartupCoordinator;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -363,7 +363,7 @@ public class NavigationActivity extends Activity {
         }
 
         private void openSettings(@NonNull Intent settingsIntent) {
-            if (NavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
+            if (AndroidNavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
                 startupCoordinator.onSettingsOpened();
                 return;
             }

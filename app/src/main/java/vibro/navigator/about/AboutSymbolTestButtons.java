@@ -8,7 +8,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
-import vibro.navigator.nav.foreground.NavigationNotificationDebugHelper;
+import vibro.navigator.android.foreground.AndroidNavigationNotificationDebugHelper;
 
 final class AboutSymbolTestButtons {
 
@@ -35,17 +35,17 @@ final class AboutSymbolTestButtons {
     }
 
     private void sendLeftNotification() {
-        NavigationNotificationDebugHelper.postLeftSymbolTestNotification(activity);
+        AndroidNavigationNotificationDebugHelper.postLeftSymbolTestNotification(activity);
         showSentToast();
     }
 
     private void sendOtherNotification() {
-        NavigationNotificationDebugHelper.postOtherSymbolTestNotification(activity);
+        AndroidNavigationNotificationDebugHelper.postOtherSymbolTestNotification(activity);
         showSentToast();
     }
 
     private void sendRightNotification() {
-        NavigationNotificationDebugHelper.postRightSymbolTestNotification(activity);
+        AndroidNavigationNotificationDebugHelper.postRightSymbolTestNotification(activity);
         showSentToast();
     }
 

@@ -1,9 +1,10 @@
 package vibro.navigator.nav.foreground;
 
 
+import vibro.navigator.android.foreground.AndroidNavigationNotificationDebugHelper;
+import vibro.navigator.android.foreground.AndroidNavigationNotificationDebugHelper.SymbolTestGroup;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.format.NavigationTextFormatter;
-import vibro.navigator.nav.foreground.NavigationNotificationDebugHelper.SymbolTestGroup;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -33,24 +34,33 @@ public class NavigationNotificationDebugHelperTest {
 
         assertEquals(
                 "← ↖ <← U↙ <○2",
-                NavigationNotificationDebugHelper.buildSymbolTestSummary(context, SymbolTestGroup.LEFT)
+                AndroidNavigationNotificationDebugHelper.buildSymbolTestSummary(context, SymbolTestGroup.LEFT)
         );
         assertEquals(
                 "⬆ U↓ !!× ◉ ■ ? 42°",
-                NavigationNotificationDebugHelper.buildSymbolTestSummary(context, SymbolTestGroup.OTHER)
+                AndroidNavigationNotificationDebugHelper.buildSymbolTestSummary(context, SymbolTestGroup.OTHER)
         );
         assertEquals(
                 "→ ↗ →> U↘ ○>3",
-                NavigationNotificationDebugHelper.buildSymbolTestSummary(context, SymbolTestGroup.RIGHT)
+                AndroidNavigationNotificationDebugHelper.buildSymbolTestSummary(context, SymbolTestGroup.RIGHT)
         );
     }
 
     @Test
     public void buildSymbolTestMessagesIncludeLabelsForEachGroup() {
         Context context = ApplicationProvider.getApplicationContext();
-        String leftMessage = NavigationNotificationDebugHelper.buildSymbolTestMessage(context, SymbolTestGroup.LEFT);
-        String otherMessage = NavigationNotificationDebugHelper.buildSymbolTestMessage(context, SymbolTestGroup.OTHER);
-        String rightMessage = NavigationNotificationDebugHelper.buildSymbolTestMessage(context, SymbolTestGroup.RIGHT);
+        String leftMessage = AndroidNavigationNotificationDebugHelper.buildSymbolTestMessage(
+                context,
+                SymbolTestGroup.LEFT
+        );
+        String otherMessage = AndroidNavigationNotificationDebugHelper.buildSymbolTestMessage(
+                context,
+                SymbolTestGroup.OTHER
+        );
+        String rightMessage = AndroidNavigationNotificationDebugHelper.buildSymbolTestMessage(
+                context,
+                SymbolTestGroup.RIGHT
+        );
 
         assertTrue(leftMessage.contains("← " + context.getString(R.string.direction_turn_left)));
         assertTrue(leftMessage.contains("↖ " + context.getString(R.string.direction_slight_left)));
@@ -115,7 +125,10 @@ public class NavigationNotificationDebugHelperTest {
         assertNotNull(notificationManager);
         notificationManager.cancelAll();
 
-        NavigationNotificationDebugHelper.postSymbolTestNotification(ApplicationProvider.getApplicationContext(), group);
+        AndroidNavigationNotificationDebugHelper.postSymbolTestNotification(
+                ApplicationProvider.getApplicationContext(),
+                group
+        );
 
         StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
         assertEquals(1, notifications.length);

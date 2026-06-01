@@ -1,6 +1,7 @@
 package vibro.navigator.nav.routing;
 
 
+import vibro.navigator.android.power.AndroidPartialWakeLock;
 import vibro.navigator.nav.power.NavigationWakeLockController;
 import android.content.Context;
 import android.os.Handler;
@@ -133,7 +134,8 @@ public final class NavigationRouteExecutor {
 
     @NonNull
     public static NavigationRouteExecutor createDefault(@NonNull Context context, @NonNull Handler handler) {
-        NavigationWakeLockController wakeLockController = new NavigationWakeLockController(context);
+        NavigationWakeLockController wakeLockController =
+                new NavigationWakeLockController(new AndroidPartialWakeLock(context));
         return new NavigationRouteExecutor(
                 new NavigationBRouterRouteCalculator(),
                 Executors.newSingleThreadExecutor(),

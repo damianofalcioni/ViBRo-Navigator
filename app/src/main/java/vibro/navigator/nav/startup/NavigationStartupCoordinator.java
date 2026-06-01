@@ -1,8 +1,8 @@
 package vibro.navigator.nav.startup;
 
 
+import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.nav.model.NavigationRequest;
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 
@@ -62,7 +62,7 @@ public final class NavigationStartupCoordinator {
     }
 
     public NavigationStartupCoordinator(@NonNull Host host) {
-        this(host, NavigationPreflight::inspect);
+        this(host, AndroidNavigationPreflight::inspect);
     }
 
     public NavigationStartupCoordinator(@NonNull Host host, @NonNull PreflightInspector preflightInspector) {
@@ -96,7 +96,7 @@ public final class NavigationStartupCoordinator {
             AppLogger.w(TAG, "Location services are disabled");
             host.showSettingsRedirectDialog(
                     R.string.msg_location_disabled,
-                    NavigationPreflight.newLocationSettingsIntent(),
+                    AndroidNavigationPreflight.newLocationSettingsIntent(),
                     () -> onStartupBlockerCancelled(StartupBlocker.LOCATION)
             );
             return;
@@ -106,7 +106,7 @@ public final class NavigationStartupCoordinator {
             AppLogger.w(TAG, "Notifications are disabled for the app");
             host.showSettingsRedirectDialog(
                     R.string.msg_enable_notifications,
-                    NavigationPreflight.newNotificationSettingsIntent(activity),
+                    AndroidNavigationPreflight.newNotificationSettingsIntent(activity),
                     () -> onStartupBlockerCancelled(StartupBlocker.NOTIFICATIONS)
             );
             return;
@@ -115,7 +115,7 @@ public final class NavigationStartupCoordinator {
         if (status.needsBatteryOptimizationExemption) {
             AppLogger.i(TAG, "Prompting for battery optimization exemption");
             host.showBatteryOptimizationDialog(
-                    NavigationPreflight.newBatteryOptimizationIntent(activity),
+                    AndroidNavigationPreflight.newBatteryOptimizationIntent(activity),
                     () -> onStartupBlockerCancelled(StartupBlocker.BATTERY_OPTIMIZATION)
             );
             return;
@@ -213,7 +213,7 @@ public final class NavigationStartupCoordinator {
             @NonNull NavigationPreflight.Status status
     ) {
         String message = activity.getString(R.string.msg_permission_location_rationale);
-        if (status.missingPermissions.contains(Manifest.permission.POST_NOTIFICATIONS)) {
+        if (status.missingPermissions.contains(NavigationPreflight.PERMISSION_POST_NOTIFICATIONS)) {
             message = message + "\n\n" + activity.getString(R.string.msg_permission_notifications_rationale);
         }
         return message;

@@ -23,8 +23,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
 import vibro.navigator.R;
+import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.nav.startup.NavigationPreflight;
 
 @RunWith(RobolectricTestRunner.class)
 public class AboutPermissionStatusRowsRobolectricTest {
@@ -72,10 +72,10 @@ public class AboutPermissionStatusRowsRobolectricTest {
     @Test
     public void aboutPagePermissionRowsOpenMatchingSettingsPages() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
-        registerResolvableIntent(activity, NavigationPreflight.newAppDetailsSettingsIntent(activity));
-        registerResolvableIntent(activity, NavigationPreflight.newLocationSettingsIntent());
-        registerResolvableIntent(activity, NavigationPreflight.newNotificationSettingsIntent(activity));
-        registerResolvableIntent(activity, NavigationPreflight.newBatteryOptimizationIntent(activity));
+        registerResolvableIntent(activity, AndroidNavigationPreflight.newAppDetailsSettingsIntent(activity));
+        registerResolvableIntent(activity, AndroidNavigationPreflight.newLocationSettingsIntent());
+        registerResolvableIntent(activity, AndroidNavigationPreflight.newNotificationSettingsIntent(activity));
+        registerResolvableIntent(activity, AndroidNavigationPreflight.newBatteryOptimizationIntent(activity));
 
         Intent permissionIntent = clickAndReadIntent(activity, R.id.aboutPermissionLocationRow);
         Intent locationIntent = clickAndReadIntent(activity, R.id.aboutPermissionLocationServicesRow);
@@ -86,7 +86,10 @@ public class AboutPermissionStatusRowsRobolectricTest {
         assertEquals("package:" + activity.getPackageName(), String.valueOf(permissionIntent.getData()));
         assertEquals(Settings.ACTION_LOCATION_SOURCE_SETTINGS, locationIntent.getAction());
         assertEquals(Settings.ACTION_APP_NOTIFICATION_SETTINGS, notificationIntent.getAction());
-        assertEquals(NavigationPreflight.newBatteryOptimizationIntent(activity).getAction(), batteryIntent.getAction());
+        assertEquals(
+                AndroidNavigationPreflight.newBatteryOptimizationIntent(activity).getAction(),
+                batteryIntent.getAction()
+        );
     }
 
     private static void assertPermissionRow(

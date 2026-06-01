@@ -1,4 +1,4 @@
-package vibro.navigator.nav.startup;
+package vibro.navigator.android.startup;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -9,11 +9,11 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.logging.AppLogger;
 
-public final class NavigationSettingsLauncher {
+public final class AndroidNavigationSettingsLauncher {
 
     private static final String TAG = "NavSettings";
 
-    private NavigationSettingsLauncher() {
+    private AndroidNavigationSettingsLauncher() {
     }
 
     public static boolean launch(@NonNull Activity activity, @NonNull Intent primaryIntent) {
@@ -21,7 +21,7 @@ public final class NavigationSettingsLauncher {
             return true;
         }
 
-        Intent fallbackIntent = NavigationPreflight.newAppDetailsSettingsIntent(activity);
+        Intent fallbackIntent = AndroidNavigationPreflight.newAppDetailsSettingsIntent(activity);
         if (sameTarget(primaryIntent, fallbackIntent)) {
             AppLogger.w(TAG, "No resolvable settings activity for intent action=" + primaryIntent.getAction());
             return false;

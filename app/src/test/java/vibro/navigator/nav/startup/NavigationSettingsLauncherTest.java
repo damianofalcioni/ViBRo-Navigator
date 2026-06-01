@@ -20,16 +20,19 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowPackageManager;
 
+import vibro.navigator.android.startup.AndroidNavigationPreflight;
+import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
+
 @RunWith(RobolectricTestRunner.class)
 public class NavigationSettingsLauncherTest {
 
     @Test
     public void launch_usesPrimaryIntentWhenResolvable() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        Intent primaryIntent = NavigationPreflight.newLocationSettingsIntent();
+        Intent primaryIntent = AndroidNavigationPreflight.newLocationSettingsIntent();
         registerResolvableIntent(activity, primaryIntent);
 
-        assertTrue(NavigationSettingsLauncher.launch(activity, primaryIntent));
+        assertTrue(AndroidNavigationSettingsLauncher.launch(activity, primaryIntent));
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();
         assertEquals(Settings.ACTION_LOCATION_SOURCE_SETTINGS, startedIntent.getAction());
@@ -43,7 +46,7 @@ public class NavigationSettingsLauncherTest {
                 .setData(Uri.fromParts("package", activity.getPackageName(), null));
         registerResolvableIntent(activity, fallbackIntent);
 
-        assertTrue(NavigationSettingsLauncher.launch(activity, primaryIntent));
+        assertTrue(AndroidNavigationSettingsLauncher.launch(activity, primaryIntent));
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();
         assertEquals(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, startedIntent.getAction());
@@ -55,7 +58,7 @@ public class NavigationSettingsLauncherTest {
     public void newNotificationSettingsIntent_usesLegacyExtrasBeforeOreo() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        Intent intent = NavigationPreflight.newNotificationSettingsIntent(activity);
+        Intent intent = AndroidNavigationPreflight.newNotificationSettingsIntent(activity);
 
         assertEquals(Settings.ACTION_APP_NOTIFICATION_SETTINGS, intent.getAction());
         assertEquals(activity.getPackageName(), intent.getStringExtra("app_package"));
@@ -68,7 +71,7 @@ public class NavigationSettingsLauncherTest {
     public void newNotificationSettingsIntent_usesPackageExtraOnOreoAndAbove() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        Intent intent = NavigationPreflight.newNotificationSettingsIntent(activity);
+        Intent intent = AndroidNavigationPreflight.newNotificationSettingsIntent(activity);
 
         assertEquals(Settings.ACTION_APP_NOTIFICATION_SETTINGS, intent.getAction());
         assertEquals(activity.getPackageName(), intent.getStringExtra(Settings.EXTRA_APP_PACKAGE));

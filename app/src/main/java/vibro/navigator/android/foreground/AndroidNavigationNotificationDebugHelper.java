@@ -1,8 +1,5 @@
-package vibro.navigator.nav.foreground;
+package vibro.navigator.android.foreground;
 
-
-import vibro.navigator.nav.service.NavigationService;
-import vibro.navigator.nav.format.NavigationTextFormatter;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.os.Build;
@@ -10,23 +7,25 @@ import android.os.Build;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
-import vibro.navigator.R;
-import vibro.navigator.nav.directions.DirectionInfo;
-import vibro.navigator.nav.directions.DirectionKind;
-import vibro.navigator.nav.directions.VoiceHintMapper;
-import vibro.navigator.nav.route.VoiceHint;
-import vibro.navigator.logging.AppLogger;
-
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
-public final class NavigationNotificationDebugHelper {
+import vibro.navigator.R;
+import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.directions.DirectionInfo;
+import vibro.navigator.nav.directions.DirectionKind;
+import vibro.navigator.nav.directions.VoiceHintMapper;
+import vibro.navigator.nav.format.NavigationTextFormatter;
+import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.service.NavigationService;
+
+public final class AndroidNavigationNotificationDebugHelper {
 
     private static final String TAG = "NavNotifDebug";
     private static final double BEARING_SAMPLE_DEGREES = 42.0;
 
-    private NavigationNotificationDebugHelper() {
+    private AndroidNavigationNotificationDebugHelper() {
     }
 
     public enum SymbolTestGroup {
@@ -51,7 +50,7 @@ public final class NavigationNotificationDebugHelper {
             @NonNull Context context,
             @NonNull SymbolTestGroup group
     ) {
-        NavigationNotificationChannels.ensure(context);
+        AndroidNavigationNotificationChannels.ensure(context);
 
         String summary = buildSymbolTestSummary(context, group);
         String message = buildSymbolTestMessage(context, group);
@@ -220,11 +219,11 @@ public final class NavigationNotificationDebugHelper {
     @NonNull
     private static long[] vibrationPatternForGroup(@NonNull SymbolTestGroup group) {
         if (group == SymbolTestGroup.LEFT) {
-            return NavigationNotificationChannels.leftVibrationPattern();
+            return AndroidNavigationNotificationChannels.leftVibrationPattern();
         }
         if (group == SymbolTestGroup.RIGHT) {
-            return NavigationNotificationChannels.rightVibrationPattern();
+            return AndroidNavigationNotificationChannels.rightVibrationPattern();
         }
-        return NavigationNotificationChannels.genericAlertVibrationPattern();
+        return AndroidNavigationNotificationChannels.genericAlertVibrationPattern();
     }
 }

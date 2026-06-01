@@ -1,9 +1,7 @@
 package vibro.navigator.about;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
-import android.os.Build;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -12,8 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
+import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.nav.startup.NavigationPreflight;
-import vibro.navigator.nav.startup.NavigationSettingsLauncher;
 
 final class AboutPermissionStatusRows {
 
@@ -36,7 +35,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionLocationMark,
                 R.id.aboutPermissionLocationLabel,
                 R.id.aboutPermissionLocationStatus,
-                NavigationPreflight::newAppDetailsSettingsIntent
+                AndroidNavigationPreflight::newAppDetailsSettingsIntent
         );
         locationServicesRow = new PermissionRow(
                 activity,
@@ -44,7 +43,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionLocationServicesMark,
                 R.id.aboutPermissionLocationServicesLabel,
                 R.id.aboutPermissionLocationServicesStatus,
-                ignored -> NavigationPreflight.newLocationSettingsIntent()
+                ignored -> AndroidNavigationPreflight.newLocationSettingsIntent()
         );
         notificationsRow = new PermissionRow(
                 activity,
@@ -52,7 +51,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionNotificationsMark,
                 R.id.aboutPermissionNotificationsLabel,
                 R.id.aboutPermissionNotificationsStatus,
-                NavigationPreflight::newNotificationSettingsIntent
+                AndroidNavigationPreflight::newNotificationSettingsIntent
         );
         batteryOptimizationRow = new PermissionRow(
                 activity,
@@ -60,29 +59,16 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionBatteryMark,
                 R.id.aboutPermissionBatteryLabel,
                 R.id.aboutPermissionBatteryStatus,
-                NavigationPreflight::newBatteryOptimizationIntent
+                AndroidNavigationPreflight::newBatteryOptimizationIntent
         );
     }
 
     void render() {
-        NavigationPreflight.Status status = NavigationPreflight.inspect(activity);
-        locationPermissionRow.render(hasLocationPermission(status));
+        NavigationPreflight.Status status = AndroidNavigationPreflight.inspect(activity);
+        locationPermissionRow.render(status.hasLocationPermission());
         locationServicesRow.render(status.locationEnabled);
-        notificationsRow.render(hasNotificationAccess(status));
+        notificationsRow.render(status.hasNotificationAccess());
         batteryOptimizationRow.render(!status.needsBatteryOptimizationExemption);
-    }
-
-    private static boolean hasLocationPermission(@NonNull NavigationPreflight.Status status) {
-        return !status.missingPermissions.contains(Manifest.permission.ACCESS_FINE_LOCATION)
-                && !status.missingPermissions.contains(Manifest.permission.ACCESS_COARSE_LOCATION);
-    }
-
-    private static boolean hasNotificationAccess(@NonNull NavigationPreflight.Status status) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            return status.notificationsEnabled;
-        }
-        return !status.missingPermissions.contains(Manifest.permission.POST_NOTIFICATIONS)
-                && status.notificationsEnabled;
     }
 
     private interface SettingsIntentFactory {
@@ -139,7 +125,7 @@ final class AboutPermissionStatusRows {
         }
 
         private void openSettings(@NonNull Intent intent) {
-            if (!NavigationSettingsLauncher.launch(activity, intent)) {
+            if (!AndroidNavigationSettingsLauncher.launch(activity, intent)) {
                 Toast.makeText(activity, R.string.msg_open_settings_failed, Toast.LENGTH_SHORT).show();
             }
         }
