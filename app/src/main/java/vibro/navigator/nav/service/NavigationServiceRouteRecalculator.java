@@ -81,6 +81,6 @@ final class NavigationServiceRouteRecalculator {
         if (rerouteNotice != null) {
             runtime.foregroundController().sendOffRouteNotification(rerouteNotice);
         }
-        runtime.requestRoute(service, snapshot);
+        runtime.requestRoute(snapshot);
     }
 }

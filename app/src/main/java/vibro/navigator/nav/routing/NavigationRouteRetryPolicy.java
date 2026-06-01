@@ -1,7 +1,5 @@
 package vibro.navigator.nav.routing;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import vibro.navigator.geo.LatLon;
@@ -29,7 +27,6 @@ final class NavigationRouteRetryPolicy {
     @NonNull
     GeoJsonRoute calculateRoute(
             @NonNull NavigationRouteExecutor.RouteCalculator routeCalculator,
-            @NonNull Context appContext,
             @NonNull NavigationRouteRequestSnapshot snapshot
     ) throws Exception {
         int attempt = 0;
@@ -37,7 +34,6 @@ final class NavigationRouteRetryPolicy {
             attempt++;
             try {
                 return routeCalculator.routeGeoJson(
-                        appContext,
                         snapshot.start,
                         snapshot.intermediates,
                         requireDestination(snapshot),

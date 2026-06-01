@@ -1,4 +1,4 @@
-package vibro.navigator.brouter;
+package vibro.navigator.android.brouter;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -7,9 +7,10 @@ import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 
-public final class BRouterInstallLauncher {
+public final class AndroidBRouterInstallLauncher {
 
     private static final String TAG = "BRouterInstall";
     private static final Uri PLAY_STORE_APP_URI =
@@ -20,7 +21,7 @@ public final class BRouterInstallLauncher {
     private static final Uri FDROID_WEB_URI =
             Uri.parse("https://f-droid.org/packages/" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME + "/");
 
-    private BRouterInstallLauncher() {
+    private AndroidBRouterInstallLauncher() {
     }
 
     public static boolean launchPlayStore(@NonNull Activity activity) {

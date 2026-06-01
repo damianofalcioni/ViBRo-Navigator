@@ -1,16 +1,15 @@
-package vibro.navigator.brouter;
+package vibro.navigator.android.brouter;
 
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.logging.AppLogger;
-
 import btools.routingapp.BRouterServiceConnection;
 import btools.routingapp.IBRouterService;
+import vibro.navigator.logging.AppLogger;
 
-final class BRouterConnectionController implements AutoCloseable {
+final class AndroidBRouterConnectionController implements AutoCloseable {
 
     private static final String TAG = "BRouterConnection";
     private static final int MAX_CONNECT_ATTEMPTS = 3;
@@ -21,7 +20,7 @@ final class BRouterConnectionController implements AutoCloseable {
     private final Context appContext;
     private BRouterServiceConnection connection;
 
-    BRouterConnectionController(@NonNull Context context) {
+    AndroidBRouterConnectionController(@NonNull Context context) {
         appContext = context.getApplicationContext();
     }
 

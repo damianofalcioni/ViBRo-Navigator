@@ -95,8 +95,8 @@ final class NavigationServiceRuntime {
         routing.maneuverSpeaker.stop();
     }
 
-    void requestRoute(@NonNull NavigationService service, @NonNull NavigationRouteRequestSnapshot snapshot) {
-        routing.executor.requestRoute(service, snapshot, routing.callback);
+    void requestRoute(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        routing.executor.requestRoute(snapshot, routing.callback);
     }
 
     long nextEvaluationDeadlineElapsedMs() {

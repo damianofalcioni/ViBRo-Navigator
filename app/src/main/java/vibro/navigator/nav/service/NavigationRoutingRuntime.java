@@ -2,6 +2,7 @@ package vibro.navigator.nav.service;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.android.routing.AndroidNavigationRouteExecutorFactory;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.guidance.NavigationTurnEventDispatcher;
@@ -39,7 +40,7 @@ final class NavigationRoutingRuntime {
             @NonNull Runnable stateEmitter,
             @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
     ) {
-        NavigationRouteExecutor executor = NavigationRouteExecutor.createDefault(service, uiScheduler);
+        NavigationRouteExecutor executor = AndroidNavigationRouteExecutorFactory.create(service, uiScheduler);
         NavigationManeuverSpeaker maneuverSpeaker = new NavigationManeuverSpeaker(service);
         NavigationTurnEventDispatcher turnEventDispatcher = new NavigationTurnEventDispatcher(
                 new NavigationServiceTurnNotificationSink(foregroundController, maneuverSpeaker)

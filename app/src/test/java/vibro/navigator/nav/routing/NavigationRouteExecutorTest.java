@@ -5,8 +5,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import androidx.test.core.app.ApplicationProvider;
-
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.brouter.NogoPoint;
@@ -30,7 +28,7 @@ public class NavigationRouteExecutorTest {
     @Test
     public void requestRouteDeliversSuccessfulResult() throws Exception {
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
+                (start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
                         Arrays.asList(start, destination),
                         Collections.emptyList(),
                         42.0,
@@ -45,7 +43,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -81,7 +78,7 @@ public class NavigationRouteExecutorTest {
     @Test
     public void requestRouteTreatsEmptyTrackAsFailure() throws Exception {
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
+                (start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
                         Collections.emptyList(),
                         Collections.emptyList(),
                         0.0,
@@ -96,7 +93,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -133,7 +129,7 @@ public class NavigationRouteExecutorTest {
     public void requestRouteRetriesTransientBRouterFailure() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> {
+                (start, intermediates, destination, profile, blocked) -> {
                     if (attempts.incrementAndGet() == 1) {
                         throw BRouterRouteException.serviceUnavailable("BRouter service not available");
                     }
@@ -157,7 +153,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -194,7 +189,7 @@ public class NavigationRouteExecutorTest {
     public void requestRouteFailsAfterTransientRetriesAreExhausted() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> {
+                (start, intermediates, destination, profile, blocked) -> {
                     attempts.incrementAndGet();
                     throw BRouterRouteException.serviceUnavailable("BRouter service not available");
                 },
@@ -210,7 +205,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -246,7 +240,7 @@ public class NavigationRouteExecutorTest {
     public void requestRouteRetriesAdapterMappedBinderFailure() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> {
+                (start, intermediates, destination, profile, blocked) -> {
                     if (attempts.incrementAndGet() == 1) {
                         throw BRouterRouteException.serviceUnavailable("BRouter binder died during route request");
                     }
@@ -270,7 +264,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -307,7 +300,7 @@ public class NavigationRouteExecutorTest {
     public void requestRouteDoesNotRetryNoRouteFoundBRouterFailure() throws Exception {
         AtomicInteger attempts = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> {
+                (start, intermediates, destination, profile, blocked) -> {
                     attempts.incrementAndGet();
                     throw BRouterRouteException.fromTextResponse("no track found at pass=0");
                 },
@@ -323,7 +316,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -373,7 +365,7 @@ public class NavigationRouteExecutorTest {
     public void requestRouteRunsCalculationInsideConfiguredGuard() throws Exception {
         AtomicInteger guardRuns = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                (context, start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
+                (start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
                         Arrays.asList(start, destination),
                         Collections.emptyList(),
                         42.0,
@@ -395,7 +387,6 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    ApplicationProvider.getApplicationContext(),
                     routeSnapshot(),
                     new NavigationRouteExecutor.Callback() {
                         @Override
@@ -449,7 +440,6 @@ public class NavigationRouteExecutorTest {
 
         @Override
         public GeoJsonRoute routeGeoJson(
-                android.content.Context context,
                 LatLon start,
                 java.util.List<LatLon> intermediates,
                 LatLon destination,

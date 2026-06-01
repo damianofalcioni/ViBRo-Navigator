@@ -1,8 +1,5 @@
 package vibro.navigator.brouter;
 
-import android.content.Context;
-import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -20,21 +17,7 @@ public final class BRouterRouter {
 
     @NonNull
     public GeoJsonRoute routeGeoJson(
-            @NonNull Context context,
-            @NonNull LatLon start,
-            @NonNull List<LatLon> intermediates,
-            @NonNull LatLon end,
-            @NonNull String profile,
-            @Nullable List<NogoPoint> blockedWaypoints
-    ) throws Exception {
-        try (BRouterClient client = new BRouterClient(context)) {
-            return routeGeoJson(client, start, intermediates, end, profile, blockedWaypoints);
-        }
-    }
-
-    @NonNull
-    public GeoJsonRoute routeGeoJson(
-            @NonNull BRouterClient client,
+            @NonNull BRouterRouteClient client,
             @NonNull LatLon start,
             @NonNull List<LatLon> intermediates,
             @NonNull LatLon end,
@@ -53,20 +36,24 @@ public final class BRouterRouter {
 
     @NonNull
     private String requestRoutePayload(
-            @NonNull BRouterClient client,
+            @NonNull BRouterRouteClient client,
             @NonNull LatLon start,
             @NonNull List<LatLon> stops,
             @NonNull LatLon end,
             @NonNull String profile,
             @Nullable List<NogoPoint> blockedWaypoints
     ) throws Exception {
-        Bundle params = BRouterParams.buildRouteParams(start, stops, end, profile, blockedWaypoints);
-        String raw = client.getTrackFromParams(params);
-        if (raw == null) {
+        String decoded = client.requestRoutePayload(new BRouterRouteRequest(
+                start,
+                stops,
+                end,
+                profile,
+                blockedWaypoints
+        ));
+        if (decoded == null) {
             AppLogger.w(TAG, "BRouter returned null route payload");
             throw BRouterRouteException.serviceUnavailable("BRouter service not available");
         }
-        String decoded = BRouterClient.decodeResult(raw);
         AppLogger.dMultiline(TAG, "Full BRouter response=", decoded);
         return decoded;
     }

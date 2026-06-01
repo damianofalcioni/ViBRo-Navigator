@@ -1,23 +1,17 @@
 package vibro.navigator.nav.routing;
 
-
-import vibro.navigator.android.power.AndroidPartialWakeLock;
-import vibro.navigator.dispatch.TaskScheduler;
-import vibro.navigator.nav.power.NavigationWakeLockController;
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.VisibleForTesting;
 
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.route.GeoJsonRoute;
 
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +37,6 @@ public final class NavigationRouteExecutor {
     public interface RouteCalculator {
         @NonNull
         public GeoJsonRoute routeGeoJson(
-                @NonNull Context context,
                 @NonNull LatLon start,
                 @NonNull List<LatLon> intermediates,
                 @NonNull LatLon destination,
@@ -59,9 +52,6 @@ public final class NavigationRouteExecutor {
     }
 
     private static final String TAG = "NavRouteExecutor";
-    private static final String ROUTE_WAKE_LOCK_TAG =
-            "vibro.navigator.nav.NavigationRouteExecutor:route";
-    private static final long ROUTE_WAKE_LOCK_TIMEOUT_MS = 60_000L;
     private static final int DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES = 2;
     private static final long DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS = 400L;
 
@@ -128,22 +118,17 @@ public final class NavigationRouteExecutor {
         );
     }
 
-    @NonNull
-    public static NavigationRouteExecutor createDefault(
-            @NonNull Context context,
-            @NonNull TaskScheduler mainThreadScheduler
+    public NavigationRouteExecutor(
+            @NonNull RouteCalculator routeCalculator,
+            @NonNull ExecutorService executorService,
+            @NonNull TaskScheduler mainThreadScheduler,
+            @NonNull RouteCalculationGuard routeCalculationGuard
     ) {
-        NavigationWakeLockController wakeLockController =
-                new NavigationWakeLockController(new AndroidPartialWakeLock(context));
-        return new NavigationRouteExecutor(
-                new NavigationBRouterRouteCalculator(),
-                Executors.newSingleThreadExecutor(),
+        this(
+                routeCalculator,
+                executorService,
                 mainThreadScheduler,
-                routeCalculation -> wakeLockController.runWithWakeLock(
-                        ROUTE_WAKE_LOCK_TAG,
-                        ROUTE_WAKE_LOCK_TIMEOUT_MS,
-                        routeCalculation
-                ),
+                routeCalculationGuard,
                 DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES,
                 DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS,
                 Thread::sleep
@@ -151,17 +136,15 @@ public final class NavigationRouteExecutor {
     }
 
     public void requestRoute(
-            @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Callback callback
     ) {
-        Context appContext = context.getApplicationContext();
         try {
             executorService.submit(() -> {
                 long beganAt = System.currentTimeMillis();
                 try {
                     GeoJsonRoute newRoute = routeCalculationGuard.run(
-                            () -> calculateRouteWithRetry(appContext, snapshot)
+                            () -> calculateRouteWithRetry(snapshot)
                     );
                     if (newRoute.track.isEmpty()) {
                         throw new IllegalStateException("BRouter returned an empty route");
@@ -185,11 +168,8 @@ public final class NavigationRouteExecutor {
     }
 
     @NonNull
-    private GeoJsonRoute calculateRouteWithRetry(
-            @NonNull Context appContext,
-            @NonNull NavigationRouteRequestSnapshot snapshot
-    ) throws Exception {
-        return routeRetryPolicy.calculateRoute(routeCalculator, appContext, snapshot);
+    private GeoJsonRoute calculateRouteWithRetry(@NonNull NavigationRouteRequestSnapshot snapshot) throws Exception {
+        return routeRetryPolicy.calculateRoute(routeCalculator, snapshot);
     }
 
     private boolean awaitExecutorTermination() {

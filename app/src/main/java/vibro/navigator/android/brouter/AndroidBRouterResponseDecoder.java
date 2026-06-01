@@ -1,4 +1,4 @@
-package vibro.navigator.brouter;
+package vibro.navigator.android.brouter;
 
 import android.util.Base64;
 
@@ -11,12 +11,12 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
-final class BRouterResponseDecoder {
+final class AndroidBRouterResponseDecoder {
 
     private static final String Z64_BASE64_PREFIX = "ejY0";
     private static final int Z64_MARKER_LENGTH = 3;
 
-    private BRouterResponseDecoder() {
+    private AndroidBRouterResponseDecoder() {
     }
 
     @NonNull

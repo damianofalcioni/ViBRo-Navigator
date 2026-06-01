@@ -1,29 +1,28 @@
-package vibro.navigator.brouter;
+package vibro.navigator.android.brouter;
 
 import android.content.Context;
 import android.os.DeadObjectException;
-import android.os.Bundle;
 import android.os.RemoteException;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import btools.routingapp.IBRouterService;
+import vibro.navigator.brouter.BRouterRouteClient;
+import vibro.navigator.brouter.BRouterRouteException;
+import vibro.navigator.brouter.BRouterRouteRequest;
 import vibro.navigator.logging.AppLogger;
 
-import java.io.IOException;
-
-import btools.routingapp.IBRouterService;
-
-public final class BRouterClient implements AutoCloseable {
+public final class AndroidBRouterRouteClient implements BRouterRouteClient {
 
     private static final String TAG = "BRouterClient";
     private static final long CONNECT_RETRY_DELAY_MS = 250L;
     private static final int MAX_REQUEST_ATTEMPTS = 2;
 
-    private final BRouterConnectionController connectionController;
+    private final AndroidBRouterConnectionController connectionController;
 
-    public BRouterClient(@NonNull Context context) {
-        connectionController = new BRouterConnectionController(context);
+    public AndroidBRouterRouteClient(@NonNull Context context) {
+        connectionController = new AndroidBRouterConnectionController(context);
     }
 
     public boolean connect() {
@@ -31,23 +30,38 @@ public final class BRouterClient implements AutoCloseable {
     }
 
     @Nullable
-    public String getTrackFromParams(@NonNull Bundle params) throws Exception {
+    @Override
+    public String requestRoutePayload(@NonNull BRouterRouteRequest request) throws Exception {
         for (int attempt = 1; attempt <= MAX_REQUEST_ATTEMPTS; attempt++) {
-            IBRouterService svc = requireConnectedService();
-            if (svc == null) {
+            IBRouterService service = requireConnectedService();
+            if (service == null) {
                 return null;
             }
-            try {
-                AppLogger.d(TAG, "Requesting track from BRouter service attempt="
-                        + attempt + "/" + MAX_REQUEST_ATTEMPTS);
-                return svc.getTrackFromParams(params);
-            } catch (RemoteException e) {
-                if (!recoverFromRouteRequestFailure(attempt, e)) {
-                    throw BRouterRouteException.serviceUnavailable(routeRequestFailureLogMessage(e), e);
-                }
+            RoutePayloadAttemptResult result = requestRoutePayloadAttempt(service, request, attempt);
+            if (!result.retry) {
+                return result.payload;
             }
         }
         return null;
+    }
+
+    @NonNull
+    private RoutePayloadAttemptResult requestRoutePayloadAttempt(
+            @NonNull IBRouterService service,
+            @NonNull BRouterRouteRequest request,
+            int attempt
+    ) throws Exception {
+        try {
+            AppLogger.d(TAG, "Requesting track from BRouter service attempt="
+                    + attempt + "/" + MAX_REQUEST_ATTEMPTS);
+            String raw = service.getTrackFromParams(AndroidBRouterParams.buildRouteParams(request));
+            return RoutePayloadAttemptResult.done(raw == null ? null : AndroidBRouterResponseDecoder.decode(raw));
+        } catch (RemoteException e) {
+            if (!recoverFromRouteRequestFailure(attempt, e)) {
+                throw BRouterRouteException.serviceUnavailable(routeRequestFailureLogMessage(e), e);
+            }
+            return RoutePayloadAttemptResult.retry();
+        }
     }
 
     private boolean recoverFromRouteRequestFailure(
@@ -116,13 +130,29 @@ public final class BRouterClient implements AutoCloseable {
         }
     }
 
-    @NonNull
-    public static String decodeResult(@NonNull String raw) throws IOException {
-        return BRouterResponseDecoder.decode(raw);
-    }
-
     @Override
     public void close() {
         connectionController.close();
+    }
+
+    private static final class RoutePayloadAttemptResult {
+        @Nullable
+        private final String payload;
+        private final boolean retry;
+
+        private RoutePayloadAttemptResult(@Nullable String payload, boolean retry) {
+            this.payload = payload;
+            this.retry = retry;
+        }
+
+        @NonNull
+        private static RoutePayloadAttemptResult done(@Nullable String payload) {
+            return new RoutePayloadAttemptResult(payload, false);
+        }
+
+        @NonNull
+        private static RoutePayloadAttemptResult retry() {
+            return new RoutePayloadAttemptResult(null, true);
+        }
     }
 }

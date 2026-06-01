@@ -1,4 +1,4 @@
-package vibro.navigator.brouter;
+package vibro.navigator.android.brouter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -17,8 +17,10 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
+import vibro.navigator.brouter.BRouterProfilesRepository;
+
 @RunWith(RobolectricTestRunner.class)
-public class BRouterInstallLauncherTest {
+public class AndroidBRouterInstallLauncherTest {
 
     @Test
     public void launchPlayStore_usesMarketUriWhenResolvable() {
@@ -29,7 +31,7 @@ public class BRouterInstallLauncherTest {
         );
         registerResolvableIntent(activity, marketIntent, "com.android.vending");
 
-        assertTrue(BRouterInstallLauncher.launchPlayStore(activity));
+        assertTrue(AndroidBRouterInstallLauncher.launchPlayStore(activity));
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();
         assertEquals("market", startedIntent.getData().getScheme());
@@ -47,7 +49,7 @@ public class BRouterInstallLauncherTest {
         );
         registerResolvableIntent(activity, webIntent, "com.android.chrome");
 
-        assertTrue(BRouterInstallLauncher.launchPlayStore(activity));
+        assertTrue(AndroidBRouterInstallLauncher.launchPlayStore(activity));
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();
         assertEquals("https", startedIntent.getData().getScheme());
@@ -65,7 +67,7 @@ public class BRouterInstallLauncherTest {
         );
         registerResolvableIntent(activity, fdroidIntent, "org.mozilla.firefox");
 
-        assertTrue(BRouterInstallLauncher.launchFdroid(activity));
+        assertTrue(AndroidBRouterInstallLauncher.launchFdroid(activity));
 
         Intent startedIntent = shadowOf(activity).getNextStartedActivity();
         assertEquals("https", startedIntent.getData().getScheme());
@@ -78,7 +80,7 @@ public class BRouterInstallLauncherTest {
     public void launchPlayStore_returnsFalseWhenNoStorePageCanBeOpened() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
 
-        assertFalse(BRouterInstallLauncher.launchPlayStore(activity));
+        assertFalse(AndroidBRouterInstallLauncher.launchPlayStore(activity));
 
         assertEquals(null, shadowOf(activity).getNextStartedActivity());
     }
