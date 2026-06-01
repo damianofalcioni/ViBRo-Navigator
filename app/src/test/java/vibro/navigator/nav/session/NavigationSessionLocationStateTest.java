@@ -22,10 +22,10 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.10f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 1_000L, 48.2082060, 16.3738000, 0.12f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 2_000L, 48.2082120, 16.3738000, 0.08f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 3_000L, 48.2082180, 16.3738000, 0.09f));
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.10f));
+        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082060, 16.3738000, 0.12f));
+        state.onRawLocationChanged(location(baseTimeMs + 2_000L, 48.2082120, 16.3738000, 0.08f));
+        state.onRawLocationChanged(location(baseTimeMs + 3_000L, 48.2082180, 16.3738000, 0.09f));
 
         assertFalse(state.isLikelyStationary());
     }
@@ -35,10 +35,10 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.00f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 1_000L, 48.2082004, 16.3738002, 0.05f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 2_000L, 48.2082002, 16.3738001, 0.04f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 3_000L, 48.2082003, 16.3738000, 0.03f));
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.00f));
+        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082004, 16.3738002, 0.05f));
+        state.onRawLocationChanged(location(baseTimeMs + 2_000L, 48.2082002, 16.3738001, 0.04f));
+        state.onRawLocationChanged(location(baseTimeMs + 3_000L, 48.2082003, 16.3738000, 0.03f));
 
         assertTrue(state.isLikelyStationary());
     }
@@ -48,8 +48,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             update.setBearingAccuracyDegrees(12f);
@@ -67,8 +67,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.8f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.8f);
         update.setBearing(84f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
@@ -82,8 +82,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
@@ -98,8 +98,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             update.setBearingAccuracyDegrees(12f);
@@ -117,8 +117,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             update.setBearingAccuracyDegrees(12f);
@@ -138,8 +138,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 4_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             update.setBearingAccuracyDegrees(40f);
@@ -159,8 +159,8 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 0f));
-        NavigationLocation update = NavigationLocation(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0f));
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             update.setBearingAccuracyDegrees(12f);
@@ -178,12 +178,12 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 5_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 1.0f));
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs + 1_000L, 48.2082600, 16.3738000, 1.0f));
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f));
+        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082600, 16.3738000, 1.0f));
 
         state.reset();
 
-        NavigationLocation restartLocation = NavigationLocation(baseTimeMs + 2_000L, 48.2100000, 16.3800000, 0.5f);
+        NavigationLocation restartLocation = location(baseTimeMs + 2_000L, 48.2100000, 16.3800000, 0.5f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(restartLocation);
         NavigationLocation filtered = accepted.getFilteredLocation();
 
@@ -196,7 +196,7 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 1_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
 
         NavigationLocation reacquiredLocation = locationWithoutSpeed(
                 System.currentTimeMillis(),
@@ -218,31 +218,31 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 1_000L;
 
-        state.onRawLocationChanged(NavigationLocation(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(
-                NavigationLocation(System.currentTimeMillis(), 48.2082600, 16.3738000, 1.0f),
+                location(System.currentTimeMillis(), 48.2082600, 16.3738000, 1.0f),
                 5_000L
         );
 
         assertFalse(accepted.isReacquiringAfterLongGap());
     }
 
-    private static NavigationLocation NavigationLocation(long timeMs, double lat, double lon, float speedMps) {
-        NavigationLocation NavigationLocation = new NavigationLocation(NavigationLocationProviders.GPS_PROVIDER);
-        NavigationLocation.setLatitude(lat);
-        NavigationLocation.setLongitude(lon);
-        NavigationLocation.setTime(timeMs);
-        NavigationLocation.setAccuracy(5f);
-        NavigationLocation.setSpeed(speedMps);
-        return NavigationLocation;
+    private static NavigationLocation location(long timeMs, double lat, double lon, float speedMps) {
+        NavigationLocation location = new NavigationLocation(NavigationLocationProviders.GPS_PROVIDER);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(5f);
+        location.setSpeed(speedMps);
+        return location;
     }
 
     private static NavigationLocation locationWithoutSpeed(long timeMs, double lat, double lon) {
-        NavigationLocation NavigationLocation = new NavigationLocation(NavigationLocationProviders.GPS_PROVIDER);
-        NavigationLocation.setLatitude(lat);
-        NavigationLocation.setLongitude(lon);
-        NavigationLocation.setTime(timeMs);
-        NavigationLocation.setAccuracy(5f);
-        return NavigationLocation;
+        NavigationLocation location = new NavigationLocation(NavigationLocationProviders.GPS_PROVIDER);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(5f);
+        return location;
     }
 }

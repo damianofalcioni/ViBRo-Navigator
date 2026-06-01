@@ -50,10 +50,10 @@ final class NavigationSessionLocationEvaluator {
     NavigationLocationUpdateResult onRawLocationChanged(
             @NonNull Context context,
             @NonNull NavigationRequest currentRequest,
-            @NonNull NavigationLocation NavigationLocation,
+            @NonNull NavigationLocation rawLocation,
             long nowMs
     ) {
-        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(NavigationLocation, nowMs);
+        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(rawLocation, nowMs);
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
         }

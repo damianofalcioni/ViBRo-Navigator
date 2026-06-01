@@ -1,7 +1,5 @@
 package vibro.navigator.nav.location;
 
-import vibro.navigator.nav.location.NavigationLocation;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -56,9 +54,9 @@ public final class NavigationLocationMotionModel {
         return totalRecentDistanceMeters() <= MAX_STATIONARY_RECENT_DISTANCE_METERS;
     }
 
-    public float speedMps(@NonNull NavigationLocation NavigationLocation) {
-        if (NavigationLocation.hasSpeed()) {
-            return Math.max(0f, NavigationLocation.getSpeed());
+    public float speedMps(@NonNull NavigationLocation location) {
+        if (location.hasSpeed()) {
+            return Math.max(0f, location.getSpeed());
         }
         if (previousFiltered == null) {
             return 0f;
@@ -66,26 +64,26 @@ public final class NavigationLocationMotionModel {
         double distanceMeters = GeoMath.distanceMeters(
                 previousFiltered.getLatitude(),
                 previousFiltered.getLongitude(),
-                NavigationLocation.getLatitude(),
-                NavigationLocation.getLongitude()
+                location.getLatitude(),
+                location.getLongitude()
         );
-        double deltaSeconds = Math.max(1.0, (NavigationLocation.getTime() - previousFiltered.getTime()) / 1000.0);
+        double deltaSeconds = Math.max(1.0, (location.getTime() - previousFiltered.getTime()) / 1000.0);
         return (float) (distanceMeters / deltaSeconds);
     }
 
     @Nullable
-    public Double movementBearingDegrees(@NonNull NavigationLocation NavigationLocation) {
-        pruneRecentFilteredLocations(NavigationLocation.getTime());
+    public Double movementBearingDegrees(@NonNull NavigationLocation location) {
+        pruneRecentFilteredLocations(location.getTime());
         for (NavigationLocation sample : recentFilteredLocations) {
-            long elapsedMs = NavigationLocation.getTime() - sample.getTime();
+            long elapsedMs = location.getTime() - sample.getTime();
             if (elapsedMs < MIN_MOVEMENT_BEARING_ELAPSED_MS) {
                 continue;
             }
             double distanceMeters = GeoMath.distanceMeters(
                     sample.getLatitude(),
                     sample.getLongitude(),
-                    NavigationLocation.getLatitude(),
-                    NavigationLocation.getLongitude()
+                    location.getLatitude(),
+                    location.getLongitude()
             );
             if (distanceMeters < MIN_MOVEMENT_BEARING_DISTANCE_METERS) {
                 continue;
@@ -93,8 +91,8 @@ public final class NavigationLocationMotionModel {
             return GeoMath.bearingDegrees(
                     sample.getLatitude(),
                     sample.getLongitude(),
-                    NavigationLocation.getLatitude(),
-                    NavigationLocation.getLongitude()
+                    location.getLatitude(),
+                    location.getLongitude()
             );
         }
         return null;

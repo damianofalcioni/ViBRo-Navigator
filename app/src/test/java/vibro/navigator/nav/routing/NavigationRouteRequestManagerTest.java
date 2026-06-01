@@ -36,7 +36,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 10_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 10_000L),
+                location(0.0, 0.0, 10_000L),
                 Collections.emptyList(),
                 null
         );
@@ -44,7 +44,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 11_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 11_000L),
+                location(0.0, 0.0, 11_000L),
                 Collections.emptyList(),
                 null
         );
@@ -63,7 +63,7 @@ public class NavigationRouteRequestManagerTest {
                 true,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 2_000L),
+                location(0.0, 0.0, 2_000L),
                 Collections.emptyList(),
                 null
         );
@@ -71,7 +71,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 3_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 3_000L),
+                location(0.0, 0.0, 3_000L),
                 Collections.emptyList(),
                 null
         );
@@ -92,7 +92,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
+                location(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -101,7 +101,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 3_000L,
                 navigationRequest(),
-                NavigationLocation(FUSED_PROVIDER, 48.19876181016738, 16.3658536569431, 3_000L, 18.256f),
+                location(FUSED_PROVIDER, 48.19876181016738, 16.3658536569431, 3_000L, 18.256f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -121,7 +121,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
+                location(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -130,7 +130,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 3_000L,
                 navigationRequest(),
-                NavigationLocation(FUSED_PROVIDER, 48.1989, 16.36595, 3_000L, 18.256f),
+                location(FUSED_PROVIDER, 48.1989, 16.36595, 3_000L, 18.256f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -149,7 +149,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 24f),
+                location(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 24f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -158,7 +158,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 3_000L,
                 navigationRequest(),
-                NavigationLocation(FUSED_PROVIDER, 48.198767, 16.3657927, 3_000L, 10f),
+                location(FUSED_PROVIDER, 48.198767, 16.3657927, 3_000L, 10f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -177,7 +177,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
+                location(NavigationLocationProviders.NETWORK_PROVIDER, 48.198767, 16.3657927, 2_000L, 19.667f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
@@ -186,7 +186,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 3_000L,
                 navigationRequest(),
-                NavigationLocation(FUSED_PROVIDER, 48.19876181016738, 16.3658536569431, 3_000L, 18.256f),
+                location(FUSED_PROVIDER, 48.19876181016738, 16.3658536569431, 3_000L, 18.256f),
                 Collections.emptyList(),
                 null,
                 NavigationRouteRecalculationReason.ROUTE_DEVIATION
@@ -205,7 +205,7 @@ public class NavigationRouteRequestManagerTest {
                 true,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 2_000L),
+                location(0.0, 0.0, 2_000L),
                 Collections.emptyList(),
                 null
         );
@@ -213,7 +213,7 @@ public class NavigationRouteRequestManagerTest {
                 false,
                 3_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 3_000L),
+                location(0.0, 0.0, 3_000L),
                 Collections.emptyList(),
                 null
         );
@@ -233,7 +233,7 @@ public class NavigationRouteRequestManagerTest {
                 true,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 2_000L),
+                location(0.0, 0.0, 2_000L),
                 Collections.emptyList(),
                 null
         );
@@ -258,7 +258,7 @@ public class NavigationRouteRequestManagerTest {
                 true,
                 2_000L,
                 navigationRequest(),
-                NavigationLocation(0.0, 0.0, 2_000L),
+                location(0.0, 0.0, 2_000L),
                 Collections.emptyList(),
                 "Blocked road added. Recalculating route."
         );
@@ -279,19 +279,19 @@ public class NavigationRouteRequestManagerTest {
     }
 
     @NonNull
-    private static NavigationLocation NavigationLocation(double lat, double lon, long timeMs) {
-        return NavigationLocation("gps", lat, lon, timeMs, Float.NaN);
+    private static NavigationLocation location(double lat, double lon, long timeMs) {
+        return location("gps", lat, lon, timeMs, Float.NaN);
     }
 
     @NonNull
-    private static NavigationLocation NavigationLocation(String provider, double lat, double lon, long timeMs, float accuracyMeters) {
-        NavigationLocation NavigationLocation = new NavigationLocation(provider);
-        NavigationLocation.setLatitude(lat);
-        NavigationLocation.setLongitude(lon);
-        NavigationLocation.setTime(timeMs);
+    private static NavigationLocation location(String provider, double lat, double lon, long timeMs, float accuracyMeters) {
+        NavigationLocation location = new NavigationLocation(provider);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
         if (!Float.isNaN(accuracyMeters)) {
-            NavigationLocation.setAccuracy(accuracyMeters);
+            location.setAccuracy(accuracyMeters);
         }
-        return NavigationLocation;
+        return location;
     }
 }

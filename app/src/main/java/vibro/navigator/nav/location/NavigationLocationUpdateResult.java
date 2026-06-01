@@ -4,7 +4,6 @@ package vibro.navigator.nav.location;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
-import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;

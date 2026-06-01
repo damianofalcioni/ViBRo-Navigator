@@ -10,8 +10,6 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
-import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.route.PolylineIndex;
 
 public final class NavigationRouteGeometryState {
 
@@ -60,12 +58,12 @@ public final class NavigationRouteGeometryState {
     }
 
     @Nullable
-    public PolylineIndex.Match match(@NonNull NavigationLocation NavigationLocation) {
+    public PolylineIndex.Match match(@NonNull NavigationLocation location) {
         if (polylineIndex == null) {
             return null;
         }
         return polylineIndex.match(
-                new LatLon(NavigationLocation.getLatitude(), NavigationLocation.getLongitude()),
+                new LatLon(location.getLatitude(), location.getLongitude()),
                 lastSegmentIndex
         );
     }
@@ -87,14 +85,14 @@ public final class NavigationRouteGeometryState {
         return RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters);
     }
 
-    public boolean isWithinDestinationReachedRadius(@NonNull NavigationLocation NavigationLocation, float accuracyMeters) {
+    public boolean isWithinDestinationReachedRadius(@NonNull NavigationLocation location, float accuracyMeters) {
         if (route == null || route.track.isEmpty()) {
             return false;
         }
         LatLon destination = route.track.get(route.track.size() - 1);
         double destinationDistanceMeters = GeoMath.distanceMeters(
-                NavigationLocation.getLatitude(),
-                NavigationLocation.getLongitude(),
+                location.getLatitude(),
+                location.getLongitude(),
                 destination.lat,
                 destination.lon
         );

@@ -48,12 +48,12 @@ final class NavigationIntermediateArrivalTracker {
     }
 
     @Nullable
-    Integer reachedTrackIndex(@NonNull NavigationLocation NavigationLocation, float accuracyMeters) {
+    Integer reachedTrackIndex(@NonNull NavigationLocation currentLocation, float accuracyMeters) {
         if (nextDestinationIndex >= destinations.size()) {
             return null;
         }
         IntermediateDestination destination = destinations.get(nextDestinationIndex);
-        if (!isWithinReachedRadius(NavigationLocation, accuracyMeters, destination.location)) {
+        if (!isWithinReachedRadius(currentLocation, accuracyMeters, destination.location)) {
             return null;
         }
         nextDestinationIndex++;
@@ -73,13 +73,13 @@ final class NavigationIntermediateArrivalTracker {
     }
 
     private static boolean isWithinReachedRadius(
-            @NonNull NavigationLocation NavigationLocation,
+            @NonNull NavigationLocation currentLocation,
             float accuracyMeters,
             @NonNull LatLon destination
     ) {
         double distanceMeters = GeoMath.distanceMeters(
-                NavigationLocation.getLatitude(),
-                NavigationLocation.getLongitude(),
+                currentLocation.getLatitude(),
+                currentLocation.getLongitude(),
                 destination.lat,
                 destination.lon
         );

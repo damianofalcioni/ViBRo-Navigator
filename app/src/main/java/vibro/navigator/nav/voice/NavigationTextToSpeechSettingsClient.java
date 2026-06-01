@@ -8,11 +8,7 @@ import android.speech.tts.Voice;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
@@ -90,37 +86,17 @@ public final class NavigationTextToSpeechSettingsClient {
             AppLogger.w(TAG, "TextToSpeech voice listing unavailable status=" + initStatus);
             return;
         }
-        callback.onAvailableVoicesLoaded(buildAvailable(tts.getVoices()));
-    }
-
-    @NonNull
-    private List<NavigationVoiceOption> buildAvailable(@Nullable Set<Voice> voices) {
-        List<NavigationVoiceOption> options = new ArrayList<>();
-        if (voices == null) {
-            return options;
-        }
-        for (Voice voice : voices) {
-            if (NavigationTextToSpeechVoiceAvailability.isOfflineVoiceAvailable(voice)) {
-                options.add(new NavigationVoiceOption(
-                        voice.getName(),
-                        NavigationManeuverVoiceLabelFormatter.format(appContext, voice)
-                ));
-            }
-        }
-        Collections.sort(options, new Comparator<NavigationVoiceOption>() {
-            @Override
-            public int compare(NavigationVoiceOption first, NavigationVoiceOption second) {
-                return String.CASE_INSENSITIVE_ORDER.compare(first.label, second.label);
-            }
-        });
-        return options;
+        callback.onAvailableVoicesLoaded(NavigationTextToSpeechVoiceCatalog.buildAvailableOptions(
+                appContext,
+                tts.getVoices()
+        ));
     }
 
     private boolean applyVoice(@NonNull TextToSpeech engine, @NonNull String voiceName) {
         if (AppSettings.isSystemDefaultManeuverVoice(voiceName)) {
             return applySystemDefaultVoice(engine);
         }
-        Voice voice = findVoice(engine, voiceName);
+        Voice voice = NavigationTextToSpeechVoiceCatalog.findVoice(engine, voiceName);
         if (voice == null) {
             AppLogger.w(TAG, "Configured TextToSpeech preview voice unavailable: " + voiceName);
             return false;
@@ -144,20 +120,6 @@ public final class NavigationTextToSpeechSettingsClient {
             return false;
         }
         return true;
-    }
-
-    @Nullable
-    private static Voice findVoice(@NonNull TextToSpeech engine, @NonNull String voiceName) {
-        Set<Voice> voices = engine.getVoices();
-        if (voices == null) {
-            return null;
-        }
-        for (Voice voice : voices) {
-            if (voiceName.equals(voice.getName())) {
-                return voice;
-            }
-        }
-        return null;
     }
 
     @NonNull

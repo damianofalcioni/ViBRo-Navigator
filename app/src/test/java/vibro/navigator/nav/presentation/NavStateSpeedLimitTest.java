@@ -67,10 +67,10 @@ public class NavStateSpeedLimitTest {
 
     @NonNull
     private static NavigationLocation locationAt(double lat, double lon) {
-        NavigationLocation NavigationLocation = new NavigationLocation("test");
-        NavigationLocation.setLatitude(lat);
-        NavigationLocation.setLongitude(lon);
-        NavigationLocation.setTime(1L);
-        return NavigationLocation;
+        NavigationLocation location = new NavigationLocation("test");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(1L);
+        return location;
     }
 }

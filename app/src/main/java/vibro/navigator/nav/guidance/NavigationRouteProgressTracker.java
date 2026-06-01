@@ -49,15 +49,15 @@ public final class NavigationRouteProgressTracker {
     }
 
     public float resolveEtaSpeedMps(
-            @Nullable NavigationLocation NavigationLocation,
+            @Nullable NavigationLocation location,
             double alongTrackMeters,
             float accuracyMeters,
             boolean likelyStationary
     ) {
-        if (NavigationLocation == null) {
+        if (location == null) {
             return 0f;
         }
-        return resolveEtaSpeedMps(NavigationLocation.getTime(), alongTrackMeters, accuracyMeters, likelyStationary);
+        return resolveEtaSpeedMps(location.getTime(), alongTrackMeters, accuracyMeters, likelyStationary);
     }
 
     public float resolveEtaSpeedMps(

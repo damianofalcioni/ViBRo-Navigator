@@ -11,34 +11,34 @@ final class NavigationGpsBearingTrustPolicy {
     private static final float MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES = 25f;
 
     @Nullable
-    Double trustedBearingDegrees(@NonNull NavigationLocation NavigationLocation, float speedMps) {
-        if (!NavigationLocation.hasBearing()) {
+    Double trustedBearingDegrees(@NonNull NavigationLocation location, float speedMps) {
+        if (!location.hasBearing()) {
             return null;
         }
         if (speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
             return null;
         }
-        if (NavigationLocation.hasBearingAccuracy()) {
-            return hasTrustedBearingAccuracy(NavigationLocation) ? (double) NavigationLocation.getBearing() : null;
+        if (location.hasBearingAccuracy()) {
+            return hasTrustedBearingAccuracy(location) ? (double) location.getBearing() : null;
         }
         return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
-                ? (double) NavigationLocation.getBearing()
+                ? (double) location.getBearing()
                 : null;
     }
 
     @Nullable
-    Float currentBearingAccuracyDegrees(@NonNull NavigationLocation NavigationLocation) {
-        if (!NavigationLocation.hasBearingAccuracy()) {
+    Float currentBearingAccuracyDegrees(@NonNull NavigationLocation location) {
+        if (!location.hasBearingAccuracy()) {
             return null;
         }
-        float bearingAccuracyDegrees = NavigationLocation.getBearingAccuracyDegrees();
+        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
         return Float.isFinite(bearingAccuracyDegrees) && bearingAccuracyDegrees >= 0f
                 ? bearingAccuracyDegrees
                 : null;
     }
 
-    private static boolean hasTrustedBearingAccuracy(@NonNull NavigationLocation NavigationLocation) {
-        float bearingAccuracyDegrees = NavigationLocation.getBearingAccuracyDegrees();
+    private static boolean hasTrustedBearingAccuracy(@NonNull NavigationLocation location) {
+        float bearingAccuracyDegrees = location.getBearingAccuracyDegrees();
         return Float.isFinite(bearingAccuracyDegrees)
                 && bearingAccuracyDegrees >= 0f
                 && bearingAccuracyDegrees <= MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES;

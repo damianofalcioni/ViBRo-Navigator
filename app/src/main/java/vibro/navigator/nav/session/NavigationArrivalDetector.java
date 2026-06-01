@@ -14,7 +14,7 @@ final class NavigationArrivalDetector {
         this.geometryState = geometryState;
     }
 
-    boolean isDestinationReached(@NonNull NavigationLocation NavigationLocation, float accuracyMeters) {
-        return geometryState.isWithinDestinationReachedRadius(NavigationLocation, accuracyMeters);
+    boolean isDestinationReached(@NonNull NavigationLocation location, float accuracyMeters) {
+        return geometryState.isWithinDestinationReachedRadius(location, accuracyMeters);
     }
 }

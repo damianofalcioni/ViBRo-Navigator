@@ -83,13 +83,13 @@ public class NavigationSessionTest {
         ));
         assertTrue(session.start(context, 0L));
         long nowMs = System.currentTimeMillis();
-        session.onRawLocationChanged(context, NavigationLocation(0.0, 0.0, nowMs), nowMs);
+        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
         NavigationRouteRequestSnapshot firstSnapshot = session.prepareRouteRequest(true, nowMs);
         assertNotNull(firstSnapshot);
         assertEquals(2, firstSnapshot.intermediates.size());
         session.applyRouteResult(context, firstSnapshot, routeWithoutHints(), 500L);
 
-        session.onRawLocationChanged(context, NavigationLocation(0.0, 0.001, nowMs + 2_000L, 120f), nowMs + 2_000L);
+        session.onRawLocationChanged(context, location(0.0, 0.001, nowMs + 2_000L, 120f), nowMs + 2_000L);
         NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, nowMs + 3_000L);
 
         assertNotNull(secondSnapshot);
@@ -110,8 +110,8 @@ public class NavigationSessionTest {
         assertTrue(session.start(context, 0L));
         long nowMs = System.currentTimeMillis();
 
-        session.onRawLocationChanged(context, NavigationLocation(0.0, 0.0, nowMs), nowMs);
-        session.onRawLocationChanged(context, NavigationLocation(0.0, 0.0001, nowMs + 1_000L), nowMs + 1_000L);
+        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
+        session.onRawLocationChanged(context, location(0.0, 0.0001, nowMs + 1_000L), nowMs + 1_000L);
 
         NavState state = session.buildState(
                 context,
@@ -138,19 +138,19 @@ public class NavigationSessionTest {
         long nowMs = System.currentTimeMillis();
         assertTrue(session.start(context, nowMs));
 
-        session.onRawLocationChanged(context, NavigationLocation(0.0, 0.0, nowMs), nowMs);
+        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
         NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
         assertNotNull(snapshot);
         session.applyRouteResult(context, snapshot, routeWithoutHints(), nowMs);
         for (int i = 1; i <= 5; i++) {
             long sampleTimeMs = nowMs + i * 1_000L;
-            session.onRawLocationChanged(context, NavigationLocation(0.0, i * 0.0001, sampleTimeMs), sampleTimeMs);
+            session.onRawLocationChanged(context, location(0.0, i * 0.0001, sampleTimeMs), sampleTimeMs);
         }
 
         long resumedTimeMs = nowMs + 21_000L;
         NavigationLocationUpdateResult result = session.onRawLocationChanged(
                 context,
-                NavigationLocation(0.0, 0.0006, resumedTimeMs),
+                location(0.0, 0.0006, resumedTimeMs),
                 resumedTimeMs
         );
 
@@ -174,17 +174,17 @@ public class NavigationSessionTest {
     }
 
     @NonNull
-    private static NavigationLocation NavigationLocation(double lat, double lon, long timeMs) {
-        return NavigationLocation(lat, lon, timeMs, 5f);
+    private static NavigationLocation location(double lat, double lon, long timeMs) {
+        return location(lat, lon, timeMs, 5f);
     }
 
     @NonNull
-    private static NavigationLocation NavigationLocation(double lat, double lon, long timeMs, float accuracyMeters) {
-        NavigationLocation NavigationLocation = new NavigationLocation("gps");
-        NavigationLocation.setLatitude(lat);
-        NavigationLocation.setLongitude(lon);
-        NavigationLocation.setTime(timeMs);
-        NavigationLocation.setAccuracy(accuracyMeters);
-        return NavigationLocation;
+    private static NavigationLocation location(double lat, double lon, long timeMs, float accuracyMeters) {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(accuracyMeters);
+        return location;
     }
 }

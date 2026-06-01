@@ -40,7 +40,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         NavigationSessionRouteState state = new NavigationSessionRouteState();
 
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.0, 1_000L, 30f),
+                location(0.0, 0.0, 1_000L, 30f),
                 0f,
                 30f,
                 null,
@@ -59,7 +59,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         NavigationSessionRouteState state = new NavigationSessionRouteState();
 
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.0, 1_000L, 25f),
+                location(0.0, 0.0, 1_000L, 25f),
                 0f,
                 25f,
                 null,
@@ -85,13 +85,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithHint(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
         NavState navState = state.buildState(
                 context,
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 false,
                 5f,
@@ -136,12 +136,12 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 route,
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
-        NavigationLocation approachingTurn = NavigationLocation(0.0, 0.00082, 2_000L);
+        NavigationLocation approachingTurn = location(0.0, 0.00082, 2_000L);
         NavigationRouteEvaluation approachingEvaluation = state.evaluateLocation(
                 approachingTurn,
                 5f,
@@ -198,7 +198,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 rotatedHeadingState.routeStatus.compassState.orientationCue.targetHeadingDegrees,
                 0.01f
         );
-        NavigationLocation justAfterTurn = NavigationLocation(0.0, 0.00101, 2_500L);
+        NavigationLocation justAfterTurn = location(0.0, 0.00101, 2_500L);
         state.evaluateLocation(
                 justAfterTurn,
                 5f,
@@ -226,7 +226,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertNotNull(justAfterTurnState.routeStatus.compassState);
         assertNull(justAfterTurnState.routeStatus.compassState.orientationCue);
 
-        NavigationLocation passedTurn = NavigationLocation(0.0, 0.0011, 3_000L);
+        NavigationLocation passedTurn = location(0.0, 0.0011, 3_000L);
         state.evaluateLocation(
                 passedTurn,
                 5f,
@@ -269,13 +269,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithHint(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.001, 2_000L),
+                location(0.0, 0.001, 2_000L),
                 0f,
                 5f,
                 90.0,
@@ -283,7 +283,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 0L
         );
         NavigationRouteEvaluation repeatedEvaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.001, 3_000L),
+                location(0.0, 0.001, 3_000L),
                 0f,
                 5f,
                 90.0,
@@ -292,7 +292,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         );
         NavState navState = state.buildState(
                 context,
-                NavigationLocation(0.0, 0.001, 3_000L),
+                location(0.0, 0.001, 3_000L),
                 0f,
                 true,
                 5f,
@@ -330,13 +330,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithHint(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.0009, 2_000L),
+                location(0.0, 0.0009, 2_000L),
                 0f,
                 5f,
                 90.0,
@@ -363,13 +363,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithoutHints(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation stopEvaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.001, 2_000L),
+                location(0.0, 0.001, 2_000L),
                 0f,
                 5f,
                 90.0,
@@ -377,7 +377,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 0L
         );
         NavigationRouteEvaluation repeatedEvaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.001, 3_000L),
+                location(0.0, 0.001, 3_000L),
                 0f,
                 5f,
                 90.0,
@@ -386,7 +386,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         );
         NavState navState = state.buildState(
                 context,
-                NavigationLocation(0.0, 0.001, 3_000L),
+                location(0.0, 0.001, 3_000L),
                 0f,
                 true,
                 5f,
@@ -426,13 +426,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithoutHints(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation stopEvaluation = state.evaluateLocation(
-                NavigationLocation(0.0, 0.0009, 2_000L),
+                location(0.0, 0.0009, 2_000L),
                 0f,
                 5f,
                 90.0,
@@ -460,7 +460,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithoutHints(),
-                NavigationLocation(0.0, 0.001, 1_000L),
+                location(0.0, 0.001, 1_000L),
                 5f,
                 500L
         );
@@ -485,13 +485,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithoutHints(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         state.evaluateLocation(
-                NavigationLocation(0.0, 0.001, 2_000L),
+                location(0.0, 0.001, 2_000L),
                 0f,
                 5f,
                 90.0,
@@ -519,13 +519,13 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 context,
                 snapshot(request),
                 routeWithHint(),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 5f,
                 500L
         );
 
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                NavigationLocation(0.00018, 0.001, 2_000L, 30f),
+                location(0.00018, 0.001, 2_000L, 30f),
                 1f,
                 30f,
                 90.0,
@@ -624,7 +624,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                         42.0,
                         111.0
                 ),
-                NavigationLocation(0.0, 0.0, 1_000L),
+                location(0.0, 0.0, 1_000L),
                 0f,
                 false,
                 500L

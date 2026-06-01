@@ -1,7 +1,5 @@
 package vibro.navigator.nav.location;
 
-import vibro.navigator.nav.location.NavigationLocation;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 

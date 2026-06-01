@@ -120,8 +120,8 @@ public final class NavigationSession {
     }
 
     @NonNull
-    public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull NavigationLocation NavigationLocation, long nowMs) {
-        return components.locationEvaluator.onRawLocationChanged(context, currentRequest, NavigationLocation, nowMs);
+    public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull NavigationLocation location, long nowMs) {
+        return components.locationEvaluator.onRawLocationChanged(context, currentRequest, location, nowMs);
     }
 
     @NonNull

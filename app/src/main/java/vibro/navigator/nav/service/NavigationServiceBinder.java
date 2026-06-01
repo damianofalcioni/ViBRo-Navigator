@@ -83,8 +83,8 @@ public final class NavigationServiceBinder extends Binder {
             AppLogger.w(TAG, "Blocked waypoint requested while navigation is paused");
             return;
         }
-        NavigationLocation NavigationLocation = host.getLastFilteredLocation();
-        if (NavigationLocation == null) {
+        NavigationLocation currentLocation = host.getLastFilteredLocation();
+        if (currentLocation == null) {
             AppLogger.w(TAG, "Blocked waypoint requested without a current filtered NavigationLocation");
             return;
         }
@@ -94,7 +94,7 @@ public final class NavigationServiceBinder extends Binder {
             return;
         }
         AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
-                + " NavigationLocation=" + NavigationLocationFormatter.format(NavigationLocation));
+                + " location=" + NavigationLocationFormatter.format(currentLocation));
         host.requestBlockedRoadRouteRecalculation(host.getString(R.string.nav_route_notice_blocked_road_recalculating));
     }
 

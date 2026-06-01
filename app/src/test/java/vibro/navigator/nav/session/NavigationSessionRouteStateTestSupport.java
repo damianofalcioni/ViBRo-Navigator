@@ -91,25 +91,25 @@ abstract class NavigationSessionRouteStateTestSupport {
     }
 
     @NonNull
-    static NavigationLocation NavigationLocation(double lat, double lon, long timeMs) {
-        return NavigationLocation(lat, lon, timeMs, 5f);
+    static NavigationLocation location(double lat, double lon, long timeMs) {
+        return location(lat, lon, timeMs, 5f);
     }
 
     @NonNull
     static NavigationLocation locationWithSpeed(double lat, double lon, long timeMs, float speedMetersPerSecond) {
-        NavigationLocation NavigationLocation = NavigationLocation(lat, lon, timeMs, 5f);
-        NavigationLocation.setSpeed(speedMetersPerSecond);
-        return NavigationLocation;
+        NavigationLocation location = location(lat, lon, timeMs, 5f);
+        location.setSpeed(speedMetersPerSecond);
+        return location;
     }
 
     @NonNull
-    static NavigationLocation NavigationLocation(double lat, double lon, long timeMs, float accuracyMeters) {
-        NavigationLocation NavigationLocation = new NavigationLocation("gps");
-        NavigationLocation.setLatitude(lat);
-        NavigationLocation.setLongitude(lon);
-        NavigationLocation.setTime(timeMs);
-        NavigationLocation.setAccuracy(accuracyMeters);
-        return NavigationLocation;
+    static NavigationLocation location(double lat, double lon, long timeMs, float accuracyMeters) {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(accuracyMeters);
+        return location;
     }
 
     static float normalizedTransitionProgress(float start, float current, float end) {

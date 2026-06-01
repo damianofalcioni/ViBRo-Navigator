@@ -137,12 +137,12 @@ final class NavigationRouteResultApplier {
                 : initialEvents;
     }
 
-    private float accuracyOf(@Nullable NavigationLocation NavigationLocation) {
-        return NavigationLocation != null && NavigationLocation.hasAccuracy() ? NavigationLocation.getAccuracy() : Float.MAX_VALUE;
+    private float accuracyOf(@Nullable NavigationLocation location) {
+        return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 
     @Nullable
-    private static LatLon toLatLon(@Nullable NavigationLocation NavigationLocation) {
-        return NavigationLocation == null ? null : new LatLon(NavigationLocation.getLatitude(), NavigationLocation.getLongitude());
+    private static LatLon toLatLon(@Nullable NavigationLocation location) {
+        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
     }
 }

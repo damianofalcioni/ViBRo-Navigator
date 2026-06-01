@@ -7,8 +7,6 @@ import android.speech.tts.Voice;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Set;
-
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppSettings;
 
@@ -39,7 +37,7 @@ final class NavigationManeuverVoiceApplier {
         if (voiceName.equals(appliedVoiceName)) {
             return true;
         }
-        Voice voice = findVoice(tts, voiceName);
+        Voice voice = NavigationTextToSpeechVoiceCatalog.findVoice(tts, voiceName);
         if (voice == null || !NavigationTextToSpeechVoiceAvailability.isOfflineVoiceAvailable(voice)) {
             AppLogger.w(TAG, "Configured TextToSpeech voice unavailable: " + voiceName);
             clearPendingUtterance.run();
@@ -79,19 +77,5 @@ final class NavigationManeuverVoiceApplier {
         }
         restartEngine.run();
         return false;
-    }
-
-    @Nullable
-    private Voice findVoice(@NonNull TextToSpeech tts, @NonNull String voiceName) {
-        Set<Voice> voices = tts.getVoices();
-        if (voices == null) {
-            return null;
-        }
-        for (Voice voice : voices) {
-            if (voiceName.equals(voice.getName())) {
-                return voice;
-            }
-        }
-        return null;
     }
 }
