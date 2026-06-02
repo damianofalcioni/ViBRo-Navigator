@@ -9,23 +9,15 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.Manifest;
-import android.app.Activity;
-import android.content.Intent;
-
 import androidx.annotation.NonNull;
 
 import vibro.navigator.geo.LatLon;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationStartupCoordinatorTest {
 
     @Test
@@ -33,10 +25,10 @@ public class NavigationStartupCoordinatorTest {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
-                activity -> NavigationPreflight.Status.create(
+                () -> NavigationPreflight.Status.create(
                         Arrays.asList(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.POST_NOTIFICATIONS
+                                NavigationPreflight.PERMISSION_FINE_LOCATION,
+                                NavigationPreflight.PERMISSION_POST_NOTIFICATIONS
                         ),
                         true,
                         true,
@@ -56,8 +48,8 @@ public class NavigationStartupCoordinatorTest {
 
         assertArrayEquals(
                 new String[]{
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.POST_NOTIFICATIONS
+                        NavigationPreflight.PERMISSION_FINE_LOCATION,
+                        NavigationPreflight.PERMISSION_POST_NOTIFICATIONS
                 },
                 host.requestedPermissions
         );
@@ -69,7 +61,7 @@ public class NavigationStartupCoordinatorTest {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
-                activity -> NavigationPreflight.Status.create(
+                () -> NavigationPreflight.Status.create(
                         Collections.emptyList(),
                         false,
                         false,
@@ -82,7 +74,7 @@ public class NavigationStartupCoordinatorTest {
         coordinator.ensureReadyThenStart();
 
         assertEquals(vibro.navigator.R.string.msg_location_disabled, host.settingsDialogMessageResId.intValue());
-        assertEquals(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS, host.settingsIntent.getAction());
+        assertEquals(NavigationStartupCoordinator.SettingsTarget.LOCATION, host.settingsTarget);
         assertNull(host.startedRequest);
         assertNotNull(host.settingsDialogCancelAction);
     }
@@ -97,7 +89,7 @@ public class NavigationStartupCoordinatorTest {
 
                     @NonNull
                     @Override
-                    public NavigationPreflight.Status inspect(@NonNull Activity activity) {
+                    public NavigationPreflight.Status inspect() {
                         callCount++;
                         if (callCount == 1) {
                             return NavigationPreflight.Status.create(
@@ -135,7 +127,7 @@ public class NavigationStartupCoordinatorTest {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
-                activity -> NavigationPreflight.Status.create(
+                () -> NavigationPreflight.Status.create(
                         Collections.emptyList(),
                         false,
                         false,
@@ -159,7 +151,7 @@ public class NavigationStartupCoordinatorTest {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
-                activity -> NavigationPreflight.Status.create(
+                () -> NavigationPreflight.Status.create(
                         Collections.emptyList(),
                         false,
                         true,
@@ -172,7 +164,7 @@ public class NavigationStartupCoordinatorTest {
         coordinator.ensureReadyThenStart();
 
         assertEquals(vibro.navigator.R.string.msg_enable_notifications, host.settingsDialogMessageResId.intValue());
-        assertNull(host.batteryOptimizationIntent);
+        assertFalse(host.batteryOptimizationDialogShown);
         assertNull(host.startedRequest);
         assertTrue(coordinator.isAutoStartNavigation());
     }
@@ -182,7 +174,7 @@ public class NavigationStartupCoordinatorTest {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
-                activity -> NavigationPreflight.Status.create(
+                () -> NavigationPreflight.Status.create(
                         Collections.emptyList(),
                         false,
                         true,
@@ -194,11 +186,7 @@ public class NavigationStartupCoordinatorTest {
         coordinator.setAutoStartNavigation(true);
         coordinator.ensureReadyThenStart();
 
-        assertNotNull(host.batteryOptimizationIntent);
-        assertEquals(
-                android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS,
-                host.batteryOptimizationIntent.getAction()
-        );
+        assertTrue(host.batteryOptimizationDialogShown);
         assertNotNull(host.batteryOptimizationCancelAction);
         assertNull(host.startedRequest);
         assertTrue(coordinator.isAutoStartNavigation());
@@ -214,7 +202,7 @@ public class NavigationStartupCoordinatorTest {
 
                     @NonNull
                     @Override
-                    public NavigationPreflight.Status inspect(@NonNull Activity activity) {
+                    public NavigationPreflight.Status inspect() {
                         callCount++;
                         if (callCount == 1) {
                             return NavigationPreflight.Status.create(
@@ -257,7 +245,7 @@ public class NavigationStartupCoordinatorTest {
 
                     @NonNull
                     @Override
-                    public NavigationPreflight.Status inspect(@NonNull Activity activity) {
+                    public NavigationPreflight.Status inspect() {
                         callCount++;
                         if (callCount == 1) {
                             return NavigationPreflight.Status.create(
@@ -296,7 +284,7 @@ public class NavigationStartupCoordinatorTest {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
-                activity -> NavigationPreflight.Status.create(
+                () -> NavigationPreflight.Status.create(
                         Collections.emptyList(),
                         false,
                         true,
@@ -315,7 +303,6 @@ public class NavigationStartupCoordinatorTest {
     }
 
     private static final class TestHost implements NavigationStartupCoordinator.Host {
-        private final Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         private final NavigationRequest request = new NavigationRequest(
                 "trekking",
                 "Vienna Center",
@@ -328,23 +315,23 @@ public class NavigationStartupCoordinatorTest {
         private String permissionRationaleMessage;
         private Runnable permissionRationaleAction;
         private Integer settingsDialogMessageResId;
-        private Intent settingsIntent;
+        private NavigationStartupCoordinator.SettingsTarget settingsTarget;
         private Runnable settingsDialogCancelAction;
-        private Intent batteryOptimizationIntent;
+        private boolean batteryOptimizationDialogShown;
         private Runnable batteryOptimizationCancelAction;
         private NavigationRequest startedRequest;
         private boolean startupCancelled;
 
         @NonNull
         @Override
-        public Activity getActivity() {
-            return activity;
+        public NavigationRequest getNavigationRequest() {
+            return request;
         }
 
         @NonNull
         @Override
-        public NavigationRequest getNavigationRequest() {
-            return request;
+        public String getString(int messageResId) {
+            return "message:" + messageResId;
         }
 
         @Override
@@ -362,17 +349,17 @@ public class NavigationStartupCoordinatorTest {
         @Override
         public void showSettingsRedirectDialog(
                 int messageResId,
-                @NonNull Intent settingsIntent,
+                @NonNull NavigationStartupCoordinator.SettingsTarget settingsTarget,
                 @NonNull Runnable onCancel
         ) {
             settingsDialogMessageResId = messageResId;
-            this.settingsIntent = settingsIntent;
+            this.settingsTarget = settingsTarget;
             settingsDialogCancelAction = onCancel;
         }
 
         @Override
-        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent, @NonNull Runnable onCancel) {
-            batteryOptimizationIntent = settingsIntent;
+        public void showBatteryOptimizationDialog(@NonNull Runnable onCancel) {
+            batteryOptimizationDialogShown = true;
             batteryOptimizationCancelAction = onCancel;
         }
 

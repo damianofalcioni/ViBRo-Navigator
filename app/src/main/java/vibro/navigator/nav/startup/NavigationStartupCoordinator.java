@@ -1,10 +1,7 @@
 package vibro.navigator.nav.startup;
 
 
-import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.nav.model.NavigationRequest;
-import android.app.Activity;
-import android.content.Intent;
 
 import androidx.annotation.NonNull;
 
@@ -17,15 +14,15 @@ public final class NavigationStartupCoordinator {
 
     public interface PreflightInspector {
         @NonNull
-        NavigationPreflight.Status inspect(@NonNull Activity activity);
+        NavigationPreflight.Status inspect();
     }
 
     public interface Host {
         @NonNull
-        Activity getActivity();
+        NavigationRequest getNavigationRequest();
 
         @NonNull
-        NavigationRequest getNavigationRequest();
+        String getString(int messageResId);
 
         void requestPermissions(@NonNull String[] permissions, int requestCode);
 
@@ -33,15 +30,20 @@ public final class NavigationStartupCoordinator {
 
         void showSettingsRedirectDialog(
                 int messageResId,
-                @NonNull Intent settingsIntent,
+                @NonNull SettingsTarget settingsTarget,
                 @NonNull Runnable onCancel
         );
 
-        void showBatteryOptimizationDialog(@NonNull Intent settingsIntent, @NonNull Runnable onCancel);
+        void showBatteryOptimizationDialog(@NonNull Runnable onCancel);
 
         void startNavigationService(@NonNull NavigationRequest request);
 
         void cancelNavigationStartup();
+    }
+
+    public enum SettingsTarget {
+        LOCATION,
+        NOTIFICATIONS
     }
 
     private static final String TAG = "NavStartup";
@@ -59,10 +61,6 @@ public final class NavigationStartupCoordinator {
         LOCATION,
         NOTIFICATIONS,
         BATTERY_OPTIMIZATION
-    }
-
-    public NavigationStartupCoordinator(@NonNull Host host) {
-        this(host, AndroidNavigationPreflight::inspect);
     }
 
     public NavigationStartupCoordinator(@NonNull Host host, @NonNull PreflightInspector preflightInspector) {
@@ -84,11 +82,10 @@ public final class NavigationStartupCoordinator {
             return;
         }
 
-        Activity activity = host.getActivity();
-        NavigationPreflight.Status status = preflightInspector.inspect(activity);
+        NavigationPreflight.Status status = preflightInspector.inspect();
         if (status.hasMissingPermissions()) {
             AppLogger.i(TAG, "Missing permissions=" + status.missingPermissions);
-            requestMissingPermissions(activity, status);
+            requestMissingPermissions(status);
             return;
         }
 
@@ -96,7 +93,7 @@ public final class NavigationStartupCoordinator {
             AppLogger.w(TAG, "Location services are disabled");
             host.showSettingsRedirectDialog(
                     R.string.msg_location_disabled,
-                    AndroidNavigationPreflight.newLocationSettingsIntent(),
+                    SettingsTarget.LOCATION,
                     () -> onStartupBlockerCancelled(StartupBlocker.LOCATION)
             );
             return;
@@ -106,7 +103,7 @@ public final class NavigationStartupCoordinator {
             AppLogger.w(TAG, "Notifications are disabled for the app");
             host.showSettingsRedirectDialog(
                     R.string.msg_enable_notifications,
-                    AndroidNavigationPreflight.newNotificationSettingsIntent(activity),
+                    SettingsTarget.NOTIFICATIONS,
                     () -> onStartupBlockerCancelled(StartupBlocker.NOTIFICATIONS)
             );
             return;
@@ -115,7 +112,6 @@ public final class NavigationStartupCoordinator {
         if (status.needsBatteryOptimizationExemption) {
             AppLogger.i(TAG, "Prompting for battery optimization exemption");
             host.showBatteryOptimizationDialog(
-                    AndroidNavigationPreflight.newBatteryOptimizationIntent(activity),
                     () -> onStartupBlockerCancelled(StartupBlocker.BATTERY_OPTIMIZATION)
             );
             return;
@@ -163,7 +159,7 @@ public final class NavigationStartupCoordinator {
         if (!autoStartNavigation) {
             return;
         }
-        NavigationPreflight.Status status = preflightInspector.inspect(host.getActivity());
+        NavigationPreflight.Status status = preflightInspector.inspect();
         if (isStillBlockedBy(status, blocker)) {
             autoStartNavigation = false;
             settingsLaunchInProgress = false;
@@ -192,14 +188,11 @@ public final class NavigationStartupCoordinator {
         }
     }
 
-    private void requestMissingPermissions(
-            @NonNull Activity activity,
-            @NonNull NavigationPreflight.Status status
-    ) {
+    private void requestMissingPermissions(@NonNull NavigationPreflight.Status status) {
         String[] permissions = status.missingPermissions.toArray(new String[0]);
         if (status.showPermissionRationale) {
             AppLogger.i(TAG, "Showing permission rationale for permissions=" + status.missingPermissions);
-            host.showPermissionRationale(buildPermissionRationaleMessage(activity, status), () ->
+            host.showPermissionRationale(buildPermissionRationaleMessage(host, status), () ->
                     host.requestPermissions(permissions, REQUEST_PERMISSIONS));
             return;
         }
@@ -209,12 +202,12 @@ public final class NavigationStartupCoordinator {
 
     @NonNull
     private static String buildPermissionRationaleMessage(
-            @NonNull Activity activity,
+            @NonNull Host host,
             @NonNull NavigationPreflight.Status status
     ) {
-        String message = activity.getString(R.string.msg_permission_location_rationale);
+        String message = host.getString(R.string.msg_permission_location_rationale);
         if (status.missingPermissions.contains(NavigationPreflight.PERMISSION_POST_NOTIFICATIONS)) {
-            message = message + "\n\n" + activity.getString(R.string.msg_permission_notifications_rationale);
+            message = message + "\n\n" + host.getString(R.string.msg_permission_notifications_rationale);
         }
         return message;
     }

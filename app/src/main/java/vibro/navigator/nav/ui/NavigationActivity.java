@@ -7,6 +7,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.service.NavigationService;
@@ -49,7 +50,10 @@ public class NavigationActivity extends Activity {
     private NavigationActivityRenderer renderer;
     private NavigationActivityBackHandler backHandler;
     private final NavigationStartupCoordinator startupCoordinator =
-            new NavigationStartupCoordinator(new NavigationStartupHost());
+            new NavigationStartupCoordinator(
+                    new NavigationStartupHost(),
+                    () -> AndroidNavigationPreflight.inspect(NavigationActivity.this)
+            );
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
@@ -296,14 +300,14 @@ public class NavigationActivity extends Activity {
     private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
         @NonNull
         @Override
-        public Activity getActivity() {
-            return NavigationActivity.this;
+        public NavigationRequest getNavigationRequest() {
+            return AndroidNavigationRequestIntentContract.fromIntent(getIntent());
         }
 
         @NonNull
         @Override
-        public NavigationRequest getNavigationRequest() {
-            return AndroidNavigationRequestIntentContract.fromIntent(getIntent());
+        public String getString(int messageResId) {
+            return NavigationActivity.this.getString(messageResId);
         }
 
         @Override
@@ -324,24 +328,24 @@ public class NavigationActivity extends Activity {
         @Override
         public void showSettingsRedirectDialog(
                 int messageResId,
-                @NonNull Intent settingsIntent,
+                @NonNull NavigationStartupCoordinator.SettingsTarget settingsTarget,
                 @NonNull Runnable onCancel
         ) {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(messageResId)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsIntent))
+                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsTarget))
                     .setNegativeButton(android.R.string.cancel, (d, w) -> onCancel.run())
                     .setOnCancelListener(d -> onCancel.run())
                     .show();
         }
 
         @Override
-        public void showBatteryOptimizationDialog(@NonNull Intent settingsIntent, @NonNull Runnable onCancel) {
+        public void showBatteryOptimizationDialog(@NonNull Runnable onCancel) {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_battery_opt_rationale)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsIntent))
+                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openBatteryOptimizationSettings())
                     .setNegativeButton(android.R.string.cancel, (d, w) -> onCancel.run())
                     .setOnCancelListener(d -> onCancel.run())
                     .show();
@@ -362,7 +366,30 @@ public class NavigationActivity extends Activity {
             finish();
         }
 
-        private void openSettings(@NonNull Intent settingsIntent) {
+        private void openSettings(@NonNull NavigationStartupCoordinator.SettingsTarget settingsTarget) {
+            switch (settingsTarget) {
+                case LOCATION:
+                    launchSettingsIntent(AndroidNavigationPreflight.newLocationSettingsIntent());
+                    return;
+                case NOTIFICATIONS:
+                    openNotificationSettings();
+                    return;
+                default:
+                    throw new IllegalArgumentException("Unsupported settings target=" + settingsTarget);
+            }
+        }
+
+        private void openNotificationSettings() {
+            Intent settingsIntent = AndroidNavigationPreflight.newNotificationSettingsIntent(NavigationActivity.this);
+            launchSettingsIntent(settingsIntent);
+        }
+
+        private void openBatteryOptimizationSettings() {
+            Intent settingsIntent = AndroidNavigationPreflight.newBatteryOptimizationIntent(NavigationActivity.this);
+            launchSettingsIntent(settingsIntent);
+        }
+
+        private void launchSettingsIntent(@NonNull Intent settingsIntent) {
             if (AndroidNavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
                 startupCoordinator.onSettingsOpened();
                 return;
