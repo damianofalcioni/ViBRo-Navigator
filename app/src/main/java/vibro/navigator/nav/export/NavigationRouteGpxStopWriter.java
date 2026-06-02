@@ -1,13 +1,12 @@
 package vibro.navigator.nav.export;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
 
 final class NavigationRouteGpxStopWriter {
     private static final String TAG_WAYPOINT = "wpt";
@@ -18,17 +17,17 @@ final class NavigationRouteGpxStopWriter {
 
     static void appendWaypoints(
             @NonNull StringBuilder out,
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull List<LatLon> intermediateStops
     ) {
         for (int i = 0; i < intermediateStops.size(); i++) {
-            appendWaypoint(out, context, intermediateStops.get(i), i);
+            appendWaypoint(out, textResources, intermediateStops.get(i), i);
         }
     }
 
     private static void appendWaypoint(
             @NonNull StringBuilder out,
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull LatLon stop,
             int index
     ) {
@@ -38,7 +37,7 @@ final class NavigationRouteGpxStopWriter {
                 out,
                 2,
                 NavigationRouteGpxXmlWriter.TAG_NAME,
-                context.getString(R.string.format_stop_label, index + 1)
+                textResources.getString(R.string.format_stop_label, index + 1)
         );
         NavigationRouteGpxXmlWriter.appendSimpleElement(
                 out,

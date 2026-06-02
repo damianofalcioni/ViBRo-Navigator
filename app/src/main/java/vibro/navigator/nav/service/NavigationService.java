@@ -2,9 +2,9 @@ package vibro.navigator.nav.service;
 
 
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
-import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -127,7 +127,7 @@ public class NavigationService extends Service {
     }
 
     private void readNavRequest(@NonNull Intent intent) {
-        NavigationRequest request = NavigationRequestIntentContract.fromIntent(intent);
+        NavigationRequest request = AndroidNavigationRequestIntentContract.fromIntent(intent);
         navigationSession.loadRequest(request);
     }
 

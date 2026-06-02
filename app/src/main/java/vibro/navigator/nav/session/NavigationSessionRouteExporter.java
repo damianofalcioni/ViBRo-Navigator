@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -24,7 +25,7 @@ final class NavigationSessionRouteExporter {
             return null;
         }
         return NavigationRouteGpxExporter.export(
-                context,
+                new AndroidNavigationTextResources(context),
                 route,
                 routeState.remainingIntermediateStops(request.stops)
         );

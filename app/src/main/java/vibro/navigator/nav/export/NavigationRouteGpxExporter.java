@@ -1,7 +1,5 @@
 package vibro.navigator.nav.export;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import java.text.SimpleDateFormat;
@@ -10,6 +8,7 @@ import java.util.List;
 import java.util.Locale;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 public final class NavigationRouteGpxExporter {
@@ -23,7 +22,7 @@ public final class NavigationRouteGpxExporter {
 
     @NonNull
     public static String export(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route,
             @NonNull List<LatLon> intermediateStops
     ) {
@@ -31,8 +30,8 @@ public final class NavigationRouteGpxExporter {
         StringBuilder out = new StringBuilder();
         NavigationRouteGpxXmlWriter.appendHeader(out);
         NavigationRouteGpxXmlWriter.appendMetadata(out, resolvedRouteName);
-        NavigationRouteGpxInstructionWriter.appendWaypoints(out, context, route);
-        NavigationRouteGpxStopWriter.appendWaypoints(out, context, intermediateStops);
+        NavigationRouteGpxInstructionWriter.appendWaypoints(out, textResources, route);
+        NavigationRouteGpxStopWriter.appendWaypoints(out, textResources, intermediateStops);
         NavigationRouteGpxXmlWriter.appendRoute(out, resolvedRouteName, route);
         NavigationRouteGpxXmlWriter.appendTrack(out, resolvedRouteName, route);
         NavigationRouteGpxXmlWriter.appendFooter(out);

@@ -1,7 +1,5 @@
 package vibro.navigator.intent;
 
-import android.content.Intent;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -10,24 +8,21 @@ import java.util.regex.Pattern;
 
 public final class IntentLocationParser {
 
+    private static final String ACTION_SEND = "android.intent.action.SEND";
+    private static final String ACTION_SEND_MULTIPLE = "android.intent.action.SEND_MULTIPLE";
     private static final Pattern MAP_URL_IN_TEXT = Pattern.compile("((?:https?://|geo:|google\\.navigation:)[^\\s]+)", Pattern.CASE_INSENSITIVE);
 
     private IntentLocationParser() {
     }
 
     @Nullable
-    public static String parseToQuery(@NonNull Intent intent) {
-        return parseToQuery(intent.getAction(), intent.getDataString(), intent.getStringExtra(Intent.EXTRA_TEXT));
-    }
-
-    @Nullable
-    static String parseToQuery(@Nullable String action, @Nullable String dataString, @Nullable String sharedText) {
+    public static String parseToQuery(@Nullable String action, @Nullable String dataString, @Nullable String sharedText) {
         String parsedData = IntentLocationUriParser.parse(dataString);
         if (parsedData != null) {
             return parsedData;
         }
 
-        if (Intent.ACTION_SEND.equals(action) || Intent.ACTION_SEND_MULTIPLE.equals(action) || sharedText != null) {
+        if (ACTION_SEND.equals(action) || ACTION_SEND_MULTIPLE.equals(action) || sharedText != null) {
             return parseSharedText(sharedText);
         }
         return null;

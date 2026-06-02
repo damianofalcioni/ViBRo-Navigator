@@ -89,6 +89,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.direction_unknown, "Unknown direction");
         strings.put(R.string.direction_side_left, "left");
         strings.put(R.string.direction_side_right, "right");
+        strings.put(R.string.format_stop_label, "Stop %1$d");
     }
 
     private static void addMeasurementStrings(@NonNull Map<Integer, String> strings) {

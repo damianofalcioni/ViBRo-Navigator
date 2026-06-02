@@ -4,10 +4,11 @@ import vibro.navigator.R;
 
 
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
+import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
 import vibro.navigator.dispatch.TaskScheduler;
-import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.startup.NavigationStartupCoordinator;
@@ -15,7 +16,6 @@ import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
-import vibro.navigator.nav.export.NavigationRouteGpxViewIntent;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -160,7 +160,7 @@ public class NavigationActivity extends Activity {
         }
         AppLogger.dMultiline(TAG, "Generated route GPX XML", gpx);
         try {
-            startActivity(NavigationRouteGpxViewIntent.createChooser(this, gpx));
+            startActivity(AndroidRouteGpxViewIntent.createChooser(this, gpx));
             AppLogger.i(TAG, "Route GPX chooser launched");
         } catch (ActivityNotFoundException e) {
             AppLogger.w(TAG, "No app can open exported GPX route", e);
@@ -282,7 +282,7 @@ public class NavigationActivity extends Activity {
     @NonNull
     private String describeNavigationRequest() {
         return "resumeExisting=" + shouldResumeExistingNavigation()
-                + ", " + NavigationRequestIntentContract.fromIntent(getIntent()).describe();
+                + ", " + AndroidNavigationRequestIntentContract.fromIntent(getIntent()).describe();
     }
 
     private boolean shouldResumeExistingNavigation() {
@@ -290,7 +290,7 @@ public class NavigationActivity extends Activity {
     }
 
     private boolean hasNavigationRequest() {
-        return NavigationRequestIntentContract.fromIntent(getIntent()).isComplete();
+        return AndroidNavigationRequestIntentContract.fromIntent(getIntent()).isComplete();
     }
 
     private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
@@ -303,7 +303,7 @@ public class NavigationActivity extends Activity {
         @NonNull
         @Override
         public NavigationRequest getNavigationRequest() {
-            return NavigationRequestIntentContract.fromIntent(getIntent());
+            return AndroidNavigationRequestIntentContract.fromIntent(getIntent());
         }
 
         @Override
@@ -351,7 +351,7 @@ public class NavigationActivity extends Activity {
         public void startNavigationService(@NonNull NavigationRequest request) {
             Intent start = new Intent(NavigationActivity.this, NavigationService.class);
             start.setAction(NavigationService.ACTION_START);
-            NavigationRequestIntentContract.putInto(start, request);
+            AndroidNavigationRequestIntentContract.putInto(start, request);
             AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
             ContextCompat.startForegroundService(NavigationActivity.this, start);
         }

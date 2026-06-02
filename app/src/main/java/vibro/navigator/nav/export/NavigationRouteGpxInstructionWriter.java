@@ -1,13 +1,12 @@
 package vibro.navigator.nav.export;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.format.NavigationTextFormatter;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 
@@ -22,24 +21,24 @@ final class NavigationRouteGpxInstructionWriter {
 
     static void appendWaypoints(
             @NonNull StringBuilder out,
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route
     ) {
         if (route.track.isEmpty()) {
             return;
         }
         for (int i = 0; i < route.voiceHints.size(); i++) {
-            appendWaypoint(out, context, route, route.voiceHints.get(i), i);
+            appendWaypoint(out, textResources, route, route.voiceHints.get(i), i);
         }
         if (!hasArrivalHint(route)) {
             VoiceHint arrival = new VoiceHint(route.track.size() - 1, ARRIVAL_COMMAND, 0, 0.0, 0);
-            appendWaypoint(out, context, route, arrival, route.voiceHints.size());
+            appendWaypoint(out, textResources, route, arrival, route.voiceHints.size());
         }
     }
 
     private static void appendWaypoint(
             @NonNull StringBuilder out,
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route,
             @NonNull VoiceHint hint,
             int hintPosition
@@ -51,13 +50,13 @@ final class NavigationRouteGpxInstructionWriter {
                 out,
                 2,
                 NavigationRouteGpxXmlWriter.TAG_NAME,
-                formatName(context, hint)
+                formatName(textResources, hint)
         );
         NavigationRouteGpxXmlWriter.appendSimpleElement(
                 out,
                 2,
                 NavigationRouteGpxXmlWriter.TAG_DESC,
-                formatDescription(context, route, hint, hintPosition)
+                formatDescription(textResources, route, hint, hintPosition)
         );
         NavigationRouteGpxXmlWriter.appendSimpleElement(
                 out,
@@ -69,16 +68,16 @@ final class NavigationRouteGpxInstructionWriter {
     }
 
     @NonNull
-    private static String formatName(@NonNull Context context, @NonNull VoiceHint hint) {
+    private static String formatName(@NonNull NavigationTextResources textResources, @NonNull VoiceHint hint) {
         DirectionInfo direction = VoiceHintMapper.toDirection(hint);
         return direction.exitNumber > 0
-                ? context.getString(direction.labelRes, direction.exitNumber)
-                : context.getString(direction.labelRes);
+                ? textResources.getString(direction.labelRes, direction.exitNumber)
+                : textResources.getString(direction.labelRes);
     }
 
     @NonNull
     private static String formatDescription(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route,
             @NonNull VoiceHint hint,
             int hintPosition
@@ -89,7 +88,7 @@ final class NavigationRouteGpxInstructionWriter {
         double timeSeconds = isArrivalCommand(hint.command)
                 ? 0.0
                 : estimateInstructionTimeSeconds(route, hint, hintPosition);
-        return NavigationTextFormatter.formatTurnNotification(context, hint, distanceMeters, timeSeconds);
+        return NavigationTextFormatter.formatTurnNotification(textResources, hint, distanceMeters, timeSeconds);
     }
 
     private static double sanitizeDistanceMeters(double distanceMeters) {

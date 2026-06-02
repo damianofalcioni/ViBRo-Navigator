@@ -21,10 +21,10 @@ import java.io.IOException;
 
 import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.main.MainActivity;
-import vibro.navigator.nav.export.NavigationRouteGpxViewIntent;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -200,7 +200,7 @@ public final class ViBRoCarScreen extends Screen {
         }
         AppLogger.dMultiline(TAG, "Generated route GPX XML from Android Auto", gpx);
         try {
-            Intent chooser = NavigationRouteGpxViewIntent.createChooser(carContext, gpx)
+            Intent chooser = AndroidRouteGpxViewIntent.createChooser(carContext, gpx)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             carContext.startActivity(chooser);
             AppLogger.i(TAG, "Route GPX chooser launched from Android Auto");

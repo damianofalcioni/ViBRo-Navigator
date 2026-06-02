@@ -1,4 +1,4 @@
-package vibro.navigator.nav.export;
+package vibro.navigator.android.export;
 
 import android.content.ClipData;
 import android.content.Context;
@@ -18,13 +18,14 @@ import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.android.intent.AndroidIntentCompat;
+import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 
-public final class NavigationRouteGpxViewIntent {
+public final class AndroidRouteGpxViewIntent {
     private static final String FILE_PROVIDER_SUFFIX = ".fileprovider";
     private static final String EXPORT_DIR = "exports";
     private static final String EXPORT_FILE_NAME = "current-route.gpx";
 
-    private NavigationRouteGpxViewIntent() {
+    private AndroidRouteGpxViewIntent() {
     }
 
     @NonNull

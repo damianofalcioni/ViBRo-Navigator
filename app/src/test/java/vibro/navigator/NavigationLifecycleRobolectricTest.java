@@ -6,7 +6,7 @@ import vibro.navigator.nav.ui.NavigationActivity;
 
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
-import vibro.navigator.nav.intent.NavigationRequestIntentContract;
+import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -55,9 +55,9 @@ public class NavigationLifecycleRobolectricTest {
     public void ensureForegroundNotificationRestoresForegroundState() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
 
         ServiceController<NavigationService> controller =
                 Robolectric.buildService(NavigationService.class, startIntent).create();
@@ -87,12 +87,12 @@ public class NavigationLifecycleRobolectricTest {
     public void foregroundNotificationResumeIntentPreservesNavigationRequest() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_NAME, "Vienna Center");
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_NAME, "Vienna Center");
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
         startIntent.putStringArrayListExtra(
-                NavigationRequestIntentContract.EXTRA_STOPS,
+                AndroidNavigationRequestIntentContract.EXTRA_STOPS,
                 new ArrayList<>(Arrays.asList("48.2100,16.3600", "48.2200,16.3900"))
         );
 
@@ -107,13 +107,19 @@ public class NavigationLifecycleRobolectricTest {
 
         assertTrue(resumeIntent.getBooleanExtra(MainActivity.EXTRA_OPEN_NAVIGATION, false));
         assertTrue(resumeIntent.getBooleanExtra(NavigationActivity.EXTRA_RESUME_EXISTING, false));
-        assertEquals(TEST_PROFILE, resumeIntent.getStringExtra(NavigationRequestIntentContract.EXTRA_PROFILE));
-        assertEquals("Vienna Center", resumeIntent.getStringExtra(NavigationRequestIntentContract.EXTRA_DEST_NAME));
-        assertEquals(48.2082d, resumeIntent.getDoubleExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, Double.NaN), 0.0);
-        assertEquals(16.3738d, resumeIntent.getDoubleExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, Double.NaN), 0.0);
+        assertEquals(TEST_PROFILE, resumeIntent.getStringExtra(AndroidNavigationRequestIntentContract.EXTRA_PROFILE));
+        assertEquals("Vienna Center", resumeIntent.getStringExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_NAME));
+        assertEquals(48.2082d, resumeIntent.getDoubleExtra(
+                AndroidNavigationRequestIntentContract.EXTRA_DEST_LAT,
+                Double.NaN
+        ), 0.0);
+        assertEquals(16.3738d, resumeIntent.getDoubleExtra(
+                AndroidNavigationRequestIntentContract.EXTRA_DEST_LON,
+                Double.NaN
+        ), 0.0);
         assertEquals(
                 Arrays.asList("48.21,16.36", "48.22,16.39"),
-                resumeIntent.getStringArrayListExtra(NavigationRequestIntentContract.EXTRA_STOPS)
+                resumeIntent.getStringArrayListExtra(AndroidNavigationRequestIntentContract.EXTRA_STOPS)
         );
     }
 
@@ -121,9 +127,9 @@ public class NavigationLifecycleRobolectricTest {
     public void onTaskRemovedStopsNavigationAndForegroundState() {
         Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
         startIntent.setAction(NavigationService.ACTION_START);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
-        startIntent.putExtra(NavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_PROFILE, TEST_PROFILE);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
 
         ServiceController<NavigationService> controller =
                 Robolectric.buildService(NavigationService.class, startIntent).create();

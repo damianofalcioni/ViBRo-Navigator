@@ -1,10 +1,11 @@
 package vibro.navigator.main;
 
 import vibro.navigator.R;
+import vibro.navigator.android.intent.AndroidIntentLocationParser;
+import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.nav.ui.NavigationActivity;
 
 
-import vibro.navigator.nav.intent.NavigationRequestIntentContract;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -17,7 +18,6 @@ import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.intent.IntentLocationParser;
 
 final class MainActivityIntentHandler {
 
@@ -33,9 +33,9 @@ final class MainActivityIntentHandler {
         AppLogger.i(TAG, "Forwarding notification tap to NavigationActivity");
         Intent navigationIntent = new Intent(activity, NavigationActivity.class);
         navigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
-        NavigationRequestIntentContract.putInto(
+        AndroidNavigationRequestIntentContract.putInto(
                 navigationIntent,
-                NavigationRequestIntentContract.fromIntent(intent)
+                AndroidNavigationRequestIntentContract.fromIntent(intent)
         );
 
         intent.removeExtra(MainActivity.EXTRA_OPEN_NAVIGATION);
@@ -54,7 +54,7 @@ final class MainActivityIntentHandler {
             AppLogger.d(TAG, "handleIncomingIntent ignored null intent");
             return;
         }
-        String query = IntentLocationParser.parseToQuery(intent);
+        String query = AndroidIntentLocationParser.parseToQuery(intent);
         if (query == null || query.trim().isEmpty()) {
             if (Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_SEND.equals(intent.getAction())) {
                 Toast.makeText(context, R.string.msg_intent_unrecognized, Toast.LENGTH_SHORT).show();

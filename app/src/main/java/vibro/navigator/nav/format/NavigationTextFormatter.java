@@ -27,8 +27,23 @@ public final class NavigationTextFormatter {
             double distanceMeters,
             double timeSeconds
     ) {
-        return NavigationTextFormatterRules.formatTurnNotification(
+        return formatTurnNotification(
                 new AndroidNavigationTextResources(context),
+                hint,
+                distanceMeters,
+                timeSeconds
+        );
+    }
+
+    @NonNull
+    public static String formatTurnNotification(
+            @NonNull NavigationTextResources textResources,
+            @NonNull VoiceHint hint,
+            double distanceMeters,
+            double timeSeconds
+    ) {
+        return NavigationTextFormatterRules.formatTurnNotification(
+                textResources,
                 hint,
                 distanceMeters,
                 timeSeconds

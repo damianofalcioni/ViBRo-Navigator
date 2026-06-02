@@ -3,13 +3,7 @@ package vibro.navigator.nav.export;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
-import androidx.test.core.app.ApplicationProvider;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -22,24 +16,22 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationRouteGpxExporterTest {
     private static final String GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
     private static final String TAG_WAYPOINT = "wpt";
     private static final String TAG_NAME = "name";
     private static final String TAG_TYPE = "type";
 
-    private final Context context = ApplicationProvider.getApplicationContext();
-
     @Test
     public void export_includesTrackRouteAndInstructionWaypoints() throws Exception {
         GeoJsonRoute route = sampleRoute(Collections.singletonList(new VoiceHint(1, 2, 0, 25.0, -90)));
 
         Document document = parse(NavigationRouteGpxExporter.export(
-                context,
+                TestNavigationTextResources.metric(),
                 route,
                 Collections.singletonList(new LatLon(48.05, 16.05))
         ));
@@ -73,7 +65,11 @@ public class NavigationRouteGpxExporterTest {
                 new VoiceHint(2, 100, 0, 0.0, 0)
         ));
 
-        Document document = parse(NavigationRouteGpxExporter.export(context, route, Collections.emptyList()));
+        Document document = parse(NavigationRouteGpxExporter.export(
+                TestNavigationTextResources.metric(),
+                route,
+                Collections.emptyList()
+        ));
 
         assertEquals(2, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength());
         assertTrue(NavigationRouteGpxExporter.buildRouteName(new java.util.Date(0L))

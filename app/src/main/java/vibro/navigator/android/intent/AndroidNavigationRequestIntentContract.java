@@ -1,4 +1,4 @@
-package vibro.navigator.nav.intent;
+package vibro.navigator.android.intent;
 
 import android.content.Intent;
 
@@ -12,7 +12,7 @@ import java.util.List;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRequest;
 
-public final class NavigationRequestIntentContract {
+public final class AndroidNavigationRequestIntentContract {
 
     public static final String EXTRA_PROFILE = "vibro.navigator.extra.PROFILE";
     public static final String EXTRA_DEST_NAME = "vibro.navigator.extra.DEST_NAME";
@@ -20,7 +20,7 @@ public final class NavigationRequestIntentContract {
     public static final String EXTRA_DEST_LON = "vibro.navigator.extra.DEST_LON";
     public static final String EXTRA_STOPS = "vibro.navigator.extra.STOPS";
 
-    private NavigationRequestIntentContract() {
+    private AndroidNavigationRequestIntentContract() {
     }
 
     @NonNull

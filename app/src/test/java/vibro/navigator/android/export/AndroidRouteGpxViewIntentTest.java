@@ -1,4 +1,4 @@
-package vibro.navigator.nav.export;
+package vibro.navigator.android.export;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,15 +26,17 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
+import vibro.navigator.nav.export.NavigationRouteGpxExporter;
+
 @RunWith(RobolectricTestRunner.class)
-public class NavigationRouteGpxViewIntentTest {
+public class AndroidRouteGpxViewIntentTest {
     private final Context context = ApplicationProvider.getApplicationContext();
 
     @Test
     public void writeExportFile_writesGpxToRouteCache() throws Exception {
         String gpx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
 
-        File file = NavigationRouteGpxViewIntent.writeExportFile(context, gpx);
+        File file = AndroidRouteGpxViewIntent.writeExportFile(context, gpx);
 
         assertEquals(exportFile(), file);
         assertEquals(gpx, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
@@ -42,7 +44,7 @@ public class NavigationRouteGpxViewIntentTest {
 
     @Test
     public void createForUri_buildsActionViewGpxIntent() {
-        Intent intent = NavigationRouteGpxViewIntent.createForUri(
+        Intent intent = AndroidRouteGpxViewIntent.createForUri(
                 context,
                 Uri.parse("content://vibro.navigator.debug.fileprovider/exports/current-route.gpx")
         );
@@ -58,7 +60,7 @@ public class NavigationRouteGpxViewIntentTest {
     public void createChooserForIntent_wrapsSendIntentSoAndroidShowsAppSelection() {
         Intent actionView = new Intent(Intent.ACTION_VIEW);
 
-        Intent chooser = NavigationRouteGpxViewIntent.createChooserForIntent(context, actionView);
+        Intent chooser = AndroidRouteGpxViewIntent.createChooserForIntent(context, actionView);
         Intent send = IntentCompat.getParcelableExtra(chooser, Intent.EXTRA_INTENT, Intent.class);
 
         assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
@@ -68,14 +70,14 @@ public class NavigationRouteGpxViewIntentTest {
 
     @Test
     public void createChooserForIntent_addsExplicitViewTargetsWhenGpxHandlersExist() {
-        Intent actionView = NavigationRouteGpxViewIntent.createForUri(
+        Intent actionView = AndroidRouteGpxViewIntent.createForUri(
                 context,
                 Uri.parse("content://vibro.navigator.debug.fileprovider/exports/current-route.gpx")
         );
         registerResolvableIntent(actionView, "com.example.first", "FirstActivity");
         registerResolvableIntent(actionView, "com.example.second", "SecondActivity");
 
-        Intent chooser = NavigationRouteGpxViewIntent.createChooserForIntent(context, actionView);
+        Intent chooser = AndroidRouteGpxViewIntent.createChooserForIntent(context, actionView);
 
         Intent primary = IntentCompat.getParcelableExtra(chooser, Intent.EXTRA_INTENT, Intent.class);
         Parcelable[] initialIntents =
