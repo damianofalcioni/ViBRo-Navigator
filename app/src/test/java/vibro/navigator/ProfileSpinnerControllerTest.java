@@ -12,6 +12,8 @@ import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.brouter.BRouterProfileTestDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 import org.junit.Test;
@@ -37,7 +39,7 @@ public class ProfileSpinnerControllerTest {
         ProfileSpinnerController controller = new ProfileSpinnerController(
                 activity,
                 new RepeatSelectSpinner(activity),
-                new BRouterProfilesRepository(),
+                AndroidBRouterProfilesRepositoryFactory.create(),
                 () -> customPickerRequested.set(true)
         );
         controller.refresh();
@@ -54,7 +56,7 @@ public class ProfileSpinnerControllerTest {
     public void selectingSavedCustomProfileAgain_reopensPickerAndKeepsCustomSelection() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         installBRouterPackage(activity);
-        BRouterProfilesRepository repository = new BRouterProfilesRepository();
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
         repository.saveCustomProfile(activity, Uri.parse("content://example/custom.brf"), "trekking");
         AtomicBoolean customPickerRequested = new AtomicBoolean(false);
         RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
@@ -110,6 +112,10 @@ public class ProfileSpinnerControllerTest {
     }
 
     private static final class EmptyProfilesRepository extends BRouterProfilesRepository {
+        private EmptyProfilesRepository() {
+            super(BRouterProfileTestDependencies.create());
+        }
+
         @Override
         public boolean isBRouterInstalled(Context context) {
             return true;

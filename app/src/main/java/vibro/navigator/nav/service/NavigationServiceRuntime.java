@@ -62,7 +62,7 @@ final class NavigationServiceRuntime {
         return foregroundController;
     }
 
-    void promoteToForeground(@Nullable NavigationRequest request, boolean paused) {
+    void promoteToForeground(@NonNull NavigationRequest request, boolean paused) {
         foregroundController.promoteToForeground(request, paused);
     }
 

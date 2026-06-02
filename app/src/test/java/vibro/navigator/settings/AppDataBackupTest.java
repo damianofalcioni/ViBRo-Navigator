@@ -10,6 +10,7 @@ import android.net.Uri;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.Poi;
@@ -55,7 +56,7 @@ public class AppDataBackupTest {
 
     @Test
     public void exportImport_restoresKnownStoredData() throws Exception {
-        BRouterProfilesRepository profiles = new BRouterProfilesRepository();
+        BRouterProfilesRepository profiles = AndroidBRouterProfilesRepositoryFactory.create();
         Poi originalPoi = new Poi("Coffee", 48.2082d, 16.3738d);
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);

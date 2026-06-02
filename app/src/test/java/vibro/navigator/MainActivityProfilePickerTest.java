@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.provider.DocumentsContract;
 
+import vibro.navigator.brouter.BRouterProfileTestDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 import org.junit.Test;
@@ -76,6 +77,7 @@ public class MainActivityProfilePickerTest {
         private final boolean hasTreeGrant;
 
         private TestProfilesRepository(boolean hasTreeGrant) {
+            super(BRouterProfileTestDependencies.create());
             this.hasTreeGrant = hasTreeGrant;
         }
 

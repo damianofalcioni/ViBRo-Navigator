@@ -6,7 +6,6 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.logging.AppLogger;
 
 import java.util.ArrayList;
@@ -15,8 +14,18 @@ import java.util.List;
 final class BRouterProfileDirectories {
     private static final String TAG = "BRouterProfiles";
 
-    private final BRouterProfileDirectoryCandidates directoryCandidates =
-            new BRouterProfileDirectoryCandidates();
+    @NonNull
+    private final BRouterProfileDependencies.DocumentAccess documentAccess;
+    @NonNull
+    private final BRouterProfileDirectoryCandidates directoryCandidates;
+
+    BRouterProfileDirectories(
+            @NonNull BRouterProfileDependencies.DocumentAccess documentAccess,
+            @NonNull BRouterProfileDependencies.StorageVolumeAccess storageVolumeAccess
+    ) {
+        this.documentAccess = documentAccess;
+        this.directoryCandidates = new BRouterProfileDirectoryCandidates(storageVolumeAccess);
+    }
 
     @Nullable
     Uri getCustomProfilePickerInitialUri(
@@ -26,7 +35,7 @@ final class BRouterProfileDirectories {
             @Nullable Uri customProfileUri
     ) {
         if (hasProfilesTreeReadPermission) {
-            Uri treeDocumentUri = profilesTreeUri == null ? null : AndroidDocumentAccess.buildTreeDocumentUri(profilesTreeUri);
+            Uri treeDocumentUri = profilesTreeUri == null ? null : documentAccess.buildTreeDocumentUri(profilesTreeUri);
             return treeDocumentUri != null ? treeDocumentUri : profilesTreeUri;
         }
         if (customProfileUri != null) {
@@ -71,10 +80,10 @@ final class BRouterProfileDirectories {
     @Nullable
     private String toParentDocumentId(@NonNull Uri documentUri) {
         try {
-            if (!AndroidDocumentAccess.isExternalStorageDocument(documentUri)) {
+            if (!documentAccess.isExternalStorageDocument(documentUri)) {
                 return null;
             }
-            String documentId = AndroidDocumentAccess.documentId(documentUri);
+            String documentId = documentAccess.documentId(documentUri);
             if (documentId == null) {
                 return null;
             }
@@ -135,15 +144,15 @@ final class BRouterProfileDirectories {
 
     @NonNull
     private Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-        return AndroidDocumentAccess.buildExternalStorageDocumentUri(documentId);
+        return documentAccess.buildExternalStorageDocumentUri(documentId);
     }
 
     @NonNull
     private Uri buildExternalStorageTreeUri(@NonNull String documentId) {
-        return AndroidDocumentAccess.buildExternalStorageTreeUri(documentId);
+        return documentAccess.buildExternalStorageTreeUri(documentId);
     }
 
     private boolean documentExists(@NonNull Context context, @NonNull String documentId) {
-        return AndroidDocumentAccess.externalStorageDocumentExists(context, documentId);
+        return documentAccess.externalStorageDocumentExists(context, documentId);
     }
 }

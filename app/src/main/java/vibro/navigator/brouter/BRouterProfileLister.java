@@ -6,8 +6,6 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.packageinfo.AndroidPackages;
-import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.logging.AppLogger;
 
 import java.io.InputStream;
@@ -21,10 +19,23 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-class BRouterProfileLister {
+final class BRouterProfileLister {
 
     private static final String BROUTER_PROFILES_ZIP = "assets/profiles2.zip";
     private static final String TAG = "BRouterProfiles";
+
+    @NonNull
+    private final BRouterProfileDependencies.DocumentAccess documentAccess;
+    @NonNull
+    private final BRouterProfileDependencies.PackageAccess packageAccess;
+
+    BRouterProfileLister(
+            @NonNull BRouterProfileDependencies.DocumentAccess documentAccess,
+            @NonNull BRouterProfileDependencies.PackageAccess packageAccess
+    ) {
+        this.documentAccess = documentAccess;
+        this.packageAccess = packageAccess;
+    }
 
     @NonNull
     List<String> listProfiles(@NonNull Context context, @NonNull List<Uri> discoveryTreeUris) {
@@ -53,7 +64,7 @@ class BRouterProfileLister {
     @NonNull
     List<String> listProfilesFromTree(@NonNull Context context, @NonNull Uri treeUri) {
         List<String> out = new ArrayList<>();
-        for (String displayName : AndroidDocumentAccess.childDisplayNames(context, treeUri)) {
+        for (String displayName : documentAccess.childDisplayNames(context, treeUri)) {
             addProfileName(out, displayName);
         }
         Collections.sort(out);
@@ -64,7 +75,7 @@ class BRouterProfileLister {
     @NonNull
     List<String> listBundledProfiles(@NonNull Context context) {
         try {
-            String sourceDir = AndroidPackages.sourceDir(context, BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
+            String sourceDir = packageAccess.sourceDir(context, BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
             if (sourceDir == null) {
                 AppLogger.w(TAG, "BRouter APK source path unavailable");
                 return Collections.emptyList();

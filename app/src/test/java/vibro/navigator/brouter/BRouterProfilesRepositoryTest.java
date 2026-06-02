@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.net.Uri;
 import android.provider.DocumentsContract;
 
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -24,7 +26,7 @@ public class BRouterProfilesRepositoryTest {
     @Test
     public void getCustomProfilePickerInitialUri_fallsBackToPrimaryMediaProfilesFolderWhenNothingExists() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        BRouterProfilesRepository repository = new BRouterProfilesRepository();
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
 
         Uri initialUri = repository.getCustomProfilePickerInitialUri(activity);
 
@@ -36,7 +38,7 @@ public class BRouterProfilesRepositoryTest {
     @Config(sdk = 29)
     public void getCustomProfilePickerInitialUri_stillUsesPrimaryMediaFallbackBeforeAndroid11() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        BRouterProfilesRepository repository = new BRouterProfilesRepository();
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
 
         Uri initialUri = repository.getCustomProfilePickerInitialUri(activity);
 
@@ -47,7 +49,7 @@ public class BRouterProfilesRepositoryTest {
     @Test
     public void getCustomProfilePickerInitialUri_usesParentFolderOfSavedCustomProfile() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        BRouterProfilesRepository repository = new BRouterProfilesRepository();
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
         Uri customUri = DocumentsContract.buildDocumentUri(
                 AUTHORITY,
                 MEDIA_PROFILES_DIR_ID + "/trekking.brf"
@@ -63,7 +65,7 @@ public class BRouterProfilesRepositoryTest {
     @Test
     public void saveProfilesTreeUri_roundTripsSavedValue() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        BRouterProfilesRepository repository = new BRouterProfilesRepository();
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
         Uri treeUri = DocumentsContract.buildTreeDocumentUri(AUTHORITY, MEDIA_PROFILES_DIR_ID);
 
         repository.saveProfilesTreeUri(activity, treeUri);

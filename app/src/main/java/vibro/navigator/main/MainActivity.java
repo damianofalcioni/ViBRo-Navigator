@@ -7,6 +7,7 @@ import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.about.AboutActivity;
 import vibro.navigator.nav.ui.NavigationActivity;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -49,7 +50,7 @@ public class MainActivity extends Activity {
             startActivity(new Intent(this, AboutActivity.class));
         });
 
-        BRouterProfilesRepository profilesRepository = new BRouterProfilesRepository();
+        BRouterProfilesRepository profilesRepository = AndroidBRouterProfilesRepositoryFactory.create();
         profilePicker = new MainActivityProfilePicker(this, profilesRepository);
         profileSpinnerController = new ProfileSpinnerController(
                 this,

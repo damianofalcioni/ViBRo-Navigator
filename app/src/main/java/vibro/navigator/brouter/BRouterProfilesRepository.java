@@ -7,8 +7,6 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.packageinfo.AndroidPackages;
-import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.logging.AppLogger;
 
 import java.util.List;
@@ -24,14 +22,28 @@ public class BRouterProfilesRepository {
     private static final String KEY_SELECTED_PROFILE = "selected_profile";
     private static final String TAG = "BRouterProfiles";
 
-    private final BRouterProfileDirectories profileDirectories = new BRouterProfileDirectories();
+    @NonNull
+    private final BRouterProfileDependencies dependencies;
+    @NonNull
+    private final BRouterProfileDirectories profileDirectories;
+    @NonNull
     private final BRouterProfileLister profileLister;
 
-    public BRouterProfilesRepository() {
-        this(new BRouterProfileLister());
+    public BRouterProfilesRepository(@NonNull BRouterProfileDependencies dependencies) {
+        this(
+                dependencies,
+                new BRouterProfileDirectories(dependencies.documentAccess, dependencies.storageVolumeAccess),
+                new BRouterProfileLister(dependencies.documentAccess, dependencies.packageAccess)
+        );
     }
 
-    BRouterProfilesRepository(@NonNull BRouterProfileLister profileLister) {
+    BRouterProfilesRepository(
+            @NonNull BRouterProfileDependencies dependencies,
+            @NonNull BRouterProfileDirectories profileDirectories,
+            @NonNull BRouterProfileLister profileLister
+    ) {
+        this.dependencies = dependencies;
+        this.profileDirectories = profileDirectories;
         this.profileLister = profileLister;
     }
 
@@ -124,7 +136,7 @@ public class BRouterProfilesRepository {
     }
 
     public boolean isBRouterInstalled(@NonNull Context context) {
-        if (AndroidPackages.isInstalled(context, BROUTER_PACKAGE_NAME)) {
+        if (dependencies.packageAccess.isInstalled(context, BROUTER_PACKAGE_NAME)) {
             AppLogger.d(TAG, "BRouter package detected");
             return true;
         }
@@ -153,6 +165,6 @@ public class BRouterProfilesRepository {
     }
 
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        return AndroidPersistedUriPermissions.hasReadPermission(context, uri);
+        return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
     }
 }

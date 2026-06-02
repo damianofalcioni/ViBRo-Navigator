@@ -4,8 +4,6 @@ import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.android.storage.AndroidStorageVolumes;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,13 +15,20 @@ final class BRouterProfileDirectoryCandidates {
             "Android/data/btools.routingapp/files/brouter/profiles2";
 
     @NonNull
+    private final BRouterProfileDependencies.StorageVolumeAccess storageVolumeAccess;
+
+    BRouterProfileDirectoryCandidates(@NonNull BRouterProfileDependencies.StorageVolumeAccess storageVolumeAccess) {
+        this.storageVolumeAccess = storageVolumeAccess;
+    }
+
+    @NonNull
     List<String> getProfilesDocumentIdCandidates(@NonNull Context context) {
         return buildLikelyPickerDocumentIdCandidates(getSecondaryStorageRootIds(context));
     }
 
     @NonNull
     List<String> getSecondaryStorageRootIds(@NonNull Context context) {
-        return AndroidStorageVolumes.secondaryStorageRootIds(context);
+        return storageVolumeAccess.secondaryStorageRootIds(context);
     }
 
     @NonNull
