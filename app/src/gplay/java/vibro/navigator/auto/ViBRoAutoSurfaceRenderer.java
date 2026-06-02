@@ -2,8 +2,6 @@ package vibro.navigator.auto;
 
 import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -13,6 +11,7 @@ import androidx.car.app.SurfaceCallback;
 import androidx.car.app.SurfaceContainer;
 
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
 
@@ -31,7 +30,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private static final String TAG = "ViBRoAutoSurface";
     private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
 
-    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final TaskScheduler uiScheduler;
     private final ViBRoAutoSurfacePainter painter;
     private final Rect stableArea = new Rect();
     private final Runnable compassTransitionTicker = this::renderOnMainThread;
@@ -42,7 +41,12 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private NavState currentState;
     private boolean renderPosted;
 
-    ViBRoAutoSurfaceRenderer(@NonNull CarContext carContext, @NonNull Controls controls) {
+    ViBRoAutoSurfaceRenderer(
+            @NonNull CarContext carContext,
+            @NonNull Controls controls,
+            @NonNull TaskScheduler uiScheduler
+    ) {
+        this.uiScheduler = uiScheduler;
         painter = new ViBRoAutoSurfacePainter(carContext, controls, AndroidElapsedRealtimeClock.INSTANCE);
     }
 
@@ -56,7 +60,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
             return;
         }
         renderPosted = true;
-        uiHandler.post(this::renderOnMainThread);
+        uiScheduler.post(this::renderOnMainThread);
     }
 
     void clearSurface() {
@@ -122,11 +126,11 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private void scheduleCompassTransitionIfNeeded() {
         clearCompassCallbacks();
         if (painter.isCompassTransitionInProgress()) {
-            uiHandler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
+            uiScheduler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
         }
     }
 
     private void clearCompassCallbacks() {
-        uiHandler.removeCallbacks(compassTransitionTicker);
+        uiScheduler.removeCallbacks(compassTransitionTicker);
     }
 }

@@ -1,10 +1,12 @@
-package vibro.navigator.auto;
+package vibro.navigator.android.auto;
 
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
+
+import vibro.navigator.auto.ViBRoCarAppService;
 
 public final class AndroidAutoIntegration {
     private AndroidAutoIntegration() {

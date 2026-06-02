@@ -5,9 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.ActivityNotFoundException;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -22,6 +20,8 @@ import androidx.lifecycle.LifecycleOwner;
 import java.io.IOException;
 
 import vibro.navigator.R;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.main.MainActivity;
 import vibro.navigator.nav.export.NavigationRouteGpxViewIntent;
@@ -37,13 +37,13 @@ public final class ViBRoCarScreen extends Screen {
 
     private final CarContext carContext;
     private final ViBRoCarTemplates templates;
-    private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private TaskScheduler uiScheduler;
     private ViBRoAutoSurfaceRenderer surfaceRenderer;
     private final Runnable surfaceCountdownTicker = new Runnable() {
         @Override
         public void run() {
             surfaceRenderer.render();
-            uiHandler.postDelayed(this, SURFACE_COUNTDOWN_TICK_MS);
+            uiScheduler.postDelayed(this, SURFACE_COUNTDOWN_TICK_MS);
         }
     };
 
@@ -80,22 +80,27 @@ public final class ViBRoCarScreen extends Screen {
     };
 
     public ViBRoCarScreen(@NonNull CarContext carContext) {
+        this(carContext, AndroidTaskScheduler.main());
+    }
+
+    ViBRoCarScreen(@NonNull CarContext carContext, @NonNull TaskScheduler uiScheduler) {
         super(carContext);
         this.carContext = carContext;
+        this.uiScheduler = uiScheduler;
         ViBRoAutoSurfaceControls controls = new ViBRoAutoSurfaceControls();
         templates = new ViBRoCarTemplates(carContext, controls);
-        surfaceRenderer = new ViBRoAutoSurfaceRenderer(carContext, controls);
+        surfaceRenderer = new ViBRoAutoSurfaceRenderer(carContext, controls, uiScheduler);
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
             public void onStart(@NonNull LifecycleOwner owner) {
                 carContext.getCarService(AppManager.class).setSurfaceCallback(surfaceRenderer);
                 bindNavigationService();
-                uiHandler.post(surfaceCountdownTicker);
+                uiScheduler.post(surfaceCountdownTicker);
             }
 
             @Override
             public void onStop(@NonNull LifecycleOwner owner) {
-                uiHandler.removeCallbacks(surfaceCountdownTicker);
+                uiScheduler.removeCallbacks(surfaceCountdownTicker);
                 surfaceRenderer.clearSurface();
                 unbindNavigationService();
             }

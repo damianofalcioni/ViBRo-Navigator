@@ -5,10 +5,10 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.auto.AndroidAutoIntegration;
 import vibro.navigator.android.location.GplayFusedLocationRuntimeAvailability;
 import vibro.navigator.android.location.GplayFusedLocationDiagnosticClient;
 import vibro.navigator.android.location.GplayFusedLocationUpdateClient;
-import vibro.navigator.auto.AndroidAutoIntegration;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
