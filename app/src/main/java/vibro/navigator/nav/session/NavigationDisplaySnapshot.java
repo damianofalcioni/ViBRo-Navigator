@@ -7,10 +7,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.compass.CompassOrientationCue;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 
 public final class NavigationDisplaySnapshot {
     @NonNull
-    final Context context;
+    final NavigationTextResources textResources;
     @Nullable
     final NavigationLocation lastFiltered;
     final float speedMps;
@@ -34,7 +36,7 @@ public final class NavigationDisplaySnapshot {
     final Throwable lastRouteFailure;
 
     private NavigationDisplaySnapshot(@NonNull Builder builder) {
-        context = builder.context;
+        textResources = builder.textResources;
         lastFiltered = builder.lastFiltered;
         speedMps = builder.speedMps;
         likelyStationary = builder.likelyStationary;
@@ -53,12 +55,17 @@ public final class NavigationDisplaySnapshot {
 
     @NonNull
     static Builder builder(@NonNull Context context) {
-        return new Builder(context);
+        return builder(new AndroidNavigationTextResources(context));
+    }
+
+    @NonNull
+    static Builder builder(@NonNull NavigationTextResources textResources) {
+        return new Builder(textResources);
     }
 
     static final class Builder {
         @NonNull
-        private final Context context;
+        private final NavigationTextResources textResources;
         @Nullable
         private NavigationLocation lastFiltered;
         private float speedMps;
@@ -81,8 +88,8 @@ public final class NavigationDisplaySnapshot {
         @Nullable
         private Throwable lastRouteFailure;
 
-        private Builder(@NonNull Context context) {
-            this.context = context;
+        private Builder(@NonNull NavigationTextResources textResources) {
+            this.textResources = textResources;
         }
 
         @NonNull

@@ -12,6 +12,8 @@ import vibro.navigator.R;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +84,11 @@ public final class NavigationRouteRequestManager {
     }
 
     public void markInvalidRequest(@NonNull Context context) {
-        lastRouteFailure = new IllegalStateException(context.getString(R.string.nav_start_invalid_request));
+        markInvalidRequest(new AndroidNavigationTextResources(context));
+    }
+
+    public void markInvalidRequest(@NonNull NavigationTextResources textResources) {
+        lastRouteFailure = new IllegalStateException(textResources.getString(R.string.nav_start_invalid_request));
     }
 
     @Nullable
@@ -210,6 +216,14 @@ public final class NavigationRouteRequestManager {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
+        onRouteFailure(new AndroidNavigationTextResources(context), snapshot, error);
+    }
+
+    public void onRouteFailure(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull Exception error
+    ) {
         if (snapshot.requestToken != routeRequestToken) {
             AppLogger.d(TAG, "Discarded stale route failure #" + snapshot.requestNumber);
             return;
@@ -221,7 +235,7 @@ public final class NavigationRouteRequestManager {
         inProgressNotice = null;
         AppLogger.e(TAG, "Route recalculation #" + snapshot.requestNumber + " failed", error);
         AppLogger.w(TAG, "Route recalculation #" + snapshot.requestNumber + " failure summary="
-                + NavigationRouteFailureFormatter.format(context, error, false));
+                + NavigationRouteFailureFormatter.format(textResources, error, false));
     }
 
     @NonNull

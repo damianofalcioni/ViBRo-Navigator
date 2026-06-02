@@ -12,32 +12,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRouteStateTestSupport {
     @Test
     public void buildState_keepsRouteVisibleAndShowsFriendlyNoRouteNotice() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -78,7 +75,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
     @Test
     public void buildState_afterStationaryPauseReusesLastReliableMovingCompassRadius() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -161,7 +158,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
     @Test
     public void buildState_stationaryOverviewTransitionUsesFixedOneSecondDurationAcrossRouteLengths() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
 
         NavigationSessionRouteState shortRouteState = new NavigationSessionRouteState();
         NavigationRequest shortRouteRequest = new NavigationRequest(
@@ -360,7 +357,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
     @Test
     public void buildState_withoutActiveRouteShowsFriendlyNoRouteMessage() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
 
         NavState navState = state.buildState(
@@ -385,7 +382,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
     @Test
     public void buildState_keepsIntermediateStopProgressSeparateFromDetailNoticeArea() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -426,7 +423,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
     @Test
     public void buildState_showsOnlyNextIntermediateStopAhead() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -482,7 +479,7 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
     @Test
     public void buildState_showsBlockedRoadNoticeWhileRouteRecalculationIsRunning() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationLocation currentLocation = location(0.0, 0.0, 1_000L);
 

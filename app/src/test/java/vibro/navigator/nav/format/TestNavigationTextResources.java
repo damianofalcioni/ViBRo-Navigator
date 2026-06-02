@@ -114,7 +114,48 @@ public final class TestNavigationTextResources implements NavigationTextResource
     }
 
     private static void addNavigationStatusStrings(@NonNull Map<Integer, String> strings) {
+        strings.put(R.string.nav_destination_label, "🏁");
+        strings.put(R.string.nav_eta, "ETA");
         strings.put(R.string.nav_status_unavailable, "--");
+        strings.put(R.string.nav_no_route, "No route");
+        strings.put(R.string.nav_waiting_for_location_title, "Waiting for location");
+        strings.put(
+                R.string.nav_waiting_for_location_body,
+                "Waiting for a usable location fix to calculate the route."
+        );
+        strings.put(R.string.nav_calculating_route_title, "Calculating route");
+        strings.put(R.string.nav_calculating_route_body, "Getting directions from BRouter.");
+        strings.put(R.string.nav_route_unavailable_title, "Route unavailable");
+        strings.put(R.string.format_nav_route_unavailable_body,
+                "Route unavailable: %1$s \n Check BRouter for available segments.");
+        strings.put(R.string.nav_route_unavailable_generic, "unknown error");
+        strings.put(R.string.nav_start_invalid_request, "navigation request is incomplete");
+        strings.put(
+                R.string.nav_route_notice_no_alternative_keep_current,
+                "Could not find an alternative route around the blocked area. Keeping current route."
+        );
+        strings.put(R.string.nav_route_notice_no_route_found, "No route found for this destination.");
+        strings.put(
+                R.string.nav_route_notice_service_unavailable_keep_current,
+                "Routing service unavailable. Keeping current route."
+        );
+        strings.put(R.string.nav_route_notice_service_unavailable, "Routing service unavailable.");
+        strings.put(R.string.nav_route_notice_invalid_profile, "Routing profile is invalid.");
+        strings.put(
+                R.string.nav_route_notice_update_failed_keep_current,
+                "Could not update the route. Keeping current route."
+        );
+        strings.put(R.string.nav_route_notice_unavailable, "Could not calculate a route.");
+        strings.put(
+                R.string.nav_route_notice_blocked_road_recalculating,
+                "Blocked road added. Recalculating route."
+        );
+        strings.put(
+                R.string.nav_paused_notice,
+                "Navigation is paused. Tap Resume navigation to continue live guidance."
+        );
+        strings.put(R.string.format_progress_line, "%1$s: %2$s • %3$s • %4$s %5$s");
+        strings.put(R.string.nav_destination_reached, "Destination reached");
         strings.put(R.string.notification_off_route_title, "Off route");
         strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
         strings.put(R.string.format_turn_speech, "%1$s, %2$s");

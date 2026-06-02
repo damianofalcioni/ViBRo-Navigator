@@ -4,7 +4,6 @@ package vibro.navigator.nav.format;
 
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.guidance.RouteTimeEstimator;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,13 +33,13 @@ public final class NavStateTextFactory {
             boolean destinationReached,
             int intermediateDestinationReachedTrackIndex,
             @NonNull List<NavTarget> targets,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         if (route.track.isEmpty()) {
             return new ArrayList<>();
         }
         if (destinationReached) {
-            return buildDestinationReachedDirectionLines(route, context);
+            return buildDestinationReachedDirectionLines(route, textResources);
         }
 
         List<NavUpcomingHint> upcomingHints = NavUpcomingHintCollector.collect(
@@ -55,17 +54,17 @@ public final class NavStateTextFactory {
                 intermediateDestinationReachedTrackIndex,
                 2
         );
-        return formatDirectionLines(route, index, upcomingHints, context);
+        return formatDirectionLines(route, index, upcomingHints, textResources);
     }
 
     @NonNull
     private static List<String> buildDestinationReachedDirectionLines(
             @NonNull GeoJsonRoute route,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         return new ArrayList<>(Collections.singletonList(
                 NavigationTextFormatter.formatTurnNotification(
-                        context,
+                        textResources,
                         new VoiceHint(route.track.size() - 1, NavArrivalHintFactory.ARRIVAL_COMMAND, 0, 0.0, 0),
                         0.0,
                         0.0
@@ -78,15 +77,15 @@ public final class NavStateTextFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             @NonNull List<NavUpcomingHint> upcomingHints,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         List<String> lines = new ArrayList<>(upcomingHints.size());
         if (upcomingHints.isEmpty()) {
             return lines;
         }
-        addNextDirectionLine(lines, upcomingHints.get(0), context);
+        addNextDirectionLine(lines, upcomingHints.get(0), textResources);
         if (upcomingHints.size() > 1) {
-            addFollowingDirectionLine(route, index, lines, upcomingHints.get(0), upcomingHints.get(1), context);
+            addFollowingDirectionLine(route, index, lines, upcomingHints.get(0), upcomingHints.get(1), textResources);
         }
         return lines;
     }
@@ -94,10 +93,10 @@ public final class NavStateTextFactory {
     private static void addNextDirectionLine(
             @NonNull List<String> lines,
             @NonNull NavUpcomingHint nextHint,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         lines.add(NavigationTextFormatter.formatTurnNotification(
-                context,
+                textResources,
                 nextHint.hint,
                 nextHint.distanceMeters,
                 nextHint.timeSeconds
@@ -110,7 +109,7 @@ public final class NavStateTextFactory {
             @NonNull List<String> lines,
             @NonNull NavUpcomingHint nextHint,
             @NonNull NavUpcomingHint afterNextHint,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         double relativeDistanceMeters = Math.max(
                 0.0,
@@ -118,7 +117,7 @@ public final class NavStateTextFactory {
         );
         double relativeTimeSeconds = relativeHintTimeSeconds(route, index, nextHint, afterNextHint);
         lines.add(NavigationTextFormatter.formatTurnNotification(
-                context,
+                textResources,
                 afterNextHint.hint,
                 relativeDistanceMeters,
                 relativeTimeSeconds
@@ -161,10 +160,10 @@ public final class NavStateTextFactory {
             long nowMs,
             boolean destinationReached,
             @NonNull List<NavTarget> targets,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         if (destinationReached) {
-            return context.getString(R.string.nav_destination_reached);
+            return textResources.getString(R.string.nav_destination_reached);
         }
         if (targets.isEmpty()) {
             return "";
@@ -179,7 +178,7 @@ public final class NavStateTextFactory {
                 destination.alongTrackMeters,
                 speedMps
         );
-        return buildProgressLine(context, destination.label, distTo, secTo, nowMs);
+        return buildProgressLine(textResources, destination.label, distTo, secTo, nowMs);
     }
 
     @NonNull
@@ -192,7 +191,7 @@ public final class NavStateTextFactory {
             long nowMs,
             boolean destinationReached,
             @NonNull List<NavTarget> targets,
-            @NonNull Context context
+            @NonNull NavigationTextResources textResources
     ) {
         if (destinationReached) {
             return "";
@@ -212,32 +211,32 @@ public final class NavStateTextFactory {
                     t.alongTrackMeters,
                     speedMps
             );
-            return buildProgressLine(context, t.label, distTo, secTo, nowMs);
+            return buildProgressLine(textResources, t.label, distTo, secTo, nowMs);
         }
         return "";
     }
 
     @NonNull
     private static String buildProgressLine(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull String label,
             double distanceMeters,
             @Nullable Double seconds,
             long nowMs
     ) {
         String timeText = NavigationTextFormatter.formatTimeSeconds(
-                context,
+                textResources,
                 seconds != null ? seconds : Double.NaN
         );
         String etaText = seconds != null && Double.isFinite(seconds)
                 ? NavigationTextFormatter.formatEta(nowMs + (long) (seconds * 1000))
-                : context.getString(R.string.nav_status_unavailable);
-        return context.getString(
+                : textResources.getString(R.string.nav_status_unavailable);
+        return textResources.getString(
                 R.string.format_progress_line,
                 label,
-                NavigationTextFormatter.formatDistance(context, distanceMeters),
+                NavigationTextFormatter.formatDistance(textResources, distanceMeters),
                 timeText,
-                context.getString(R.string.nav_eta),
+                textResources.getString(R.string.nav_eta),
                 etaText
         );
     }

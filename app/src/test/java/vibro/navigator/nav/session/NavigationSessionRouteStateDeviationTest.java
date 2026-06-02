@@ -12,32 +12,29 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationSessionRouteStateDeviationTest extends NavigationSessionRouteStateTestSupport {
     @Test
     public void evaluateLocation_surfacesOffTrackRerouteNotice() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -70,7 +67,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_suppressesImmediateDeviationDuringReacquisition() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -115,7 +112,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_surfacesBearingMismatchRerouteNotice() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -169,7 +166,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_requiresConfirmationForNearThresholdOffTrackSamples() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -211,7 +208,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_usesMedianAccuracyInsteadOfSingleGpsSpikeForOffTrackThreshold() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -257,7 +254,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_allowsFasterImmediateOffTrackRerouteAtHigherSpeed() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -290,7 +287,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_usesForwardLookaheadBearingNearTurns() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -324,7 +321,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_doesNotRerouteOnBearingMismatchWhenAlongTrackProgressIsForward() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -365,7 +362,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void evaluateLocation_reroutesOnBearingMismatchWhenAlongTrackProgressIsBackward() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -416,7 +413,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
     @Test
     public void addBlockedPointsAhead_escalatesNearbyRepeatsAndReplacesOldMarkers() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,

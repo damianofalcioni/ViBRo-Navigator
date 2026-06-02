@@ -8,13 +8,9 @@ import static org.junit.Assert.assertTrue;
 
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
-import android.os.Build;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationSessionLocationStateTest {
 
     @Test
@@ -51,9 +47,7 @@ public class NavigationSessionLocationStateTest {
         state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            update.setBearingAccuracyDegrees(12f);
-        }
+        update.setBearingAccuracyDegrees(12f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
         Double bearingDegrees = state.trustedActualBearingDegreesForReroute(accepted.getFilteredLocation());
@@ -101,9 +95,7 @@ public class NavigationSessionLocationStateTest {
         state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            update.setBearingAccuracyDegrees(12f);
-        }
+        update.setBearingAccuracyDegrees(12f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
@@ -120,9 +112,7 @@ public class NavigationSessionLocationStateTest {
         state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            update.setBearingAccuracyDegrees(12f);
-        }
+        update.setBearingAccuracyDegrees(12f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
@@ -141,9 +131,7 @@ public class NavigationSessionLocationStateTest {
         state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            update.setBearingAccuracyDegrees(40f);
-        }
+        update.setBearingAccuracyDegrees(40f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
@@ -162,9 +150,7 @@ public class NavigationSessionLocationStateTest {
         state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            update.setBearingAccuracyDegrees(12f);
-        }
+        update.setBearingAccuracyDegrees(12f);
         NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =

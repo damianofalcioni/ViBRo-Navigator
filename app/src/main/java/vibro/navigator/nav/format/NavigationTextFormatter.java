@@ -86,11 +86,21 @@ public final class NavigationTextFormatter {
     }
 
     @NonNull
+    public static String formatDistance(@NonNull NavigationTextResources resources, double meters) {
+        return NavigationMeasurementFormatter.formatDistance(resources, meters);
+    }
+
+    @NonNull
     public static String formatTimeSeconds(@NonNull Context context, int seconds) {
         return NavigationTextFormatterRules.formatTimeSeconds(
                 new AndroidNavigationTextResources(context),
                 seconds
         );
+    }
+
+    @NonNull
+    public static String formatTimeSeconds(@NonNull NavigationTextResources resources, int seconds) {
+        return NavigationTextFormatterRules.formatTimeSeconds(resources, seconds);
     }
 
     @NonNull
@@ -102,11 +112,21 @@ public final class NavigationTextFormatter {
     }
 
     @NonNull
+    public static String formatTimeSeconds(@NonNull NavigationTextResources resources, double seconds) {
+        return NavigationTextFormatterRules.formatTimeSeconds(resources, seconds);
+    }
+
+    @NonNull
     public static String formatBearingDegrees(@NonNull Context context, @Nullable Double degrees) {
         return NavigationTextFormatterRules.formatBearingDegrees(
                 new AndroidNavigationTextResources(context),
                 degrees
         );
+    }
+
+    @NonNull
+    public static String formatBearingDegrees(@NonNull NavigationTextResources resources, @Nullable Double degrees) {
+        return NavigationTextFormatterRules.formatBearingDegrees(resources, degrees);
     }
 
     @NonNull
@@ -122,6 +142,29 @@ public final class NavigationTextFormatter {
     ) {
         return NavigationGpsTextFormatter.formatGpsStatus(
                 context,
+                speedMps,
+                elevationMeters,
+                accuracyMeters,
+                bearingDegrees,
+                bearingAccuracyDegrees,
+                fixedSatelliteCount,
+                acquiredFixCount
+        );
+    }
+
+    @NonNull
+    public static String formatGpsStatus(
+            @NonNull NavigationTextResources resources,
+            float speedMps,
+            @Nullable Double elevationMeters,
+            float accuracyMeters,
+            @Nullable Float bearingDegrees,
+            @Nullable Float bearingAccuracyDegrees,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Integer acquiredFixCount
+    ) {
+        return NavigationGpsTextFormatter.formatGpsStatus(
+                resources,
                 speedMps,
                 elevationMeters,
                 accuracyMeters,

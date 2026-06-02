@@ -4,34 +4,30 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.location.NavigationLocation;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavIntermediateArrivalGuidanceTest {
     private static final String DESTINATION = "Destination";
     private static final String STOP_1 = "Stop 1";
 
-    private final Context context = ApplicationProvider.getApplicationContext();
+    private final NavigationTextResources context = TestNavigationTextResources.metric();
 
     @Test
     public void from_ordersIntermediateArrivalBetweenSurroundingManeuvers() {

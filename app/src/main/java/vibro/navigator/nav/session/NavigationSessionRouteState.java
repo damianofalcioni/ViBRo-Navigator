@@ -11,6 +11,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
@@ -129,7 +131,26 @@ public final class NavigationSessionRouteState {
             long beganAt
     ) {
         return applyRouteResult(
-                context,
+                new AndroidNavigationTextResources(context),
+                snapshot,
+                newRoute,
+                lastFiltered,
+                speedMps,
+                beganAt
+        );
+    }
+
+    @NonNull
+    public List<NavigationTurnEvent> applyRouteResult(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull GeoJsonRoute newRoute,
+            @Nullable NavigationLocation lastFiltered,
+            float speedMps,
+            long beganAt
+    ) {
+        return applyRouteResult(
+                textResources,
                 snapshot,
                 newRoute,
                 lastFiltered,
@@ -149,8 +170,29 @@ public final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
+        return applyRouteResult(
+                new AndroidNavigationTextResources(context),
+                snapshot,
+                newRoute,
+                lastFiltered,
+                speedMps,
+                likelyStationary,
+                beganAt
+        );
+    }
+
+    @NonNull
+    public List<NavigationTurnEvent> applyRouteResult(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull GeoJsonRoute newRoute,
+            @Nullable NavigationLocation lastFiltered,
+            float speedMps,
+            boolean likelyStationary,
+            long beganAt
+    ) {
         return components.routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
-                context,
+                textResources,
                 snapshot,
                 newRoute,
                 lastFiltered,
@@ -190,7 +232,40 @@ public final class NavigationSessionRouteState {
             @Nullable String routeCalculationNotice,
             @Nullable Throwable lastRouteFailure
     ) {
-        return advanceDisplayState(NavigationDisplaySnapshot.builder(context)
+        return buildState(
+                new AndroidNavigationTextResources(context),
+                lastFiltered,
+                speedMps,
+                likelyStationary,
+                accuracyMeters,
+                fixedSatelliteCount,
+                headingDegrees,
+                headingAccuracyDegrees,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                routeCalculationInProgress,
+                routeCalculationNotice,
+                lastRouteFailure
+        );
+    }
+
+    @NonNull
+    NavState buildState(
+            @NonNull NavigationTextResources textResources,
+            @Nullable NavigationLocation lastFiltered,
+            float speedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            boolean routeCalculationInProgress,
+            @Nullable String routeCalculationNotice,
+            @Nullable Throwable lastRouteFailure
+    ) {
+        return advanceDisplayState(NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
                 .gps(fixedSatelliteCount, 0)
                 .heading(headingDegrees, headingAccuracyDegrees)

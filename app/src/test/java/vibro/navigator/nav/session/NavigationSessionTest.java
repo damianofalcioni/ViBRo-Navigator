@@ -6,35 +6,33 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.session.NavigationSession.ResourceAdapter;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationSessionTest {
     private static final String DESTINATION = "Destination";
     private static final String TREKKING_PROFILE = "trekking";
 
     @Test
     public void buildState_marksPausedSessionsAndClearsPauseStateOnResume() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 TREKKING_PROFILE,
@@ -43,10 +41,11 @@ public class NavigationSessionTest {
                 Collections.emptyList()
         ));
 
-        assertTrue(session.start(context, 0L));
+        assertTrue(ResourceAdapter.start(session, context, 0L));
         assertTrue(session.pause());
 
-        NavState pausedState = session.buildState(
+        NavState pausedState = ResourceAdapter.buildState(
+                session,
                 context,
                 NavState.NO_DEADLINE,
                 0L,
@@ -59,7 +58,8 @@ public class NavigationSessionTest {
         assertTrue(pausedState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_paused_notice)));
         assertTrue(session.resume());
 
-        NavState resumedState = session.buildState(
+        NavState resumedState = ResourceAdapter.buildState(
+                session,
                 context,
                 NavState.NO_DEADLINE,
                 0L,
@@ -73,7 +73,7 @@ public class NavigationSessionTest {
 
     @Test
     public void prepareRouteRequest_excludesReachedIntermediateStops() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 TREKKING_PROFILE,
@@ -81,15 +81,20 @@ public class NavigationSessionTest {
                 new LatLon(0.0, 0.003),
                 Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
         ));
-        assertTrue(session.start(context, 0L));
+        assertTrue(ResourceAdapter.start(session, context, 0L));
         long nowMs = System.currentTimeMillis();
-        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
+        ResourceAdapter.onRawLocationChanged(session, context, location(0.0, 0.0, nowMs), nowMs);
         NavigationRouteRequestSnapshot firstSnapshot = session.prepareRouteRequest(true, nowMs);
         assertNotNull(firstSnapshot);
         assertEquals(2, firstSnapshot.intermediates.size());
-        session.applyRouteResult(context, firstSnapshot, routeWithoutHints(), 500L);
+        ResourceAdapter.applyRouteResult(session, context, firstSnapshot, routeWithoutHints(), 500L);
 
-        session.onRawLocationChanged(context, location(0.0, 0.001, nowMs + 2_000L, 120f), nowMs + 2_000L);
+        ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                location(0.0, 0.001, nowMs + 2_000L, 120f),
+                nowMs + 2_000L
+        );
         NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, nowMs + 3_000L);
 
         assertNotNull(secondSnapshot);
@@ -99,7 +104,7 @@ public class NavigationSessionTest {
 
     @Test
     public void buildState_includesAcceptedFixCountInGpsStatus() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 TREKKING_PROFILE,
@@ -107,13 +112,19 @@ public class NavigationSessionTest {
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         ));
-        assertTrue(session.start(context, 0L));
+        assertTrue(ResourceAdapter.start(session, context, 0L));
         long nowMs = System.currentTimeMillis();
 
-        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
-        session.onRawLocationChanged(context, location(0.0, 0.0001, nowMs + 1_000L), nowMs + 1_000L);
+        ResourceAdapter.onRawLocationChanged(session, context, location(0.0, 0.0, nowMs), nowMs);
+        ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                location(0.0, 0.0001, nowMs + 1_000L),
+                nowMs + 1_000L
+        );
 
-        NavState state = session.buildState(
+        NavState state = ResourceAdapter.buildState(
+                session,
                 context,
                 NavState.NO_DEADLINE,
                 nowMs + 1_000L,
@@ -127,7 +138,7 @@ public class NavigationSessionTest {
 
     @Test
     public void onRawLocationChanged_resumesFastPollingAfterLongAcceptedFixGap() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 TREKKING_PROFILE,
@@ -136,19 +147,25 @@ public class NavigationSessionTest {
                 Collections.emptyList()
         ));
         long nowMs = System.currentTimeMillis();
-        assertTrue(session.start(context, nowMs));
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
 
-        session.onRawLocationChanged(context, location(0.0, 0.0, nowMs), nowMs);
+        ResourceAdapter.onRawLocationChanged(session, context, location(0.0, 0.0, nowMs), nowMs);
         NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
         assertNotNull(snapshot);
-        session.applyRouteResult(context, snapshot, routeWithoutHints(), nowMs);
+        ResourceAdapter.applyRouteResult(session, context, snapshot, routeWithoutHints(), nowMs);
         for (int i = 1; i <= 5; i++) {
             long sampleTimeMs = nowMs + i * 1_000L;
-            session.onRawLocationChanged(context, location(0.0, i * 0.0001, sampleTimeMs), sampleTimeMs);
+            ResourceAdapter.onRawLocationChanged(
+                    session,
+                    context,
+                    location(0.0, i * 0.0001, sampleTimeMs),
+                    sampleTimeMs
+            );
         }
 
         long resumedTimeMs = nowMs + 21_000L;
-        NavigationLocationUpdateResult result = session.onRawLocationChanged(
+        NavigationLocationUpdateResult result = ResourceAdapter.onRawLocationChanged(
+                session,
                 context,
                 location(0.0, 0.0006, resumedTimeMs),
                 resumedTimeMs

@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -46,8 +48,27 @@ public final class NavCompassStateFactory {
             @Nullable Integer acquiredFixCount,
             @NonNull Context context
     ) {
+        return buildGpsStatusLine(
+                speedMps,
+                currentLocation,
+                accuracyMeters,
+                fixedSatelliteCount,
+                acquiredFixCount,
+                new AndroidNavigationTextResources(context)
+        );
+    }
+
+    @NonNull
+    public static String buildGpsStatusLine(
+            float speedMps,
+            @Nullable NavigationLocation currentLocation,
+            float accuracyMeters,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Integer acquiredFixCount,
+            @NonNull NavigationTextResources textResources
+    ) {
         return NavigationTextFormatter.formatGpsStatus(
-                context,
+                textResources,
                 speedMps,
                 elevationMeters(currentLocation),
                 accuracyMeters,

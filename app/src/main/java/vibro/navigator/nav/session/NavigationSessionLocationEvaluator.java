@@ -8,6 +8,8 @@ import androidx.annotation.NonNull;
 import java.util.Collections;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
@@ -53,6 +55,21 @@ final class NavigationSessionLocationEvaluator {
             @NonNull NavigationLocation rawLocation,
             long nowMs
     ) {
+        return onRawLocationChanged(
+                new AndroidNavigationTextResources(context),
+                currentRequest,
+                rawLocation,
+                nowMs
+        );
+    }
+
+    @NonNull
+    NavigationLocationUpdateResult onRawLocationChanged(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRequest currentRequest,
+            @NonNull NavigationLocation rawLocation,
+            long nowMs
+    ) {
         NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(rawLocation, nowMs);
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
@@ -62,7 +79,7 @@ final class NavigationSessionLocationEvaluator {
         NavigationLocation filtered = update.getFilteredLocation();
         routeRequestManager.clearRouteFailure();
         if (!currentRequest.isComplete()) {
-            routeRequestManager.markInvalidRequest(context);
+            routeRequestManager.markInvalidRequest(textResources);
             AppLogger.e(TAG, "Skipping route evaluation because the request is incomplete "
                     + currentRequest.describe(), null);
             return NavigationLocationUpdateResult.accepted(

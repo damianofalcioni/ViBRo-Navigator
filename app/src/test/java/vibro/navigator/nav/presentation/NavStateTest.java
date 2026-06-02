@@ -5,12 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.location.NavigationLocation;
-import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
@@ -18,6 +15,8 @@ import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassStateInput;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -25,20 +24,17 @@ import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavStateTest {
     private static final String DESTINATION = "Destination";
     private static final String DISTANCE_111_METERS = "111 m";
     private static final String STOP_1 = "Stop 1";
 
-    private final Context context = ApplicationProvider.getApplicationContext();
+    private final NavigationTextResources context = TestNavigationTextResources.metric();
 
     @Test
     public void from_skipsHintsInsideAccuracyRadius() {
@@ -990,7 +986,7 @@ public class NavStateTest {
                 context
         );
 
-        NavState state = NavStateComposer.withPauseState(context, baseState, true);
+        NavState state = NavStateResourceComposer.withPauseState(context, baseState, true);
 
         assertEquals(context.getString(R.string.nav_paused_notice), state.displayStatusBlock());
     }
@@ -1015,7 +1011,7 @@ public class NavStateTest {
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @NonNull List<NavTarget> targets,
-            @NonNull Context context
+            @NonNull NavigationTextResources context
     ) {
         return from(
                 route,
@@ -1066,7 +1062,7 @@ public class NavStateTest {
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @NonNull List<NavTarget> targets,
-            @NonNull Context context
+            @NonNull NavigationTextResources context
     ) {
         return from(
                 route,
@@ -1121,7 +1117,7 @@ public class NavStateTest {
             long nowMs,
             boolean destinationReached,
             @NonNull List<NavTarget> targets,
-            @NonNull Context context
+            @NonNull NavigationTextResources context
     ) {
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, index, currentLocation)
                 .routeProgress(alongTrackMeters)

@@ -12,28 +12,25 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationSessionRouteStateTest extends NavigationSessionRouteStateTestSupport {
     @Test
     public void evaluateLocation_waitsForAccurateStartupFixBeforeFirstRoute() {
@@ -72,7 +69,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void applyRouteResult_buildsInitialTurnEventAndRenderableState() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 "trekking",
@@ -114,7 +111,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void buildState_showsTurnManeuverCueFromFiveSecondNotificationWithCoarseAccuracyUntilPassed() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -257,7 +254,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void evaluateLocation_emitsArrivalEventAndReachedStateInsideDestinationRadius() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -318,7 +315,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void evaluateLocation_usesRouteThresholdForDestinationArrivalRadius() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -351,7 +348,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void evaluateLocation_emitsIntermediateArrivalEventOnceAndKeepsDestinationActive() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -414,7 +411,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void evaluateLocation_usesRouteThresholdForIntermediateArrivalRadius() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -447,7 +444,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void applyRouteResult_emitsIntermediateArrivalEventWhenAlreadyInsideStopRadius() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -472,7 +469,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void remainingIntermediateStops_excludesReachedStopsAfterArrival() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         List<LatLon> stops = Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002));
         NavigationRequest request = new NavigationRequest(
@@ -507,7 +504,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void evaluateLocation_prefersArrivalOverOffTrackRerouteWhenInsideDestinationRadius() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -540,7 +537,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void buildState_usesSmoothedSlowProgressForEtaOnCurrentSegment() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -605,7 +602,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
     @Test
     public void applyRouteResult_initialTurnEventUsesRouteTimingWhenLiveEtaSpeedIsUnavailable() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,

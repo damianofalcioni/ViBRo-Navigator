@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterRouteException;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 
 public final class NavigationRouteFailureFormatter {
 
@@ -15,10 +17,19 @@ public final class NavigationRouteFailureFormatter {
 
     @NonNull
     public static String format(@NonNull Context context, @NonNull Throwable throwable, boolean keepCurrentRoute) {
+        return format(new AndroidNavigationTextResources(context), throwable, keepCurrentRoute);
+    }
+
+    @NonNull
+    public static String format(
+            @NonNull NavigationTextResources textResources,
+            @NonNull Throwable throwable,
+            boolean keepCurrentRoute
+    ) {
         Throwable current = throwable;
         while (current != null) {
             if (current instanceof BRouterRouteException) {
-                return formatBRouterFailure(context, (BRouterRouteException) current, keepCurrentRoute);
+                return formatBRouterFailure(textResources, (BRouterRouteException) current, keepCurrentRoute);
             }
             current = current.getCause();
         }
@@ -27,16 +38,16 @@ public final class NavigationRouteFailureFormatter {
         if (!sanitized.isEmpty()) {
             return sanitized;
         }
-        return context.getString(R.string.nav_route_unavailable_generic);
+        return textResources.getString(R.string.nav_route_unavailable_generic);
     }
 
     @NonNull
     private static String formatBRouterFailure(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull BRouterRouteException error,
             boolean keepCurrentRoute
     ) {
-        return context.getString(bRouterFailureMessageId(error, keepCurrentRoute));
+        return textResources.getString(bRouterFailureMessageId(error, keepCurrentRoute));
     }
 
     private static int bRouterFailureMessageId(

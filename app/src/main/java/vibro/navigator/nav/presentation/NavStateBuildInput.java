@@ -11,6 +11,8 @@ import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.nav.compass.NavCompassStateInput;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -25,7 +27,7 @@ public final class NavStateBuildInput {
     @NonNull
     public final NavigationLocation currentLocation;
     @NonNull
-    public final Context context;
+    public final NavigationTextResources textResources;
     @NonNull
     public final RouteProgress routeProgress;
     @NonNull
@@ -47,7 +49,7 @@ public final class NavStateBuildInput {
         route = builder.route;
         index = builder.index;
         currentLocation = builder.currentLocation;
-        context = builder.context;
+        textResources = builder.textResources;
         routeProgress = builder.routeProgress;
         motion = builder.motion;
         gps = builder.gps;
@@ -66,7 +68,17 @@ public final class NavStateBuildInput {
             @NonNull PolylineIndex index,
             @NonNull NavigationLocation currentLocation
     ) {
-        return new Builder(context, route, index, currentLocation);
+        return builder(new AndroidNavigationTextResources(context), route, index, currentLocation);
+    }
+
+    @NonNull
+    public static Builder builder(
+            @NonNull NavigationTextResources textResources,
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull NavigationLocation currentLocation
+    ) {
+        return new Builder(textResources, route, index, currentLocation);
     }
 
     public static final class RouteProgress {
@@ -139,7 +151,7 @@ public final class NavStateBuildInput {
 
     public static final class Builder {
         @NonNull
-        private final Context context;
+        private final NavigationTextResources textResources;
         @NonNull
         private final GeoJsonRoute route;
         @NonNull
@@ -164,12 +176,12 @@ public final class NavStateBuildInput {
         private List<NavTarget> targets = Collections.emptyList();
 
         private Builder(
-                @NonNull Context context,
+                @NonNull NavigationTextResources textResources,
                 @NonNull GeoJsonRoute route,
                 @NonNull PolylineIndex index,
                 @NonNull NavigationLocation currentLocation
         ) {
-            this.context = context;
+            this.textResources = textResources;
             this.route = route;
             this.index = index;
             this.currentLocation = currentLocation;

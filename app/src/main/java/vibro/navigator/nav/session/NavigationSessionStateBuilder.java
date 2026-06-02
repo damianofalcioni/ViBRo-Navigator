@@ -7,8 +7,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.compass.CompassOrientationCue;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 
 final class NavigationSessionStateBuilder {
@@ -45,6 +47,31 @@ final class NavigationSessionStateBuilder {
             int acquiredFixCount,
             boolean paused
     ) {
+        return build(
+                new AndroidNavigationTextResources(context),
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                acquiredFixCount,
+                paused
+        );
+    }
+
+    @NonNull
+    NavState build(
+            @NonNull NavigationTextResources textResources,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            int acquiredFixCount,
+            boolean paused
+    ) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         boolean likelyStationary = locationState.isLikelyStationary();
@@ -57,7 +84,7 @@ final class NavigationSessionStateBuilder {
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees
         );
-        NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(context)
+        NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
                 .gps(fixedSatelliteCount, acquiredFixCount)
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
@@ -70,6 +97,6 @@ final class NavigationSessionStateBuilder {
                 )
                 .build();
         NavState baseState = routeState.advanceDisplayState(snapshot);
-        return NavStateComposer.withPauseState(context, baseState, paused);
+        return NavStateResourceComposer.withPauseState(textResources, baseState, paused);
     }
 }

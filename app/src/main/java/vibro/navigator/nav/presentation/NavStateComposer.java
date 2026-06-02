@@ -8,11 +8,11 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
-import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -30,8 +30,7 @@ public final class NavStateComposer {
 
     @NonNull
     public static NavState waiting(@NonNull Context context) {
-        String noRoute = context.getString(R.string.nav_no_route);
-        return create(noRoute, "", "", "", defaultGpsStatusLine(context), NavState.NO_DEADLINE, noRoute, null, false);
+        return NavStateResourceComposer.waiting(new AndroidNavigationTextResources(context));
     }
 
     @NonNull
@@ -41,16 +40,9 @@ public final class NavStateComposer {
 
     @NonNull
     public static NavState waitingForLocation(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
-        return create(
-                context.getString(R.string.nav_waiting_for_location_title),
-                "",
-                "",
-                "",
-                defaultGpsStatusLine(context),
-                nextEvaluationDeadlineElapsedMs,
-                context.getString(R.string.nav_waiting_for_location_body),
-                null,
-                false
+        return NavStateResourceComposer.waitingForLocation(
+                new AndroidNavigationTextResources(context),
+                nextEvaluationDeadlineElapsedMs
         );
     }
 
@@ -61,16 +53,9 @@ public final class NavStateComposer {
 
     @NonNull
     public static NavState calculatingRoute(@NonNull Context context, long nextEvaluationDeadlineElapsedMs) {
-        return create(
-                context.getString(R.string.nav_calculating_route_title),
-                "",
-                "",
-                "",
-                defaultGpsStatusLine(context),
-                nextEvaluationDeadlineElapsedMs,
-                context.getString(R.string.nav_calculating_route_body),
-                null,
-                false
+        return NavStateResourceComposer.calculatingRoute(
+                new AndroidNavigationTextResources(context),
+                nextEvaluationDeadlineElapsedMs
         );
     }
 
@@ -85,16 +70,10 @@ public final class NavStateComposer {
             @NonNull String detail,
             long nextEvaluationDeadlineElapsedMs
     ) {
-        return create(
-                context.getString(R.string.nav_route_unavailable_title),
-                "",
-                "",
-                "",
-                defaultGpsStatusLine(context),
-                nextEvaluationDeadlineElapsedMs,
-                context.getString(R.string.format_nav_route_unavailable_body, detail),
-                null,
-                false
+        return NavStateResourceComposer.routeUnavailable(
+                new AndroidNavigationTextResources(context),
+                detail,
+                nextEvaluationDeadlineElapsedMs
         );
     }
 
@@ -111,7 +90,7 @@ public final class NavStateComposer {
                 input.destinationReached,
                 input.intermediateDestinationReachedTrackIndex,
                 input.targets,
-                input.context
+                input.textResources
         );
         String next = directionLines.isEmpty() ? "" : directionLines.get(0);
         String afterNext = directionLines.size() > 1 ? directionLines.get(1) : "";
@@ -124,7 +103,7 @@ public final class NavStateComposer {
                 input.timing.nowMs,
                 input.destinationReached,
                 input.targets,
-                input.context
+                input.textResources
         );
         String stopProgress = NavStateTextFactory.buildStopProgress(
                 input.route,
@@ -135,15 +114,15 @@ public final class NavStateComposer {
                 input.timing.nowMs,
                 input.destinationReached,
                 input.targets,
-                input.context
+                input.textResources
         );
-        String gpsStatus = buildGpsStatusLine(
+        String gpsStatus = NavStateResourceComposer.buildGpsStatusLine(
                 input.motion.speedMps,
                 input.currentLocation,
                 input.motion.accuracyMeters,
                 input.gps.fixedSatelliteCount,
                 input.gps.acquiredFixCount,
-                input.context
+                input.textResources
         );
         NavCompassState compassState = input.compassInput == null
                 ? null
@@ -206,16 +185,7 @@ public final class NavStateComposer {
 
     @NonNull
     public static NavState withPauseState(@NonNull Context context, @NonNull NavState base, boolean paused) {
-        String detail = base.routeStatus.progress.detailBlock;
-        if (paused) {
-            String pauseNotice = context.getString(R.string.nav_paused_notice);
-            detail = detail.isEmpty() ? pauseNotice : pauseNotice + "\n" + detail;
-        }
-        return new NavState(
-                base.routeStatus.withProgress(base.routeStatus.progress.withDetailBlock(detail)),
-                base.gpsStatus,
-                new NavPauseStatus(paused)
-        );
+        return NavStateResourceComposer.withPauseState(new AndroidNavigationTextResources(context), base, paused);
     }
 
     @NonNull
@@ -295,18 +265,13 @@ public final class NavStateComposer {
             @Nullable Integer acquiredFixCount,
             @NonNull Context context
     ) {
-        return NavCompassStateFactory.buildGpsStatusLine(
+        return NavStateResourceComposer.buildGpsStatusLine(
                 speedMps,
                 currentLocation,
                 accuracyMeters,
                 fixedSatelliteCount,
                 acquiredFixCount,
-                context
+                new AndroidNavigationTextResources(context)
         );
-    }
-
-    @NonNull
-    private static String defaultGpsStatusLine(@NonNull Context context) {
-        return buildGpsStatusLine(Float.NaN, null, Float.NaN, null, null, context);
     }
 }

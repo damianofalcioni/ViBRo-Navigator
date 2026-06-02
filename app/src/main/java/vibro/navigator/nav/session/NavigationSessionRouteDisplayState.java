@@ -9,15 +9,16 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.presentation.NavStateBuildInput;
 import vibro.navigator.nav.presentation.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.compass.NavCompassStateInput;
-import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -48,7 +49,7 @@ public final class NavigationSessionRouteDisplayState {
     }
 
     public void onRouteApplied(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
@@ -56,7 +57,7 @@ public final class NavigationSessionRouteDisplayState {
     ) {
         compassMemory.onRouteApplied(route, polylineIndex, intermediateStops);
         this.routeStartApproachTarget = copy(routeStartApproachTarget);
-        targets = buildTargets(context, intermediateStops, route.track.size(), polylineIndex);
+        targets = buildTargets(textResources, intermediateStops, route.track.size(), polylineIndex);
     }
 
     public void clearRouteStartApproachTarget() {
@@ -90,7 +91,10 @@ public final class NavigationSessionRouteDisplayState {
                 lastSegmentIndex
         );
         if (match == null) {
-            return NavStateComposer.withGpsStatus(NavStateComposer.waiting(snapshot.context), gpsStatusLine);
+            return NavStateComposer.withGpsStatus(
+                    NavStateResourceComposer.waiting(snapshot.textResources),
+                    gpsStatusLine
+            );
         }
 
         float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
@@ -128,7 +132,7 @@ public final class NavigationSessionRouteDisplayState {
                 .nowMs(snapshot.nowMs)
                 .build();
         NavState state = NavStateComposer.from(NavStateBuildInput
-                .builder(snapshot.context, route, polylineIndex, snapshot.lastFiltered)
+                .builder(snapshot.textResources, route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters, turnState.getNextHintIdx(), match.segmentIndex)
                 .motion(
                         snapshot.speedMps,
@@ -170,22 +174,22 @@ public final class NavigationSessionRouteDisplayState {
     @NonNull
     private String buildGpsStatusLine(@NonNull NavigationDisplaySnapshot snapshot) {
         if (snapshot.lastFiltered == null) {
-            return NavStateComposer.buildGpsStatusLine(
+            return NavStateResourceComposer.buildGpsStatusLine(
                     Float.NaN,
                     null,
                     Float.NaN,
                     snapshot.fixedSatelliteCount,
                     snapshot.acquiredFixCount,
-                    snapshot.context
+                snapshot.textResources
             );
         }
-        return NavStateComposer.buildGpsStatusLine(
+        return NavStateResourceComposer.buildGpsStatusLine(
                 snapshot.speedMps,
                 snapshot.lastFiltered,
                 snapshot.accuracyMeters,
                 snapshot.fixedSatelliteCount,
                 snapshot.acquiredFixCount,
-                snapshot.context
+                snapshot.textResources
         );
     }
 
@@ -195,14 +199,17 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull String gpsStatusLine
     ) {
         if (snapshot.lastRouteFailure != null) {
-            return NavStateComposer.withGpsStatus(NavStateComposer.routeUnavailable(
-                    snapshot.context,
-                    NavigationRouteFailureFormatter.format(snapshot.context, snapshot.lastRouteFailure, false),
+            return NavStateComposer.withGpsStatus(NavStateResourceComposer.routeUnavailable(
+                    snapshot.textResources,
+                    NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, false),
                     snapshot.nextEvaluationDeadlineElapsedMs
             ), gpsStatusLine);
         }
         return NavStateComposer.withGpsStatus(
-                NavStateComposer.waitingForLocation(snapshot.context, snapshot.nextEvaluationDeadlineElapsedMs),
+                NavStateResourceComposer.waitingForLocation(
+                        snapshot.textResources,
+                        snapshot.nextEvaluationDeadlineElapsedMs
+                ),
                 gpsStatusLine
         );
     }
@@ -212,8 +219,8 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationDisplaySnapshot snapshot,
             @NonNull String gpsStatusLine
     ) {
-        NavState calculatingState = NavStateComposer.calculatingRoute(
-                snapshot.context,
+        NavState calculatingState = NavStateResourceComposer.calculatingRoute(
+                snapshot.textResources,
                 snapshot.nextEvaluationDeadlineElapsedMs
         );
         if (snapshot.routeCalculationNotice != null && !snapshot.routeCalculationNotice.trim().isEmpty()) {
@@ -228,14 +235,17 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull String gpsStatusLine
     ) {
         if (snapshot.lastRouteFailure != null) {
-            return NavStateComposer.withGpsStatus(NavStateComposer.routeUnavailable(
-                    snapshot.context,
-                    NavigationRouteFailureFormatter.format(snapshot.context, snapshot.lastRouteFailure, false),
+            return NavStateComposer.withGpsStatus(NavStateResourceComposer.routeUnavailable(
+                    snapshot.textResources,
+                    NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, false),
                     snapshot.nextEvaluationDeadlineElapsedMs
             ), gpsStatusLine);
         }
         return NavStateComposer.withGpsStatus(
-                NavStateComposer.calculatingRoute(snapshot.context, snapshot.nextEvaluationDeadlineElapsedMs),
+                NavStateResourceComposer.calculatingRoute(
+                        snapshot.textResources,
+                        snapshot.nextEvaluationDeadlineElapsedMs
+                ),
                 gpsStatusLine
         );
     }
@@ -248,14 +258,14 @@ public final class NavigationSessionRouteDisplayState {
         return snapshot.lastRouteFailure != null
                 ? NavStateComposer.withNotice(
                 state,
-                NavigationRouteFailureFormatter.format(snapshot.context, snapshot.lastRouteFailure, true)
+                NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, true)
         )
                 : state;
     }
 
     @NonNull
     private List<NavTarget> buildTargets(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull List<LatLon> intermediates,
             int trackSize,
             @NonNull PolylineIndex index
@@ -265,14 +275,14 @@ public final class NavigationSessionRouteDisplayState {
             PolylineIndex.Match match = index.match(intermediates.get(i), -1);
             if (match != null) {
                 out.add(new NavTarget(
-                        context.getString(R.string.format_stop_label, i + 1),
+                        textResources.getString(R.string.format_stop_label, i + 1),
                         match.alongTrackMeters,
                         trackIndexAtOrAfter(index, trackSize, match.alongTrackMeters)
                 ));
             }
         }
         out.add(new NavTarget(
-                context.getString(R.string.nav_destination_label),
+                textResources.getString(R.string.nav_destination_label),
                 index.totalLengthMeters(),
                 -1
         ));
@@ -304,7 +314,7 @@ public final class NavigationSessionRouteDisplayState {
                 snapshot.likelyStationary
         );
         return NavigationTextFormatter.formatTurnNotification(
-                snapshot.context,
+                snapshot.textResources,
                 new VoiceHint(0, RouteStartApproach.BEELINE_COMMAND, 0, 0.0, 0),
                 distanceMeters,
                 timeSeconds

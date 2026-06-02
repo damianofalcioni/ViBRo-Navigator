@@ -1,14 +1,10 @@
 package vibro.navigator.nav.session;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,6 +12,8 @@ import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -29,14 +27,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationRouteStartApproachStateTest {
     private static final String DESTINATION = "Destination";
     private static final String TREKKING_PROFILE = "trekking";
 
     @Test
     public void routeStartApproachHoldsOriginalRouteUntilUserReachesRouteThreshold() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
                 TREKKING_PROFILE,
@@ -93,7 +90,7 @@ public class NavigationRouteStartApproachStateTest {
 
     @NonNull
     private static NavState buildState(
-            @NonNull Context context,
+            @NonNull NavigationTextResources context,
             @NonNull NavigationSessionRouteState state,
             @NonNull NavigationLocation location,
             long nowMs

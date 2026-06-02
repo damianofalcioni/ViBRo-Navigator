@@ -8,22 +8,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Collections;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationRouteRequestManagerTest {
     private static final String FUSED_PROVIDER = "fused";
 
@@ -225,7 +222,7 @@ public class NavigationRouteRequestManagerTest {
 
     @Test
     public void onRouteFailure_summarizesNestedMessageAndStopsProgress() {
-        Context context = ApplicationProvider.getApplicationContext();
+        NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset(1_000L);
 

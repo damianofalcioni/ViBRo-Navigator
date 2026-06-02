@@ -1,19 +1,17 @@
 package vibro.navigator.nav.presentation;
 
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -23,11 +21,10 @@ import vibro.navigator.nav.route.RouteSpeedLimitSegment;
 
 import static org.junit.Assert.assertEquals;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavStateSpeedLimitTest {
     private static final String DESTINATION = "Destination";
 
-    private final Context context = ApplicationProvider.getApplicationContext();
+    private final NavigationTextResources context = TestNavigationTextResources.metric();
 
     @Test
     public void from_exposesCurrentRouteSpeedLimit() {

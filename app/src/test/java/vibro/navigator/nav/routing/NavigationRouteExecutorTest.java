@@ -11,8 +11,6 @@ import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationRouteExecutorTest {
 
     @Test

@@ -15,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import java.util.Collections;
@@ -38,18 +40,7 @@ public final class NavigationSession {
     }
 
     public boolean start(@NonNull Context context, long nowMs) {
-        started = false;
-        paused = false;
-        components.reset(nowMs);
-
-        if (!currentRequest.isComplete()) {
-            components.routeRequestManager.markInvalidRequest(context);
-            AppLogger.e(TAG, "Navigation start aborted because the request is incomplete "
-                    + currentRequest.describe(), null);
-            return false;
-        }
-        started = true;
-        return true;
+        return ResourceAdapter.start(this, new AndroidNavigationTextResources(context), nowMs);
     }
 
     public void stop() {
@@ -121,7 +112,12 @@ public final class NavigationSession {
 
     @NonNull
     public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull NavigationLocation location, long nowMs) {
-        return components.locationEvaluator.onRawLocationChanged(context, currentRequest, location, nowMs);
+        return ResourceAdapter.onRawLocationChanged(
+                this,
+                new AndroidNavigationTextResources(context),
+                location,
+                nowMs
+        );
     }
 
     @NonNull
@@ -173,19 +169,11 @@ public final class NavigationSession {
             @NonNull GeoJsonRoute newRoute,
             long beganAt
     ) {
-        if (!components.routeRequestManager.onRouteApplied(snapshot)) {
-            return Collections.emptyList();
-        }
-        components.warmupController.onRouteApplied();
-        NavigationLocation lastFiltered = components.locationState.getLastFilteredLocation();
-        float speedMps = lastFiltered != null ? components.locationState.speedMps(lastFiltered) : 0f;
-        return components.routeState.applyRouteResult(
-                context,
+        return ResourceAdapter.applyRouteResult(
+                this,
+                new AndroidNavigationTextResources(context),
                 snapshot,
                 newRoute,
-                lastFiltered,
-                speedMps,
-                components.locationState.isLikelyStationary(),
                 beganAt
         );
     }
@@ -195,7 +183,7 @@ public final class NavigationSession {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        components.routeRequestManager.onRouteFailure(context, snapshot, error);
+        ResourceAdapter.applyRouteFailure(this, new AndroidNavigationTextResources(context), snapshot, error);
     }
 
     public boolean consumePendingRouteRecalculation() {
@@ -232,17 +220,135 @@ public final class NavigationSession {
             @Nullable Float displayHeadingAccuracyDegrees,
             @Nullable CompassOrientationCue orientationCue
     ) {
-        return components.stateBuilder.build(
-                context,
+        return ResourceAdapter.buildState(
+                this,
+                new AndroidNavigationTextResources(context),
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 fixedSatelliteCount,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
-                orientationCue,
-                components.locationEvaluator.acquiredFixCount(),
-                paused
+                orientationCue
         );
+    }
+
+    public static final class ResourceAdapter {
+        private ResourceAdapter() {
+        }
+
+        public static boolean start(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                long nowMs
+        ) {
+            session.started = false;
+            session.paused = false;
+            session.components.reset(nowMs);
+
+            if (!session.currentRequest.isComplete()) {
+                session.components.routeRequestManager.markInvalidRequest(textResources);
+                AppLogger.e(TAG, "Navigation start aborted because the request is incomplete "
+                        + session.currentRequest.describe(), null);
+                return false;
+            }
+            session.started = true;
+            return true;
+        }
+
+        @NonNull
+        public static NavigationLocationUpdateResult onRawLocationChanged(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                @NonNull NavigationLocation location,
+                long nowMs
+        ) {
+            return session.components.locationEvaluator.onRawLocationChanged(
+                    textResources,
+                    session.currentRequest,
+                    location,
+                    nowMs
+            );
+        }
+
+        @NonNull
+        public static List<NavigationTurnEvent> applyRouteResult(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                @NonNull NavigationRouteRequestSnapshot snapshot,
+                @NonNull GeoJsonRoute newRoute,
+                long beganAt
+        ) {
+            if (!session.components.routeRequestManager.onRouteApplied(snapshot)) {
+                return Collections.emptyList();
+            }
+            session.components.warmupController.onRouteApplied();
+            NavigationLocation lastFiltered = session.components.locationState.getLastFilteredLocation();
+            float speedMps = lastFiltered != null ? session.components.locationState.speedMps(lastFiltered) : 0f;
+            return session.components.routeState.applyRouteResult(
+                    textResources,
+                    snapshot,
+                    newRoute,
+                    lastFiltered,
+                    speedMps,
+                    session.components.locationState.isLikelyStationary(),
+                    beganAt
+            );
+        }
+
+        public static void applyRouteFailure(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                @NonNull NavigationRouteRequestSnapshot snapshot,
+                @NonNull Exception error
+        ) {
+            session.components.routeRequestManager.onRouteFailure(textResources, snapshot, error);
+        }
+
+        @NonNull
+        public static NavState buildState(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                long nextEvaluationDeadlineElapsedMs,
+                long nowMs,
+                @Nullable Integer fixedSatelliteCount,
+                @Nullable Double displayHeadingDegrees,
+                @Nullable Float displayHeadingAccuracyDegrees
+        ) {
+            return buildState(
+                    session,
+                    textResources,
+                    nextEvaluationDeadlineElapsedMs,
+                    nowMs,
+                    fixedSatelliteCount,
+                    displayHeadingDegrees,
+                    displayHeadingAccuracyDegrees,
+                    null
+            );
+        }
+
+        @NonNull
+        public static NavState buildState(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                long nextEvaluationDeadlineElapsedMs,
+                long nowMs,
+                @Nullable Integer fixedSatelliteCount,
+                @Nullable Double displayHeadingDegrees,
+                @Nullable Float displayHeadingAccuracyDegrees,
+                @Nullable CompassOrientationCue orientationCue
+        ) {
+            return session.components.stateBuilder.build(
+                    textResources,
+                    nextEvaluationDeadlineElapsedMs,
+                    nowMs,
+                    fixedSatelliteCount,
+                    displayHeadingDegrees,
+                    displayHeadingAccuracyDegrees,
+                    orientationCue,
+                    session.components.locationEvaluator.acquiredFixCount(),
+                    session.paused
+            );
+        }
     }
 
 }

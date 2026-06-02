@@ -70,7 +70,7 @@ final class NavigationRouteResultApplier {
         logRouteStartApproachIfNeeded(approachPlan);
         geometryState.loadRoute(route);
         displayState.onRouteApplied(
-                input.context,
+                input.textResources,
                 route,
                 geometryState.polylineIndex(),
                 input.snapshot.intermediates,
