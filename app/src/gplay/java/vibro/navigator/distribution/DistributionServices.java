@@ -7,9 +7,7 @@ import android.content.pm.PackageManager;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.location.GplayFusedLocationRuntimeAvailability;
-import vibro.navigator.android.location.GplayFusedLocationDiagnosticClient;
-import vibro.navigator.android.location.GplayFusedLocationUpdateClient;
+import vibro.navigator.android.location.GplayFusedLocationClient;
 import vibro.navigator.auto.ViBRoCarAppService;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
@@ -52,7 +50,7 @@ public final class DistributionServices {
     }
 
     public static boolean isFusedLocationRuntimeAvailable(@NonNull Context context) {
-        return GplayFusedLocationRuntimeAvailability.isAvailable(context);
+        return GplayFusedLocationClient.isRuntimeAvailable(context);
     }
 
     @NonNull
@@ -60,12 +58,12 @@ public final class DistributionServices {
             @NonNull Context context,
             @NonNull NavigationLocationListener listener
     ) {
-        return new GplayFusedLocationUpdateClient(context, listener);
+        return new GplayFusedLocationClient(context, listener);
     }
 
     @NonNull
     public static FusedLocationDiagnosticClient createFusedLocationDiagnosticClient(@NonNull Context context) {
-        return new GplayFusedLocationDiagnosticClient(context);
+        return GplayFusedLocationClient.diagnosticClient(context);
     }
 
     @Nullable

@@ -26,6 +26,19 @@ public final class AndroidLocationDiagnostics {
         fixedSatelliteTracker = new FixedSatelliteTracker(locationManager);
     }
 
+    public static boolean isAnyProviderEnabled(@NonNull Context context) {
+        LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (manager == null) {
+            return false;
+        }
+        try {
+            return manager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                    || manager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
     public boolean startFixedSatelliteTracking() {
         return fixedSatelliteTracker.start();
     }

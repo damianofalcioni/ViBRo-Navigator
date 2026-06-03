@@ -9,11 +9,11 @@ import com.google.android.gms.location.Priority;
 
 import org.junit.Test;
 
-public class GplayFusedLocationUpdateClientTest {
+public class GplayFusedLocationClientTest {
 
     @Test
     public void buildRequest_doesNotWaitForAccurateFixBeforeDeliveringNavigationUpdates() {
-        LocationRequest request = GplayFusedLocationUpdateClient.buildRequest(60_000L, true);
+        LocationRequest request = GplayFusedLocationClient.buildRequest(60_000L, true);
 
         assertEquals(Priority.PRIORITY_HIGH_ACCURACY, request.getPriority());
         assertEquals(60_000L, request.getIntervalMillis());
@@ -26,7 +26,7 @@ public class GplayFusedLocationUpdateClientTest {
 
     @Test
     public void buildCurrentLocationSeedRequest_usesFreshHighAccuracySeedForFineLocation() {
-        CurrentLocationRequest request = GplayFusedLocationUpdateClient.buildCurrentLocationSeedRequest(true);
+        CurrentLocationRequest request = GplayFusedLocationClient.buildCurrentLocationSeedRequest(true);
 
         assertEquals(Priority.PRIORITY_HIGH_ACCURACY, request.getPriority());
         assertEquals(15_000L, request.getDurationMillis());
@@ -35,7 +35,7 @@ public class GplayFusedLocationUpdateClientTest {
 
     @Test
     public void buildCurrentLocationSeedRequest_usesBalancedSeedForCoarseOnlyLocation() {
-        CurrentLocationRequest request = GplayFusedLocationUpdateClient.buildCurrentLocationSeedRequest(false);
+        CurrentLocationRequest request = GplayFusedLocationClient.buildCurrentLocationSeedRequest(false);
 
         assertEquals(Priority.PRIORITY_BALANCED_POWER_ACCURACY, request.getPriority());
     }
