@@ -50,6 +50,7 @@ public final class NavigationLocationController {
         providerAccess.cancelPendingCurrentLocationRequests();
         fusedLocationUpdateClient.removeUpdates();
         gnssStatusTracker.reset();
+        providerAccess.removeUpdates();
     }
 
     public void stopTracking() {

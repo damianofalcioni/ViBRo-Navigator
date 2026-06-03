@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import vibro.navigator.nav.model.NavState;
+
 public class NavigationLocationControllerTest {
     private static final String GPS_PROVIDER = "gps";
     private static final String NETWORK_PROVIDER = "network";
@@ -120,6 +122,22 @@ public class NavigationLocationControllerTest {
         assertEquals(2, provider.requestProviderUpdatesCount);
     }
 
+    @Test
+    public void resetTrackingState_clearsActiveProviderUpdatesAndPendingSeeds() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.requestLocationUpdates(10_000L);
+        controller.requestCurrentLocationSeeds();
+        controller.resetTrackingState();
+
+        assertTrue(provider.requestedProviders.isEmpty());
+        assertEquals(1, provider.cancelCurrentLocationRequestsCount);
+        assertEquals(NavState.NO_DEADLINE, controller.getNextEvaluationDeadlineElapsedMs());
+        assertEquals(1_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
+    }
+
     @NonNull
     private static NavigationLocationController controller(
             @NonNull MutableClock clock,
@@ -160,6 +178,7 @@ public class NavigationLocationControllerTest {
         @NonNull
         private List<String> requestedProviders = Collections.emptyList();
         private int requestProviderUpdatesCount;
+        private int cancelCurrentLocationRequestsCount;
 
         FakeLocationProvider(@NonNull String... enabledProviders) {
             this.enabledProviders = Arrays.asList(enabledProviders);
@@ -205,6 +224,7 @@ public class NavigationLocationControllerTest {
 
         @Override
         public void cancelPendingCurrentLocationRequests() {
+            cancelCurrentLocationRequestsCount++;
         }
 
         @Override
