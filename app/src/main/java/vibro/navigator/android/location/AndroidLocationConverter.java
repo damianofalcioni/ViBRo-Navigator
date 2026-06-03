@@ -6,7 +6,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.location.NavigationLocation;
-import vibro.navigator.nav.location.NavigationLocationFix;
 
 public final class AndroidLocationConverter {
     private AndroidLocationConverter() {
@@ -42,15 +41,5 @@ public final class AndroidLocationConverter {
                 && location.hasBearingAccuracy()) {
             out.setBearingAccuracyDegrees(location.getBearingAccuracyDegrees());
         }
-    }
-
-    @Nullable
-    public static NavigationLocationFix toFix(@Nullable Location location) {
-        return NavigationLocationFix.from(toNavigationLocation(location));
-    }
-
-    @NonNull
-    public static NavigationLocation copy(@NonNull Location location) {
-        return new NavigationLocation(toNavigationLocation(location));
     }
 }

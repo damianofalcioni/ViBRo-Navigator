@@ -12,7 +12,6 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import vibro.navigator.nav.location.NavigationLocation;
-import vibro.navigator.nav.location.NavigationLocationFix;
 
 @RunWith(RobolectricTestRunner.class)
 public class AndroidLocationConverterTest {
@@ -69,20 +68,4 @@ public class AndroidLocationConverterTest {
         assertNull(AndroidLocationConverter.toNavigationLocation(null));
     }
 
-    @Test
-    public void toFix_buildsQualitySnapshotFromConvertedLocation() {
-        Location androidLocation = new Location(GPS_PROVIDER);
-        androidLocation.setTime(1234L);
-        androidLocation.setLatitude(48.2082);
-        androidLocation.setLongitude(16.3738);
-        androidLocation.setAccuracy(4.5f);
-
-        NavigationLocationFix fix = AndroidLocationConverter.toFix(androidLocation);
-
-        assertEquals(GPS_PROVIDER, fix.provider);
-        assertEquals(1234L, fix.timeMs);
-        assertEquals(4.5f, fix.accuracyMeters, 0.0f);
-        assertEquals(48.2082, fix.lat, 0.0);
-        assertEquals(16.3738, fix.lon, 0.0);
-    }
 }

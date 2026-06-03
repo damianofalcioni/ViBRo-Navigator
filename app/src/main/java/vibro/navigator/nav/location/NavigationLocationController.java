@@ -160,22 +160,4 @@ public final class NavigationLocationController {
         long elapsedRealtime();
     }
 
-    public static boolean canUseProvider(@NonNull String provider, boolean fineGranted, boolean coarseGranted) {
-        return NavigationLocationProviders.canUseProvider(provider, fineGranted, coarseGranted);
-    }
-
-    public static boolean shouldReuseActiveLocationRequest(
-            long minTimeMs,
-            @Nullable String providerSummary,
-            long lastRequestedLocationMinTimeMs,
-            @Nullable String lastRequestedProvider
-    ) {
-        return NavigationLocationProviders.shouldReuseActiveLocationRequest(
-                minTimeMs,
-                providerSummary,
-                lastRequestedLocationMinTimeMs,
-                lastRequestedProvider
-        );
-    }
-
 }

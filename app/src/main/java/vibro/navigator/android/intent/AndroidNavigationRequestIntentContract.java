@@ -89,7 +89,7 @@ public final class AndroidNavigationRequestIntentContract {
     }
 
     @NonNull
-    public static ArrayList<String> toStopStrings(@NonNull List<LatLon> stops) {
+    static ArrayList<String> toStopStrings(@NonNull List<LatLon> stops) {
         ArrayList<String> serializedStops = new ArrayList<>(stops.size());
         for (LatLon stop : stops) {
             serializedStops.add(stop.lat + "," + stop.lon);

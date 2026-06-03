@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import vibro.navigator.nav.location.NavigationLocation;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -24,7 +22,7 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void shouldReuseActiveLocationRequest_returnsTrueForMatchingIntervalAndProviders() {
-        assertTrue(NavigationLocationController.shouldReuseActiveLocationRequest(
+        assertTrue(NavigationLocationProviders.shouldReuseActiveLocationRequest(
                 1_000L,
                 GPS_AND_NETWORK,
                 1_000L,
@@ -34,7 +32,7 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void shouldReuseActiveLocationRequest_returnsFalseForChangedInterval() {
-        assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
+        assertFalse(NavigationLocationProviders.shouldReuseActiveLocationRequest(
                 2_000L,
                 GPS_AND_NETWORK,
                 1_000L,
@@ -44,7 +42,7 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void shouldReuseActiveLocationRequest_returnsFalseForChangedProviders() {
-        assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
+        assertFalse(NavigationLocationProviders.shouldReuseActiveLocationRequest(
                 1_000L,
                 GPS_PROVIDER,
                 1_000L,
@@ -54,7 +52,7 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void shouldReuseActiveLocationRequest_returnsFalseWhenNoProviderSummaryExists() {
-        assertFalse(NavigationLocationController.shouldReuseActiveLocationRequest(
+        assertFalse(NavigationLocationProviders.shouldReuseActiveLocationRequest(
                 1_000L,
                 null,
                 1_000L,
@@ -64,12 +62,12 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void canUseProvider_requiresFinePermissionForGps() {
-        assertFalse(NavigationLocationController.canUseProvider(
+        assertFalse(NavigationLocationProviders.canUseProvider(
                 GPS_PROVIDER,
                 false,
                 true
         ));
-        assertTrue(NavigationLocationController.canUseProvider(
+        assertTrue(NavigationLocationProviders.canUseProvider(
                 GPS_PROVIDER,
                 true,
                 false
@@ -78,12 +76,12 @@ public class NavigationLocationControllerTest {
 
     @Test
     public void canUseProvider_allowsNetworkWithCoarsePermission() {
-        assertTrue(NavigationLocationController.canUseProvider(
+        assertTrue(NavigationLocationProviders.canUseProvider(
                 NETWORK_PROVIDER,
                 false,
                 true
         ));
-        assertTrue(NavigationLocationController.canUseProvider(
+        assertTrue(NavigationLocationProviders.canUseProvider(
                 PASSIVE_PROVIDER,
                 false,
                 true

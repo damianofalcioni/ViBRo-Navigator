@@ -1,6 +1,9 @@
 package vibro.navigator.android.brouter;
 
 import android.content.Context;
+import android.content.UriPermission;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
@@ -8,9 +11,7 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
-import vibro.navigator.android.packageinfo.AndroidPackages;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
-import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterProfileDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -30,8 +31,20 @@ public final class AndroidBRouterProfilesRepositoryFactory {
                 new AndroidDocuments(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
                 new AndroidPackagesAccess(),
-                AndroidPersistedUriPermissions::hasReadPermission
+                AndroidBRouterProfilesRepositoryFactory::hasPersistedReadPermission
         );
+    }
+
+    private static boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
+        if (uri == null) {
+            return false;
+        }
+        for (UriPermission permission : context.getContentResolver().getPersistedUriPermissions()) {
+            if (permission.isReadPermission() && uri.equals(permission.getUri())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {
@@ -79,13 +92,23 @@ public final class AndroidBRouterProfilesRepositoryFactory {
     private static final class AndroidPackagesAccess implements BRouterProfileDependencies.PackageAccess {
         @Override
         public boolean isInstalled(@NonNull Context context, @NonNull String packageName) {
-            return AndroidPackages.isInstalled(context, packageName);
+            try {
+                context.getPackageManager().getPackageInfo(packageName, 0);
+                return true;
+            } catch (PackageManager.NameNotFoundException e) {
+                return false;
+            }
         }
 
         @Nullable
         @Override
         public String sourceDir(@NonNull Context context, @NonNull String packageName) {
-            return AndroidPackages.sourceDir(context, packageName);
+            try {
+                ApplicationInfo appInfo = context.getPackageManager().getApplicationInfo(packageName, 0);
+                return appInfo.sourceDir;
+            } catch (PackageManager.NameNotFoundException e) {
+                return null;
+            }
         }
     }
 }
