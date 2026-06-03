@@ -4,8 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailabilityLight;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -27,7 +25,7 @@ public final class GplayFusedLocationDiagnosticClient implements FusedLocationDi
 
     @Override
     public boolean isAvailable() {
-        return googlePlayServicesStatus() == ConnectionResult.SUCCESS;
+        return GplayFusedLocationRuntimeAvailability.isAvailable(context);
     }
 
     @Override
@@ -53,7 +51,4 @@ public final class GplayFusedLocationDiagnosticClient implements FusedLocationDi
         }
     }
 
-    private int googlePlayServicesStatus() {
-        return GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context);
-    }
 }

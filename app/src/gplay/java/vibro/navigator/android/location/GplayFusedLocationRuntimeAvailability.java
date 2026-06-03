@@ -12,7 +12,15 @@ public final class GplayFusedLocationRuntimeAvailability {
     }
 
     public static boolean isAvailable(@NonNull Context context) {
-        return GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context)
-                == ConnectionResult.SUCCESS;
+        return status(context) == ConnectionResult.SUCCESS;
+    }
+
+    public static int status(@NonNull Context context) {
+        return GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context);
+    }
+
+    @NonNull
+    public static String describe(@NonNull Context context) {
+        return "googlePlayServicesStatus=" + status(context);
     }
 }

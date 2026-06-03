@@ -1,8 +1,8 @@
 package vibro.navigator.main;
 
 import vibro.navigator.R;
-import vibro.navigator.android.intent.AndroidIntentLocationParser;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
+import vibro.navigator.intent.IntentLocationParser;
 import vibro.navigator.nav.ui.NavigationActivity;
 
 
@@ -54,7 +54,11 @@ final class MainActivityIntentHandler {
             AppLogger.d(TAG, "handleIncomingIntent ignored null intent");
             return;
         }
-        String query = AndroidIntentLocationParser.parseToQuery(intent);
+        String query = IntentLocationParser.parseToQuery(
+                intent.getAction(),
+                intent.getDataString(),
+                intent.getStringExtra(Intent.EXTRA_TEXT)
+        );
         if (query == null || query.trim().isEmpty()) {
             if (Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_SEND.equals(intent.getAction())) {
                 Toast.makeText(context, R.string.msg_intent_unrecognized, Toast.LENGTH_SHORT).show();

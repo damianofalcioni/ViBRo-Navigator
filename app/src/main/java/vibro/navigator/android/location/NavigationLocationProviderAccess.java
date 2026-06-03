@@ -2,9 +2,11 @@ package vibro.navigator.android.location;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Build;
+import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -123,7 +125,7 @@ public final class NavigationLocationProviderAccess implements NavigationLocatio
 
     @Override
     public void removeUpdates() {
-        NavigationLegacyLocationUpdates.remove(locationManager, listener);
+        removeLegacyUpdates(locationManager, listener);
     }
 
     @Override
@@ -192,4 +194,50 @@ public final class NavigationLocationProviderAccess implements NavigationLocatio
         }
     }
 
+    @SuppressLint("MissingPermission")
+    private static void removeLegacyUpdates(
+            @Nullable LocationManager locationManager,
+            @NonNull LocationListener listener
+    ) {
+        try {
+            if (locationManager != null) {
+                locationManager.removeUpdates(listener);
+            }
+        } catch (SecurityException e) {
+            AppLogger.w(TAG, "Permission denied while removing legacy location updates", e);
+        }
+    }
+
+    private static final class AndroidLocationListenerAdapter implements LocationListener {
+        @NonNull
+        private final NavigationLocationListener listener;
+
+        AndroidLocationListenerAdapter(@NonNull NavigationLocationListener listener) {
+            this.listener = listener;
+        }
+
+        @Override
+        public void onLocationChanged(@NonNull Location location) {
+            NavigationLocation navigationLocation = AndroidLocationConverter.toNavigationLocation(location);
+            if (navigationLocation != null) {
+                listener.onLocationChanged(navigationLocation);
+            }
+        }
+
+        @Override
+        public void onProviderEnabled(@NonNull String provider) {
+            listener.onProviderEnabled(provider);
+        }
+
+        @Override
+        public void onProviderDisabled(@NonNull String provider) {
+            listener.onProviderDisabled(provider);
+        }
+
+        @Override
+        @SuppressWarnings("deprecation")
+        public void onStatusChanged(@Nullable String provider, int status, @Nullable Bundle extras) {
+            listener.onProviderStatusChanged(provider, status);
+        }
+    }
 }

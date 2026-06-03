@@ -5,8 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.location.NoOpFusedLocationDiagnosticClient;
-import vibro.navigator.android.location.NoOpFusedLocationUpdateClient;
+import vibro.navigator.android.location.NoOpFusedLocationClient;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
@@ -45,12 +44,12 @@ public final class DistributionServices {
             @NonNull Context context,
             @NonNull NavigationLocationListener listener
     ) {
-        return new NoOpFusedLocationUpdateClient();
+        return new NoOpFusedLocationClient();
     }
 
     @NonNull
     public static FusedLocationDiagnosticClient createFusedLocationDiagnosticClient(@NonNull Context context) {
-        return new NoOpFusedLocationDiagnosticClient();
+        return new NoOpFusedLocationClient();
     }
 
     @Nullable

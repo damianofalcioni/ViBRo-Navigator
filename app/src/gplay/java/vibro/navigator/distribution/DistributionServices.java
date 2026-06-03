@@ -1,14 +1,16 @@
 package vibro.navigator.distribution;
 
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.auto.AndroidAutoIntegration;
 import vibro.navigator.android.location.GplayFusedLocationRuntimeAvailability;
 import vibro.navigator.android.location.GplayFusedLocationDiagnosticClient;
 import vibro.navigator.android.location.GplayFusedLocationUpdateClient;
+import vibro.navigator.auto.ViBRoCarAppService;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
@@ -33,7 +35,15 @@ public final class DistributionServices {
     }
 
     public static void configureAndroidAutoIntegration(@NonNull Context context, boolean enabled) {
-        AndroidAutoIntegration.configure(context, enabled);
+        int state = enabled
+                ? PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
+        ComponentName componentName = new ComponentName(context, ViBRoCarAppService.class);
+        context.getPackageManager().setComponentEnabledSetting(
+                componentName,
+                state,
+                PackageManager.DONT_KILL_APP
+        );
     }
 
     @NonNull

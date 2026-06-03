@@ -7,8 +7,6 @@ import android.os.Looper;
 
 import androidx.annotation.NonNull;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailabilityLight;
 import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -60,7 +58,7 @@ public final class GplayFusedLocationUpdateClient implements FusedLocationUpdate
 
     @Override
     public boolean isAvailable() {
-        return googlePlayServicesStatus() == ConnectionResult.SUCCESS;
+        return GplayFusedLocationRuntimeAvailability.isAvailable(context);
     }
 
     @Override
@@ -121,7 +119,7 @@ public final class GplayFusedLocationUpdateClient implements FusedLocationUpdate
     @NonNull
     @Override
     public String describeAvailability() {
-        return "fusedLocation=true, googlePlayServicesStatus=" + googlePlayServicesStatus();
+        return "fusedLocation=true, " + GplayFusedLocationRuntimeAvailability.describe(context);
     }
 
     @NonNull
@@ -170,7 +168,4 @@ public final class GplayFusedLocationUpdateClient implements FusedLocationUpdate
         }
     }
 
-    private int googlePlayServicesStatus() {
-        return GoogleApiAvailabilityLight.getInstance().isGooglePlayServicesAvailable(context);
-    }
 }

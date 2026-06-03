@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PowerManager;
@@ -18,7 +19,6 @@ import androidx.core.content.ContextCompat;
 import java.util.ArrayList;
 import java.util.List;
 
-import vibro.navigator.android.location.AndroidLocationSettings;
 import vibro.navigator.nav.startup.NavigationPreflight;
 
 public final class AndroidNavigationPreflight {
@@ -33,7 +33,7 @@ public final class AndroidNavigationPreflight {
     public static NavigationPreflight.Status inspect(@NonNull Activity activity) {
         List<String> missingPermissions = collectMissingPermissions(activity);
         boolean showPermissionRationale = shouldShowPermissionRationale(activity, missingPermissions);
-        boolean locationEnabled = AndroidLocationSettings.isLocationEnabled(activity);
+        boolean locationEnabled = isLocationEnabled(activity);
         boolean notificationsEnabled = NotificationManagerCompat.from(activity).areNotificationsEnabled();
         boolean needsBatteryOptimizationExemption = needsBatteryOptimizationExemption(activity);
         return NavigationPreflight.Status.create(
@@ -115,5 +115,18 @@ public final class AndroidNavigationPreflight {
         }
         PowerManager powerManager = (PowerManager) activity.getSystemService(Activity.POWER_SERVICE);
         return powerManager != null && !powerManager.isIgnoringBatteryOptimizations(activity.getPackageName());
+    }
+
+    private static boolean isLocationEnabled(@NonNull Activity activity) {
+        LocationManager locationManager = (LocationManager) activity.getSystemService(Activity.LOCATION_SERVICE);
+        if (locationManager == null) {
+            return false;
+        }
+        try {
+            return locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                    || locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 }
