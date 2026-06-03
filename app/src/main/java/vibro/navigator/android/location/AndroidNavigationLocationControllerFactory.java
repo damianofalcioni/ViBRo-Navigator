@@ -23,7 +23,7 @@ public final class AndroidNavigationLocationControllerFactory {
     ) {
         Context appContext = context.getApplicationContext();
         LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        NavigationLocationProviderAccess providerAccess = new NavigationLocationProviderAccess(
+        AndroidLocationProviderAccess providerAccess = new AndroidLocationProviderAccess(
                 context,
                 locationManager,
                 listener
@@ -34,7 +34,7 @@ public final class AndroidNavigationLocationControllerFactory {
         );
         return new NavigationLocationController(
                 providerAccess,
-                new NavigationGnssStatusTracker(locationManager),
+                new AndroidGnssStatusTracker(locationManager),
                 fusedClient,
                 () -> DistributionServices.supportsFusedLocation()
                         && AppSettings.isFusedLocationEnabled(appContext)

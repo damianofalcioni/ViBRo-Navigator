@@ -1,15 +1,10 @@
 package vibro.navigator.android.location;
 
 import android.content.Context;
-import android.location.GnssStatus;
 import android.location.LocationManager;
-import android.os.Build;
-import android.os.Handler;
-import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -18,12 +13,12 @@ public final class AndroidLocationDiagnostics {
     @Nullable
     private final LocationManager locationManager;
     @NonNull
-    private final FixedSatelliteTracker fixedSatelliteTracker;
+    private final AndroidGnssStatusTracker gnssStatusTracker;
 
     public AndroidLocationDiagnostics(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
         locationManager = (LocationManager) appContext.getSystemService(Context.LOCATION_SERVICE);
-        fixedSatelliteTracker = new FixedSatelliteTracker(locationManager);
+        gnssStatusTracker = new AndroidGnssStatusTracker(locationManager);
     }
 
     public static boolean isAnyProviderEnabled(@NonNull Context context) {
@@ -40,16 +35,16 @@ public final class AndroidLocationDiagnostics {
     }
 
     public boolean startFixedSatelliteTracking() {
-        return fixedSatelliteTracker.start();
+        return gnssStatusTracker.start();
     }
 
     public void stopFixedSatelliteTracking() {
-        fixedSatelliteTracker.stop();
+        gnssStatusTracker.stop();
     }
 
     @Nullable
     public Integer fixedSatelliteCount() {
-        return fixedSatelliteTracker.fixedSatelliteCount();
+        return gnssStatusTracker.getFixedSatelliteCount();
     }
 
     public int providerStatusResId(@NonNull String provider) {
@@ -93,85 +88,6 @@ public final class AndroidLocationDiagnostics {
         LocationDiagnosticException(@NonNull LocationDiagnosticError error, @NonNull Throwable cause) {
             super(cause);
             this.error = error;
-        }
-    }
-
-    private static final class FixedSatelliteTracker {
-        @Nullable
-        private final LocationManager locationManager;
-        @Nullable
-        private GnssStatus.Callback callback;
-        @Nullable
-        private Integer fixedSatelliteCount;
-
-        FixedSatelliteTracker(@Nullable LocationManager locationManager) {
-            this.locationManager = locationManager;
-        }
-
-        boolean start() {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || locationManager == null || callback != null) {
-                return callback != null;
-            }
-            registerCallback();
-            return callback != null;
-        }
-
-        void stop() {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || locationManager == null || callback == null) {
-                return;
-            }
-            try {
-                locationManager.unregisterGnssStatusCallback(callback);
-            } catch (Exception ignored) {
-                // Best effort only for diagnostics.
-            } finally {
-                callback = null;
-                fixedSatelliteCount = null;
-            }
-        }
-
-        @Nullable
-        Integer fixedSatelliteCount() {
-            return fixedSatelliteCount;
-        }
-
-        @RequiresApi(Build.VERSION_CODES.N)
-        private void registerCallback() {
-            GnssStatus.Callback newCallback = new GnssStatus.Callback() {
-                @Override
-                public void onStarted() {
-                    fixedSatelliteCount = 0;
-                }
-
-                @Override
-                public void onStopped() {
-                    fixedSatelliteCount = null;
-                }
-
-                @Override
-                public void onSatelliteStatusChanged(@NonNull GnssStatus status) {
-                    fixedSatelliteCount = countSatellitesUsedInFix(status);
-                }
-            };
-            try {
-                locationManager.registerGnssStatusCallback(newCallback, new Handler(Looper.getMainLooper()));
-                callback = newCallback;
-            } catch (SecurityException ignored) {
-                fixedSatelliteCount = null;
-            } catch (Exception ignored) {
-                fixedSatelliteCount = null;
-            }
-        }
-
-        @RequiresApi(Build.VERSION_CODES.N)
-        private static int countSatellitesUsedInFix(@NonNull GnssStatus status) {
-            int fixedCount = 0;
-            for (int i = 0; i < status.getSatelliteCount(); i++) {
-                if (status.usedInFix(i)) {
-                    fixedCount++;
-                }
-            }
-            return fixedCount;
         }
     }
 }
