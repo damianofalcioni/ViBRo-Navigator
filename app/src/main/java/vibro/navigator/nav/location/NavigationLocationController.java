@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 public final class NavigationLocationController {
 
@@ -15,7 +16,7 @@ public final class NavigationLocationController {
     private final FusedLocationUpdateClient fusedLocationUpdateClient;
     private final NavigationLocationUpdateRequester updateRequester;
     private final FusedLocationUsePolicy fusedLocationUsePolicy;
-    private final ElapsedRealtimeSource elapsedRealtimeSource;
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
 
     private long lastRequestedLocationMinTimeMs = -1L;
     @Nullable
@@ -27,13 +28,13 @@ public final class NavigationLocationController {
             @NonNull NavigationGnssTracker gnssStatusTracker,
             @NonNull FusedLocationUpdateClient fusedLocationUpdateClient,
             @NonNull FusedLocationUsePolicy fusedLocationUsePolicy,
-            @NonNull ElapsedRealtimeSource elapsedRealtimeSource
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         this.providerAccess = providerAccess;
         this.gnssStatusTracker = gnssStatusTracker;
         this.fusedLocationUpdateClient = fusedLocationUpdateClient;
         this.fusedLocationUsePolicy = fusedLocationUsePolicy;
-        this.elapsedRealtimeSource = elapsedRealtimeSource;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
         this.updateRequester = new NavigationLocationUpdateRequester(
                 providerAccess,
                 fusedLocationUpdateClient,
@@ -150,15 +151,11 @@ public final class NavigationLocationController {
     }
 
     private void refreshNextEvaluationDeadline(long minTimeMs) {
-        nextEvaluationDeadlineElapsedMs = elapsedRealtimeSource.elapsedRealtime() + minTimeMs;
+        nextEvaluationDeadlineElapsedMs = elapsedRealtimeClock.elapsedRealtimeMs() + minTimeMs;
     }
 
     public interface FusedLocationUsePolicy {
         boolean shouldUseFusedLocation();
-    }
-
-    public interface ElapsedRealtimeSource {
-        long elapsedRealtime();
     }
 
 }

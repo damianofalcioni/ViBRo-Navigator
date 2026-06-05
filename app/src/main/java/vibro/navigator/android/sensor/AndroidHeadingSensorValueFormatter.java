@@ -1,7 +1,5 @@
 package vibro.navigator.android.sensor;
 
-import android.os.SystemClock;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -17,7 +15,8 @@ final class AndroidHeadingSensorValueFormatter {
     static String describeRotationVectorValue(
             @Nullable float[] rotationVector,
             int accuracy,
-            long elapsedRealtimeMs
+            long elapsedRealtimeMs,
+            long nowElapsedRealtimeMs
     ) {
         if (rotationVector == null || elapsedRealtimeMs < 0L) {
             return "value=waiting for sample";
@@ -25,7 +24,7 @@ final class AndroidHeadingSensorValueFormatter {
 
         AndroidRotationVectorOrientation orientation =
                 AndroidRotationVectorOrientation.fromRotationVector(rotationVector);
-        long ageMs = Math.max(0L, SystemClock.elapsedRealtime() - elapsedRealtimeMs);
+        long ageMs = Math.max(0L, nowElapsedRealtimeMs - elapsedRealtimeMs);
 
         return String.format(
                 Locale.US,
@@ -44,7 +43,8 @@ final class AndroidHeadingSensorValueFormatter {
     static String describeOrientationValue(
             @Nullable float[] orientationValues,
             int accuracy,
-            long elapsedRealtimeMs
+            long elapsedRealtimeMs,
+            long nowElapsedRealtimeMs
     ) {
         if (orientationValues == null || elapsedRealtimeMs < 0L) {
             return "value=waiting for sample";
@@ -58,7 +58,7 @@ final class AndroidHeadingSensorValueFormatter {
             );
         }
 
-        long ageMs = Math.max(0L, SystemClock.elapsedRealtime() - elapsedRealtimeMs);
+        long ageMs = Math.max(0L, nowElapsedRealtimeMs - elapsedRealtimeMs);
 
         return String.format(
                 Locale.US,

@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 public class NavigationLocationControllerTest {
     private static final String GPS_PROVIDER = "gps";
@@ -156,18 +157,19 @@ public class NavigationLocationControllerTest {
                 new FakeGnssTracker(),
                 new FakeFusedLocationUpdateClient(),
                 () -> false,
-                clock::elapsedRealtime
+                clock
         );
     }
 
-    private static final class MutableClock {
+    private static final class MutableClock implements ElapsedRealtimeClock {
         private long nowMs;
 
         MutableClock(long nowMs) {
             this.nowMs = nowMs;
         }
 
-        long elapsedRealtime() {
+        @Override
+        public long elapsedRealtimeMs() {
             return nowMs;
         }
     }

@@ -5,16 +5,17 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.orientation.GeomagneticOrientationMonitor;
 import vibro.navigator.nav.orientation.LegacyOrientationAccuracy;
 import vibro.navigator.nav.orientation.NavigationHeadingMonitor;
 import vibro.navigator.nav.orientation.HeadingAccuracyStatus;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.sensor.HeadingSensorSupport;
 
 public final class AndroidGeomagneticOrientationMonitor implements NavigationHeadingMonitor, SensorEventListener {
@@ -29,6 +30,8 @@ public final class AndroidGeomagneticOrientationMonitor implements NavigationHea
     @Nullable
     private final GeomagneticOrientationMonitor.Callback callback;
     @NonNull
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
+    @NonNull
     private final LegacyOrientationAccuracy legacyOrientationAccuracy = new LegacyOrientationAccuracy();
     @Nullable
     private GeomagneticOrientationMonitor.Sample latestSample;
@@ -40,10 +43,19 @@ public final class AndroidGeomagneticOrientationMonitor implements NavigationHea
             @NonNull Context context,
             @Nullable GeomagneticOrientationMonitor.Callback callback
     ) {
+        this(context, callback, AndroidElapsedRealtimeClock.INSTANCE);
+    }
+
+    AndroidGeomagneticOrientationMonitor(
+            @NonNull Context context,
+            @Nullable GeomagneticOrientationMonitor.Callback callback,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
+    ) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         headingSensor = AndroidHeadingSensorSupport.findBestSensor(sensorManager);
         legacyOrientationSensor = AndroidHeadingSensorSupport.findLegacyOrientationSensor(sensorManager);
         this.callback = callback;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
     }
 
     @Override
@@ -93,7 +105,7 @@ public final class AndroidGeomagneticOrientationMonitor implements NavigationHea
             return;
         }
         if (AndroidHeadingSensorSupport.matchesLegacyOrientationSensor(legacyOrientationSensor, event.sensor.getType())) {
-            refreshLegacyOrientationAccuracyTimestamp(SystemClock.elapsedRealtime());
+            refreshLegacyOrientationAccuracyTimestamp(elapsedRealtimeClock.elapsedRealtimeMs());
         }
     }
 
@@ -106,13 +118,13 @@ public final class AndroidGeomagneticOrientationMonitor implements NavigationHea
         if (AndroidHeadingSensorSupport.matchesLegacyOrientationSensor(legacyOrientationSensor, sensor.getType())) {
             rememberLegacyOrientationAccuracy(
                     AndroidHeadingSensorSupport.toHeadingAccuracyStatus(accuracy),
-                    SystemClock.elapsedRealtime()
+                    elapsedRealtimeClock.elapsedRealtimeMs()
             );
         }
     }
 
     private void updateHeadingSample(@NonNull SensorEvent event) {
-        long nowElapsedRealtimeMs = SystemClock.elapsedRealtime();
+        long nowElapsedRealtimeMs = elapsedRealtimeClock.elapsedRealtimeMs();
         AndroidRotationVectorOrientation orientation =
                 AndroidRotationVectorOrientation.fromRotationVector(event.values);
         latestSample = new GeomagneticOrientationMonitor.Sample(

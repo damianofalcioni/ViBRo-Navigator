@@ -2,10 +2,10 @@ package vibro.navigator.android.location;
 
 import android.content.Context;
 import android.location.LocationManager;
-import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationController;
@@ -39,7 +39,7 @@ public final class AndroidNavigationLocationControllerFactory {
                 () -> DistributionServices.supportsFusedLocation()
                         && AppSettings.isFusedLocationEnabled(appContext)
                         && fusedClient.isAvailable(),
-                SystemClock::elapsedRealtime
+                AndroidElapsedRealtimeClock.INSTANCE
         );
     }
 }

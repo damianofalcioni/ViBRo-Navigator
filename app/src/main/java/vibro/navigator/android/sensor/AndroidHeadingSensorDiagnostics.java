@@ -5,7 +5,6 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.SystemClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +14,9 @@ import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.orientation.HeadingAccuracyStatus;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.sensor.HeadingSensorSupport;
 
 public final class AndroidHeadingSensorDiagnostics implements SensorEventListener {
@@ -39,11 +40,21 @@ public final class AndroidHeadingSensorDiagnostics implements SensorEventListene
     private final SensorManager sensorManager;
     @NonNull
     private final List<Diagnostic> diagnostics;
+    @NonNull
+    private final ElapsedRealtimeClock elapsedRealtimeClock;
     private boolean started;
 
     public AndroidHeadingSensorDiagnostics(@NonNull Context context) {
+        this(context, AndroidElapsedRealtimeClock.INSTANCE);
+    }
+
+    AndroidHeadingSensorDiagnostics(
+            @NonNull Context context,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
+    ) {
         sensorManager = (SensorManager) context.getApplicationContext().getSystemService(Context.SENSOR_SERVICE);
         diagnostics = buildDiagnostics(sensorManager);
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
     }
 
     public boolean start() {
@@ -68,11 +79,12 @@ public final class AndroidHeadingSensorDiagnostics implements SensorEventListene
     @NonNull
     public List<Snapshot> snapshots() {
         List<Snapshot> out = new ArrayList<>(diagnostics.size());
+        long nowElapsedRealtimeMs = elapsedRealtimeClock.elapsedRealtimeMs();
         for (Diagnostic diagnostic : diagnostics) {
             out.add(new Snapshot(
                     diagnostic.labelResId,
                     diagnostic.sensor != null,
-                    describeValue(diagnostic)
+                    describeValue(diagnostic, nowElapsedRealtimeMs)
             ));
         }
         return Collections.unmodifiableList(out);
@@ -83,7 +95,7 @@ public final class AndroidHeadingSensorDiagnostics implements SensorEventListene
         Diagnostic diagnostic = diagnosticFor(event.sensor.getType());
         if (diagnostic != null) {
             diagnostic.latestVector = event.values.clone();
-            diagnostic.latestElapsedRealtimeMs = SystemClock.elapsedRealtime();
+            diagnostic.latestElapsedRealtimeMs = elapsedRealtimeClock.elapsedRealtimeMs();
         }
     }
 
@@ -133,7 +145,7 @@ public final class AndroidHeadingSensorDiagnostics implements SensorEventListene
     }
 
     @NonNull
-    private static String describeValue(@NonNull Diagnostic diagnostic) {
+    private static String describeValue(@NonNull Diagnostic diagnostic, long nowElapsedRealtimeMs) {
         if (diagnostic.sensor == null) {
             return "value=unavailable";
         }
@@ -141,13 +153,15 @@ public final class AndroidHeadingSensorDiagnostics implements SensorEventListene
             return AndroidHeadingSensorValueFormatter.describeOrientationValue(
                     diagnostic.latestVector,
                     diagnostic.latestAccuracy,
-                    diagnostic.latestElapsedRealtimeMs
+                    diagnostic.latestElapsedRealtimeMs,
+                    nowElapsedRealtimeMs
             );
         }
         return AndroidHeadingSensorValueFormatter.describeRotationVectorValue(
                 diagnostic.latestVector,
                 diagnostic.latestAccuracy,
-                diagnostic.latestElapsedRealtimeMs
+                diagnostic.latestElapsedRealtimeMs,
+                nowElapsedRealtimeMs
         );
     }
 
