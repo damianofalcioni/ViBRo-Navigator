@@ -3,6 +3,8 @@ package vibro.navigator.geo;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class GeoMathTest {
 
@@ -16,6 +18,14 @@ public class GeoMathTest {
     public void bearingDegrees_east_is90() {
         double b = GeoMath.bearingDegrees(0, 0, 0, 1);
         assertEquals(90.0, b, 1.0);
+    }
+
+    @Test
+    public void latLonValidation_rejectsNonFiniteAndOutOfRangeCoordinates() {
+        assertTrue(LatLon.isValidCoordinate(48.2082, 16.3738));
+        assertFalse(LatLon.isValidCoordinate(Double.POSITIVE_INFINITY, 16.3738));
+        assertFalse(LatLon.isValidCoordinate(91.0, 16.3738));
+        assertFalse(LatLon.isValidCoordinate(48.2082, -181.0));
     }
 }
 

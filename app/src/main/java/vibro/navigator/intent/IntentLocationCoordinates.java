@@ -3,6 +3,8 @@ package vibro.navigator.intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.geo.LatLon;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -44,7 +46,7 @@ final class IntentLocationCoordinates {
         try {
             double lat = Double.parseDouble(latString);
             double lon = Double.parseDouble(lonString);
-            if (lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+            if (!LatLon.isValidCoordinate(lat, lon)) {
                 return null;
             }
             return latString + "," + lonString;

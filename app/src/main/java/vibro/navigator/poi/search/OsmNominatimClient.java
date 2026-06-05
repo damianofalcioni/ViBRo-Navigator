@@ -3,6 +3,7 @@ package vibro.navigator.poi.search;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.logging.AppLogger;
 
@@ -100,7 +101,9 @@ public final class OsmNominatimClient implements PoiSearchClient {
             return null;
         }
         try {
-            return new Poi(display, Double.parseDouble(latStr), Double.parseDouble(lonStr));
+            double lat = Double.parseDouble(latStr);
+            double lon = Double.parseDouble(lonStr);
+            return LatLon.isValidCoordinate(lat, lon) ? new Poi(display, lat, lon) : null;
         } catch (NumberFormatException ignored) {
             return null;
         }

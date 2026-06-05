@@ -77,6 +77,10 @@ public final class PoiHistoryStore {
     }
 
     public void addOrPromote(@NonNull Poi poi) {
+        if (!poi.hasValidCoordinates()) {
+            AppLogger.w(TAG, "Ignoring POI history entry with invalid coordinates " + poi.displayLabel());
+            return;
+        }
         AppLogger.i(TAG, "Saving or promoting POI " + poi.displayLabel());
         List<Poi> current = list();
         Map<String, Poi> unique = new LinkedHashMap<>();
@@ -155,10 +159,11 @@ public final class PoiHistoryStore {
         String name = item.optString("name", "");
         double lat = item.optDouble("lat", Double.NaN);
         double lon = item.optDouble("lon", Double.NaN);
-        if (name.isEmpty() || Double.isNaN(lat) || Double.isNaN(lon)) {
+        Poi poi = new Poi(name, lat, lon);
+        if (name.isEmpty() || !poi.hasValidCoordinates()) {
             return null;
         }
-        return new Poi(name, lat, lon);
+        return poi;
     }
 
     private static boolean matches(@NonNull Poi poi, @NonNull String normalizedQuery) {

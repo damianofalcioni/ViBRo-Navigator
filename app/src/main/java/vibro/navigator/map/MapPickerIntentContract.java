@@ -8,6 +8,7 @@ import android.content.Intent;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.poi.Poi;
 
 final class MapPickerIntentContract {
@@ -55,7 +56,7 @@ final class MapPickerIntentContract {
         }
         double lat = data.getDoubleExtra(EXTRA_RESULT_LAT, Double.NaN);
         double lon = data.getDoubleExtra(EXTRA_RESULT_LON, Double.NaN);
-        if (Double.isNaN(lat) || Double.isNaN(lon)) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
             return null;
         }
         String name = data.getStringExtra(EXTRA_RESULT_NAME);
@@ -73,7 +74,7 @@ final class MapPickerIntentContract {
 
     @Nullable
     static Poi restorePoi(@Nullable String name, double lat, double lon) {
-        if (Double.isNaN(lat) || Double.isNaN(lon)) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
             return null;
         }
         String safeName = name == null ? "" : name;

@@ -10,6 +10,8 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import vibro.navigator.geo.LatLon;
+
 final class OsmMapPoiMarkerParser {
     @NonNull
     List<MapPoiMarker> parse(
@@ -76,7 +78,7 @@ final class OsmMapPoiMarkerParser {
     private static LatLon parseLatLon(@NonNull JSONObject element) {
         double lat = element.optDouble("lat", Double.NaN);
         double lon = element.optDouble("lon", Double.NaN);
-        if (Double.isFinite(lat) && Double.isFinite(lon)) {
+        if (LatLon.isValidCoordinate(lat, lon)) {
             return new LatLon(lat, lon);
         }
         JSONObject center = element.optJSONObject("center");
@@ -85,16 +87,6 @@ final class OsmMapPoiMarkerParser {
         }
         lat = center.optDouble("lat", Double.NaN);
         lon = center.optDouble("lon", Double.NaN);
-        return Double.isFinite(lat) && Double.isFinite(lon) ? new LatLon(lat, lon) : null;
-    }
-
-    private static final class LatLon {
-        final double lat;
-        final double lon;
-
-        private LatLon(double lat, double lon) {
-            this.lat = lat;
-            this.lon = lon;
-        }
+        return LatLon.isValidCoordinate(lat, lon) ? new LatLon(lat, lon) : null;
     }
 }

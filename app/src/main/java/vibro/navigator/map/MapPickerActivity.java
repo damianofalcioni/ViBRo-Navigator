@@ -22,9 +22,10 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.android.location.AndroidMapPickerLocationController;
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.poi.Poi;
-import vibro.navigator.logging.AppLogger;
 
 public final class MapPickerActivity extends Activity {
 
@@ -279,6 +280,9 @@ public final class MapPickerActivity extends Activity {
 
     private void showCurrentLocation(@NonNull NavigationLocation location, boolean selectPoint) {
         Poi poi = poiForCoordinates(location.getLatitude(), location.getLongitude());
+        if (poi == null) {
+            return;
+        }
         if (selectPoint) {
             selectedPoi = poi;
         }
@@ -289,8 +293,11 @@ public final class MapPickerActivity extends Activity {
         Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
     }
 
-    @NonNull
+    @Nullable
     private Poi poiForCoordinates(double lat, double lon) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
+            return null;
+        }
         return new Poi(getString(R.string.format_coordinates, lat, lon), lat, lon);
     }
 
@@ -303,16 +310,22 @@ public final class MapPickerActivity extends Activity {
         @JavascriptInterface
         public void onSelectionChanged(double lat, double lon) {
             runOnUiThread(() -> {
-                selectedPoi = poiForCoordinates(lat, lon);
-                AppLogger.i(TAG, "Map selection changed lat=" + lat + " lon=" + lon);
+                Poi poi = poiForCoordinates(lat, lon);
+                if (poi != null) {
+                    selectedPoi = poi;
+                    AppLogger.i(TAG, "Map selection changed lat=" + lat + " lon=" + lon);
+                }
             });
         }
 
         @JavascriptInterface
         public void onPoiSelected(@Nullable String name, double lat, double lon) {
             runOnUiThread(() -> {
-                selectedPoi = poiForMapMarker(name, lat, lon);
-                AppLogger.i(TAG, "Map POI selected=" + selectedPoi.displayLabel());
+                Poi poi = poiForMapMarker(name, lat, lon);
+                if (poi != null) {
+                    selectedPoi = poi;
+                    AppLogger.i(TAG, "Map POI selected=" + selectedPoi.displayLabel());
+                }
             });
         }
 
@@ -325,8 +338,11 @@ public final class MapPickerActivity extends Activity {
         }
     }
 
-    @NonNull
+    @Nullable
     private Poi poiForMapMarker(@Nullable String name, double lat, double lon) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
+            return null;
+        }
         if (name != null && !name.trim().isEmpty()) {
             return new Poi(name.trim(), lat, lon);
         }

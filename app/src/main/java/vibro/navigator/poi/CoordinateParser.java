@@ -7,6 +7,8 @@ import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import vibro.navigator.geo.LatLon;
+
 public final class CoordinateParser {
 
     private static final Pattern LAT_LON = Pattern.compile(
@@ -33,17 +35,13 @@ public final class CoordinateParser {
         try {
             double lat = Double.parseDouble(m.group(1));
             double lon = Double.parseDouble(m.group(2));
-            if (!isInRange(lat, lon)) {
+            if (!LatLon.isValidCoordinate(lat, lon)) {
                 return null;
             }
             return new Poi(displayName(lat, lon, fallbackName), lat, lon);
         } catch (NumberFormatException ignored) {
             return null;
         }
-    }
-
-    private static boolean isInRange(double lat, double lon) {
-        return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
     }
 
     @NonNull

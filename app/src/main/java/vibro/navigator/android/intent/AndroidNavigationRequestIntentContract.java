@@ -44,7 +44,7 @@ public final class AndroidNavigationRequestIntentContract {
             return new NavigationRequest(null, null, null, Collections.emptyList());
         }
 
-        LatLon destination = (!Double.isNaN(extras.destinationLat) && !Double.isNaN(extras.destinationLon))
+        LatLon destination = LatLon.isValidCoordinate(extras.destinationLat, extras.destinationLon)
                 ? new LatLon(extras.destinationLat, extras.destinationLon)
                 : null;
         List<LatLon> stops = new ArrayList<>();
@@ -66,7 +66,7 @@ public final class AndroidNavigationRequestIntentContract {
         if (extras.destinationName != null) {
             intent.putExtra(EXTRA_DEST_NAME, extras.destinationName);
         }
-        if (!Double.isNaN(extras.destinationLat) && !Double.isNaN(extras.destinationLon)) {
+        if (LatLon.isValidCoordinate(extras.destinationLat, extras.destinationLon)) {
             intent.putExtra(EXTRA_DEST_LAT, extras.destinationLat);
             intent.putExtra(EXTRA_DEST_LON, extras.destinationLon);
         }
@@ -92,7 +92,9 @@ public final class AndroidNavigationRequestIntentContract {
     static ArrayList<String> toStopStrings(@NonNull List<LatLon> stops) {
         ArrayList<String> serializedStops = new ArrayList<>(stops.size());
         for (LatLon stop : stops) {
-            serializedStops.add(stop.lat + "," + stop.lon);
+            if (stop.isValid()) {
+                serializedStops.add(stop.lat + "," + stop.lon);
+            }
         }
         return serializedStops;
     }
@@ -109,7 +111,7 @@ public final class AndroidNavigationRequestIntentContract {
         try {
             double lat = Double.parseDouble(parts[0].trim());
             double lon = Double.parseDouble(parts[1].trim());
-            return new LatLon(lat, lon);
+            return LatLon.isValidCoordinate(lat, lon) ? new LatLon(lat, lon) : null;
         } catch (NumberFormatException ignored) {
             return null;
         }

@@ -7,25 +7,23 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class GeoJsonRouteParserTest {
+    private static final String TYPE_FEATURE_COLLECTION = "\"type\":\"FeatureCollection\",";
+    private static final String FEATURES_START = "\"features\":[{";
+    private static final String TYPE_FEATURE = "\"type\":\"Feature\",";
+    private static final String PROPERTIES_START = "\"properties\":{";
+    private static final String GEOMETRY_START = "\"geometry\":{";
+    private static final String TYPE_LINESTRING = "\"type\":\"LineString\",";
+    private static final String THREE_POINT_COORDINATES = "[[16.0,48.0],[16.1,48.1],[16.2,48.2]]";
 
     @Test
     public void parsesMode9VoiceHintWithExtraGeometryField() {
-        String geoJson = "{"
-                + "\"type\":\"FeatureCollection\","
-                + "\"features\":[{"
-                + "\"type\":\"Feature\","
-                + "\"properties\":{"
-                + "\"track-length\":\"1234\","
+        String geoJson = routeJson(
+                "\"track-length\":\"1234\","
                 + "\"total-time\":\"321\","
                 + "\"times\":[0,60,120,180,240,300],"
-                + "\"voicehints\":[[5,17,0,42.0,-10,\" (0)(0)\"]]"
-                + "},"
-                + "\"geometry\":{"
-                + "\"type\":\"LineString\","
-                + "\"coordinates\":[[16.0,48.0],[16.1,48.1],[16.2,48.2],[16.3,48.3],[16.4,48.4],[16.5,48.5]]"
-                + "}"
-                + "}]"
-                + "}";
+                + "\"voicehints\":[[5,17,0,42.0,-10,\" (0)(0)\"]]",
+                "[[16.0,48.0],[16.1,48.1],[16.2,48.2],[16.3,48.3],[16.4,48.4],[16.5,48.5]]"
+        );
 
         GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
 
@@ -42,12 +40,8 @@ public class GeoJsonRouteParserTest {
 
     @Test
     public void parsesSpeedLimitSegmentsFromMessagesWayTags() {
-        String geoJson = "{"
-                + "\"type\":\"FeatureCollection\","
-                + "\"features\":[{"
-                + "\"type\":\"Feature\","
-                + "\"properties\":{"
-                + "\"messages\":["
+        String geoJson = routeJson(
+                "\"messages\":["
                 + "[\"Longitude\",\"Latitude\",\"Elevation\",\"Distance\",\"CostPerKm\",\"ElevCost\","
                 + "\"TurnCost\",\"NodeCost\",\"InitialCost\",\"WayTags\",\"NodeTags\",\"Time\",\"Energy\"],"
                 + "[\"0\",\"0\",\"0\",\"50\",\"0\",\"0\",\"0\",\"0\",\"0\","
@@ -56,14 +50,9 @@ public class GeoJsonRouteParserTest {
                 + "\"highway=primary maxspeed=50 mph\",\"\",\"0\",\"0\"],"
                 + "[\"0\",\"0\",\"0\",\"25\",\"0\",\"0\",\"0\",\"0\",\"0\","
                 + "\"highway=service surface=paved\",\"\",\"0\",\"0\"]"
-                + "]"
-                + "},"
-                + "\"geometry\":{"
-                + "\"type\":\"LineString\","
-                + "\"coordinates\":[[16.0,48.0],[16.001,48.0],[16.002,48.0]]"
-                + "}"
-                + "}]"
-                + "}";
+                + "]",
+                "[[16.0,48.0],[16.001,48.0],[16.002,48.0]]"
+        );
 
         GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
 
@@ -79,23 +68,62 @@ public class GeoJsonRouteParserTest {
 
     @Test
     public void parse_discardsRouteTimesWhenAnyTimingEntryIsInvalid() {
-        String geoJson = "{"
-                + "\"type\":\"FeatureCollection\","
-                + "\"features\":[{"
-                + "\"type\":\"Feature\","
-                + "\"properties\":{"
-                + "\"times\":[0,\"bad\",120]"
-                + "},"
-                + "\"geometry\":{"
-                + "\"type\":\"LineString\","
-                + "\"coordinates\":[[16.0,48.0],[16.1,48.1],[16.2,48.2]]"
-                + "}"
-                + "}]"
-                + "}";
+        String geoJson = routeJson("\"times\":[0,\"bad\",120]", THREE_POINT_COORDINATES);
 
         GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
 
         assertEquals(3, route.track.size());
         assertTrue(route.timesSeconds.isEmpty());
+    }
+
+    @Test
+    public void parse_discardsRouteTimesWhenTimingEntriesDecrease() {
+        String geoJson = routeJson("\"times\":[0,120,60]", THREE_POINT_COORDINATES);
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(3, route.track.size());
+        assertTrue(route.timesSeconds.isEmpty());
+    }
+
+    @Test
+    public void parse_discardsRouteTimesWhenTimingEntryIsNegative() {
+        String geoJson = routeJson("\"times\":[0,-1,120]", THREE_POINT_COORDINATES);
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(3, route.track.size());
+        assertTrue(route.timesSeconds.isEmpty());
+    }
+
+    @Test
+    public void parse_ignoresOutOfRangeTrackCoordinatesAndInvalidMetrics() {
+        String geoJson = routeJson(
+                "\"track-length\":\"-5\","
+                + "\"total-time\":\"Infinity\"",
+                "[[16.0,48.0],[181.0,48.1],[16.2,91.0],[16.3,48.3]]"
+        );
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(2, route.track.size());
+        assertEquals(0.0, route.totalTimeSeconds, 0.0);
+        assertEquals(0.0, route.trackLengthMeters, 0.0);
+    }
+
+    private static String routeJson(String properties, String coordinates) {
+        return "{"
+                + TYPE_FEATURE_COLLECTION
+                + FEATURES_START
+                + TYPE_FEATURE
+                + PROPERTIES_START
+                + properties
+                + "},"
+                + GEOMETRY_START
+                + TYPE_LINESTRING
+                + "\"coordinates\":" + coordinates
+                + "}"
+                + "}]"
+                + "}";
     }
 }

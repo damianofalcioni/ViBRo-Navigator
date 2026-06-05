@@ -4,9 +4,10 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;
-import vibro.navigator.logging.AppLogger;
 
 final class MainActivityDestinationState {
 
@@ -33,7 +34,7 @@ final class MainActivityDestinationState {
         String selectedName = savedInstanceState.getString(STATE_DESTINATION_SELECTED_NAME);
         double selectedLat = savedInstanceState.getDouble(STATE_DESTINATION_SELECTED_LAT, Double.NaN);
         double selectedLon = savedInstanceState.getDouble(STATE_DESTINATION_SELECTED_LON, Double.NaN);
-        if (selectedName != null && !Double.isNaN(selectedLat) && !Double.isNaN(selectedLon)) {
+        if (selectedName != null && LatLon.isValidCoordinate(selectedLat, selectedLon)) {
             destinationController.restorePoi(new Poi(selectedName, selectedLat, selectedLon));
             AppLogger.i(TAG, "Restored selected destination POI=" + selectedName
                     + " (" + selectedLat + "," + selectedLon + ")");

@@ -118,7 +118,7 @@ public final class GeoJsonRouteParser {
         }
         double lon = point.optDouble(0, Double.NaN);
         double lat = point.optDouble(1, Double.NaN);
-        if (Double.isNaN(lat) || Double.isNaN(lon)) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
             return null;
         }
         return new LatLon(lat, lon);
@@ -126,7 +126,8 @@ public final class GeoJsonRouteParser {
 
     private static double parseRouteMetricDouble(@NonNull String s) {
         try {
-            return Double.parseDouble(s);
+            double parsed = Double.parseDouble(s);
+            return Double.isFinite(parsed) && parsed >= 0.0 ? parsed : 0.0;
         } catch (NumberFormatException ignored) {
             return 0;
         }

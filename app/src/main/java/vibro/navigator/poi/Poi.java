@@ -2,6 +2,8 @@ package vibro.navigator.poi;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.geo.LatLon;
+
 import java.util.Locale;
 
 public final class Poi {
@@ -14,6 +16,10 @@ public final class Poi {
         this.name = name;
         this.lat = lat;
         this.lon = lon;
+    }
+
+    public boolean hasValidCoordinates() {
+        return LatLon.isValidCoordinate(lat, lon);
     }
 
     @NonNull

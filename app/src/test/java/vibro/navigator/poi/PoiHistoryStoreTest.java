@@ -76,4 +76,30 @@ public class PoiHistoryStoreTest {
         assertEquals(1, items.size());
         assertEquals(COFFEE_SPOT, items.get(0).name);
     }
+
+    @Test
+    public void addOrPromote_ignoresInvalidCoordinates() {
+        PoiHistoryStore store = new PoiHistoryStore(context);
+
+        store.addOrPromote(new Poi("Invalid", 91.0d, 16.3738d));
+
+        assertTrue(store.list().isEmpty());
+    }
+
+    @Test
+    public void list_ignoresStoredItemsWithInvalidCoordinates() {
+        context.getSharedPreferences("vibenavigator_poi_history", Context.MODE_PRIVATE)
+                .edit()
+                .putString("items", "["
+                        + "{\"name\":\"Invalid\",\"lat\":91.0,\"lon\":16.3738},"
+                        + "{\"name\":\"Coffee\",\"lat\":48.2082,\"lon\":16.3738}"
+                        + "]")
+                .commit();
+        PoiHistoryStore store = new PoiHistoryStore(context);
+
+        List<Poi> items = store.list();
+
+        assertEquals(1, items.size());
+        assertEquals(COFFEE, items.get(0).name);
+    }
 }

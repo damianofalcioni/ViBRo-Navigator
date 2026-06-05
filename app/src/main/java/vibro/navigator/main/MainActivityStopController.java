@@ -12,11 +12,12 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.poi.PoiHistoryStore;
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.ui.PoiInputController;
-import vibro.navigator.logging.AppLogger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -118,8 +119,7 @@ final class MainActivityStopController {
     private static boolean isRestorablePoi(@Nullable String name, double lat, double lon) {
         return name != null
                 && !name.isEmpty()
-                && !Double.isNaN(lat)
-                && !Double.isNaN(lon);
+                && LatLon.isValidCoordinate(lat, lon);
     }
 
     @Nullable

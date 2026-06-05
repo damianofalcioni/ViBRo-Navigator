@@ -39,6 +39,21 @@ public class GoogleGeocodeResponseParserTest {
     }
 
     @Test
+    public void parseResults_filtersOutOfRangeCoordinates() throws Exception {
+        String body = "{"
+                + "\"results\":["
+                + "{\"formatted_address\":\"Invalid\",\"geometry\":{\"location\":{\"lat\":91.0,\"lng\":16.3738}}},"
+                + "{\"formatted_address\":\"Vienna\",\"geometry\":{\"location\":{\"lat\":48.2082,\"lng\":16.3738}}}"
+                + "]"
+                + "}";
+
+        List<Poi> results = GoogleGeocodeResponseParser.parseResults(body, 5);
+
+        assertEquals(1, results.size());
+        assertEquals("Vienna", results.get(0).name);
+    }
+
+    @Test
     public void statusHelpersRecognizeValidationStatuses() throws Exception {
         assertTrue(GoogleGeocodeResponseParser.isOkStatus("{\"status\":\"OK\"}"));
         assertTrue(GoogleGeocodeResponseParser.isRequestDeniedStatus("{\"status\":\"REQUEST_DENIED\"}"));

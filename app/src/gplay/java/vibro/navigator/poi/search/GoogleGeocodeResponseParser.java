@@ -9,6 +9,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.poi.Poi;
 
 final class GoogleGeocodeResponseParser {
@@ -64,7 +65,7 @@ final class GoogleGeocodeResponseParser {
         }
         double lat = location.optDouble("lat", Double.NaN);
         double lon = location.optDouble("lng", Double.NaN);
-        if (name.isEmpty() || Double.isNaN(lat) || Double.isNaN(lon)) {
+        if (name.isEmpty() || !LatLon.isValidCoordinate(lat, lon)) {
             return null;
         }
         return new Poi(name, lat, lon);

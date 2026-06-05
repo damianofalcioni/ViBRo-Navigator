@@ -78,7 +78,7 @@ final class NavigationInputResolver {
             Toast.makeText(context, R.string.msg_missing_destination, Toast.LENGTH_SHORT).show();
             return null;
         }
-        if (Double.isNaN(destination.lat) || Double.isNaN(destination.lon)) {
+        if (!destination.hasValidCoordinates()) {
             AppLogger.w(TAG, "Navigation blocked because destination coordinates are invalid destination="
                     + formatPoi(destination));
             Toast.makeText(context, R.string.msg_invalid_coordinates, Toast.LENGTH_SHORT).show();
@@ -99,7 +99,7 @@ final class NavigationInputResolver {
             if (stop == null) {
                 stop = controller.parseCurrentPoi();
             }
-            if (stop == null || Double.isNaN(stop.lat) || Double.isNaN(stop.lon)) {
+            if (stop == null || !stop.hasValidCoordinates()) {
                 AppLogger.w(TAG, "Navigation blocked because a stop is invalid raw=" + raw);
                 Toast.makeText(context, R.string.msg_invalid_stop, Toast.LENGTH_SHORT).show();
                 return null;

@@ -2,6 +2,7 @@ package vibro.navigator.android.intent;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -13,11 +14,12 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRequest;
 
 public class AndroidNavigationRequestIntentContractTest {
+    private static final String PROFILE = "trekking";
 
     @Test
     public void toExtras_thenFromExtras_roundTripsRequestFields() {
         NavigationRequest original = new NavigationRequest(
-                "trekking",
+                PROFILE,
                 "Vienna Center",
                 new LatLon(48.2082d, 16.3738d),
                 Arrays.asList(
@@ -31,7 +33,7 @@ public class AndroidNavigationRequestIntentContractTest {
         NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
 
         assertTrue(restored.isComplete());
-        assertEquals("trekking", restored.profile);
+        assertEquals(PROFILE, restored.profile);
         assertEquals("Vienna Center", restored.destinationName);
         assertEquals(48.2082d, restored.destination.lat, 0.0);
         assertEquals(16.3738d, restored.destination.lon, 0.0);
@@ -49,7 +51,7 @@ public class AndroidNavigationRequestIntentContractTest {
                 "Test destination",
                 48.2082d,
                 16.3738d,
-                new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12"))
+                new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12", "91,16.3"))
         );
 
         NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
@@ -59,5 +61,40 @@ public class AndroidNavigationRequestIntentContractTest {
         assertEquals(1, restored.stops.size());
         assertEquals(48.2d, restored.stops.get(0).lat, 0.0);
         assertEquals(16.3d, restored.stops.get(0).lon, 0.0);
+    }
+
+    @Test
+    public void fromExtras_discardsInvalidDestinationCoordinates() {
+        AndroidNavigationRequestIntentContract.Extras extras = new AndroidNavigationRequestIntentContract.Extras(
+                PROFILE,
+                "Test destination",
+                91.0d,
+                16.3738d,
+                new ArrayList<>()
+        );
+
+        NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
+
+        assertFalse(restored.isComplete());
+        assertNull(restored.destination);
+    }
+
+    @Test
+    public void toExtras_discardsInvalidStops() {
+        NavigationRequest original = new NavigationRequest(
+                PROFILE,
+                "Vienna Center",
+                new LatLon(48.2082d, 16.3738d),
+                Arrays.asList(
+                        new LatLon(48.2100d, 16.3600d),
+                        new LatLon(91.0d, 16.3900d)
+                )
+        );
+
+        AndroidNavigationRequestIntentContract.Extras extras =
+                AndroidNavigationRequestIntentContract.toExtras(original);
+
+        assertEquals(1, extras.stops.size());
+        assertEquals("48.21,16.36", extras.stops.get(0));
     }
 }
