@@ -29,8 +29,9 @@ public final class AppDataBackup {
 
     public static void importJson(@NonNull Context context, @NonNull String json) throws JSONException {
         List<AppDataBackupPreferenceFile> pendingPreferences = AppDataBackupImportParser.parse(json);
-        AppDataBackupPreferences.clearAll(context);
-        AppDataBackupPreferences.applyAll(context, pendingPreferences);
+        if (!AppDataBackupPreferences.replaceAll(context, pendingPreferences)) {
+            throw new JSONException("Failed to write backup preferences");
+        }
         AppLogger.init(context);
     }
 }

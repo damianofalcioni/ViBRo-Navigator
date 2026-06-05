@@ -105,7 +105,7 @@ public final class AndroidNavigationRequestIntentContract {
             return null;
         }
         String[] parts = value.split(",");
-        if (parts.length < 2) {
+        if (parts.length != 2) {
             return null;
         }
         try {

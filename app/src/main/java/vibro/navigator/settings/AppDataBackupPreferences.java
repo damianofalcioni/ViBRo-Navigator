@@ -25,19 +25,32 @@ final class AppDataBackupPreferences {
         return all;
     }
 
-    static void clearAll(@NonNull Context context) {
-        for (String prefsName : AppDataBackupContract.BACKED_UP_PREFERENCES) {
-            context.getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit().clear().apply();
-        }
+    static boolean replaceAll(
+            @NonNull Context context,
+            @NonNull List<AppDataBackupPreferenceFile> preferenceFiles
+    ) {
+        return clearAll(context) && applyAll(context, preferenceFiles);
     }
 
-    static void applyAll(
+    private static boolean clearAll(@NonNull Context context) {
+        for (String prefsName : AppDataBackupContract.BACKED_UP_PREFERENCES) {
+            if (!context.getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit().clear().commit()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean applyAll(
             @NonNull Context context,
             @NonNull List<AppDataBackupPreferenceFile> preferenceFiles
     ) {
         for (AppDataBackupPreferenceFile preferenceFile : preferenceFiles) {
-            applyPreferenceFile(context, preferenceFile);
+            if (!applyPreferenceFile(context, preferenceFile)) {
+                return false;
+            }
         }
+        return true;
     }
 
     @NonNull
@@ -51,7 +64,7 @@ final class AppDataBackupPreferences {
         return out;
     }
 
-    private static void applyPreferenceFile(
+    private static boolean applyPreferenceFile(
             @NonNull Context context,
             @NonNull AppDataBackupPreferenceFile preferenceFile
     ) {
@@ -62,6 +75,6 @@ final class AppDataBackupPreferences {
         for (AppDataBackupPreferenceValue value : preferenceFile.values) {
             AppDataBackupValueWriter.put(editor, value);
         }
-        editor.apply();
+        return editor.commit();
     }
 }

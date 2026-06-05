@@ -9,12 +9,36 @@ public class IntentLocationParserTest {
     private static final String ACTION_SEND = "android.intent.action.SEND";
     private static final String ACTION_VIEW = "android.intent.action.VIEW";
     private static final String MILAN_COORDINATES = "45.4642,9.1900";
+    private static final String VIENNA_COORDINATES = "48.0000,16.0000";
 
     @Test
     public void parseToQuery_geoQueryCoordinates_returnsCoordinatePair() {
         String parsed = IntentLocationParser.parseToQuery(
                 ACTION_VIEW,
                 "geo:0,0?q=" + MILAN_COORDINATES + "(Milan)",
+                null
+        );
+
+        assertEquals(MILAN_COORDINATES, parsed);
+    }
+
+    @Test
+    public void parseToQuery_repeatedQueryKeyUsesFirstNonEmptyValue() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_VIEW,
+                "geo:0,0?q=&q=" + MILAN_COORDINATES + "&q=" + VIENNA_COORDINATES,
+                null
+        );
+
+        assertEquals(MILAN_COORDINATES, parsed);
+    }
+
+    @Test
+    public void parseToQuery_repeatedMapQueryKeyDoesNotOverwriteFirstValue() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_VIEW,
+                "https://www.google.com/maps/search/?api=1&query=" + MILAN_COORDINATES
+                        + "&query=" + VIENNA_COORDINATES,
                 null
         );
 

@@ -51,7 +51,7 @@ public class AndroidNavigationRequestIntentContractTest {
                 "Test destination",
                 48.2082d,
                 16.3738d,
-                new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12", "91,16.3"))
+                new ArrayList<>(Arrays.asList("48.2,16.3", "bad", "12", "91,16.3", "48.3,16.4,extra"))
         );
 
         NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
