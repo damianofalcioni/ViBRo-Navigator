@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
@@ -32,12 +33,14 @@ final class MapPoiLoader {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private int generation;
+    private boolean shutdown;
 
     MapPoiLoader(@NonNull TaskScheduler mainThreadScheduler) {
         this.mainThreadScheduler = mainThreadScheduler;
     }
 
     void shutdown() {
+        shutdown = true;
         cancel();
         executor.shutdownNow();
     }
@@ -50,7 +53,7 @@ final class MapPoiLoader {
             @NonNull MapPickerBounds bounds,
             @NonNull OsmMapPoiDiscoveryResult discovery
     ) {
-        cache.rememberAll(bounds, discovery.markers);
+        cache.rememberAll(bounds, discovery.categories, discovery.markers);
     }
 
     void load(
@@ -58,6 +61,9 @@ final class MapPoiLoader {
             @NonNull List<MapPoiCategory> categories,
             @NonNull Listener listener
     ) {
+        if (shutdown) {
+            return;
+        }
         int loadId = ++generation;
         listener.onCachedPois(cache.visibleMarkers(bounds, categories));
         List<MapPoiFetchRequest> requests = cache.missingRequests(bounds, categories);
@@ -75,16 +81,21 @@ final class MapPoiLoader {
             @NonNull List<MapPoiFetchRequest> requests,
             @NonNull Listener listener
     ) {
-        executor.execute(() -> {
-            try {
-                fetchRequests(requests);
-                List<MapPoiMarker> visible = cache.visibleMarkers(bounds, categories);
-                mainThreadScheduler.post(() -> applyResult(loadId, visible, listener));
-            } catch (IOException e) {
-                AppLogger.w(TAG, "Failed to load map POIs", e);
-                mainThreadScheduler.post(() -> applyFailure(loadId, listener));
-            }
-        });
+        try {
+            executor.execute(() -> {
+                try {
+                    fetchRequests(requests);
+                    List<MapPoiMarker> visible = cache.visibleMarkers(bounds, categories);
+                    mainThreadScheduler.post(() -> applyResult(loadId, visible, listener));
+                } catch (IOException e) {
+                    AppLogger.w(TAG, "Failed to load map POIs", e);
+                    mainThreadScheduler.post(() -> applyFailure(loadId, listener));
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            AppLogger.w(TAG, "Map POI load rejected because the loader is shut down", e);
+            mainThreadScheduler.post(() -> applyFailure(loadId, listener));
+        }
     }
 
     private void fetchRequests(@NonNull List<MapPoiFetchRequest> requests) throws IOException {

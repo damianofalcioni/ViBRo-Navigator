@@ -156,6 +156,10 @@ public final class NavigationRouteExecutor {
             });
         } catch (RejectedExecutionException e) {
             AppLogger.w(TAG, "Route calculation rejected because the executor is shut down", e);
+            mainThreadScheduler.post(() -> callback.onRouteFailure(
+                    snapshot,
+                    new IllegalStateException("Route calculation rejected because the executor is shut down", e)
+            ));
         }
     }
 

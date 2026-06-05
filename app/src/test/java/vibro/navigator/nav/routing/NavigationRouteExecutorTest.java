@@ -15,6 +15,7 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -356,6 +357,54 @@ public class NavigationRouteExecutorTest {
         executor.shutdown();
 
         assertEquals(1, closeCount.get());
+    }
+
+    @Test
+    public void requestRouteReportsFailureWhenExecutorRejectsSubmission() throws Exception {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.shutdownNow();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                (start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
+                        Arrays.asList(start, destination),
+                        Collections.emptyList(),
+                        42.0,
+                        120.0
+                ),
+                executorService,
+                Runnable::run
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        executor.requestRoute(
+                routeSnapshot(),
+                new NavigationRouteExecutor.Callback() {
+                    @Override
+                    public void onRouteApplied(
+                            NavigationRouteRequestSnapshot snapshot,
+                            GeoJsonRoute newRoute,
+                            long beganAt
+                    ) {
+                        latch.countDown();
+                    }
+
+                    @Override
+                    public void onRouteFailure(
+                            NavigationRouteRequestSnapshot snapshot,
+                            Exception error
+                    ) {
+                        failure.set(error);
+                        latch.countDown();
+                    }
+                }
+        );
+
+        assertTrue(latch.await(2, TimeUnit.SECONDS));
+        assertNotNull(failure.get());
+        assertEquals(
+                "Route calculation rejected because the executor is shut down",
+                failure.get().getMessage()
+        );
     }
 
     @Test

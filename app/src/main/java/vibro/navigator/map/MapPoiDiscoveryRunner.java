@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
@@ -29,6 +30,7 @@ final class MapPoiDiscoveryRunner {
     private final OsmMapPoiClient client = new OsmMapPoiClient();
 
     private int generation;
+    private boolean shutdown;
 
     MapPoiDiscoveryRunner(
             @NonNull TaskScheduler mainThreadScheduler,
@@ -54,6 +56,7 @@ final class MapPoiDiscoveryRunner {
     }
 
     void shutdown() {
+        shutdown = true;
         generation++;
         executor.shutdownNow();
     }
@@ -64,16 +67,24 @@ final class MapPoiDiscoveryRunner {
             @NonNull Listener listener,
             @NonNull DiscoveryRequest request
     ) {
-        executor.execute(() -> {
-            try {
-                OsmMapPoiDiscoveryResult discovery = request.fetch();
-                poiLoader.rememberDiscovery(bounds, discovery);
-                mainThreadScheduler.post(() -> applyResult(discoveryId, discovery, listener));
-            } catch (IOException e) {
-                AppLogger.w(TAG, "Failed to discover map POI categories", e);
-                mainThreadScheduler.post(() -> applyFailure(discoveryId, listener));
-            }
-        });
+        if (shutdown) {
+            return;
+        }
+        try {
+            executor.execute(() -> {
+                try {
+                    OsmMapPoiDiscoveryResult discovery = request.fetch();
+                    poiLoader.rememberDiscovery(bounds, discovery);
+                    mainThreadScheduler.post(() -> applyResult(discoveryId, discovery, listener));
+                } catch (IOException e) {
+                    AppLogger.w(TAG, "Failed to discover map POI categories", e);
+                    mainThreadScheduler.post(() -> applyFailure(discoveryId, listener));
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            AppLogger.w(TAG, "Map POI discovery rejected because the runner is shut down", e);
+            mainThreadScheduler.post(() -> applyFailure(discoveryId, listener));
+        }
     }
 
     private void applyResult(

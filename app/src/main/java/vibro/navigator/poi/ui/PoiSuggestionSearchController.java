@@ -31,11 +31,17 @@ final class PoiSuggestionSearchController {
         void clearSuggestionsAndDismiss();
     }
 
+    interface SearchDispatcher {
+        @NonNull
+        Future<?> submit(@NonNull Runnable runnable);
+    }
+
     private final TaskScheduler mainThreadScheduler;
     private final PoiHistoryStore history;
     private final PoiSearchClient searchClient;
     private final String logTag;
     private final Presenter presenter;
+    private final SearchDispatcher searchDispatcher;
 
     private Future<?> inFlight;
     private Runnable pendingSearch;
@@ -48,11 +54,30 @@ final class PoiSuggestionSearchController {
             @NonNull String logTag,
             @NonNull Presenter presenter
     ) {
+        this(
+                mainThreadScheduler,
+                history,
+                searchClient,
+                logTag,
+                presenter,
+                PoiSearchDispatcher::submit
+        );
+    }
+
+    PoiSuggestionSearchController(
+            @NonNull TaskScheduler mainThreadScheduler,
+            @NonNull PoiHistoryStore history,
+            @NonNull PoiSearchClient searchClient,
+            @NonNull String logTag,
+            @NonNull Presenter presenter,
+            @NonNull SearchDispatcher searchDispatcher
+    ) {
         this.mainThreadScheduler = mainThreadScheduler;
         this.history = history;
         this.searchClient = searchClient;
         this.logTag = logTag;
         this.presenter = presenter;
+        this.searchDispatcher = searchDispatcher;
     }
 
     void scheduleSearch(@NonNull String raw) {
@@ -63,6 +88,7 @@ final class PoiSuggestionSearchController {
             return;
         }
 
+        cancelInFlightSearch();
         pendingSearch = () -> runSearch(query);
         AppLogger.d(logTag, "Scheduling search query=" + query);
         mainThreadScheduler.postDelayed(pendingSearch, SEARCH_DELAY_MS);
@@ -126,9 +152,9 @@ final class PoiSuggestionSearchController {
     }
 
     private void runSearch(@NonNull String query) {
-        cancelInFlightSearch();
+        pendingSearch = null;
         int generation = ++searchGeneration;
-        inFlight = PoiSearchDispatcher.submit(() -> {
+        inFlight = searchDispatcher.submit(() -> {
             try {
                 List<PoiSuggestion> suggestions = performSearch(query);
                 mainThreadScheduler.post(() -> handleSearchSuccess(query, generation, suggestions));

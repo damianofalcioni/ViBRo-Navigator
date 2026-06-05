@@ -44,23 +44,34 @@ final class MapPoiCache {
             @NonNull MapPickerBounds bounds,
             @NonNull List<MapPoiMarker> markers
     ) {
+        entryFor(category).remember(bounds, markers);
+    }
+
+    synchronized void rememberAll(
+            @NonNull MapPickerBounds bounds,
+            @NonNull List<MapPoiCategory> categories,
+            @NonNull List<MapPoiMarker> markers
+    ) {
+        Map<String, List<MapPoiMarker>> byCategory = markersByCategory(markers);
+        for (MapPoiCategory category : categories) {
+            List<MapPoiMarker> categoryMarkers = byCategory.remove(category.id);
+            entryFor(category).remember(bounds, categoryMarkers == null ? new ArrayList<>() : categoryMarkers);
+        }
+        for (List<MapPoiMarker> uncategorizedMarkers : byCategory.values()) {
+            if (!uncategorizedMarkers.isEmpty()) {
+                entryFor(uncategorizedMarkers.get(0).category).remember(bounds, uncategorizedMarkers);
+            }
+        }
+    }
+
+    @NonNull
+    private Entry entryFor(@NonNull MapPoiCategory category) {
         Entry entry = entries.get(category.id);
         if (entry == null) {
             entry = new Entry();
             entries.put(category.id, entry);
         }
-        entry.remember(bounds, markers);
-    }
-
-    synchronized void rememberAll(@NonNull MapPickerBounds bounds, @NonNull List<MapPoiMarker> markers) {
-        for (Map.Entry<String, List<MapPoiMarker>> group : markersByCategory(markers).entrySet()) {
-            Entry entry = entries.get(group.getKey());
-            if (entry == null) {
-                entry = new Entry();
-                entries.put(group.getKey(), entry);
-            }
-            entry.remember(bounds, group.getValue());
-        }
+        return entry;
     }
 
     @NonNull
