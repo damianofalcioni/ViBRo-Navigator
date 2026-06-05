@@ -96,7 +96,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Override
     @NonNull
     public List<?> addBlockedPointsAhead() {
-        return navigationSession.addBlockedPointsAhead();
+        return navigationSession.addBlockedPointsAhead(System.currentTimeMillis());
     }
 
     @Override

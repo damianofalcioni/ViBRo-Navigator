@@ -44,14 +44,9 @@ public final class NavigationSessionLocationState {
     }
 
     @NonNull
-    public Update onRawLocationChanged(@NonNull NavigationLocation rawLocation) {
-        return onRawLocationChanged(rawLocation, System.currentTimeMillis());
-    }
-
-    @NonNull
     public Update onRawLocationChanged(@NonNull NavigationLocation rawLocation, long nowMs) {
         liveLocationCoordinator.remember(rawLocation);
-        NavigationLocation selected = liveLocationCoordinator.selectBestLiveLocation();
+        NavigationLocation selected = liveLocationCoordinator.selectBestLiveLocation(nowMs);
         if (selected == null) {
             AppLogger.d(TAG, "Dropped NavigationLocation because no recent candidate is available raw="
                     + formatLocation(rawLocation));

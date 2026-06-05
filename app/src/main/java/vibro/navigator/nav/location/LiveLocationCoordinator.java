@@ -73,8 +73,7 @@ public final class LiveLocationCoordinator {
     }
 
     @Nullable
-    public NavigationLocation selectBestLiveLocation() {
-        long nowMs = System.currentTimeMillis();
+    public NavigationLocation selectBestLiveLocation(long nowMs) {
         NavigationLocationFix selected = selectBestLiveFix(nowMs);
         return copyOf(locationFor(selected));
     }

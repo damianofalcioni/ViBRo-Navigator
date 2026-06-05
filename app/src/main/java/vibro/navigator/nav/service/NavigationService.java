@@ -134,7 +134,8 @@ public class NavigationService extends Service {
     private void startNavigation() {
         runtime().resetTrackingState();
 
-        if (!navigationSession.start(this, System.currentTimeMillis())) {
+        long nowMs = System.currentTimeMillis();
+        if (!navigationSession.start(this, nowMs)) {
             emitState();
             return;
         }
@@ -145,7 +146,7 @@ public class NavigationService extends Service {
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
-        locationHandler.seedStartupLocation();
+        locationHandler.seedStartupLocation(nowMs);
     }
 
     private void pauseNavigation() {

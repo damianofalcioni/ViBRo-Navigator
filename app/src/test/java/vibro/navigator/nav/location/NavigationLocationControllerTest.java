@@ -2,6 +2,7 @@ package vibro.navigator.nav.location;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import androidx.annotation.NonNull;
@@ -154,6 +155,19 @@ public class NavigationLocationControllerTest {
         assertEquals(1_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
     }
 
+    @Test
+    public void getBestStartupLastKnownLocation_usesProvidedNowForFreshness() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        provider.setLastKnown(location(GPS_PROVIDER, 90_000L, 10f));
+        NavigationLocationController controller = controller(provider, clock);
+
+        NavigationLocation selected = controller.getBestStartupLastKnownLocation(100_000L);
+
+        assertNotNull(selected);
+        assertEquals(GPS_PROVIDER, selected.getProvider());
+    }
+
     @NonNull
     private static NavigationLocationController controller(
             @NonNull MutableClock clock,
@@ -198,6 +212,10 @@ public class NavigationLocationControllerTest {
         private boolean coarseGranted = true;
         private int requestProviderUpdatesCount;
         private int cancelCurrentLocationRequestsCount;
+        @Nullable
+        private NavigationLocation gpsLastKnown;
+        @Nullable
+        private NavigationLocation networkLastKnown;
 
         FakeLocationProvider(@NonNull String... enabledProviders) {
             this.enabledProviders = Arrays.asList(enabledProviders);
@@ -206,6 +224,14 @@ public class NavigationLocationControllerTest {
         void setPermissions(boolean fineGranted, boolean coarseGranted) {
             this.fineGranted = fineGranted;
             this.coarseGranted = coarseGranted;
+        }
+
+        void setLastKnown(@NonNull NavigationLocation location) {
+            if (GPS_PROVIDER.equals(location.getProvider())) {
+                gpsLastKnown = location;
+            } else if (NETWORK_PROVIDER.equals(location.getProvider())) {
+                networkLastKnown = location;
+            }
         }
 
         @Override
@@ -235,6 +261,12 @@ public class NavigationLocationControllerTest {
         @Nullable
         @Override
         public NavigationLocation getLastKnownLocationQuietly(@NonNull String provider) {
+            if (GPS_PROVIDER.equals(provider)) {
+                return gpsLastKnown;
+            }
+            if (NETWORK_PROVIDER.equals(provider)) {
+                return networkLastKnown;
+            }
             return null;
         }
 
@@ -303,5 +335,15 @@ public class NavigationLocationControllerTest {
         public String describeAvailability() {
             return "fake fused";
         }
+    }
+
+    @NonNull
+    private static NavigationLocation location(@NonNull String provider, long timeMs, float accuracyMeters) {
+        NavigationLocation location = new NavigationLocation(provider);
+        location.setLatitude(48.2082d);
+        location.setLongitude(16.3738d);
+        location.setTime(timeMs);
+        location.setAccuracy(accuracyMeters);
+        return location;
     }
 }

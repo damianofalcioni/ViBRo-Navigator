@@ -18,10 +18,10 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.10f));
-        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082060, 16.3738000, 0.12f));
-        state.onRawLocationChanged(location(baseTimeMs + 2_000L, 48.2082120, 16.3738000, 0.08f));
-        state.onRawLocationChanged(location(baseTimeMs + 3_000L, 48.2082180, 16.3738000, 0.09f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.10f));
+        onRawLocationChanged(state, location(baseTimeMs + 1_000L, 48.2082060, 16.3738000, 0.12f));
+        onRawLocationChanged(state, location(baseTimeMs + 2_000L, 48.2082120, 16.3738000, 0.08f));
+        onRawLocationChanged(state, location(baseTimeMs + 3_000L, 48.2082180, 16.3738000, 0.09f));
 
         assertFalse(state.isLikelyStationary());
     }
@@ -31,10 +31,10 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.00f));
-        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082004, 16.3738002, 0.05f));
-        state.onRawLocationChanged(location(baseTimeMs + 2_000L, 48.2082002, 16.3738001, 0.04f));
-        state.onRawLocationChanged(location(baseTimeMs + 3_000L, 48.2082003, 16.3738000, 0.03f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.00f));
+        onRawLocationChanged(state, location(baseTimeMs + 1_000L, 48.2082004, 16.3738002, 0.05f));
+        onRawLocationChanged(state, location(baseTimeMs + 2_000L, 48.2082002, 16.3738001, 0.04f));
+        onRawLocationChanged(state, location(baseTimeMs + 3_000L, 48.2082003, 16.3738000, 0.03f));
 
         assertTrue(state.isLikelyStationary());
     }
@@ -44,11 +44,11 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(12f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         Double bearingDegrees = state.trustedActualBearingDegreesForReroute(accepted.getFilteredLocation());
 
@@ -61,10 +61,10 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.8f);
         update.setBearing(84f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         Double bearingDegrees = state.trustedActualBearingDegreesForReroute(accepted.getFilteredLocation());
 
@@ -76,10 +76,10 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         Double bearingDegrees = state.trustedActualBearingDegreesForReroute(accepted.getFilteredLocation());
 
@@ -92,11 +92,11 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(12f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
                 state.preferredCompassHeading(accepted.getFilteredLocation(), false);
@@ -109,11 +109,11 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(12f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
                 state.preferredCompassHeading(accepted.getFilteredLocation(), false);
@@ -128,11 +128,11 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 4_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(40f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
                 state.preferredCompassHeading(accepted.getFilteredLocation(), false);
@@ -147,11 +147,11 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 0f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0f));
         NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082200, 16.3738000, 1.2f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(12f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(update);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
                 state.preferredCompassHeading(accepted.getFilteredLocation(), true);
@@ -164,13 +164,13 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 5_000L;
 
-        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f));
-        state.onRawLocationChanged(location(baseTimeMs + 1_000L, 48.2082600, 16.3738000, 1.0f));
+        onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 1.0f));
+        onRawLocationChanged(state, location(baseTimeMs + 1_000L, 48.2082600, 16.3738000, 1.0f));
 
         state.reset();
 
         NavigationLocation restartLocation = location(baseTimeMs + 2_000L, 48.2100000, 16.3800000, 0.5f);
-        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(restartLocation);
+        NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, restartLocation);
         NavigationLocation filtered = accepted.getFilteredLocation();
 
         assertEquals(restartLocation.getLatitude(), filtered.getLatitude(), 0.0);
@@ -197,6 +197,19 @@ public class NavigationSessionLocationStateTest {
         assertEquals(reacquiredLocation.getLatitude(), filtered.getLatitude(), 0.0);
         assertEquals(reacquiredLocation.getLongitude(), filtered.getLongitude(), 0.0);
         assertEquals(0.0f, state.speedMps(filtered), 0.0f);
+    }
+
+    @Test
+    public void onRawLocationChanged_usesProvidedNowForLiveFreshness() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long nowMs = 100_000L;
+        NavigationLocation rawLocation = location(nowMs - 1_000L, 48.2082000, 16.3738000, 1.0f);
+
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(rawLocation, nowMs);
+
+        assertFalse(accepted.isDropped());
+        assertEquals(rawLocation.getLatitude(), accepted.getFilteredLocation().getLatitude(), 0.0);
+        assertEquals(rawLocation.getLongitude(), accepted.getFilteredLocation().getLongitude(), 0.0);
     }
 
     @Test
@@ -230,5 +243,12 @@ public class NavigationSessionLocationStateTest {
         location.setTime(timeMs);
         location.setAccuracy(5f);
         return location;
+    }
+
+    private static NavigationSessionLocationState.Update onRawLocationChanged(
+            NavigationSessionLocationState state,
+            NavigationLocation location
+    ) {
+        return state.onRawLocationChanged(location, location.getTime());
     }
 }

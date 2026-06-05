@@ -67,12 +67,12 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         this.foregroundController = foregroundController;
     }
 
-    public void seedStartupLocation() {
+    public void seedStartupLocation(long nowMs) {
         NavigationLocationController controller = locationController;
         if (controller == null) {
             return;
         }
-        NavigationLocation seed = controller.getBestStartupLastKnownLocation();
+        NavigationLocation seed = controller.getBestStartupLastKnownLocation(nowMs);
         if (seed != null) {
             AppLogger.i(TAG, "Using last known location as seed " + NavigationLocationFormatter.format(seed));
             onLocationChanged(seed);

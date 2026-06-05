@@ -141,11 +141,6 @@ final class NavigationLocationUpdateRequester {
         }
 
         @NonNull
-        static Result unchanged() {
-            return new Result(false, null);
-        }
-
-        @NonNull
         static Result clearActiveRequest() {
             return new Result(true, null);
         }

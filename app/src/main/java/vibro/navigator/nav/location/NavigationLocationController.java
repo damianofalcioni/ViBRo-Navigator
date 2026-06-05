@@ -120,7 +120,7 @@ public final class NavigationLocationController {
     }
 
     @Nullable
-    public NavigationLocation getBestStartupLastKnownLocation() {
+    public NavigationLocation getBestStartupLastKnownLocation(long nowMs) {
         boolean fineGranted = providerAccess.hasFineLocationPermission();
         boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
         if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
@@ -130,7 +130,7 @@ public final class NavigationLocationController {
                 providerAccess::getLastKnownLocationQuietly,
                 fineGranted,
                 coarseGranted,
-                System.currentTimeMillis()
+                nowMs
         );
         AppLogger.d(TAG, "Best last known NavigationLocation=" + NavigationLocationFormatter.format(best));
         return best;

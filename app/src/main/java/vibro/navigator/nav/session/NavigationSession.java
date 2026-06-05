@@ -121,10 +121,10 @@ public final class NavigationSession {
     }
 
     @NonNull
-    public List<?> addBlockedPointsAhead() {
+    public List<?> addBlockedPointsAhead(long nowMs) {
         return components.routeState.addBlockedPointsAhead(
                 components.locationState.getLastFilteredLocation(),
-                System.currentTimeMillis()
+                nowMs
         );
     }
 
