@@ -4,14 +4,20 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 final class IntentWebMapUriParser {
+    private static final Pattern MAP_FRAGMENT_COORDINATES = Pattern.compile(
+            "(?:^|&)map=[^/]+/(-?\\d{1,2}(?:\\.\\d+)?)/(-?\\d{1,3}(?:\\.\\d+)?)(?:$|&)"
+    );
 
     private IntentWebMapUriParser() {
     }
 
     @Nullable
     static String parse(@NonNull String uriString, @NonNull String... mapQueryKeys) {
+        String fragment = extractFragment(uriString);
         String withoutFragment = stripFragment(uriString);
         int queryIndex = withoutFragment.indexOf('?');
         String base = queryIndex >= 0 ? withoutFragment.substring(0, queryIndex) : withoutFragment;
@@ -23,6 +29,10 @@ final class IntentWebMapUriParser {
             if (mapQueryResult != null) {
                 return mapQueryResult;
             }
+            String fragmentCoordinates = parseMapFragment(fragment);
+            if (fragmentCoordinates != null) {
+                return fragmentCoordinates;
+            }
         }
 
         String atCoordinates = IntentLocationCoordinates.extractAtCoordinates(withoutFragment);
@@ -30,6 +40,18 @@ final class IntentWebMapUriParser {
             return atCoordinates;
         }
         return IntentLocationCoordinates.extract(withoutFragment);
+    }
+
+    @Nullable
+    private static String parseMapFragment(@Nullable String fragment) {
+        if (fragment == null || fragment.isEmpty()) {
+            return null;
+        }
+        Matcher matcher = MAP_FRAGMENT_COORDINATES.matcher(fragment);
+        if (!matcher.find()) {
+            return null;
+        }
+        return IntentLocationCoordinates.extract(matcher.group(1) + "," + matcher.group(2));
     }
 
     @Nullable
@@ -51,6 +73,12 @@ final class IntentWebMapUriParser {
     private static String stripFragment(@NonNull String uriString) {
         int fragmentIndex = uriString.indexOf('#');
         return fragmentIndex >= 0 ? uriString.substring(0, fragmentIndex) : uriString;
+    }
+
+    @Nullable
+    private static String extractFragment(@NonNull String uriString) {
+        int fragmentIndex = uriString.indexOf('#');
+        return fragmentIndex >= 0 ? uriString.substring(fragmentIndex + 1) : null;
     }
 
     @Nullable

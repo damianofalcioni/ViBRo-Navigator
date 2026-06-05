@@ -139,6 +139,21 @@ public class NavigationLocationControllerTest {
         assertEquals(1_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
     }
 
+    @Test
+    public void requestLocationUpdates_afterPermissionLossClearsActiveProviderState() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.requestLocationUpdates(10_000L);
+        provider.setPermissions(false, false);
+        controller.requestLocationUpdates(10_000L);
+
+        assertTrue(provider.requestedProviders.isEmpty());
+        assertEquals(NavState.NO_DEADLINE, controller.getNextEvaluationDeadlineElapsedMs());
+        assertEquals(1_000L, controller.getLastRequestedLocationMinTimeMsOrDefault(1_000L));
+    }
+
     @NonNull
     private static NavigationLocationController controller(
             @NonNull MutableClock clock,
@@ -179,6 +194,8 @@ public class NavigationLocationControllerTest {
         private final List<String> enabledProviders;
         @NonNull
         private List<String> requestedProviders = Collections.emptyList();
+        private boolean fineGranted = true;
+        private boolean coarseGranted = true;
         private int requestProviderUpdatesCount;
         private int cancelCurrentLocationRequestsCount;
 
@@ -186,14 +203,19 @@ public class NavigationLocationControllerTest {
             this.enabledProviders = Arrays.asList(enabledProviders);
         }
 
+        void setPermissions(boolean fineGranted, boolean coarseGranted) {
+            this.fineGranted = fineGranted;
+            this.coarseGranted = coarseGranted;
+        }
+
         @Override
         public boolean hasFineLocationPermission() {
-            return true;
+            return fineGranted;
         }
 
         @Override
         public boolean hasCoarseLocationPermission() {
-            return true;
+            return coarseGranted;
         }
 
         @NonNull

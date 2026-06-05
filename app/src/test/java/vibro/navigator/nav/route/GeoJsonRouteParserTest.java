@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class GeoJsonRouteParserTest {
 
@@ -74,5 +75,27 @@ public class GeoJsonRouteParserTest {
         assertEquals(50, route.speedLimitAt(60.0).value);
         assertEquals(RouteSpeedLimit.Unit.MILES_PER_HOUR, route.speedLimitAt(60.0).unit);
         assertNull(route.speedLimitAt(140.0));
+    }
+
+    @Test
+    public void parse_discardsRouteTimesWhenAnyTimingEntryIsInvalid() {
+        String geoJson = "{"
+                + "\"type\":\"FeatureCollection\","
+                + "\"features\":[{"
+                + "\"type\":\"Feature\","
+                + "\"properties\":{"
+                + "\"times\":[0,\"bad\",120]"
+                + "},"
+                + "\"geometry\":{"
+                + "\"type\":\"LineString\","
+                + "\"coordinates\":[[16.0,48.0],[16.1,48.1],[16.2,48.2]]"
+                + "}"
+                + "}]"
+                + "}";
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(3, route.track.size());
+        assertTrue(route.timesSeconds.isEmpty());
     }
 }

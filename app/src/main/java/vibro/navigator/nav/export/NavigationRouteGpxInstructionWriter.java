@@ -100,14 +100,11 @@ final class NavigationRouteGpxInstructionWriter {
             @NonNull VoiceHint hint,
             int hintPosition
     ) {
-        if (route.timesSeconds.isEmpty() || route.track.isEmpty()) {
+        if (!hasAlignedTrackTimes(route)) {
             return Double.NaN;
         }
         int startIndex = boundedTrackIndex(route, hint.indexInTrack);
         int endIndex = nextInstructionTrackIndex(route, hintPosition, startIndex);
-        if (!hasTimeAt(route, startIndex) || !hasTimeAt(route, endIndex)) {
-            return Double.NaN;
-        }
         return Math.max(0.0, route.timesSeconds.get(endIndex) - route.timesSeconds.get(startIndex));
     }
 
@@ -125,8 +122,10 @@ final class NavigationRouteGpxInstructionWriter {
         return route.track.size() - 1;
     }
 
-    private static boolean hasTimeAt(@NonNull GeoJsonRoute route, int trackIndex) {
-        return trackIndex >= 0 && trackIndex < route.timesSeconds.size();
+    private static boolean hasAlignedTrackTimes(@NonNull GeoJsonRoute route) {
+        return !route.track.isEmpty()
+                && !route.timesSeconds.isEmpty()
+                && route.timesSeconds.size() == route.track.size();
     }
 
     private static int boundedTrackIndex(@NonNull GeoJsonRoute route, int indexInTrack) {

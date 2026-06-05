@@ -57,7 +57,7 @@ final class NavigationLocationUpdateRequester {
         boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
         if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
             AppLogger.w(TAG, "Location permission unavailable, cannot request updates");
-            return Result.unchanged();
+            return Result.clearActiveRequest();
         }
 
         List<String> legacyProviders = providerAccess.enabledPermittedProviders(fineGranted, coarseGranted);

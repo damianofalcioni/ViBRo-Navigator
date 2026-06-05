@@ -63,6 +63,18 @@ public class NavigationLocationUpdateRequesterTest {
         assertTrue(provider.requestedProviders.isEmpty());
     }
 
+    @Test
+    public void request_whenLocationPermissionMissing_clearsActiveRequest() {
+        FakeLocationProvider provider = new FakeLocationProvider(false, false, GPS_PROVIDER);
+        FakeFusedLocationUpdateClient fused = new FakeFusedLocationUpdateClient(true);
+        NavigationLocationUpdateRequester requester = requester(provider, fused);
+
+        NavigationLocationUpdateRequester.Result result =
+                requester.request(1_000L, true, 1_000L, GPS_PROVIDER);
+
+        assertTrue(result.shouldClearActiveRequest());
+    }
+
     @NonNull
     private static NavigationLocationUpdateRequester requester(
             @NonNull NavigationLocationProvider provider,
@@ -81,22 +93,30 @@ public class NavigationLocationUpdateRequesterTest {
     private static final class FakeLocationProvider implements NavigationLocationProvider {
         @NonNull
         private final List<String> enabledProviders;
+        private final boolean fineGranted;
+        private final boolean coarseGranted;
         @NonNull
         private List<String> requestedProviders = Collections.emptyList();
         private long requestedMinTimeMs = -1L;
 
         FakeLocationProvider(@NonNull String... enabledProviders) {
+            this(true, true, enabledProviders);
+        }
+
+        FakeLocationProvider(boolean fineGranted, boolean coarseGranted, @NonNull String... enabledProviders) {
             this.enabledProviders = Arrays.asList(enabledProviders);
+            this.fineGranted = fineGranted;
+            this.coarseGranted = coarseGranted;
         }
 
         @Override
         public boolean hasFineLocationPermission() {
-            return true;
+            return fineGranted;
         }
 
         @Override
         public boolean hasCoarseLocationPermission() {
-            return true;
+            return coarseGranted;
         }
 
         @NonNull

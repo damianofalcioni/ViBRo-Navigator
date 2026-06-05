@@ -76,6 +76,34 @@ public class NavigationRouteGpxExporterTest {
                 .matches("ViBRo-Navigator Export \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"));
     }
 
+    @Test
+    public void export_omitsInstructionCountdownWhenTrackTimesDoNotAlign() throws Exception {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.0, 16.0),
+                        new LatLon(48.1, 16.1),
+                        new LatLon(48.2, 16.2),
+                        new LatLon(48.3, 16.3)
+                ),
+                Arrays.asList(
+                        new VoiceHint(0, 2, 0, 25.0, -90),
+                        new VoiceHint(2, 3, 0, 40.0, 90)
+                ),
+                Arrays.asList(0.0, 5.0, 20.0),
+                20.0,
+                300.0
+        );
+
+        Document document = parse(NavigationRouteGpxExporter.export(
+                TestNavigationTextResources.metric(),
+                route,
+                Collections.emptyList()
+        ));
+
+        Element turnWaypoint = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).item(0);
+        assertTrue(childText(turnWaypoint, "desc").contains("--"));
+    }
+
     private static GeoJsonRoute sampleRoute(List<VoiceHint> hints) {
         return new GeoJsonRoute(
                 Arrays.asList(

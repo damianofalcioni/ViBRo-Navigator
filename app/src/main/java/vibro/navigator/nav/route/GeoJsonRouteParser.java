@@ -48,10 +48,10 @@ public final class GeoJsonRouteParser {
         return new GeoJsonRoute(
                 parseTrack(trackFeature.optJSONObject("geometry")),
                 parseVoiceHints(props),
-                parseTimes(props != null ? props.optJSONArray("times") : null),
+                GeoJsonRouteTimesParser.parse(props != null ? props.optJSONArray("times") : null),
                 GeoJsonRouteSpeedLimitParser.parse(props != null ? props.optJSONArray("messages") : null),
-                parseDouble(routeMetric(props, "total-time")),
-                parseDouble(routeMetric(props, "track-length"))
+                parseRouteMetricDouble(routeMetric(props, "total-time")),
+                parseRouteMetricDouble(routeMetric(props, "track-length"))
         );
     }
 
@@ -124,24 +124,7 @@ public final class GeoJsonRouteParser {
         return new LatLon(lat, lon);
     }
 
-    @NonNull
-    private static List<Double> parseTimes(JSONArray timesArray) {
-        List<Double> out = new ArrayList<>();
-        if (timesArray == null) {
-            return out;
-        }
-        for (int i = 0; i < timesArray.length(); i++) {
-            Object raw = timesArray.opt(i);
-            double parsed = parseDouble(String.valueOf(raw));
-            if (!Double.isFinite(parsed)) {
-                continue;
-            }
-            out.add(parsed);
-        }
-        return out;
-    }
-
-    private static double parseDouble(@NonNull String s) {
+    private static double parseRouteMetricDouble(@NonNull String s) {
         try {
             return Double.parseDouble(s);
         } catch (NumberFormatException ignored) {

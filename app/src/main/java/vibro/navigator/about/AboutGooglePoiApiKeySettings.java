@@ -40,6 +40,7 @@ final class AboutGooglePoiApiKeySettings {
     @NonNull
     private final ApiKeyValidator validator;
     private boolean renderingSwitch;
+    private boolean shutdown;
     @Nullable
     private static ApiKeyValidator testValidator;
 
@@ -74,6 +75,7 @@ final class AboutGooglePoiApiKeySettings {
     }
 
     void shutdown() {
+        shutdown = true;
         validator.shutdown();
     }
 
@@ -160,6 +162,9 @@ final class AboutGooglePoiApiKeySettings {
     }
 
     private void saveOrValidateApiKey(@NonNull AlertDialog dialog, @NonNull EditText editText) {
+        if (shutdown) {
+            return;
+        }
         String apiKey = editText.getText().toString().trim();
         if (apiKey.isEmpty()) {
             clearApiKey(dialog);
@@ -167,7 +172,11 @@ final class AboutGooglePoiApiKeySettings {
         }
         setDialogButtonsEnabled(dialog, false);
         Toast.makeText(activity, R.string.msg_google_poi_api_key_validating, Toast.LENGTH_SHORT).show();
-        validator.validate(apiKey, result -> handleValidationResult(dialog, apiKey, result));
+        validator.validate(apiKey, result -> {
+            if (!shutdown) {
+                handleValidationResult(dialog, apiKey, result);
+            }
+        });
     }
 
     private void clearApiKey(@NonNull AlertDialog dialog) {
@@ -182,6 +191,9 @@ final class AboutGooglePoiApiKeySettings {
             @NonNull String apiKey,
             @NonNull GooglePoiApiKeyValidationResult result
     ) {
+        if (shutdown || !dialog.isShowing()) {
+            return;
+        }
         setDialogButtonsEnabled(dialog, true);
         if (result == GooglePoiApiKeyValidationResult.VALID) {
             AppSettings.setValidatedGooglePoiApiKey(activity, apiKey);

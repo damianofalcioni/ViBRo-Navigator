@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.android.controller.ActivityController;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowAlertDialog;
@@ -150,6 +151,28 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
     }
 
     @Test
+    public void aboutPageIgnoresGooglePoiApiKeyValidationResultAfterDestroy() {
+        CapturingApiKeyValidator validator = new CapturingApiKeyValidator();
+        AboutGooglePoiApiKeySettings.setApiKeyValidatorForTests(validator);
+        ActivityController<AboutActivity> controller = Robolectric.buildActivity(AboutActivity.class).setup();
+        AboutActivity activity = controller.get();
+        ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
+
+        apiKeyButton.performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        EditText edit = dialog.findViewById(R.id.aboutGooglePoiApiKeyEdit);
+        edit.setText(USER_GOOGLE_POI_API_KEY);
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+
+        controller.destroy();
+        validator.complete(GooglePoiApiKeyValidationResult.VALID);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals("", AppSettings.getGooglePoiApiKey(context));
+    }
+
+    @Test
     public void aboutPageGoogleSearchSwitchControlsGoogleSearchClient() {
         AppSettings.setValidatedGooglePoiApiKey(context, USER_GOOGLE_POI_API_KEY);
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
@@ -214,6 +237,23 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
                 AboutGooglePoiApiKeySettings.ValidationCallback callback
         ) {
             assertFalse(apiKey.isEmpty());
+            callback.onResult(result);
+        }
+    }
+
+    private static final class CapturingApiKeyValidator implements AboutGooglePoiApiKeySettings.ApiKeyValidator {
+        private AboutGooglePoiApiKeySettings.ValidationCallback callback;
+
+        @Override
+        public void validate(
+                String apiKey,
+                AboutGooglePoiApiKeySettings.ValidationCallback callback
+        ) {
+            assertFalse(apiKey.isEmpty());
+            this.callback = callback;
+        }
+
+        void complete(GooglePoiApiKeyValidationResult result) {
             callback.onResult(result);
         }
     }

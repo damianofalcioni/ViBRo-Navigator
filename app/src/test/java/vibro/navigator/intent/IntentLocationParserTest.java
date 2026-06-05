@@ -55,6 +55,17 @@ public class IntentLocationParserTest {
     }
 
     @Test
+    public void parseToQuery_openStreetMapFragmentOnlyUrl_returnsCoordinatePair() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_VIEW,
+                "https://www.openstreetmap.org/#map=19/45.4642/9.1900",
+                null
+        );
+
+        assertEquals(MILAN_COORDINATES, parsed);
+    }
+
+    @Test
     public void parseToQuery_sharedMapLink_returnsCoordinatePair() {
         String parsed = IntentLocationParser.parseToQuery(
                 ACTION_SEND,
