@@ -92,6 +92,8 @@ android {
     
     buildFeatures {
         resValues = true
+        buildConfig = true
+        aidl = true
     }
 
     buildTypes {
@@ -110,11 +112,6 @@ android {
             shrinkResources = true
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
         }
-    }
-
-    buildFeatures {
-        buildConfig = true
-        aidl = true
     }
 
     compileOptions {

@@ -10,6 +10,7 @@ import android.os.Build;
 import android.service.notification.StatusBarNotification;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.ServiceCompat;
 
@@ -52,7 +53,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
                 service,
                 NavigationService.NOTIFICATION_ID_ONGOING,
                 notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                foregroundServiceType()
         );
     }
 
@@ -227,5 +228,19 @@ public final class AndroidNavigationForegroundController implements NavigationFo
         AppLogger.d(TAG, "Sent turn notification channel=" + channelId
                 + " notificationId=" + NavigationService.NOTIFICATION_ID_TURN
                 + " message=" + message);
+    }
+
+    private static int foregroundServiceType() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return ForegroundServiceTypes.location();
+        }
+        return 0;
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private static final class ForegroundServiceTypes {
+        private static int location() {
+            return ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
+        }
     }
 }
