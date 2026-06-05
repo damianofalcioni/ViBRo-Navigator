@@ -112,6 +112,18 @@ public class IntentLocationParserTest {
     }
 
     @Test
+    public void parseToQuery_sharedTextSkipsNonMapUrlBeforeMapLink() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_SEND,
+                null,
+                "Details: https://example.com/event Destination: "
+                        + "https://maps.google.com/?q=Piazza%20del%20Duomo%2C%20Milan"
+        );
+
+        assertEquals("Piazza del Duomo, Milan", parsed);
+    }
+
+    @Test
     public void parseToQuery_nonMapGoogleUrl_returnsNull() {
         String parsed = IntentLocationParser.parseToQuery(
                 ACTION_VIEW,

@@ -40,7 +40,7 @@ public final class IntentLocationParser {
         }
 
         Matcher urlMatcher = MAP_URL_IN_TEXT.matcher(trimmed);
-        if (urlMatcher.find()) {
+        while (urlMatcher.find()) {
             String parsedUrl = parseSharedUrlCandidate(urlMatcher.group(1));
             if (parsedUrl != null) {
                 return parsedUrl;

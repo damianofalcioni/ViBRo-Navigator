@@ -17,7 +17,6 @@ import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.Priority;
-import com.google.android.gms.tasks.CancellationTokenSource;
 
 import java.util.Collections;
 
@@ -39,8 +38,9 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     private final FusedLocationProviderClient client;
     @Nullable
     private final LocationCallback callback;
-    @Nullable
-    private CancellationTokenSource currentLocationSeedCancellation;
+    @NonNull
+    private final GplayCurrentLocationSeedRequest currentLocationSeedRequest =
+            new GplayCurrentLocationSeedRequest();
 
     public GplayFusedLocationClient(
             @NonNull Context context,
@@ -111,29 +111,29 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     @Override
     @SuppressLint("MissingPermission")
     public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
+        currentLocationSeedRequest.cancel();
         if (callback == null || !isAvailable() || (!fineGranted && !coarseGranted)) {
             return;
         }
-        cancelCurrentLocationSeed();
-        currentLocationSeedCancellation = new CancellationTokenSource();
+        GplayCurrentLocationSeedRequest.ActiveRequest activeRequest = currentLocationSeedRequest.begin();
         try {
             CurrentLocationRequest request = buildCurrentLocationSeedRequest(fineGranted);
-            client.getCurrentLocation(request, currentLocationSeedCancellation.getToken())
-                    .addOnSuccessListener(this::dispatchCurrentLocationSeed)
-                    .addOnFailureListener(error -> AppLogger.w(TAG, "Fused current location seed failed", error));
+            client.getCurrentLocation(request, activeRequest.cancellation.getToken())
+                    .addOnSuccessListener(location -> dispatchCurrentLocationSeed(activeRequest.id, location))
+                    .addOnFailureListener(error -> handleCurrentLocationSeedFailure(activeRequest.id, error));
             AppLogger.d(TAG, "Requested fused current location seed");
         } catch (SecurityException e) {
-            cancelCurrentLocationSeed();
+            currentLocationSeedRequest.cancel();
             AppLogger.w(TAG, "Permission denied while requesting fused current location seed", e);
         } catch (RuntimeException e) {
-            cancelCurrentLocationSeed();
+            currentLocationSeedRequest.cancel();
             AppLogger.w(TAG, "Failed to request fused current location seed", e);
         }
     }
 
     @Override
     public void removeUpdates() {
-        cancelCurrentLocationSeed();
+        currentLocationSeedRequest.cancel();
         if (callback == null) {
             return;
         }
@@ -203,9 +203,9 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
                 .build();
     }
 
-    private void dispatchCurrentLocationSeed(Location location) {
-        currentLocationSeedCancellation = null;
-        if (callback == null) {
+    private void dispatchCurrentLocationSeed(int requestId, Location location) {
+        if (!currentLocationSeedRequest.completeIfActive(requestId)) {
+            AppLogger.d(TAG, "Ignoring stale fused current location seed");
             return;
         }
         if (location == null) {
@@ -216,11 +216,12 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
         callback.onLocationResult(LocationResult.create(Collections.singletonList(location)));
     }
 
-    private void cancelCurrentLocationSeed() {
-        if (currentLocationSeedCancellation != null) {
-            currentLocationSeedCancellation.cancel();
-            currentLocationSeedCancellation = null;
+    private void handleCurrentLocationSeedFailure(int requestId, @NonNull Exception error) {
+        if (!currentLocationSeedRequest.completeIfActive(requestId)) {
+            AppLogger.d(TAG, "Ignoring stale fused current location seed failure");
+            return;
         }
+        AppLogger.w(TAG, "Fused current location seed failed", error);
     }
 
     @NonNull

@@ -153,11 +153,16 @@ final class OsmMapPoiClient {
     private static String readResponseBody(@NonNull HttpURLConnection conn) throws IOException {
         int code = conn.getResponseCode();
         AppLogger.i(TAG, "Overpass response code=" + code);
-        InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
-        if (is == null) {
+        if (!isSuccessfulHttpStatus(code)) {
+            throw new IOException("Overpass returned HTTP " + code);
+        }
+        InputStream response = conn.getInputStream();
+        if (response == null) {
             return "";
         }
-        return readAll(is);
+        try (InputStream is = response) {
+            return readAll(is);
+        }
     }
 
     @NonNull
@@ -170,5 +175,9 @@ final class OsmMapPoiClient {
             sb.append(buf, 0, n);
         }
         return sb.toString();
+    }
+
+    private static boolean isSuccessfulHttpStatus(int code) {
+        return code >= HttpURLConnection.HTTP_OK && code < HttpURLConnection.HTTP_MULT_CHOICE;
     }
 }

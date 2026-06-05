@@ -52,12 +52,18 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
         try {
             int code = conn.getResponseCode();
             AppLogger.i(TAG, "HTTP response code=" + code);
-            InputStream is = responseStream(conn, code);
-            if (is == null) {
+            if (!isSuccessfulHttpStatus(code)) {
+                throw new IOException("Google Geocode returned HTTP " + code);
+            }
+            InputStream response = conn.getInputStream();
+            if (response == null) {
                 AppLogger.w(TAG, "No response stream available for query=" + query);
                 return new ArrayList<>();
             }
-            List<Poi> out = GoogleGeocodeResponseParser.parseResults(readAll(is), limit);
+            List<Poi> out;
+            try (InputStream is = response) {
+                out = GoogleGeocodeResponseParser.parseResults(readAll(is), limit);
+            }
             AppLogger.i(TAG, "Search completed query=" + query + " results=" + out.size());
             return out;
         } catch (Exception e) {
@@ -109,16 +115,18 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
     }
 
     private static InputStream responseStream(@NonNull HttpURLConnection conn, int code) throws IOException {
-        return code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
+        return isSuccessfulHttpStatus(code) ? conn.getInputStream() : conn.getErrorStream();
     }
 
     @NonNull
     private static String readValidationBody(@NonNull HttpURLConnection conn, int code) throws IOException {
-        InputStream is = responseStream(conn, code);
-        if (is == null) {
+        InputStream response = responseStream(conn, code);
+        if (response == null) {
             return "";
         }
-        return readAll(is);
+        try (InputStream is = response) {
+            return readAll(is);
+        }
     }
 
     @NonNull
@@ -131,5 +139,9 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
             sb.append(buf, 0, n);
         }
         return sb.toString();
+    }
+
+    private static boolean isSuccessfulHttpStatus(int code) {
+        return code >= HttpURLConnection.HTTP_OK && code < HttpURLConnection.HTTP_MULT_CHOICE;
     }
 }

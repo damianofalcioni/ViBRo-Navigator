@@ -2,6 +2,7 @@ package vibro.navigator.android.location;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import com.google.android.gms.location.CurrentLocationRequest;
 import com.google.android.gms.location.LocationRequest;
@@ -38,5 +39,26 @@ public class GplayFusedLocationClientTest {
         CurrentLocationRequest request = GplayFusedLocationClient.buildCurrentLocationSeedRequest(false);
 
         assertEquals(Priority.PRIORITY_BALANCED_POWER_ACCURACY, request.getPriority());
+    }
+
+    @Test
+    public void currentLocationSeedTracker_rejectsOlderCompletionAfterNewRequestBegins() {
+        GplayCurrentLocationSeedTracker tracker = new GplayCurrentLocationSeedTracker();
+
+        int firstRequest = tracker.begin();
+        int secondRequest = tracker.begin();
+
+        assertFalse(tracker.completeIfActive(firstRequest));
+        assertTrue(tracker.completeIfActive(secondRequest));
+    }
+
+    @Test
+    public void currentLocationSeedTracker_rejectsCompletionAfterCancel() {
+        GplayCurrentLocationSeedTracker tracker = new GplayCurrentLocationSeedTracker();
+
+        int request = tracker.begin();
+        tracker.cancel();
+
+        assertFalse(tracker.completeIfActive(request));
     }
 }

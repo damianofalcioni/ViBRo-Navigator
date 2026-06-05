@@ -68,12 +68,17 @@ public final class OsmNominatimClient implements PoiSearchClient {
     private static String readResponseBody(@NonNull HttpURLConnection conn, @NonNull String query) throws IOException {
         int code = conn.getResponseCode();
         AppLogger.i(TAG, "HTTP response code=" + code);
-        InputStream is = code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream();
-        if (is == null) {
+        if (!isSuccessfulHttpStatus(code)) {
+            throw new IOException("Nominatim returned HTTP " + code);
+        }
+        InputStream response = conn.getInputStream();
+        if (response == null) {
             AppLogger.w(TAG, "No response stream available for query=" + query);
             return "";
         }
-        return readAll(is);
+        try (InputStream is = response) {
+            return readAll(is);
+        }
     }
 
     @NonNull
@@ -119,5 +124,9 @@ public final class OsmNominatimClient implements PoiSearchClient {
             sb.append(buf, 0, n);
         }
         return sb.toString();
+    }
+
+    private static boolean isSuccessfulHttpStatus(int code) {
+        return code >= HttpURLConnection.HTTP_OK && code < HttpURLConnection.HTTP_MULT_CHOICE;
     }
 }
