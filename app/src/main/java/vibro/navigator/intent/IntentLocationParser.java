@@ -10,6 +10,7 @@ public final class IntentLocationParser {
 
     private static final String ACTION_SEND = "android.intent.action.SEND";
     private static final String ACTION_SEND_MULTIPLE = "android.intent.action.SEND_MULTIPLE";
+    private static final String TRAILING_URL_PUNCTUATION = ".,;:!?)]}\"'";
     private static final Pattern MAP_URL_IN_TEXT = Pattern.compile("((?:https?://|geo:|google\\.navigation:)[^\\s]+)", Pattern.CASE_INSENSITIVE);
 
     private IntentLocationParser() {
@@ -40,7 +41,7 @@ public final class IntentLocationParser {
 
         Matcher urlMatcher = MAP_URL_IN_TEXT.matcher(trimmed);
         if (urlMatcher.find()) {
-            String parsedUrl = IntentLocationUriParser.parse(urlMatcher.group(1));
+            String parsedUrl = parseSharedUrlCandidate(urlMatcher.group(1));
             if (parsedUrl != null) {
                 return parsedUrl;
             }
@@ -51,6 +52,36 @@ public final class IntentLocationParser {
             return coords;
         }
         return trimmed;
+    }
+
+    @Nullable
+    private static String parseSharedUrlCandidate(@NonNull String raw) {
+        String candidate = raw;
+        while (!candidate.isEmpty()) {
+            String parsed = IntentLocationUriParser.parse(candidate);
+            if (parsed != null) {
+                return parsed;
+            }
+            String trimmed = trimTrailingUrlPunctuation(candidate);
+            if (trimmed.length() == candidate.length()) {
+                return null;
+            }
+            candidate = trimmed;
+        }
+        return null;
+    }
+
+    @NonNull
+    private static String trimTrailingUrlPunctuation(@NonNull String value) {
+        int end = value.length();
+        while (end > 0 && isTrailingUrlPunctuation(value.charAt(end - 1))) {
+            end--;
+        }
+        return value.substring(0, end);
+    }
+
+    private static boolean isTrailingUrlPunctuation(char value) {
+        return TRAILING_URL_PUNCTUATION.indexOf(value) >= 0;
     }
 
 }

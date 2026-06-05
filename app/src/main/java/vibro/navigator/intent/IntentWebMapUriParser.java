@@ -23,8 +23,9 @@ final class IntentWebMapUriParser {
         String base = queryIndex >= 0 ? withoutFragment.substring(0, queryIndex) : withoutFragment;
         String query = queryIndex >= 0 ? withoutFragment.substring(queryIndex + 1) : null;
         String host = extractHost(base);
+        String path = extractPath(base);
 
-        if (isKnownMapHost(host)) {
+        if (isKnownMapUrl(host, path)) {
             String mapQueryResult = parseKnownMapQuery(query, mapQueryKeys);
             if (mapQueryResult != null) {
                 return mapQueryResult;
@@ -95,14 +96,27 @@ final class IntentWebMapUriParser {
         return host.toLowerCase(Locale.US);
     }
 
-    private static boolean isKnownMapHost(@Nullable String host) {
+    @NonNull
+    private static String extractPath(@NonNull String base) {
+        int schemeSeparator = base.indexOf("://");
+        if (schemeSeparator < 0) {
+            return "";
+        }
+        int hostStart = schemeSeparator + 3;
+        int pathStart = base.indexOf('/', hostStart);
+        return pathStart >= 0 ? base.substring(pathStart) : "";
+    }
+
+    private static boolean isKnownMapUrl(@Nullable String host, @NonNull String path) {
         if (host == null || host.isEmpty()) {
             return false;
         }
-        return host.equals("maps.google.com")
-                || host.equals("google.com")
-                || host.equals("www.google.com")
+        if (host.equals("maps.google.com")
                 || host.equals("openstreetmap.org")
-                || host.equals("www.openstreetmap.org");
+                || host.equals("www.openstreetmap.org")) {
+            return true;
+        }
+        return (host.equals("google.com") || host.equals("www.google.com"))
+                && (path.equals("/maps") || path.startsWith("/maps/"));
     }
 }

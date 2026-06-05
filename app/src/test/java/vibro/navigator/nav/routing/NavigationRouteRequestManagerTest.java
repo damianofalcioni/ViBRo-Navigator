@@ -27,7 +27,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_throttlesBackToBackRecalculations() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         NavigationRouteRequestSnapshot first = manager.prepare(
                 false,
@@ -54,7 +54,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_queuesRecalculationWhileRequestIsInProgress() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         NavigationRouteRequestSnapshot first = manager.prepare(
                 true,
@@ -83,7 +83,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_skipsQueuedStartupRefreshWhenLatestFixDoesNotMateriallyImproveStart() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         NavigationRouteRequestSnapshot first = manager.prepare(
                 false,
@@ -112,7 +112,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_queuesStartupRefreshWhenLatestFixMovesStartMaterially() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         manager.prepare(
                 false,
@@ -140,7 +140,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_queuesStartupRefreshWhenAccuracyImprovesMaterially() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         manager.prepare(
                 false,
@@ -168,7 +168,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_keepsDeviationRerouteQueuedWhenStartIsClose() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         manager.prepare(
                 false,
@@ -196,7 +196,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void onRouteApplied_clearsInProgressAndAllowsQueuedRetry() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         NavigationRouteRequestSnapshot first = manager.prepare(
                 true,
@@ -224,7 +224,7 @@ public class NavigationRouteRequestManagerTest {
     public void onRouteFailure_summarizesNestedMessageAndStopsProgress() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         NavigationRouteRequestSnapshot snapshot = manager.prepare(
                 true,
@@ -249,7 +249,7 @@ public class NavigationRouteRequestManagerTest {
     @Test
     public void prepare_tracksInProgressNoticeUntilCompletion() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
-        manager.reset(1_000L);
+        manager.reset();
 
         NavigationRouteRequestSnapshot snapshot = manager.prepare(
                 true,

@@ -77,6 +77,28 @@ public class IntentLocationParserTest {
     }
 
     @Test
+    public void parseToQuery_sharedMapLinkWithTrailingPeriod_returnsCoordinatePair() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_SEND,
+                null,
+                "Meet me here: https://maps.google.com/?q=" + MILAN_COORDINATES + "."
+        );
+
+        assertEquals(MILAN_COORDINATES, parsed);
+    }
+
+    @Test
+    public void parseToQuery_nonMapGoogleUrl_returnsNull() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_VIEW,
+                "https://www.google.com/search?q=Piazza%20del%20Duomo",
+                null
+        );
+
+        assertNull(parsed);
+    }
+
+    @Test
     public void parseToQuery_sharedAddress_returnsAddress() {
         String parsed = IntentLocationParser.parseToQuery(
                 ACTION_SEND,

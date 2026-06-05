@@ -27,6 +27,6 @@ final class NavigationSessionComponents {
         locationState.reset();
         routeState.reset();
         warmupController.reset(nowMs);
-        routeRequestManager.reset(nowMs);
+        routeRequestManager.reset();
     }
 }

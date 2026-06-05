@@ -38,7 +38,7 @@ public final class NavigationRouteRequestManager {
     @Nullable
     private String inProgressNotice;
 
-    public void reset(long nowMs) {
+    public void reset() {
         routeRequestToken++;
         lastRerouteMs = 0L;
         routeRequestCount = 0;
