@@ -28,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 
 public final class AndroidBRouterRouteClient implements BRouterRouteClient {
 
-    private static final String TAG = "BRouterClient";
+    private static final String TAG = "AndroidBRouterRouteClient";
     private static final long CONNECT_RETRY_DELAY_MS = 250L;
     private static final int MAX_REQUEST_ATTEMPTS = 2;
     private static final String Z64_BASE64_PREFIX = "ejY0";
