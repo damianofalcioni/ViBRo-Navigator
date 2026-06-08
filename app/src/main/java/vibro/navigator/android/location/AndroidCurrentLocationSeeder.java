@@ -46,13 +46,15 @@ final class AndroidCurrentLocationSeeder {
             return;
         }
         if (fineGranted && isProviderEnabled(NavigationLocationProviders.GPS_PROVIDER)) {
-            gpsCurrentLocationCancellation =
-                    requestCurrentLocationSeed(NavigationLocationProviders.GPS_PROVIDER);
+            replaceCurrentLocationSeed(NavigationLocationProviders.GPS_PROVIDER);
+        } else {
+            cancelCurrentLocationSeed(NavigationLocationProviders.GPS_PROVIDER);
         }
         if ((fineGranted || coarseGranted)
                 && isProviderEnabled(NavigationLocationProviders.NETWORK_PROVIDER)) {
-            networkCurrentLocationCancellation =
-                    requestCurrentLocationSeed(NavigationLocationProviders.NETWORK_PROVIDER);
+            replaceCurrentLocationSeed(NavigationLocationProviders.NETWORK_PROVIDER);
+        } else {
+            cancelCurrentLocationSeed(NavigationLocationProviders.NETWORK_PROVIDER);
         }
     }
 
@@ -61,20 +63,49 @@ final class AndroidCurrentLocationSeeder {
             return;
         }
         if (NavigationLocationProviders.GPS_PROVIDER.equals(provider)) {
-            gpsCurrentLocationCancellation = requestCurrentLocationSeed(provider);
+            replaceCurrentLocationSeed(provider);
         } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(provider)) {
-            networkCurrentLocationCancellation = requestCurrentLocationSeed(provider);
+            replaceCurrentLocationSeed(provider);
         }
     }
 
     void cancelPendingCurrentLocationRequests() {
-        if (gpsCurrentLocationCancellation != null) {
-            gpsCurrentLocationCancellation.cancel();
-            gpsCurrentLocationCancellation = null;
+        cancelCurrentLocationSeed(NavigationLocationProviders.GPS_PROVIDER);
+        cancelCurrentLocationSeed(NavigationLocationProviders.NETWORK_PROVIDER);
+    }
+
+    private void replaceCurrentLocationSeed(@NonNull String provider) {
+        cancelCurrentLocationSeed(provider);
+        setCurrentLocationCancellation(provider, requestCurrentLocationSeed(provider));
+    }
+
+    private void cancelCurrentLocationSeed(@NonNull String provider) {
+        CancellationSignal cancellationSignal = currentLocationCancellation(provider);
+        if (cancellationSignal != null) {
+            cancellationSignal.cancel();
+            setCurrentLocationCancellation(provider, null);
         }
-        if (networkCurrentLocationCancellation != null) {
-            networkCurrentLocationCancellation.cancel();
-            networkCurrentLocationCancellation = null;
+    }
+
+    @Nullable
+    private CancellationSignal currentLocationCancellation(@NonNull String provider) {
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(provider)) {
+            return gpsCurrentLocationCancellation;
+        }
+        if (NavigationLocationProviders.NETWORK_PROVIDER.equals(provider)) {
+            return networkCurrentLocationCancellation;
+        }
+        return null;
+    }
+
+    private void setCurrentLocationCancellation(
+            @NonNull String provider,
+            @Nullable CancellationSignal cancellationSignal
+    ) {
+        if (NavigationLocationProviders.GPS_PROVIDER.equals(provider)) {
+            gpsCurrentLocationCancellation = cancellationSignal;
+        } else if (NavigationLocationProviders.NETWORK_PROVIDER.equals(provider)) {
+            networkCurrentLocationCancellation = cancellationSignal;
         }
     }
 
@@ -102,6 +133,10 @@ final class AndroidCurrentLocationSeeder {
         }
         CancellationSignal cancellationSignal = new CancellationSignal();
         Consumer<Location> consumer = location -> {
+            if (cancellationSignal.isCanceled()) {
+                AppLogger.d(TAG, "Ignoring canceled current location seed provider=" + provider);
+                return;
+            }
             clearCurrentLocationCancellation(provider, cancellationSignal);
             if (location == null) {
                 AppLogger.d(TAG, "Current location seed returned null provider=" + provider);
