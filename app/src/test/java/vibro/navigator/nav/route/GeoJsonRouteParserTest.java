@@ -5,6 +5,7 @@ import org.junit.Test;
 import vibro.navigator.geo.LatLon;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -139,7 +140,7 @@ public class GeoJsonRouteParserTest {
     }
 
     @Test
-    public void parse_ignoresOutOfRangeTrackCoordinatesAndInvalidMetrics() {
+    public void parse_rejectsRouteWhenTrackCoordinatesAreInvalidToPreserveHintAlignment() {
         String geoJson = routeJson(
                 "\"track-length\":\"-5\","
                 + "\"total-time\":\"Infinity\"",
@@ -148,7 +149,8 @@ public class GeoJsonRouteParserTest {
 
         GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
 
-        assertEquals(2, route.track.size());
+        assertTrue(route.track.isEmpty());
+        assertTrue(route.voiceHints.isEmpty());
         assertEquals(0.0, route.totalTimeSeconds, 0.0);
         assertEquals(0.0, route.trackLengthMeters, 0.0);
     }
@@ -186,6 +188,28 @@ public class GeoJsonRouteParserTest {
         assertEquals(1, route.timesSeconds.size());
         assertEquals(1, route.speedLimitSegments.size());
         assertCannotMutate(route.track);
+    }
+
+    @Test
+    public void constructor_discardsVoiceHintsThatCannotSafelyMapToTrackPoints() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.0, 16.0),
+                        new LatLon(48.1, 16.1)
+                ),
+                Arrays.asList(
+                        new VoiceHint(-1, 2, 0, 10.0, 0),
+                        new VoiceHint(2, 3, 0, 10.0, 0),
+                        new VoiceHint(1, 5, 0, Double.NaN, 0),
+                        new VoiceHint(1, 6, 0, 10.0, 0)
+                ),
+                20.0,
+                100.0
+        );
+
+        assertEquals(1, route.voiceHints.size());
+        assertEquals(6, route.voiceHints.get(0).command);
+        assertEquals(1, route.voiceHints.get(0).indexInTrack);
     }
 
     private static String routeJson(String properties, String coordinates) {

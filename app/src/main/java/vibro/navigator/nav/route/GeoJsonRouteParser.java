@@ -1,6 +1,7 @@
 package vibro.navigator.nav.route;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
 
@@ -46,6 +47,9 @@ public final class GeoJsonRouteParser {
     private static GeoJsonRoute parseRoute(@NonNull JSONObject trackFeature) {
         JSONObject props = trackFeature.optJSONObject("properties");
         List<LatLon> track = parseTrack(trackFeature.optJSONObject("geometry"));
+        if (track == null) {
+            return emptyRoute();
+        }
         return new GeoJsonRoute(
                 track,
                 parseVoiceHints(props, track.size()),
@@ -101,7 +105,7 @@ public final class GeoJsonRouteParser {
         );
     }
 
-    @NonNull
+    @Nullable
     private static List<LatLon> parseTrack(JSONObject geom) {
         List<LatLon> track = new ArrayList<>();
         JSONArray coords = geom != null ? geom.optJSONArray("coordinates") : null;
@@ -110,9 +114,10 @@ public final class GeoJsonRouteParser {
         }
         for (int i = 0; i < coords.length(); i++) {
             LatLon point = parseTrackPoint(coords.optJSONArray(i));
-            if (point != null) {
-                track.add(point);
+            if (point == null) {
+                return null;
             }
+            track.add(point);
         }
         return track;
     }

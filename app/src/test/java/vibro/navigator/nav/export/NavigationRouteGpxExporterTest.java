@@ -104,6 +104,36 @@ public class NavigationRouteGpxExporterTest {
         assertTrue(childText(turnWaypoint, "desc").contains("--"));
     }
 
+    @Test
+    public void export_omitsInvalidInstructionHintsInsteadOfClampingToRouteEndpoints() throws Exception {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.0, 16.0),
+                        new LatLon(48.1, 16.1),
+                        new LatLon(48.2, 16.2)
+                ),
+                Arrays.asList(
+                        new VoiceHint(-1, 2, 0, 25.0, -90),
+                        new VoiceHint(3, 3, 0, 40.0, 90),
+                        new VoiceHint(1, 5, 0, 10.0, 0)
+                ),
+                Arrays.asList(0.0, 5.0, 20.0),
+                20.0,
+                300.0
+        );
+
+        Document document = parse(NavigationRouteGpxExporter.export(
+                TestNavigationTextResources.metric(),
+                route,
+                Collections.emptyList()
+        ));
+
+        assertEquals(2, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength());
+        Element turnWaypoint = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).item(0);
+        assertEquals("48.100000", turnWaypoint.getAttribute("lat"));
+        assertEquals("16.100000", turnWaypoint.getAttribute("lon"));
+    }
+
     private static GeoJsonRoute sampleRoute(List<VoiceHint> hints) {
         return new GeoJsonRoute(
                 Arrays.asList(

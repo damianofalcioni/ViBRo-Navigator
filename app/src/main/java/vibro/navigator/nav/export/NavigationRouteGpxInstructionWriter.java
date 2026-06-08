@@ -28,7 +28,10 @@ final class NavigationRouteGpxInstructionWriter {
             return;
         }
         for (int i = 0; i < route.voiceHints.size(); i++) {
-            appendWaypoint(out, textResources, route, route.voiceHints.get(i), i);
+            VoiceHint hint = route.voiceHints.get(i);
+            if (isValidTrackIndex(route, hint.indexInTrack)) {
+                appendWaypoint(out, textResources, route, hint, i);
+            }
         }
         if (!hasArrivalHint(route)) {
             VoiceHint arrival = new VoiceHint(route.track.size() - 1, ARRIVAL_COMMAND, 0, 0.0, 0);
@@ -43,7 +46,7 @@ final class NavigationRouteGpxInstructionWriter {
             @NonNull VoiceHint hint,
             int hintPosition
     ) {
-        LatLon point = route.track.get(boundedTrackIndex(route, hint.indexInTrack));
+        LatLon point = route.track.get(hint.indexInTrack);
         NavigationRouteGpxXmlWriter.appendPointStart(out, 1, TAG_WAYPOINT, point);
         out.append(">").append(NavigationRouteGpxXmlWriter.LINE_END);
         NavigationRouteGpxXmlWriter.appendSimpleElement(
@@ -103,7 +106,7 @@ final class NavigationRouteGpxInstructionWriter {
         if (!hasAlignedTrackTimes(route)) {
             return Double.NaN;
         }
-        int startIndex = boundedTrackIndex(route, hint.indexInTrack);
+        int startIndex = hint.indexInTrack;
         int endIndex = nextInstructionTrackIndex(route, hintPosition, startIndex);
         return Math.max(0.0, route.timesSeconds.get(endIndex) - route.timesSeconds.get(startIndex));
     }
@@ -114,7 +117,7 @@ final class NavigationRouteGpxInstructionWriter {
             int startIndex
     ) {
         for (int i = hintPosition + 1; i < route.voiceHints.size(); i++) {
-            int candidate = boundedTrackIndex(route, route.voiceHints.get(i).indexInTrack);
+            int candidate = route.voiceHints.get(i).indexInTrack;
             if (candidate >= startIndex) {
                 return candidate;
             }
@@ -128,9 +131,8 @@ final class NavigationRouteGpxInstructionWriter {
                 && route.timesSeconds.size() == route.track.size();
     }
 
-    private static int boundedTrackIndex(@NonNull GeoJsonRoute route, int indexInTrack) {
-        int maxIndex = Math.max(0, route.track.size() - 1);
-        return Math.max(0, Math.min(maxIndex, indexInTrack));
+    private static boolean isValidTrackIndex(@NonNull GeoJsonRoute route, int indexInTrack) {
+        return indexInTrack >= 0 && indexInTrack < route.track.size();
     }
 
     private static boolean hasArrivalHint(@NonNull GeoJsonRoute route) {

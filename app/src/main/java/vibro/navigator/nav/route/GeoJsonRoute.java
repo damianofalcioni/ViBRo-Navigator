@@ -48,8 +48,9 @@ public final class GeoJsonRoute {
             double totalTimeSeconds,
             double trackLengthMeters
     ) {
-        this.track = immutableCopy(track);
-        this.voiceHints = immutableCopy(voiceHints);
+        List<LatLon> trackCopy = immutableCopy(track);
+        this.track = trackCopy;
+        this.voiceHints = immutableCopy(validVoiceHints(voiceHints, trackCopy.size()));
         this.timesSeconds = immutableCopy(timesSeconds);
         this.speedLimitSegments = immutableCopy(speedLimitSegments);
         this.totalTimeSeconds = totalTimeSeconds;
@@ -72,5 +73,26 @@ public final class GeoJsonRoute {
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(new ArrayList<>(values));
+    }
+
+    @NonNull
+    private static List<VoiceHint> validVoiceHints(@NonNull List<VoiceHint> voiceHints, int trackSize) {
+        if (voiceHints.isEmpty() || trackSize <= 0) {
+            return Collections.emptyList();
+        }
+        List<VoiceHint> valid = new ArrayList<>(voiceHints.size());
+        for (VoiceHint hint : voiceHints) {
+            if (isValidVoiceHint(hint, trackSize)) {
+                valid.add(hint);
+            }
+        }
+        return valid;
+    }
+
+    private static boolean isValidVoiceHint(@NonNull VoiceHint hint, int trackSize) {
+        return hint.indexInTrack >= 0
+                && hint.indexInTrack < trackSize
+                && Double.isFinite(hint.distanceToNextMeters)
+                && hint.distanceToNextMeters >= 0.0;
     }
 }
