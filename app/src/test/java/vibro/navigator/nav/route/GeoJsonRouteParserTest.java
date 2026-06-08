@@ -39,6 +39,23 @@ public class GeoJsonRouteParserTest {
     }
 
     @Test
+    public void parse_discardsVoiceHintsThatCannotMapToParsedTrack() {
+        String geoJson = routeJson(
+                "\"voicehints\":["
+                        + "[1,2,0,42.0,-10],"
+                        + "[3,5,0,42.0,90],"
+                        + "[0,5,0,\"bad\",90]"
+                        + "]",
+                THREE_POINT_COORDINATES
+        );
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(1, route.voiceHints.size());
+        assertEquals(1, route.voiceHints.get(0).indexInTrack);
+    }
+
+    @Test
     public void parsesSpeedLimitSegmentsFromMessagesWayTags() {
         String geoJson = routeJson(
                 "\"messages\":["
@@ -64,6 +81,26 @@ public class GeoJsonRouteParserTest {
         assertEquals(50, route.speedLimitAt(60.0).value);
         assertEquals(RouteSpeedLimit.Unit.MILES_PER_HOUR, route.speedLimitAt(60.0).unit);
         assertNull(route.speedLimitAt(140.0));
+    }
+
+    @Test
+    public void parse_discardsSpeedLimitRowsWithNonFiniteDistance() {
+        String geoJson = routeJson(
+                "\"messages\":["
+                        + "[\"Distance\",\"WayTags\"],"
+                        + "[\"Infinity\",\"maxspeed=30\"],"
+                        + "[\"50\",\"maxspeed=50\"]"
+                        + "]",
+                THREE_POINT_COORDINATES
+        );
+
+        GeoJsonRoute route = GeoJsonRouteParser.parse(geoJson);
+
+        assertEquals(1, route.speedLimitSegments.size());
+        assertEquals(0.0, route.speedLimitSegments.get(0).startMeters, 0.0);
+        assertEquals(50.0, route.speedLimitSegments.get(0).endMeters, 0.0);
+        assertEquals(50, route.speedLimitAt(10.0).value);
+        assertNull(route.speedLimitAt(60.0));
     }
 
     @Test

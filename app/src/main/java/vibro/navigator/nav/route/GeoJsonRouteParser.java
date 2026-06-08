@@ -45,9 +45,10 @@ public final class GeoJsonRouteParser {
     @NonNull
     private static GeoJsonRoute parseRoute(@NonNull JSONObject trackFeature) {
         JSONObject props = trackFeature.optJSONObject("properties");
+        List<LatLon> track = parseTrack(trackFeature.optJSONObject("geometry"));
         return new GeoJsonRoute(
-                parseTrack(trackFeature.optJSONObject("geometry")),
-                parseVoiceHints(props),
+                track,
+                parseVoiceHints(props, track.size()),
                 GeoJsonRouteTimesParser.parse(props != null ? props.optJSONArray("times") : null),
                 GeoJsonRouteSpeedLimitParser.parse(props != null ? props.optJSONArray("messages") : null),
                 parseRouteMetricDouble(routeMetric(props, "total-time")),
@@ -64,14 +65,14 @@ public final class GeoJsonRouteParser {
     }
 
     @NonNull
-    private static List<VoiceHint> parseVoiceHints(JSONObject props) {
+    private static List<VoiceHint> parseVoiceHints(JSONObject props, int trackSize) {
         List<VoiceHint> voiceHints = new ArrayList<>();
         JSONArray rawHints = props != null ? props.optJSONArray("voicehints") : null;
-        if (rawHints == null) {
+        if (rawHints == null || trackSize <= 0) {
             return voiceHints;
         }
         for (int i = 0; i < rawHints.length(); i++) {
-            VoiceHint voiceHint = parseVoiceHint(rawHints.optJSONArray(i));
+            VoiceHint voiceHint = parseVoiceHint(rawHints.optJSONArray(i), trackSize);
             if (voiceHint != null) {
                 voiceHints.add(voiceHint);
             }
@@ -79,19 +80,23 @@ public final class GeoJsonRouteParser {
         return voiceHints;
     }
 
-    private static VoiceHint parseVoiceHint(JSONArray hint) {
+    private static VoiceHint parseVoiceHint(JSONArray hint, int trackSize) {
         if (hint == null || hint.length() < 5) {
             return null;
         }
         int indexInTrack = hint.optInt(0, -1);
-        if (indexInTrack < 0) {
+        double distanceToNextMeters = hint.optDouble(3, Double.NaN);
+        if (indexInTrack < 0
+                || indexInTrack >= trackSize
+                || !Double.isFinite(distanceToNextMeters)
+                || distanceToNextMeters < 0.0) {
             return null;
         }
         return new VoiceHint(
                 indexInTrack,
                 hint.optInt(1, 0),
                 hint.optInt(2, 0),
-                hint.optDouble(3, 0),
+                distanceToNextMeters,
                 hint.optInt(4, 0)
         );
     }

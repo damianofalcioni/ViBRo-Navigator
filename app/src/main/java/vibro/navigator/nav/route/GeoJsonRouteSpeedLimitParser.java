@@ -60,10 +60,10 @@ final class GeoJsonRouteSpeedLimitParser {
         if (row == null) {
             return cursorMeters;
         }
-        double endMeters = cursorMeters + Math.max(0.0, parseDouble(row.optString(
+        double endMeters = cursorMeters + parseNonNegativeFiniteDouble(row.optString(
                 columns.distanceIndex,
                 DEFAULT_DISTANCE_METERS
-        )));
+        ));
         RouteSpeedLimit speedLimit = parseSpeedLimit(row.optString(columns.wayTagsIndex, ""));
         if (speedLimit != null && endMeters > cursorMeters) {
             out.add(new RouteSpeedLimitSegment(cursorMeters, endMeters, speedLimit));
@@ -95,6 +95,11 @@ final class GeoJsonRouteSpeedLimitParser {
         return unit != null && MPH_UNIT.equals(unit.toLowerCase(Locale.US))
                 ? RouteSpeedLimit.Unit.MILES_PER_HOUR
                 : RouteSpeedLimit.Unit.KILOMETERS_PER_HOUR;
+    }
+
+    private static double parseNonNegativeFiniteDouble(@NonNull String raw) {
+        double parsed = parseDouble(raw);
+        return Double.isFinite(parsed) && parsed > 0.0 ? parsed : 0.0;
     }
 
     private static double parseDouble(@NonNull String raw) {

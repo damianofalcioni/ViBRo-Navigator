@@ -38,6 +38,41 @@ public class RouteTimeEstimatorTest {
     }
 
     @Test
+    public void estimateSecondsToTrackPoint_usesBrouterTimeWhenLiveSpeedIsNonFinite() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Arrays.asList(),
+                Arrays.asList(0.0, 45.0),
+                45.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        Double nanSpeedSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+                route,
+                index,
+                0.0,
+                0,
+                1,
+                Float.NaN
+        );
+        Double infiniteSpeedSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
+                route,
+                index,
+                0.0,
+                0,
+                1,
+                Float.POSITIVE_INFINITY
+        );
+
+        assertEquals(45.0, nanSpeedSeconds, 0.01);
+        assertEquals(45.0, infiniteSpeedSeconds, 0.01);
+    }
+
+    @Test
     public void estimateSecondsToTrackPoint_combinesLiveCurrentSegmentWithBrouterLaterSegments() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(

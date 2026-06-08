@@ -200,6 +200,18 @@ public class NavigationSessionLocationStateTest {
     }
 
     @Test
+    public void speedMps_returnsZeroForNonFiniteReportedSpeed() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+
+        assertEquals(0.0f, state.speedMps(location(1_000L, 48.2082000, 16.3738000, Float.NaN)), 0.0f);
+        assertEquals(
+                0.0f,
+                state.speedMps(location(1_000L, 48.2082000, 16.3738000, Float.POSITIVE_INFINITY)),
+                0.0f
+        );
+    }
+
+    @Test
     public void onRawLocationChanged_usesProvidedNowForLiveFreshness() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long nowMs = 100_000L;

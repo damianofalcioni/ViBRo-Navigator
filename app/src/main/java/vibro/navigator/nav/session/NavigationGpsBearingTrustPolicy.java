@@ -15,7 +15,7 @@ final class NavigationGpsBearingTrustPolicy {
         if (!location.hasBearing()) {
             return null;
         }
-        if (speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
+        if (!Float.isFinite(speedMps) || speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
             return null;
         }
         if (location.hasBearingAccuracy()) {

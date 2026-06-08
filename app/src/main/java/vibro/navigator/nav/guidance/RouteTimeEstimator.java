@@ -85,7 +85,7 @@ public final class RouteTimeEstimator {
                 totalLengthMeters
         );
         if (currentSegmentEndAlongTrackMeters <= clampedAlongTrackMeters
-                || speedMps < MIN_LIVE_SPEED_METERS_PER_SECOND) {
+                || !hasUsableLiveSpeed(speedMps)) {
             return routeModelSeconds;
         }
 
@@ -108,6 +108,10 @@ public final class RouteTimeEstimator {
             return Math.max(0.0, currentSegmentSeconds) + laterSegmentsSeconds;
         }
         return routeModelSeconds;
+    }
+
+    private static boolean hasUsableLiveSpeed(float speedMps) {
+        return Float.isFinite(speedMps) && speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND;
     }
 
     @Nullable

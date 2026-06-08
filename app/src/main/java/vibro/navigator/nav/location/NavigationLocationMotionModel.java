@@ -56,7 +56,8 @@ public final class NavigationLocationMotionModel {
 
     public float speedMps(@NonNull NavigationLocation location) {
         if (location.hasSpeed()) {
-            return Math.max(0f, location.getSpeed());
+            float reportedSpeedMps = location.getSpeed();
+            return Float.isFinite(reportedSpeedMps) && reportedSpeedMps > 0f ? reportedSpeedMps : 0f;
         }
         if (previousFiltered == null) {
             return 0f;
