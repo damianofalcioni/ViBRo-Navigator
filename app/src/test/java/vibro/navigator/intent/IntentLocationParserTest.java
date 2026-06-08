@@ -79,6 +79,17 @@ public class IntentLocationParserTest {
     }
 
     @Test
+    public void parseToQuery_googleMapsUrlWithExplicitPositiveSigns_returnsCoordinatePair() {
+        String parsed = IntentLocationParser.parseToQuery(
+                ACTION_VIEW,
+                "https://www.google.com/maps/search/?api=1&query=%2B45.4642,%2B9.1900",
+                null
+        );
+
+        assertEquals("+45.4642,+9.1900", parsed);
+    }
+
+    @Test
     public void parseToQuery_openStreetMapFragmentOnlyUrl_returnsCoordinatePair() {
         String parsed = IntentLocationParser.parseToQuery(
                 ACTION_VIEW,

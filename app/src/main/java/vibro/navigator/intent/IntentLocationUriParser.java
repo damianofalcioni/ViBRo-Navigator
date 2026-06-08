@@ -87,11 +87,13 @@ final class IntentLocationUriParser {
         if (decoded.isEmpty()) {
             return null;
         }
-        String nestedUri = parse(decoded);
-        if (nestedUri != null) {
-            return nestedUri;
+        if (hasSupportedScheme(decoded)) {
+            String nestedUri = parse(decoded);
+            if (nestedUri != null) {
+                return nestedUri;
+            }
         }
-        String coords = IntentLocationCoordinates.extract(decoded);
+        String coords = IntentLocationCoordinates.extractDecoded(decoded);
         if (coords != null) {
             return coords;
         }
@@ -99,6 +101,18 @@ final class IntentLocationUriParser {
             return null;
         }
         return decoded;
+    }
+
+    private static boolean hasSupportedScheme(@NonNull String value) {
+        int schemeEnd = value.indexOf(':');
+        if (schemeEnd <= 0) {
+            return false;
+        }
+        String scheme = value.substring(0, schemeEnd).toLowerCase(Locale.US);
+        return "geo".equals(scheme)
+                || "google.navigation".equals(scheme)
+                || "http".equals(scheme)
+                || "https".equals(scheme);
     }
 
     @NonNull
