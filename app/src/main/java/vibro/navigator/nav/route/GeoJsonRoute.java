@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,10 +48,10 @@ public final class GeoJsonRoute {
             double totalTimeSeconds,
             double trackLengthMeters
     ) {
-        this.track = track;
-        this.voiceHints = voiceHints;
-        this.timesSeconds = timesSeconds;
-        this.speedLimitSegments = speedLimitSegments;
+        this.track = immutableCopy(track);
+        this.voiceHints = immutableCopy(voiceHints);
+        this.timesSeconds = immutableCopy(timesSeconds);
+        this.speedLimitSegments = immutableCopy(speedLimitSegments);
         this.totalTimeSeconds = totalTimeSeconds;
         this.trackLengthMeters = trackLengthMeters;
     }
@@ -63,5 +64,13 @@ public final class GeoJsonRoute {
             }
         }
         return null;
+    }
+
+    @NonNull
+    private static <T> List<T> immutableCopy(@NonNull List<T> values) {
+        if (values.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(new ArrayList<>(values));
     }
 }

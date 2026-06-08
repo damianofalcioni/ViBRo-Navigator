@@ -52,4 +52,17 @@ public class PolylineIndexTest {
         assertEquals(0.0, point.lat, 0.0);
         assertEquals(0.001, point.lon, 0.0);
     }
+
+    @Test
+    public void match_endpointAlongTrackUsesCumulativeRouteDistance() {
+        PolylineIndex index = new PolylineIndex(Arrays.asList(
+                new LatLon(0.0, 0.0),
+                new LatLon(0.0, 10.0)
+        ));
+
+        PolylineIndex.Match match = index.match(new LatLon(0.0, 10.0), -1);
+
+        assertNotNull(match);
+        assertEquals(index.totalLengthMeters(), match.alongTrackMeters, 0.001);
+    }
 }

@@ -21,6 +21,14 @@ public class GeoMathTest {
     }
 
     @Test
+    public void distanceMeters_antipodalCoordinates_staysFinite() {
+        double distanceMeters = GeoMath.distanceMeters(0.0, 0.0, 0.0, 180.0);
+
+        assertTrue(Double.isFinite(distanceMeters));
+        assertEquals(20_015_000.0, distanceMeters, 2_000.0);
+    }
+
+    @Test
     public void latLonValidation_rejectsNonFiniteAndOutOfRangeCoordinates() {
         assertTrue(LatLon.isValidCoordinate(48.2082, 16.3738));
         assertFalse(LatLon.isValidCoordinate(Double.POSITIVE_INFINITY, 16.3738));

@@ -40,6 +40,7 @@ public class AppDataBackupTest {
     private static final String BACKUP_TYPE = "type";
     private static final String BACKUP_TYPE_BOOLEAN = "boolean";
     private static final String BACKUP_TYPE_STRING = "string";
+    private static final String BACKUP_TYPE_STRING_SET = "stringSet";
     private static final String BACKUP_VALUE = "value";
     private static final String CATEGORY_FUEL = "Fuel";
     private static final String CATEGORY_RESTAURANT = "Restaurant";
@@ -150,16 +151,30 @@ public class AppDataBackupTest {
 
     @Test
     public void importJson_rejectsInvalidPayloadWithoutChangingExistingData() {
-        AppSettings.setImperialUnitsEnabled(context, true);
+        assertImportRejectedWithoutChangingExistingData("{\"schemaVersion\":999,\"sharedPreferences\":{}}");
+    }
 
-        try {
-            AppDataBackup.importJson(context, "{\"schemaVersion\":999,\"sharedPreferences\":{}}");
-        } catch (JSONException expected) {
-            assertTrue(AppSettings.isImperialUnitsEnabled(context));
-            return;
-        }
+    @Test
+    public void importJson_rejectsMissingPreferenceFileWithoutChangingExistingData() throws Exception {
+        JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
+        root.getJSONObject("sharedPreferences").remove(PREFS[1]);
 
-        throw new AssertionError("Expected invalid backup to be rejected");
+        assertImportRejectedWithoutChangingExistingData(root.toString());
+    }
+
+    @Test
+    public void importJson_rejectsNonStringStringSetEntryWithoutChangingExistingData() throws Exception {
+        JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
+        JSONObject appSettings = root.getJSONObject("sharedPreferences")
+                .getJSONObject(PREFS[0]);
+        appSettings.put(
+                "bad_string_set",
+                new JSONObject()
+                        .put(BACKUP_TYPE, BACKUP_TYPE_STRING_SET)
+                        .put(BACKUP_VALUE, new JSONArray().put("valid").put(7))
+        );
+
+        assertImportRejectedWithoutChangingExistingData(root.toString());
     }
 
     private void clearPrefs() {
@@ -169,5 +184,18 @@ public class AppDataBackupTest {
                     .clear()
                     .commit();
         }
+    }
+
+    private void assertImportRejectedWithoutChangingExistingData(String json) {
+        AppSettings.setImperialUnitsEnabled(context, true);
+
+        try {
+            AppDataBackup.importJson(context, json);
+        } catch (JSONException expected) {
+            assertTrue(AppSettings.isImperialUnitsEnabled(context));
+            return;
+        }
+
+        throw new AssertionError("Expected invalid backup to be rejected");
     }
 }

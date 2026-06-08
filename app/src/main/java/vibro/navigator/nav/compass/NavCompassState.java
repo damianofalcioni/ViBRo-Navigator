@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -183,9 +184,9 @@ public final class NavCompassState {
                 input.destinationProjection.withinRadius
         );
         this.routeStartApproachProjection = input.routeStartApproachProjection;
-        this.passedRoutePoints = Collections.unmodifiableList(input.passedRoutePoints);
-        this.routePoints = Collections.unmodifiableList(input.routePoints);
-        this.hintPoints = Collections.unmodifiableList(input.hintPoints);
+        this.passedRoutePoints = Collections.unmodifiableList(new ArrayList<>(input.passedRoutePoints));
+        this.routePoints = Collections.unmodifiableList(new ArrayList<>(input.routePoints));
+        this.hintPoints = Collections.unmodifiableList(new ArrayList<>(input.hintPoints));
         this.orientationCue = input.orientationCue;
         this.routeGeometry = null;
         this.currentLatitude = Double.NaN;

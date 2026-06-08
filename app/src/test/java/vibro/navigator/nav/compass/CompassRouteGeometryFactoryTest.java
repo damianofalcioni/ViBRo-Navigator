@@ -105,4 +105,60 @@ public class CompassRouteGeometryFactoryTest {
         assertEquals(1, geometry.intermediateSamplePointCount());
         assertNotNull(geometry.intermediateSamplePointAt(0));
     }
+
+    @Test
+    public void geometry_defensivelyCopiesSampleLists() {
+        List<CompassRouteGeometry.SamplePoint> routeSamples = new ArrayList<>();
+        routeSamples.add(new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.0), 0.0));
+        List<LatLon> hintSamples = new ArrayList<>();
+        hintSamples.add(new LatLon(0.0, 0.001));
+        List<LatLon> intermediateSamples = new ArrayList<>();
+        intermediateSamples.add(new LatLon(0.0, 0.002));
+
+        CompassRouteGeometry geometry = new CompassRouteGeometry(
+                routeSamples,
+                hintSamples,
+                intermediateSamples
+        );
+        routeSamples.clear();
+        hintSamples.clear();
+        intermediateSamples.clear();
+
+        assertEquals(1, geometry.routeSamplePointCount());
+        assertEquals(1, geometry.hintSamplePointCount());
+        assertEquals(1, geometry.intermediateSamplePointCount());
+    }
+
+    @Test
+    public void projectedCompassState_defensivelyCopiesRoutePointLists() {
+        List<CompassRoutePoint> routePoints = new ArrayList<>();
+        routePoints.add(new CompassRoutePoint(1f, 2f));
+
+        NavCompassState state = NavCompassState.fromProjectedPoints(
+                0f,
+                null,
+                1f,
+                100f,
+                5f,
+                Collections.emptyList(),
+                routePoints,
+                Collections.emptyList(),
+                0f,
+                0f,
+                true
+        );
+        routePoints.clear();
+
+        assertEquals(1, state.routePoints.size());
+        assertCannotMutateCompassPoints(state.routePoints);
+    }
+
+    private static void assertCannotMutateCompassPoints(List<CompassRoutePoint> values) {
+        try {
+            values.clear();
+        } catch (UnsupportedOperationException expected) {
+            return;
+        }
+        throw new AssertionError("Expected compass route points to be immutable");
+    }
 }

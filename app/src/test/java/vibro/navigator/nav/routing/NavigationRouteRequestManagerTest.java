@@ -13,13 +13,16 @@ import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class NavigationRouteRequestManagerTest {
     private static final String FUSED_PROVIDER = "fused";
@@ -297,6 +300,30 @@ public class NavigationRouteRequestManagerTest {
         assertEquals(BLOCKED_ROAD_NOTICE, pending.inProgressNotice);
     }
 
+    @Test
+    public void snapshot_defensivelyCopiesMutableLists() {
+        List<LatLon> intermediates = new ArrayList<>();
+        intermediates.add(new LatLon(48.1, 16.1));
+        List<NogoPoint> blocked = new ArrayList<>();
+        blocked.add(new NogoPoint(48.2, 16.2, 25.0));
+
+        NavigationRouteRequestSnapshot snapshot = new NavigationRouteRequestSnapshot(
+                1,
+                1,
+                new LatLon(48.0, 16.0),
+                intermediates,
+                new LatLon(48.3, 16.3),
+                "trekking",
+                blocked
+        );
+        intermediates.clear();
+        blocked.clear();
+
+        assertEquals(1, snapshot.intermediates.size());
+        assertEquals(1, snapshot.blocked.size());
+        assertCannotMutate(snapshot.intermediates);
+    }
+
     @NonNull
     private static NavigationRequest navigationRequest() {
         return new NavigationRequest(
@@ -322,5 +349,14 @@ public class NavigationRouteRequestManagerTest {
             location.setAccuracy(accuracyMeters);
         }
         return location;
+    }
+
+    private static void assertCannotMutate(@NonNull List<LatLon> values) {
+        try {
+            values.clear();
+        } catch (UnsupportedOperationException expected) {
+            return;
+        }
+        throw new AssertionError("Expected snapshot list to be immutable");
     }
 }

@@ -19,10 +19,8 @@ final class AppDataBackupImportParser {
         JSONObject prefsRoot = readPreferencesRoot(json);
         List<AppDataBackupPreferenceFile> pending = new ArrayList<>();
         for (String prefsName : AppDataBackupContract.BACKED_UP_PREFERENCES) {
-            JSONObject rawPrefs = prefsRoot.optJSONObject(prefsName);
-            if (rawPrefs != null) {
-                pending.add(new AppDataBackupPreferenceFile(prefsName, parsePreferenceValues(rawPrefs)));
-            }
+            JSONObject rawPrefs = requirePreferenceObject(prefsRoot, prefsName);
+            pending.add(new AppDataBackupPreferenceFile(prefsName, parsePreferenceValues(rawPrefs)));
         }
         return pending;
     }
@@ -38,6 +36,18 @@ final class AppDataBackupImportParser {
             throw new JSONException("Missing sharedPreferences object");
         }
         return prefsRoot;
+    }
+
+    @NonNull
+    private static JSONObject requirePreferenceObject(
+            @NonNull JSONObject prefsRoot,
+            @NonNull String prefsName
+    ) throws JSONException {
+        Object rawPrefs = prefsRoot.opt(prefsName);
+        if (rawPrefs instanceof JSONObject) {
+            return (JSONObject) rawPrefs;
+        }
+        throw new JSONException("Missing or invalid backup preferences object " + prefsName);
     }
 
     @NonNull

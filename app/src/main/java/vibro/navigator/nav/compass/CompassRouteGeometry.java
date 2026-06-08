@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -40,9 +41,9 @@ public final class CompassRouteGeometry {
             @NonNull List<LatLon> hintSamplePoints,
             @NonNull List<LatLon> intermediateSamplePoints
     ) {
-        this.routeSamplePoints = Collections.unmodifiableList(routeSamplePoints);
-        this.hintSamplePoints = Collections.unmodifiableList(hintSamplePoints);
-        this.intermediateSamplePoints = Collections.unmodifiableList(intermediateSamplePoints);
+        this.routeSamplePoints = immutableCopy(routeSamplePoints);
+        this.hintSamplePoints = immutableCopy(hintSamplePoints);
+        this.intermediateSamplePoints = immutableCopy(intermediateSamplePoints);
     }
 
     public int routeSamplePointCount() {
@@ -94,5 +95,13 @@ public final class CompassRouteGeometry {
             }
         }
         return Math.max(1, passedPointCount);
+    }
+
+    @NonNull
+    private static <T> List<T> immutableCopy(@NonNull List<T> values) {
+        if (values.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return Collections.unmodifiableList(new ArrayList<>(values));
     }
 }

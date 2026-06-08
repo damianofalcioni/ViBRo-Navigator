@@ -154,8 +154,9 @@ public final class PolylineIndex {
         double projy = ay + t * aby;
         double dist = Math.sqrt(projx * projx + projy * projy);
 
-        double segLen = Math.sqrt(ab2);
-        double along = distanceAtPointIndex(segIndex) + t * segLen;
+        double segmentStartMeters = distanceAtPointIndex(segIndex);
+        double segmentLengthMeters = distanceAtPointIndex(segIndex + 1) - segmentStartMeters;
+        double along = segmentStartMeters + t * segmentLengthMeters;
         double bearing = GeoMath.bearingDegrees(a.lat, a.lon, b.lat, b.lon);
         return new Match(dist, along, bearing, segIndex);
     }

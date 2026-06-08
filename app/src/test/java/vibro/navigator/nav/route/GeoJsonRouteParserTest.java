@@ -2,6 +2,11 @@ package vibro.navigator.nav.route;
 
 import org.junit.Test;
 
+import vibro.navigator.geo.LatLon;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -148,6 +153,41 @@ public class GeoJsonRouteParserTest {
         assertEquals(0.0, route.trackLengthMeters, 0.0);
     }
 
+    @Test
+    public void constructor_defensivelyCopiesRouteLists() {
+        List<LatLon> track = new ArrayList<>();
+        track.add(new LatLon(48.0, 16.0));
+        List<VoiceHint> voiceHints = new ArrayList<>();
+        voiceHints.add(new VoiceHint(0, 2, 0, 0.0, 0));
+        List<Double> timesSeconds = new ArrayList<>();
+        timesSeconds.add(0.0);
+        List<RouteSpeedLimitSegment> speedLimitSegments = new ArrayList<>();
+        speedLimitSegments.add(new RouteSpeedLimitSegment(
+                0.0,
+                10.0,
+                new RouteSpeedLimit(30, RouteSpeedLimit.Unit.KILOMETERS_PER_HOUR)
+        ));
+
+        GeoJsonRoute route = new GeoJsonRoute(
+                track,
+                voiceHints,
+                timesSeconds,
+                speedLimitSegments,
+                10.0,
+                10.0
+        );
+        track.clear();
+        voiceHints.clear();
+        timesSeconds.clear();
+        speedLimitSegments.clear();
+
+        assertEquals(1, route.track.size());
+        assertEquals(1, route.voiceHints.size());
+        assertEquals(1, route.timesSeconds.size());
+        assertEquals(1, route.speedLimitSegments.size());
+        assertCannotMutate(route.track);
+    }
+
     private static String routeJson(String properties, String coordinates) {
         return "{"
                 + TYPE_FEATURE_COLLECTION
@@ -162,5 +202,14 @@ public class GeoJsonRouteParserTest {
                 + "}"
                 + "}]"
                 + "}";
+    }
+
+    private static void assertCannotMutate(List<LatLon> values) {
+        try {
+            values.clear();
+        } catch (UnsupportedOperationException expected) {
+            return;
+        }
+        throw new AssertionError("Expected route list to be immutable");
     }
 }

@@ -55,7 +55,7 @@ final class AppDataBackupValueJson {
     }
 
     @NonNull
-    private static Object exportedValue(@NonNull String type, @NonNull Object value) {
+    private static Object exportedValue(@NonNull String type, @NonNull Object value) throws JSONException {
         if (AppDataBackupContract.TYPE_FLOAT.equals(type)) {
             return ((Float) value).doubleValue();
         }
@@ -110,24 +110,27 @@ final class AppDataBackupValueJson {
     }
 
     @NonNull
-    private static JSONArray stringSetToJson(@NonNull Set<?> values) {
+    private static JSONArray stringSetToJson(@NonNull Set<?> values) throws JSONException {
         JSONArray array = new JSONArray();
         for (Object value : values) {
-            if (value instanceof String) {
-                array.put(value);
+            if (!(value instanceof String)) {
+                String type = value == null ? "null" : value.getClass().getName();
+                throw new JSONException("Unsupported stringSet entry type " + type);
             }
+            array.put(value);
         }
         return array;
     }
 
     @NonNull
-    private static Set<String> jsonToStringSet(@NonNull JSONArray array) {
+    private static Set<String> jsonToStringSet(@NonNull JSONArray array) throws JSONException {
         Set<String> values = new HashSet<>();
         for (int i = 0; i < array.length(); i++) {
-            String value = array.optString(i, null);
-            if (value != null) {
-                values.add(value);
+            Object value = array.get(i);
+            if (!(value instanceof String)) {
+                throw new JSONException("Invalid stringSet entry at index " + i);
             }
+            values.add((String) value);
         }
         return values;
     }
