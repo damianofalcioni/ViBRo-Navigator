@@ -26,7 +26,7 @@ public final class GeoJsonRouteParser {
                 return emptyRoute();
             }
 
-            JSONObject trackFeature = features.optJSONObject(0);
+            JSONObject trackFeature = GeoJsonRouteFeatureSelector.firstTrackFeature(features);
             if (trackFeature == null) {
                 return emptyRoute();
             }

@@ -5,8 +5,10 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 final class MapPoiCache {
     @NonNull
@@ -33,8 +35,9 @@ final class MapPoiCache {
             @NonNull List<MapPoiCategory> categories
     ) {
         List<MapPoiFetchRequest> requests = new ArrayList<>();
+        Set<String> requestKeys = new LinkedHashSet<>();
         for (MapPoiCategory category : categories) {
-            addMissingRequests(requests, target, category);
+            addMissingRequests(requests, requestKeys, target, category);
         }
         return requests;
     }
@@ -83,14 +86,37 @@ final class MapPoiCache {
 
     private void addMissingRequests(
             @NonNull List<MapPoiFetchRequest> requests,
+            @NonNull Set<String> requestKeys,
             @NonNull MapPickerBounds target,
             @NonNull MapPoiCategory category
     ) {
         Entry entry = entries.get(category.id);
         List<MapPickerBounds> missing = entry == null ? single(target) : entry.missingBounds(target);
         for (MapPickerBounds bounds : missing) {
+            addRequestIfAbsent(requests, requestKeys, category, bounds);
+        }
+    }
+
+    private static void addRequestIfAbsent(
+            @NonNull List<MapPoiFetchRequest> requests,
+            @NonNull Set<String> requestKeys,
+            @NonNull MapPoiCategory category,
+            @NonNull MapPickerBounds bounds
+    ) {
+        if (requestKeys.add(requestKey(category, bounds))) {
             requests.add(new MapPoiFetchRequest(category, bounds));
         }
+    }
+
+    @NonNull
+    private static String requestKey(@NonNull MapPoiCategory category, @NonNull MapPickerBounds bounds) {
+        return new StringBuilder(category.id)
+                .append('|').append(bounds.south)
+                .append('|').append(bounds.west)
+                .append('|').append(bounds.north)
+                .append('|').append(bounds.east)
+                .append('|').append(bounds.zoom)
+                .toString();
     }
 
     @NonNull

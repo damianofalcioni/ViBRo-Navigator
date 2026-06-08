@@ -10,13 +10,14 @@ import java.util.Collections;
 import java.util.List;
 
 public class MapPoiCacheTest {
+    private static final String CATEGORY_FUEL = "Fuel";
     private static final MapPickerBounds BOUNDS = MapPickerBounds.of(48.0d, 16.0d, 49.0d, 17.0d, 14);
 
     @Test
     public void rememberAll_marksDiscoveredEmptyCategoriesAsCovered() {
         MapPoiCache cache = new MapPoiCache();
         List<MapPoiCategory> categories = MapPoiCategoryFilter.fromNames(Arrays.asList(
-                "Fuel",
+                CATEGORY_FUEL,
                 "Hospital"
         ));
         MapPoiCategory fuel = categories.get(0);
@@ -28,5 +29,18 @@ public class MapPoiCacheTest {
 
         assertTrue(cache.missingRequests(BOUNDS, categories).isEmpty());
         assertEquals(1, cache.visibleMarkers(BOUNDS, categories).size());
+    }
+
+    @Test
+    public void missingRequests_deduplicatesRepeatedCategoryBounds() {
+        MapPoiCache cache = new MapPoiCache();
+        List<MapPoiCategory> categories = MapPoiCategoryFilter.fromNames(Arrays.asList(
+                CATEGORY_FUEL,
+                CATEGORY_FUEL
+        ));
+
+        List<MapPoiFetchRequest> requests = cache.missingRequests(BOUNDS, categories);
+
+        assertEquals(1, requests.size());
     }
 }
