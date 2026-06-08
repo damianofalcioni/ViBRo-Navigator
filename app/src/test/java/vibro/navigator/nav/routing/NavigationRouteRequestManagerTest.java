@@ -23,6 +23,7 @@ import java.util.Collections;
 
 public class NavigationRouteRequestManagerTest {
     private static final String FUSED_PROVIDER = "fused";
+    private static final String BLOCKED_ROAD_NOTICE = "Blocked road added. Recalculating route.";
 
     @Test
     public void prepare_throttlesBackToBackRecalculations() {
@@ -76,8 +77,8 @@ public class NavigationRouteRequestManagerTest {
         assertNotNull(first);
         assertNull(second);
         assertTrue(manager.isRouteCalculationInProgress());
-        assertTrue(manager.consumePendingRecalculation());
-        assertFalse(manager.consumePendingRecalculation());
+        assertNotNull(manager.consumePendingRecalculation());
+        assertNull(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -106,7 +107,7 @@ public class NavigationRouteRequestManagerTest {
 
         assertNotNull(first);
         assertNull(second);
-        assertFalse(manager.consumePendingRecalculation());
+        assertNull(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -134,7 +135,7 @@ public class NavigationRouteRequestManagerTest {
         );
 
         assertNull(second);
-        assertTrue(manager.consumePendingRecalculation());
+        assertNotNull(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -162,7 +163,7 @@ public class NavigationRouteRequestManagerTest {
         );
 
         assertNull(second);
-        assertTrue(manager.consumePendingRecalculation());
+        assertNotNull(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -190,7 +191,7 @@ public class NavigationRouteRequestManagerTest {
         );
 
         assertNull(second);
-        assertTrue(manager.consumePendingRecalculation());
+        assertNotNull(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -217,7 +218,7 @@ public class NavigationRouteRequestManagerTest {
 
         assertTrue(manager.onRouteApplied(first));
         assertFalse(manager.isRouteCalculationInProgress());
-        assertTrue(manager.consumePendingRecalculation());
+        assertNotNull(manager.consumePendingRecalculation());
     }
 
     @Test
@@ -257,12 +258,43 @@ public class NavigationRouteRequestManagerTest {
                 navigationRequest(),
                 location(0.0, 0.0, 2_000L),
                 Collections.emptyList(),
-                "Blocked road added. Recalculating route."
+                BLOCKED_ROAD_NOTICE
         );
 
         assertEquals("Blocked road added. Recalculating route.", manager.getInProgressNotice());
         assertTrue(manager.onRouteApplied(snapshot));
         assertNull(manager.getInProgressNotice());
+    }
+
+    @Test
+    public void prepare_preservesPendingRecalculationNoticeAndReason() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        manager.prepare(
+                true,
+                2_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 2_000L),
+                Collections.emptyList(),
+                null
+        );
+        NavigationRouteRequestSnapshot second = manager.prepare(
+                true,
+                3_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 3_000L),
+                Collections.emptyList(),
+                BLOCKED_ROAD_NOTICE,
+                NavigationRouteRecalculationReason.EXPLICIT
+        );
+
+        PendingRouteRecalculation pending = manager.consumePendingRecalculation();
+        assertNull(second);
+        assertNotNull(pending);
+        assertTrue(pending.force);
+        assertEquals(NavigationRouteRecalculationReason.EXPLICIT, pending.reason);
+        assertEquals(BLOCKED_ROAD_NOTICE, pending.inProgressNotice);
     }
 
     @NonNull

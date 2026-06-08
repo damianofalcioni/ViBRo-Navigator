@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.session.NavigationSession;
 
 final class NavigationServiceRouteRecalculator {
@@ -16,8 +17,6 @@ final class NavigationServiceRouteRecalculator {
     }
 
     @NonNull
-    private final NavigationService service;
-    @NonNull
     private final NavigationSession navigationSession;
     @NonNull
     private final RuntimeProvider runtimeProvider;
@@ -25,12 +24,10 @@ final class NavigationServiceRouteRecalculator {
     private final Runnable stateEmitter;
 
     NavigationServiceRouteRecalculator(
-            @NonNull NavigationService service,
             @NonNull NavigationSession navigationSession,
             @NonNull RuntimeProvider runtimeProvider,
             @NonNull Runnable stateEmitter
     ) {
-        this.service = service;
         this.navigationSession = navigationSession;
         this.runtimeProvider = runtimeProvider;
         this.stateEmitter = stateEmitter;
@@ -60,6 +57,15 @@ final class NavigationServiceRouteRecalculator {
         request(force, rerouteNotice, null, reason);
     }
 
+    void request(@NonNull PendingRouteRecalculation pendingRecalculation) {
+        request(
+                pendingRecalculation.force,
+                null,
+                pendingRecalculation.inProgressNotice,
+                pendingRecalculation.reason
+        );
+    }
+
     private void request(
             boolean force,
             @Nullable NavigationRerouteNotice rerouteNotice,
@@ -74,6 +80,9 @@ final class NavigationServiceRouteRecalculator {
                         reason
                 );
         if (snapshot == null) {
+            if (rerouteNotice != null && navigationSession.isRouteCalculationInProgress()) {
+                runtimeProvider.runtime().foregroundController().sendOffRouteNotification(rerouteNotice);
+            }
             return;
         }
         stateEmitter.run();

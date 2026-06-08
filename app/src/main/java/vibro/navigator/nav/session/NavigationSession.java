@@ -2,6 +2,7 @@ package vibro.navigator.nav.session;
 
 
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
+import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.compass.CompassOrientationCue;
@@ -186,7 +187,8 @@ public final class NavigationSession {
         ResourceAdapter.applyRouteFailure(this, new AndroidNavigationTextResources(context), snapshot, error);
     }
 
-    public boolean consumePendingRouteRecalculation() {
+    @Nullable
+    public PendingRouteRecalculation consumePendingRouteRecalculation() {
         return components.routeRequestManager.consumePendingRecalculation();
     }
 

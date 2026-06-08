@@ -3,15 +3,14 @@ package vibro.navigator.nav.service;
 
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.orientation.NavigationOrientationController;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteExecutor;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.logging.AppLogger;
@@ -25,7 +24,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
     }
 
     public interface RouteRecalculator {
-        void request(boolean force, @Nullable NavigationRerouteNotice rerouteNotice);
+        void request(@NonNull PendingRouteRecalculation pendingRecalculation);
     }
 
     private static final String TAG = "NavigationService";
@@ -65,9 +64,10 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         turnEventDispatcher.dispatch(navigationSession.applyRouteResult(context, snapshot, newRoute, beganAt));
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
-        if (navigationSession.consumePendingRouteRecalculation()) {
+        PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();
+        if (pending != null) {
             AppLogger.i(TAG, "Re-running queued route recalculation after previous request finished");
-            routeRecalculator.request(true, null);
+            routeRecalculator.request(pending);
         }
     }
 
@@ -78,9 +78,10 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
     ) {
         navigationSession.applyRouteFailure(context, snapshot, error);
         stateEmitter.run();
-        if (navigationSession.consumePendingRouteRecalculation()) {
+        PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();
+        if (pending != null) {
             AppLogger.i(TAG, "Retrying queued route recalculation after previous request failed");
-            routeRecalculator.request(true, null);
+            routeRecalculator.request(pending);
         }
     }
 }

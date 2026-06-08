@@ -43,7 +43,7 @@ public class NavigationService extends Service {
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private final NavigationServiceTurnEvents turnEvents = new NavigationServiceTurnEvents(navigationSession);
     private final NavigationServiceRouteRecalculator routeRecalculator =
-            new NavigationServiceRouteRecalculator(this, navigationSession, this::runtime, this::emitState);
+            new NavigationServiceRouteRecalculator(navigationSession, this::runtime, this::emitState);
     private final NavigationServiceLocationHandler locationHandler = new NavigationServiceLocationHandler(
             this,
             navigationSession,
@@ -101,7 +101,7 @@ public class NavigationService extends Service {
                 locationHandler,
                 uiVisibility,
                 this::emitState,
-                routeRecalculator::request
+                pending -> routeRecalculator.request(pending)
         );
         AppLogger.i(TAG, "Service created");
     }
