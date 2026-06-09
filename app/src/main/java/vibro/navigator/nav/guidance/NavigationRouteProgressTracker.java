@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public final class NavigationRouteProgressTracker {
 
@@ -110,18 +111,20 @@ public final class NavigationRouteProgressTracker {
 
     @Nullable
     private AlongTrackSample findEtaAnchor(long locationTimeMs) {
-        for (AlongTrackSample candidate : recentAlongTrackSamples) {
-            if (locationTimeMs - candidate.timeMs >= MIN_ETA_SPEED_SAMPLE_AGE_MS) {
-                return candidate;
-            }
-        }
-        return null;
+        return latestEligibleAlongTrackSample(locationTimeMs, MIN_ETA_SPEED_SAMPLE_AGE_MS);
     }
 
     @Nullable
     private AlongTrackSample findDirectionAnchor(long nowMs) {
-        for (AlongTrackSample candidate : recentAlongTrackSamples) {
-            if (nowMs - candidate.timeMs >= DIRECTION_PROGRESS_WINDOW_MS) {
+        return latestEligibleAlongTrackSample(nowMs, DIRECTION_PROGRESS_WINDOW_MS);
+    }
+
+    @Nullable
+    private AlongTrackSample latestEligibleAlongTrackSample(long nowMs, long minimumAgeMs) {
+        Iterator<AlongTrackSample> candidates = recentAlongTrackSamples.descendingIterator();
+        while (candidates.hasNext()) {
+            AlongTrackSample candidate = candidates.next();
+            if (nowMs - candidate.timeMs >= minimumAgeMs) {
                 return candidate;
             }
         }
@@ -139,8 +142,7 @@ public final class NavigationRouteProgressTracker {
 
     private void pruneAlongTrackSamples(long nowMs) {
         long cutoffMs = nowMs - MAX_DIRECTION_PROGRESS_SAMPLE_AGE_MS;
-        while (recentAlongTrackSamples.size() > 1
-                && recentAlongTrackSamples.peekFirst() != null
+        while (recentAlongTrackSamples.peekFirst() != null
                 && recentAlongTrackSamples.peekFirst().timeMs < cutoffMs) {
             recentAlongTrackSamples.removeFirst();
         }

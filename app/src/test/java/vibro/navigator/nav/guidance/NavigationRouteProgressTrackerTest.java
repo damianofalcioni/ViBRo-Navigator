@@ -58,6 +58,27 @@ public class NavigationRouteProgressTrackerTest {
     }
 
     @Test
+    public void resolveEtaSpeedMps_usesMostRecentEligibleProgressSample() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(0.0, 0L);
+        tracker.rememberAlongTrackSample(100.0, 6_000L);
+
+        float speedMps = tracker.resolveEtaSpeedMps(9_000L, 95.0, 2f, false);
+
+        assertEquals(0.0f, speedMps, 0.0f);
+    }
+
+    @Test
+    public void resolveEtaSpeedMps_ignoresSamplesOlderThanMaximumAge() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+
+        float speedMps = tracker.resolveEtaSpeedMps(12_000L, 30.0, 2f, false);
+
+        assertEquals(0.0f, speedMps, 0.0f);
+    }
+
+    @Test
     public void assessDirection_reportsForwardBackwardAndStalledProgress() {
         NavigationRouteProgressTracker forwardTracker = new NavigationRouteProgressTracker();
         forwardTracker.rememberAlongTrackSample(10.0, 1_000L);
@@ -88,6 +109,30 @@ public class NavigationRouteProgressTrackerTest {
         tracker.rememberAlongTrackSample(10.0, 1_000L);
 
         NavigationRouteProgressTracker.DirectionAssessment assessment = tracker.assessDirection(15.0, 3_000L);
+
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.UNKNOWN, assessment.status);
+    }
+
+    @Test
+    public void assessDirection_usesMostRecentEligibleWindowSample() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(0.0, 0L);
+        tracker.rememberAlongTrackSample(100.0, 6_000L);
+
+        NavigationRouteProgressTracker.DirectionAssessment assessment =
+                tracker.assessDirection(95.0, 9_000L);
+
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.BACKWARD, assessment.status);
+        assertEquals(-5.0, assessment.alongTrackDeltaMeters, 0.0);
+    }
+
+    @Test
+    public void assessDirection_ignoresSamplesOlderThanMaximumAge() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+
+        NavigationRouteProgressTracker.DirectionAssessment assessment =
+                tracker.assessDirection(20.0, 12_000L);
 
         assertEquals(NavigationRouteProgressTracker.DirectionStatus.UNKNOWN, assessment.status);
     }
