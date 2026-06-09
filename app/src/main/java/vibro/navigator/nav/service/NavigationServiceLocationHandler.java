@@ -9,6 +9,8 @@ import vibro.navigator.nav.orientation.NavigationOrientationController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationListener;
@@ -36,6 +38,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private final NavigationServiceTurnEvents turnEvents;
     private final RouteRecalculator routeRecalculator;
     private final Runnable stateEmitter;
+    private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
     @Nullable
     private NavigationLocationController locationController;
     @Nullable
@@ -93,7 +96,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         NavigationLocationUpdateResult result =
-                navigationSession.onRawLocationChanged(context, location, System.currentTimeMillis());
+                navigationSession.onRawLocationChanged(context, location, elapsedRealtimeClock.elapsedRealtimeMs());
         if (result.isDropped()) {
             return;
         }

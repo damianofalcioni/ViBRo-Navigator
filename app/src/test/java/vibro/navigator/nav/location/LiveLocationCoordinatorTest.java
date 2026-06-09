@@ -69,6 +69,20 @@ public class LiveLocationCoordinatorTest {
         assertEquals(16.41d, selected.lon, 0.0);
     }
 
+    @Test
+    public void selectBestLiveLocation_usesElapsedRealtimeWhenAvailable() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        coordinator.remember(location(GPS_PROVIDER, 1_000_000L, NOW_MS - 20_000L, 5f, 48.20d, 16.37d));
+        coordinator.remember(location(NETWORK_PROVIDER, 900_000L, NOW_MS - 1_000L, 12f, 48.25d, 16.40d));
+
+        NavigationLocation selected = coordinator.selectBestLiveLocation(NOW_MS);
+
+        assertNotNull(selected);
+        assertEquals(NETWORK_PROVIDER, selected.getProvider());
+        assertEquals(48.25d, selected.getLatitude(), 0.0);
+        assertEquals(16.40d, selected.getLongitude(), 0.0);
+    }
+
     private static NavigationLocationFix newFix(
             String provider,
             long ageMs,
@@ -77,5 +91,21 @@ public class LiveLocationCoordinatorTest {
             double lon
     ) {
         return new NavigationLocationFix(provider, NOW_MS - ageMs, accuracyMeters, lat, lon);
+    }
+
+    private static NavigationLocation location(
+            String provider,
+            long wallTimeMs,
+            long elapsedRealtimeMs,
+            float accuracyMeters,
+            double lat,
+            double lon
+    ) {
+        NavigationLocation location = new NavigationLocation(provider);
+        location.setTime(wallTimeMs, elapsedRealtimeMs);
+        location.setAccuracy(accuracyMeters);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        return location;
     }
 }

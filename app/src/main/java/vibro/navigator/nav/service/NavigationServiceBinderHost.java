@@ -2,9 +2,11 @@ package vibro.navigator.nav.service;
 
 
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -29,6 +31,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     private final Runnable stopNavigationAndService;
     private final Runnable pauseNavigation;
     private final Runnable resumeNavigation;
+    private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
 
     public NavigationServiceBinderHost(
             @NonNull Context context,
@@ -98,7 +101,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Override
     @NonNull
     public List<NogoPoint> addBlockedPointsAhead() {
-        return navigationSession.addBlockedPointsAhead(System.currentTimeMillis());
+        return navigationSession.addBlockedPointsAhead(elapsedRealtimeClock.elapsedRealtimeMs());
     }
 
     @Override

@@ -37,7 +37,7 @@ public final class NavigationLocationMotionModel {
         previousFiltered = lastFiltered;
         lastFiltered = filtered;
         recentFilteredLocations.addLast(new NavigationLocation(filtered));
-        pruneRecentFilteredLocations(filtered.getTime());
+        pruneRecentFilteredLocations(filtered.getElapsedRealtimeOrTimeMs());
     }
 
     public boolean isLikelyStationary() {
@@ -47,7 +47,7 @@ public final class NavigationLocationMotionModel {
         if (speedMps(lastFiltered) > MAX_STATIONARY_REPORTED_SPEED_MPS) {
             return false;
         }
-        pruneRecentFilteredLocations(lastFiltered.getTime());
+        pruneRecentFilteredLocations(lastFiltered.getElapsedRealtimeOrTimeMs());
         if (recentFilteredLocations.size() < 2) {
             return true;
         }
@@ -68,15 +68,18 @@ public final class NavigationLocationMotionModel {
                 location.getLatitude(),
                 location.getLongitude()
         );
-        double deltaSeconds = Math.max(1.0, (location.getTime() - previousFiltered.getTime()) / 1000.0);
+        double deltaSeconds = Math.max(
+                1.0,
+                (location.getElapsedRealtimeOrTimeMs() - previousFiltered.getElapsedRealtimeOrTimeMs()) / 1000.0
+        );
         return (float) (distanceMeters / deltaSeconds);
     }
 
     @Nullable
     public Double movementBearingDegrees(@NonNull NavigationLocation location) {
-        pruneRecentFilteredLocations(location.getTime());
+        pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
         for (NavigationLocation sample : recentFilteredLocations) {
-            long elapsedMs = location.getTime() - sample.getTime();
+            long elapsedMs = location.getElapsedRealtimeOrTimeMs() - sample.getElapsedRealtimeOrTimeMs();
             if (elapsedMs < MIN_MOVEMENT_BEARING_ELAPSED_MS) {
                 continue;
             }

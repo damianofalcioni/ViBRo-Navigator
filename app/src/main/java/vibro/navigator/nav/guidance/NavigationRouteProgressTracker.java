@@ -58,7 +58,12 @@ public final class NavigationRouteProgressTracker {
         if (location == null) {
             return 0f;
         }
-        return resolveEtaSpeedMps(location.getTime(), alongTrackMeters, accuracyMeters, likelyStationary);
+        return resolveEtaSpeedMps(
+                location.getElapsedRealtimeOrTimeMs(),
+                alongTrackMeters,
+                accuracyMeters,
+                likelyStationary
+        );
     }
 
     public float resolveEtaSpeedMps(

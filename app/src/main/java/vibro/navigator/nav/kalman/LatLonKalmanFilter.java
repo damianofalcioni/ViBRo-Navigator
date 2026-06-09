@@ -24,7 +24,7 @@ public final class LatLonKalmanFilter {
 
     @Nullable
     public NavigationLocation update(@NonNull NavigationLocation in) {
-        long t = in.getTime();
+        long t = in.getElapsedRealtimeOrTimeMs();
         if (!initialized) {
             refLat = in.getLatitude();
             double[] xy = toXY(in.getLatitude(), in.getLongitude());

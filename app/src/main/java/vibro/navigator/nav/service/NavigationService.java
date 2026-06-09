@@ -43,7 +43,11 @@ public class NavigationService extends Service {
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private final NavigationServiceTurnEvents turnEvents = new NavigationServiceTurnEvents(navigationSession);
     private final NavigationServiceRouteRecalculator routeRecalculator =
-            new NavigationServiceRouteRecalculator(navigationSession, this::runtime, this::emitState);
+            new NavigationServiceRouteRecalculator(
+                    navigationSession,
+                    this::runtime,
+                    this::emitState
+            );
     private final NavigationServiceLocationHandler locationHandler = new NavigationServiceLocationHandler(
             this,
             navigationSession,
@@ -134,8 +138,8 @@ public class NavigationService extends Service {
     private void startNavigation() {
         runtime().resetTrackingState();
 
-        long nowMs = System.currentTimeMillis();
-        if (!navigationSession.start(this, nowMs)) {
+        long nowElapsedMs = runtime().elapsedRealtimeMs();
+        if (!navigationSession.start(this, nowElapsedMs)) {
             emitState();
             return;
         }
@@ -146,7 +150,7 @@ public class NavigationService extends Service {
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
         AppLogger.i(TAG, "Navigation started " + request.describe() + " blockedReset=true");
-        locationHandler.seedStartupLocation(nowMs);
+        locationHandler.seedStartupLocation(nowElapsedMs);
     }
 
     private void pauseNavigation() {

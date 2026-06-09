@@ -3,11 +3,13 @@ package vibro.navigator.nav.service;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class NavigationServiceRouteRecalculator {
 
@@ -22,6 +24,8 @@ final class NavigationServiceRouteRecalculator {
     private final RuntimeProvider runtimeProvider;
     @NonNull
     private final Runnable stateEmitter;
+    @NonNull
+    private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
 
     NavigationServiceRouteRecalculator(
             @NonNull NavigationSession navigationSession,
@@ -75,7 +79,7 @@ final class NavigationServiceRouteRecalculator {
         NavigationRouteRequestSnapshot snapshot =
                 navigationSession.prepareRouteRequest(
                         force,
-                        System.currentTimeMillis(),
+                        elapsedRealtimeClock.elapsedRealtimeMs(),
                         inProgressNotice,
                         reason
                 );

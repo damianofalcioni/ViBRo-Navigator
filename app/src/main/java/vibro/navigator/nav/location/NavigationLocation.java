@@ -6,9 +6,12 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.GeoMath;
 
 public final class NavigationLocation {
+    private static final long UNKNOWN_ELAPSED_REALTIME_MS = -1L;
+
     @Nullable
     private String provider;
     private long time;
+    private long elapsedRealtimeMs = UNKNOWN_ELAPSED_REALTIME_MS;
     private double latitude;
     private double longitude;
     private double altitude;
@@ -29,6 +32,7 @@ public final class NavigationLocation {
     public NavigationLocation(@NonNull NavigationLocation source) {
         provider = source.provider;
         time = source.time;
+        elapsedRealtimeMs = source.elapsedRealtimeMs;
         latitude = source.latitude;
         longitude = source.longitude;
         altitude = source.altitude;
@@ -58,6 +62,16 @@ public final class NavigationLocation {
 
     public void setTime(long time) {
         this.time = time;
+        elapsedRealtimeMs = UNKNOWN_ELAPSED_REALTIME_MS;
+    }
+
+    public void setTime(long time, long elapsedRealtimeMs) {
+        this.time = time;
+        this.elapsedRealtimeMs = elapsedRealtimeMs;
+    }
+
+    public long getElapsedRealtimeOrTimeMs() {
+        return elapsedRealtimeMs >= 0L ? elapsedRealtimeMs : time;
     }
 
     public double getLatitude() {

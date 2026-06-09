@@ -41,7 +41,7 @@ public final class NavigationLocationFix {
         }
         return new NavigationLocationFix(
                 location.getProvider(),
-                location.getTime(),
+                location.getElapsedRealtimeOrTimeMs(),
                 location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE,
                 location.getLatitude(),
                 location.getLongitude()

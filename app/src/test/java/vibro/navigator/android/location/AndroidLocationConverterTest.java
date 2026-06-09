@@ -11,6 +11,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.concurrent.TimeUnit;
+
 import vibro.navigator.nav.location.NavigationLocation;
 
 @RunWith(RobolectricTestRunner.class)
@@ -21,6 +23,7 @@ public class AndroidLocationConverterTest {
     public void toNavigationLocation_copiesCoreAndOptionalFields() {
         Location androidLocation = new Location(GPS_PROVIDER);
         androidLocation.setTime(1234L);
+        androidLocation.setElapsedRealtimeNanos(TimeUnit.MILLISECONDS.toNanos(5678L));
         androidLocation.setLatitude(48.2082);
         androidLocation.setLongitude(16.3738);
         androidLocation.setAccuracy(4.5f);
@@ -33,6 +36,7 @@ public class AndroidLocationConverterTest {
 
         assertEquals(GPS_PROVIDER, location.getProvider());
         assertEquals(1234L, location.getTime());
+        assertEquals(5678L, location.getElapsedRealtimeOrTimeMs());
         assertEquals(48.2082, location.getLatitude(), 0.0);
         assertEquals(16.3738, location.getLongitude(), 0.0);
         assertTrue(location.hasAccuracy());

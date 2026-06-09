@@ -7,6 +7,8 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.location.NavigationLocation;
 
+import java.util.concurrent.TimeUnit;
+
 public final class AndroidLocationConverter {
     private AndroidLocationConverter() {
     }
@@ -17,7 +19,10 @@ public final class AndroidLocationConverter {
             return null;
         }
         NavigationLocation out = new NavigationLocation(location.getProvider());
-        out.setTime(location.getTime());
+        out.setTime(
+                location.getTime(),
+                TimeUnit.NANOSECONDS.toMillis(location.getElapsedRealtimeNanos())
+        );
         out.setLatitude(location.getLatitude());
         out.setLongitude(location.getLongitude());
         copyOptionalFields(location, out);

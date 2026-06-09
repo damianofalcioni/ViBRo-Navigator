@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationFix;
 
 public class NavigationStartupLocationSelectorTest {
@@ -86,6 +87,18 @@ public class NavigationStartupLocationSelectorTest {
                 location(GPS_PROVIDER, nowMs - 2_000L, 25f);
 
         assertTrue(NavigationStartupLocationSelector.isUsableForRouteStartFix(location, nowMs));
+    }
+
+    @Test
+    public void isUsable_usesElapsedRealtimeWhenAvailable() {
+        long nowElapsedMs = 100_000L;
+        NavigationLocation location = new NavigationLocation(GPS_PROVIDER);
+        location.setTime(1_000_000L, nowElapsedMs - 20_000L);
+        location.setLatitude(48.2082);
+        location.setLongitude(16.3738);
+        location.setAccuracy(5f);
+
+        assertFalse(NavigationStartupLocationSelector.isUsable(location, nowElapsedMs));
     }
 
     private static NavigationLocationFix location(

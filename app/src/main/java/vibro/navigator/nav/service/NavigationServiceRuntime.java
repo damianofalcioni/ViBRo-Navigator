@@ -3,6 +3,7 @@ package vibro.navigator.nav.service;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
@@ -16,7 +17,6 @@ final class NavigationServiceRuntime {
     private final NavigationForegroundController foregroundController;
     @NonNull
     private final NavigationScreenInteractivityMonitor screenInteractivityMonitor;
-    private final boolean screenInteractive;
     @NonNull
     private final NavigationTrackingRuntime tracking;
     @NonNull
@@ -27,7 +27,6 @@ final class NavigationServiceRuntime {
     ) {
         foregroundController = dependencies.foreground.controller;
         screenInteractivityMonitor = dependencies.foreground.screenInteractivityMonitor;
-        screenInteractive = dependencies.foreground.screenInteractive;
         tracking = dependencies.tracking;
         routing = dependencies.routing;
     }
@@ -103,6 +102,10 @@ final class NavigationServiceRuntime {
         return tracking.locationController.getNextEvaluationDeadlineElapsedMs();
     }
 
+    long elapsedRealtimeMs() {
+        return AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs();
+    }
+
     @Nullable
     Integer fixedSatelliteCount() {
         return tracking.locationController.getFixedSatelliteCount();
@@ -139,7 +142,4 @@ final class NavigationServiceRuntime {
         routing.maneuverSpeaker.shutdown();
     }
 
-    boolean isScreenInteractive() {
-        return screenInteractive;
-    }
 }

@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
+import vibro.navigator.nav.location.NavigationLocation;
+
 public class NavigationRouteProgressTrackerTest {
 
     @Test
@@ -33,6 +35,18 @@ public class NavigationRouteProgressTrackerTest {
         tracker.rememberAlongTrackSample(10.0, 1_000L);
 
         float speedMps = tracker.resolveEtaSpeedMps(4_000L, 19.0, 2f, false);
+
+        assertEquals(3.0f, speedMps, 0.0f);
+    }
+
+    @Test
+    public void resolveEtaSpeedMps_usesLocationElapsedRealtimeWhenAvailable() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setTime(100_000L, 4_000L);
+
+        float speedMps = tracker.resolveEtaSpeedMps(location, 19.0, 2f, false);
 
         assertEquals(3.0f, speedMps, 0.0f);
     }
