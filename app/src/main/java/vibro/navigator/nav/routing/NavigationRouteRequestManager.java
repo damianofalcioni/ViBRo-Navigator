@@ -78,6 +78,10 @@ public final class NavigationRouteRequestManager {
         lastRouteFailure = null;
     }
 
+    public boolean isCurrentRequest(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        return snapshot.requestToken == routeRequestToken;
+    }
+
     @Nullable
     public PendingRouteRecalculation consumePendingRecalculation() {
         PendingRouteRecalculation queued = pendingRecalculation;
@@ -213,22 +217,22 @@ public final class NavigationRouteRequestManager {
         return true;
     }
 
-    public void onRouteFailure(
+    public boolean onRouteFailure(
             @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        onRouteFailure(new AndroidNavigationTextResources(context), snapshot, error);
+        return onRouteFailure(new AndroidNavigationTextResources(context), snapshot, error);
     }
 
-    public void onRouteFailure(
+    public boolean onRouteFailure(
             @NonNull NavigationTextResources textResources,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
         if (snapshot.requestToken != routeRequestToken) {
             AppLogger.d(TAG, "Discarded stale route failure #" + snapshot.requestNumber);
-            return;
+            return false;
         }
         routeCalculationInProgress = false;
         activeRequestStartLocation = null;
@@ -238,6 +242,7 @@ public final class NavigationRouteRequestManager {
         AppLogger.e(TAG, "Route recalculation #" + snapshot.requestNumber + " failed", error);
         AppLogger.w(TAG, "Route recalculation #" + snapshot.requestNumber + " failure summary="
                 + NavigationRouteFailureFormatter.format(textResources, error, false));
+        return true;
     }
 
     @NonNull

@@ -180,12 +180,16 @@ public final class NavigationSession {
         );
     }
 
-    public void applyRouteFailure(
+    public boolean isCurrentRouteRequest(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        return components.routeRequestManager.isCurrentRequest(snapshot);
+    }
+
+    public boolean applyRouteFailure(
             @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        ResourceAdapter.applyRouteFailure(this, new AndroidNavigationTextResources(context), snapshot, error);
+        return ResourceAdapter.applyRouteFailure(this, new AndroidNavigationTextResources(context), snapshot, error);
     }
 
     @Nullable
@@ -298,13 +302,13 @@ public final class NavigationSession {
             );
         }
 
-        public static void applyRouteFailure(
+        public static boolean applyRouteFailure(
                 @NonNull NavigationSession session,
                 @NonNull NavigationTextResources textResources,
                 @NonNull NavigationRouteRequestSnapshot snapshot,
                 @NonNull Exception error
         ) {
-            session.components.routeRequestManager.onRouteFailure(textResources, snapshot, error);
+            return session.components.routeRequestManager.onRouteFailure(textResources, snapshot, error);
         }
 
         @NonNull

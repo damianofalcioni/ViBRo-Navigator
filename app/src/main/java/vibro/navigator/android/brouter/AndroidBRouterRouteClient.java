@@ -151,7 +151,7 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
     }
 
     @NonNull
-    private static Bundle buildRouteParams(@NonNull BRouterRouteRequest request) {
+    static Bundle buildRouteParams(@NonNull BRouterRouteRequest request) {
         List<LatLon> points = new ArrayList<>();
         points.add(request.start);
         points.addAll(request.intermediates);
@@ -207,7 +207,7 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
     }
 
     @NonNull
-    private static String decodeRoutePayload(@NonNull String raw) throws IOException {
+    static String decodeRoutePayload(@NonNull String raw) throws IOException {
         String trimmed = raw.trim();
         if (!trimmed.startsWith(Z64_BASE64_PREFIX)) {
             return raw;

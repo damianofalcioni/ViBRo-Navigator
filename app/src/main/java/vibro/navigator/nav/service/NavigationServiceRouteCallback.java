@@ -61,6 +61,9 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @NonNull GeoJsonRoute newRoute,
             long beganAt
     ) {
+        if (!navigationSession.isCurrentRouteRequest(snapshot)) {
+            return;
+        }
         turnEventDispatcher.dispatch(navigationSession.applyRouteResult(context, snapshot, newRoute, beganAt));
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
@@ -76,7 +79,9 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        navigationSession.applyRouteFailure(context, snapshot, error);
+        if (!navigationSession.applyRouteFailure(context, snapshot, error)) {
+            return;
+        }
         stateEmitter.run();
         PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();
         if (pending != null) {
