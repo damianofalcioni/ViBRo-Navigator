@@ -5,13 +5,19 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.logging.AppLogger;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 final class AppDataBackupPreferences {
+    private static final String TAG = "AppDataBackup";
 
     private AppDataBackupPreferences() {
     }
@@ -29,24 +35,63 @@ final class AppDataBackupPreferences {
             @NonNull Context context,
             @NonNull List<AppDataBackupPreferenceFile> preferenceFiles
     ) {
-        return clearAll(context) && applyAll(context, preferenceFiles);
+        List<AppDataBackupPreferenceFile> originalPreferences = snapshotAll(context);
+        if (replacePreferenceFiles(context, preferenceFiles)) {
+            return true;
+        }
+        if (!replacePreferenceFiles(context, originalPreferences)) {
+            AppLogger.w(TAG, "Failed to roll back preferences after backup import write failure");
+        }
+        return false;
     }
 
-    private static boolean clearAll(@NonNull Context context) {
+    @NonNull
+    private static List<AppDataBackupPreferenceFile> snapshotAll(@NonNull Context context) {
+        List<AppDataBackupPreferenceFile> snapshots = new ArrayList<>();
         for (String prefsName : AppDataBackupContract.BACKED_UP_PREFERENCES) {
-            if (!context.getSharedPreferences(prefsName, Context.MODE_PRIVATE).edit().clear().commit()) {
-                return false;
+            snapshots.add(snapshotPreferenceFile(context, prefsName));
+        }
+        return snapshots;
+    }
+
+    @NonNull
+    private static AppDataBackupPreferenceFile snapshotPreferenceFile(
+            @NonNull Context context,
+            @NonNull String prefsName
+    ) {
+        SharedPreferences prefs = context.getSharedPreferences(prefsName, Context.MODE_PRIVATE);
+        List<AppDataBackupPreferenceValue> values = new ArrayList<>();
+        for (Map.Entry<String, ?> entry : prefs.getAll().entrySet()) {
+            values.add(new AppDataBackupPreferenceValue(entry.getKey(), snapshotValue(entry.getValue())));
+        }
+        return new AppDataBackupPreferenceFile(prefsName, values);
+    }
+
+    @NonNull
+    private static Object snapshotValue(@NonNull Object value) {
+        if (value instanceof Set<?>) {
+            return stringSetSnapshot((Set<?>) value);
+        }
+        return value;
+    }
+
+    @NonNull
+    private static Set<String> stringSetSnapshot(@NonNull Set<?> rawValues) {
+        Set<String> values = new HashSet<>();
+        for (Object rawValue : rawValues) {
+            if (rawValue instanceof String) {
+                values.add((String) rawValue);
             }
         }
-        return true;
+        return values;
     }
 
-    private static boolean applyAll(
+    private static boolean replacePreferenceFiles(
             @NonNull Context context,
             @NonNull List<AppDataBackupPreferenceFile> preferenceFiles
     ) {
         for (AppDataBackupPreferenceFile preferenceFile : preferenceFiles) {
-            if (!applyPreferenceFile(context, preferenceFile)) {
+            if (!replacePreferenceFile(context, preferenceFile)) {
                 return false;
             }
         }
@@ -64,14 +109,14 @@ final class AppDataBackupPreferences {
         return out;
     }
 
-    private static boolean applyPreferenceFile(
+    private static boolean replacePreferenceFile(
             @NonNull Context context,
             @NonNull AppDataBackupPreferenceFile preferenceFile
     ) {
         SharedPreferences.Editor editor = context.getSharedPreferences(
                 preferenceFile.prefsName,
                 Context.MODE_PRIVATE
-        ).edit();
+        ).edit().clear();
         for (AppDataBackupPreferenceValue value : preferenceFile.values) {
             AppDataBackupValueWriter.put(editor, value);
         }

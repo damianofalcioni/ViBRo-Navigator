@@ -6,6 +6,8 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.SharedPreferences;
 import android.net.Uri;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -25,7 +27,9 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.List;
+import java.util.Set;
 
 @RunWith(RobolectricTestRunner.class)
 public class AppDataBackupTest {
@@ -177,6 +181,31 @@ public class AppDataBackupTest {
         assertImportRejectedWithoutChangingExistingData(root.toString());
     }
 
+    @Test
+    public void importJson_rollsBackAlreadyReplacedPreferencesWhenWriteFails() throws Exception {
+        Poi backupPoi = new Poi("Backup", 48.2082d, 16.3738d);
+        AppSettings.setImperialUnitsEnabled(context, false);
+        new PoiHistoryStore(context).addOrPromote(backupPoi);
+        String backupJson = AppDataBackup.exportJson(context);
+
+        clearPrefs();
+        Poi existingPoi = new Poi("Existing", 45.4642d, 9.19d);
+        AppSettings.setImperialUnitsEnabled(context, true);
+        new PoiHistoryStore(context).addOrPromote(existingPoi);
+
+        try {
+            AppDataBackup.importJson(new OneShotFailingCommitContext(context, PREFS[1]), backupJson);
+        } catch (JSONException expected) {
+            assertTrue(AppSettings.isImperialUnitsEnabled(context));
+            List<Poi> restoredPois = new PoiHistoryStore(context).list();
+            assertEquals(1, restoredPois.size());
+            assertEquals(existingPoi.name, restoredPois.get(0).name);
+            return;
+        }
+
+        throw new AssertionError("Expected failed preference write to reject import");
+    }
+
     private void clearPrefs() {
         for (String prefsName : PREFS) {
             context.getSharedPreferences(prefsName, Context.MODE_PRIVATE)
@@ -197,5 +226,172 @@ public class AppDataBackupTest {
         }
 
         throw new AssertionError("Expected invalid backup to be rejected");
+    }
+
+    private static final class OneShotFailingCommitContext extends ContextWrapper {
+        private final String failingPrefsName;
+        private boolean failed;
+
+        OneShotFailingCommitContext(Context base, String failingPrefsName) {
+            super(base);
+            this.failingPrefsName = failingPrefsName;
+        }
+
+        @Override
+        public SharedPreferences getSharedPreferences(String name, int mode) {
+            SharedPreferences preferences = super.getSharedPreferences(name, mode);
+            return failingPrefsName.equals(name)
+                    ? new OneShotFailingSharedPreferences(preferences, this)
+                    : preferences;
+        }
+
+        boolean shouldFailCommit() {
+            if (failed) {
+                return false;
+            }
+            failed = true;
+            return true;
+        }
+    }
+
+    private static final class OneShotFailingSharedPreferences implements SharedPreferences {
+        private final SharedPreferences delegate;
+        private final OneShotFailingCommitContext context;
+
+        OneShotFailingSharedPreferences(
+                SharedPreferences delegate,
+                OneShotFailingCommitContext context
+        ) {
+            this.delegate = delegate;
+            this.context = context;
+        }
+
+        @Override
+        public Map<String, ?> getAll() {
+            return delegate.getAll();
+        }
+
+        @Override
+        public String getString(String key, String defValue) {
+            return delegate.getString(key, defValue);
+        }
+
+        @Override
+        public Set<String> getStringSet(String key, Set<String> defValues) {
+            return delegate.getStringSet(key, defValues);
+        }
+
+        @Override
+        public int getInt(String key, int defValue) {
+            return delegate.getInt(key, defValue);
+        }
+
+        @Override
+        public long getLong(String key, long defValue) {
+            return delegate.getLong(key, defValue);
+        }
+
+        @Override
+        public float getFloat(String key, float defValue) {
+            return delegate.getFloat(key, defValue);
+        }
+
+        @Override
+        public boolean getBoolean(String key, boolean defValue) {
+            return delegate.getBoolean(key, defValue);
+        }
+
+        @Override
+        public boolean contains(String key) {
+            return delegate.contains(key);
+        }
+
+        @Override
+        public Editor edit() {
+            return new OneShotFailingEditor(delegate.edit(), context);
+        }
+
+        @Override
+        public void registerOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
+            delegate.registerOnSharedPreferenceChangeListener(listener);
+        }
+
+        @Override
+        public void unregisterOnSharedPreferenceChangeListener(OnSharedPreferenceChangeListener listener) {
+            delegate.unregisterOnSharedPreferenceChangeListener(listener);
+        }
+    }
+
+    private static final class OneShotFailingEditor implements SharedPreferences.Editor {
+        private final SharedPreferences.Editor delegate;
+        private final OneShotFailingCommitContext context;
+
+        OneShotFailingEditor(
+                SharedPreferences.Editor delegate,
+                OneShotFailingCommitContext context
+        ) {
+            this.delegate = delegate;
+            this.context = context;
+        }
+
+        @Override
+        public SharedPreferences.Editor putString(String key, String value) {
+            delegate.putString(key, value);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor putStringSet(String key, Set<String> values) {
+            delegate.putStringSet(key, values);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor putInt(String key, int value) {
+            delegate.putInt(key, value);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor putLong(String key, long value) {
+            delegate.putLong(key, value);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor putFloat(String key, float value) {
+            delegate.putFloat(key, value);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor putBoolean(String key, boolean value) {
+            delegate.putBoolean(key, value);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor remove(String key) {
+            delegate.remove(key);
+            return this;
+        }
+
+        @Override
+        public SharedPreferences.Editor clear() {
+            delegate.clear();
+            return this;
+        }
+
+        @Override
+        public boolean commit() {
+            return !context.shouldFailCommit() && delegate.commit();
+        }
+
+        @Override
+        public void apply() {
+            if (!context.shouldFailCommit()) {
+                delegate.apply();
+            }
+        }
     }
 }
