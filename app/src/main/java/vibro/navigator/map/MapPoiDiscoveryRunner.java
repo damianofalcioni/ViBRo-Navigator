@@ -30,7 +30,7 @@ final class MapPoiDiscoveryRunner {
     private final OsmMapPoiClient client = new OsmMapPoiClient();
 
     private int generation;
-    private boolean shutdown;
+    private volatile boolean shutdown;
 
     MapPoiDiscoveryRunner(
             @NonNull TaskScheduler mainThreadScheduler,
@@ -74,8 +74,10 @@ final class MapPoiDiscoveryRunner {
             executor.execute(() -> {
                 try {
                     OsmMapPoiDiscoveryResult discovery = request.fetch();
-                    poiLoader.rememberDiscovery(bounds, discovery);
-                    mainThreadScheduler.post(() -> applyResult(discoveryId, discovery, listener));
+                    if (!shutdown) {
+                        poiLoader.rememberDiscovery(bounds, discovery);
+                        mainThreadScheduler.post(() -> applyResult(discoveryId, discovery, listener));
+                    }
                 } catch (IOException e) {
                     AppLogger.w(TAG, "Failed to discover map POI categories", e);
                     mainThreadScheduler.post(() -> applyFailure(discoveryId, listener));
@@ -92,13 +94,13 @@ final class MapPoiDiscoveryRunner {
             @NonNull OsmMapPoiDiscoveryResult discovery,
             @NonNull Listener listener
     ) {
-        if (discoveryId == generation) {
+        if (!shutdown && discoveryId == generation) {
             listener.onDiscoveryComplete(discovery);
         }
     }
 
     private void applyFailure(int discoveryId, @NonNull Listener listener) {
-        if (discoveryId == generation) {
+        if (!shutdown && discoveryId == generation) {
             listener.onDiscoveryFailure();
         }
     }

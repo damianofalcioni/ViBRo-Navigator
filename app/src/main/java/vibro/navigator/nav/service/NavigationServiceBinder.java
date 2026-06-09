@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.logging.AppLogger;
 
 public final class NavigationServiceBinder extends Binder {
@@ -36,7 +37,7 @@ public final class NavigationServiceBinder extends Binder {
         NavigationLocation getLastFilteredLocation();
 
         @NonNull
-        List<?> addBlockedPointsAhead();
+        List<NogoPoint> addBlockedPointsAhead();
 
         @NonNull
         String getString(int resId);
@@ -88,7 +89,7 @@ public final class NavigationServiceBinder extends Binder {
             AppLogger.w(TAG, "Blocked waypoint requested without a current filtered NavigationLocation");
             return;
         }
-        List<?> added = host.addBlockedPointsAhead();
+        List<NogoPoint> added = host.addBlockedPointsAhead();
         if (added.isEmpty()) {
             AppLogger.w(TAG, "Blocked-road reroute ignored because no route point ahead could be matched");
             return;
@@ -121,7 +122,7 @@ public final class NavigationServiceBinder extends Binder {
     }
 
     @NonNull
-    private static String formatNogoPoints(@NonNull List<?> values) {
+    private static String formatNogoPoints(@NonNull List<NogoPoint> values) {
         if (values.isEmpty()) {
             return "[]";
         }

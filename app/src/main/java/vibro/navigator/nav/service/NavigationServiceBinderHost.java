@@ -11,6 +11,8 @@ import androidx.annotation.Nullable;
 
 import java.util.List;
 
+import vibro.navigator.brouter.NogoPoint;
+
 public final class NavigationServiceBinderHost implements NavigationServiceBinder.Host {
 
     public interface BlockedRoadRouteRecalculator {
@@ -95,7 +97,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
 
     @Override
     @NonNull
-    public List<?> addBlockedPointsAhead() {
+    public List<NogoPoint> addBlockedPointsAhead() {
         return navigationSession.addBlockedPointsAhead(System.currentTimeMillis());
     }
 

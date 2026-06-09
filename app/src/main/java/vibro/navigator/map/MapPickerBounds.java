@@ -10,6 +10,11 @@ import org.json.JSONObject;
 import java.util.Locale;
 
 final class MapPickerBounds {
+    private static final double MIN_FETCH_LAT = -85.05112878d;
+    private static final double MAX_FETCH_LAT = 85.05112878d;
+    private static final double MIN_FETCH_LON = -180.0d;
+    private static final double MAX_FETCH_LON = 180.0d;
+
     final double south;
     final double west;
     final double north;
@@ -49,10 +54,20 @@ final class MapPickerBounds {
     }
 
     boolean isReadyForPoiFetch() {
-        return north > south
+        return hasFiniteCoordinates()
+                && north > south
                 && east > west
-                && north <= 85.05112878d
-                && south >= -85.05112878d;
+                && north <= MAX_FETCH_LAT
+                && south >= MIN_FETCH_LAT
+                && east <= MAX_FETCH_LON
+                && west >= MIN_FETCH_LON;
+    }
+
+    private boolean hasFiniteCoordinates() {
+        return Double.isFinite(south)
+                && Double.isFinite(west)
+                && Double.isFinite(north)
+                && Double.isFinite(east);
     }
 
     boolean intersects(@NonNull MapPickerBounds other) {

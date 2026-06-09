@@ -33,7 +33,7 @@ final class MapPoiLoader {
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private int generation;
-    private boolean shutdown;
+    private volatile boolean shutdown;
 
     MapPoiLoader(@NonNull TaskScheduler mainThreadScheduler) {
         this.mainThreadScheduler = mainThreadScheduler;
@@ -53,6 +53,9 @@ final class MapPoiLoader {
             @NonNull MapPickerBounds bounds,
             @NonNull OsmMapPoiDiscoveryResult discovery
     ) {
+        if (shutdown) {
+            return;
+        }
         cache.rememberAll(bounds, discovery.categories, discovery.markers);
     }
 
@@ -100,6 +103,9 @@ final class MapPoiLoader {
 
     private void fetchRequests(@NonNull List<MapPoiFetchRequest> requests) throws IOException {
         for (MapPoiFetchRequest request : requests) {
+            if (shutdown) {
+                return;
+            }
             List<MapPoiMarker> markers = client.search(
                     request.bounds,
                     Collections.singletonList(request.category)
@@ -113,13 +119,13 @@ final class MapPoiLoader {
             @NonNull List<MapPoiMarker> markers,
             @NonNull Listener listener
     ) {
-        if (loadId == generation) {
+        if (!shutdown && loadId == generation) {
             listener.onPoiLoadComplete(markers);
         }
     }
 
     private void applyFailure(int loadId, @NonNull Listener listener) {
-        if (loadId == generation) {
+        if (!shutdown && loadId == generation) {
             listener.onPoiLoadFailure();
         }
     }

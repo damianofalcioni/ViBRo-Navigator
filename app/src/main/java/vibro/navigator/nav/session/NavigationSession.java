@@ -5,6 +5,7 @@ import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
+import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -122,7 +123,7 @@ public final class NavigationSession {
     }
 
     @NonNull
-    public List<?> addBlockedPointsAhead(long nowMs) {
+    public List<NogoPoint> addBlockedPointsAhead(long nowMs) {
         return components.routeState.addBlockedPointsAhead(
                 components.locationState.getLastFilteredLocation(),
                 nowMs

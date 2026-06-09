@@ -39,6 +39,7 @@ final class MapPoiOverlayController {
     private final Runnable refreshRunnable = this::refreshNow;
     @NonNull
     private final Runnable discoveryRunnable = this::discoverCategoriesNow;
+    private volatile boolean active = true;
 
     MapPoiOverlayController(
             @NonNull MapPoiOverlayView view,
@@ -71,12 +72,15 @@ final class MapPoiOverlayController {
     }
 
     void onMapViewChanged() {
-        if (selection.hasEnabledCategories()) {
-            scheduleRefresh();
-        }
+        runIfActive(() -> {
+            if (selection.hasEnabledCategories()) {
+                scheduleRefresh();
+            }
+        });
     }
 
     void shutdown() {
+        active = false;
         mainThreadScheduler.removeCallbacks(refreshRunnable);
         mainThreadScheduler.removeCallbacks(discoveryRunnable);
         statusController.hide();
@@ -89,14 +93,16 @@ final class MapPoiOverlayController {
     }
 
     private void onCategoryChecked(@NonNull MapPoiCategory category, boolean checked) {
-        selection.setChecked(category, checked);
-        renderCategories();
-        view.hidePanel();
-        if (!selection.hasEnabledCategories()) {
-            clearPois();
-            return;
-        }
-        refreshNow();
+        runIfActive(() -> {
+            selection.setChecked(category, checked);
+            renderCategories();
+            view.hidePanel();
+            if (!selection.hasEnabledCategories()) {
+                clearPois();
+                return;
+            }
+            refreshNow();
+        });
     }
 
     private void clearPois() {
@@ -112,17 +118,21 @@ final class MapPoiOverlayController {
     }
 
     private void scheduleCategoryDiscovery() {
-        mainThreadScheduler.removeCallbacks(discoveryRunnable);
-        mainThreadScheduler.postDelayed(discoveryRunnable, DISCOVERY_DELAY_MS);
+        runIfActive(() -> {
+            mainThreadScheduler.removeCallbacks(discoveryRunnable);
+            mainThreadScheduler.postDelayed(discoveryRunnable, DISCOVERY_DELAY_MS);
+        });
     }
 
     private void discoverCategoriesNow() {
-        if (categoryFilter.isEnabled()) {
-            discoverFilteredCategoriesNow();
-            return;
-        }
-        statusController.show(R.string.msg_map_poi_loading);
-        scriptController.requestBounds(this::handleDiscoveryBoundsResult);
+        runIfActive(() -> {
+            if (categoryFilter.isEnabled()) {
+                discoverFilteredCategoriesNow();
+                return;
+            }
+            statusController.show(R.string.msg_map_poi_loading);
+            scriptController.requestBounds(this::handleDiscoveryBoundsResult);
+        });
     }
 
     private void discoverFilteredCategoriesNow() {
@@ -138,78 +148,90 @@ final class MapPoiOverlayController {
     }
 
     private void handleFilteredDiscoveryBoundsResult(@Nullable String value) {
-        try {
-            MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
-            if (bounds == null || !bounds.isReadyForPoiFetch()) {
-                showZoomInMessage();
-                return;
+        runIfActive(() -> {
+            try {
+                MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
+                if (bounds == null || !bounds.isReadyForPoiFetch()) {
+                    showZoomInMessage();
+                    return;
+                }
+                discoveryRunner.discoverFiltered(bounds, categoryFilter.categories(), new CategoryDiscoveryListener());
+            } catch (JSONException e) {
+                AppLogger.w(TAG, "Failed to parse map bounds for filtered POI category discovery", e);
+                showUnavailableMessage();
             }
-            discoveryRunner.discoverFiltered(bounds, categoryFilter.categories(), new CategoryDiscoveryListener());
-        } catch (JSONException e) {
-            AppLogger.w(TAG, "Failed to parse map bounds for filtered POI category discovery", e);
-            showUnavailableMessage();
-        }
+        });
     }
 
     private void handleDiscoveryBoundsResult(@Nullable String value) {
-        try {
-            MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
-            if (bounds == null || !bounds.isReadyForPoiFetch()) {
-                selection.clearCategories();
-                renderCategories();
-                showZoomInMessage();
-                return;
+        runIfActive(() -> {
+            try {
+                MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
+                if (bounds == null || !bounds.isReadyForPoiFetch()) {
+                    selection.clearCategories();
+                    renderCategories();
+                    showZoomInMessage();
+                    return;
+                }
+                discoveryRunner.discoverAll(bounds, new CategoryDiscoveryListener());
+            } catch (JSONException e) {
+                AppLogger.w(TAG, "Failed to parse map bounds for POI category discovery", e);
+                showUnavailableMessage();
             }
-            discoveryRunner.discoverAll(bounds, new CategoryDiscoveryListener());
-        } catch (JSONException e) {
-            AppLogger.w(TAG, "Failed to parse map bounds for POI category discovery", e);
-            showUnavailableMessage();
-        }
+        });
     }
 
     private void applyCategoryResult(@NonNull List<MapPoiCategory> discovered) {
-        selection.setCategories(discovered);
-        renderCategories();
-        if (!selection.hasCategories()) {
-            clearPois();
-            statusController.show(R.string.msg_map_poi_categories_empty);
-        } else if (!selection.hasEnabledCategories()) {
-            statusController.hide();
-        } else {
-            refreshNow();
-        }
+        runIfActive(() -> {
+            selection.setCategories(discovered);
+            renderCategories();
+            if (!selection.hasCategories()) {
+                clearPois();
+                statusController.show(R.string.msg_map_poi_categories_empty);
+            } else if (!selection.hasEnabledCategories()) {
+                statusController.hide();
+            } else {
+                refreshNow();
+            }
+        });
     }
 
     private void refreshNow() {
-        if (!selection.hasEnabledCategories()) {
-            clearPois();
-            return;
-        }
-        statusController.show(R.string.msg_map_poi_loading);
-        scriptController.requestBounds(this::handleBoundsResult);
+        runIfActive(() -> {
+            if (!selection.hasEnabledCategories()) {
+                clearPois();
+                return;
+            }
+            statusController.show(R.string.msg_map_poi_loading);
+            scriptController.requestBounds(this::handleBoundsResult);
+        });
     }
 
     private void handleBoundsResult(@Nullable String value) {
-        try {
-            MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
-            if (bounds == null || !bounds.isReadyForPoiFetch()) {
-                showZoomInMessage();
-                return;
+        runIfActive(() -> {
+            try {
+                MapPickerBounds bounds = MapPickerBounds.parseJavascriptResult(value);
+                if (bounds == null || !bounds.isReadyForPoiFetch()) {
+                    showZoomInMessage();
+                    return;
+                }
+                poiLoader.load(bounds, selection.enabledCategories(), new PoiLoadListener());
+            } catch (JSONException e) {
+                AppLogger.w(TAG, "Failed to parse map bounds for POI fetch", e);
+                showUnavailableMessage();
             }
-            poiLoader.load(bounds, selection.enabledCategories(), new PoiLoadListener());
-        } catch (JSONException e) {
-            AppLogger.w(TAG, "Failed to parse map bounds for POI fetch", e);
-            showUnavailableMessage();
-        }
+        });
     }
 
     private void applyPoiResult(@NonNull List<MapPoiMarker> markers) {
-        scriptController.setPoiMarkers(toJson(markers));
-        if (markers.isEmpty()) {
-            statusController.show(R.string.msg_map_poi_empty);
-            return;
-        }
-        statusController.hide();
+        runIfActive(() -> {
+            scriptController.setPoiMarkers(toJson(markers));
+            if (markers.isEmpty()) {
+                statusController.show(R.string.msg_map_poi_empty);
+                return;
+            }
+            statusController.hide();
+        });
     }
 
     private void applyPoiFailure() {
@@ -231,6 +253,12 @@ final class MapPoiOverlayController {
         statusController.showTransient(R.string.msg_map_poi_unavailable);
     }
 
+    private void runIfActive(@NonNull Runnable action) {
+        if (active) {
+            action.run();
+        }
+    }
+
     private final class CategoryDiscoveryListener implements MapPoiDiscoveryRunner.Listener {
         @Override
         public void onDiscoveryComplete(@NonNull OsmMapPoiDiscoveryResult discovery) {
@@ -246,7 +274,7 @@ final class MapPoiOverlayController {
     private final class PoiLoadListener implements MapPoiLoader.Listener {
         @Override
         public void onCachedPois(@NonNull List<MapPoiMarker> markers) {
-            scriptController.setPoiMarkers(toJson(markers));
+            runIfActive(() -> scriptController.setPoiMarkers(toJson(markers)));
         }
 
         @Override

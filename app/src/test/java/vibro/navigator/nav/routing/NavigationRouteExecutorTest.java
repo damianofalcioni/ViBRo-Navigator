@@ -8,12 +8,15 @@ import static org.junit.Assert.assertTrue;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.brouter.NogoPoint;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import org.junit.Test;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Queue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -408,6 +411,58 @@ public class NavigationRouteExecutorTest {
     }
 
     @Test
+    public void shutdownSuppressesQueuedRouteCallbacks() throws Exception {
+        QueueingScheduler scheduler = new QueueingScheduler();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                (start, intermediates, destination, profile, blocked) -> new GeoJsonRoute(
+                        Arrays.asList(start, destination),
+                        Collections.emptyList(),
+                        42.0,
+                        120.0
+                ),
+                Executors.newSingleThreadExecutor(),
+                scheduler
+        );
+        AtomicInteger callbacks = new AtomicInteger();
+        boolean shutdown = false;
+
+        try {
+            executor.requestRoute(
+                    routeSnapshot(),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationRouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            callbacks.incrementAndGet();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationRouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            callbacks.incrementAndGet();
+                        }
+                    }
+            );
+
+            assertTrue(scheduler.awaitPost());
+            executor.shutdown();
+            shutdown = true;
+            scheduler.runAll();
+
+            assertEquals(0, callbacks.get());
+        } finally {
+            if (!shutdown) {
+                executor.shutdown();
+            }
+        }
+    }
+
+    @Test
     public void requestRouteRunsCalculationInsideConfiguredGuard() throws Exception {
         AtomicInteger guardRuns = new AtomicInteger();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
@@ -460,6 +515,44 @@ public class NavigationRouteExecutorTest {
             assertEquals(1, guardRuns.get());
         } finally {
             executor.shutdown();
+        }
+    }
+
+    private static final class QueueingScheduler implements TaskScheduler {
+        private final Queue<Runnable> queued = new ArrayDeque<>();
+        private final CountDownLatch postLatch = new CountDownLatch(1);
+
+        @Override
+        public synchronized void post(Runnable runnable) {
+            queued.add(runnable);
+            postLatch.countDown();
+        }
+
+        @Override
+        public void postDelayed(Runnable runnable, long delayMs) {
+            post(runnable);
+        }
+
+        @Override
+        public synchronized void removeCallbacks(Runnable runnable) {
+            queued.remove(runnable);
+        }
+
+        boolean awaitPost() throws InterruptedException {
+            return postLatch.await(2, TimeUnit.SECONDS);
+        }
+
+        void runAll() {
+            while (true) {
+                Runnable next;
+                synchronized (this) {
+                    next = queued.poll();
+                }
+                if (next == null) {
+                    return;
+                }
+                next.run();
+            }
         }
     }
 

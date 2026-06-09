@@ -60,6 +60,7 @@ public final class NavigationRouteExecutor {
     private final TaskScheduler mainThreadScheduler;
     private final RouteCalculationGuard routeCalculationGuard;
     private final NavigationRouteRetryPolicy routeRetryPolicy;
+    private volatile boolean shutdown;
 
     public NavigationRouteExecutor(
             @NonNull RouteCalculator routeCalculator,
@@ -139,6 +140,10 @@ public final class NavigationRouteExecutor {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Callback callback
     ) {
+        if (shutdown) {
+            AppLogger.w(TAG, "Ignoring route calculation request after shutdown");
+            return;
+        }
         try {
             executorService.submit(() -> {
                 long beganAt = System.currentTimeMillis();
@@ -149,26 +154,59 @@ public final class NavigationRouteExecutor {
                     if (newRoute.track.isEmpty()) {
                         throw new IllegalStateException("BRouter returned an empty route");
                     }
-                    mainThreadScheduler.post(() -> callback.onRouteApplied(snapshot, newRoute, beganAt));
+                    deliverRouteApplied(snapshot, callback, newRoute, beganAt);
                 } catch (Exception e) {
-                    mainThreadScheduler.post(() -> callback.onRouteFailure(snapshot, e));
+                    deliverRouteFailure(snapshot, callback, e);
                 }
             });
         } catch (RejectedExecutionException e) {
             AppLogger.w(TAG, "Route calculation rejected because the executor is shut down", e);
-            mainThreadScheduler.post(() -> callback.onRouteFailure(
+            deliverRouteFailure(
                     snapshot,
+                    callback,
                     new IllegalStateException("Route calculation rejected because the executor is shut down", e)
-            ));
+            );
         }
     }
 
     public void shutdown() {
+        shutdown = true;
         executorService.shutdownNow();
         if (!awaitExecutorTermination()) {
             AppLogger.w(TAG, "Route executor did not terminate cleanly before cleanup");
         }
         closeRouteCalculator();
+    }
+
+    private void deliverRouteApplied(
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull Callback callback,
+            @NonNull GeoJsonRoute newRoute,
+            long beganAt
+    ) {
+        if (shutdown) {
+            return;
+        }
+        mainThreadScheduler.post(() -> {
+            if (!shutdown) {
+                callback.onRouteApplied(snapshot, newRoute, beganAt);
+            }
+        });
+    }
+
+    private void deliverRouteFailure(
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull Callback callback,
+            @NonNull Exception error
+    ) {
+        if (shutdown) {
+            return;
+        }
+        mainThreadScheduler.post(() -> {
+            if (!shutdown) {
+                callback.onRouteFailure(snapshot, error);
+            }
+        });
     }
 
     @NonNull
