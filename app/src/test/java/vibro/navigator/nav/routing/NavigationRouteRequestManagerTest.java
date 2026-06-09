@@ -29,7 +29,25 @@ public class NavigationRouteRequestManagerTest {
     private static final String BLOCKED_ROAD_NOTICE = "Blocked road added. Recalculating route.";
 
     @Test
-    public void prepare_throttlesBackToBackRecalculations() {
+    public void prepare_allowsFirstRouteRequestAtZeroTimestamp() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        NavigationRouteRequestSnapshot first = manager.prepare(
+                false,
+                0L,
+                navigationRequest(),
+                location(0.0, 0.0, 0L),
+                Collections.emptyList(),
+                null
+        );
+
+        assertNotNull(first);
+        assertTrue(manager.isRouteCalculationInProgress());
+    }
+
+    @Test
+    public void prepare_throttlesAfterCompletedRecentRecalculation() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset();
 
@@ -41,6 +59,9 @@ public class NavigationRouteRequestManagerTest {
                 Collections.emptyList(),
                 null
         );
+        assertNotNull(first);
+        assertTrue(manager.onRouteApplied(first));
+
         NavigationRouteRequestSnapshot second = manager.prepare(
                 false,
                 11_000L,
@@ -50,8 +71,37 @@ public class NavigationRouteRequestManagerTest {
                 null
         );
 
-        assertNotNull(first);
         assertNull(second);
+        assertFalse(manager.isRouteCalculationInProgress());
+        assertNull(manager.consumePendingRecalculation());
+    }
+
+    @Test
+    public void prepare_doesNotThrottleWhenClockMovesBackward() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        NavigationRouteRequestSnapshot first = manager.prepare(
+                false,
+                10_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 10_000L),
+                Collections.emptyList(),
+                null
+        );
+        assertNotNull(first);
+        assertTrue(manager.onRouteApplied(first));
+
+        NavigationRouteRequestSnapshot second = manager.prepare(
+                false,
+                9_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 9_000L),
+                Collections.emptyList(),
+                null
+        );
+
+        assertNotNull(second);
         assertTrue(manager.isRouteCalculationInProgress());
     }
 

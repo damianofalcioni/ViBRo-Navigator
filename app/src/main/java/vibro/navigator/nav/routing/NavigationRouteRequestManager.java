@@ -168,8 +168,9 @@ public final class NavigationRouteRequestManager {
             updatePendingRecalculation(force, lastFiltered, reason, inProgressNotice);
             return null;
         }
-        if (!force && nowMs - lastRerouteMs < REROUTE_THROTTLE_MS) {
-            AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs=" + (nowMs - lastRerouteMs));
+        if (!force && isWithinRerouteThrottle(nowMs)) {
+            AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs="
+                    + elapsedSinceLastRerouteMs(nowMs));
             return null;
         }
         if (lastFiltered == null) {
@@ -292,6 +293,15 @@ public final class NavigationRouteRequestManager {
             return true;
         }
         return StartupRouteRefreshPolicy.shouldRefresh(activeRequestStartLocation, latestStart);
+    }
+
+    private boolean isWithinRerouteThrottle(long nowMs) {
+        long elapsedMs = elapsedSinceLastRerouteMs(nowMs);
+        return elapsedMs >= 0L && elapsedMs < REROUTE_THROTTLE_MS;
+    }
+
+    private long elapsedSinceLastRerouteMs(long nowMs) {
+        return lastRerouteMs <= 0L ? REROUTE_THROTTLE_MS : nowMs - lastRerouteMs;
     }
 
     @Nullable

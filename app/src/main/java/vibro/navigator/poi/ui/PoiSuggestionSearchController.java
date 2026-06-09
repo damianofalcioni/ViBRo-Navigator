@@ -185,12 +185,14 @@ final class PoiSuggestionSearchController {
             AppLogger.d(logTag, "Discarding stale search result query=" + query);
             return;
         }
+        inFlight = null;
         AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
         presenter.showSuggestions(suggestions, "search-results");
     }
 
     private void handleSearchFailure(int generation) {
         if (generation == searchGeneration) {
+            inFlight = null;
             presenter.showSuggestions(new ArrayList<>(), "search-failure");
         }
     }

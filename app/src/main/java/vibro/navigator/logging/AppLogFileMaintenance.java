@@ -7,8 +7,8 @@ import androidx.annotation.Nullable;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 
@@ -22,7 +22,10 @@ final class AppLogFileMaintenance {
 
     static void appendBlock(@NonNull File file, @NonNull CharSequence block) {
         trimIfNeeded(file);
-        try (FileWriter writer = new FileWriter(file, true)) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(
+                new FileOutputStream(file, true),
+                StandardCharsets.UTF_8
+        )) {
             writer.write(block.toString());
         } catch (Exception ignored) {
             // Logging must never crash the app.
@@ -131,8 +134,27 @@ final class AppLogFileMaintenance {
             return;
         }
 
-        deleteIfExists(file);
-        //noinspection ResultOfMethodCallIgnored
-        temp.renameTo(file);
+        replaceWithTemp(file, temp);
+    }
+
+    private static void replaceWithTemp(@NonNull File file, @NonNull File temp) {
+        if (file.exists() && !file.delete()) {
+            deleteIfExists(temp);
+            return;
+        }
+        if (temp.renameTo(file)) {
+            return;
+        }
+        copyTempToFile(temp, file);
+        deleteIfExists(temp);
+    }
+
+    private static void copyTempToFile(@NonNull File temp, @NonNull File file) {
+        try (RandomAccessFile source = new RandomAccessFile(temp, "r");
+             FileOutputStream out = new FileOutputStream(file, false)) {
+            copyFile(source, out);
+        } catch (Exception ignored) {
+            deleteIfExists(file);
+        }
     }
 }

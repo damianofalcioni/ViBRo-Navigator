@@ -1,6 +1,7 @@
 package vibro.navigator.poi.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -60,6 +61,30 @@ public class PoiSuggestionSearchControllerTest {
 
         assertEquals(0, presenter.suggestions.size());
         assertTrue(dispatcher.future(0).cancelled);
+    }
+
+    @Test
+    public void scheduleSearch_doesNotCancelCompletedSearchOnNextImmediateSuggestion() {
+        FakeScheduler scheduler = new FakeScheduler();
+        CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
+        CapturingPresenter presenter = new CapturingPresenter();
+        PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
+                scheduler,
+                new PoiHistoryStore(context),
+                (query, limit) -> Collections.singletonList(new Poi(query, 48.2082d, 16.3738d)),
+                "PoiSuggestionSearchControllerTest",
+                presenter,
+                dispatcher
+        );
+
+        controller.scheduleSearch(QUERY_INITIAL);
+        scheduler.runDelayed();
+        dispatcher.runTask(0);
+        controller.scheduleSearch("48.2082,16.3738");
+
+        assertEquals(1, presenter.suggestions.size());
+        assertEquals("48.2082,16.3738", presenter.suggestions.get(0).poi.displayLabel());
+        assertFalse(dispatcher.future(0).cancelled);
     }
 
     private static final class FakeScheduler implements TaskScheduler {
