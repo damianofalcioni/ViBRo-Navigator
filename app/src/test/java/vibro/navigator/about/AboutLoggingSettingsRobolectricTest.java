@@ -314,6 +314,7 @@ public class AboutLoggingSettingsRobolectricTest {
         ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
 
         poiCategoriesButton.performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         LinearLayout categoryList = dialog.findViewById(R.id.aboutPoiCategoryDialogList);
         EditText firstField = categoryFieldAt(categoryList, 0);
@@ -341,6 +342,7 @@ public class AboutLoggingSettingsRobolectricTest {
         ImageButton settingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
 
         settingsButton.performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
 
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         TextView voiceLabel = dialog.findViewById(R.id.aboutManeuverVoiceDialogVoiceLabel);
@@ -370,6 +372,7 @@ public class AboutLoggingSettingsRobolectricTest {
         ImageButton settingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
 
         settingsButton.performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         Button ttsSettingsButton = dialog.findViewById(R.id.aboutTtsSettingsButton);
 

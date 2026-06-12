@@ -48,7 +48,7 @@ final class AboutPoiCategorySettings {
         refresh();
         enabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 AppSettings.setMapPoiCategoryFilterEnabled(activity, isChecked));
-        listButton.setOnClickListener(v -> showDialog());
+        AboutDeferredDialogAction.configure(activity, listButton, this::showDialog);
     }
 
     void refresh() {

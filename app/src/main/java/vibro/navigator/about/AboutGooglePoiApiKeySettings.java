@@ -70,7 +70,7 @@ final class AboutGooglePoiApiKeySettings {
             return;
         }
         refresh();
-        editButton.setOnClickListener(v -> showDialog());
+        AboutDeferredDialogAction.configure(activity, editButton, this::showDialog);
         enabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> setGoogleSearchEnabled(isChecked));
     }
 

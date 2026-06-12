@@ -43,7 +43,7 @@ final class AboutManeuverVoiceSettings {
         this.enabledSwitch = enabledSwitch;
         renderOptions(Collections.emptyList());
         configureEnabledSwitch();
-        settingsButton.setOnClickListener(v -> showDialog());
+        AboutDeferredDialogAction.configure(activity, settingsButton, this::showDialog);
         initializeVoiceClient();
     }
 

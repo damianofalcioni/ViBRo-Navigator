@@ -36,6 +36,8 @@ import vibro.navigator.poi.search.GoogleGeocodeClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.settings.AppSettings;
 
+import java.util.concurrent.TimeUnit;
+
 @RunWith(RobolectricTestRunner.class)
 public class AboutGooglePoiApiKeySettingsGplayTest {
 
@@ -71,7 +73,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
         assertFalse(googleSearchSwitch.isChecked());
 
         apiKeyButton.performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         EditText edit = dialog.findViewById(R.id.aboutGooglePoiApiKeyEdit);
         edit.setText("  " + USER_GOOGLE_POI_API_KEY + "  ");
@@ -107,7 +109,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
         Switch googleSearchSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
 
         apiKeyButton.performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         EditText edit = dialog.findViewById(R.id.aboutGooglePoiApiKeyEdit);
         edit.setText("");
@@ -133,7 +135,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
         Switch googleSearchSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
 
         apiKeyButton.performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         EditText edit = dialog.findViewById(R.id.aboutGooglePoiApiKeyEdit);
         edit.setText(USER_GOOGLE_POI_API_KEY);
@@ -159,7 +161,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
         ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
 
         apiKeyButton.performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+        shadowOf(Looper.getMainLooper()).idleFor(AboutDeferredDialogAction.OPEN_DELAY_MS + 50, TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         EditText edit = dialog.findViewById(R.id.aboutGooglePoiApiKeyEdit);
         edit.setText(USER_GOOGLE_POI_API_KEY);
