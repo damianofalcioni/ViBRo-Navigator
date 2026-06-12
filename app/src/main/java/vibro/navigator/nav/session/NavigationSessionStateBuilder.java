@@ -10,6 +10,7 @@ import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 
@@ -21,23 +22,28 @@ final class NavigationSessionStateBuilder {
     @NonNull
     private final NavigationSessionRouteState routeState;
     @NonNull
+    private final StraightLineNavigationState straightLineState;
+    @NonNull
     private final NavigationRouteRequestManager routeRequestManager;
 
     NavigationSessionStateBuilder(
             @NonNull NavigationSessionLocationState locationState,
             @NonNull NavigationSessionHeadingResolver headingResolver,
             @NonNull NavigationSessionRouteState routeState,
+            @NonNull StraightLineNavigationState straightLineState,
             @NonNull NavigationRouteRequestManager routeRequestManager
     ) {
         this.locationState = locationState;
         this.headingResolver = headingResolver;
         this.routeState = routeState;
+        this.straightLineState = straightLineState;
         this.routeRequestManager = routeRequestManager;
     }
 
     @NonNull
     NavState build(
             @NonNull Context context,
+            @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @Nullable Integer fixedSatelliteCount,
@@ -49,6 +55,7 @@ final class NavigationSessionStateBuilder {
     ) {
         return build(
                 new AndroidNavigationTextResources(context),
+                currentRequest,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 fixedSatelliteCount,
@@ -63,6 +70,7 @@ final class NavigationSessionStateBuilder {
     @NonNull
     NavState build(
             @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @Nullable Integer fixedSatelliteCount,
@@ -96,6 +104,13 @@ final class NavigationSessionStateBuilder {
                         routeRequestManager.getLastRouteFailure()
                 )
                 .build();
+        if (currentRequest.isStraightLine()) {
+            return NavStateResourceComposer.withPauseState(
+                    textResources,
+                    straightLineState.buildState(currentRequest, snapshot),
+                    paused
+            );
+        }
         NavState baseState = routeState.advanceDisplayState(snapshot);
         return NavStateResourceComposer.withPauseState(textResources, baseState, paused);
     }

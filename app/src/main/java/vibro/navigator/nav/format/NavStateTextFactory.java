@@ -217,7 +217,7 @@ public final class NavStateTextFactory {
     }
 
     @NonNull
-    private static String buildProgressLine(
+    public static String buildProgressLine(
             @NonNull NavigationTextResources textResources,
             @NonNull String label,
             double distanceMeters,

@@ -2,6 +2,7 @@ package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.compass.NavCompassStateFactory;
 import android.app.Activity;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
@@ -9,6 +10,8 @@ import android.os.Looper;
 import android.view.View;
 import androidx.core.content.ContextCompat;
 import vibro.navigator.R;
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -254,6 +257,30 @@ public class NavigationCompassViewTest {
     }
 
     @Test
+    public void straightLineTargetProjectionUsesMarkerWithoutApproachLine() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteStartApproachRenderer renderer = new NavigationCompassRouteStartApproachRenderer();
+        NavCompassState state = NavCompassStateFactory.buildStraightLineTargetCompassState(
+                location(0.0, 0.0),
+                2f,
+                false,
+                5f,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList(),
+                0.0,
+                null,
+                0L
+        );
+
+        assertNotNull(state);
+        assertFalse(renderer.drawsTargetLineForTest(state));
+        assertEquals(
+                ContextCompat.getColor(activity, R.color.white),
+                renderer.straightLineTargetPaintForTest(activity).getColor()
+        );
+    }
+
+    @Test
     public void orientationCueSweepUsesShortestSignedTurn() {
         NavigationCompassOrientationCueRenderer renderer = new NavigationCompassOrientationCueRenderer();
 
@@ -322,5 +349,15 @@ public class NavigationCompassViewTest {
                 0f,
                 true
         );
+    }
+
+    private static NavigationLocation location(double lat, double lon) {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(0L);
+        location.setAccuracy(5f);
+        location.setSpeed(2f);
+        return location;
     }
 }

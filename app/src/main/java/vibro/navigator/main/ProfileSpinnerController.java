@@ -79,7 +79,7 @@ final class ProfileSpinnerController {
         adapter.clear();
         adapter.addAll(options.all());
         adapter.notifyDataSetChanged();
-        restoreSelection(currentSelectionKey, customProfile);
+        restoreSelection(currentSelectionKey);
         suppressSelectionCallback = false;
         AppLogger.i(TAG, "Loaded routing profiles count=" + options.profilesForLog().size()
                 + " profiles=" + options.profilesForLog()
@@ -99,17 +99,20 @@ final class ProfileSpinnerController {
     }
 
     @Nullable
-    String resolveSelectedProfile() {
-        if (!profilesRepository.isBRouterInstalled(context)) {
-            Toast.makeText(context, R.string.msg_brouter_not_found, Toast.LENGTH_SHORT).show();
-            return null;
-        }
+    ProfileSelection resolveSelectedProfileSelection() {
         ProfileSpinnerOption option = getSelectedOptionOrToast();
         if (option == null) {
             return null;
         }
+        if (option.isStraightLine()) {
+            return ProfileSelection.straightLine();
+        }
+        if (!profilesRepository.isBRouterInstalled(context)) {
+            Toast.makeText(context, R.string.msg_brouter_not_found, Toast.LENGTH_SHORT).show();
+            return null;
+        }
         if (!option.isCustom()) {
-            return option.profileName();
+            return resolveBRouterProfile(option.profileName());
         }
         return resolveCustomProfile();
     }
@@ -124,14 +127,23 @@ final class ProfileSpinnerController {
     }
 
     @Nullable
-    private String resolveCustomProfile() {
+    private ProfileSelection resolveCustomProfile() {
         String customProfile = profilesRepository.getCustomProfileName(context);
         if (customProfile != null && !customProfile.trim().isEmpty()) {
-            return customProfile;
+            return ProfileSelection.brouter(customProfile);
         }
         Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
         listener.onCustomProfilePickerRequested();
         return null;
+    }
+
+    @Nullable
+    private ProfileSelection resolveBRouterProfile(@Nullable String profileName) {
+        if (profileName == null || profileName.trim().isEmpty()) {
+            Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
+            return null;
+        }
+        return ProfileSelection.brouter(profileName);
     }
 
     private void handleSelection(int position) {
@@ -166,8 +178,8 @@ final class ProfileSpinnerController {
         return option.selectionKey();
     }
 
-    private void restoreSelection(@Nullable String selectionKey, @Nullable String customProfile) {
-        setSelection(options.restoredPosition(selectionKey, customProfile));
+    private void restoreSelection(@Nullable String selectionKey) {
+        setSelection(options.restoredPosition(selectionKey));
     }
 
     private void selectFirstRegularProfile() {

@@ -37,7 +37,7 @@ The main UI must include a routing-profile selector at the top.
 
 #### 1.1 Routing profiles
 
-- The selector items must be the BRouter profile names
+- The selector items must include the BRouter profile names plus the special straight-line profile `None-Straight Line (No BRouter)`
 - Profiles may come from bundled BRouter internal profiles or from user-accessible `.brf` files in autodiscovered external `profiles2` folders
 - The selector is profile-based, not a separate vehicle-type toggle
 - Profile handling must remain compatible with both bundled BRouter profiles and autodiscovered external `profiles2` folders
@@ -46,7 +46,9 @@ The main UI must include a routing-profile selector at the top.
 - The routing-profile selector must use the same external `profiles2` discovery logic as the custom-profile picker
 - When one or more external `profiles2` folders are discoverable, the selector should list those external `.brf` profiles alongside bundled BRouter profiles
 - When no external `profiles2` folder is discoverable, the selector must fall back to bundled BRouter profiles if bundled profiles are available
-- When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show a single custom-profile entry so the user can pick a `.brf` file manually
+- When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show the straight-line profile and a single custom-profile entry so the user can navigate without BRouter or pick a `.brf` file manually
+- The straight-line profile must not be handled as a BRouter profile, must not require BRouter to be installed, and must remain visible and usable when no BRouter profiles are available
+- The straight-line profile info UI must explain that it points the compass toward the next destination, shows arrival distance and ETA from straight-line legs, and suppresses route lines and turn directions
 - The selector must continue to behave like a normal dropdown even when a custom profile is currently selected
 - Bundled BRouter profile rows in the opened selector must include an info control that opens a UI showing the profile title, strengths, weaknesses, and distinctive usage guidance; custom or unknown external profiles must not get bundled-profile descriptions
 - Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
@@ -151,18 +153,20 @@ Pressing the button must:
 
 - Open a new navigation UI implemented as an Android `Activity`
 - Access the current user location
-- Use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
-- Include any intermediate stops in the route calculation
+- For BRouter profiles, use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
+- For the straight-line profile, skip BRouter route calculation and navigate directly toward the next destination point
+- Include any intermediate stops in BRouter route calculations, and in straight-line mode treat them as ordered direct legs toward the final destination
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 - The first BRouter route calculation must only use a startup location fix that is recent and has location accuracy of 25 meters or better, whether that fix came from a cached seed, one-shot current-location request, or live location update
 - When a fresher startup fix arrives while the first no-active-route calculation is still running, the app should only queue a replacement BRouter request if the new fix materially changes the route start or meaningfully improves start accuracy; small startup jitter around the cached seed should not force a duplicate route calculation
 
 #### 4.1 Missing BRouter handling
 
-- If BRouter is not installed, the main screen must clearly tell the user that BRouter is required instead of behaving as if profile files are merely missing
+- If BRouter is not installed, the main screen must clearly tell the user that BRouter is required for BRouter profiles instead of behaving as if profile files are merely missing
 - On first main-screen open without BRouter installed, the app should offer direct install options for the BRouter app page, including Play Store and F-Droid targets when those intents are available
 - If no install target can be opened on the device, the app must fail gracefully with a short user-visible message rather than crashing
-- When BRouter is not installed, pressing start navigation must stop before profile resolution and must show a missing-BRouter message instead of opening the custom-profile picker
+- When BRouter is not installed and a BRouter-backed profile or custom profile is selected, pressing start navigation must stop before profile resolution and must show a missing-BRouter message instead of opening the custom-profile picker
+- When BRouter is not installed and the straight-line profile is selected, pressing start navigation must continue without a missing-BRouter message
 
 #### 4.3 BRouter integration
 
@@ -220,6 +224,12 @@ The app must monitor user position:
 - Any asynchronous route calculation must apply its resulting shared navigation state in a single serialized path so stale background results cannot overwrite newer navigation state
 - The navigation session must support an explicit paused mode that preserves the current request and loaded route while temporarily suspending live guidance processing
 - While paused, the app must stop live location/orientation-driven navigation updates, suppress turn and reroute handling, and resume from the same session state when the user continues navigation
+- In straight-line mode, the navigation session must not request BRouter routes or display turn directions
+- In straight-line mode, the navigation UI must not draw the red route polyline; it must show only the destination/intermediate target points and the compass target/arc for the next destination point
+- In straight-line mode with intermediate stops, the next compass target must be the next unreached intermediate stop; after each stop is reached, the compass target must advance to the following stop or final destination
+- In straight-line mode, the progress line for the next stop must use the direct distance from the current location to that stop
+- In straight-line mode, the progress line for the final destination must sum the direct remaining legs through all unreached intermediate stops, such as current location to next stop plus stop to stop plus last stop to final destination, instead of using a single shortcut from the current location to the final destination
+- In straight-line mode, displayed arrival times must use the same straight-line remaining distances and the current speed; if current speed is unavailable or stationary, the ETA must be unavailable
 
 #### 4.4.1 Off-track reroute
 

@@ -11,10 +11,12 @@ import java.util.List;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 
 public final class AndroidNavigationRequestIntentContract {
 
     public static final String EXTRA_PROFILE = "vibro.navigator.extra.PROFILE";
+    public static final String EXTRA_ROUTING_MODE = "vibro.navigator.extra.ROUTING_MODE";
     public static final String EXTRA_DEST_NAME = "vibro.navigator.extra.DEST_NAME";
     public static final String EXTRA_DEST_LAT = "vibro.navigator.extra.DEST_LAT";
     public static final String EXTRA_DEST_LON = "vibro.navigator.extra.DEST_LON";
@@ -30,6 +32,7 @@ public final class AndroidNavigationRequestIntentContract {
         }
 
         return fromExtras(new Extras(
+                intent.getStringExtra(EXTRA_ROUTING_MODE),
                 intent.getStringExtra(EXTRA_PROFILE),
                 intent.getStringExtra(EXTRA_DEST_NAME),
                 intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN),
@@ -44,6 +47,7 @@ public final class AndroidNavigationRequestIntentContract {
             return new NavigationRequest(null, null, null, Collections.emptyList());
         }
 
+        NavigationRoutingMode routingMode = NavigationRoutingMode.fromSerializedName(extras.routingMode);
         LatLon destination = LatLon.isValidCoordinate(extras.destinationLat, extras.destinationLon)
                 ? new LatLon(extras.destinationLat, extras.destinationLon)
                 : null;
@@ -55,11 +59,12 @@ public final class AndroidNavigationRequestIntentContract {
             }
         }
 
-        return new NavigationRequest(extras.profile, extras.destinationName, destination, stops);
+        return new NavigationRequest(routingMode, extras.profile, extras.destinationName, destination, stops);
     }
 
     public static void putInto(@NonNull Intent intent, @NonNull NavigationRequest request) {
         Extras extras = toExtras(request);
+        intent.putExtra(EXTRA_ROUTING_MODE, extras.routingMode);
         if (extras.profile != null) {
             intent.putExtra(EXTRA_PROFILE, extras.profile);
         }
@@ -80,6 +85,7 @@ public final class AndroidNavigationRequestIntentContract {
         double destinationLat = request.destination == null ? Double.NaN : request.destination.lat;
         double destinationLon = request.destination == null ? Double.NaN : request.destination.lon;
         return new Extras(
+                request.routingMode.serializedName(),
                 request.profile,
                 request.destinationName,
                 destinationLat,
@@ -118,6 +124,8 @@ public final class AndroidNavigationRequestIntentContract {
     }
 
     static final class Extras {
+        @NonNull
+        final String routingMode;
         @Nullable
         final String profile;
         @Nullable
@@ -134,6 +142,18 @@ public final class AndroidNavigationRequestIntentContract {
                 double destinationLon,
                 @Nullable ArrayList<String> stops
         ) {
+            this(null, profile, destinationName, destinationLat, destinationLon, stops);
+        }
+
+        Extras(
+                @Nullable String routingMode,
+                @Nullable String profile,
+                @Nullable String destinationName,
+                double destinationLat,
+                double destinationLon,
+                @Nullable ArrayList<String> stops
+        ) {
+            this.routingMode = NavigationRoutingMode.fromSerializedName(routingMode).serializedName();
             this.profile = profile;
             this.destinationName = destinationName;
             this.destinationLat = destinationLat;

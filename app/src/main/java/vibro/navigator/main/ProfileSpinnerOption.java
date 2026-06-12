@@ -5,21 +5,36 @@ import androidx.annotation.Nullable;
 
 final class ProfileSpinnerOption {
     static final String CUSTOM_KEY = "__custom__";
+    static final String STRAIGHT_LINE_KEY = "__straight_line__";
 
     @NonNull
     private final String label;
     @Nullable
     private final String profileName;
-    private final boolean custom;
+    @NonNull
+    private final Kind kind;
 
     ProfileSpinnerOption(@NonNull String label, @Nullable String profileName, boolean custom) {
+        this(label, profileName, custom ? Kind.CUSTOM : Kind.BROUTER);
+    }
+
+    private ProfileSpinnerOption(@NonNull String label, @Nullable String profileName, @NonNull Kind kind) {
         this.label = label;
         this.profileName = profileName;
-        this.custom = custom;
+        this.kind = kind;
+    }
+
+    @NonNull
+    static ProfileSpinnerOption straightLine(@NonNull String label) {
+        return new ProfileSpinnerOption(label, null, Kind.STRAIGHT_LINE);
     }
 
     boolean isCustom() {
-        return custom;
+        return kind == Kind.CUSTOM;
+    }
+
+    boolean isStraightLine() {
+        return kind == Kind.STRAIGHT_LINE;
     }
 
     @Nullable
@@ -29,7 +44,13 @@ final class ProfileSpinnerOption {
 
     @NonNull
     String selectionKey() {
-        return custom ? CUSTOM_KEY : safe(profileName);
+        if (kind == Kind.CUSTOM) {
+            return CUSTOM_KEY;
+        }
+        if (kind == Kind.STRAIGHT_LINE) {
+            return STRAIGHT_LINE_KEY;
+        }
+        return safe(profileName);
     }
 
     @NonNull
@@ -41,6 +62,12 @@ final class ProfileSpinnerOption {
     @NonNull
     static String safe(@Nullable String value) {
         return value == null ? "null" : value;
+    }
+
+    private enum Kind {
+        BROUTER,
+        CUSTOM,
+        STRAIGHT_LINE
     }
 }
 

@@ -123,6 +123,10 @@ public final class TestNavigationTextResources implements NavigationTextResource
                 R.string.nav_waiting_for_location_body,
                 "Waiting for a usable location fix to calculate the route."
         );
+        strings.put(
+                R.string.nav_waiting_for_location_straight_line_body,
+                "Waiting for a usable location fix for straight-line guidance."
+        );
         strings.put(R.string.nav_calculating_route_title, "Calculating route");
         strings.put(R.string.nav_calculating_route_body, "Getting directions from BRouter.");
         strings.put(R.string.nav_route_unavailable_title, "Route unavailable");

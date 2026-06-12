@@ -62,6 +62,9 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
         if (option == null || option.isCustom()) {
             return null;
         }
+        if (option.isStraightLine()) {
+            return BundledProfileInfo.straightLine();
+        }
         return BundledProfileInfo.forProfile(option.profileName());
     }
 

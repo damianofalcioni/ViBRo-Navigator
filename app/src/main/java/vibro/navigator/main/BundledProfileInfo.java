@@ -66,6 +66,11 @@ final class BundledProfileInfo {
             attentionProfile("river", R.string.profile_info_river_title,
                     R.string.profile_info_river_description)
     };
+    private static final BundledProfileInfo STRAIGHT_LINE = profile(
+            ProfileSpinnerOption.STRAIGHT_LINE_KEY,
+            R.string.profile_info_straight_line_title,
+            R.string.profile_info_straight_line_description
+    );
 
     @NonNull
     private final String profileName;
@@ -102,6 +107,11 @@ final class BundledProfileInfo {
             }
         }
         return null;
+    }
+
+    @NonNull
+    static BundledProfileInfo straightLine() {
+        return STRAIGHT_LINE;
     }
 
     @StringRes

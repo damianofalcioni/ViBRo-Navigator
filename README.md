@@ -30,6 +30,9 @@
 * **Offline-first routing**
   Uses BRouter for fully offline route calculation.
 
+* **Straight-line guidance without BRouter**
+  The `None-Straight Line (No BRouter)` profile keeps compass and arrival guidance available even when BRouter is not installed.
+
 * **Minimal & dependency-light**
   Built in pure Java with minimal external dependencies. APK size is ~250Kb for the F-Droid version and ~650Kb for the GPlay version !!
 
@@ -65,12 +68,13 @@
 
 ## 🧭 How It Works
 
-1. Select a **routing profile** (from BRouter).
+1. Select a **routing profile** from BRouter, or `None-Straight Line (No BRouter)` for direct compass guidance.
 2. Enter a **destination** (or pick from history/map).
 3. Optionally add **intermediate stops**.
 4. Start navigation:
 
-   * The app calculates the route via BRouter.
+   * With a BRouter profile, the app calculates the route via BRouter.
+   * With the straight-line profile, the compass points to the next stop or destination and arrival distance/ETA use straight-line legs.
    * Guidance is delivered through:
 
      * Vibrations
@@ -94,7 +98,7 @@ ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low,
 ## 📦 Requirements
 
 * Android device (min SDK 21)
-* BRouter installed (required for routing)
+* BRouter installed for routed turn guidance; straight-line guidance works without BRouter
 
 ---
 

@@ -91,6 +91,9 @@
     <string name="label_exported_route_gpx">ViBRo route GPX</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
+    <string name="label_vehicle_profile_straight_line">None-Straight Line (No BRouter)</string>
+    <string name="profile_info_straight_line_title">None-Straight Line (No BRouter)</string>
+    <string name="profile_info_straight_line_description">Straight-line guidance that does not use BRouter or a routing profile. It points the compass toward the next destination, shows remaining arrival distance and ETA from straight-line legs, and suppresses route lines and turn directions. It is useful when BRouter is not installed or when only bearing-to-target guidance is needed.</string>
     <string name="profile_info_trekking_title">Trekking bike</string>
     <string name="profile_info_trekking_description">Balanced bike routing for everyday cycling, touring, and practical navigation. Its main strength is versatility: it avoids heavy car traffic, supports cycle routes, considers elevation, and usually produces routes that feel reasonable for normal cyclists. Its weakness is that it is not highly specialized: road cyclists may find it slower than `fastbike`, while off-road riders may find it too conservative compared with `mtb` or `gravel`. Its distinctive aspect is that it is the safest general-purpose bicycle profile and probably the best default for most users.</string>
     <string name="profile_info_trekking_ignore_cr_title">Trekking, ignore cycle routes</string>
@@ -156,6 +159,7 @@
     <string name="nav_no_route">No route</string>
     <string name="nav_waiting_for_location_title">Waiting for location</string>
     <string name="nav_waiting_for_location_body">Waiting for a usable location fix to calculate the route.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Waiting for a usable location fix for straight-line guidance.</string>
     <string name="nav_calculating_route_title">Calculating route</string>
     <string name="nav_calculating_route_body">Getting directions from BRouter.</string>
     <string name="nav_route_unavailable_title">Route unavailable</string>
@@ -253,7 +257,7 @@
 
     <string name="about_title">ViBRo Navigator</string>
     <string name="format_version">Version %1$s</string>
-    <string name="about_short_description">A lightweight, battery-efficient, and offline-first GPS navigation app that vibrates directions, built around BRouter.</string>
+    <string name="about_short_description">A lightweight, battery-efficient, and offline-first GPS navigation app that vibrates directions, built around BRouter with optional straight-line compass guidance.</string>
     <string name="about_source_code_link"><u>Source Code on GitHub</u></string>
     <string name="about_report_issue_link"><u>Report an issue</u></string>
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>

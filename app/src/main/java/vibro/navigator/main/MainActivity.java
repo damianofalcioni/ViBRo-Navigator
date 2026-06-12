@@ -158,15 +158,15 @@ public class MainActivity extends Activity {
     private void startNavigationFromInputs() {
         AppLogger.i(TAG, "Start navigation tapped destinationRaw=" + destinationController.getRawText().trim()
                 + " stopsVisible=" + stopController.size());
-        String profile = profileSpinnerController.resolveSelectedProfile();
-        if (profile == null) {
+        ProfileSelection profileSelection = profileSpinnerController.resolveSelectedProfileSelection();
+        if (profileSelection == null) {
             return;
         }
         NavigationInputResolver.Result input = NavigationInputResolver.resolve(
                 this,
                 destinationController,
                 stopController.getStopControllers(),
-                profile
+                profileSelection
         );
         if (input == null) {
             return;

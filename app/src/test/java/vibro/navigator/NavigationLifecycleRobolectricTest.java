@@ -7,6 +7,7 @@ import vibro.navigator.nav.ui.NavigationActivity;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -121,6 +122,33 @@ public class NavigationLifecycleRobolectricTest {
                 Arrays.asList("48.21,16.36", "48.22,16.39"),
                 resumeIntent.getStringArrayListExtra(AndroidNavigationRequestIntentContract.EXTRA_STOPS)
         );
+    }
+
+    @Test
+    public void foregroundNotificationResumeIntentPreservesStraightLineMode() {
+        Intent startIntent = new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class);
+        startIntent.setAction(NavigationService.ACTION_START);
+        startIntent.putExtra(
+                AndroidNavigationRequestIntentContract.EXTRA_ROUTING_MODE,
+                NavigationRoutingMode.STRAIGHT_LINE.serializedName()
+        );
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LAT, 48.2082d);
+        startIntent.putExtra(AndroidNavigationRequestIntentContract.EXTRA_DEST_LON, 16.3738d);
+
+        ServiceController<NavigationService> controller =
+                Robolectric.buildService(NavigationService.class, startIntent).create();
+        NavigationService service = controller.get();
+
+        service.onStartCommand(startIntent, 0, 1);
+
+        ShadowService shadowService = shadowOf(service);
+        Intent resumeIntent = shadowOf(shadowService.getLastForegroundNotification().contentIntent).getSavedIntent();
+
+        assertEquals(
+                NavigationRoutingMode.STRAIGHT_LINE.serializedName(),
+                resumeIntent.getStringExtra(AndroidNavigationRequestIntentContract.EXTRA_ROUTING_MODE)
+        );
+        assertFalse(resumeIntent.hasExtra(AndroidNavigationRequestIntentContract.EXTRA_PROFILE));
     }
 
     @Test

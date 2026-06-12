@@ -12,20 +12,35 @@ final class NavigationSessionComponents {
     @NonNull
     final NavigationSessionRouteState routeState = new NavigationSessionRouteState();
     @NonNull
+    final StraightLineNavigationState straightLineState = new StraightLineNavigationState();
+    @NonNull
     final NavigationWarmupController warmupController = new NavigationWarmupController();
     @NonNull
     final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
     @NonNull
     final NavigationSessionLocationEvaluator locationEvaluator =
-            new NavigationSessionLocationEvaluator(locationState, routeState, warmupController, routeRequestManager);
+            new NavigationSessionLocationEvaluator(
+                    locationState,
+                    routeState,
+                    straightLineState,
+                    warmupController,
+                    routeRequestManager
+            );
     @NonNull
     final NavigationSessionStateBuilder stateBuilder =
-            new NavigationSessionStateBuilder(locationState, headingResolver, routeState, routeRequestManager);
+            new NavigationSessionStateBuilder(
+                    locationState,
+                    headingResolver,
+                    routeState,
+                    straightLineState,
+                    routeRequestManager
+            );
 
     void reset(long nowMs) {
         locationEvaluator.reset();
         locationState.reset();
         routeState.reset();
+        straightLineState.reset();
         warmupController.reset(nowMs);
         routeRequestManager.reset();
     }

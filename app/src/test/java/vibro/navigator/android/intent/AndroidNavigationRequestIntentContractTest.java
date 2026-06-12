@@ -12,15 +12,17 @@ import java.util.Arrays;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 
 public class AndroidNavigationRequestIntentContractTest {
     private static final String PROFILE = "trekking";
+    private static final String DESTINATION_NAME = "Vienna Center";
 
     @Test
     public void toExtras_thenFromExtras_roundTripsRequestFields() {
         NavigationRequest original = new NavigationRequest(
                 PROFILE,
-                "Vienna Center",
+                DESTINATION_NAME,
                 new LatLon(48.2082d, 16.3738d),
                 Arrays.asList(
                         new LatLon(48.2100d, 16.3600d),
@@ -33,8 +35,9 @@ public class AndroidNavigationRequestIntentContractTest {
         NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
 
         assertTrue(restored.isComplete());
+        assertEquals(NavigationRoutingMode.BROUTER, restored.routingMode);
         assertEquals(PROFILE, restored.profile);
-        assertEquals("Vienna Center", restored.destinationName);
+        assertEquals(DESTINATION_NAME, restored.destinationName);
         assertEquals(48.2082d, restored.destination.lat, 0.0);
         assertEquals(16.3738d, restored.destination.lon, 0.0);
         assertEquals(2, restored.stops.size());
@@ -80,10 +83,31 @@ public class AndroidNavigationRequestIntentContractTest {
     }
 
     @Test
+    public void toExtras_thenFromExtras_preservesStraightLineModeWithoutProfile() {
+        NavigationRequest original = new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION_NAME,
+                new LatLon(48.2082d, 16.3738d),
+                Arrays.asList(new LatLon(48.2100d, 16.3600d))
+        );
+
+        AndroidNavigationRequestIntentContract.Extras extras =
+                AndroidNavigationRequestIntentContract.toExtras(original);
+        NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
+
+        assertTrue(restored.isComplete());
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE, restored.routingMode);
+        assertNull(restored.profile);
+        assertEquals("straight_line", extras.routingMode);
+        assertEquals(1, restored.stops.size());
+    }
+
+    @Test
     public void toExtras_discardsInvalidStops() {
         NavigationRequest original = new NavigationRequest(
                 PROFILE,
-                "Vienna Center",
+                DESTINATION_NAME,
                 new LatLon(48.2082d, 16.3738d),
                 Arrays.asList(
                         new LatLon(48.2100d, 16.3600d),

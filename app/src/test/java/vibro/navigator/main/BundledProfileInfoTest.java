@@ -34,6 +34,14 @@ public class BundledProfileInfoTest {
     }
 
     @Test
+    public void straightLine_returnsDirectGuidanceDescriptionWithoutAttentionIcon() {
+        BundledProfileInfo info = BundledProfileInfo.straightLine();
+
+        assertEquals(R.string.profile_info_straight_line_title, info.titleRes());
+        assertFalse(info.hasAttentionIcon());
+    }
+
+    @Test
     public void forProfile_ignoresUnknownProfiles() {
         assertNull(BundledProfileInfo.forProfile("custom-profile"));
     }

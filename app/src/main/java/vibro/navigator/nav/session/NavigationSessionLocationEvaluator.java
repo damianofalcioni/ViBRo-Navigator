@@ -23,6 +23,8 @@ final class NavigationSessionLocationEvaluator {
     @NonNull
     private final NavigationSessionRouteState routeState;
     @NonNull
+    private final StraightLineNavigationState straightLineState;
+    @NonNull
     private final NavigationWarmupController warmupController;
     @NonNull
     private final NavigationRouteRequestManager routeRequestManager;
@@ -31,11 +33,13 @@ final class NavigationSessionLocationEvaluator {
     NavigationSessionLocationEvaluator(
             @NonNull NavigationSessionLocationState locationState,
             @NonNull NavigationSessionRouteState routeState,
+            @NonNull StraightLineNavigationState straightLineState,
             @NonNull NavigationWarmupController warmupController,
             @NonNull NavigationRouteRequestManager routeRequestManager
     ) {
         this.locationState = locationState;
         this.routeState = routeState;
+        this.straightLineState = straightLineState;
         this.warmupController = warmupController;
         this.routeRequestManager = routeRequestManager;
     }
@@ -88,6 +92,22 @@ final class NavigationSessionLocationEvaluator {
                     null,
                     Collections.emptyList(),
                     NO_SUGGESTED_INTERVAL
+            );
+        }
+
+        if (currentRequest.isStraightLine()) {
+            NavigationRouteEvaluation evaluation = straightLineState.evaluateLocation(
+                    currentRequest,
+                    filtered,
+                    locationState.accuracyMeters(filtered)
+            );
+            return NavigationLocationUpdateResult.accepted(
+                    filtered,
+                    evaluation.shouldRecalculateRoute(),
+                    evaluation.rerouteNotice,
+                    evaluation.recalculationReason,
+                    evaluation.turnEvents,
+                    evaluation.getSuggestedUpdateIntervalMs()
             );
         }
 

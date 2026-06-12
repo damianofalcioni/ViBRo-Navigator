@@ -15,6 +15,7 @@ import android.net.Uri;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.brouter.BRouterProfileTestDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,20 +37,40 @@ public class ProfileSpinnerControllerTest {
     public void resolveSelectedProfile_showsMissingBRouterToastInsteadOfOpeningCustomPicker() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         AtomicBoolean customPickerRequested = new AtomicBoolean(false);
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
         ProfileSpinnerController controller = new ProfileSpinnerController(
                 activity,
-                new RepeatSelectSpinner(activity),
+                spinner,
                 AndroidBRouterProfilesRepositoryFactory.create(),
                 () -> customPickerRequested.set(true)
         );
         controller.refresh();
+        spinner.setSelection(1, false);
 
-        String selectedProfile = controller.resolveSelectedProfile();
+        ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
 
         assertNull(selectedProfile);
         assertFalse(customPickerRequested.get());
         assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast())
                 .contains(activity.getString(R.string.msg_brouter_not_found)));
+    }
+
+    @Test
+    public void resolveSelectedProfile_allowsStraightLineWithoutBRouter() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfileSpinnerController controller = new ProfileSpinnerController(
+                activity,
+                new RepeatSelectSpinner(activity),
+                AndroidBRouterProfilesRepositoryFactory.create(),
+                () -> {
+                }
+        );
+        controller.refresh();
+
+        ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
+
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE, selectedProfile.routingMode);
+        assertNull(selectedProfile.profileName);
     }
 
     @Test
@@ -68,14 +89,16 @@ public class ProfileSpinnerControllerTest {
         );
 
         controller.refresh();
-        spinner.setSelection(0, false);
+        spinner.setSelection(1, false);
         customPickerRequested.set(false);
         markSelectionUserInitiated(controller);
-        spinner.setSelection(0);
+        spinner.setSelection(1);
 
-        assertEquals(1, spinner.getCount());
+        assertEquals(2, spinner.getCount());
         assertTrue(customPickerRequested.get());
-        assertEquals("trekking", controller.resolveSelectedProfile());
+        ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
+        assertEquals(NavigationRoutingMode.BROUTER, selectedProfile.routingMode);
+        assertEquals("trekking", selectedProfile.profileName);
     }
 
     @Test
@@ -93,9 +116,11 @@ public class ProfileSpinnerControllerTest {
 
         controller.refresh();
 
-        assertEquals(1, spinner.getCount());
-        assertEquals(activity.getString(R.string.label_vehicle_profile_custom),
+        assertEquals(2, spinner.getCount());
+        assertEquals(activity.getString(R.string.label_vehicle_profile_straight_line),
                 String.valueOf(spinner.getItemAtPosition(0)));
+        assertEquals(activity.getString(R.string.label_vehicle_profile_custom),
+                String.valueOf(spinner.getItemAtPosition(1)));
     }
 
     private static void installBRouterPackage(Activity activity) {

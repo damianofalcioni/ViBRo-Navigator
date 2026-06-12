@@ -72,7 +72,7 @@ public final class NavigationSession {
     }
 
     public boolean hasActiveRoute() {
-        return components.routeState.hasActiveRoute();
+        return components.routeState.hasActiveRoute() || (started && currentRequest.isStraightLine());
     }
 
     @Nullable
@@ -99,11 +99,17 @@ public final class NavigationSession {
     }
 
     public boolean isRouteCalculationInProgress() {
-        return components.routeRequestManager.isRouteCalculationInProgress();
+        return !currentRequest.isStraightLine() && components.routeRequestManager.isRouteCalculationInProgress();
     }
 
     @Nullable
     public Double currentRouteBearingDegrees() {
+        if (currentRequest.isStraightLine()) {
+            return components.straightLineState.currentTargetBearingDegrees(
+                    currentRequest,
+                    components.locationState.getLastFilteredLocation()
+            );
+        }
         return components.routeState.currentSegmentBearingDegrees(components.locationState.getLastFilteredLocation());
     }
 
@@ -258,6 +264,9 @@ public final class NavigationSession {
                         + session.currentRequest.describe(), null);
                 return false;
             }
+            if (session.currentRequest.isStraightLine()) {
+                session.components.straightLineState.onRequestStarted(session.currentRequest);
+            }
             session.started = true;
             return true;
         }
@@ -346,6 +355,7 @@ public final class NavigationSession {
         ) {
             return session.components.stateBuilder.build(
                     textResources,
+                    session.currentRequest,
                     nextEvaluationDeadlineElapsedMs,
                     nowMs,
                     fixedSatelliteCount,

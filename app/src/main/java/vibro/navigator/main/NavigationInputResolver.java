@@ -31,7 +31,7 @@ final class NavigationInputResolver {
             @NonNull Context context,
             @NonNull PoiInputController destinationController,
             @NonNull List<PoiInputController> stopControllers,
-            @NonNull String profile
+            @NonNull ProfileSelection profileSelection
     ) {
         Poi destination = resolveDestination(context, destinationController);
         if (destination == null) {
@@ -50,7 +50,8 @@ final class NavigationInputResolver {
 
         return new Result(
                 new NavigationRequest(
-                        profile,
+                        profileSelection.routingMode,
+                        profileSelection.profileName,
                         destination.name,
                         new LatLon(destination.lat, destination.lon),
                         stopPoints

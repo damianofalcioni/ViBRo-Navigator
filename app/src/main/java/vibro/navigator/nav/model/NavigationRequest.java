@@ -10,6 +10,8 @@ import java.util.Collections;
 import java.util.List;
 
 public final class NavigationRequest {
+    @NonNull
+    public final NavigationRoutingMode routingMode;
     @Nullable
     public final String profile;
     @Nullable
@@ -25,6 +27,17 @@ public final class NavigationRequest {
             @Nullable LatLon destination,
             @NonNull List<LatLon> stops
     ) {
+        this(NavigationRoutingMode.BROUTER, profile, destinationName, destination, stops);
+    }
+
+    public NavigationRequest(
+            @NonNull NavigationRoutingMode routingMode,
+            @Nullable String profile,
+            @Nullable String destinationName,
+            @Nullable LatLon destination,
+            @NonNull List<LatLon> stops
+    ) {
+        this.routingMode = routingMode;
         this.profile = profile;
         this.destinationName = destinationName;
         this.destination = destination;
@@ -32,12 +45,17 @@ public final class NavigationRequest {
     }
 
     public boolean isComplete() {
-        return destination != null && profile != null && !profile.trim().isEmpty();
+        return destination != null && (isStraightLine() || (profile != null && !profile.trim().isEmpty()));
+    }
+
+    public boolean isStraightLine() {
+        return routingMode == NavigationRoutingMode.STRAIGHT_LINE;
     }
 
     @NonNull
     public String describe() {
-        return "profile=" + safe(profile)
+        return "mode=" + routingMode.serializedName()
+                + ", profile=" + safe(profile)
                 + ", destName=" + safe(destinationName)
                 + ", destination=" + formatLatLon(destination)
                 + ", stops=" + stops.size();

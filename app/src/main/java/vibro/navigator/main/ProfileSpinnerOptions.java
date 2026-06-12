@@ -26,6 +26,9 @@ final class ProfileSpinnerOptions {
         for (String profile : profiles) {
             options.add(new ProfileSpinnerOption(profile, profile, false));
         }
+        options.add(ProfileSpinnerOption.straightLine(
+                context.getString(R.string.label_vehicle_profile_straight_line)
+        ));
         options.add(buildCustomOption(context, customProfile));
     }
 
@@ -51,11 +54,8 @@ final class ProfileSpinnerOptions {
         return options.get(position);
     }
 
-    int restoredPosition(@Nullable String selectionKey, @Nullable String customProfile) {
+    int restoredPosition(@Nullable String selectionKey) {
         int target = findPosition(selectionKey);
-        if (target < 0 && profiles.isEmpty() && customProfile != null) {
-            target = findCustomPosition();
-        }
         return target < 0 ? 0 : target;
     }
 
@@ -63,11 +63,15 @@ final class ProfileSpinnerOptions {
         if (!profiles.isEmpty()) {
             return 0;
         }
-        return findCustomPosition();
+        return findStraightLinePosition();
     }
 
     int findCustomPosition() {
         return findPosition(ProfileSpinnerOption.CUSTOM_KEY);
+    }
+
+    int findStraightLinePosition() {
+        return findPosition(ProfileSpinnerOption.STRAIGHT_LINE_KEY);
     }
 
     private int findPosition(@Nullable String selectionKey) {

@@ -2,6 +2,7 @@ package vibro.navigator.nav.session;
 
 
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -10,6 +11,7 @@ import vibro.navigator.nav.session.NavigationSession.ResourceAdapter;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import vibro.navigator.nav.location.NavigationLocation;
@@ -17,8 +19,10 @@ import vibro.navigator.nav.location.NavigationLocation;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
+import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 
 import org.junit.Test;
@@ -175,6 +179,153 @@ public class NavigationSessionTest {
         assertEquals(1_000L, result.getSuggestedUpdateIntervalMs());
     }
 
+    @Test
+    public void straightLineModeKeepsGuidanceDirectWithoutRouteRequestOrTurnLines() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
+        ));
+        long nowMs = System.currentTimeMillis();
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        NavigationLocationUpdateResult result = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                nowMs
+        );
+        NavState state = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs,
+                null,
+                0.0,
+                null
+        );
+
+        assertFalse(result.shouldRecalculateRoute());
+        assertTrue(result.turnEvents.isEmpty());
+        assertNull(session.prepareRouteRequest(true, nowMs));
+        assertEquals("", state.routeStatus.guidance.nextLine);
+        assertEquals("", state.routeStatus.guidance.afterNextLine);
+        assertTrue(state.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
+        assertTrue(state.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
+        assertNotNull(state.routeStatus.compassState);
+        assertTrue(state.routeStatus.compassState.hasRouteGeometry());
+        assertEquals(0, state.routeStatus.compassState.routeSamplePointCount());
+        assertNotNull(state.routeStatus.compassState.orientationCue);
+        assertNotNull(state.routeStatus.compassState.routeStartApproachProjection);
+        assertEquals(2, state.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
+    }
+
+    @Test
+    public void straightLineModeSumsIntermediateLegsForDestinationProgress() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        LatLon stop = new LatLon(0.0, 0.001);
+        LatLon destination = new LatLon(0.001, 0.001);
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                destination,
+                Collections.singletonList(stop)
+        ));
+        long nowMs = 0L;
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        ResourceAdapter.onRawLocationChanged(session, context, locationWithSpeed(0.0, 0.0, nowMs, 2f), nowMs);
+        NavState state = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs,
+                null,
+                0.0,
+                null
+        );
+
+        double summedDistanceMeters = GeoMath.distanceMeters(0.0, 0.0, stop.lat, stop.lon)
+                + GeoMath.distanceMeters(stop.lat, stop.lon, destination.lat, destination.lon);
+        double shortcutDistanceMeters = GeoMath.distanceMeters(0.0, 0.0, destination.lat, destination.lon);
+        String destinationLine = state.routeStatus.progress.destinationLine;
+        assertTrue(destinationLine.contains(NavigationTextFormatter.formatDistance(context, summedDistanceMeters)));
+        assertTrue(destinationLine.contains(NavigationTextFormatter.formatTimeSeconds(context, summedDistanceMeters / 2.0)));
+        assertFalse(destinationLine.contains(NavigationTextFormatter.formatDistance(context, shortcutDistanceMeters)));
+        assertFalse(destinationLine.contains(NavigationTextFormatter.formatTimeSeconds(context, shortcutDistanceMeters / 2.0)));
+    }
+
+    @Test
+    public void straightLineModeAdvancesStopsAndCompletesDestinationWithoutTurnEvents() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
+        ));
+        long nowMs = System.currentTimeMillis();
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        ResourceAdapter.onRawLocationChanged(session, context, locationWithSpeed(0.0, 0.0, nowMs, 2f), nowMs);
+        NavigationLocationUpdateResult stopResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.001, nowMs + 20_000L, 2f),
+                nowMs + 20_000L
+        );
+        NavState afterFirstStop = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 20_000L,
+                null,
+                0.0,
+                null
+        );
+        ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.002, nowMs + 40_000L, 2f),
+                nowMs + 40_000L
+        );
+        NavigationLocationUpdateResult destinationResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.003, nowMs + 60_000L, 2f),
+                nowMs + 60_000L
+        );
+        NavState reachedState = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 60_000L,
+                null,
+                0.0,
+                null
+        );
+
+        assertTrue(stopResult.turnEvents.isEmpty());
+        assertTrue(destinationResult.turnEvents.isEmpty());
+        assertTrue(afterFirstStop.routeStatus.progress.stopProgressBlock.contains(
+                context.getString(R.string.format_stop_label, 2)
+        ));
+        assertFalse(afterFirstStop.routeStatus.progress.stopProgressBlock.contains(
+                context.getString(R.string.format_stop_label, 1)
+        ));
+        assertEquals("", reachedState.routeStatus.guidance.nextLine);
+        assertEquals(context.getString(R.string.nav_destination_reached),
+                reachedState.routeStatus.progress.destinationLine);
+    }
+
     @NonNull
     private static GeoJsonRoute routeWithoutHints() {
         return new GeoJsonRoute(
@@ -202,6 +353,18 @@ public class NavigationSessionTest {
         location.setLongitude(lon);
         location.setTime(timeMs);
         location.setAccuracy(accuracyMeters);
+        return location;
+    }
+
+    @NonNull
+    private static NavigationLocation locationWithSpeed(
+            double lat,
+            double lon,
+            long timeMs,
+            float speedMetersPerSecond
+    ) {
+        NavigationLocation location = location(lat, lon, timeMs);
+        location.setSpeed(speedMetersPerSecond);
         return location;
     }
 }

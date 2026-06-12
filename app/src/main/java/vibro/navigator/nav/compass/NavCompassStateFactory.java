@@ -16,6 +16,7 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
+import java.util.Collections;
 import java.util.List;
 
 public final class NavCompassStateFactory {
@@ -122,6 +123,50 @@ public final class NavCompassStateFactory {
                 input.orientationCue,
                 input.routeStartApproachTarget,
                 input.nowMs
+        );
+    }
+
+    @Nullable
+    public static NavCompassState buildStraightLineTargetCompassState(
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            @NonNull LatLon target,
+            @NonNull List<LatLon> remainingTargetsAfterNext,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            long nowMs
+    ) {
+        List<LatLon> track = Collections.singletonList(target);
+        return buildCompassState(
+                new GeoJsonRoute(track, Collections.emptyList(), 0.0, 0.0),
+                new PolylineIndex(track),
+                0.0,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(compassAccuracyMeters),
+                headingDegrees,
+                headingAccuracyDegrees,
+                null,
+                null,
+                0L,
+                new CompassRouteGeometry(
+                        Collections.emptyList(),
+                        Collections.emptyList(),
+                        remainingTargetsAfterNext
+                ),
+                null,
+                new CompassOrientationCue((float) GeoMath.bearingDegrees(
+                        currentLocation.getLatitude(),
+                        currentLocation.getLongitude(),
+                        target.lat,
+                        target.lon
+                )),
+                target,
+                nowMs
         );
     }
 

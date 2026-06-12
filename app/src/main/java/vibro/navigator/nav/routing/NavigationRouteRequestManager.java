@@ -168,6 +168,10 @@ public final class NavigationRouteRequestManager {
             updatePendingRecalculation(force, lastFiltered, reason, inProgressNotice);
             return null;
         }
+        if (request.isStraightLine()) {
+            AppLogger.d(TAG, "Skipping route recalculation for straight-line navigation mode");
+            return null;
+        }
         if (!force && isWithinRerouteThrottle(nowMs)) {
             AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs="
                     + elapsedSinceLastRerouteMs(nowMs));
