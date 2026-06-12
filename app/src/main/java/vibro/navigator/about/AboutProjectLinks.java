@@ -3,8 +3,9 @@ package vibro.navigator.about;
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.res.ColorStateList;
 import android.net.Uri;
-import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -21,10 +22,18 @@ final class AboutProjectLinks {
     }
 
     static void configure(@NonNull Activity activity) {
-        View sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
-        View reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
+        TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
+        TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
+        TextView credits = activity.findViewById(R.id.aboutCredits);
+        ColorStateList linkColors = credits.getLinkTextColors();
+        applyLinkColors(sourceCodeLink, linkColors);
+        applyLinkColors(reportIssueLink, linkColors);
         sourceCodeLink.setOnClickListener(v -> openWebUrl(activity, SOURCE_CODE_URL));
         reportIssueLink.setOnClickListener(v -> openWebUrl(activity, ISSUE_URL));
+    }
+
+    private static void applyLinkColors(@NonNull TextView link, @NonNull ColorStateList linkColors) {
+        link.setTextColor(linkColors);
     }
 
     private static void openWebUrl(@NonNull Activity activity, @NonNull String url) {

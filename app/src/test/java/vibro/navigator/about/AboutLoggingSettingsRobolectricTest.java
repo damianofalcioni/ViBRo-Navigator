@@ -20,6 +20,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.core.widget.TextViewCompat;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
@@ -405,7 +406,13 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
         TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
+        TextView credits = activity.findViewById(R.id.aboutCredits);
+        int expectedProjectLinkColor = credits.getLinkTextColors().getDefaultColor();
 
+        assertEquals(expectedProjectLinkColor, sourceCodeLink.getCurrentTextColor());
+        assertEquals(expectedProjectLinkColor, reportIssueLink.getCurrentTextColor());
+        assertTrue(TextViewCompat.getCompoundDrawableTintList(sourceCodeLink) == null);
+        assertTrue(TextViewCompat.getCompoundDrawableTintList(reportIssueLink) == null);
         sourceCodeLink.performClick();
         Intent sourceIntent = shadowOf(activity).getNextStartedActivity();
         reportIssueLink.performClick();
@@ -497,4 +504,5 @@ public class AboutLoggingSettingsRobolectricTest {
         assertTrue(button.getCompoundDrawablesRelative()[0] != null);
         assertTrue(button.getCompoundDrawablePadding() > 0);
     }
+
 }
