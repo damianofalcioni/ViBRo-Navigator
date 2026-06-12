@@ -26,7 +26,7 @@ import java.util.List;
 final class MainActivityStopController {
 
     interface MapPickListener {
-        void onPickStopFromMap(int stopIndex, @Nullable Poi initialPoi);
+        void onPickStopFromMap(@NonNull PoiInputController stopInputController);
     }
 
     private static final String STATE_STOP_TEXTS = "stopTexts";
@@ -180,12 +180,7 @@ final class MainActivityStopController {
         AppLogger.i(TAG, "Added stop row initialText=" + safe(initialText) + " totalStops=" + stopControllers.size());
 
         mapButton.setOnClickListener(v -> {
-            int index = stopControllers.indexOf(controller);
-            if (index < 0) {
-                AppLogger.w(TAG, "Stop map request ignored because controller is no longer attached");
-                return;
-            }
-            mapPickListener.onPickStopFromMap(index, resolveInitialPoi(controller));
+            mapPickListener.onPickStopFromMap(controller);
         });
         remove.setOnClickListener(v -> removeStopRow(row, controller));
 
@@ -209,6 +204,10 @@ final class MainActivityStopController {
         return Collections.unmodifiableList(stopControllers);
     }
 
+    int indexOf(@NonNull PoiInputController controller) {
+        return stopControllers.indexOf(controller);
+    }
+
     void setStopPoi(int index, @NonNull Poi poi) {
         if (index < 0 || index >= stopControllers.size()) {
             AppLogger.w(TAG, "Ignoring stop selection for invalid index=" + index);
@@ -228,14 +227,4 @@ final class MainActivityStopController {
     private static String safe(@Nullable String value) {
         return value == null ? "null" : value;
     }
-
-    @Nullable
-    private static Poi resolveInitialPoi(@NonNull PoiInputController controller) {
-        Poi selectedPoi = controller.getSelectedPoi();
-        if (selectedPoi != null) {
-            return selectedPoi;
-        }
-        return controller.parseCurrentPoi();
-    }
 }
-

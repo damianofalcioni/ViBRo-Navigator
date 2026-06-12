@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
@@ -22,12 +23,15 @@ final class AboutDiagnosticSection {
     private final Runnable sensorStatusRefreshRunnable = new Runnable() {
         @Override
         public void run() {
+            if (!started) {
+                return;
+            }
             render();
             sensorStatusScheduler.postDelayed(this, SENSOR_STATUS_REFRESH_INTERVAL_MS);
         }
     };
-    @NonNull
-    private final AboutSensorStatusFormatter sensorStatusFormatter;
+    @Nullable
+    private AboutSensorStatusFormatter sensorStatusFormatter;
     @NonNull
     private final TextView sensorStatusTitle;
     @NonNull
@@ -36,6 +40,7 @@ final class AboutDiagnosticSection {
     private final AboutPermissionStatusRows permissionStatusRows;
     @NonNull
     private final AboutSymbolTestButtons symbolTestButtons;
+    private boolean started;
 
     AboutDiagnosticSection(@NonNull Activity activity) {
         this.activity = activity;
@@ -43,7 +48,6 @@ final class AboutDiagnosticSection {
         sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         permissionStatusRows = new AboutPermissionStatusRows(activity);
         symbolTestButtons = new AboutSymbolTestButtons(activity);
-        sensorStatusFormatter = new AboutSensorStatusFormatter(activity);
     }
 
     void render() {
@@ -51,16 +55,31 @@ final class AboutDiagnosticSection {
         sensorStatusBody.setVisibility(View.VISIBLE);
         permissionStatusRows.render();
         symbolTestButtons.show();
-        sensorStatusBody.setText(sensorStatusFormatter.build(activity));
+        sensorStatusBody.setText(sensorStatusFormatter().build(activity));
     }
 
     void start() {
-        sensorStatusFormatter.start();
-        sensorStatusScheduler.post(sensorStatusRefreshRunnable);
+        if (started) {
+            return;
+        }
+        started = true;
+        sensorStatusFormatter().start();
+        sensorStatusScheduler.postDelayed(sensorStatusRefreshRunnable, SENSOR_STATUS_REFRESH_INTERVAL_MS);
     }
 
     void stop() {
         sensorStatusScheduler.removeCallbacks(sensorStatusRefreshRunnable);
-        sensorStatusFormatter.stop();
+        if (sensorStatusFormatter != null) {
+            sensorStatusFormatter.stop();
+        }
+        started = false;
+    }
+
+    @NonNull
+    private AboutSensorStatusFormatter sensorStatusFormatter() {
+        if (sensorStatusFormatter == null) {
+            sensorStatusFormatter = new AboutSensorStatusFormatter(activity);
+        }
+        return sensorStatusFormatter;
     }
 }

@@ -43,6 +43,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 public class AboutLoggingSettingsRobolectricTest {
@@ -53,6 +54,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
+        AppSettings.setFusedLocationEnabled(context, true);
         AppSettings.setImperialUnitsEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, true);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
@@ -124,6 +126,7 @@ public class AboutLoggingSettingsRobolectricTest {
     @Test
     public void aboutPageShowsSettingsAndDiagnosticsWithoutGesture() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        idleInitialDiagnosticRender();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
@@ -213,20 +216,44 @@ public class AboutLoggingSettingsRobolectricTest {
 
         logEnabledSwitch.performClick();
 
+        assertTrue(logEnabledSwitch.isChecked());
+        assertFalse(AppLogger.isLoggingEnabled(activity));
+        idleDeferredSettingApply();
+
         assertTrue(AppLogger.isLoggingEnabled(activity));
         assertTrue(new File(AppLogger.getLogFilePath(activity)).exists());
     }
 
     @Test
-    public void aboutPageImperialUnitsSwitchPersistsPreference() {
+    public void aboutPageUnitAndFusedLocationSwitchesPersistPreferences() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
+        Switch fusedLocationSwitch = activity.findViewById(R.id.aboutFusedLocationSwitch);
 
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
 
         imperialUnitsSwitch.performClick();
 
+        assertTrue(imperialUnitsSwitch.isChecked());
+        assertFalse(AppSettings.isImperialUnitsEnabled(activity));
+        idleDeferredSettingApply();
+
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
+
+        if (!DistributionServices.supportsFusedLocation()) {
+            assertFalse(fusedLocationSwitch.isEnabled());
+            return;
+        }
+
+        assertTrue(AppSettings.isFusedLocationEnabled(activity));
+
+        fusedLocationSwitch.performClick();
+
+        assertFalse(fusedLocationSwitch.isChecked());
+        assertTrue(AppSettings.isFusedLocationEnabled(activity));
+        idleDeferredSettingApply();
+
+        assertFalse(AppSettings.isFusedLocationEnabled(activity));
     }
 
     @Test
@@ -244,8 +271,11 @@ public class AboutLoggingSettingsRobolectricTest {
 
         androidAutoSwitch.performClick();
 
-        assertFalse(AppAndroidAutoSettings.isIntegrationEnabled(activity));
         assertFalse(androidAutoSwitch.isChecked());
+        assertTrue(AppAndroidAutoSettings.isIntegrationEnabled(activity));
+        idleDeferredSettingApply();
+
+        assertFalse(AppAndroidAutoSettings.isIntegrationEnabled(activity));
     }
 
     @Test
@@ -415,6 +445,14 @@ public class AboutLoggingSettingsRobolectricTest {
         for (int i = 0; i < 5; i++) {
             view.performClick();
         }
+    }
+
+    private static void idleInitialDiagnosticRender() {
+        shadowOf(Looper.getMainLooper()).idleFor(100, TimeUnit.MILLISECONDS);
+    }
+
+    private static void idleDeferredSettingApply() {
+        shadowOf(Looper.getMainLooper()).idleFor(350, TimeUnit.MILLISECONDS);
     }
 
     private static EditText categoryFieldAt(LinearLayout categoryList, int rowIndex) {

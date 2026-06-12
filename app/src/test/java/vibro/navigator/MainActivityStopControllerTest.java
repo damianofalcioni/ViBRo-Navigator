@@ -50,7 +50,7 @@ public class MainActivityStopControllerTest {
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
                 originalSearchClient,
-                (stopIndex, initialPoi) -> {
+                stopInputController -> {
                 }
         );
         original.addStopRow(null);
@@ -71,7 +71,7 @@ public class MainActivityStopControllerTest {
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
                 restoredSearchClient,
-                (stopIndex, initialPoi) -> {
+                stopInputController -> {
                 }
         );
         restored.restoreRows(state);
@@ -96,7 +96,7 @@ public class MainActivityStopControllerTest {
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
                 originalSearchClient,
-                (stopIndex, initialPoi) -> {
+                stopInputController -> {
                 }
         );
         original.addStopRow(null);
@@ -116,7 +116,7 @@ public class MainActivityStopControllerTest {
                 new LinearLayout(activity),
                 new PoiHistoryStore(activity),
                 restoredSearchClient,
-                (stopIndex, initialPoi) -> {
+                stopInputController -> {
                 }
         );
         restored.restoreRows(state);

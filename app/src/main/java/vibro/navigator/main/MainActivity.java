@@ -5,7 +5,6 @@ import vibro.navigator.R;
 
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.nav.model.NavigationRequest;
-import vibro.navigator.about.AboutActivity;
 import vibro.navigator.nav.ui.NavigationActivity;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import android.app.Activity;
@@ -45,10 +44,7 @@ public class MainActivity extends Activity {
         mapPickerCoordinator = new MainActivityMapPickerCoordinator(this);
         MainActivityControls controls = MainActivityControls.bind(this);
 
-        controls.aboutButton.setOnClickListener(v -> {
-            AppLogger.i(TAG, "About button tapped");
-            startActivity(new Intent(this, AboutActivity.class));
-        });
+        MainActivityAboutLauncher.configure(this, controls.aboutButton);
 
         BRouterProfilesRepository profilesRepository = AndroidBRouterProfilesRepositoryFactory.create();
         profilePicker = new MainActivityProfilePicker(this, profilesRepository);
@@ -82,7 +78,7 @@ public class MainActivity extends Activity {
                 controls.stopsContainer,
                 historyStore,
                 searchClient,
-                mapPickerCoordinator::openStopMapPicker
+                this::openStopMapPicker
         );
 
         controls.destinationMapButton.setOnClickListener(
@@ -118,6 +114,14 @@ public class MainActivity extends Activity {
             return;
         }
         MainActivityIntentHandler.handleIncomingIntent(this, intent, destinationController);
+    }
+
+    private void openStopMapPicker(@NonNull PoiInputController stopInputController) {
+        if (stopController == null) {
+            AppLogger.w(TAG, "Stop map picker requested before stop controller was ready");
+            return;
+        }
+        mapPickerCoordinator.openStopMapPicker(stopController, stopInputController);
     }
 
     @Override

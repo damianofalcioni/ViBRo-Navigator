@@ -6,17 +6,25 @@ import android.widget.Switch;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 
 final class AboutAndroidAutoSettings {
     private final Activity activity;
     private final Switch enabledSwitch;
+    private final AboutDeferredBooleanSetting enabledSetting;
     private boolean rendering;
 
     AboutAndroidAutoSettings(@NonNull Activity activity, @NonNull Switch enabledSwitch) {
         this.activity = activity;
         this.enabledSwitch = enabledSwitch;
+        enabledSetting = new AboutDeferredBooleanSetting(
+                AndroidTaskScheduler.main(),
+                this::applyEnabled,
+                () -> {
+                }
+        );
     }
 
     void configure() {
@@ -29,8 +37,7 @@ final class AboutAndroidAutoSettings {
                 refresh();
                 return;
             }
-            AppAndroidAutoSettings.setIntegrationEnabled(activity, isChecked);
-            DistributionServices.configureAndroidAutoIntegration(activity, isChecked);
+            enabledSetting.set(isChecked);
         });
     }
 
@@ -40,10 +47,19 @@ final class AboutAndroidAutoSettings {
         rendering = true;
         enabledSwitch.setVisibility(supported ? View.VISIBLE : View.GONE);
         enabledSwitch.setEnabled(supported);
-        enabledSwitch.setChecked(enabled);
+        enabledSetting.render(enabledSwitch, enabled);
         rendering = false;
         if (supported) {
             DistributionServices.configureAndroidAutoIntegration(activity, enabled);
         }
+    }
+
+    void flush() {
+        enabledSetting.flush();
+    }
+
+    private void applyEnabled(boolean enabled) {
+        AppAndroidAutoSettings.setIntegrationEnabled(activity, enabled);
+        DistributionServices.configureAndroidAutoIntegration(activity, enabled);
     }
 }
