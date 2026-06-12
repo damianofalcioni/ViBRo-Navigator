@@ -129,6 +129,10 @@ public class NavigationActivity extends Activity {
 
     private void addBlockedWaypointFromUi() {
         if (navBinder != null) {
+            if (!navBinder.canAddBlockedWaypoint()) {
+                AppLogger.w(TAG, "Blocked-road button tapped while blocked-road rerouting is unavailable");
+                return;
+            }
             AppLogger.i(TAG, "Blocked-road reroute requested from UI");
             navBinder.addBlockedWaypoint();
         } else {

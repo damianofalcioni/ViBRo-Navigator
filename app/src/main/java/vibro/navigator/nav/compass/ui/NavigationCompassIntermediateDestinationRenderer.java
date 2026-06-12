@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
@@ -66,6 +67,9 @@ final class NavigationCompassIntermediateDestinationRenderer {
             if (point == null) {
                 continue;
             }
+            if (!isPointWithinVisibleRadius(state, point)) {
+                continue;
+            }
             projectRoutePoint(state, point, cx, cy, routeRadius, headingDegrees);
             if (reachedRadiusPx > 0f) {
                 canvas.drawCircle(
@@ -93,5 +97,33 @@ final class NavigationCompassIntermediateDestinationRenderer {
                 cx + projectedPoint.x * scale,
                 cy - projectedPoint.y * scale
         );
+    }
+
+    private boolean isPointWithinVisibleRadius(
+            @NonNull NavCompassState state,
+            @NonNull LatLon point
+    ) {
+        float eastMeters = projectedEastMeters(state, point);
+        float northMeters = projectedNorthMeters(state, point);
+        return Math.hypot(eastMeters, northMeters) <= state.radiusState.visibleRadiusMeters;
+    }
+
+    private static float projectedEastMeters(
+            @NonNull NavCompassState state,
+            @NonNull LatLon point
+    ) {
+        return (float) GeoMath.eastMeters(
+                state.currentLatitude(),
+                state.currentLongitude(),
+                point.lat,
+                point.lon
+        );
+    }
+
+    private static float projectedNorthMeters(
+            @NonNull NavCompassState state,
+            @NonNull LatLon point
+    ) {
+        return (float) GeoMath.northMeters(state.currentLatitude(), point.lat);
     }
 }

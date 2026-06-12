@@ -105,6 +105,11 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     }
 
     @Override
+    public boolean canAddBlockedWaypoint() {
+        return navigationSession.canAddBlockedWaypoint();
+    }
+
+    @Override
     @NonNull
     public String getString(int resId) {
         return context.getString(resId);

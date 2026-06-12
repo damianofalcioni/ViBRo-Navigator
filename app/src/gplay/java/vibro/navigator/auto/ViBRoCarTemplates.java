@@ -90,7 +90,7 @@ final class ViBRoCarTemplates {
                         R.string.action_blocked_road,
                         R.drawable.ic_blocked_road,
                         actions::onBlockedRoad,
-                        !state.pauseStatus.paused
+                        state.routeStatus.blockedRoadActionAvailable && !state.pauseStatus.paused
                 ))
                 .addAction(buildIconAction(
                         R.string.action_stop_navigation,

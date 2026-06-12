@@ -3,6 +3,7 @@ package vibro.navigator.nav.compass.ui;
 
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
+import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import android.app.Activity;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
@@ -179,6 +180,17 @@ public class NavigationCompassViewTest {
     }
 
     @Test
+    public void destinationReachedRadiusUsesOrangeAccentPaint() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteMarkerRenderer renderer = new NavigationCompassRouteMarkerRenderer();
+
+        assertEquals(
+                ContextCompat.getColor(activity, R.color.compass_accent),
+                renderer.destinationReachedRadiusPaintForTest(activity).getColor()
+        );
+    }
+
+    @Test
     public void routeKeepsOpaqueBaseAlphaInMovingMode() {
         NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
 
@@ -257,15 +269,16 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void straightLineTargetProjectionUsesMarkerWithoutApproachLine() {
+    public void straightLineModeUsesDottedRedDirectRoutePaint() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        NavigationCompassRouteStartApproachRenderer renderer = new NavigationCompassRouteStartApproachRenderer();
-        NavCompassState state = NavCompassStateFactory.buildStraightLineTargetCompassState(
+        NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
+        NavCompassState state = StraightLineNavCompassStateFactory.buildTargetCompassState(
                 location(0.0, 0.0),
                 2f,
                 false,
                 5f,
                 new LatLon(0.0, 0.01),
+                Collections.emptyList(),
                 Collections.emptyList(),
                 0.0,
                 null,
@@ -273,11 +286,15 @@ public class NavigationCompassViewTest {
         );
 
         assertNotNull(state);
-        assertFalse(renderer.drawsTargetLineForTest(state));
-        assertEquals(
-                ContextCompat.getColor(activity, R.color.white),
-                renderer.straightLineTargetPaintForTest(activity).getColor()
-        );
+        assertTrue(state.displayMode.straightLineMode);
+        assertTrue(state.hasRouteGeometry());
+        assertTrue(state.routeSamplePointCount() > 1);
+        assertNotNull(state.orientationCue);
+        assertNull(state.routeStartApproachProjection);
+        Paint linePaint = renderer.straightLinePaintForTest(activity);
+        assertEquals(ContextCompat.getColor(activity, R.color.compass_route), linePaint.getColor());
+        assertEquals(220, linePaint.getAlpha());
+        assertTrue(linePaint.getPathEffect() instanceof DashPathEffect);
     }
 
     @Test

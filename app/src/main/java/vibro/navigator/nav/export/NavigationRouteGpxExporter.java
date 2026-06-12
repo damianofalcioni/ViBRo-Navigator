@@ -39,6 +39,25 @@ public final class NavigationRouteGpxExporter {
     }
 
     @NonNull
+    public static String exportStraightLine(
+            @NonNull NavigationTextResources textResources,
+            @NonNull GeoJsonRoute route,
+            @NonNull List<LatLon> intermediateStops,
+            @NonNull LatLon destination
+    ) {
+        String resolvedRouteName = buildRouteName(new Date());
+        StringBuilder out = new StringBuilder();
+        NavigationRouteGpxXmlWriter.appendHeader(out);
+        NavigationRouteGpxXmlWriter.appendMetadata(out, resolvedRouteName);
+        NavigationRouteGpxStopWriter.appendWaypoints(out, textResources, intermediateStops);
+        NavigationRouteGpxStopWriter.appendDestinationWaypoint(out, textResources, destination);
+        NavigationRouteGpxXmlWriter.appendRoute(out, resolvedRouteName, route);
+        NavigationRouteGpxXmlWriter.appendTrack(out, resolvedRouteName, route);
+        NavigationRouteGpxXmlWriter.appendFooter(out);
+        return out.toString();
+    }
+
+    @NonNull
     static String buildRouteName(@NonNull Date date) {
         SimpleDateFormat formatter = new SimpleDateFormat(ROUTE_NAME_DATE_PATTERN, Locale.US);
         return ROUTE_NAME_PREFIX + formatter.format(date);

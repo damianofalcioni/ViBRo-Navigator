@@ -39,6 +39,8 @@ public final class NavigationServiceBinder extends Binder {
         @NonNull
         List<NogoPoint> addBlockedPointsAhead();
 
+        boolean canAddBlockedWaypoint();
+
         @NonNull
         String getString(int resId);
 
@@ -80,6 +82,10 @@ public final class NavigationServiceBinder extends Binder {
     }
 
     public void addBlockedWaypoint() {
+        if (!host.canAddBlockedWaypoint()) {
+            AppLogger.w(TAG, "Blocked waypoint requested while blocked-road rerouting is unavailable");
+            return;
+        }
         if (host.isNavigationPaused()) {
             AppLogger.w(TAG, "Blocked waypoint requested while navigation is paused");
             return;
@@ -97,6 +103,10 @@ public final class NavigationServiceBinder extends Binder {
         AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
                 + " location=" + NavigationLocationFormatter.format(currentLocation));
         host.requestBlockedRoadRouteRecalculation(host.getString(R.string.nav_route_notice_blocked_road_recalculating));
+    }
+
+    public boolean canAddBlockedWaypoint() {
+        return host.canAddBlockedWaypoint();
     }
 
     public void stop() {

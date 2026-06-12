@@ -176,7 +176,8 @@ public final class NavStateComposer {
                         new NavGuidanceStatus(nextLine, afterNextLine),
                         base.routeStatus.progress,
                         base.routeStatus.compassState,
-                        base.routeStatus.speedLimit
+                        base.routeStatus.speedLimit,
+                        base.routeStatus.blockedRoadActionAvailable
                 ),
                 base.gpsStatus,
                 base.pauseStatus

@@ -6,6 +6,7 @@ import vibro.navigator.nav.compass.CompassRoutePoint;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.util.TypedValue;
 
@@ -20,10 +21,15 @@ import vibro.navigator.geo.LatLon;
 final class NavigationCompassRouteRenderer {
 
     private static final float ROUTE_STROKE_WIDTH_DP = 3f;
+    private static final float STRAIGHT_LINE_STROKE_WIDTH_DP = 2f;
+    private static final float STRAIGHT_LINE_DOT_LENGTH_DP = 2f;
+    private static final float STRAIGHT_LINE_DOT_GAP_DP = 6f;
     private static final int ROUTE_THRESHOLD_ALPHA = 51;
     private static final int ROUTE_DEFAULT_ALPHA = 255;
+    private static final int STRAIGHT_LINE_ALPHA = 220;
 
     private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint straightLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routeThresholdPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -78,6 +84,11 @@ final class NavigationCompassRouteRenderer {
         return NavigationRouteThreshold.shouldDrawOverlay(state);
     }
 
+    Paint straightLinePaintForTest(@NonNull Context context) {
+        ensurePaintsInitialized(context);
+        return straightLinePaint;
+    }
+
     private void ensurePaintsInitialized(@NonNull Context context) {
         if (initialized) {
             return;
@@ -88,6 +99,18 @@ final class NavigationCompassRouteRenderer {
         routePaint.setStrokeCap(Paint.Cap.ROUND);
         routePaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
         routePaint.setAlpha(ROUTE_DEFAULT_ALPHA);
+
+        straightLinePaint.set(routePaint);
+        straightLinePaint.setStrokeWidth(dp(context, STRAIGHT_LINE_STROKE_WIDTH_DP));
+        straightLinePaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
+        straightLinePaint.setAlpha(STRAIGHT_LINE_ALPHA);
+        straightLinePaint.setPathEffect(new DashPathEffect(
+                new float[] {
+                        dp(context, STRAIGHT_LINE_DOT_LENGTH_DP),
+                        dp(context, STRAIGHT_LINE_DOT_GAP_DP)
+                },
+                0f
+        ));
 
         routeThresholdPaint.set(routePaint);
         routeThresholdPaint.setAlpha(ROUTE_THRESHOLD_ALPHA);
@@ -132,6 +155,11 @@ final class NavigationCompassRouteRenderer {
             float headingDegrees
     ) {
         if (state == null || state.radiusState.visibleRadiusMeters <= 0f) {
+            return;
+        }
+
+        if (state.displayMode.straightLineMode) {
+            drawStraightLineRoute(canvas, state, cx, cy, routeRadius, headingDegrees);
             return;
         }
 
@@ -183,6 +211,32 @@ final class NavigationCompassRouteRenderer {
         drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.passedRoutePoints, passedRoutePaint);
         drawRouteThresholdSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints);
         drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints, routePaint);
+    }
+
+    private void drawStraightLineRoute(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float routeRadius,
+            float headingDegrees
+    ) {
+        float scale = routeRadius / state.radiusState.visibleRadiusMeters;
+        if (state.hasRouteGeometry()) {
+            drawRouteGeometrySegment(
+                    canvas,
+                    state,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    state.remainingRouteStartSamplePointIndex(),
+                    state.routeSamplePointCount(),
+                    straightLinePaint
+            );
+            return;
+        }
+        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints, straightLinePaint);
     }
 
     private void drawRouteThresholdGeometrySegment(

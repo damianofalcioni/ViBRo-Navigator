@@ -23,7 +23,6 @@ final class NavigationCompassRouteStartApproachRenderer {
 
     private final Paint targetLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint targetPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint straightLineTargetPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
     private boolean initialized;
 
@@ -53,10 +52,6 @@ final class NavigationCompassRouteStartApproachRenderer {
                 headingDegrees
         );
         if (position == null) {
-            return;
-        }
-        if (isStraightLineTargetProjection(state)) {
-            canvas.drawCircle(position.x, position.y, dp(context, TARGET_MARKER_RADIUS_DP), straightLineTargetPaint);
             return;
         }
         canvas.drawLine(cx, cy, position.x, position.y, targetLinePaint);
@@ -111,30 +106,16 @@ final class NavigationCompassRouteStartApproachRenderer {
         targetPaint.setStyle(Paint.Style.FILL);
         targetPaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
 
-        straightLineTargetPaint.setStyle(Paint.Style.FILL);
-        straightLineTargetPaint.setColor(ContextCompat.getColor(context, R.color.white));
         initialized = true;
     }
 
     boolean drawsTargetLineForTest(@NonNull NavCompassState state) {
-        return !isStraightLineTargetProjection(state);
+        return state.routeStartApproachProjection != null;
     }
 
     Paint targetLinePaintForTest(@NonNull Context context) {
         ensurePaintsInitialized(context);
         return targetLinePaint;
-    }
-
-    Paint straightLineTargetPaintForTest(@NonNull Context context) {
-        ensurePaintsInitialized(context);
-        return straightLineTargetPaint;
-    }
-
-    private boolean isStraightLineTargetProjection(@NonNull NavCompassState state) {
-        return state.hasRouteGeometry()
-                && state.routeSamplePointCount() == 0
-                && state.hintSamplePointCount() == 0
-                && state.orientationCue != null;
     }
 
     private float dp(@NonNull Context context, float value) {

@@ -77,7 +77,13 @@ public final class NavigationSession {
 
     @Nullable
     public String buildCurrentRouteGpx(@NonNull Context context) {
-        return NavigationSessionRouteExporter.export(context, components.routeState, currentRequest);
+        return NavigationSessionRouteExporter.export(
+                context,
+                components.routeState,
+                components.straightLineState,
+                components.locationState.getLastFilteredLocation(),
+                currentRequest
+        );
     }
 
     public void onProviderDisabled(@NonNull String provider) {
@@ -100,6 +106,10 @@ public final class NavigationSession {
 
     public boolean isRouteCalculationInProgress() {
         return !currentRequest.isStraightLine() && components.routeRequestManager.isRouteCalculationInProgress();
+    }
+
+    public boolean canAddBlockedWaypoint() {
+        return started && !currentRequest.isStraightLine();
     }
 
     @Nullable

@@ -52,13 +52,13 @@ final class ViBRoAutoButtonRow {
         setButtonBounds(blockedButtonBounds, left + gap, top, size);
         setButtonBounds(stopButtonBounds, blockedButtonBounds.right + gap, top, size);
         setButtonBounds(pauseButtonBounds, stopButtonBounds.right + gap, top, size);
-        drawButton(canvas, blockedButtonBounds, blockedIcon, !state.pauseStatus.paused);
+        drawButton(canvas, blockedButtonBounds, blockedIcon, isBlockedRoadEnabled(state));
         drawButton(canvas, stopButtonBounds, stopIcon, true);
         drawButton(canvas, pauseButtonBounds, state.pauseStatus.paused ? playIcon : pauseIcon, true);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
-        if (!state.pauseStatus.paused && blockedButtonBounds.contains(x, y)) {
+        if (isBlockedRoadEnabled(state) && blockedButtonBounds.contains(x, y)) {
             controls.onBlockedRoad();
             return true;
         }
@@ -92,22 +92,35 @@ final class ViBRoAutoButtonRow {
             @NonNull Drawable icon,
             boolean enabled
     ) {
-        int alpha = enabled ? 255 : 90;
+        buttonFillPaint.setColor(ContextCompat.getColor(
+                carContext,
+                enabled ? R.color.surface_800 : R.color.gray_900
+        ));
+        buttonOutlinePaint.setColor(ContextCompat.getColor(
+                carContext,
+                enabled ? R.color.outline : R.color.gray_700
+        ));
         buttonFillPaint.setAlpha(enabled ? 255 : 140);
-        buttonOutlinePaint.setAlpha(enabled ? 255 : 120);
+        buttonOutlinePaint.setAlpha(enabled ? 255 : 160);
         canvas.drawOval(bounds, buttonFillPaint);
         canvas.drawOval(bounds, buttonOutlinePaint);
-        drawIcon(canvas, bounds, icon, alpha);
+        drawIcon(canvas, bounds, icon, enabled);
     }
 
-    private void drawIcon(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon, int alpha) {
+    private void drawIcon(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon, boolean enabled) {
         int iconSize = Math.round(dp(BUTTON_ICON_SIZE_DP));
         int iconLeft = Math.round(bounds.centerX() - iconSize / 2f);
         int iconTop = Math.round(bounds.centerY() - iconSize / 2f);
         icon.setBounds(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize);
-        icon.setAlpha(alpha);
+        icon.setTint(ContextCompat.getColor(carContext, enabled ? R.color.white : R.color.gray_700));
+        icon.setAlpha(enabled ? 255 : 230);
         icon.draw(canvas);
+        icon.setTint(ContextCompat.getColor(carContext, R.color.white));
         icon.setAlpha(255);
+    }
+
+    private static boolean isBlockedRoadEnabled(@NonNull NavState state) {
+        return state.routeStatus.blockedRoadActionAvailable && !state.pauseStatus.paused;
     }
 
     @NonNull

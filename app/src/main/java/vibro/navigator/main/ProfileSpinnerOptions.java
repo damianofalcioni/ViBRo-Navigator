@@ -23,12 +23,12 @@ final class ProfileSpinnerOptions {
         profiles.clear();
         profiles.addAll(newProfiles);
         options.clear();
-        for (String profile : profiles) {
-            options.add(new ProfileSpinnerOption(profile, profile, false));
-        }
         options.add(ProfileSpinnerOption.straightLine(
                 context.getString(R.string.label_vehicle_profile_straight_line)
         ));
+        for (String profile : profiles) {
+            options.add(new ProfileSpinnerOption(profile, profile, false));
+        }
         options.add(buildCustomOption(context, customProfile));
     }
 
@@ -54,14 +54,15 @@ final class ProfileSpinnerOptions {
         return options.get(position);
     }
 
-    int restoredPosition(@Nullable String selectionKey) {
+    int restoredPosition(@Nullable String selectionKey, boolean preferBRouterProfile) {
         int target = findPosition(selectionKey);
-        return target < 0 ? 0 : target;
+        return target < 0 ? defaultPosition(preferBRouterProfile) : target;
     }
 
     int firstRegularOrCustomPosition() {
-        if (!profiles.isEmpty()) {
-            return 0;
+        int brouterPosition = findFirstBRouterProfilePosition();
+        if (brouterPosition >= 0) {
+            return brouterPosition;
         }
         return findStraightLinePosition();
     }
@@ -72,6 +73,27 @@ final class ProfileSpinnerOptions {
 
     int findStraightLinePosition() {
         return findPosition(ProfileSpinnerOption.STRAIGHT_LINE_KEY);
+    }
+
+    private int defaultPosition(boolean preferBRouterProfile) {
+        if (preferBRouterProfile) {
+            int brouterPosition = findFirstBRouterProfilePosition();
+            if (brouterPosition >= 0) {
+                return brouterPosition;
+            }
+        }
+        int straightLinePosition = findStraightLinePosition();
+        return straightLinePosition >= 0 ? straightLinePosition : 0;
+    }
+
+    private int findFirstBRouterProfilePosition() {
+        for (int i = 0; i < options.size(); i++) {
+            ProfileSpinnerOption option = options.get(i);
+            if (!option.isCustom() && !option.isStraightLine()) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     private int findPosition(@Nullable String selectionKey) {

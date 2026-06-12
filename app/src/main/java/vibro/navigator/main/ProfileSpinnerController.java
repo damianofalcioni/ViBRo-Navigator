@@ -74,12 +74,13 @@ final class ProfileSpinnerController {
             currentSelectionKey = profilesRepository.getSelectedProfileKey(context);
         }
         String customProfile = profilesRepository.getCustomProfileName(context);
+        boolean bRouterInstalled = profilesRepository.isBRouterInstalled(context);
         options.replace(context, profilesRepository.listProfiles(context), customProfile);
         suppressSelectionCallback = true;
         adapter.clear();
         adapter.addAll(options.all());
         adapter.notifyDataSetChanged();
-        restoreSelection(currentSelectionKey);
+        restoreSelection(currentSelectionKey, bRouterInstalled);
         suppressSelectionCallback = false;
         AppLogger.i(TAG, "Loaded routing profiles count=" + options.profilesForLog().size()
                 + " profiles=" + options.profilesForLog()
@@ -178,8 +179,8 @@ final class ProfileSpinnerController {
         return option.selectionKey();
     }
 
-    private void restoreSelection(@Nullable String selectionKey) {
-        setSelection(options.restoredPosition(selectionKey));
+    private void restoreSelection(@Nullable String selectionKey, boolean bRouterInstalled) {
+        setSelection(options.restoredPosition(selectionKey, bRouterInstalled));
     }
 
     private void selectFirstRegularProfile() {

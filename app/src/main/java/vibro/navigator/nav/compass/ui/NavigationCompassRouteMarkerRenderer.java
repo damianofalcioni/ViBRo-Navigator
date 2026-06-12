@@ -110,6 +110,11 @@ final class NavigationCompassRouteMarkerRenderer {
                 * (destinationDisplayRadiusMeters / state.radiusState.visibleRadiusMeters);
     }
 
+    Paint destinationReachedRadiusPaintForTest(@NonNull Context context) {
+        ensurePaintsInitialized(context);
+        return destinationReachedRadiusPaint;
+    }
+
     void drawHintMarkers(
             @NonNull Canvas canvas,
             @NonNull Context context,
@@ -178,7 +183,7 @@ final class NavigationCompassRouteMarkerRenderer {
         destinationPaint.setColor(ContextCompat.getColor(context, R.color.white));
 
         destinationReachedRadiusPaint.setStyle(Paint.Style.FILL);
-        destinationReachedRadiusPaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
+        destinationReachedRadiusPaint.setColor(ContextCompat.getColor(context, R.color.compass_accent));
         destinationReachedRadiusPaint.setAlpha(DESTINATION_REACHED_RADIUS_ALPHA);
         initialized = true;
     }

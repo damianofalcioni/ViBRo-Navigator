@@ -16,7 +16,6 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class NavCompassStateFactory {
@@ -127,50 +126,6 @@ public final class NavCompassStateFactory {
     }
 
     @Nullable
-    public static NavCompassState buildStraightLineTargetCompassState(
-            @NonNull NavigationLocation currentLocation,
-            float speedMps,
-            boolean likelyStationary,
-            float compassAccuracyMeters,
-            @NonNull LatLon target,
-            @NonNull List<LatLon> remainingTargetsAfterNext,
-            @Nullable Double headingDegrees,
-            @Nullable Float headingAccuracyDegrees,
-            long nowMs
-    ) {
-        List<LatLon> track = Collections.singletonList(target);
-        return buildCompassState(
-                new GeoJsonRoute(track, Collections.emptyList(), 0.0, 0.0),
-                new PolylineIndex(track),
-                0.0,
-                currentLocation,
-                speedMps,
-                likelyStationary,
-                compassAccuracyMeters,
-                (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(compassAccuracyMeters),
-                headingDegrees,
-                headingAccuracyDegrees,
-                null,
-                null,
-                0L,
-                new CompassRouteGeometry(
-                        Collections.emptyList(),
-                        Collections.emptyList(),
-                        remainingTargetsAfterNext
-                ),
-                null,
-                new CompassOrientationCue((float) GeoMath.bearingDegrees(
-                        currentLocation.getLatitude(),
-                        currentLocation.getLongitude(),
-                        target.lat,
-                        target.lon
-                )),
-                target,
-                nowMs
-        );
-    }
-
-    @Nullable
     public static NavCompassState buildCompassState(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
@@ -231,6 +186,51 @@ public final class NavCompassStateFactory {
             @Nullable LatLon routeStartApproachTarget,
             long nowMs
     ) {
+        return buildCompassState(
+                route,
+                index,
+                alongTrackMeters,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                destinationReachedRadiusMeters,
+                headingDegrees,
+                headingAccuracyDegrees,
+                previousCompassVisibleRadiusMeters,
+                previousReliableMovingCompassVisibleRadiusMeters,
+                compassRadiusUpdateDeltaMs,
+                compassRouteGeometry,
+                compassRadiusTransition,
+                orientationCue,
+                routeStartApproachTarget,
+                nowMs,
+                false
+        );
+    }
+
+    @Nullable
+    static NavCompassState buildCompassState(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            float destinationReachedRadiusMeters,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @Nullable Float previousCompassVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            long compassRadiusUpdateDeltaMs,
+            @Nullable CompassRouteGeometry compassRouteGeometry,
+            @Nullable CompassRadiusTransition compassRadiusTransition,
+            @Nullable CompassOrientationCue orientationCue,
+            @Nullable LatLon routeStartApproachTarget,
+            long nowMs,
+            boolean straightLineMode
+    ) {
         if (route.track.isEmpty()) {
             return null;
         }
@@ -287,7 +287,8 @@ public final class NavCompassStateFactory {
                         referenceSpeedMps,
                         fullRouteReferenceSpeedMps,
                         sixtySecondReferenceSpeedMps,
-                        radiusState.usingMovingScale
+                        radiusState.usingMovingScale,
+                        straightLineMode
                 ),
                 new CompassRadiusMetrics(
                         radiusState.visibleRadiusMeters,

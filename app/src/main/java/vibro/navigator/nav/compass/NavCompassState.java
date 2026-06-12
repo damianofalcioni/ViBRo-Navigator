@@ -168,7 +168,8 @@ public final class NavCompassState {
                 input.displayMetrics.referenceSpeedMps,
                 input.displayMetrics.fullRouteReferenceSpeedMps,
                 input.displayMetrics.sixtySecondReferenceSpeedMps,
-                input.displayMetrics.movingScaleActive
+                input.displayMetrics.movingScaleActive,
+                input.displayMetrics.straightLineMode
         );
         this.radiusState = new CompassRadiusState(
                 input.radiusMetrics.visibleRadiusMeters,
@@ -192,7 +193,7 @@ public final class NavCompassState {
         this.currentLatitude = Double.NaN;
         this.currentLongitude = Double.NaN;
         this.passedRouteSamplePointCount = input.passedRoutePoints.size();
-        this.remainingRouteStartSamplePointIndex = input.routePoints.isEmpty() ? 0 : 0;
+        this.remainingRouteStartSamplePointIndex = 0;
     }
 
     private NavCompassState(@NonNull NavCompassRouteGeometryInput input) {
@@ -202,7 +203,8 @@ public final class NavCompassState {
                 input.displayMetrics.referenceSpeedMps,
                 input.displayMetrics.fullRouteReferenceSpeedMps,
                 input.displayMetrics.sixtySecondReferenceSpeedMps,
-                input.displayMetrics.movingScaleActive
+                input.displayMetrics.movingScaleActive,
+                input.displayMetrics.straightLineMode
         );
         this.radiusState = new CompassRadiusState(
                 input.radiusMetrics.visibleRadiusMeters,
@@ -289,7 +291,8 @@ public final class NavCompassState {
                             targetReferenceSpeedMps,
                             displayMode.fullRouteReferenceSpeedMps,
                             displayMode.sixtySecondReferenceSpeedMps,
-                            sixtySecondView
+                            sixtySecondView,
+                            displayMode.straightLineMode
                     ),
                     new CompassRadiusMetrics(
                             targetVisibleRadiusMeters,
@@ -319,7 +322,8 @@ public final class NavCompassState {
                         targetReferenceSpeedMps,
                         displayMode.fullRouteReferenceSpeedMps,
                         displayMode.sixtySecondReferenceSpeedMps,
-                        sixtySecondView
+                        sixtySecondView,
+                        displayMode.straightLineMode
                 ),
                 new CompassRadiusMetrics(
                         targetVisibleRadiusMeters,
@@ -368,13 +372,35 @@ public final class NavCompassState {
             float sixtySecondReferenceSpeedMps,
             boolean movingScaleActive
     ) {
+        return displayMetrics(
+                headingDegrees,
+                headingAccuracyDegrees,
+                referenceSpeedMps,
+                fullRouteReferenceSpeedMps,
+                sixtySecondReferenceSpeedMps,
+                movingScaleActive,
+                false
+        );
+    }
+
+    @NonNull
+    private static CompassDisplayMetrics displayMetrics(
+            float headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps,
+            float fullRouteReferenceSpeedMps,
+            float sixtySecondReferenceSpeedMps,
+            boolean movingScaleActive,
+            boolean straightLineMode
+    ) {
         return new CompassDisplayMetrics(
                 headingDegrees,
                 headingAccuracyDegrees,
                 referenceSpeedMps,
                 fullRouteReferenceSpeedMps,
                 sixtySecondReferenceSpeedMps,
-                movingScaleActive
+                movingScaleActive,
+                straightLineMode
         );
     }
 

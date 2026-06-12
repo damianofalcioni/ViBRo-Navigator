@@ -13,6 +13,7 @@ import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.RouteSpeedLimit;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import android.app.Activity;
+import android.graphics.PorterDuff;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
@@ -46,6 +47,8 @@ final class NavigationActivityRenderer {
 
     private static final String TAG = "NavigationActivity";
     private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
+    private static final float BUTTON_ENABLED_ALPHA = 1f;
+    private static final float BLOCKED_ROAD_DISABLED_ALPHA = 0.45f;
     private static final Pattern GPS_ACCURACY_HIGHLIGHT_PATTERN =
             Pattern.compile("• ([^ ]+ [^ ]+) ([^•]+) •");
 
@@ -109,7 +112,7 @@ final class NavigationActivityRenderer {
         destination.setText(state.routeStatus.displayStatusBlock());
         renderCompassState();
         renderSpeedLimit(state.routeStatus.speedLimit);
-        blocked.setEnabled(!state.pauseStatus.paused);
+        renderBlockedRoadButton(state, navBinder);
         export.setEnabled(navBinder != null);
         pauseResume.setEnabled(navBinder != null);
         pauseResume.setImageResource(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause);
@@ -118,6 +121,22 @@ final class NavigationActivityRenderer {
         ));
         renderGpsStatus();
         logRenderedStateIfChanged(state);
+    }
+
+    private void renderBlockedRoadButton(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
+        boolean enabled = navBinder != null
+                && state.routeStatus.blockedRoadActionAvailable
+                && !state.pauseStatus.paused;
+        blocked.setEnabled(enabled);
+        blocked.setAlpha(enabled ? BUTTON_ENABLED_ALPHA : BLOCKED_ROAD_DISABLED_ALPHA);
+        if (enabled) {
+            blocked.clearColorFilter();
+            return;
+        }
+        blocked.setColorFilter(
+                ContextCompat.getColor(activity, R.color.gray_700),
+                PorterDuff.Mode.SRC_IN
+        );
     }
 
     void renderGpsStatus() {

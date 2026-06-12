@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.geo.GeoMath;
@@ -49,6 +50,42 @@ final class StraightLineNavigationProgress {
             remaining.add(request.destination);
         }
         return remaining;
+    }
+
+    @NonNull
+    static List<LatLon> remainingTargets(
+            @NonNull NavigationRequest request,
+            boolean destinationReached,
+            int nextStopIndex
+    ) {
+        if (destinationReached || request.destination == null) {
+            return Collections.emptyList();
+        }
+        List<LatLon> remaining = new ArrayList<>();
+        for (int i = nextStopIndex; i < request.stops.size(); i++) {
+            remaining.add(request.stops.get(i));
+        }
+        remaining.add(request.destination);
+        return remaining;
+    }
+
+    @NonNull
+    static List<LatLon> routeTrack(
+            @NonNull NavigationLocation location,
+            @NonNull List<LatLon> targets
+    ) {
+        List<LatLon> track = new ArrayList<>();
+        track.add(new LatLon(location.getLatitude(), location.getLongitude()));
+        track.addAll(targets);
+        return track;
+    }
+
+    static double trackDistanceMeters(@NonNull List<LatLon> track) {
+        double distanceMeters = 0.0;
+        for (int i = 1; i < track.size(); i++) {
+            distanceMeters += distanceMeters(track.get(i - 1), track.get(i));
+        }
+        return distanceMeters;
     }
 
     static double remainingDistanceToDestination(

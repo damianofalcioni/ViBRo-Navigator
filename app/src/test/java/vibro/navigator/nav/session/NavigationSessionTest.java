@@ -218,10 +218,13 @@ public class NavigationSessionTest {
         assertTrue(state.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertNotNull(state.routeStatus.compassState);
         assertTrue(state.routeStatus.compassState.hasRouteGeometry());
-        assertEquals(0, state.routeStatus.compassState.routeSamplePointCount());
+        assertTrue(state.routeStatus.compassState.displayMode.straightLineMode);
+        assertTrue(state.routeStatus.compassState.routeSamplePointCount() > 1);
         assertNotNull(state.routeStatus.compassState.orientationCue);
-        assertNotNull(state.routeStatus.compassState.routeStartApproachProjection);
+        assertNull(state.routeStatus.compassState.routeStartApproachProjection);
         assertEquals(2, state.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
+        assertFalse(state.routeStatus.blockedRoadActionAvailable);
+        assertFalse(session.canAddBlockedWaypoint());
     }
 
     @Test
@@ -321,9 +324,15 @@ public class NavigationSessionTest {
         assertFalse(afterFirstStop.routeStatus.progress.stopProgressBlock.contains(
                 context.getString(R.string.format_stop_label, 1)
         ));
+        assertNotNull(afterFirstStop.routeStatus.compassState);
+        assertEquals(2, afterFirstStop.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
         assertEquals("", reachedState.routeStatus.guidance.nextLine);
         assertEquals(context.getString(R.string.nav_destination_reached),
                 reachedState.routeStatus.progress.destinationLine);
+        assertNotNull(reachedState.routeStatus.compassState);
+        assertTrue(reachedState.routeStatus.compassState.displayMode.straightLineMode);
+        assertNotNull(reachedState.routeStatus.compassState.routeGeometry());
+        assertEquals(2, reachedState.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
     }
 
     @NonNull

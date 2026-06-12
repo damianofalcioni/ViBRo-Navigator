@@ -77,6 +77,36 @@ public class NavigationRouteGpxExporterTest {
     }
 
     @Test
+    public void exportStraightLine_includesOnlyStopsDestinationAndStraightRoute() throws Exception {
+        LatLon stop = new LatLon(48.1, 16.1);
+        LatLon destination = new LatLon(48.2, 16.2);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.0, 16.0),
+                        stop,
+                        destination
+                ),
+                Collections.emptyList(),
+                0.0,
+                0.0
+        );
+
+        Document document = parse(NavigationRouteGpxExporter.exportStraightLine(
+                TestNavigationTextResources.metric(),
+                route,
+                Collections.singletonList(stop),
+                destination
+        ));
+
+        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, "trkpt").getLength());
+        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, "rtept").getLength());
+        assertEquals(2, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength());
+        assertEquals(0, countWaypointsByType(document, "vibro.navigator.turn"));
+        assertEquals(1, countWaypointsByType(document, "vibro.navigator.stop"));
+        assertEquals(1, countWaypointsByType(document, "vibro.navigator.destination"));
+    }
+
+    @Test
     public void export_omitsInstructionCountdownWhenTrackTimesDoNotAlign() throws Exception {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
@@ -156,5 +186,16 @@ public class NavigationRouteGpxExporterTest {
 
     private static String childText(Element parent, String name) {
         return parent.getElementsByTagNameNS(GPX_NAMESPACE, name).item(0).getTextContent();
+    }
+
+    private static int countWaypointsByType(Document document, String type) {
+        int matches = 0;
+        for (int i = 0; i < document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength(); i++) {
+            Element waypoint = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).item(i);
+            if (type.equals(childText(waypoint, TAG_TYPE))) {
+                matches++;
+            }
+        }
+        return matches;
     }
 }

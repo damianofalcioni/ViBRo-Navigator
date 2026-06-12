@@ -163,6 +163,10 @@ public final class ViBRoCarScreen extends Screen {
             AppLogger.w(TAG, "Blocked-road requested before service binding completed");
             return;
         }
+        if (!navBinder.canAddBlockedWaypoint()) {
+            AppLogger.w(TAG, "Blocked-road requested while blocked-road rerouting is unavailable");
+            return;
+        }
         navBinder.addBlockedWaypoint();
     }
 

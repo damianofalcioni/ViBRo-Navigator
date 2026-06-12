@@ -15,6 +15,7 @@ public final class NavRouteStatus {
     public final NavCompassState compassState;
     @Nullable
     public final RouteSpeedLimit speedLimit;
+    public final boolean blockedRoadActionAvailable;
 
     public NavRouteStatus(
             @NonNull NavGuidanceStatus guidance,
@@ -30,10 +31,27 @@ public final class NavRouteStatus {
             @Nullable NavCompassState compassState,
             @Nullable RouteSpeedLimit speedLimit
     ) {
+        this(
+                guidance,
+                progress,
+                compassState,
+                speedLimit,
+                compassState != null && !compassState.displayMode.straightLineMode
+        );
+    }
+
+    public NavRouteStatus(
+            @NonNull NavGuidanceStatus guidance,
+            @NonNull NavProgressStatus progress,
+            @Nullable NavCompassState compassState,
+            @Nullable RouteSpeedLimit speedLimit,
+            boolean blockedRoadActionAvailable
+    ) {
         this.guidance = guidance;
         this.progress = progress;
         this.compassState = compassState;
         this.speedLimit = speedLimit;
+        this.blockedRoadActionAvailable = blockedRoadActionAvailable;
     }
 
     @NonNull
@@ -43,6 +61,12 @@ public final class NavRouteStatus {
 
     @NonNull
     public NavRouteStatus withProgress(@NonNull NavProgressStatus progress) {
-        return new NavRouteStatus(guidance, progress, compassState, speedLimit);
+        return new NavRouteStatus(
+                guidance,
+                progress,
+                compassState,
+                speedLimit,
+                blockedRoadActionAvailable
+        );
     }
 }

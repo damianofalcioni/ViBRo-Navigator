@@ -4,12 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.Collections;
+import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
+import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavGpsStatus;
@@ -19,6 +21,7 @@ import vibro.navigator.nav.model.NavProgressStatus;
 import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.route.GeoJsonRoute;
 
 final class StraightLineNavigationState {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
@@ -174,24 +177,67 @@ final class StraightLineNavigationState {
     }
 
     @Nullable
+    GeoJsonRoute buildExportRoute(
+            @NonNull NavigationRequest request,
+            @Nullable NavigationLocation location
+    ) {
+        if (location == null || request.destination == null) {
+            return null;
+        }
+        return buildExportRoute(location, exportTargets(request));
+    }
+
+    @Nullable
     private NavCompassState buildCompassState(
             @NonNull NavigationRequest request,
             @NonNull NavigationDisplaySnapshot snapshot
     ) {
-        LatLon target = StraightLineNavigationProgress.nextTarget(request, destinationReached, nextStopIndex);
+        LatLon target = destinationReached
+                ? request.destination
+                : StraightLineNavigationProgress.nextTarget(request, destinationReached, nextStopIndex);
         if (target == null || snapshot.lastFiltered == null) {
             return null;
         }
-        return NavCompassStateFactory.buildStraightLineTargetCompassState(
+        List<LatLon> remainingTargetsAfterNext = destinationReached
+                ? Collections.emptyList()
+                : StraightLineNavigationProgress.remainingTargetsAfterNext(request, nextStopIndex);
+        return StraightLineNavCompassStateFactory.buildTargetCompassState(
                 snapshot.lastFiltered,
                 snapshot.speedMps,
                 snapshot.likelyStationary,
                 snapshot.accuracyMeters,
                 target,
-                StraightLineNavigationProgress.remainingTargetsAfterNext(request, nextStopIndex),
+                remainingTargetsAfterNext,
+                request.stops,
                 snapshot.headingDegrees,
                 snapshot.headingAccuracyDegrees,
                 snapshot.nowMs
+        );
+    }
+
+    @NonNull
+    private List<LatLon> exportTargets(@NonNull NavigationRequest request) {
+        List<LatLon> targets = StraightLineNavigationProgress.remainingTargets(
+                request,
+                destinationReached,
+                nextStopIndex
+        );
+        return targets.isEmpty() && request.destination != null
+                ? Collections.singletonList(request.destination)
+                : targets;
+    }
+
+    @NonNull
+    private static GeoJsonRoute buildExportRoute(
+            @NonNull NavigationLocation location,
+            @NonNull List<LatLon> targets
+    ) {
+        List<LatLon> track = StraightLineNavigationProgress.routeTrack(location, targets);
+        return new GeoJsonRoute(
+                track,
+                Collections.emptyList(),
+                0.0,
+                StraightLineNavigationProgress.trackDistanceMeters(track)
         );
     }
 
