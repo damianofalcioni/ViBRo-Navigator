@@ -78,11 +78,23 @@ public final class NavigationUpdateScheduler {
         if (timeToNextSeconds <= VERY_IMMINENT_HINT_THRESHOLD_SECONDS) {
             return MIN_UPDATE_INTERVAL_MS;
         }
-        long intervalMs = (long) Math.max(
-                MIN_UPDATE_INTERVAL_MS,
-                Math.min(MAX_UPDATE_INTERVAL_MS, timeToNextSeconds * DISTANCE_TO_INTERVAL_FACTOR)
-        );
-        return bucketInterval(applyManeuverGuard(intervalMs, timeToNextSeconds));
+        return intervalFromTimeToTarget(timeToNextSeconds);
+    }
+
+    public long suggestDirectTargetUpdateInterval(
+            long nowMs,
+            long fastChecksUntilMs,
+            @Nullable Double timeToTargetSeconds
+    ) {
+        if (nowMs <= fastChecksUntilMs
+                || timeToTargetSeconds == null
+                || !Double.isFinite(timeToTargetSeconds)) {
+            return MIN_UPDATE_INTERVAL_MS;
+        }
+        if (timeToTargetSeconds <= VERY_IMMINENT_HINT_THRESHOLD_SECONDS) {
+            return MIN_UPDATE_INTERVAL_MS;
+        }
+        return intervalFromTimeToTarget(timeToTargetSeconds);
     }
 
     private static boolean canEstimateRouteTime(
@@ -138,6 +150,14 @@ public final class NavigationUpdateScheduler {
             }
         }
         return bestBucketMs;
+    }
+
+    private static long intervalFromTimeToTarget(double timeToTargetSeconds) {
+        long intervalMs = (long) Math.max(
+                MIN_UPDATE_INTERVAL_MS,
+                Math.min(MAX_UPDATE_INTERVAL_MS, timeToTargetSeconds * DISTANCE_TO_INTERVAL_FACTOR)
+        );
+        return bucketInterval(applyManeuverGuard(intervalMs, timeToTargetSeconds));
     }
 
     private static long applyManeuverGuard(long intervalMs, double timeToNextSeconds) {

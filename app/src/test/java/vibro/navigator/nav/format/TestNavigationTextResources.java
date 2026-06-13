@@ -161,6 +161,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_progress_line, "%1$s: %2$s • %3$s • %4$s %5$s");
         strings.put(R.string.nav_destination_reached, "Destination reached");
         strings.put(R.string.notification_off_route_title, "Off route");
+        strings.put(R.string.notification_wrong_direction_title, "Wrong direction");
         strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
         strings.put(R.string.format_turn_speech, "%1$s, %2$s");
         strings.put(
@@ -170,6 +171,10 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(
                 R.string.format_off_route_bearing_notification,
                 "Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route."
+        );
+        strings.put(
+                R.string.format_wrong_direction_notification,
+                "Wrong direction detected. Target %1$s, actual %2$s, diff %3$s."
         );
         strings.put(
                 R.string.format_startup_orientation_notification,

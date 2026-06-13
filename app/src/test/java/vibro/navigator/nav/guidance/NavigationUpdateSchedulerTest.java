@@ -201,6 +201,28 @@ public class NavigationUpdateSchedulerTest {
         assertEquals(8000L, intervalMs);
     }
 
+    @Test
+    public void suggestDirectTargetUpdateInterval_usesSameBucketsAsRouteUpdates() {
+        long intervalMs = scheduler.suggestDirectTargetUpdateInterval(
+                10_000L,
+                1_000L,
+                111.0
+        );
+
+        assertEquals(20000L, intervalMs);
+    }
+
+    @Test
+    public void suggestDirectTargetUpdateInterval_keepsFastPollingDuringWarmup() {
+        long intervalMs = scheduler.suggestDirectTargetUpdateInterval(
+                1_000L,
+                2_000L,
+                111.0
+        );
+
+        assertEquals(3000L, intervalMs);
+    }
+
     private static GeoJsonRoute route(List<LatLon> track, List<VoiceHint> voiceHints) {
         return new GeoJsonRoute(track, voiceHints, 120.0, 111.0);
     }

@@ -117,6 +117,9 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         }
         controllers.locationController.recordAcceptedLocationUpdate();
         applyRouteUpdateRequest(result, controllers.locationController);
+        if (result.getWrongDirectionNotice() != null) {
+            controllers.foregroundController.sendWrongDirectionNotification(result.getWrongDirectionNotice());
+        }
         turnEvents.dispatch(result.turnEvents);
         controllers.orientationController.maybeSendStationaryOrientationNotification(
                 navigationSession,

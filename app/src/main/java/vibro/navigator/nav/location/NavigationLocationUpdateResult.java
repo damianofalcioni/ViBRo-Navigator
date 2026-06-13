@@ -3,6 +3,7 @@ package vibro.navigator.nav.location;
 
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
 import androidx.annotation.NonNull;
@@ -22,6 +23,8 @@ public final class NavigationLocationUpdateResult {
     @Nullable
     private final NavigationRouteRecalculationReason recalculationReason;
     @Nullable
+    private final NavigationWrongDirectionNotice wrongDirectionNotice;
+    @Nullable
     public final NavigationLocation filteredLocation;
     @NonNull
     public final List<NavigationTurnEvent> turnEvents;
@@ -32,6 +35,7 @@ public final class NavigationLocationUpdateResult {
             long suggestedUpdateIntervalMs,
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable NavigationRouteRecalculationReason recalculationReason,
+            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice,
             @Nullable NavigationLocation filteredLocation,
             @NonNull List<NavigationTurnEvent> turnEvents
     ) {
@@ -40,6 +44,7 @@ public final class NavigationLocationUpdateResult {
         this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
         this.rerouteNotice = rerouteNotice;
         this.recalculationReason = recalculationReason;
+        this.wrongDirectionNotice = wrongDirectionNotice;
         this.filteredLocation = filteredLocation;
         this.turnEvents = turnEvents;
     }
@@ -50,6 +55,7 @@ public final class NavigationLocationUpdateResult {
                 true,
                 false,
                 NO_SUGGESTED_INTERVAL,
+                null,
                 null,
                 null,
                 null,
@@ -70,6 +76,7 @@ public final class NavigationLocationUpdateResult {
                 shouldRecalculateRoute,
                 rerouteNotice,
                 null,
+                null,
                 turnEvents,
                 suggestedUpdateIntervalMs
         );
@@ -84,12 +91,34 @@ public final class NavigationLocationUpdateResult {
             @NonNull List<NavigationTurnEvent> turnEvents,
             long suggestedUpdateIntervalMs
     ) {
+        return accepted(
+                filteredLocation,
+                shouldRecalculateRoute,
+                rerouteNotice,
+                recalculationReason,
+                null,
+                turnEvents,
+                suggestedUpdateIntervalMs
+        );
+    }
+
+    @NonNull
+    public static NavigationLocationUpdateResult accepted(
+            @Nullable NavigationLocation filteredLocation,
+            boolean shouldRecalculateRoute,
+            @Nullable NavigationRerouteNotice rerouteNotice,
+            @Nullable NavigationRouteRecalculationReason recalculationReason,
+            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice,
+            @NonNull List<NavigationTurnEvent> turnEvents,
+            long suggestedUpdateIntervalMs
+    ) {
         return new NavigationLocationUpdateResult(
                 false,
                 shouldRecalculateRoute,
                 suggestedUpdateIntervalMs,
                 rerouteNotice,
                 recalculationReason,
+                wrongDirectionNotice,
                 filteredLocation,
                 turnEvents
         );
@@ -115,5 +144,10 @@ public final class NavigationLocationUpdateResult {
     @Nullable
     public NavigationRouteRecalculationReason getRecalculationReason() {
         return recalculationReason;
+    }
+
+    @Nullable
+    public NavigationWrongDirectionNotice getWrongDirectionNotice() {
+        return wrongDirectionNotice;
     }
 }

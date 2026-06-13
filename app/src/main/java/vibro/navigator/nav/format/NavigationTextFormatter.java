@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.location.NavigationGpsTextFormatter;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
@@ -66,6 +67,17 @@ public final class NavigationTextFormatter {
         return NavigationTextFormatterRules.formatOffRouteNotification(
                 new AndroidNavigationTextResources(context),
                 rerouteNotice
+        );
+    }
+
+    @NonNull
+    public static String formatWrongDirectionNotification(
+            @NonNull Context context,
+            @NonNull NavigationWrongDirectionNotice wrongDirectionNotice
+    ) {
+        return NavigationTextFormatterRules.formatWrongDirectionNotification(
+                new AndroidNavigationTextResources(context),
+                wrongDirectionNotice
         );
     }
 

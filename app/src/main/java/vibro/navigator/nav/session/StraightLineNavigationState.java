@@ -13,9 +13,11 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
-import vibro.navigator.nav.format.NavStateTextFactory;
 import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.guidance.NavigationUpdateScheduler;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
+import vibro.navigator.nav.guidance.StraightLineWrongDirectionDetector;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -29,29 +31,43 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 final class StraightLineNavigationState {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
 
+    private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
+    private final StraightLineWrongDirectionDetector wrongDirectionDetector =
+            new StraightLineWrongDirectionDetector();
+
     private int nextStopIndex;
     private boolean destinationReached;
 
     void reset() {
         nextStopIndex = 0;
         destinationReached = false;
+        wrongDirectionDetector.reset();
     }
 
     void onRequestStarted(@NonNull NavigationRequest request) {
         nextStopIndex = 0;
         destinationReached = request.destination == null;
+        wrongDirectionDetector.reset();
     }
 
     @NonNull
     NavigationRouteEvaluation evaluateLocation(
             @NonNull NavigationRequest request,
             @NonNull NavigationLocation location,
-            float accuracyMeters
+            float speedMps,
+            boolean likelyStationary,
+            float accuracyMeters,
+            @Nullable Double actualBearingDegrees,
+            long nowMs,
+            long fastChecksUntilMs
     ) {
         if (request.destination == null || destinationReached) {
             return keepDirectGuidance();
         }
         List<NavigationTurnEvent> turnEvents = advanceReachedStops(request, location, accuracyMeters);
+        if (!turnEvents.isEmpty()) {
+            wrongDirectionDetector.reset();
+        }
         if (nextStopIndex >= request.stops.size()
                 && StraightLineNavigationProgress.isWithinReachedRadius(
                         location,
@@ -60,8 +76,32 @@ final class StraightLineNavigationState {
                 )) {
             destinationReached = true;
             turnEvents.addAll(NavigationArrivalTurnEvents.destinationArrival(nextStopIndex));
+            wrongDirectionDetector.reset();
+            return keepDirectGuidance(turnEvents);
         }
-        return keepDirectGuidance(turnEvents);
+        LatLon target = StraightLineNavigationProgress.nextTarget(request, false, nextStopIndex);
+        if (target == null) {
+            return keepDirectGuidance(turnEvents);
+        }
+        double distanceToTargetMeters = StraightLineNavigationProgress.distanceMeters(location, target);
+        Double timeToTargetSeconds = StraightLineNavigationProgress.estimateSeconds(
+                distanceToTargetMeters,
+                speedMps,
+                likelyStationary
+        );
+        long suggestedUpdateIntervalMs = updateScheduler.suggestDirectTargetUpdateInterval(
+                nowMs,
+                fastChecksUntilMs,
+                timeToTargetSeconds
+        );
+        NavigationWrongDirectionNotice wrongDirectionNotice = wrongDirectionDetector.evaluate(
+                distanceToTargetMeters,
+                accuracyMeters,
+                speedMps,
+                targetBearingDegrees(location, target),
+                actualBearingDegrees
+        );
+        return keepDirectGuidance(turnEvents, suggestedUpdateIntervalMs, wrongDirectionNotice);
     }
 
     @Nullable
@@ -91,10 +131,25 @@ final class StraightLineNavigationState {
         NavCompassState compassState = buildCompassState(request, snapshot);
         return new NavState(
                 new NavRouteStatus(
-                        new NavGuidanceStatus("", ""),
+                        StraightLineNavigationGuidanceText.buildStatus(
+                                request,
+                                snapshot,
+                                destinationReached,
+                                nextStopIndex
+                        ),
                         new NavProgressStatus(
-                                buildDestinationLine(request, snapshot),
-                                buildStopProgressBlock(request, snapshot),
+                                StraightLineNavigationProgressText.buildDestinationLine(
+                                        request,
+                                        snapshot,
+                                        destinationReached,
+                                        nextStopIndex
+                                ),
+                                StraightLineNavigationProgressText.buildStopProgressBlock(
+                                        request,
+                                        snapshot,
+                                        destinationReached,
+                                        nextStopIndex
+                                ),
                                 ""
                         ),
                         compassState
@@ -130,62 +185,20 @@ final class StraightLineNavigationState {
 
     @NonNull
     private static NavigationRouteEvaluation keepDirectGuidance(@NonNull List<NavigationTurnEvent> turnEvents) {
+        return keepDirectGuidance(turnEvents, NO_SUGGESTED_INTERVAL, null);
+    }
+
+    @NonNull
+    private static NavigationRouteEvaluation keepDirectGuidance(
+            @NonNull List<NavigationTurnEvent> turnEvents,
+            long suggestedUpdateIntervalMs,
+            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice
+    ) {
         return NavigationRouteEvaluation.keepRoute(
                 turnEvents,
-                NO_SUGGESTED_INTERVAL,
-                true
-        );
-    }
-
-    @NonNull
-    private String buildDestinationLine(
-            @NonNull NavigationRequest request,
-            @NonNull NavigationDisplaySnapshot snapshot
-    ) {
-        if (destinationReached) {
-            return snapshot.textResources.getString(R.string.nav_destination_reached);
-        }
-        if (request.destination == null || snapshot.lastFiltered == null) {
-            return "";
-        }
-        double distanceMeters = StraightLineNavigationProgress.remainingDistanceToDestination(
-                request,
-                snapshot.lastFiltered,
-                nextStopIndex
-        );
-        return NavStateTextFactory.buildProgressLine(
-                snapshot.textResources,
-                snapshot.textResources.getString(R.string.nav_destination_label),
-                distanceMeters,
-                StraightLineNavigationProgress.estimateSeconds(
-                        distanceMeters,
-                        snapshot.speedMps,
-                        snapshot.likelyStationary
-                ),
-                snapshot.nowMs
-        );
-    }
-
-    @NonNull
-    private String buildStopProgressBlock(
-            @NonNull NavigationRequest request,
-            @NonNull NavigationDisplaySnapshot snapshot
-    ) {
-        if (destinationReached || nextStopIndex >= request.stops.size() || snapshot.lastFiltered == null) {
-            return "";
-        }
-        LatLon stop = request.stops.get(nextStopIndex);
-        double distanceMeters = StraightLineNavigationProgress.distanceMeters(snapshot.lastFiltered, stop);
-        return NavStateTextFactory.buildProgressLine(
-                snapshot.textResources,
-                snapshot.textResources.getString(R.string.format_stop_label, nextStopIndex + 1),
-                distanceMeters,
-                StraightLineNavigationProgress.estimateSeconds(
-                        distanceMeters,
-                        snapshot.speedMps,
-                        snapshot.likelyStationary
-                ),
-                snapshot.nowMs
+                suggestedUpdateIntervalMs,
+                wrongDirectionNotice == null,
+                wrongDirectionNotice
         );
     }
 
@@ -288,4 +301,17 @@ final class StraightLineNavigationState {
                 new NavPauseStatus(false)
         );
     }
+
+    private static double targetBearingDegrees(
+            @NonNull NavigationLocation location,
+            @NonNull LatLon target
+    ) {
+        return GeoMath.bearingDegrees(
+                location.getLatitude(),
+                location.getLongitude(),
+                target.lat,
+                target.lon
+        );
+    }
+
 }

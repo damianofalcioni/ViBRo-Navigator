@@ -96,16 +96,28 @@ final class NavigationSessionLocationEvaluator {
         }
 
         if (currentRequest.isStraightLine()) {
+            long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs);
             NavigationRouteEvaluation evaluation = straightLineState.evaluateLocation(
                     currentRequest,
                     filtered,
-                    locationState.accuracyMeters(filtered)
+                    locationState.speedMps(filtered),
+                    locationState.isLikelyStationary(),
+                    locationState.accuracyMeters(filtered),
+                    locationState.trustedActualBearingDegreesForReroute(filtered),
+                    nowMs,
+                    fastChecksUntilMs
+            );
+            warmupController.recordEvaluation(
+                    evaluation.isStableOnRouteSample(),
+                    locationState.accuracyMeters(filtered),
+                    nowMs
             );
             return NavigationLocationUpdateResult.accepted(
                     filtered,
                     evaluation.shouldRecalculateRoute(),
                     evaluation.rerouteNotice,
                     evaluation.recalculationReason,
+                    evaluation.getWrongDirectionNotice(),
                     evaluation.turnEvents,
                     evaluation.getSuggestedUpdateIntervalMs()
             );

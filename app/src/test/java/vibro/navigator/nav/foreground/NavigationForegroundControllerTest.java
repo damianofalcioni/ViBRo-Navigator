@@ -2,6 +2,7 @@ package vibro.navigator.nav.foreground;
 
 
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.service.NavigationService;
 import static org.junit.Assert.assertArrayEquals;
@@ -133,6 +134,12 @@ public class NavigationForegroundControllerTest {
                 policy.evaluate(40.0, 5.0, null, 90.0)
         );
         controller.sendOffRouteNotification(rerouteNotice);
+        assertEquals(
+                NavigationService.CHANNEL_ID_ALERT,
+                lastPostedNotification(notificationManager).getChannelId()
+        );
+
+        controller.sendWrongDirectionNotification(new NavigationWrongDirectionNotice(90.0, 270.0, 180.0));
         assertEquals(
                 NavigationService.CHANNEL_ID_ALERT,
                 lastPostedNotification(notificationManager).getChannelId()

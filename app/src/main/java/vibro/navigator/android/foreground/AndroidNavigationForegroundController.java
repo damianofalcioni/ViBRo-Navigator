@@ -24,6 +24,7 @@ import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
@@ -131,6 +132,19 @@ public final class AndroidNavigationForegroundController implements NavigationFo
     public void sendOffRouteNotification(@NonNull NavigationRerouteNotice rerouteNotice) {
         String title = service.getString(R.string.notification_off_route_title);
         String message = NavigationTextFormatter.formatOffRouteNotification(service, rerouteNotice);
+        sendAlertNotification(title, message);
+        AppLogger.i(TAG, "Sent off-route notification reason=" + rerouteNotice.reason + " message=" + message);
+    }
+
+    @Override
+    public void sendWrongDirectionNotification(@NonNull NavigationWrongDirectionNotice wrongDirectionNotice) {
+        String title = service.getString(R.string.notification_wrong_direction_title);
+        String message = NavigationTextFormatter.formatWrongDirectionNotification(service, wrongDirectionNotice);
+        sendAlertNotification(title, message);
+        AppLogger.i(TAG, "Sent wrong-direction notification message=" + message);
+    }
+
+    private void sendAlertNotification(@NonNull String title, @NonNull String message) {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(service, NavigationService.CHANNEL_ID_ALERT)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
@@ -146,11 +160,10 @@ public final class AndroidNavigationForegroundController implements NavigationFo
         NotificationManager notificationManager =
                 (NotificationManager) service.getSystemService(Service.NOTIFICATION_SERVICE);
         if (notificationManager == null) {
-            AppLogger.w(TAG, "NotificationManager unavailable, cannot send off-route notification");
+            AppLogger.w(TAG, "NotificationManager unavailable, cannot send alert notification");
             return;
         }
         notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
-        AppLogger.i(TAG, "Sent off-route notification reason=" + rerouteNotice.reason + " message=" + message);
     }
 
     @NonNull

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
@@ -84,6 +85,16 @@ public class NavigationTextFormatterTest {
                 "Bearing mismatch detected. Diff 90°, expected 180°, actual 90°. Recalculating route.",
                 message
         );
+    }
+
+    @Test
+    public void formatWrongDirectionNotification_formatsTargetAndActualBearings() {
+        String message = NavigationTextFormatterRules.formatWrongDirectionNotification(
+                METRIC,
+                new NavigationWrongDirectionNotice(90.0, 270.0, 180.0)
+        );
+
+        assertEquals("Wrong direction detected. Target 90°, actual 270°, diff 180°.", message);
     }
 
     @Test

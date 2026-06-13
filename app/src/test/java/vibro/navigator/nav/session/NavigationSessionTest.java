@@ -6,6 +6,7 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession.ResourceAdapter;
@@ -181,7 +182,7 @@ public class NavigationSessionTest {
     }
 
     @Test
-    public void straightLineModeKeepsGuidanceDirectWithoutRouteRequestOrTurnLines() {
+    public void straightLineModeKeepsGuidanceDirectWithoutRouteRequestOrManeuverEvents() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -211,10 +212,15 @@ public class NavigationSessionTest {
         );
 
         assertFalse(result.shouldRecalculateRoute());
+        assertEquals(3_000L, result.getSuggestedUpdateIntervalMs());
         assertTrue(result.turnEvents.isEmpty());
         assertNull(session.prepareRouteRequest(true, nowMs));
-        assertEquals("", state.routeStatus.guidance.nextLine);
-        assertEquals("", state.routeStatus.guidance.afterNextLine);
+        assertTrue(state.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_intermediate_arrive)
+        ));
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains(
+                context.getString(R.string.direction_intermediate_arrive)
+        ));
         assertTrue(state.routeStatus.progress.stopProgressBlock.contains(context.getString(R.string.format_stop_label, 1)));
         assertTrue(state.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertNotNull(state.routeStatus.compassState);
@@ -226,6 +232,70 @@ public class NavigationSessionTest {
         assertEquals(2, state.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
         assertFalse(state.routeStatus.blockedRoadActionAvailable);
         assertFalse(session.canAddBlockedWaypoint());
+    }
+
+    @Test
+    public void straightLineModeUsesTargetDistanceForUpdateIntervalsAfterWarmup() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList()
+        ));
+        long nowMs = 1_000L;
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        NavigationLocationUpdateResult result = null;
+        for (int i = 0; i < 6; i++) {
+            result = ResourceAdapter.onRawLocationChanged(
+                    session,
+                    context,
+                    locationWithSpeed(0.0, i * 0.00001, nowMs + i * 1_000L, 2f),
+                    nowMs + i * 1_000L
+            );
+        }
+
+        assertNotNull(result);
+        assertEquals(60_000L, result.getSuggestedUpdateIntervalMs());
+    }
+
+    @Test
+    public void straightLineModeEmitsWrongDirectionNoticeAfterConfirmedOppositeFixes() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList()
+        ));
+        long nowMs = 1_000L;
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        NavigationLocationUpdateResult firstResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithBearing(0.0, 0.002, nowMs, 2f, 270f),
+                nowMs
+        );
+        NavigationLocationUpdateResult secondResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithBearing(0.0, 0.0019, nowMs + 3_000L, 2f, 270f),
+                nowMs + 3_000L
+        );
+
+        assertNull(firstResult.getWrongDirectionNotice());
+        assertFalse(secondResult.shouldRecalculateRoute());
+        NavigationWrongDirectionNotice notice = secondResult.getWrongDirectionNotice();
+        assertNotNull(notice);
+        assertEquals(90.0, notice.expectedBearingDegrees, 1.0);
+        assertEquals(270.0, notice.actualBearingDegrees, 0.0);
+        assertEquals(180.0, notice.bearingDiffDegrees, 1.0);
     }
 
     @Test
@@ -348,7 +418,9 @@ public class NavigationSessionTest {
         ));
         assertNotNull(afterFirstStop.routeStatus.compassState);
         assertEquals(2, afterFirstStop.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
-        assertEquals("", reachedState.routeStatus.guidance.nextLine);
+        assertTrue(reachedState.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_arrive)
+        ));
         assertEquals(context.getString(R.string.nav_destination_reached),
                 reachedState.routeStatus.progress.destinationLine);
         assertNotNull(reachedState.routeStatus.compassState);
@@ -396,6 +468,20 @@ public class NavigationSessionTest {
     ) {
         NavigationLocation location = location(lat, lon, timeMs);
         location.setSpeed(speedMetersPerSecond);
+        return location;
+    }
+
+    @NonNull
+    private static NavigationLocation locationWithBearing(
+            double lat,
+            double lon,
+            long timeMs,
+            float speedMetersPerSecond,
+            float bearingDegrees
+    ) {
+        NavigationLocation location = locationWithSpeed(lat, lon, timeMs, speedMetersPerSecond);
+        location.setBearing(bearingDegrees);
+        location.setBearingAccuracyDegrees(5f);
         return location;
     }
 }

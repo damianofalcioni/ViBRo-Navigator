@@ -9,6 +9,7 @@ import vibro.navigator.R;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 
@@ -67,6 +68,19 @@ final class NavigationTextFormatterRules {
             default:
                 return resources.getString(R.string.notification_off_route_title);
         }
+    }
+
+    @NonNull
+    static String formatWrongDirectionNotification(
+            @NonNull NavigationTextResources resources,
+            @NonNull NavigationWrongDirectionNotice wrongDirectionNotice
+    ) {
+        return resources.getString(
+                R.string.format_wrong_direction_notification,
+                formatBearingDegrees(resources, wrongDirectionNotice.expectedBearingDegrees),
+                formatBearingDegrees(resources, wrongDirectionNotice.actualBearingDegrees),
+                formatBearingDegrees(resources, wrongDirectionNotice.bearingDiffDegrees)
+        );
     }
 
     @NonNull

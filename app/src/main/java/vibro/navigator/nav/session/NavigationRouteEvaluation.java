@@ -8,6 +8,7 @@ import java.util.List;
 
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
 public final class NavigationRouteEvaluation {
@@ -20,6 +21,8 @@ public final class NavigationRouteEvaluation {
     final NavigationRouteRecalculationReason recalculationReason;
     @Nullable
     final NavigationRerouteNotice rerouteNotice;
+    @Nullable
+    final NavigationWrongDirectionNotice wrongDirectionNotice;
     @NonNull
     final List<NavigationTurnEvent> turnEvents;
 
@@ -29,6 +32,7 @@ public final class NavigationRouteEvaluation {
             long suggestedUpdateIntervalMs,
             @Nullable NavigationRouteRecalculationReason recalculationReason,
             @Nullable NavigationRerouteNotice rerouteNotice,
+            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice,
             @NonNull List<NavigationTurnEvent> turnEvents
     ) {
         this.shouldRecalculateRoute = shouldRecalculateRoute;
@@ -36,6 +40,7 @@ public final class NavigationRouteEvaluation {
         this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
         this.recalculationReason = recalculationReason;
         this.rerouteNotice = rerouteNotice;
+        this.wrongDirectionNotice = wrongDirectionNotice;
         this.turnEvents = turnEvents;
     }
 
@@ -58,6 +63,7 @@ public final class NavigationRouteEvaluation {
                 NO_SUGGESTED_INTERVAL,
                 reason,
                 rerouteNotice,
+                null,
                 Collections.emptyList()
         );
     }
@@ -68,12 +74,23 @@ public final class NavigationRouteEvaluation {
             long suggestedUpdateIntervalMs,
             boolean stableOnRouteSample
     ) {
+        return keepRoute(turnEvents, suggestedUpdateIntervalMs, stableOnRouteSample, null);
+    }
+
+    @NonNull
+    public static NavigationRouteEvaluation keepRoute(
+            @NonNull List<NavigationTurnEvent> turnEvents,
+            long suggestedUpdateIntervalMs,
+            boolean stableOnRouteSample,
+            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice
+    ) {
         return new NavigationRouteEvaluation(
                 false,
                 stableOnRouteSample,
                 suggestedUpdateIntervalMs,
                 null,
                 null,
+                wrongDirectionNotice,
                 turnEvents
         );
     }
@@ -88,5 +105,10 @@ public final class NavigationRouteEvaluation {
 
     public long getSuggestedUpdateIntervalMs() {
         return suggestedUpdateIntervalMs;
+    }
+
+    @Nullable
+    public NavigationWrongDirectionNotice getWrongDirectionNotice() {
+        return wrongDirectionNotice;
     }
 }

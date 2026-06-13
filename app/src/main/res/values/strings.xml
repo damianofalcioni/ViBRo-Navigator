@@ -93,7 +93,7 @@
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
     <string name="label_vehicle_profile_straight_line">Straight Line - No BRouter</string>
     <string name="profile_info_straight_line_title">Straight Line - No BRouter</string>
-    <string name="profile_info_straight_line_description">Straight-line guidance that does not use BRouter or a routing profile. It points the compass toward the next destination, shows remaining arrival distance and ETA from straight-line legs, and suppresses route lines and turn directions. It is useful when BRouter is not installed or when only bearing-to-target guidance is needed.</string>
+    <string name="profile_info_straight_line_description">Straight-line guidance that does not use BRouter or a routing profile. It points the compass toward the next destination, shows remaining arrival distance and ETA from straight-line legs, and shows destination-only guidance messages without route maneuver directions. It is useful when BRouter is not installed or when only bearing-to-target guidance is needed.</string>
     <string name="profile_info_trekking_title">Trekking bike</string>
     <string name="profile_info_trekking_description">Balanced bike routing for everyday cycling, touring, and practical navigation. Its main strength is versatility: it avoids heavy car traffic, supports cycle routes, considers elevation, and usually produces routes that feel reasonable for normal cyclists. Its weakness is that it is not highly specialized: road cyclists may find it slower than `fastbike`, while off-road riders may find it too conservative compared with `mtb` or `gravel`. Its distinctive aspect is that it is the safest general-purpose bicycle profile and probably the best default for most users.</string>
     <string name="profile_info_trekking_ignore_cr_title">Trekking, ignore cycle routes</string>
@@ -185,6 +185,7 @@
     <string name="notification_nav_paused">Navigation paused</string>
     <string name="notification_nav_paused_text">ViBRo Navigator navigation is paused</string>
     <string name="notification_off_route_title">Off route</string>
+    <string name="notification_wrong_direction_title">Wrong direction</string>
     <string name="notification_symbol_test_left_title">test all lefts notifications</string>
     <string name="notification_symbol_test_other_title">test all others notifications</string>
     <string name="notification_symbol_test_right_title">test all rights notifications</string>
@@ -248,6 +249,7 @@
     </plurals>
     <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
     <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>
+    <string name="format_wrong_direction_notification">Wrong direction detected. Target %1$s, actual %2$s, diff %3$s.</string>
     <string name="format_startup_orientation_notification">Turn yourself %1$s %2$s to face the route.</string>
     <string name="format_notification_symbol_test_bearing_line">%1$s bearing sample</string>
     <string name="format_progress_line">%1$s: %2$s • %3$s • %4$s %5$s</string>

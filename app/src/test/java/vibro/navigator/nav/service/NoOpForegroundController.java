@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
@@ -42,5 +43,9 @@ final class NoOpForegroundController implements NavigationForegroundController {
 
     @Override
     public void sendOffRouteNotification(@NonNull NavigationRerouteNotice rerouteNotice) {
+    }
+
+    @Override
+    public void sendWrongDirectionNotification(@NonNull NavigationWrongDirectionNotice wrongDirectionNotice) {
     }
 }
