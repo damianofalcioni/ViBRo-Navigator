@@ -15,8 +15,10 @@ import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 final class NavigationInputResolver {
@@ -38,7 +40,7 @@ final class NavigationInputResolver {
             return null;
         }
 
-        List<Poi> stops = resolveStops(context, stopControllers);
+        List<Poi> stops = resolveStops(context, stopControllers, profileSelection);
         if (stops == null) {
             return null;
         }
@@ -89,9 +91,13 @@ final class NavigationInputResolver {
     }
 
     @Nullable
-    private static List<Poi> resolveStops(@NonNull Context context, @NonNull List<PoiInputController> stopControllers) {
+    private static List<Poi> resolveStops(
+            @NonNull Context context,
+            @NonNull List<PoiInputController> stopControllers,
+            @NonNull ProfileSelection profileSelection
+    ) {
         List<Poi> resolvedStops = new ArrayList<>();
-        for (PoiInputController controller : stopControllers) {
+        for (PoiInputController controller : stopControllersInNavigationOrder(stopControllers, profileSelection)) {
             String raw = controller.getRawText().trim();
             if (raw.isEmpty()) {
                 continue;
@@ -108,6 +114,18 @@ final class NavigationInputResolver {
             resolvedStops.add(stop);
         }
         return resolvedStops;
+    }
+
+    @NonNull
+    private static List<PoiInputController> stopControllersInNavigationOrder(
+            @NonNull List<PoiInputController> stopControllers,
+            @NonNull ProfileSelection profileSelection
+    ) {
+        List<PoiInputController> ordered = new ArrayList<>(stopControllers);
+        if (profileSelection.routingMode == NavigationRoutingMode.STRAIGHT_LINE) {
+            Collections.reverse(ordered);
+        }
+        return ordered;
     }
 
     @NonNull

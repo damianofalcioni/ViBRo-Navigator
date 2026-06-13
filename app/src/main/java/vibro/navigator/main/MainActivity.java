@@ -73,12 +73,14 @@ public class MainActivity extends Activity {
                 poi -> {
                 }
         );
+        controls.routeRailView.setRouteAnchors(controls.destinationRow, controls.startNavButton);
         stopController = new MainActivityStopController(
                 this,
                 controls.stopsContainer,
                 historyStore,
                 searchClient,
-                this::openStopMapPicker
+                this::openStopMapPicker,
+                controls.routeRailView
         );
 
         controls.destinationMapButton.setOnClickListener(

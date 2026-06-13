@@ -121,6 +121,8 @@ Below the routing-profile selector, the app must show an input field for searchi
 
 Below the destination input, the app must show a centered plus button.
 
+The destination, intermediate stops, and start-navigation area must include a non-interactive route-direction rail on the left side. The rail must use the app's red route color, start at the destination field, continue toward the start button/current-position marker, show bullets for the final destination and each intermediate stop, and show a directional arrow pointing from the current position toward the destination. Intermediate stop inputs must stay in entry order so pressing the plus button adds the next editable field near the plus button. In straight-line guidance, those stop inputs are consumed from the current-position side upward so the bottom visible stop is reached first, then the stops above it, then the final destination.
+
 #### 3.1 Add stop field
 
 - Pressing the plus button must add a new input field for an intermediate POI

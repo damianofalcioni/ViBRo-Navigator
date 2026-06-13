@@ -46,6 +46,8 @@ final class MainActivityStopController {
     @NonNull
     private final MapPickListener mapPickListener;
     @NonNull
+    private final MainRouteRailStopAnchors routeRailStopAnchors;
+    @NonNull
     private final List<PoiInputController> stopControllers = new ArrayList<>();
 
     MainActivityStopController(
@@ -55,11 +57,23 @@ final class MainActivityStopController {
             @NonNull PoiSearchClient searchClient,
             @NonNull MapPickListener mapPickListener
     ) {
+        this(activity, stopsContainer, historyStore, searchClient, mapPickListener, null);
+    }
+
+    MainActivityStopController(
+            @NonNull Activity activity,
+            @NonNull LinearLayout stopsContainer,
+            @NonNull PoiHistoryStore historyStore,
+            @NonNull PoiSearchClient searchClient,
+            @NonNull MapPickListener mapPickListener,
+            @Nullable MainRouteRailView routeRailView
+    ) {
         this.activity = activity;
         this.stopsContainer = stopsContainer;
         this.historyStore = historyStore;
         this.searchClient = searchClient;
         this.mapPickListener = mapPickListener;
+        this.routeRailStopAnchors = new MainRouteRailStopAnchors(stopsContainer, routeRailView);
     }
 
     void restoreRows(@Nullable Bundle savedInstanceState) {
@@ -185,6 +199,7 @@ final class MainActivityStopController {
         remove.setOnClickListener(v -> removeStopRow(row, controller));
 
         stopsContainer.addView(row);
+        routeRailStopAnchors.refresh();
     }
 
     void dispose() {
@@ -193,6 +208,7 @@ final class MainActivityStopController {
             controller.dispose();
         }
         stopControllers.clear();
+        routeRailStopAnchors.clear();
     }
 
     int size() {
@@ -220,6 +236,7 @@ final class MainActivityStopController {
         controller.dispose();
         stopControllers.remove(controller);
         stopsContainer.removeView(row);
+        routeRailStopAnchors.refresh();
         AppLogger.i(TAG, "Removed stop row remainingStops=" + stopControllers.size());
     }
 

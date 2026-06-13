@@ -8,10 +8,14 @@ import static org.robolectric.Shadows.shadowOf;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Looper;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 
+import vibro.navigator.R;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
@@ -128,6 +132,34 @@ public class MainActivityStopControllerTest {
         assertEquals(0, restoredSearchCalls.get());
         assertEquals("Cafe Central", restoredController.getRawText());
         assertNull(restoredController.getSelectedPoi());
+    }
+
+    @Test
+    public void addStopRow_displaysNewestStopNearAddButton() {
+        LinearLayout stopsContainer = new LinearLayout(activity);
+        PoiSearchClient searchClient = (query, limit) -> Collections.emptyList();
+        MainActivityStopController controller = new MainActivityStopController(
+                activity,
+                stopsContainer,
+                new PoiHistoryStore(activity),
+                searchClient,
+                stopInputController -> {
+                }
+        );
+
+        controller.addStopRow("First stop");
+        controller.addStopRow("Second stop");
+
+        assertEquals("First stop", controller.getStopControllers().get(0).getRawText());
+        assertEquals("Second stop", controller.getStopControllers().get(1).getRawText());
+        assertEquals("First stop", stopTextAt(stopsContainer.getChildAt(0)));
+        assertEquals("Second stop", stopTextAt(stopsContainer.getChildAt(1)));
+    }
+
+    @NonNull
+    private static String stopTextAt(@NonNull View row) {
+        EditText stopEdit = row.findViewById(R.id.stopEdit);
+        return stopEdit.getText().toString();
     }
 }
 
