@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.DashPathEffect;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
@@ -23,6 +24,7 @@ final class NavigationCompassRouteStartApproachRenderer {
 
     private final Paint targetLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint targetPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Path targetLinePath = new Path();
     private final NavigationRoutePathRenderer.PlotPoint projectedPoint = new NavigationRoutePathRenderer.PlotPoint();
     private boolean initialized;
 
@@ -54,8 +56,33 @@ final class NavigationCompassRouteStartApproachRenderer {
         if (position == null) {
             return;
         }
-        canvas.drawLine(cx, cy, position.x, position.y, targetLinePaint);
+        drawTargetLine(canvas, cx, cy, position.x, position.y);
         canvas.drawCircle(position.x, position.y, dp(context, TARGET_MARKER_RADIUS_DP), targetPaint);
+    }
+
+    void drawTargetLineForTest(
+            @NonNull Canvas canvas,
+            @NonNull Context context,
+            float startX,
+            float startY,
+            float stopX,
+            float stopY
+    ) {
+        ensurePaintsInitialized(context);
+        drawTargetLine(canvas, startX, startY, stopX, stopY);
+    }
+
+    private void drawTargetLine(
+            @NonNull Canvas canvas,
+            float startX,
+            float startY,
+            float stopX,
+            float stopY
+    ) {
+        targetLinePath.reset();
+        targetLinePath.moveTo(startX, startY);
+        targetLinePath.lineTo(stopX, stopY);
+        canvas.drawPath(targetLinePath, targetLinePaint);
     }
 
     @Nullable
