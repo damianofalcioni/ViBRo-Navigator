@@ -3,6 +3,7 @@ package vibro.navigator.nav.session;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -13,6 +14,8 @@ import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import vibro.navigator.nav.format.NavStateTextFactory;
+import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
+import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -48,7 +51,7 @@ final class StraightLineNavigationState {
         if (request.destination == null || destinationReached) {
             return keepDirectGuidance();
         }
-        advanceReachedStops(request, location, accuracyMeters);
+        List<NavigationTurnEvent> turnEvents = advanceReachedStops(request, location, accuracyMeters);
         if (nextStopIndex >= request.stops.size()
                 && StraightLineNavigationProgress.isWithinReachedRadius(
                         location,
@@ -56,8 +59,9 @@ final class StraightLineNavigationState {
                         request.destination
                 )) {
             destinationReached = true;
+            turnEvents.addAll(NavigationArrivalTurnEvents.destinationArrival(nextStopIndex));
         }
-        return keepDirectGuidance();
+        return keepDirectGuidance(turnEvents);
     }
 
     @Nullable
@@ -100,25 +104,34 @@ final class StraightLineNavigationState {
         );
     }
 
-    private void advanceReachedStops(
+    @NonNull
+    private List<NavigationTurnEvent> advanceReachedStops(
             @NonNull NavigationRequest request,
             @NonNull NavigationLocation location,
             float accuracyMeters
     ) {
+        List<NavigationTurnEvent> turnEvents = new ArrayList<>();
         while (nextStopIndex < request.stops.size()
                 && StraightLineNavigationProgress.isWithinReachedRadius(
                         location,
                         accuracyMeters,
                         request.stops.get(nextStopIndex)
                 )) {
+            turnEvents.addAll(NavigationArrivalTurnEvents.intermediateArrival(nextStopIndex));
             nextStopIndex++;
         }
+        return turnEvents;
     }
 
     @NonNull
     private static NavigationRouteEvaluation keepDirectGuidance() {
+        return keepDirectGuidance(Collections.emptyList());
+    }
+
+    @NonNull
+    private static NavigationRouteEvaluation keepDirectGuidance(@NonNull List<NavigationTurnEvent> turnEvents) {
         return NavigationRouteEvaluation.keepRoute(
-                Collections.emptyList(),
+                turnEvents,
                 NO_SUGGESTED_INTERVAL,
                 true
         );

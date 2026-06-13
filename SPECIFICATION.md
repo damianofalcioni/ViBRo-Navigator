@@ -229,6 +229,7 @@ The app must monitor user position:
 - In straight-line mode, the navigation session must not request BRouter routes or display turn directions
 - In straight-line mode, the navigation UI must not draw the red route polyline; it must show only the destination/intermediate target points and the compass target/arc for the next destination point
 - In straight-line mode with intermediate stops, the next compass target must be the next unreached intermediate stop; after each stop is reached, the compass target must advance to the following stop or final destination
+- In straight-line mode, entering the destination-reached radius around an intermediate stop or the final destination must emit the same intermediate/final arrival guidance notifications as routed navigation
 - In straight-line mode, the progress line for the next stop must use the direct distance from the current location to that stop
 - In straight-line mode, the progress line for the final destination must sum the direct remaining legs through all unreached intermediate stops, such as current location to next stop plus stop to stop plus last stop to final destination, instead of using a single shortcut from the current location to the final destination
 - In straight-line mode, displayed arrival times must use the same straight-line remaining distances and the current speed; if current speed is unavailable or stationary, the ETA must be unavailable

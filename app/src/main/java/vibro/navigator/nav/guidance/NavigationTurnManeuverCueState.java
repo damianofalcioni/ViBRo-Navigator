@@ -6,12 +6,9 @@ import androidx.annotation.Nullable;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
-import java.util.ArrayList;
 import java.util.List;
 
 final class NavigationTurnManeuverCueState {
-    static final int DESTINATION_ARRIVAL_COMMAND = 100;
-    static final int INTERMEDIATE_ARRIVAL_COMMAND = 101;
     private static final double TURN_CUE_NOTIFICATION_THRESHOLD_SECONDS = 5.0;
 
     @Nullable
@@ -51,20 +48,12 @@ final class NavigationTurnManeuverCueState {
 
     @NonNull
     static List<NavigationTurnEvent> destinationArrival(int trackIndex) {
-        return arrival(trackIndex, DESTINATION_ARRIVAL_COMMAND);
+        return NavigationArrivalTurnEvents.destinationArrival(trackIndex);
     }
 
     @NonNull
     static List<NavigationTurnEvent> intermediateArrival(int trackIndex) {
-        return arrival(trackIndex, INTERMEDIATE_ARRIVAL_COMMAND);
-    }
-
-    @NonNull
-    private static List<NavigationTurnEvent> arrival(int trackIndex, int command) {
-        VoiceHint arrivalHint = new VoiceHint(trackIndex, command, 0, 0.0, 0);
-        List<NavigationTurnEvent> events = new ArrayList<>(1);
-        events.add(NavigationTurnEvent.imminent(arrivalHint, 0.0, 0.0));
-        return events;
+        return NavigationArrivalTurnEvents.intermediateArrival(trackIndex);
     }
 
     private void update(@NonNull TurnEventPlanner.TurnSignal signal) {
@@ -86,7 +75,7 @@ final class NavigationTurnManeuverCueState {
     }
 
     private static boolean isSyntheticArrivalHint(@NonNull VoiceHint hint) {
-        return hint.command == DESTINATION_ARRIVAL_COMMAND
-                || hint.command == INTERMEDIATE_ARRIVAL_COMMAND;
+        return hint.command == NavigationArrivalTurnEvents.DESTINATION_ARRIVAL_COMMAND
+                || hint.command == NavigationArrivalTurnEvents.INTERMEDIATE_ARRIVAL_COMMAND;
     }
 }

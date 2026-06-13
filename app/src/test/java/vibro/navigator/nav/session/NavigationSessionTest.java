@@ -5,6 +5,7 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
+import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession.ResourceAdapter;
@@ -265,7 +266,7 @@ public class NavigationSessionTest {
     }
 
     @Test
-    public void straightLineModeAdvancesStopsAndCompletesDestinationWithoutTurnEvents() {
+    public void straightLineModeAdvancesStopsAndCompletesDestinationWithArrivalEvents() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -285,6 +286,12 @@ public class NavigationSessionTest {
                 locationWithSpeed(0.0, 0.001, nowMs + 20_000L, 2f),
                 nowMs + 20_000L
         );
+        NavigationLocationUpdateResult repeatedStopResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.001, nowMs + 21_000L, 2f),
+                nowMs + 21_000L
+        );
         NavState afterFirstStop = ResourceAdapter.buildState(
                 session,
                 context,
@@ -294,7 +301,7 @@ public class NavigationSessionTest {
                 0.0,
                 null
         );
-        ResourceAdapter.onRawLocationChanged(
+        NavigationLocationUpdateResult secondStopResult = ResourceAdapter.onRawLocationChanged(
                 session,
                 context,
                 locationWithSpeed(0.0, 0.002, nowMs + 40_000L, 2f),
@@ -306,6 +313,12 @@ public class NavigationSessionTest {
                 locationWithSpeed(0.0, 0.003, nowMs + 60_000L, 2f),
                 nowMs + 60_000L
         );
+        NavigationLocationUpdateResult repeatedDestinationResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.003, nowMs + 61_000L, 2f),
+                nowMs + 61_000L
+        );
         NavState reachedState = ResourceAdapter.buildState(
                 session,
                 context,
@@ -316,8 +329,17 @@ public class NavigationSessionTest {
                 null
         );
 
-        assertTrue(stopResult.turnEvents.isEmpty());
-        assertTrue(destinationResult.turnEvents.isEmpty());
+        assertEquals(1, stopResult.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, stopResult.turnEvents.get(0).type);
+        assertEquals(101, stopResult.turnEvents.get(0).hint.command);
+        assertTrue(repeatedStopResult.turnEvents.isEmpty());
+        assertEquals(1, secondStopResult.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, secondStopResult.turnEvents.get(0).type);
+        assertEquals(101, secondStopResult.turnEvents.get(0).hint.command);
+        assertEquals(1, destinationResult.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, destinationResult.turnEvents.get(0).type);
+        assertEquals(100, destinationResult.turnEvents.get(0).hint.command);
+        assertTrue(repeatedDestinationResult.turnEvents.isEmpty());
         assertTrue(afterFirstStop.routeStatus.progress.stopProgressBlock.contains(
                 context.getString(R.string.format_stop_label, 2)
         ));
