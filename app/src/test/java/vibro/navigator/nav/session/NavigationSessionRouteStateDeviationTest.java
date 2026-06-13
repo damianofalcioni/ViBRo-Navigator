@@ -105,7 +105,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
         assertFalse(reacquiringEvaluation.shouldRecalculateRoute());
         assertFalse(reacquiringEvaluation.isStableOnRouteSample());
-        assertEquals(1_000L, reacquiringEvaluation.getSuggestedUpdateIntervalMs());
+        assertEquals(3_000L, reacquiringEvaluation.getSuggestedUpdateIntervalMs());
         assertTrue(followUpEvaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, followUpEvaluation.rerouteNotice.reason);
     }

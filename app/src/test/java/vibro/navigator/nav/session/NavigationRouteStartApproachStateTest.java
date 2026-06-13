@@ -64,7 +64,7 @@ public class NavigationRouteStartApproachStateTest {
         assertTrue(appliedEvents.isEmpty());
         assertFalse(approachEvaluation.shouldRecalculateRoute());
         assertFalse(approachEvaluation.isStableOnRouteSample());
-        assertEquals(1_000L, approachEvaluation.getSuggestedUpdateIntervalMs());
+        assertEquals(3_000L, approachEvaluation.getSuggestedUpdateIntervalMs());
         assertTrue(approachState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_beeline)));
         assertNotNull(approachState.routeStatus.compassState);
         assertNotNull(approachState.routeStatus.compassState.routeStartApproachProjection);

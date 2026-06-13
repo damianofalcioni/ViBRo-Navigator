@@ -21,6 +21,10 @@ public final class NoOpFusedLocationClient implements FusedLocationUpdateClient,
     }
 
     @Override
+    public void cancelCurrentLocationSeed() {
+    }
+
+    @Override
     public void removeUpdates() {
     }
 

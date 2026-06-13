@@ -18,7 +18,7 @@ public class GplayFusedLocationClientTest {
 
         assertEquals(Priority.PRIORITY_HIGH_ACCURACY, request.getPriority());
         assertEquals(60_000L, request.getIntervalMillis());
-        assertEquals(30_000L, request.getMinUpdateIntervalMillis());
+        assertEquals(60_000L, request.getMinUpdateIntervalMillis());
         assertEquals(60_000L, request.getMaxUpdateDelayMillis());
         assertEquals(0f, request.getMinUpdateDistanceMeters(), 0f);
         assertFalse(request.isBatched());

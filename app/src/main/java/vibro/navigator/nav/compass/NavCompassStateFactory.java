@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationMeasurementFormatter;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
@@ -245,8 +246,9 @@ public final class NavCompassStateFactory {
         float destinationEastMeters = (float) GeoMath.eastMeters(currentLat, currentLon, routeEndPoint.lat, routeEndPoint.lon);
         float destinationNorthMeters = (float) GeoMath.northMeters(currentLat, routeEndPoint.lat);
         double destinationDistanceMeters = Math.hypot(destinationEastMeters, destinationNorthMeters);
+        float sanitizedCompassAccuracyMeters = sanitizeAccuracyMeters(compassAccuracyMeters);
         float routeThresholdMeters =
-                (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(compassAccuracyMeters);
+                (float) RouteDeviationPolicy.resolveOffTrackThresholdMeters(sanitizedCompassAccuracyMeters);
         CompassDestinationProjection routeStartApproachProjection = CompassRouteStartApproachProjectionFactory.resolve(
                 currentLat,
                 currentLon,
@@ -294,7 +296,7 @@ public final class NavCompassStateFactory {
                         radiusState.visibleRadiusMeters,
                         radiusState.fullRouteVisibleRadiusMeters,
                         radiusState.sixtySecondVisibleRadiusMeters,
-                        sanitizeAccuracyMeters(compassAccuracyMeters),
+                        sanitizedCompassAccuracyMeters,
                         routeThresholdMeters
                 ),
                 routeGeometry,
@@ -350,7 +352,7 @@ public final class NavCompassStateFactory {
     }
 
     private static float sanitizeAccuracyMeters(float accuracyMeters) {
-        return Float.isFinite(accuracyMeters) && accuracyMeters > 0f ? accuracyMeters : 0f;
+        return NavigationMeasurementFormatter.isDisplayableAccuracyMeters(accuracyMeters) ? accuracyMeters : 0f;
     }
 
     private static float sanitizeReferenceSpeedMps(float speedMps) {

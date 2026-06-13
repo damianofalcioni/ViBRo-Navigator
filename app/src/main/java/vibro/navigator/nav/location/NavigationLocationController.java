@@ -10,6 +10,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 public final class NavigationLocationController {
 
     private static final String TAG = "NavLocation";
+    public static final long DEFAULT_UPDATE_INTERVAL_MS = 3_000L;
 
     private final NavigationLocationProvider providerAccess;
     private final NavigationGnssTracker gnssStatusTracker;
@@ -64,8 +65,9 @@ public final class NavigationLocationController {
     }
 
     public void requestLocationUpdates(long minTimeMs) {
+        long requestedMinTimeMs = Math.max(DEFAULT_UPDATE_INTERVAL_MS, minTimeMs);
         NavigationLocationUpdateRequester.Result result = updateRequester.request(
-                minTimeMs,
+                requestedMinTimeMs,
                 fusedLocationUsePolicy.shouldUseFusedLocation(),
                 lastRequestedLocationMinTimeMs,
                 lastRequestedProvider
@@ -77,8 +79,8 @@ public final class NavigationLocationController {
         if (!result.hasActiveRequest()) {
             return;
         }
-        refreshNextEvaluationDeadline(minTimeMs);
-        lastRequestedLocationMinTimeMs = minTimeMs;
+        refreshNextEvaluationDeadline(requestedMinTimeMs);
+        lastRequestedLocationMinTimeMs = requestedMinTimeMs;
         lastRequestedProvider = result.activeProviderSummary();
     }
 
@@ -94,9 +96,20 @@ public final class NavigationLocationController {
         providerAccess.requestCurrentLocationSeeds(fineGranted, coarseGranted);
     }
 
-    public void onProviderEnabled(@NonNull String provider, long fallbackMinTimeMs) {
+    public void cancelCurrentLocationSeeds() {
+        providerAccess.cancelPendingCurrentLocationRequests();
+        fusedLocationUpdateClient.cancelCurrentLocationSeed();
+    }
+
+    public void onProviderEnabled(
+            @NonNull String provider,
+            long fallbackMinTimeMs,
+            boolean requestCurrentLocationSeed
+    ) {
         requestLocationUpdates(fallbackMinTimeMs);
-        providerAccess.requestSeedForEnabledProvider(provider);
+        if (requestCurrentLocationSeed) {
+            providerAccess.requestSeedForEnabledProvider(provider);
+        }
     }
 
     public long getLastRequestedLocationMinTimeMsOrDefault(long fallbackMinTimeMs) {

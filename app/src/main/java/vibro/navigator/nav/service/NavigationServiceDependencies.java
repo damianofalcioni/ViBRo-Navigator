@@ -34,7 +34,8 @@ final class NavigationServiceDependencies {
             @NonNull Runnable stateEmitter,
             @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
     ) {
-        NavigationForegroundRuntime foreground = NavigationForegroundRuntime.create(service, uiVisibility);
+        NavigationForegroundRuntime foreground =
+                NavigationForegroundRuntime.create(service, uiVisibility, locationHandler);
         NavigationTrackingRuntime tracking = NavigationTrackingRuntime.create(
                 service,
                 uiScheduler,

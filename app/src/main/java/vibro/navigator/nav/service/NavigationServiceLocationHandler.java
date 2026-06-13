@@ -22,6 +22,10 @@ import vibro.navigator.logging.AppLogger;
 
 public final class NavigationServiceLocationHandler implements NavigationLocationListener {
 
+    public interface CurrentLocationSeedPolicy {
+        boolean isCurrentLocationSeedAllowed();
+    }
+
     public interface RouteRecalculator {
         void request(
                 boolean force,
@@ -31,12 +35,14 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     }
 
     private static final String TAG = "NavigationService";
-    private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS = 1_000L;
+    private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS =
+            NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS;
 
     private final Context context;
     private final NavigationSession navigationSession;
     private final NavigationServiceTurnEvents turnEvents;
     private final RouteRecalculator routeRecalculator;
+    private final CurrentLocationSeedPolicy currentLocationSeedPolicy;
     private final Runnable stateEmitter;
     private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
     @Nullable
@@ -51,12 +57,14 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull RouteRecalculator routeRecalculator,
+            @NonNull CurrentLocationSeedPolicy currentLocationSeedPolicy,
             @NonNull Runnable stateEmitter
     ) {
         this.context = context;
         this.navigationSession = navigationSession;
         this.turnEvents = turnEvents;
         this.routeRecalculator = routeRecalculator;
+        this.currentLocationSeedPolicy = currentLocationSeedPolicy;
         this.stateEmitter = stateEmitter;
     }
 
@@ -68,6 +76,13 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         this.locationController = locationController;
         this.orientationController = orientationController;
         this.foregroundController = foregroundController;
+    }
+
+    public void onScreenInteractiveChanged(boolean interactive) {
+        NavigationLocationController controller = locationController;
+        if (!interactive && controller != null) {
+            controller.cancelCurrentLocationSeeds();
+        }
     }
 
     public void seedStartupLocation(long nowMs) {
@@ -152,7 +167,11 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         AppLogger.i(TAG, "Location provider enabled provider=" + provider);
-        controller.onProviderEnabled(provider, DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
+        controller.onProviderEnabled(
+                provider,
+                DEFAULT_LOCATION_UPDATE_INTERVAL_MS,
+                currentLocationSeedPolicy.isCurrentLocationSeedAllowed()
+        );
         stateEmitter.run();
     }
 

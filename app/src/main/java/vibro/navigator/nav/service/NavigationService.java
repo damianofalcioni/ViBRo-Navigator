@@ -5,6 +5,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
+import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -22,7 +23,8 @@ public class NavigationService extends Service {
 
     private static final String TAG = "NavigationService";
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
-    private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS = 1_000L;
+    private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS =
+            NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -42,6 +44,8 @@ public class NavigationService extends Service {
     private final NavigationStateBroadcaster stateBroadcaster = new NavigationStateBroadcaster();
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private final NavigationServiceTurnEvents turnEvents = new NavigationServiceTurnEvents(navigationSession);
+    private final NavigationServiceUiVisibility uiVisibility =
+            new NavigationServiceUiVisibility(navigationSession, stateBroadcaster, this::emitState);
     private final NavigationServiceRouteRecalculator routeRecalculator =
             new NavigationServiceRouteRecalculator(
                     navigationSession,
@@ -53,12 +57,11 @@ public class NavigationService extends Service {
             navigationSession,
             turnEvents,
             routeRecalculator::requestForLocation,
+            uiVisibility::isScreenInteractive,
             this::emitState
     );
     @Nullable
     private NavigationServiceRuntime runtime;
-    private final NavigationServiceUiVisibility uiVisibility =
-            new NavigationServiceUiVisibility(navigationSession, stateBroadcaster, this::emitState);
     private final NavigationForegroundCoordinator foregroundCoordinator =
             new NavigationForegroundCoordinator(
                     uiScheduler,
@@ -145,7 +148,7 @@ public class NavigationService extends Service {
         }
 
         runtime().requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
-        runtime().requestCurrentLocationSeeds();
+        requestCurrentLocationSeedsIfScreenInteractive();
         runtime().startOrientation();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
@@ -170,11 +173,17 @@ public class NavigationService extends Service {
         runtime().requestLocationUpdates(
                 runtime().lastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
-        runtime().requestCurrentLocationSeeds();
+        requestCurrentLocationSeedsIfScreenInteractive();
         runtime().startOrientation();
         promoteToForeground();
         emitState();
         AppLogger.i(TAG, "Navigation resumed");
+    }
+
+    private void requestCurrentLocationSeedsIfScreenInteractive() {
+        if (uiVisibility.isScreenInteractive()) {
+            runtime().requestCurrentLocationSeeds();
+        }
     }
 
     private void stopNavigation() {

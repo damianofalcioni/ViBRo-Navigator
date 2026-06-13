@@ -156,6 +156,43 @@ public class NavigationLocationControllerTest {
     }
 
     @Test
+    public void requestLocationUpdates_clampsShortIntervalsToDefaultFixInterval() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.requestLocationUpdates(1_000L);
+
+        assertEquals(NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS, provider.requestedMinTimeMs);
+        assertEquals(8_000L, controller.getNextEvaluationDeadlineElapsedMs());
+    }
+
+    @Test
+    public void cancelCurrentLocationSeeds_cancelsLegacyAndFusedSeeds() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        FakeFusedLocationUpdateClient fused = new FakeFusedLocationUpdateClient();
+        NavigationLocationController controller = controller(provider, fused, clock);
+
+        controller.cancelCurrentLocationSeeds();
+
+        assertEquals(1, provider.cancelCurrentLocationRequestsCount);
+        assertEquals(1, fused.cancelCurrentLocationSeedCount);
+    }
+
+    @Test
+    public void onProviderEnabled_skipsOneShotSeedWhenNotAllowed() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.onProviderEnabled(GPS_PROVIDER, 1_000L, false);
+
+        assertEquals(Collections.singletonList(GPS_PROVIDER), provider.requestedProviders);
+        assertEquals(0, provider.requestSeedForEnabledProviderCount);
+    }
+
+    @Test
     public void getBestStartupLastKnownLocation_usesProvidedNowForFreshness() {
         MutableClock clock = new MutableClock(5_000L);
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
@@ -181,10 +218,19 @@ public class NavigationLocationControllerTest {
             @NonNull FakeLocationProvider provider,
             @NonNull MutableClock clock
     ) {
+        return controller(provider, new FakeFusedLocationUpdateClient(), clock);
+    }
+
+    @NonNull
+    private static NavigationLocationController controller(
+            @NonNull FakeLocationProvider provider,
+            @NonNull FakeFusedLocationUpdateClient fused,
+            @NonNull MutableClock clock
+    ) {
         return new NavigationLocationController(
                 provider,
                 new FakeGnssTracker(),
-                new FakeFusedLocationUpdateClient(),
+                fused,
                 () -> false,
                 clock
         );
@@ -212,6 +258,8 @@ public class NavigationLocationControllerTest {
         private boolean coarseGranted = true;
         private int requestProviderUpdatesCount;
         private int cancelCurrentLocationRequestsCount;
+        private int requestSeedForEnabledProviderCount;
+        private long requestedMinTimeMs;
         @Nullable
         private NavigationLocation gpsLastKnown;
         @Nullable
@@ -255,6 +303,7 @@ public class NavigationLocationControllerTest {
         public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
             requestProviderUpdatesCount++;
             requestedProviders = new ArrayList<>(providers);
+            requestedMinTimeMs = minTimeMs;
             return new ArrayList<>(providers);
         }
 
@@ -276,6 +325,7 @@ public class NavigationLocationControllerTest {
 
         @Override
         public void requestSeedForEnabledProvider(@NonNull String provider) {
+            requestSeedForEnabledProviderCount++;
         }
 
         @Override
@@ -312,6 +362,8 @@ public class NavigationLocationControllerTest {
     }
 
     private static final class FakeFusedLocationUpdateClient implements FusedLocationUpdateClient {
+        private int cancelCurrentLocationSeedCount;
+
         @Override
         public boolean isAvailable() {
             return false;
@@ -324,6 +376,11 @@ public class NavigationLocationControllerTest {
 
         @Override
         public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
+        }
+
+        @Override
+        public void cancelCurrentLocationSeed() {
+            cancelCurrentLocationSeedCount++;
         }
 
         @Override

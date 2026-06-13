@@ -21,9 +21,9 @@ import vibro.navigator.logging.AppLogger;
 final class NavigationRouteEvaluator {
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
-    private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS = 1_000L;
-    private static final long REACQUISITION_FOLLOW_UP_INTERVAL_MS = 1_000L;
-    private static final long ROUTE_START_APPROACH_INTERVAL_MS = 1_000L;
+    private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS = 3_000L;
+    private static final long REACQUISITION_FOLLOW_UP_INTERVAL_MS = 3_000L;
+    private static final long ROUTE_START_APPROACH_INTERVAL_MS = 3_000L;
 
     @NonNull
     private final NavigationRouteGeometryState geometryState;

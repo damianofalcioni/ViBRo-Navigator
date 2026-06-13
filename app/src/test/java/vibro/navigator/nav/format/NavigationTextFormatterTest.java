@@ -1,11 +1,13 @@
 package vibro.navigator.nav.format;
 
 
-import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
-import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import static org.junit.Assert.assertEquals;
 
+import vibro.navigator.nav.compass.NavCompassStateFactory;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 
 import org.junit.Test;
@@ -32,6 +34,29 @@ public class NavigationTextFormatterTest {
         assertEquals("10 mph", NavigationMeasurementFormatter.formatSpeed(IMPERIAL, 4.5f));
         assertEquals("805 ft", NavigationMeasurementFormatter.formatElevation(IMPERIAL, 245.4));
         assertEquals("±16 ft", NavigationMeasurementFormatter.formatAccuracy(IMPERIAL, 5f));
+    }
+
+    @Test
+    public void formatGpsMeasurements_hidesInvalidAccuracySentinel() {
+        assertEquals("--", NavigationMeasurementFormatter.formatAccuracy(METRIC, Float.MAX_VALUE));
+    }
+
+    @Test
+    public void buildGpsStatusLine_hidesMissingStartupAccuracy() {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(48.2082);
+        location.setLongitude(16.3738);
+
+        String line = NavCompassStateFactory.buildGpsStatusLine(
+                0f,
+                location,
+                Float.MAX_VALUE,
+                null,
+                1,
+                METRIC
+        );
+
+        assertEquals("0 km/h ↑-- -- • -- -- • (--) #1", line);
     }
 
     @Test

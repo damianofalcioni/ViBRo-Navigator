@@ -9,11 +9,9 @@ import vibro.navigator.nav.route.VoiceHint;
 
 public final class NavigationUpdateScheduler {
 
-    private static final long MIN_UPDATE_INTERVAL_MS = 1000L;
+    private static final long MIN_UPDATE_INTERVAL_MS = 3000L;
     private static final long MAX_UPDATE_INTERVAL_MS = 60000L;
     private static final long[] UPDATE_INTERVAL_BUCKETS_MS = {
-            1000L,
-            2000L,
             3000L,
             5000L,
             8000L,

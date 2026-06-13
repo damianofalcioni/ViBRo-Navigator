@@ -28,7 +28,7 @@ import vibro.navigator.nav.location.NavigationLocation;
 
 public final class GplayFusedLocationClient implements FusedLocationUpdateClient, FusedLocationDiagnosticClient {
     private static final String TAG = "FusedLocation";
-    private static final long MIN_FASTEST_INTERVAL_MS = 500L;
+    private static final long MIN_INTERVAL_MS = 500L;
     private static final long CURRENT_LOCATION_SEED_DURATION_MS = 15_000L;
     private static final long CURRENT_LOCATION_SEED_MAX_UPDATE_AGE_MS = 15_000L;
 
@@ -132,8 +132,13 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     }
 
     @Override
-    public void removeUpdates() {
+    public void cancelCurrentLocationSeed() {
         currentLocationSeedRequest.cancel();
+    }
+
+    @Override
+    public void removeUpdates() {
+        cancelCurrentLocationSeed();
         if (callback == null) {
             return;
         }
@@ -148,7 +153,7 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     @NonNull
     @Override
     public String describeAvailability() {
-        return "fusedLocation=true, " + describeRuntimeAvailability(context);
+        return "fusedLocation=true, googlePlayServicesStatus=" + runtimeStatus(context);
     }
 
     @Override
@@ -176,13 +181,12 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
 
     @NonNull
     static LocationRequest buildRequest(long minTimeMs, boolean fineGranted) {
-        long intervalMs = Math.max(MIN_FASTEST_INTERVAL_MS, minTimeMs);
-        long fastestMs = Math.max(MIN_FASTEST_INTERVAL_MS, intervalMs / 2L);
+        long intervalMs = Math.max(MIN_INTERVAL_MS, minTimeMs);
         int priority = fineGranted
                 ? Priority.PRIORITY_HIGH_ACCURACY
                 : Priority.PRIORITY_BALANCED_POWER_ACCURACY;
         return new LocationRequest.Builder(priority, intervalMs)
-                .setMinUpdateIntervalMillis(fastestMs)
+                .setMinUpdateIntervalMillis(intervalMs)
                 .setMaxUpdateDelayMillis(intervalMs)
                 .setMinUpdateDistanceMeters(0f)
                 // Route guidance filters decide whether a delivered fix is usable; waiting here can starve
@@ -222,11 +226,6 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
             return;
         }
         AppLogger.w(TAG, "Fused current location seed failed", error);
-    }
-
-    @NonNull
-    private static String describeRuntimeAvailability(@NonNull Context context) {
-        return "googlePlayServicesStatus=" + runtimeStatus(context);
     }
 
     private static int runtimeStatus(@NonNull Context context) {

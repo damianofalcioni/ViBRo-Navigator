@@ -4,6 +4,7 @@ import vibro.navigator.R;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.graphics.Rect;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -49,6 +50,7 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
 
     private void bindDropdown(@NonNull DropDownHolder holder, @Nullable ProfileSpinnerOption option) {
         holder.label.setText(option == null ? "" : option.toString());
+        holder.separator.setVisibility(option != null && option.isStraightLine() ? View.VISIBLE : View.GONE);
         BundledProfileInfo info = profileInfo(option);
         if (info == null) {
             hideProfileActions(holder);
@@ -100,11 +102,11 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
             @NonNull DropDownHolder holder,
             @NonNull MotionEvent event
     ) {
+        Rect bounds = new Rect();
+        bounds.set(0, 0, holder.infoButton.getWidth(), holder.infoButton.getHeight());
+        holder.row.offsetDescendantRectToMyCoords(holder.infoButton, bounds);
         return holder.infoButton.getVisibility() == View.VISIBLE
-                && event.getX() >= holder.infoButton.getLeft()
-                && event.getX() <= holder.infoButton.getRight()
-                && event.getY() >= holder.infoButton.getTop()
-                && event.getY() <= holder.infoButton.getBottom();
+                && bounds.contains((int) event.getX(), (int) event.getY());
     }
 
     private void showInfoDialog(@NonNull BundledProfileInfo info) {
@@ -116,17 +118,19 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
     }
 
     private static final class DropDownHolder {
-        final View row;
+        final ViewGroup row;
         final TextView label;
         final ImageView attentionIcon;
         final ImageButton infoButton;
+        final View separator;
         boolean infoTouchActive;
 
         DropDownHolder(@NonNull View view) {
-            row = view;
+            row = (ViewGroup) view;
             label = view.findViewById(android.R.id.text1);
             attentionIcon = view.findViewById(R.id.profileAttentionIcon);
             infoButton = view.findViewById(R.id.profileInfoButton);
+            separator = view.findViewById(R.id.profileStraightLineSeparator);
         }
     }
 

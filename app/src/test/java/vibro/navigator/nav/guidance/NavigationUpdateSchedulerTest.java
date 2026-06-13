@@ -34,7 +34,7 @@ public class NavigationUpdateSchedulerTest {
                 5f
         );
 
-        assertEquals(1000L, intervalMs);
+        assertEquals(3000L, intervalMs);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class NavigationUpdateSchedulerTest {
                 10f
         );
 
-        assertEquals(1000L, intervalMs);
+        assertEquals(3000L, intervalMs);
     }
 
     @Test
@@ -168,7 +168,7 @@ public class NavigationUpdateSchedulerTest {
 
     @Test
     public void bucketInterval_clampsBeforeBucketing() {
-        assertEquals(1000L, NavigationUpdateScheduler.bucketInterval(500L));
+        assertEquals(3000L, NavigationUpdateScheduler.bucketInterval(500L));
         assertEquals(60000L, NavigationUpdateScheduler.bucketInterval(90_000L));
     }
 

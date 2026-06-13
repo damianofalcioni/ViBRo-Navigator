@@ -12,6 +12,7 @@ public final class NavigationMeasurementFormatter {
     private static final double METERS_PER_FOOT = 0.3048;
     private static final double METERS_PER_SECOND_TO_MILES_PER_HOUR = 2.2369362921;
     private static final double MIN_MILES_DISPLAY_DISTANCE = 0.1;
+    private static final float MAX_DISPLAY_ACCURACY_METERS = 40_100_000f;
 
     private NavigationMeasurementFormatter() {
     }
@@ -75,7 +76,7 @@ public final class NavigationMeasurementFormatter {
 
     @NonNull
     public static String formatAccuracy(@NonNull NavigationTextResources resources, float accuracyMeters) {
-        if (!Float.isFinite(accuracyMeters) || accuracyMeters <= 0f) {
+        if (!isDisplayableAccuracyMeters(accuracyMeters)) {
             return resources.getString(R.string.nav_status_unavailable);
         }
         if (resources.isImperialUnitsEnabled()) {
@@ -85,6 +86,12 @@ public final class NavigationMeasurementFormatter {
             );
         }
         return resources.getString(R.string.format_nav_accuracy_value, accuracyMeters);
+    }
+
+    public static boolean isDisplayableAccuracyMeters(float accuracyMeters) {
+        return Float.isFinite(accuracyMeters)
+                && accuracyMeters > 0f
+                && accuracyMeters <= MAX_DISPLAY_ACCURACY_METERS;
     }
 
     @NonNull

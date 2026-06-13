@@ -86,4 +86,22 @@ public class ProfileSpinnerAdapterTest {
         assertEquals(View.VISIBLE, infoButton.getVisibility());
         assertEquals(View.GONE, attentionIcon.getVisibility());
     }
+
+    @Test
+    public void getDropDownView_showsSeparatorAfterStraightLineProfileOnly() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfileSpinnerAdapter adapter = new ProfileSpinnerAdapter(activity);
+        adapter.add(ProfileSpinnerOption.straightLine(
+                activity.getString(R.string.label_vehicle_profile_straight_line)
+        ));
+        adapter.add(new ProfileSpinnerOption(PROFILE_TREKKING, PROFILE_TREKKING, false));
+
+        View straightLineRow = adapter.getDropDownView(0, null, null);
+        View profileRow = adapter.getDropDownView(1, straightLineRow, null);
+
+        assertEquals(View.GONE, profileRow.findViewById(R.id.profileStraightLineSeparator).getVisibility());
+        assertEquals(View.VISIBLE, adapter.getDropDownView(0, profileRow, null)
+                .findViewById(R.id.profileStraightLineSeparator)
+                .getVisibility());
+    }
 }

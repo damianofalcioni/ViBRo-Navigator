@@ -37,7 +37,7 @@ The main UI must include a routing-profile selector at the top.
 
 #### 1.1 Routing profiles
 
-- The selector items must include the BRouter profile names plus the special straight-line profile `None-Straight Line (No BRouter)`
+- The selector items must include the BRouter profile names plus the special straight-line profile `Straight Line - No BRouter`
 - Profiles may come from bundled BRouter internal profiles or from user-accessible `.brf` files in autodiscovered external `profiles2` folders
 - The selector is profile-based, not a separate vehicle-type toggle
 - Profile handling must remain compatible with both bundled BRouter profiles and autodiscovered external `profiles2` folders
@@ -51,6 +51,7 @@ The main UI must include a routing-profile selector at the top.
 - The straight-line profile info UI must explain that it points the compass toward the next destination, shows arrival distance and ETA from straight-line legs, and suppresses route lines and turn directions
 - The selector must continue to behave like a normal dropdown even when a custom profile is currently selected
 - Bundled BRouter profile rows in the opened selector must include an info control that opens a UI showing the profile title, strengths, weaknesses, and distinctive usage guidance; custom or unknown external profiles must not get bundled-profile descriptions
+- The opened selector must show a separator line after the straight-line profile row
 - Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
 - The selector must include a single custom-profile entry; when the user chooses that custom entry from the opened dropdown, the app must open the custom `.brf` picker even if that same custom entry is already the current selection
 - The first time the user chooses the custom-profile entry and no persisted directory access exists yet, the app must first request Storage Access Framework directory access to the BRouter `profiles2` folder, then continue to the `.brf` file picker
@@ -203,20 +204,21 @@ The implementation must use BRouter integration compatible with these references
 
 The app must monitor user position:
 
-- Every 1 second while startup route lock is still stabilizing, for at most the first 60 seconds after navigation starts
+- Every 3 seconds while startup route lock is still stabilizing, for at most the first 60 seconds after navigation starts
 - Startup fast polling may end earlier once the app has gathered 5 consecutive accurate on-route updates after a route is active
 - An accurate warmup update means an on-route evaluation with location accuracy of 25 meters or better
-- After startup fast polling has ended, a long gap between accepted location evaluations must temporarily resume 1-second checks so the app can restabilize position accuracy before continuing with long dynamic intervals
+- After startup fast polling has ended, a long gap between accepted location evaluations must temporarily resume 3-second checks so the app can restabilize position accuracy before continuing with long dynamic intervals
 - The first accepted fix after such a long gap must be treated as location reacquisition: reset stale Kalman velocity and motion/progress evidence, use trusted on-route matches to catch up route/turn state, but suppress immediate off-route or wrong-direction reroutes until follow-up samples confirm the deviation
 - Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance when the next maneuver still lies on the current matched route segment and live speed is available, or route timing metadata when the next maneuver lies beyond the current matched route segment
-- When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 1 second
+- When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 3 seconds
 - Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
 - When the next maneuver or arrival is estimated within about 3 minutes, the dynamic interval should be capped at 20 seconds so speed changes cannot leave the app waiting through a long quiet window near guidance-critical points
 - The post-warmup dynamic interval must be snapped to a small fixed bucket set instead of continuously varying on every update
-- The bucket set must currently be `1s`, `2s`, `3s`, `5s`, `8s`, `12s`, `20s`, `30s`, and `60s`
-- The dynamic interval must never be lower than 1 second
+- The bucket set must currently be `3s`, `5s`, `8s`, `12s`, `20s`, `30s`, and `60s`
+- The dynamic interval must never be lower than 3 seconds
 - The dynamic interval must never exceed 60 seconds
 - Re-requesting location updates must reuse the active listener registration when the requested interval bucket and enabled provider set are unchanged, so the app does not continuously tear down and rebuild subscriptions
+- One-shot current-location fix acquisition must be skipped while the screen is off; screen-off navigation should rely on the foreground service's ongoing location updates instead
 - The Google Play flavor may use Google fused location when Google Play Services is available and the user has enabled the fused-location setting
 - When fused location is unavailable or disabled, the app must fall back to the legacy platform GPS/network provider path
 - The F-Droid flavor must use the legacy platform GPS/network provider path and must not include Google fused-location code or Play Services dependencies

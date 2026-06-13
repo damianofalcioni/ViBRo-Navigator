@@ -31,7 +31,7 @@
   Uses BRouter for fully offline route calculation.
 
 * **Straight-line guidance without BRouter**
-  The `None-Straight Line (No BRouter)` profile keeps compass and arrival guidance available even when BRouter is not installed.
+  The `Straight Line - No BRouter` profile keeps compass and arrival guidance available even when BRouter is not installed.
 
 * **Minimal & dependency-light**
   Built in pure Java with minimal external dependencies. APK size is ~250Kb for the F-Droid version and ~650Kb for the GPlay version !!
@@ -68,7 +68,7 @@
 
 ## 🧭 How It Works
 
-1. Select a **routing profile** from BRouter, or `None-Straight Line (No BRouter)` for direct compass guidance.
+1. Select a **routing profile** from BRouter, or `Straight Line - No BRouter` for direct compass guidance.
 2. Enter a **destination** (or pick from history/map).
 3. Optionally add **intermediate stops**.
 4. Start navigation:

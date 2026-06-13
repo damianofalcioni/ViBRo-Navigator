@@ -27,11 +27,15 @@ final class NavigationForegroundRuntime {
     @NonNull
     static NavigationForegroundRuntime create(
             @NonNull NavigationService service,
-            @NonNull NavigationServiceUiVisibility uiVisibility
+            @NonNull NavigationServiceUiVisibility uiVisibility,
+            @NonNull NavigationServiceLocationHandler locationHandler
     ) {
         NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
         NavigationScreenInteractivityMonitor screenInteractivityMonitor =
-                new AndroidScreenInteractivityMonitor(service, uiVisibility::onScreenInteractiveChanged);
+                new AndroidScreenInteractivityMonitor(service, interactive -> {
+                    uiVisibility.onScreenInteractiveChanged(interactive);
+                    locationHandler.onScreenInteractiveChanged(interactive);
+                });
         controller.ensureChannels();
         return new NavigationForegroundRuntime(
                 controller,

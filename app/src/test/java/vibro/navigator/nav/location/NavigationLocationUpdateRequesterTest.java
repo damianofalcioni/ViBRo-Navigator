@@ -202,6 +202,10 @@ public class NavigationLocationUpdateRequesterTest {
         }
 
         @Override
+        public void cancelCurrentLocationSeed() {
+        }
+
+        @Override
         public void removeUpdates() {
         }
 

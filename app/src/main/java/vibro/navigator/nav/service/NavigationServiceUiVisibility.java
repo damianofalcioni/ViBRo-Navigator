@@ -27,6 +27,10 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
         screenInteractive = interactive;
     }
 
+    public boolean isScreenInteractive() {
+        return screenInteractive;
+    }
+
     public void setNavigationUiVisible(boolean visible) {
         if (navigationUiVisible == visible) {
             return;

@@ -176,7 +176,7 @@ public class NavigationSessionTest {
         );
 
         assertFalse(result.isDropped());
-        assertEquals(1_000L, result.getSuggestedUpdateIntervalMs());
+        assertEquals(3_000L, result.getSuggestedUpdateIntervalMs());
     }
 
     @Test
