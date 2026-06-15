@@ -271,7 +271,7 @@
 
     <string name="about_title">ViBRo Navigator</string>
     <string name="format_version">Version %1$s</string>
-    <string name="about_short_description">A lightweight, battery-efficient, and offline-first GPS navigation app that vibrates directions, built around BRouter with optional straight-line compass guidance.</string>
+    <string name="about_short_description">A lightweight, battery-efficient, and offline-first GPS navigation app that vibrates directions, built around BRouter.</string>
     <string name="about_source_code_link"><u>Source Code on GitHub</u></string>
     <string name="about_report_issue_link"><u>Report an issue</u></string>
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>

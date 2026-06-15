@@ -28,7 +28,7 @@
   Clear directional feedback without relying on visual maps. Navigation directions are provided as notifications with different vibration patterns. Best in combination with a smartwatch or smartband that show them.
 
 * **Offline-first routing**
-  Uses BRouter for fully offline route calculation.
+  Uses BRouter for fully offline route calculation and turn instruction generation.
 
 * **Straight-line guidance without BRouter**
   The `Straight Line - No BRouter` profile keeps compass and arrival guidance available even when BRouter is not installed.
@@ -78,8 +78,8 @@
    * Guidance is delivered through:
 
      * Vibrations
-     * Minimal text directions
-     * Notifications (smartband-friendly)
+     * Minimal turn instructions text
+     * Turn instructions notifications (smartband-friendly)
 
 ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low, it delays instructions instead of risking incorrect directions.
 
