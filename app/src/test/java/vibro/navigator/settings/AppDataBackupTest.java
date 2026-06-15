@@ -13,6 +13,7 @@ import android.net.Uri;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.brouter.BRouterProfileParameter;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.Poi;
@@ -27,6 +28,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +51,8 @@ public class AppDataBackupTest {
     private static final String BACKUP_VALUE = "value";
     private static final String CATEGORY_FUEL = "Fuel";
     private static final String CATEGORY_RESTAURANT = "Restaurant";
+    private static final String PROFILE_TREKKING = "trekking";
+    private static final String PARAM_AVOID_PATH = "avoid_path";
 
     private Context context;
 
@@ -76,8 +81,22 @@ public class AppDataBackupTest {
                 new AppPoiCategorySetting(CATEGORY_RESTAURANT, false)
         ));
         AppLogger.setLoggingEnabled(context, true);
-        profiles.saveSelectedProfileKey(context, "trekking");
+        profiles.saveSelectedProfileKey(context, PROFILE_TREKKING);
         profiles.saveCustomProfile(context, Uri.parse("content://profiles/custom.brf"), "custom");
+        Map<String, String> profileParams = new HashMap<>();
+        profileParams.put(PARAM_AVOID_PATH, "1");
+        profiles.saveProfileParameterValues(
+                context,
+                PROFILE_TREKKING,
+                Collections.singletonList(new BRouterProfileParameter(
+                        PARAM_AVOID_PATH,
+                        "Avoid paths",
+                        "0",
+                        BRouterProfileParameter.ValueType.BOOLEAN,
+                        null
+                )),
+                profileParams
+        );
 
         String json = AppDataBackup.exportJson(context);
         clearPrefs();
@@ -101,8 +120,10 @@ public class AppDataBackupTest {
         assertEquals(Arrays.asList(CATEGORY_FUEL, CATEGORY_RESTAURANT), AppSettings.getMapPoiCategoryNames(context));
         assertEquals(Arrays.asList(CATEGORY_FUEL), AppSettings.getEnabledMapPoiCategoryNames(context));
         assertTrue(AppLogger.isLoggingEnabled(context));
-        assertEquals("trekking", profiles.getSelectedProfileKey(context));
+        assertEquals(PROFILE_TREKKING, profiles.getSelectedProfileKey(context));
         assertEquals("custom", profiles.getCustomProfileName(context));
+        assertEquals(PARAM_AVOID_PATH + "=1",
+                profiles.getProfileParameterOverridesExtraParams(context, PROFILE_TREKKING));
     }
 
     @Test

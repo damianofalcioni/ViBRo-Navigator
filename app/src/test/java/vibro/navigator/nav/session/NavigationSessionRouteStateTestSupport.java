@@ -43,6 +43,7 @@ abstract class NavigationSessionRouteStateTestSupport {
                 request.stops,
                 request.destination,
                 request.profile,
+                request.profileParameters,
                 Collections.emptyList()
         );
     }

@@ -49,6 +49,12 @@ public final class BRouterProfileDependencies {
 
         @NonNull
         List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri);
+
+        @Nullable
+        Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName);
+
+        @Nullable
+        String readText(@NonNull Context context, @NonNull Uri documentUri);
     }
 
     public interface StorageVolumeAccess {

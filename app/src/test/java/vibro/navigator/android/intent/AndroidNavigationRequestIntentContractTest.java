@@ -16,6 +16,7 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 
 public class AndroidNavigationRequestIntentContractTest {
     private static final String PROFILE = "trekking";
+    private static final String PROFILE_PARAMETERS = "avoid_path=1&uphillcost=90";
     private static final String DESTINATION_NAME = "Vienna Center";
 
     @Test
@@ -120,5 +121,24 @@ public class AndroidNavigationRequestIntentContractTest {
 
         assertEquals(1, extras.stops.size());
         assertEquals("48.21,16.36", extras.stops.get(0));
+    }
+
+    @Test
+    public void toExtras_thenFromExtras_preservesProfileParameters() {
+        NavigationRequest original = new NavigationRequest(
+                NavigationRoutingMode.BROUTER,
+                PROFILE,
+                PROFILE_PARAMETERS,
+                DESTINATION_NAME,
+                new LatLon(48.2082d, 16.3738d),
+                new ArrayList<>()
+        );
+
+        AndroidNavigationRequestIntentContract.Extras extras =
+                AndroidNavigationRequestIntentContract.toExtras(original);
+        NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
+
+        assertEquals(PROFILE_PARAMETERS, extras.profileParameters);
+        assertEquals(PROFILE_PARAMETERS, restored.profileParameters);
     }
 }

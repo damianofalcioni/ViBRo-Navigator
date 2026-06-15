@@ -41,6 +41,8 @@
     <string name="action_import_database">Import database</string>
     <string name="action_export_route">Export GPX</string>
     <string name="action_profile_info">Profile info</string>
+    <string name="action_profile_settings">Profile settings</string>
+    <string name="action_reset_defaults">Reset defaults</string>
 
     <string name="label_vehicle_profile">BRouter Profile</string>
     <string name="label_destination">Destination</string>
@@ -71,6 +73,11 @@
     <string name="msg_intent_unrecognized">Shared location not recognized</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
+    <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>
+    <string name="msg_profile_parameters_saved">Profile settings saved.</string>
+    <string name="msg_profile_parameters_reset">Profile settings reset to profile defaults.</string>
+    <string name="msg_profile_parameter_invalid_number">Enter a valid number.</string>
+    <string name="msg_profile_parameter_invalid_text">Values cannot contain &amp; or =.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>
@@ -92,6 +99,11 @@
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
     <string name="label_vehicle_profile_straight_line">Straight Line - No BRouter</string>
+    <string name="title_profile_parameters">Profile settings: %1$s</string>
+    <string name="title_profile_parameter_description">%1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Reset profile settings?</string>
+    <string name="msg_profile_parameters_reset_confirm">Restore this profile\'s settings to the values defined in the profile?</string>
+    <string name="format_profile_parameter_info_content_description">Show parameter information for %1$s</string>
     <string name="profile_info_straight_line_title">Straight Line - No BRouter</string>
     <string name="profile_info_straight_line_description">Straight-line guidance that does not use BRouter or a routing profile. It points the compass toward the next destination, shows remaining arrival distance and ETA from straight-line legs, and shows destination-only guidance messages without route maneuver directions. It is useful when BRouter is not installed or when only bearing-to-target guidance is needed.</string>
     <string name="profile_info_trekking_title">Trekking bike</string>

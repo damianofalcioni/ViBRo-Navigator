@@ -2,6 +2,7 @@ package vibro.navigator.nav.routing;
 
 
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -320,6 +321,32 @@ public class NavigationRouteRequestManagerTest {
     }
 
     @Test
+    public void prepare_copiesProfileParametersIntoSnapshot() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+        NavigationRequest request = new NavigationRequest(
+                NavigationRoutingMode.BROUTER,
+                "trekking",
+                "avoid_path=1",
+                "Destination",
+                new LatLon(48.2082, 16.3738),
+                Collections.emptyList()
+        );
+
+        NavigationRouteRequestSnapshot snapshot = manager.prepare(
+                true,
+                2_000L,
+                request,
+                location(0.0, 0.0, 2_000L),
+                Collections.emptyList(),
+                null
+        );
+
+        assertNotNull(snapshot);
+        assertEquals("avoid_path=1", snapshot.profileParameters);
+    }
+
+    @Test
     public void prepare_preservesPendingRecalculationNoticeAndReason() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset();
@@ -364,6 +391,7 @@ public class NavigationRouteRequestManagerTest {
                 intermediates,
                 new LatLon(48.3, 16.3),
                 "trekking",
+                null,
                 blocked
         );
         intermediates.clear();

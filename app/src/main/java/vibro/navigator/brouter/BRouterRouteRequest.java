@@ -18,6 +18,8 @@ public final class BRouterRouteRequest {
     public final LatLon destination;
     @NonNull
     public final String profile;
+    @Nullable
+    public final String profileParameters;
     @NonNull
     public final List<NogoPoint> blockedWaypoints;
 
@@ -28,10 +30,22 @@ public final class BRouterRouteRequest {
             @NonNull String profile,
             @Nullable List<NogoPoint> blockedWaypoints
     ) {
+        this(start, intermediates, destination, profile, null, blockedWaypoints);
+    }
+
+    public BRouterRouteRequest(
+            @NonNull LatLon start,
+            @Nullable List<LatLon> intermediates,
+            @NonNull LatLon destination,
+            @NonNull String profile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints
+    ) {
         this.start = start;
         this.intermediates = immutableCopy(intermediates);
         this.destination = destination;
         this.profile = profile;
+        this.profileParameters = clean(profileParameters);
         this.blockedWaypoints = immutableCopy(blockedWaypoints);
     }
 
@@ -41,5 +55,14 @@ public final class BRouterRouteRequest {
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(new ArrayList<>(items));
+    }
+
+    @Nullable
+    private static String clean(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

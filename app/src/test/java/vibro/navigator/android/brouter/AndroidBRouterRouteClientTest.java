@@ -51,7 +51,24 @@ public class AndroidBRouterRouteClientTest {
         assertEquals("json", params.getString("trackFormat"));
         assertEquals("9", params.getString("timode"));
         assertEquals("true", params.getString("acceptCompressedResult"));
+        assertFalse(params.containsKey("extraParams"));
         assertFalse(params.containsKey("v"));
+    }
+
+    @Test
+    public void buildRouteParams_encodesProfileParameterOverridesAsExtraParams() {
+        BRouterRouteRequest request = new BRouterRouteRequest(
+                new LatLon(48.0, 16.0),
+                Collections.emptyList(),
+                new LatLon(48.2, 16.2),
+                "trekking",
+                "avoid_path=1&uphillcost=90",
+                Collections.emptyList()
+        );
+
+        Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
+
+        assertEquals("avoid_path=1&uphillcost=90", params.getString("extraParams"));
     }
 
     @Test

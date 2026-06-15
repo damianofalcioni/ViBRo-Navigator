@@ -21,6 +21,10 @@ final class ProfileSpinnerController {
         void onCustomProfilePickerRequested();
     }
 
+    interface SelectionChangeListener {
+        void onProfileSelectionChanged();
+    }
+
     private static final String TAG = "ProfileSpinner";
 
     private final Context context;
@@ -32,6 +36,9 @@ final class ProfileSpinnerController {
 
     private boolean suppressSelectionCallback;
     private boolean selectionUserInitiated;
+    @NonNull
+    private SelectionChangeListener selectionChangeListener = () -> {
+    };
 
     ProfileSpinnerController(
             @NonNull Context context,
@@ -68,6 +75,11 @@ final class ProfileSpinnerController {
         });
     }
 
+    void setSelectionChangeListener(@NonNull SelectionChangeListener listener) {
+        this.selectionChangeListener = listener;
+        notifyProfileSelectionChanged();
+    }
+
     void refresh() {
         String currentSelectionKey = getSelectedProfileKey();
         if (currentSelectionKey == null) {
@@ -82,6 +94,7 @@ final class ProfileSpinnerController {
         adapter.notifyDataSetChanged();
         restoreSelection(currentSelectionKey, bRouterInstalled);
         suppressSelectionCallback = false;
+        notifyProfileSelectionChanged();
         AppLogger.i(TAG, "Loaded routing profiles count=" + options.profilesForLog().size()
                 + " profiles=" + options.profilesForLog()
                 + " customProfile=" + ProfileSpinnerOption.safe(customProfile));
@@ -119,6 +132,14 @@ final class ProfileSpinnerController {
     }
 
     @Nullable
+    String selectedBRouterProfileName() {
+        return ProfileSpinnerSelectedProfile.brouterProfileName(
+                options.optionAt(spinner.getSelectedItemPosition()),
+                profilesRepository.getCustomProfileName(context)
+        );
+    }
+
+    @Nullable
     private ProfileSpinnerOption getSelectedOptionOrToast() {
         ProfileSpinnerOption option = options.optionAt(spinner.getSelectedItemPosition());
         if (option == null) {
@@ -131,7 +152,7 @@ final class ProfileSpinnerController {
     private ProfileSelection resolveCustomProfile() {
         String customProfile = profilesRepository.getCustomProfileName(context);
         if (customProfile != null && !customProfile.trim().isEmpty()) {
-            return ProfileSelection.brouter(customProfile);
+            return resolveBRouterProfile(customProfile);
         }
         Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
         listener.onCustomProfilePickerRequested();
@@ -140,11 +161,7 @@ final class ProfileSpinnerController {
 
     @Nullable
     private ProfileSelection resolveBRouterProfile(@Nullable String profileName) {
-        if (profileName == null || profileName.trim().isEmpty()) {
-            Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        return ProfileSelection.brouter(profileName);
+        return ProfileSelectionResolver.brouter(context, profilesRepository, profileName);
     }
 
     private void handleSelection(int position) {
@@ -158,13 +175,16 @@ final class ProfileSpinnerController {
         saveSelectedOption(option);
         if (!option.isCustom()) {
             selectionUserInitiated = false;
+            notifyProfileSelectionChanged();
             return;
         }
         if (!selectionUserInitiated) {
             AppLogger.d(TAG, "Ignoring custom profile auto-selection");
+            notifyProfileSelectionChanged();
             return;
         }
         selectionUserInitiated = false;
+        notifyProfileSelectionChanged();
         AppLogger.i(TAG, "Custom profile entry selected");
         listener.onCustomProfilePickerRequested();
     }
@@ -205,10 +225,15 @@ final class ProfileSpinnerController {
         if (option != null) {
             saveSelectedOption(option);
         }
+        notifyProfileSelectionChanged();
     }
 
     private void saveSelectedOption(@NonNull ProfileSpinnerOption option) {
         profilesRepository.saveSelectedProfileKey(context, option.selectionKey());
+    }
+
+    private void notifyProfileSelectionChanged() {
+        selectionChangeListener.onProfileSelectionChanged();
     }
 }
 

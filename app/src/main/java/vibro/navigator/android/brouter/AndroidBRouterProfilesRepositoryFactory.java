@@ -87,6 +87,18 @@ public final class AndroidBRouterProfilesRepositoryFactory {
         public List<String> childDisplayNames(@NonNull Context context, @NonNull Uri treeUri) {
             return AndroidDocumentAccess.childDisplayNames(context, treeUri);
         }
+
+        @Nullable
+        @Override
+        public Uri childDocumentUri(@NonNull Context context, @NonNull Uri treeUri, @NonNull String displayName) {
+            return AndroidDocumentAccess.childDocumentUri(context, treeUri, displayName);
+        }
+
+        @Nullable
+        @Override
+        public String readText(@NonNull Context context, @NonNull Uri documentUri) {
+            return AndroidDocumentAccess.readText(context, documentUri);
+        }
     }
 
     private static final class AndroidPackagesAccess implements BRouterProfileDependencies.PackageAccess {

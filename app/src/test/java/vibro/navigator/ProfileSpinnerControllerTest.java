@@ -11,10 +11,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
+import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.brouter.BRouterProfileParameter;
 import vibro.navigator.brouter.BRouterProfileTestDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.nav.model.NavigationRoutingMode;
@@ -29,7 +31,9 @@ import org.robolectric.shadows.ShadowPackageManager;
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.robolectric.Shadows.shadowOf;
@@ -171,6 +175,68 @@ public class ProfileSpinnerControllerTest {
         ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
         assertEquals(NavigationRoutingMode.STRAIGHT_LINE, selectedProfile.routingMode);
         assertNull(selectedProfile.profileName);
+    }
+
+    @Test
+    public void resolveSelectedProfile_includesSavedProfileParameterOverrides() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfilesRepository repository = new ProfilesRepository(true, Collections.singletonList(PROFILE_TREKKING));
+        Map<String, String> values = new HashMap<>();
+        values.put("avoid_path", "1");
+        repository.saveProfileParameterValues(
+                activity,
+                PROFILE_TREKKING,
+                Collections.singletonList(new BRouterProfileParameter(
+                        "avoid_path",
+                        "Avoid paths",
+                        "0",
+                        BRouterProfileParameter.ValueType.BOOLEAN,
+                        null
+                )),
+                values
+        );
+        ProfileSpinnerController controller = new ProfileSpinnerController(
+                activity,
+                new RepeatSelectSpinner(activity),
+                repository,
+                () -> {
+                }
+        );
+
+        controller.refresh();
+        ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
+
+        assertEquals(PROFILE_TREKKING, selectedProfile.profileName);
+        assertEquals("avoid_path=1", selectedProfile.profileParameters);
+    }
+
+    @Test
+    public void profileSettingsButton_disablesOnlyWhenNoBRouterProfileIsSelected() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
+        ProfilesRepository repository = new ProfilesRepository(true, Collections.singletonList(PROFILE_TREKKING));
+        ProfileSpinnerController controller = new ProfileSpinnerController(
+                activity,
+                spinner,
+                repository,
+                () -> {
+                }
+        );
+        ImageButton settingsButton = new ImageButton(activity);
+        ProfileParameterSettingsController settingsController = new ProfileParameterSettingsController(
+                activity,
+                settingsButton,
+                repository,
+                controller
+        );
+        controller.setSelectionChangeListener(settingsController::updateButtonState);
+
+        controller.refresh();
+        assertTrue(settingsButton.isEnabled());
+
+        spinner.setSelection(0, false);
+        settingsController.updateButtonState();
+        assertFalse(settingsButton.isEnabled());
     }
 
     private static void installBRouterPackage(Activity activity) {

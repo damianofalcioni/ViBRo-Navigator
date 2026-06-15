@@ -24,13 +24,27 @@ public final class BRouterRouter {
             @NonNull String profile,
             @Nullable List<NogoPoint> blockedWaypoints
     ) throws Exception {
+        return routeGeoJson(client, start, intermediates, end, profile, blockedWaypoints, null);
+    }
+
+    @NonNull
+    public GeoJsonRoute routeGeoJson(
+            @NonNull BRouterRouteClient client,
+            @NonNull LatLon start,
+            @NonNull List<LatLon> intermediates,
+            @NonNull LatLon end,
+            @NonNull String profile,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            @Nullable String profileParameters
+    ) throws Exception {
         List<LatLon> stops = intermediates != null ? intermediates : new ArrayList<>();
         AppLogger.i(TAG, "Building route request start=" + start.lat + "," + start.lon
                 + " destination=" + end.lat + "," + end.lon
                 + " profile=" + profile
+                + " profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
                 + " intermediates=" + stops.size()
                 + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
-        String decoded = requestRoutePayload(client, start, stops, end, profile, blockedWaypoints);
+        String decoded = requestRoutePayload(client, start, stops, end, profile, blockedWaypoints, profileParameters);
         return parseRoutePayload(decoded);
     }
 
@@ -41,13 +55,15 @@ public final class BRouterRouter {
             @NonNull List<LatLon> stops,
             @NonNull LatLon end,
             @NonNull String profile,
-            @Nullable List<NogoPoint> blockedWaypoints
+            @Nullable List<NogoPoint> blockedWaypoints,
+            @Nullable String profileParameters
     ) throws Exception {
         String decoded = client.requestRoutePayload(new BRouterRouteRequest(
                 start,
                 stops,
                 end,
                 profile,
+                profileParameters,
                 blockedWaypoints
         ));
         if (decoded == null) {

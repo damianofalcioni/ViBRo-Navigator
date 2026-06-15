@@ -518,6 +518,46 @@ public class NavigationRouteExecutorTest {
         }
     }
 
+    @Test
+    public void requestRoutePassesProfileParametersToCalculator() throws Exception {
+        AtomicReference<String> receivedProfileParameters = new AtomicReference<>();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                new ProfileParameterCapturingCalculator(receivedProfileParameters),
+                Executors.newSingleThreadExecutor(),
+                Runnable::run
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+
+        try {
+            executor.requestRoute(
+                    routeSnapshot("avoid_path=1"),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationRouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationRouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
+            assertEquals("avoid_path=1", receivedProfileParameters.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
     private static final class QueueingScheduler implements TaskScheduler {
         private final Queue<Runnable> queued = new ArrayDeque<>();
         private final CountDownLatch postLatch = new CountDownLatch(1);
@@ -557,6 +597,10 @@ public class NavigationRouteExecutorTest {
     }
 
     private static NavigationRouteRequestSnapshot routeSnapshot() {
+        return routeSnapshot(null);
+    }
+
+    private static NavigationRouteRequestSnapshot routeSnapshot(String profileParameters) {
         return new NavigationRouteRequestSnapshot(
                 1,
                 1,
@@ -564,6 +608,7 @@ public class NavigationRouteExecutorTest {
                 Collections.emptyList(),
                 new LatLon(48.2100, 16.3800),
                 "trekking",
+                profileParameters,
                 Collections.emptyList()
         );
     }
@@ -596,6 +641,44 @@ public class NavigationRouteExecutorTest {
         @Override
         public void close() {
             closeCount.incrementAndGet();
+        }
+    }
+
+    private static final class ProfileParameterCapturingCalculator
+            implements NavigationRouteExecutor.RouteCalculator {
+        private final AtomicReference<String> receivedProfileParameters;
+
+        private ProfileParameterCapturingCalculator(AtomicReference<String> receivedProfileParameters) {
+            this.receivedProfileParameters = receivedProfileParameters;
+        }
+
+        @Override
+        public GeoJsonRoute routeGeoJson(
+                LatLon start,
+                java.util.List<LatLon> intermediates,
+                LatLon destination,
+                String profile,
+                java.util.List<NogoPoint> blocked
+        ) {
+            return new GeoJsonRoute(
+                    Arrays.asList(start, destination),
+                    Collections.emptyList(),
+                    42.0,
+                    120.0
+            );
+        }
+
+        @Override
+        public GeoJsonRoute routeGeoJson(
+                LatLon start,
+                java.util.List<LatLon> intermediates,
+                LatLon destination,
+                String profile,
+                java.util.List<NogoPoint> blocked,
+                String profileParameters
+        ) {
+            receivedProfileParameters.set(profileParameters);
+            return routeGeoJson(start, intermediates, destination, profile, blocked);
         }
     }
 }

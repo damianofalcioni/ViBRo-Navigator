@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private PoiInputController destinationController;
     private PoiHistoryStore historyStore;
     private ProfileSpinnerController profileSpinnerController;
+    private ProfileParameterSettingsController profileParameterSettingsController;
     private MainActivityStopController stopController;
     private MainActivityProfilePicker profilePicker;
     private MainActivityMapPickerCoordinator mapPickerCoordinator;
@@ -53,6 +54,15 @@ public class MainActivity extends Activity {
                 controls.profileSpinner,
                 profilesRepository,
                 profilePicker::startCustomProfilePicker
+        );
+        profileParameterSettingsController = new ProfileParameterSettingsController(
+                this,
+                controls.profileSettingsButton,
+                profilesRepository,
+                profileSpinnerController
+        );
+        profileSpinnerController.setSelectionChangeListener(
+                profileParameterSettingsController::updateButtonState
         );
         profilePicker.attachProfileSpinnerController(profileSpinnerController);
 

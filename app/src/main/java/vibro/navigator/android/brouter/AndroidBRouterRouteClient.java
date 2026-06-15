@@ -162,6 +162,9 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
         bundle.putDoubleArray("lons", longitudes(points));
         putNogos(bundle, request.blockedWaypoints);
         bundle.putString("profile", request.profile);
+        if (request.profileParameters != null) {
+            bundle.putString("extraParams", request.profileParameters);
+        }
 
         // GeoJSON output from BRouter is called "json" and follows GeoJSON FeatureCollection.
         bundle.putString("format", "json");

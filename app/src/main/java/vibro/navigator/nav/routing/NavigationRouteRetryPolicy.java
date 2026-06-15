@@ -38,7 +38,8 @@ final class NavigationRouteRetryPolicy {
                         snapshot.intermediates,
                         requireDestination(snapshot),
                         requireProfile(snapshot),
-                        snapshot.blocked
+                        snapshot.blocked,
+                        profileParameters(snapshot)
                 );
             } catch (Exception e) {
                 if (!shouldRetryTransientRouteFailure(e, attempt)) {
@@ -66,6 +67,11 @@ final class NavigationRouteRetryPolicy {
             throw new IllegalStateException("Route request is missing a profile");
         }
         return snapshot.profile;
+    }
+
+    @NonNull
+    private static String profileParameters(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        return snapshot.profileParameters == null ? "" : snapshot.profileParameters;
     }
 
     private boolean shouldRetryTransientRouteFailure(@NonNull Exception error, int attempt) {

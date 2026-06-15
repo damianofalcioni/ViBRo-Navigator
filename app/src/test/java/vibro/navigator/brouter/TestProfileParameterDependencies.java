@@ -9,21 +9,31 @@ import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
-public final class BRouterProfileTestDependencies {
-    private BRouterProfileTestDependencies() {
+final class TestProfileParameterDependencies {
+    private TestProfileParameterDependencies() {
     }
 
     @NonNull
-    public static BRouterProfileDependencies create() {
+    static BRouterProfileDependencies create(@NonNull Uri profileUri, @NonNull String profileText) {
         return new BRouterProfileDependencies(
-                new TestDocumentAccess(),
+                new TestDocumentAccess(profileUri, profileText),
                 context -> Collections.emptyList(),
                 new TestPackageAccess(),
-                (context, uri) -> false
+                (context, uri) -> uri != null && uri.equals(profileUri)
         );
     }
 
     private static final class TestDocumentAccess implements BRouterProfileDependencies.DocumentAccess {
+        @NonNull
+        private final Uri profileUri;
+        @NonNull
+        private final String profileText;
+
+        private TestDocumentAccess(@NonNull Uri profileUri, @NonNull String profileText) {
+            this.profileUri = profileUri;
+            this.profileText = profileText;
+        }
+
         @Nullable
         @Override
         public Uri buildTreeDocumentUri(@NonNull Uri treeUri) {
@@ -44,13 +54,13 @@ public final class BRouterProfileTestDependencies {
         @NonNull
         @Override
         public Uri buildExternalStorageDocumentUri(@NonNull String documentId) {
-            return Uri.parse("content://test.documents/document/" + documentId);
+            return profileUri;
         }
 
         @NonNull
         @Override
         public Uri buildExternalStorageTreeUri(@NonNull String documentId) {
-            return Uri.parse("content://test.documents/tree/" + documentId);
+            return Uri.parse("content://profiles/tree/" + documentId);
         }
 
         @Override
@@ -73,14 +83,14 @@ public final class BRouterProfileTestDependencies {
         @Nullable
         @Override
         public String readText(@NonNull Context context, @NonNull Uri documentUri) {
-            return null;
+            return profileUri.equals(documentUri) ? profileText : null;
         }
     }
 
     private static final class TestPackageAccess implements BRouterProfileDependencies.PackageAccess {
         @Override
         public boolean isInstalled(@NonNull Context context, @NonNull String packageName) {
-            return false;
+            return true;
         }
 
         @Nullable

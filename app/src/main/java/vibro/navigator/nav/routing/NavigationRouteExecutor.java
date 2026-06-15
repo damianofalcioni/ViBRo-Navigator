@@ -43,6 +43,18 @@ public final class NavigationRouteExecutor {
                 @NonNull String profile,
                 @NonNull List<NogoPoint> blocked
         ) throws Exception;
+
+        @NonNull
+        public default GeoJsonRoute routeGeoJson(
+                @NonNull LatLon start,
+                @NonNull List<LatLon> intermediates,
+                @NonNull LatLon destination,
+                @NonNull String profile,
+                @NonNull List<NogoPoint> blocked,
+                @NonNull String profileParameters
+        ) throws Exception {
+            return routeGeoJson(start, intermediates, destination, profile, blocked);
+        }
     }
 
     @VisibleForTesting

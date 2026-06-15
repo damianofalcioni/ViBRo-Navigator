@@ -16,6 +16,7 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 public final class AndroidNavigationRequestIntentContract {
 
     public static final String EXTRA_PROFILE = "vibro.navigator.extra.PROFILE";
+    public static final String EXTRA_PROFILE_PARAMETERS = "vibro.navigator.extra.PROFILE_PARAMETERS";
     public static final String EXTRA_ROUTING_MODE = "vibro.navigator.extra.ROUTING_MODE";
     public static final String EXTRA_DEST_NAME = "vibro.navigator.extra.DEST_NAME";
     public static final String EXTRA_DEST_LAT = "vibro.navigator.extra.DEST_LAT";
@@ -34,6 +35,7 @@ public final class AndroidNavigationRequestIntentContract {
         return fromExtras(new Extras(
                 intent.getStringExtra(EXTRA_ROUTING_MODE),
                 intent.getStringExtra(EXTRA_PROFILE),
+                intent.getStringExtra(EXTRA_PROFILE_PARAMETERS),
                 intent.getStringExtra(EXTRA_DEST_NAME),
                 intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN),
                 intent.getDoubleExtra(EXTRA_DEST_LON, Double.NaN),
@@ -59,7 +61,14 @@ public final class AndroidNavigationRequestIntentContract {
             }
         }
 
-        return new NavigationRequest(routingMode, extras.profile, extras.destinationName, destination, stops);
+        return new NavigationRequest(
+                routingMode,
+                extras.profile,
+                extras.profileParameters,
+                extras.destinationName,
+                destination,
+                stops
+        );
     }
 
     public static void putInto(@NonNull Intent intent, @NonNull NavigationRequest request) {
@@ -67,6 +76,9 @@ public final class AndroidNavigationRequestIntentContract {
         intent.putExtra(EXTRA_ROUTING_MODE, extras.routingMode);
         if (extras.profile != null) {
             intent.putExtra(EXTRA_PROFILE, extras.profile);
+        }
+        if (extras.profileParameters != null) {
+            intent.putExtra(EXTRA_PROFILE_PARAMETERS, extras.profileParameters);
         }
         if (extras.destinationName != null) {
             intent.putExtra(EXTRA_DEST_NAME, extras.destinationName);
@@ -87,6 +99,7 @@ public final class AndroidNavigationRequestIntentContract {
         return new Extras(
                 request.routingMode.serializedName(),
                 request.profile,
+                request.profileParameters,
                 request.destinationName,
                 destinationLat,
                 destinationLon,
@@ -129,6 +142,8 @@ public final class AndroidNavigationRequestIntentContract {
         @Nullable
         final String profile;
         @Nullable
+        final String profileParameters;
+        @Nullable
         final String destinationName;
         final double destinationLat;
         final double destinationLon;
@@ -142,12 +157,13 @@ public final class AndroidNavigationRequestIntentContract {
                 double destinationLon,
                 @Nullable ArrayList<String> stops
         ) {
-            this(null, profile, destinationName, destinationLat, destinationLon, stops);
+            this(null, profile, null, destinationName, destinationLat, destinationLon, stops);
         }
 
         Extras(
                 @Nullable String routingMode,
                 @Nullable String profile,
+                @Nullable String profileParameters,
                 @Nullable String destinationName,
                 double destinationLat,
                 double destinationLon,
@@ -155,10 +171,20 @@ public final class AndroidNavigationRequestIntentContract {
         ) {
             this.routingMode = NavigationRoutingMode.fromSerializedName(routingMode).serializedName();
             this.profile = profile;
+            this.profileParameters = clean(profileParameters);
             this.destinationName = destinationName;
             this.destinationLat = destinationLat;
             this.destinationLon = destinationLon;
             this.stops = stops == null ? new ArrayList<>() : new ArrayList<>(stops);
+        }
+
+        @Nullable
+        private static String clean(@Nullable String value) {
+            if (value == null) {
+                return null;
+            }
+            String trimmed = value.trim();
+            return trimmed.isEmpty() ? null : trimmed;
         }
     }
 }

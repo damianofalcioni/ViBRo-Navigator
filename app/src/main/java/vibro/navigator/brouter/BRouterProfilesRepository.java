@@ -9,7 +9,9 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class BRouterProfilesRepository {
 
@@ -28,23 +30,37 @@ public class BRouterProfilesRepository {
     private final BRouterProfileDirectories profileDirectories;
     @NonNull
     private final BRouterProfileLister profileLister;
+    @NonNull
+    private final BRouterProfileParameterSource parameterSource;
+    @NonNull
+    private final BRouterProfileParameterStore parameterStore;
 
     public BRouterProfilesRepository(@NonNull BRouterProfileDependencies dependencies) {
         this(
                 dependencies,
                 new BRouterProfileDirectories(dependencies.documentAccess, dependencies.storageVolumeAccess),
-                new BRouterProfileLister(dependencies.documentAccess, dependencies.packageAccess)
+                new BRouterProfileLister(dependencies.documentAccess, dependencies.packageAccess),
+                new BRouterProfileParameterSource(
+                        dependencies.documentAccess,
+                        dependencies.packageAccess,
+                        new BRouterProfileParameterParser()
+                ),
+                new BRouterProfileParameterStore(PREFS)
         );
     }
 
     BRouterProfilesRepository(
             @NonNull BRouterProfileDependencies dependencies,
             @NonNull BRouterProfileDirectories profileDirectories,
-            @NonNull BRouterProfileLister profileLister
+            @NonNull BRouterProfileLister profileLister,
+            @NonNull BRouterProfileParameterSource parameterSource,
+            @NonNull BRouterProfileParameterStore parameterStore
     ) {
         this.dependencies = dependencies;
         this.profileDirectories = profileDirectories;
         this.profileLister = profileLister;
+        this.parameterSource = parameterSource;
+        this.parameterStore = parameterStore;
     }
 
     @Nullable
@@ -120,6 +136,67 @@ public class BRouterProfilesRepository {
         AppLogger.i(TAG, "Saved selected profile key=" + selectionKey);
     }
 
+    @NonNull
+    public List<BRouterProfileParameter> getProfileParameters(
+            @NonNull Context context,
+            @Nullable String profileName
+    ) {
+        String cleanName = cleanProfileName(profileName);
+        if (cleanName == null) {
+            return Collections.emptyList();
+        }
+        return parameterSource.readParameters(
+                context,
+                cleanName,
+                getCustomProfileUri(context),
+                getCustomProfileName(context),
+                resolveProfilesDiscoveryTreeUris(context)
+        );
+    }
+
+    @NonNull
+    public Map<String, String> getProfileParameterValueOverrides(
+            @NonNull Context context,
+            @Nullable String profileName
+    ) {
+        String cleanName = cleanProfileName(profileName);
+        if (cleanName == null) {
+            return Collections.emptyMap();
+        }
+        return parameterStore.getOverrides(context, cleanName);
+    }
+
+    @Nullable
+    public String getProfileParameterOverridesExtraParams(
+            @NonNull Context context,
+            @Nullable String profileName
+    ) {
+        return BRouterProfileParameterValues.toExtraParams(
+                getProfileParameterValueOverrides(context, profileName)
+        );
+    }
+
+    public void saveProfileParameterValues(
+            @NonNull Context context,
+            @Nullable String profileName,
+            @NonNull List<BRouterProfileParameter> parameters,
+            @NonNull Map<String, String> values
+    ) {
+        String cleanName = cleanProfileName(profileName);
+        if (cleanName == null) {
+            return;
+        }
+        parameterStore.saveValues(context, cleanName, parameters, values);
+    }
+
+    public void resetProfileParameterValues(@NonNull Context context, @Nullable String profileName) {
+        String cleanName = cleanProfileName(profileName);
+        if (cleanName == null) {
+            return;
+        }
+        parameterStore.reset(context, cleanName);
+    }
+
     @Nullable
     public Uri getCustomProfilePickerInitialUri(@NonNull Context context) {
         Uri profilesTreeUri = getProfilesTreeUri(context);
@@ -161,10 +238,19 @@ public class BRouterProfilesRepository {
 
     @Nullable
     public String normalizeProfileName(@Nullable String rawName) {
-        return profileLister.normalizeProfileName(rawName);
+        return BRouterProfileLister.normalizeProfileName(rawName);
     }
 
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
         return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
+    }
+
+    @Nullable
+    private static String cleanProfileName(@Nullable String profileName) {
+        if (profileName == null) {
+            return null;
+        }
+        String cleanName = profileName.trim();
+        return cleanName.isEmpty() ? null : cleanName;
     }
 }

@@ -123,7 +123,7 @@ final class BRouterProfileLister {
     }
 
     @Nullable
-    String normalizeProfileName(@Nullable String rawName) {
+    static String normalizeProfileName(@Nullable String rawName) {
         if (rawName == null) {
             return null;
         }

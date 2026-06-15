@@ -170,6 +170,20 @@ public final class AndroidDocumentAccess {
         }
     }
 
+    @Nullable
+    public static Uri childDocumentUri(
+            @NonNull Context context,
+            @NonNull Uri treeUri,
+            @NonNull String displayName
+    ) {
+        return AndroidDocumentTreeFileAccess.childDocumentUri(context, treeUri, displayName);
+    }
+
+    @Nullable
+    public static String readText(@NonNull Context context, @NonNull Uri documentUri) {
+        return AndroidDocumentTreeFileAccess.readText(context, documentUri);
+    }
+
     public static boolean externalStorageDocumentExists(@NonNull Context context, @NonNull String documentId) {
         Uri treeUri = buildExternalStorageTreeUri(documentId);
         Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);

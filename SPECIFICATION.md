@@ -53,6 +53,14 @@ The main UI must include a routing-profile selector at the top.
 - Bundled BRouter profile rows in the opened selector must include an info control that opens a UI showing the profile title, strengths, weaknesses, and distinctive usage guidance; custom or unknown external profiles must not get bundled-profile descriptions
 - The opened selector must show a separator line after the straight-line profile row
 - Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
+- A profile-settings icon button must be shown next to the routing-profile selector and must be disabled when the straight-line profile is selected
+- For a selected BRouter profile, the profile-settings UI must parse editable parameters declared in the selected `.brf` profile using BRouter's `%parameter% | description | type` comment convention
+- The profile-settings UI must show each parameter name and a type-appropriate input: switch for boolean parameters, numeric input for number/integer parameters, spinner for bracketed option lists, and text input when no supported type can be inferred
+- When a profile parameter has a description, the UI must show an information button for that parameter
+- Saved profile-parameter values must be stored separately by normalized profile name, so switching from profile A to profile B and back to profile A restores profile A's edited values
+- Custom profiles use the same profile-name key as bundled profiles, allowing a custom profile with the same name as a bundled profile to reuse the bundled profile's saved values and, when needed, parameter metadata fallback
+- The profile-settings UI must include `Reset defaults` next to `Cancel` and `OK`; after confirmation, reset must restore the values defined by the profile and clear saved overrides for that profile
+- Route calculation requests sent to the BRouter Android service must pass saved non-default profile-parameter overrides through the `extraParams` service parameter
 - The selector must include a single custom-profile entry; when the user chooses that custom entry from the opened dropdown, the app must open the custom `.brf` picker even if that same custom entry is already the current selection
 - The first time the user chooses the custom-profile entry and no persisted directory access exists yet, the app must first request Storage Access Framework directory access to the BRouter `profiles2` folder, then continue to the `.brf` file picker
 - After the app has a persisted readable `profiles2` tree grant, subsequent custom-profile selections should continue directly to the `.brf` file picker while reusing that granted tree for external-profile discovery and picker startup
@@ -590,7 +598,7 @@ The navigation UI must show the following in large text:
 - The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
 - The Google Play flavor must let the user save an optional Google Maps API key for POI search and enable or disable Google search; the app must validate a non-empty key through Google Maps Geocoding before marking it valid, and when Google search is enabled with a valid key, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting
-- The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, and BRouter profile selections
+- The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, BRouter profile selections, and BRouter profile parameter overrides
 - The about page Settings section must show an Import database button that lets the user select a JSON backup and restore those same app-managed stored data stores
 - Database export and import must use Android's document picker flows so the user chooses the backup file location without requiring broad storage permissions
 - The Use fused location switch must be enabled only in builds that support Google fused location

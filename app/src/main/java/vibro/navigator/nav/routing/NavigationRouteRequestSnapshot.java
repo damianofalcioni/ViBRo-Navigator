@@ -21,6 +21,8 @@ public final class NavigationRouteRequestSnapshot {
     public final LatLon destination;
     @Nullable
     public final String profile;
+    @Nullable
+    public final String profileParameters;
     @NonNull
     public final List<NogoPoint> blocked;
 
@@ -31,6 +33,7 @@ public final class NavigationRouteRequestSnapshot {
             @NonNull List<LatLon> intermediates,
             @Nullable LatLon destination,
             @Nullable String profile,
+            @Nullable String profileParameters,
             @NonNull List<NogoPoint> blocked
     ) {
         this.requestNumber = requestNumber;
@@ -39,6 +42,7 @@ public final class NavigationRouteRequestSnapshot {
         this.intermediates = immutableCopy(intermediates);
         this.destination = destination;
         this.profile = profile;
+        this.profileParameters = clean(profileParameters);
         this.blocked = immutableCopy(blocked);
     }
 
@@ -48,5 +52,14 @@ public final class NavigationRouteRequestSnapshot {
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(new ArrayList<>(values));
+    }
+
+    @Nullable
+    private static String clean(@Nullable String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

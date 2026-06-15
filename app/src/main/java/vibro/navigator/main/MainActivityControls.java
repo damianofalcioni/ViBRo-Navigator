@@ -18,6 +18,8 @@ final class MainActivityControls {
     @NonNull
     final Spinner profileSpinner;
     @NonNull
+    final ImageButton profileSettingsButton;
+    @NonNull
     final EditText destinationEdit;
     @NonNull
     final ImageButton destinationMapButton;
@@ -35,6 +37,7 @@ final class MainActivityControls {
     private MainActivityControls(
             @NonNull ImageButton aboutButton,
             @NonNull Spinner profileSpinner,
+            @NonNull ImageButton profileSettingsButton,
             @NonNull EditText destinationEdit,
             @NonNull ImageButton destinationMapButton,
             @NonNull View destinationRow,
@@ -45,6 +48,7 @@ final class MainActivityControls {
     ) {
         this.aboutButton = aboutButton;
         this.profileSpinner = profileSpinner;
+        this.profileSettingsButton = profileSettingsButton;
         this.destinationEdit = destinationEdit;
         this.destinationMapButton = destinationMapButton;
         this.destinationRow = destinationRow;
@@ -59,6 +63,7 @@ final class MainActivityControls {
         return new MainActivityControls(
                 activity.findViewById(R.id.aboutButton),
                 activity.findViewById(R.id.profileSpinner),
+                activity.findViewById(R.id.profileSettingsButton),
                 activity.findViewById(R.id.destinationEdit),
                 activity.findViewById(R.id.destinationMapButton),
                 activity.findViewById(R.id.destinationRow),

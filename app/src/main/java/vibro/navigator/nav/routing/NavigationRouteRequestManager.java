@@ -192,6 +192,7 @@ public final class NavigationRouteRequestManager {
                 new ArrayList<>(intermediates),
                 request.destination,
                 request.profile,
+                request.profileParameters,
                 new ArrayList<>(blocked)
         );
         routeCalculationInProgress = true;

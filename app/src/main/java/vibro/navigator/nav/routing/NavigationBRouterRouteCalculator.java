@@ -29,7 +29,20 @@ public final class NavigationBRouterRouteCalculator implements NavigationRouteEx
             @NonNull String profile,
             @NonNull List<NogoPoint> blocked
     ) throws Exception {
-        return router.routeGeoJson(client, start, intermediates, destination, profile, blocked);
+        return routeGeoJson(start, intermediates, destination, profile, blocked, "");
+    }
+
+    @NonNull
+    @Override
+    public synchronized GeoJsonRoute routeGeoJson(
+            @NonNull LatLon start,
+            @NonNull List<LatLon> intermediates,
+            @NonNull LatLon destination,
+            @NonNull String profile,
+            @NonNull List<NogoPoint> blocked,
+            @NonNull String profileParameters
+    ) throws Exception {
+        return router.routeGeoJson(client, start, intermediates, destination, profile, blocked, profileParameters);
     }
 
     @Override
