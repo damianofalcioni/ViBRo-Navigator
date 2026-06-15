@@ -7,6 +7,8 @@
     <string name="action_pause_navigation">Pause navigation</string>
     <string name="action_resume_navigation">Resume navigation</string>
     <string name="action_stop_navigation">Stop navigation</string>
+    <string name="action_save_route">Save route</string>
+    <string name="action_restore_route">Restore route</string>
     <string name="action_add_stop">Add stop</string>
     <string name="action_remove_stop">Remove stop</string>
     <string name="action_blocked_road">Blocked road</string>
@@ -49,12 +51,15 @@
     <string name="label_profile_attention_icon">Experimental or debug profile</string>
     <string name="format_profile_info_content_description">Show information for %1$s</string>
     <string name="format_stop_label">Stop %1$d</string>
+    <string name="format_default_saved_route_name">Route %1$s</string>
 
     <string name="hint_search_destination">Search destination or paste coordinates</string>
     <string name="hint_search_stop">Search stop or paste coordinates</string>
+    <string name="hint_saved_route_name">Route name</string>
 
     <string name="msg_missing_destination">Select a destination</string>
     <string name="msg_invalid_destination_name">Enter a destination name</string>
+    <string name="msg_invalid_route_name">Enter a route name</string>
     <string name="msg_invalid_coordinates">Select a place with coordinates</string>
     <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
@@ -91,6 +96,9 @@
     <string name="msg_database_export_failed">Could not export database.</string>
     <string name="msg_database_imported">Database imported.</string>
     <string name="msg_database_import_failed">Could not import database.</string>
+    <string name="msg_saved_route_saved">Route saved.</string>
+    <string name="msg_saved_route_restored">Route restored.</string>
+    <string name="msg_saved_routes_empty">No saved routes.</string>
     <string name="msg_route_export_unavailable">No active route to export.</string>
     <string name="msg_route_export_failed">Could not export route.</string>
     <string name="msg_route_export_no_app">No app can open GPX routes.</string>
@@ -163,6 +171,11 @@
     <string name="profile_info_river_title">River / canal routing (Experimental)</string>
     <string name="profile_info_river_description">A profile for routing along waterways such as rivers, canals, fairways, and locks. Its strength is waterway network tracing and OSM data exploration. Its weakness is that it is too simple for real nautical navigation because it does not model boat type, depth, current, legal restrictions, hazards, or operational lock constraints. Its distinctive aspect is that it treats waterways as a routable network, but only at a basic topology level.</string>
     <string name="title_edit_destination_name">Edit destination name</string>
+    <string name="title_save_route">Save route</string>
+    <string name="title_restore_route">Restore route</string>
+    <string name="title_edit_route_name">Edit route name</string>
+    <string name="title_restore_route_confirm">Restore route?</string>
+    <string name="msg_restore_route_confirm">Replace the current destination and stops with &quot;%1$s&quot;?</string>
     <string name="title_map_picker_destination">Pick destination on map</string>
     <string name="title_map_picker_stop">Pick stop %1$d on map</string>
     <string name="nav_destination_label">🏁</string>

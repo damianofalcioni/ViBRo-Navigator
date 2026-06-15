@@ -41,8 +41,12 @@ public class AppDataBackupTest {
             "vibro.navigator.settings",
             "vibenavigator_poi_history",
             "vibenavigator_brouter",
-            "app_logging"
+            "app_logging",
+            "vibenavigator_saved_routes"
     };
+    private static final String PREFS_SAVED_ROUTES = "vibenavigator_saved_routes";
+    private static final String KEY_SAVED_ROUTE_ITEMS = "items";
+    private static final String KEY_SHARED_PREFERENCES = "sharedPreferences";
     private static final String GOOGLE_POI_API_KEY = "google-key";
     private static final String BACKUP_TYPE = "type";
     private static final String BACKUP_TYPE_BOOLEAN = "boolean";
@@ -53,6 +57,9 @@ public class AppDataBackupTest {
     private static final String CATEGORY_RESTAURANT = "Restaurant";
     private static final String PROFILE_TREKKING = "trekking";
     private static final String PARAM_AVOID_PATH = "avoid_path";
+    private static final String SAVED_ROUTE_PAYLOAD = "[{\"id\":\"route-1\",\"name\":\"Route One\","
+            + "\"createdAtMillis\":1,\"destination\":{\"name\":\"Destination\",\"lat\":48.2082,"
+            + "\"lon\":16.3738},\"stops\":[{\"name\":\"Stop\",\"lat\":47.0707,\"lon\":15.4395}]}]";
 
     private Context context;
 
@@ -97,6 +104,10 @@ public class AppDataBackupTest {
                 )),
                 profileParams
         );
+        context.getSharedPreferences(PREFS_SAVED_ROUTES, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_SAVED_ROUTE_ITEMS, SAVED_ROUTE_PAYLOAD)
+                .commit();
 
         String json = AppDataBackup.exportJson(context);
         clearPrefs();
@@ -124,6 +135,8 @@ public class AppDataBackupTest {
         assertEquals("custom", profiles.getCustomProfileName(context));
         assertEquals(PARAM_AVOID_PATH + "=1",
                 profiles.getProfileParameterOverridesExtraParams(context, PROFILE_TREKKING));
+        assertEquals(SAVED_ROUTE_PAYLOAD, context.getSharedPreferences(PREFS_SAVED_ROUTES, Context.MODE_PRIVATE)
+                .getString(KEY_SAVED_ROUTE_ITEMS, ""));
     }
 
     @Test
@@ -140,7 +153,7 @@ public class AppDataBackupTest {
         ));
 
         JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
-        JSONObject sharedPreferences = root.getJSONObject("sharedPreferences");
+        JSONObject sharedPreferences = root.getJSONObject(KEY_SHARED_PREFERENCES);
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
@@ -175,6 +188,21 @@ public class AppDataBackupTest {
     }
 
     @Test
+    public void importJson_acceptsOlderBackupWithoutSavedRoutes() throws Exception {
+        JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
+        root.getJSONObject(KEY_SHARED_PREFERENCES).remove(PREFS_SAVED_ROUTES);
+        context.getSharedPreferences(PREFS_SAVED_ROUTES, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_SAVED_ROUTE_ITEMS, SAVED_ROUTE_PAYLOAD)
+                .commit();
+
+        AppDataBackup.importJson(context, root.toString());
+
+        assertFalse(context.getSharedPreferences(PREFS_SAVED_ROUTES, Context.MODE_PRIVATE)
+                .contains(KEY_SAVED_ROUTE_ITEMS));
+    }
+
+    @Test
     public void importJson_rejectsInvalidPayloadWithoutChangingExistingData() {
         assertImportRejectedWithoutChangingExistingData("{\"schemaVersion\":999,\"sharedPreferences\":{}}");
     }
@@ -190,7 +218,7 @@ public class AppDataBackupTest {
     @Test
     public void importJson_rejectsNonStringStringSetEntryWithoutChangingExistingData() throws Exception {
         JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
-        JSONObject appSettings = root.getJSONObject("sharedPreferences")
+        JSONObject appSettings = root.getJSONObject(KEY_SHARED_PREFERENCES)
                 .getJSONObject(PREFS[0]);
         appSettings.put(
                 "bad_string_set",

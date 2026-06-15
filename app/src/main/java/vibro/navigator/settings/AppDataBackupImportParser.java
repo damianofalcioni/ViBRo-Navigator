@@ -19,7 +19,7 @@ final class AppDataBackupImportParser {
         JSONObject prefsRoot = readPreferencesRoot(json);
         List<AppDataBackupPreferenceFile> pending = new ArrayList<>();
         for (String prefsName : AppDataBackupContract.BACKED_UP_PREFERENCES) {
-            JSONObject rawPrefs = requirePreferenceObject(prefsRoot, prefsName);
+            JSONObject rawPrefs = preferenceObject(prefsRoot, prefsName);
             pending.add(new AppDataBackupPreferenceFile(prefsName, parsePreferenceValues(rawPrefs)));
         }
         return pending;
@@ -39,13 +39,16 @@ final class AppDataBackupImportParser {
     }
 
     @NonNull
-    private static JSONObject requirePreferenceObject(
+    private static JSONObject preferenceObject(
             @NonNull JSONObject prefsRoot,
             @NonNull String prefsName
     ) throws JSONException {
         Object rawPrefs = prefsRoot.opt(prefsName);
         if (rawPrefs instanceof JSONObject) {
             return (JSONObject) rawPrefs;
+        }
+        if (rawPrefs == null && AppDataBackupContract.isOptionalPreference(prefsName)) {
+            return new JSONObject();
         }
         throw new JSONException("Missing or invalid backup preferences object " + prefsName);
     }

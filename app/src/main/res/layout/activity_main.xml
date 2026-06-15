@@ -130,6 +130,16 @@
                     android:gravity="center_horizontal"
                     android:orientation="horizontal">
 
+                    <ImageButton
+                        android:id="@+id/saveRouteButton"
+                        style="@style/Widget.ViBRoNavigator.IconButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginEnd="12dp"
+                        android:contentDescription="@string/action_save_route"
+                        android:src="@drawable/ic_route_save" />
+
                     <Button
                         android:id="@+id/addStopButton"
                         style="@style/Widget.ViBRoNavigator.Button.Fab"
@@ -137,6 +147,16 @@
                         android:layout_height="56dp"
                         android:contentDescription="@string/action_add_stop"
                         android:text="@string/symbol_plus" />
+
+                    <ImageButton
+                        android:id="@+id/restoreRouteButton"
+                        style="@style/Widget.ViBRoNavigator.IconButton"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center_vertical"
+                        android:layout_marginStart="12dp"
+                        android:contentDescription="@string/action_restore_route"
+                        android:src="@drawable/ic_route_restore" />
                 </LinearLayout>
 
                 <LinearLayout

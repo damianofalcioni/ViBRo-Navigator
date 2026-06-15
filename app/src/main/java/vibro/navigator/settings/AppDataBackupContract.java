@@ -1,5 +1,7 @@
 package vibro.navigator.settings;
 
+import androidx.annotation.NonNull;
+
 final class AppDataBackupContract {
 
     static final int SCHEMA_VERSION = 1;
@@ -13,13 +15,31 @@ final class AppDataBackupContract {
     static final String TYPE_LONG = "long";
     static final String TYPE_FLOAT = "float";
     static final String TYPE_STRING_SET = "stringSet";
+    private static final String PREFS_APP_SETTINGS = "vibro.navigator.settings";
+    private static final String PREFS_POI_HISTORY = "vibenavigator_poi_history";
+    private static final String PREFS_BROUTER = "vibenavigator_brouter";
+    private static final String PREFS_LOGGING = "app_logging";
+    private static final String PREFS_SAVED_ROUTES = "vibenavigator_saved_routes";
+    static final String[] OPTIONAL_BACKED_UP_PREFERENCES = {
+            PREFS_SAVED_ROUTES
+    };
     static final String[] BACKED_UP_PREFERENCES = {
-            "vibro.navigator.settings",
-            "vibenavigator_poi_history",
-            "vibenavigator_brouter",
-            "app_logging"
+            PREFS_APP_SETTINGS,
+            PREFS_POI_HISTORY,
+            PREFS_BROUTER,
+            PREFS_LOGGING,
+            PREFS_SAVED_ROUTES
     };
 
     private AppDataBackupContract() {
+    }
+
+    static boolean isOptionalPreference(@NonNull String prefsName) {
+        for (String optionalPrefsName : OPTIONAL_BACKED_UP_PREFERENCES) {
+            if (optionalPrefsName.equals(prefsName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

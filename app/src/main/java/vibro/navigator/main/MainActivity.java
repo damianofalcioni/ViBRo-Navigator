@@ -4,7 +4,6 @@ import vibro.navigator.R;
 
 
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
-import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.ui.NavigationActivity;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import android.app.Activity;
@@ -92,6 +91,12 @@ public class MainActivity extends Activity {
                 this::openStopMapPicker,
                 controls.routeRailView
         );
+        MainActivitySavedRouteController savedRouteController = new MainActivitySavedRouteController(
+                this,
+                () -> destinationController,
+                stopController
+        );
+        savedRouteController.configure(controls.saveRouteButton, controls.restoreRouteButton);
 
         controls.destinationMapButton.setOnClickListener(
                 v -> mapPickerCoordinator.openDestinationMapPicker(destinationController)
@@ -184,13 +189,13 @@ public class MainActivity extends Activity {
             return;
         }
         NavigationInputResolver.rememberHistory(historyStore, input);
-        launchNavigation(input.request);
+        launchNavigation(input);
     }
 
-    private void launchNavigation(@NonNull NavigationRequest request) {
-        AppLogger.i(TAG, "Starting NavigationActivity " + request.describe());
+    private void launchNavigation(@NonNull NavigationInputResolver.Result input) {
+        AppLogger.i(TAG, "Starting NavigationActivity " + input.request.describe());
         Intent intent = new Intent(this, NavigationActivity.class);
-        AndroidNavigationRequestIntentContract.putInto(intent, request);
+        AndroidNavigationRequestIntentContract.putInto(intent, input.request);
         startActivity(intent);
     }
 

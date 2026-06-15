@@ -5,14 +5,11 @@ import vibro.navigator.R;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
@@ -133,7 +130,7 @@ final class MainActivityStopController {
     private static boolean isRestorablePoi(@Nullable String name, double lat, double lon) {
         return name != null
                 && !name.isEmpty()
-                && LatLon.isValidCoordinate(lat, lon);
+                && new Poi(name, lat, lon).hasValidCoordinates();
     }
 
     @Nullable
@@ -174,13 +171,10 @@ final class MainActivityStopController {
 
     void addStopRow(@Nullable String initialText) {
         View row = activity.getLayoutInflater().inflate(R.layout.item_stop_row, stopsContainer, false);
-        EditText stopEdit = row.findViewById(R.id.stopEdit);
-        ImageButton mapButton = row.findViewById(R.id.stopMapButton);
-        ImageButton remove = row.findViewById(R.id.removeStopButton);
 
         PoiInputController controller = new PoiInputController(
                 activity,
-                stopEdit,
+                row.findViewById(R.id.stopEdit),
                 historyStore,
                 searchClient,
                 poi -> {
@@ -193,21 +187,24 @@ final class MainActivityStopController {
         }
         AppLogger.i(TAG, "Added stop row initialText=" + safe(initialText) + " totalStops=" + stopControllers.size());
 
-        mapButton.setOnClickListener(v -> {
+        row.findViewById(R.id.stopMapButton).setOnClickListener(v -> {
             mapPickListener.onPickStopFromMap(controller);
         });
-        remove.setOnClickListener(v -> removeStopRow(row, controller));
+        row.findViewById(R.id.removeStopButton).setOnClickListener(v -> removeStopRow(row, controller));
 
         stopsContainer.addView(row);
         routeRailStopAnchors.refresh();
     }
 
+    void replaceStops(@NonNull List<Poi> stops) {
+        clearRows();
+        MainActivityStopRowOperations.restoreStops(this, stops);
+        AppLogger.i(TAG, "Replaced stop rows count=" + stopControllers.size());
+    }
+
     void dispose() {
         AppLogger.i(TAG, "Disposing stop rows count=" + stopControllers.size());
-        for (PoiInputController controller : stopControllers) {
-            controller.dispose();
-        }
-        stopControllers.clear();
+        clearRows();
         routeRailStopAnchors.clear();
     }
 
@@ -238,6 +235,18 @@ final class MainActivityStopController {
         stopsContainer.removeView(row);
         routeRailStopAnchors.refresh();
         AppLogger.i(TAG, "Removed stop row remainingStops=" + stopControllers.size());
+    }
+
+    private void clearRows() {
+        MainActivityStopRowOperations.disposeAll(stopControllers);
+        stopControllers.clear();
+        stopsContainer.removeAllViews();
+        routeRailStopAnchors.refresh();
+    }
+
+    void addRestoredStop(@NonNull Poi stop) {
+        addStopRow(null);
+        stopControllers.get(stopControllers.size() - 1).restorePoi(stop);
     }
 
     @NonNull

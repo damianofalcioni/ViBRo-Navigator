@@ -30,7 +30,11 @@ final class MainActivityControls {
     @NonNull
     final LinearLayout stopsContainer;
     @NonNull
+    final ImageButton saveRouteButton;
+    @NonNull
     final Button addStopButton;
+    @NonNull
+    final ImageButton restoreRouteButton;
     @NonNull
     final ImageButton startNavButton;
 
@@ -43,7 +47,9 @@ final class MainActivityControls {
             @NonNull View destinationRow,
             @NonNull MainRouteRailView routeRailView,
             @NonNull LinearLayout stopsContainer,
+            @NonNull ImageButton saveRouteButton,
             @NonNull Button addStopButton,
+            @NonNull ImageButton restoreRouteButton,
             @NonNull ImageButton startNavButton
     ) {
         this.aboutButton = aboutButton;
@@ -54,7 +60,9 @@ final class MainActivityControls {
         this.destinationRow = destinationRow;
         this.routeRailView = routeRailView;
         this.stopsContainer = stopsContainer;
+        this.saveRouteButton = saveRouteButton;
         this.addStopButton = addStopButton;
+        this.restoreRouteButton = restoreRouteButton;
         this.startNavButton = startNavButton;
     }
 
@@ -69,7 +77,9 @@ final class MainActivityControls {
                 activity.findViewById(R.id.destinationRow),
                 activity.findViewById(R.id.routeRailView),
                 activity.findViewById(R.id.stopsContainer),
+                activity.findViewById(R.id.saveRouteButton),
                 activity.findViewById(R.id.addStopButton),
+                activity.findViewById(R.id.restoreRouteButton),
                 activity.findViewById(R.id.startNavButton)
         );
     }

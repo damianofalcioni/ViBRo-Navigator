@@ -125,9 +125,9 @@ Below the routing-profile selector, the app must show an input field for searchi
 - The picker must not show extra top or bottom banners; controls should remain overlaid directly on the map
 - Rotating the device while the picker is open must preserve the currently selected point and keep it visible on the map after recreation
 
-### 3. Intermediate stops
+### 3. Intermediate stops and saved routes
 
-Below the destination input, the app must show a centered plus button.
+Below the destination input, the app must show a centered plus button. An icon-only save-route button must be shown immediately to the left of the plus button, and an icon-only restore-route button must be shown immediately to the right.
 
 The destination, intermediate stops, and start-navigation area must include a non-interactive route-direction rail on the left side. The rail must use the app's red route color, start at the destination field, continue toward the start button/current-position marker, show bullets for the final destination and each intermediate stop, and show a directional arrow pointing from the current position toward the destination. Intermediate stop inputs must stay in entry order so pressing the plus button adds the next editable field near the plus button. In straight-line guidance, those stop inputs are consumed from the current-position side upward so the bottom visible stop is reached first, then the stops above it, then the final destination.
 
@@ -155,6 +155,17 @@ The destination, intermediate stops, and start-navigation area must include a no
 - The picker must support one-finger tap selection
 - The picker must support two-finger pinch zoom in and out
 - Completing a pinch gesture must not accidentally change the currently selected point because of finger release being misinterpreted as a tap
+
+#### 3.5 Saved routes
+
+- Pressing the save-route button must prompt for a route name, prefilled as `Route <timestamp>` using the current timestamp
+- Confirming that prompt must save the currently specified destination and any non-empty, valid intermediate stops
+- Saved routes must store resolved coordinates and display names for the destination and intermediate stops so restoring a route makes the form immediately usable for navigation
+- Pressing the restore-route button must show a dialog listing all saved routes
+- Each saved-route row must support selecting that route, editing its name, and deleting the entry
+- Confirming the restore dialog must ask for confirmation before replacing the current route form
+- After confirmation, restoring a route must fill the destination and recreate the needed intermediate stop rows in saved order
+- Saved routes must be stored in app-managed preferences and included in database export/import
 
 ### 4. Start navigation
 
@@ -598,7 +609,7 @@ The navigation UI must show the following in large text:
 - The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
 - The Google Play flavor must let the user save an optional Google Maps API key for POI search and enable or disable Google search; the app must validate a non-empty key through Google Maps Geocoding before marking it valid, and when Google search is enabled with a valid key, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting
-- The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, app settings, logging preference, BRouter profile selections, and BRouter profile parameter overrides
+- The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, saved routes, app settings, logging preference, BRouter profile selections, and BRouter profile parameter overrides
 - The about page Settings section must show an Import database button that lets the user select a JSON backup and restore those same app-managed stored data stores
 - Database export and import must use Android's document picker flows so the user chooses the backup file location without requiring broad storage permissions
 - The Use fused location switch must be enabled only in builds that support Google fused location

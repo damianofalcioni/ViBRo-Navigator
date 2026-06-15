@@ -27,6 +27,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -154,6 +155,36 @@ public class MainActivityStopControllerTest {
         assertEquals("Second stop", controller.getStopControllers().get(1).getRawText());
         assertEquals("First stop", stopTextAt(stopsContainer.getChildAt(0)));
         assertEquals("Second stop", stopTextAt(stopsContainer.getChildAt(1)));
+    }
+
+    @Test
+    public void replaceStops_clearsExistingRowsAndRestoresSelectedStopsWithoutSearch() {
+        LinearLayout stopsContainer = new LinearLayout(activity);
+        AtomicInteger searchCalls = new AtomicInteger();
+        PoiSearchClient searchClient = (query, limit) -> {
+            searchCalls.incrementAndGet();
+            return Collections.emptyList();
+        };
+        MainActivityStopController controller = new MainActivityStopController(
+                activity,
+                stopsContainer,
+                new PoiHistoryStore(activity),
+                searchClient,
+                stopInputController -> {
+                }
+        );
+        controller.addStopRow("Old stop");
+        Poi stopA = new Poi("Stop A", 48.2082d, 16.3738d);
+        Poi stopB = new Poi("Stop B", 45.4642d, 9.19d);
+
+        controller.replaceStops(Arrays.asList(stopA, stopB));
+        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
+
+        assertEquals(0, searchCalls.get());
+        assertEquals(2, stopsContainer.getChildCount());
+        assertEquals(2, controller.getStopControllers().size());
+        assertEquals(stopA.name, controller.getStopControllers().get(0).getSelectedPoi().name);
+        assertEquals(stopB.name, controller.getStopControllers().get(1).getSelectedPoi().name);
     }
 
     @NonNull
