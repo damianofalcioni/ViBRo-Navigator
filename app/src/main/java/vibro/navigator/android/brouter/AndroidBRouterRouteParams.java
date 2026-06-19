@@ -20,8 +20,7 @@ final class AndroidBRouterRouteParams {
         List<LatLon> points = routePoints(request);
 
         Bundle bundle = new Bundle();
-        bundle.putDoubleArray("lats", latitudes(points));
-        bundle.putDoubleArray("lons", longitudes(points));
+        putRoutePoints(bundle, request, points);
         putNogos(bundle, request.blockedWaypoints);
         bundle.putString("profile", request.profile);
         if (request.profileParameters != null) {
@@ -37,6 +36,19 @@ final class AndroidBRouterRouteParams {
         bundle.putString("timode", "9");
         bundle.putString("acceptCompressedResult", "true");
         return bundle;
+    }
+
+    private static void putRoutePoints(
+            @NonNull Bundle bundle,
+            @NonNull BRouterRouteRequest request,
+            @NonNull List<LatLon> points
+    ) {
+        if (request.isRoundTrip()) {
+            bundle.putString("lonlats", lonLat(points.get(0)));
+            return;
+        }
+        bundle.putDoubleArray("lats", latitudes(points));
+        bundle.putDoubleArray("lons", longitudes(points));
     }
 
     private static void putRoundTripParams(
@@ -69,6 +81,11 @@ final class AndroidBRouterRouteParams {
             throw new IllegalStateException("BRouter route request is missing a destination");
         }
         return request.destination;
+    }
+
+    @NonNull
+    private static String lonLat(@NonNull LatLon point) {
+        return Double.toString(point.lon) + "," + Double.toString(point.lat);
     }
 
     @NonNull

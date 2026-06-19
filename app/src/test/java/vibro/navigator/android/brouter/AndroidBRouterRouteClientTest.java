@@ -74,7 +74,7 @@ public class AndroidBRouterRouteClientTest {
     }
 
     @Test
-    public void buildRouteParams_encodesRoundTripModeWithSingleStartPoint() {
+    public void buildRouteParams_encodesRoundTripModeWithSingleLonLatStartPoint() {
         BRouterRouteRequest request = BRouterRouteRequest.roundTrip(
                 new LatLon(48.0, 16.0),
                 PROFILE_TREKKING,
@@ -85,8 +85,9 @@ public class AndroidBRouterRouteClientTest {
 
         Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
 
-        assertArrayEquals(new double[]{48.0}, params.getDoubleArray("lats"), 0.0);
-        assertArrayEquals(new double[]{16.0}, params.getDoubleArray("lons"), 0.0);
+        assertFalse(params.containsKey("lats"));
+        assertFalse(params.containsKey("lons"));
+        assertEquals("16.0,48.0", params.getString("lonlats"));
         assertEquals(4, params.getInt("engineMode"));
         assertEquals(-1, params.getInt("direction"));
         assertEquals(15_000, params.getInt("roundTripDistance"));
