@@ -18,6 +18,7 @@ import java.util.Map;
 
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.android.theme.AndroidThemedButtons;
 import vibro.navigator.brouter.BRouterProfileParameter;
 
 final class ProfileParameterForm {
@@ -144,8 +145,9 @@ final class ProfileParameterForm {
         @NonNull
         private static View infoButton(@NonNull Context context, @NonNull BRouterProfileParameter parameter) {
             ImageButton button = new ImageButton(context);
+            button.setId(R.id.profileParameterInfoButton);
             button.setImageResource(R.drawable.ic_info);
-            button.setBackgroundResource(R.drawable.bg_button_icon);
+            AndroidThemedButtons.applyIconButtonBackground(button);
             button.setContentDescription(context.getString(
                     R.string.format_profile_parameter_info_content_description,
                     parameter.name

@@ -1,5 +1,7 @@
 package vibro.navigator.about;
 
+import static vibro.navigator.about.AboutDialogButtonStyleAssertions.assertBorderlessProfileInfoBackground;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -20,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.core.content.ContextCompat;
 import androidx.core.widget.TextViewCompat;
 import androidx.test.core.app.ApplicationProvider;
 
@@ -327,6 +330,7 @@ public class AboutLoggingSettingsRobolectricTest {
         firstField.setText("Fuel");
         categorySwitchAt(categoryList, 0).setChecked(true);
         ImageButton addButton = dialog.findViewById(R.id.aboutPoiCategoryAddButton);
+        assertBorderlessProfileInfoBackground(activity, addButton);
         addButton.performClick();
         categoryFieldAt(categoryList, 1).setText("Restaurant");
         categorySwitchAt(categoryList, 1).setChecked(false);
@@ -351,6 +355,7 @@ public class AboutLoggingSettingsRobolectricTest {
         Spinner spinner = dialog.findViewById(R.id.aboutManeuverVoiceSpinner);
         ImageButton playButton = dialog.findViewById(R.id.aboutManeuverVoicePlayButton);
 
+        assertBorderlessProfileInfoBackground(activity, playButton);
         assertEquals(activity.getString(R.string.label_maneuver_voice_spinner), voiceLabel.getText().toString());
         assertEquals(
                 activity.getString(R.string.action_test_maneuver_voice),
@@ -378,6 +383,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         Button ttsSettingsButton = dialog.findViewById(R.id.aboutTtsSettingsButton);
 
+        assertBorderlessProfileInfoBackground(activity, ttsSettingsButton);
         assertEquals(
                 activity.getString(R.string.action_android_tts_settings_short),
                 ttsSettingsButton.getText().toString()
@@ -414,6 +420,7 @@ public class AboutLoggingSettingsRobolectricTest {
         TextView credits = activity.findViewById(R.id.aboutCredits);
         int expectedProjectLinkColor = credits.getLinkTextColors().getDefaultColor();
 
+        assertNotEquals(ContextCompat.getColor(activity, R.color.success), expectedProjectLinkColor);
         assertEquals(expectedProjectLinkColor, sourceCodeLink.getCurrentTextColor());
         assertEquals(expectedProjectLinkColor, reportIssueLink.getCurrentTextColor());
         assertTrue(TextViewCompat.getCompoundDrawableTintList(sourceCodeLink) == null);

@@ -7,4 +7,5 @@
     <item name="aboutManeuverVoiceSpinner" type="id" />
     <item name="aboutManeuverVoicePlayButton" type="id" />
     <item name="aboutTtsSettingsButton" type="id" />
+    <item name="profileParameterInfoButton" type="id" />
 </resources>

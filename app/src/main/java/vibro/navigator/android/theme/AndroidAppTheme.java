@@ -20,7 +20,6 @@ public final class AndroidAppTheme {
             {R.attr.vibroTextPrimaryColor, R.color.white},
             {R.attr.vibroTextSecondaryColor, R.color.gray_700},
             {R.attr.vibroTextHintColor, R.color.gray_700},
-            {R.attr.vibroLinkTextColor, R.color.success},
             {R.attr.vibroSurfaceColor, R.color.surface_800},
             {R.attr.vibroSurfaceStrongColor, R.color.gray_900},
             {R.attr.vibroOutlineColor, R.color.outline},

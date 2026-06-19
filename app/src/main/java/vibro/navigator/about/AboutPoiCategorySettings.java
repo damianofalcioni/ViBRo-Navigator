@@ -21,6 +21,7 @@ import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.android.theme.AndroidThemedButtons;
 import vibro.navigator.settings.AppPoiCategorySetting;
 import vibro.navigator.settings.AppSettings;
 
@@ -201,7 +202,7 @@ final class AboutPoiCategorySettings {
     @NonNull
     private ImageButton createIconButton(int iconResId, int contentDescriptionResId) {
         ImageButton button = new ImageButton(activity);
-        button.setBackgroundResource(R.drawable.bg_button_icon);
+        AndroidThemedButtons.applyIconButtonBackground(button);
         button.setContentDescription(activity.getString(contentDescriptionResId));
         button.setImageResource(iconResId);
         button.setPadding(dp(10), dp(10), dp(10), dp(10));

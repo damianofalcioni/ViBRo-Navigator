@@ -4,7 +4,6 @@
     <attr name="vibroTextPrimaryColor" format="color|reference" />
     <attr name="vibroTextSecondaryColor" format="color|reference" />
     <attr name="vibroTextHintColor" format="color|reference" />
-    <attr name="vibroLinkTextColor" format="color|reference" />
     <attr name="vibroSurfaceColor" format="color|reference" />
     <attr name="vibroSurfaceStrongColor" format="color|reference" />
     <attr name="vibroOutlineColor" format="color|reference" />

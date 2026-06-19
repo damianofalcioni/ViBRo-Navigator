@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.android.theme.AndroidThemedButtons;
 import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 
 final class AboutManeuverVoiceDialog {
@@ -118,7 +119,7 @@ final class AboutManeuverVoiceDialog {
     ) {
         ImageButton button = new ImageButton(activity);
         button.setId(R.id.aboutManeuverVoicePlayButton);
-        button.setBackgroundResource(R.drawable.bg_button_icon);
+        AndroidThemedButtons.applyIconButtonBackground(button);
         button.setContentDescription(activity.getString(R.string.action_test_maneuver_voice));
         button.setImageResource(R.drawable.ic_play);
         button.setPadding(dp(activity, 10), dp(activity, 10), dp(activity, 10), dp(activity, 10));
@@ -136,7 +137,7 @@ final class AboutManeuverVoiceDialog {
         button.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_settings, 0);
         button.setCompoundDrawablePadding(dp(activity, 8));
         button.setAllCaps(false);
-        button.setBackgroundResource(R.drawable.bg_button_secondary);
+        AndroidThemedButtons.applySecondaryButtonBackground(button);
         button.setGravity(Gravity.CENTER);
         button.setMinHeight(dp(activity, 52));
         button.setMinWidth(dp(activity, 96));
