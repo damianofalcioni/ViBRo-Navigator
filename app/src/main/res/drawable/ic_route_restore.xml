@@ -8,7 +8,7 @@
     <path
         android:fillColor="@android:color/transparent"
         android:pathData="M5.5,8.0C6.9,5.55 9.5,4 12.5,4C17.2,4 21,7.8 21,12.5S17.2,21 12.5,21c-3.2,0 -6,-1.8 -7.4,-4.4"
-        android:strokeColor="@color/white"
+        android:strokeColor="?attr/vibroIconColor"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="2" />
@@ -16,7 +16,7 @@
     <path
         android:fillColor="@android:color/transparent"
         android:pathData="M5,3.2v5h5"
-        android:strokeColor="@color/white"
+        android:strokeColor="?attr/vibroIconColor"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:strokeWidth="2" />

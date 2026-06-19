@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 
@@ -176,11 +177,11 @@ final class NavigationCompassRouteMarkerRenderer {
             return;
         }
         routeMarkerPaint.setStyle(Paint.Style.FILL);
-        routeMarkerPaint.setColor(ContextCompat.getColor(context, R.color.white));
+        routeMarkerPaint.setColor(AndroidAppTheme.color(context, R.attr.vibroCompassMarkColor));
         routeMarkerPaint.setAlpha(128);
 
         destinationPaint.setStyle(Paint.Style.FILL);
-        destinationPaint.setColor(ContextCompat.getColor(context, R.color.white));
+        destinationPaint.setColor(AndroidAppTheme.color(context, R.attr.vibroCompassMarkColor));
 
         destinationReachedRadiusPaint.setStyle(Paint.Style.FILL);
         destinationReachedRadiusPaint.setColor(ContextCompat.getColor(context, R.color.compass_accent));

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="vibroBackgroundColor" format="color|reference" />
+    <attr name="vibroTextPrimaryColor" format="color|reference" />
+    <attr name="vibroTextSecondaryColor" format="color|reference" />
+    <attr name="vibroTextHintColor" format="color|reference" />
+    <attr name="vibroLinkTextColor" format="color|reference" />
+    <attr name="vibroSurfaceColor" format="color|reference" />
+    <attr name="vibroSurfaceStrongColor" format="color|reference" />
+    <attr name="vibroOutlineColor" format="color|reference" />
+    <attr name="vibroRippleColor" format="color|reference" />
+    <attr name="vibroIconColor" format="color|reference" />
+    <attr name="vibroIconContrastColor" format="color|reference" />
+    <attr name="vibroSelectedSurfaceColor" format="color|reference" />
+    <attr name="vibroMapPoiPanelColor" format="color|reference" />
+    <attr name="vibroLogoLineColor" format="color|reference" />
+    <attr name="vibroCompassSurfaceColor" format="color|reference" />
+    <attr name="vibroCompassRingColor" format="color|reference" />
+    <attr name="vibroCompassMarkColor" format="color|reference" />
+    <attr name="vibroCompassCenterColor" format="color|reference" />
+    <attr name="vibroCompassPausedRingColor" format="color|reference" />
+</resources>

@@ -22,6 +22,9 @@
   </tr>
 </table>
 
+> [!Disclaimer]
+> The project is entirely created by AI. **No** code has been written nor reviewed by humans. Despite that...
+
 ## ✨ Key Features
 
 * **Vibration-based navigation**

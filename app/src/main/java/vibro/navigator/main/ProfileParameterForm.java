@@ -11,14 +11,13 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.brouter.BRouterProfileParameter;
 
 final class ProfileParameterForm {
@@ -111,7 +110,7 @@ final class ProfileParameterForm {
 
             TextView name = new TextView(context);
             name.setText(parameter.name);
-            name.setTextColor(ContextCompat.getColor(context, R.color.white));
+            name.setTextColor(AndroidAppTheme.color(context, R.attr.vibroTextPrimaryColor));
             name.setLayoutParams(nameLayoutParams());
             row.addView(name);
 

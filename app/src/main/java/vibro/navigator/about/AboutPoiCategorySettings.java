@@ -2,7 +2,6 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.os.Build;
 import android.text.InputType;
 import android.util.TypedValue;
@@ -17,12 +16,11 @@ import android.widget.ScrollView;
 import android.widget.Switch;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.settings.AppPoiCategorySetting;
 import vibro.navigator.settings.AppSettings;
 
@@ -184,8 +182,8 @@ final class AboutPoiCategorySettings {
         editText.setMaxLines(1);
         editText.setSingleLine(true);
         editText.setText(value);
-        editText.setTextColor(Color.WHITE);
-        editText.setHintTextColor(ContextCompat.getColor(activity, R.color.gray_700));
+        editText.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
+        editText.setHintTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextHintColor));
         editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         return editText;
     }

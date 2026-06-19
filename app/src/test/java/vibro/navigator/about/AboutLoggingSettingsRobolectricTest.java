@@ -29,6 +29,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 import vibro.navigator.settings.AppSettings;
+import vibro.navigator.settings.AppThemeSettings;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -57,6 +58,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.init(context);
         AppSettings.setFusedLocationEnabled(context, true);
         AppSettings.setImperialUnitsEnabled(context, false);
+        AppThemeSettings.setLightThemeEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, true);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
         AppSettings.setMapPoiCategoryFilterEnabled(context, false);

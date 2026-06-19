@@ -19,9 +19,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-
 import vibro.navigator.android.location.AndroidMapPickerLocationController;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -67,6 +66,7 @@ public final class MapPickerActivity extends Activity {
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map_picker);
 
@@ -175,7 +175,7 @@ public final class MapPickerActivity extends Activity {
         settings.setDomStorageEnabled(true);
         settings.setBuiltInZoomControls(false);
         settings.setDisplayZoomControls(false);
-        mapWebView.setBackgroundColor(ContextCompat.getColor(this, R.color.black));
+        mapWebView.setBackgroundColor(AndroidAppTheme.color(this, R.attr.vibroBackgroundColor));
         mapWebView.setOverScrollMode(View.OVER_SCROLL_NEVER);
         mapWebView.addJavascriptInterface(new MapJavascriptBridge(), "AndroidBridge");
         mapWebView.setWebViewClient(new WebViewClient() {

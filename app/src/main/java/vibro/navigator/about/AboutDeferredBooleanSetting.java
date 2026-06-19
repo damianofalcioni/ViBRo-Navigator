@@ -52,11 +52,15 @@ final class AboutDeferredBooleanSetting {
     }
 
     void flush() {
+        flush(true);
+    }
+
+    void flush(boolean runAfterWrite) {
         if (!pending) {
             return;
         }
         scheduler.removeCallbacks(applyPending);
-        applyNow();
+        applyNow(runAfterWrite);
     }
 
     void render(@NonNull Switch switchView, boolean storedValue) {
@@ -69,9 +73,15 @@ final class AboutDeferredBooleanSetting {
     }
 
     private void applyNow() {
+        applyNow(true);
+    }
+
+    private void applyNow(boolean runAfterWrite) {
         boolean value = pendingValue;
         pending = false;
         writer.write(value);
-        afterWrite.run();
+        if (runAfterWrite) {
+            afterWrite.run();
+        }
     }
 }

@@ -35,7 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/label_vehicle_profile"
-            android:textColor="@color/white" />
+            android:textColor="?attr/vibroTextPrimaryColor" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -66,7 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/label_destination"
-            android:textColor="@color/white" />
+            android:textColor="?attr/vibroTextPrimaryColor" />
 
         <FrameLayout
             android:id="@+id/routeSetupPanel"
@@ -103,8 +103,8 @@
                         android:importantForAutofill="no"
                         android:imeOptions="actionDone"
                         android:inputType="text"
-                        android:textColor="@color/white"
-                        android:textColorHint="@color/gray_700" />
+                        android:textColor="?attr/vibroTextPrimaryColor"
+                        android:textColorHint="?attr/vibroTextHintColor" />
 
                     <ImageButton
                         android:id="@+id/destinationMapButton"

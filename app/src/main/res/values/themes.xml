@@ -3,7 +3,64 @@
     <style name="Theme.ViBRoNavigator" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@color/black</item>
         <item name="android:textColor">@color/white</item>
+        <item name="android:textColorPrimary">@color/white</item>
+        <item name="android:textColorSecondary">@color/gray_700</item>
+        <item name="android:textColorHint">@color/gray_700</item>
+        <item name="android:textColorLink">@color/success</item>
+        <item name="android:colorAccent">@color/success</item>
         <item name="android:statusBarColor">@color/black</item>
         <item name="android:navigationBarColor">@color/black</item>
+        <item name="vibroBackgroundColor">@color/black</item>
+        <item name="vibroTextPrimaryColor">@color/white</item>
+        <item name="vibroTextSecondaryColor">@color/gray_700</item>
+        <item name="vibroTextHintColor">@color/gray_700</item>
+        <item name="vibroLinkTextColor">@color/success</item>
+        <item name="vibroSurfaceColor">@color/surface_800</item>
+        <item name="vibroSurfaceStrongColor">@color/gray_900</item>
+        <item name="vibroOutlineColor">@color/outline</item>
+        <item name="vibroRippleColor">@color/ripple_light</item>
+        <item name="vibroIconColor">@color/white</item>
+        <item name="vibroIconContrastColor">@color/black</item>
+        <item name="vibroSelectedSurfaceColor">@color/dark_selected_surface</item>
+        <item name="vibroMapPoiPanelColor">@color/dark_map_poi_panel</item>
+        <item name="vibroLogoLineColor">@color/white</item>
+        <item name="vibroCompassSurfaceColor">@color/compass_surface</item>
+        <item name="vibroCompassRingColor">@color/compass_ring</item>
+        <item name="vibroCompassMarkColor">@color/white</item>
+        <item name="vibroCompassCenterColor">@color/compass_center</item>
+        <item name="vibroCompassPausedRingColor">@color/compass_paused_ring</item>
     </style>
+
+    <style name="Theme.ViBRoNavigatorLightBase" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/light_background</item>
+        <item name="android:textColor">@color/light_text_primary</item>
+        <item name="android:textColorPrimary">@color/light_text_primary</item>
+        <item name="android:textColorSecondary">@color/light_text_secondary</item>
+        <item name="android:textColorHint">@color/light_text_hint</item>
+        <item name="android:textColorLink">@color/light_link</item>
+        <item name="android:colorAccent">@color/success</item>
+        <item name="android:statusBarColor">@color/light_background</item>
+        <item name="android:navigationBarColor">@color/light_background</item>
+        <item name="vibroBackgroundColor">@color/light_background</item>
+        <item name="vibroTextPrimaryColor">@color/light_text_primary</item>
+        <item name="vibroTextSecondaryColor">@color/light_text_secondary</item>
+        <item name="vibroTextHintColor">@color/light_text_hint</item>
+        <item name="vibroLinkTextColor">@color/light_link</item>
+        <item name="vibroSurfaceColor">@color/light_surface</item>
+        <item name="vibroSurfaceStrongColor">@color/light_surface_strong</item>
+        <item name="vibroOutlineColor">@color/light_outline</item>
+        <item name="vibroRippleColor">@color/light_ripple</item>
+        <item name="vibroIconColor">@color/light_text_primary</item>
+        <item name="vibroIconContrastColor">@color/light_surface</item>
+        <item name="vibroSelectedSurfaceColor">@color/light_selected_surface</item>
+        <item name="vibroMapPoiPanelColor">@color/light_map_poi_panel</item>
+        <item name="vibroLogoLineColor">@color/black</item>
+        <item name="vibroCompassSurfaceColor">@color/light_compass_surface</item>
+        <item name="vibroCompassRingColor">@color/light_compass_ring</item>
+        <item name="vibroCompassMarkColor">@color/light_text_primary</item>
+        <item name="vibroCompassCenterColor">@color/light_text_primary</item>
+        <item name="vibroCompassPausedRingColor">@color/light_text_secondary</item>
+    </style>
+
+    <style name="Theme.ViBRoNavigator.Light" parent="@style/Theme.ViBRoNavigatorLightBase" />
 </resources>

@@ -2,7 +2,6 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 
 final class AboutManeuverVoiceDialog {
@@ -96,7 +96,7 @@ final class AboutManeuverVoiceDialog {
         TextView label = new TextView(activity);
         label.setId(R.id.aboutManeuverVoiceDialogVoiceLabel);
         label.setText(R.string.label_maneuver_voice_spinner);
-        label.setTextColor(Color.WHITE);
+        label.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
         label.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         return label;
     }
@@ -141,7 +141,7 @@ final class AboutManeuverVoiceDialog {
         button.setMinHeight(dp(activity, 52));
         button.setMinWidth(dp(activity, 96));
         button.setPadding(dp(activity, 18), 0, dp(activity, 16), 0);
-        button.setTextColor(Color.WHITE);
+        button.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
         button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
         button.setOnClickListener(v -> NavigationTextToSpeechSettingsLauncher.open(activity));
         return button;

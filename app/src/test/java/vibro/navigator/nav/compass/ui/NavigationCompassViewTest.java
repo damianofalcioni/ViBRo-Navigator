@@ -245,6 +245,30 @@ public class NavigationCompassViewTest {
     }
 
     @Test
+    public void compassUsesLightThemePalette() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        activity.setTheme(R.style.Theme_ViBRoNavigator_Light);
+        NavigationCompassView compassView = new NavigationCompassView(activity);
+
+        assertEquals(
+                ContextCompat.getColor(activity, R.color.light_compass_surface),
+                paint(compassView, "surfacePaint").getColor()
+        );
+        assertEquals(
+                ContextCompat.getColor(activity, R.color.light_compass_ring),
+                paint(compassView, "ringPaint").getColor()
+        );
+        assertEquals(
+                ContextCompat.getColor(activity, R.color.light_text_primary),
+                paint(compassView, "majorTickPaint").getColor()
+        );
+        assertEquals(
+                ContextCompat.getColor(activity, R.color.light_text_primary),
+                paint(compassView, "centerPaint").getColor()
+        );
+    }
+
+    @Test
     public void pausedAndCalibrationLayersUseOuterCompassGeometry() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassView compassView = new NavigationCompassView(activity);
@@ -350,6 +374,12 @@ public class NavigationCompassViewTest {
         NavigationCompassCalibrationRing ring = new NavigationCompassCalibrationRing(owner);
         ring.init();
         return ring;
+    }
+
+    private static Paint paint(NavigationCompassView compassView, String fieldName) throws Exception {
+        Field paintField = NavigationCompassView.class.getDeclaredField(fieldName);
+        paintField.setAccessible(true);
+        return (Paint) paintField.get(compassView);
     }
 
     private static NavCompassState compassStateWithHeadingAccuracy(Float headingAccuracyDegrees) {

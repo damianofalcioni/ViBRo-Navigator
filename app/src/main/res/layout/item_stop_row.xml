@@ -14,8 +14,8 @@
         android:importantForAutofill="no"
         android:imeOptions="actionDone"
         android:inputType="text"
-        android:textColor="@color/white"
-        android:textColorHint="@color/gray_700" />
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textColorHint="?attr/vibroTextHintColor" />
 
     <ImageButton
         android:id="@+id/stopMapButton"

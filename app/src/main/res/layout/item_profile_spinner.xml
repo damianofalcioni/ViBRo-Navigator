@@ -10,5 +10,5 @@
     android:paddingEnd="48dp"
     android:paddingBottom="14dp"
     android:singleLine="true"
-    android:textColor="@color/white"
+    android:textColor="?attr/vibroTextPrimaryColor"
     android:textSize="16sp" />

@@ -14,6 +14,7 @@ import androidx.core.content.ContextCompat;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.voice.NavigationVoiceOption;
 
 final class AboutManeuverVoiceOptionAdapter
@@ -68,7 +69,9 @@ final class AboutManeuverVoiceOptionAdapter
             return;
         }
         TextView textView = (TextView) view;
-        textView.setTextColor(ContextCompat.getColor(context, selected ? R.color.success : R.color.white));
+        textView.setTextColor(selected
+                ? ContextCompat.getColor(context, R.color.success)
+                : AndroidAppTheme.color(context, R.attr.vibroTextPrimaryColor));
         textView.setTypeface(selected ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
     }
 }

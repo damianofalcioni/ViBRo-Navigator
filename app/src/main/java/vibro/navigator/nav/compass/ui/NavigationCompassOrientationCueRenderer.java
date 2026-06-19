@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.NavCompassState;
 
@@ -107,7 +108,7 @@ final class NavigationCompassOrientationCueRenderer {
         markerBorderPaint.setStyle(Paint.Style.STROKE);
         markerBorderPaint.setStrokeWidth(dp(context, MARKER_BORDER_WIDTH_DP));
         markerBorderPaint.setStrokeJoin(Paint.Join.ROUND);
-        markerBorderPaint.setColor(ContextCompat.getColor(context, R.color.compass_surface));
+        markerBorderPaint.setColor(AndroidAppTheme.color(context, R.attr.vibroCompassSurfaceColor));
         initialized = true;
     }
 

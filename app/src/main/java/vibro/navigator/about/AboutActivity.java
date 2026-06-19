@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import vibro.navigator.android.theme.AndroidAppTheme;
+
 public class AboutActivity extends Activity {
 
     private final AboutDiagnosticRenderScheduler diagnosticRenderScheduler =
@@ -25,6 +27,7 @@ public class AboutActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
 
@@ -32,6 +35,7 @@ public class AboutActivity extends Activity {
         Switch logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
         Switch fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
         Switch imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
+        Switch lightThemeSwitch = findViewById(R.id.aboutLightThemeSwitch);
         Switch poiCategoriesSwitch = findViewById(R.id.aboutPoiCategoriesSwitch);
         View poiCategoriesButton = findViewById(R.id.aboutPoiCategoriesButton);
         View maneuverVoiceSettingsButton = findViewById(R.id.aboutManeuverVoiceSettingsButton);
@@ -48,6 +52,7 @@ public class AboutActivity extends Activity {
                 logEnabledSwitch,
                 fusedLocationSwitch,
                 imperialUnitsSwitch,
+                lightThemeSwitch,
                 this::scheduleDiagnosticSectionRender
         );
         settingsSwitches.configure();

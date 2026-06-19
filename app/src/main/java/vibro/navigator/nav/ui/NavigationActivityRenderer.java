@@ -1,6 +1,7 @@
 package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.ui.NavigationCompassView;
 
 
@@ -134,7 +135,7 @@ final class NavigationActivityRenderer {
             return;
         }
         blocked.setColorFilter(
-                ContextCompat.getColor(activity, R.color.gray_700),
+                AndroidAppTheme.color(activity, R.attr.vibroTextSecondaryColor),
                 PorterDuff.Mode.SRC_IN
         );
     }

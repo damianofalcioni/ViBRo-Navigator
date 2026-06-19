@@ -19,6 +19,7 @@ import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.android.theme.AndroidAppTheme;
 
 // Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
 public class MainActivity extends Activity {
@@ -34,9 +35,11 @@ public class MainActivity extends Activity {
     private MainActivityStopController stopController;
     private MainActivityProfilePicker profilePicker;
     private MainActivityMapPickerCoordinator mapPickerCoordinator;
+    private boolean appliedLightTheme;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        appliedLightTheme = AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
@@ -131,6 +134,12 @@ public class MainActivity extends Activity {
             return;
         }
         MainActivityIntentHandler.handleIncomingIntent(this, intent, destinationController);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
     }
 
     private void openStopMapPicker(@NonNull PoiInputController stopInputController) {

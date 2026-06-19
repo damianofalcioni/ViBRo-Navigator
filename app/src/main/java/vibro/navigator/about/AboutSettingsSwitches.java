@@ -10,6 +10,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppSettings;
+import vibro.navigator.settings.AppThemeSettings;
 
 final class AboutSettingsSwitches {
 
@@ -22,6 +23,8 @@ final class AboutSettingsSwitches {
     @NonNull
     private final Switch imperialUnitsSwitch;
     @NonNull
+    private final Switch lightThemeSwitch;
+    @NonNull
     private final Runnable afterSettingApplied;
     @NonNull
     private final TaskScheduler settingsChangeScheduler = AndroidTaskScheduler.main();
@@ -29,18 +32,21 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting logEnabledSetting;
     private AboutDeferredBooleanSetting fusedLocationSetting;
     private AboutDeferredBooleanSetting imperialUnitsSetting;
+    private AboutDeferredBooleanSetting lightThemeSetting;
 
     AboutSettingsSwitches(
             @NonNull Activity activity,
             @NonNull Switch logEnabledSwitch,
             @NonNull Switch fusedLocationSwitch,
             @NonNull Switch imperialUnitsSwitch,
+            @NonNull Switch lightThemeSwitch,
             @NonNull Runnable afterSettingApplied
     ) {
         this.activity = activity;
         this.logEnabledSwitch = logEnabledSwitch;
         this.fusedLocationSwitch = fusedLocationSwitch;
         this.imperialUnitsSwitch = imperialUnitsSwitch;
+        this.lightThemeSwitch = lightThemeSwitch;
         this.afterSettingApplied = afterSettingApplied;
     }
 
@@ -48,6 +54,7 @@ final class AboutSettingsSwitches {
         configureLogEnabledSwitch();
         configureFusedLocationSwitch();
         configureImperialUnitsSwitch();
+        configureLightThemeSwitch();
     }
 
     void render() {
@@ -57,12 +64,14 @@ final class AboutSettingsSwitches {
                 DistributionServices.supportsFusedLocation() && AppSettings.isFusedLocationEnabled(activity)
         );
         imperialUnitsSetting.render(imperialUnitsSwitch, AppSettings.isImperialUnitsEnabled(activity));
+        lightThemeSetting.render(lightThemeSwitch, AppThemeSettings.isLightThemeEnabled(activity));
     }
 
     void flush() {
         logEnabledSetting.flush();
         fusedLocationSetting.flush();
         imperialUnitsSetting.flush();
+        lightThemeSetting.flush(false);
     }
 
     private void configureLogEnabledSwitch() {
@@ -103,5 +112,22 @@ final class AboutSettingsSwitches {
         imperialUnitsSetting.render(imperialUnitsSwitch, AppSettings.isImperialUnitsEnabled(activity));
         imperialUnitsSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 imperialUnitsSetting.set(isChecked));
+    }
+
+    private void configureLightThemeSwitch() {
+        lightThemeSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppThemeSettings.setLightThemeEnabled(activity, enabled),
+                this::recreateForThemeChange
+        );
+        lightThemeSetting.render(lightThemeSwitch, AppThemeSettings.isLightThemeEnabled(activity));
+        lightThemeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                lightThemeSetting.set(isChecked));
+    }
+
+    private void recreateForThemeChange() {
+        if (!activity.isFinishing()) {
+            activity.recreate();
+        }
     }
 }

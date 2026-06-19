@@ -16,10 +16,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-
 import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.distribution.GooglePoiApiKeyValidationResult;
@@ -155,8 +154,8 @@ final class AboutGooglePoiApiKeySettings {
                 | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         editText.setTransformationMethod(PasswordTransformationMethod.getInstance());
         editText.setText(AppSettings.getGooglePoiApiKey(activity));
-        editText.setTextColor(ContextCompat.getColor(activity, R.color.white));
-        editText.setHintTextColor(ContextCompat.getColor(activity, R.color.gray_700));
+        editText.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
+        editText.setHintTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextHintColor));
         editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         return editText;
     }

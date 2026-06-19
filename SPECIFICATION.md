@@ -15,7 +15,7 @@ Core product constraints:
 - Keep generated and maintained code minimal while still implementing the features
 - Target the latest practical Android SDK while keeping `minSdk 21`
 - The current repository baseline is `compileSdk 37` and `targetSdk 37` while keeping `minSdk 21`
-- Use a black theme
+- Use a black theme by default and provide a settings switch for an optional light theme
 - Do not hardcode user-facing text in code
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
@@ -598,6 +598,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units (ft/mi/mph) switch for distance, speed, elevation, and accuracy display values
+- The about page Settings section must show a Light Theme switch that enables or disables the app's optional light theme while keeping the black theme as the default
 - The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and an `X` remove button, plus a centered `+` button that adds another field

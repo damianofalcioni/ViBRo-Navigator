@@ -20,7 +20,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/about_title"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="22sp" />
 
         <TextView
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="@color/gray_700"
+            android:textColor="?attr/vibroTextSecondaryColor"
             android:textSize="14sp" />
 
         <TextView
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/about_short_description"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <LinearLayout
@@ -59,7 +59,7 @@
                 android:gravity="center_vertical"
                 android:minHeight="44dp"
                 android:text="@string/about_source_code_link"
-                android:textColor="?android:attr/textColorLink"
+                android:textColor="?attr/vibroLinkTextColor"
                 android:textSize="15sp" />
 
             <TextView
@@ -74,7 +74,7 @@
                 android:gravity="center_vertical"
                 android:minHeight="44dp"
                 android:text="@string/about_report_issue_link"
-                android:textColor="?android:attr/textColorLink"
+                android:textColor="?attr/vibroLinkTextColor"
                 android:textSize="15sp" />
         </LinearLayout>
 
@@ -84,7 +84,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/about_legal"
-            android:textColor="@color/gray_700"
+            android:textColor="?attr/vibroTextSecondaryColor"
             android:textSize="14sp" />
 
         <TextView
@@ -94,14 +94,14 @@
             android:layout_marginTop="12dp"
             android:autoLink="web"
             android:text="@string/about_credits"
-            android:textColor="@color/gray_700"
+            android:textColor="?attr/vibroTextSecondaryColor"
             android:textSize="14sp" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="24dp"
-            android:background="@color/outline" />
+            android:background="?attr/vibroOutlineColor" />
 
         <TextView
             android:id="@+id/aboutSettingsTitle"
@@ -109,7 +109,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/about_settings_title"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="18sp" />
 
         <Switch
@@ -119,7 +119,7 @@
             android:layout_marginTop="8dp"
             android:minHeight="48dp"
             android:text="@string/label_log_enabled"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <Switch
@@ -129,7 +129,7 @@
             android:layout_marginTop="8dp"
             android:minHeight="48dp"
             android:text="@string/label_fused_location_enabled"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <Switch
@@ -139,7 +139,17 @@
             android:layout_marginTop="8dp"
             android:minHeight="48dp"
             android:text="@string/label_imperial_units_enabled"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <Switch
+            android:id="@+id/aboutLightThemeSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/label_light_theme_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <Switch
@@ -149,7 +159,7 @@
             android:layout_marginTop="8dp"
             android:minHeight="48dp"
             android:text="@string/label_android_auto_integration_enabled"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp"
             android:visibility="gone" />
 
@@ -168,7 +178,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/label_poi_categories"
-                android:textColor="@color/white"
+                android:textColor="?attr/vibroTextPrimaryColor"
                 android:textSize="16sp" />
 
             <ImageButton
@@ -203,7 +213,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/label_maneuver_voice"
-                android:textColor="@color/white"
+                android:textColor="?attr/vibroTextPrimaryColor"
                 android:textSize="16sp" />
 
             <ImageButton
@@ -239,7 +249,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/label_google_poi_api_key"
-                android:textColor="@color/white"
+                android:textColor="?attr/vibroTextPrimaryColor"
                 android:textSize="16sp" />
 
             <ImageButton
@@ -284,7 +294,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="24dp"
-            android:background="@color/outline" />
+            android:background="?attr/vibroOutlineColor" />
 
         <TextView
             android:id="@+id/aboutSensorStatusTitle"
@@ -292,7 +302,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
             android:text="@string/about_diagnostic_title"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="18sp" />
 
         <TextView
@@ -301,7 +311,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/about_permission_status_title"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <LinearLayout
@@ -336,7 +346,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/label_permission_location"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/vibroTextPrimaryColor"
                     android:textSize="15sp" />
 
                 <TextView
@@ -374,7 +384,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/label_permission_location_services"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/vibroTextPrimaryColor"
                     android:textSize="15sp" />
 
                 <TextView
@@ -412,7 +422,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/label_permission_notifications"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/vibroTextPrimaryColor"
                     android:textSize="15sp" />
 
                 <TextView
@@ -450,7 +460,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/label_permission_battery"
-                    android:textColor="@color/white"
+                    android:textColor="?attr/vibroTextPrimaryColor"
                     android:textSize="15sp" />
 
                 <TextView
@@ -470,7 +480,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/about_sensor_status_title"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <TextView
@@ -478,7 +488,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textColor="@color/gray_700"
+            android:textColor="?attr/vibroTextSecondaryColor"
             android:textSize="14sp" />
 
         <TextView
@@ -487,7 +497,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/label_direction_notification_tests"
-            android:textColor="@color/white"
+            android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
 
         <LinearLayout

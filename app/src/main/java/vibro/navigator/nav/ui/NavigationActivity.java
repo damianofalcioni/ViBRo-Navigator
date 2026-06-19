@@ -9,6 +9,7 @@ import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -85,6 +86,7 @@ public class NavigationActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
         startupCoordinator.setAutoStartNavigation(

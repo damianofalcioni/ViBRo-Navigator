@@ -293,6 +293,7 @@
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
     <string name="label_imperial_units_enabled">Use imperial units (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Light Theme</string>
     <string name="label_android_auto_integration_enabled">Android Auto integration</string>
     <string name="label_poi_categories">POI categories filter</string>
     <string name="hint_poi_category_name">POI Category Name</string>

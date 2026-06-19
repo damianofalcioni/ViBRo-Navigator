@@ -18,7 +18,7 @@
 
     <style name="Widget.ViBRoNavigator.Button.Primary" parent="@style/Widget.ViBRoNavigator.Button">
         <item name="android:background">@drawable/bg_button_secondary</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/vibroTextPrimaryColor</item>
     </style>
 
     <style name="Widget.ViBRoNavigator.Button.Fab" parent="@style/Widget.ViBRoNavigator.Button">
@@ -27,7 +27,7 @@
         <item name="android:paddingStart">0dp</item>
         <item name="android:paddingEnd">0dp</item>
         <item name="android:background">@drawable/bg_button_icon</item>
-        <item name="android:textColor">@color/white</item>
+        <item name="android:textColor">?attr/vibroIconColor</item>
         <item name="android:textSize">26sp</item>
     </style>
 

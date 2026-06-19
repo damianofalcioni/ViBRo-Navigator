@@ -105,7 +105,7 @@
         android:background="@drawable/bg_map_poi_panel"
         android:gravity="center"
         android:padding="10dp"
-        android:textColor="@color/white"
+        android:textColor="?attr/vibroTextPrimaryColor"
         android:textSize="12sp"
         android:visibility="gone" />
 </merge>

@@ -12,9 +12,9 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 
 final class SavedRouteDialogViews {
     private SavedRouteDialogViews() {
@@ -41,8 +41,8 @@ final class SavedRouteDialogViews {
         editText.setSingleLine(true);
         editText.setText(value);
         editText.setSelection(editText.getText().length());
-        editText.setTextColor(Color.WHITE);
-        editText.setHintTextColor(ContextCompat.getColor(activity, R.color.gray_700));
+        editText.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
+        editText.setHintTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextHintColor));
         editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         return editText;
     }

@@ -8,9 +8,8 @@ import android.widget.EditText;
 import android.widget.ListPopupWindow;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
-
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.logging.AppLogger;
 
@@ -37,7 +36,9 @@ final class PoiSuggestionPopupController {
         popup.setAnchorView(anchor);
         popup.setAdapter(adapter);
         popup.setModal(false);
-        popup.setBackgroundDrawable(new ColorDrawable(ContextCompat.getColor(context, R.color.black)));
+        popup.setBackgroundDrawable(new ColorDrawable(
+                AndroidAppTheme.color(context, R.attr.vibroBackgroundColor)
+        ));
         popup.setOnItemClickListener((parent, view, position, id) -> {
             PoiSuggestion suggestion = (PoiSuggestion) adapter.getItem(position);
             listener.onPoiSelected(suggestion.poi);

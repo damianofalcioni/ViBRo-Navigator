@@ -6,10 +6,10 @@
     android:viewportHeight="24">
 
     <path
-        android:fillColor="@color/white"
+        android:fillColor="?attr/vibroIconColor"
         android:pathData="M5,5h9v2H7v10h10v-7h2v9H5z" />
 
     <path
-        android:fillColor="@color/white"
+        android:fillColor="?attr/vibroIconColor"
         android:pathData="M15,3h6v6h-2V6.4l-6.3,6.3l-1.4,-1.4L17.6,5H15z" />
 </vector>

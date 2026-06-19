@@ -2,7 +2,6 @@ package vibro.navigator.main;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.graphics.Color;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 
 final class SavedRouteRestoreList {
     @NonNull
@@ -98,7 +98,7 @@ final class SavedRouteRestoreList {
     private TextView createEmptyText() {
         TextView textView = new TextView(activity);
         textView.setText(R.string.msg_saved_routes_empty);
-        textView.setTextColor(Color.WHITE);
+        textView.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
         textView.setGravity(Gravity.CENTER);
         textView.setMinHeight(SavedRouteDialogViews.dp(activity, 64));
         return textView;
@@ -143,7 +143,7 @@ final class SavedRouteRestoreList {
     private TextView createRouteTitle(@NonNull String title) {
         TextView textView = new TextView(activity);
         textView.setText(title);
-        textView.setTextColor(Color.WHITE);
+        textView.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
         textView.setTextSize(15f);
         return textView;
     }

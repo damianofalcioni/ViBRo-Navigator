@@ -108,7 +108,7 @@ Use these guardrails as a change-specific checklist before editing or reviewing 
 - If you change logging, keep the shared `buildLogPrefix` plus `AppLogFiles.appendBlock` path intact so formatting, log-enabled gating, file-session selection, trimming, and legacy migration behavior stay consistent.
 - If you change the stored data backup format, update `settings/AppDataBackup`, its tests, and the specification together so import/export compatibility and included data stores remain explicit.
 - When extracting helpers around Android APIs, preserve lint-visible SDK guards with `@RequiresApi`, guarded callers, or min-SDK-safe overloads. In particular, avoid newer Java/Android overloads such as `URLEncoder.encode(String, Charset)` unless desugaring/minSdk support is already verified by flavor lint.
-- If you change icon/theme/about assets, preserve the app identity: minimal, black-theme, vibration-first navigation.
+- If you change icon/theme/about assets, preserve the app identity: minimal, dark-by-default, vibration-first navigation, with light mode treated as an optional user setting.
 
 ## Architecture
 

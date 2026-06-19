@@ -13,16 +13,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
+import androidx.core.content.ContextCompat;
 
 import java.util.List;
 import java.util.Set;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 
 final class MapPoiOverlayView {
-    private static final int CATEGORY_TEXT_COLOR = Color.WHITE;
-    private static final int CATEGORY_SELECTED_TEXT_COLOR = 0xFF32D074;
-    private static final int CATEGORY_SELECTED_BACKGROUND = 0xCC2C3744;
     private static final int CATEGORY_UNSELECTED_BACKGROUND = Color.TRANSPARENT;
 
     interface Listener {
@@ -123,10 +122,14 @@ final class MapPoiOverlayView {
         row.setMinHeight(dp(38));
         row.setPadding(dp(12), dp(6), dp(12), dp(6));
         row.setText(labelFor(category));
-        row.setTextColor(checked ? CATEGORY_SELECTED_TEXT_COLOR : CATEGORY_TEXT_COLOR);
+        row.setTextColor(checked
+                ? ContextCompat.getColor(activity, R.color.success)
+                : AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
         row.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         row.setTypeface(Typeface.DEFAULT, checked ? Typeface.BOLD : Typeface.NORMAL);
-        row.setBackgroundColor(checked ? CATEGORY_SELECTED_BACKGROUND : CATEGORY_UNSELECTED_BACKGROUND);
+        row.setBackgroundColor(checked
+                ? AndroidAppTheme.color(activity, R.attr.vibroSelectedSurfaceColor)
+                : CATEGORY_UNSELECTED_BACKGROUND);
         row.setSelected(checked);
         row.setOnClickListener(v -> listener.onCategoryChecked(category, !checked));
         return row;

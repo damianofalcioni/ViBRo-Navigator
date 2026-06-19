@@ -78,6 +78,7 @@ public class AppDataBackupTest {
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppSettings.setGooglePoiSearchEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, false);
@@ -122,6 +123,7 @@ public class AppDataBackupTest {
         assertEquals(originalPoi.lon, restoredPois.get(0).lon, 0.0d);
         assertFalse(AppSettings.isFusedLocationEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
+        assertTrue(AppThemeSettings.isLightThemeEnabled(context));
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
         assertTrue(AppSettings.hasValidGooglePoiApiKey(context));
         assertFalse(AppSettings.isGooglePoiSearchEnabled(context));
@@ -142,6 +144,7 @@ public class AppDataBackupTest {
     @Test
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppSettings.setGooglePoiSearchEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, false);
@@ -156,6 +159,7 @@ public class AppDataBackupTest {
         JSONObject sharedPreferences = root.getJSONObject(KEY_SHARED_PREFERENCES);
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
+        JSONObject lightTheme = appSettings.getJSONObject("light_theme");
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
         JSONObject googlePoiApiKeyValid = appSettings.getJSONObject("google_poi_api_key_valid");
         JSONObject googlePoiSearchEnabled = appSettings.getJSONObject("google_poi_search_enabled");
@@ -167,6 +171,8 @@ public class AppDataBackupTest {
         assertEquals(1, root.getInt("schemaVersion"));
         assertEquals(BACKUP_TYPE_BOOLEAN, imperialUnits.getString(BACKUP_TYPE));
         assertTrue(imperialUnits.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, lightTheme.getString(BACKUP_TYPE));
+        assertTrue(lightTheme.getBoolean(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_STRING, googlePoiApiKey.getString(BACKUP_TYPE));
         assertEquals(GOOGLE_POI_API_KEY, googlePoiApiKey.getString(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, googlePoiApiKeyValid.getString(BACKUP_TYPE));

@@ -15,6 +15,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
+import vibro.navigator.android.theme.AndroidAppTheme;
 
 public final class NavigationCompassView extends View {
 
@@ -86,14 +87,14 @@ public final class NavigationCompassView extends View {
 
     private void initBasePaints() {
         surfacePaint.setStyle(Paint.Style.FILL);
-        surfacePaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_surface));
+        surfacePaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassSurfaceColor));
 
         ringPaint.setStyle(Paint.Style.STROKE);
         ringPaint.setStrokeWidth(dp(2f));
-        ringPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_ring));
+        ringPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassRingColor));
 
         pausedRingPaint.setStyle(Paint.Style.STROKE);
-        pausedRingPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_paused_ring));
+        pausedRingPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassPausedRingColor));
         pausedRingPaint.setAlpha(NavigationCompassCalibrationRing.BACKGROUND_ALPHA);
 
         calibrationRing.init();
@@ -103,12 +104,12 @@ public final class NavigationCompassView extends View {
         majorTickPaint.setStyle(Paint.Style.STROKE);
         majorTickPaint.setStrokeWidth(dp(2.4f));
         majorTickPaint.setStrokeCap(Paint.Cap.ROUND);
-        majorTickPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        majorTickPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
 
         minorTickPaint.setStyle(Paint.Style.STROKE);
         minorTickPaint.setStrokeWidth(dp(1.8f));
         minorTickPaint.setStrokeCap(Paint.Cap.ROUND);
-        minorTickPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        minorTickPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
         minorTickPaint.setAlpha(220);
 
         accentTickPaint.setStyle(Paint.Style.STROKE);
@@ -116,14 +117,14 @@ public final class NavigationCompassView extends View {
         accentTickPaint.setStrokeCap(Paint.Cap.ROUND);
         accentTickPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_accent));
 
-        cardinalPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        cardinalPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
         cardinalPaint.setTextAlign(Paint.Align.CENTER);
         cardinalPaint.setFakeBoldText(false);
     }
 
     private void initMarkerPaints() {
         centerPaint.setStyle(Paint.Style.FILL);
-        centerPaint.setColor(ContextCompat.getColor(getContext(), R.color.compass_center));
+        centerPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassCenterColor));
     }
 
     private void initGuidePaints() {
@@ -131,26 +132,26 @@ public final class NavigationCompassView extends View {
         headingGuidePaint.setStrokeWidth(dp(1.2f));
         headingGuidePaint.setStrokeCap(Paint.Cap.ROUND);
         headingGuidePaint.setStrokeJoin(Paint.Join.ROUND);
-        headingGuidePaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        headingGuidePaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
         headingGuidePaint.setAlpha(128);
 
         headingAccuracyGuidePaint.setStyle(Paint.Style.STROKE);
         headingAccuracyGuidePaint.setStrokeWidth(dp(1.2f));
         headingAccuracyGuidePaint.setStrokeCap(Paint.Cap.ROUND);
         headingAccuracyGuidePaint.setStrokeJoin(Paint.Join.ROUND);
-        headingAccuracyGuidePaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        headingAccuracyGuidePaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
         headingAccuracyGuidePaint.setAlpha(128);
 
         distanceMarkPaint.setStyle(Paint.Style.STROKE);
         distanceMarkPaint.setStrokeWidth(dp(1.2f));
         distanceMarkPaint.setStrokeCap(Paint.Cap.ROUND);
         distanceMarkPaint.setStrokeJoin(Paint.Join.ROUND);
-        distanceMarkPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        distanceMarkPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
         distanceMarkPaint.setAlpha(128);
     }
 
     private void initLegendPaints() {
-        distanceLegendRightPaint.setColor(ContextCompat.getColor(getContext(), R.color.white));
+        distanceLegendRightPaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
         distanceLegendRightPaint.setTextAlign(Paint.Align.LEFT);
         distanceLegendRightPaint.setTextSize(dp(10f));
         distanceLegendRightPaint.setAlpha(128);
