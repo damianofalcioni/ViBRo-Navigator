@@ -25,6 +25,9 @@ public final class NavigationUpdateScheduler {
     private static final double MANEUVER_GUARD_TIME_THRESHOLD_SECONDS = 180.0;
     private static final long MANEUVER_GUARD_MAX_INTERVAL_MS = 20_000L;
 
+    @NonNull
+    private final PostManeuverIntervalRamp postManeuverIntervalRamp = new PostManeuverIntervalRamp();
+
     public long suggestUpdateInterval(
             long nowMs,
             long fastChecksUntilMs,
@@ -79,6 +82,14 @@ public final class NavigationUpdateScheduler {
             return MIN_UPDATE_INTERVAL_MS;
         }
         return intervalFromTimeToTarget(timeToNextSeconds);
+    }
+
+    long applyPostManeuverIntervalRamp(long suggestedIntervalMs, boolean passedInstruction) {
+        return postManeuverIntervalRamp.apply(suggestedIntervalMs, passedInstruction);
+    }
+
+    void resetPostManeuverIntervalRamp() {
+        postManeuverIntervalRamp.reset();
     }
 
     public long suggestDirectTargetUpdateInterval(
@@ -152,6 +163,17 @@ public final class NavigationUpdateScheduler {
         return bestBucketMs;
     }
 
+    static long nextHigherBucket(long intervalMs) {
+        long boundedIntervalMs = Math.max(MIN_UPDATE_INTERVAL_MS, Math.min(MAX_UPDATE_INTERVAL_MS, intervalMs));
+        for (int i = 0; i < UPDATE_INTERVAL_BUCKETS_MS.length; i++) {
+            long candidateBucketMs = UPDATE_INTERVAL_BUCKETS_MS[i];
+            if (candidateBucketMs > boundedIntervalMs) {
+                return candidateBucketMs;
+            }
+        }
+        return MAX_UPDATE_INTERVAL_MS;
+    }
+
     private static long intervalFromTimeToTarget(double timeToTargetSeconds) {
         long intervalMs = (long) Math.max(
                 MIN_UPDATE_INTERVAL_MS,
@@ -174,6 +196,45 @@ public final class NavigationUpdateScheduler {
         private LongRange(long min, long max) {
             this.min = min;
             this.max = max;
+        }
+    }
+
+    private static final class PostManeuverIntervalRamp {
+        private boolean active;
+        private long currentMaximumIntervalMs = MIN_UPDATE_INTERVAL_MS;
+
+        void reset() {
+            active = false;
+            currentMaximumIntervalMs = MIN_UPDATE_INTERVAL_MS;
+        }
+
+        long apply(long suggestedIntervalMs, boolean passedInstruction) {
+            if (suggestedIntervalMs <= 0L) {
+                reset();
+                return suggestedIntervalMs;
+            }
+            if (passedInstruction) {
+                return restart(suggestedIntervalMs);
+            }
+            if (!active) {
+                return suggestedIntervalMs;
+            }
+            if (suggestedIntervalMs <= currentMaximumIntervalMs) {
+                reset();
+                return suggestedIntervalMs;
+            }
+            currentMaximumIntervalMs = nextHigherBucket(currentMaximumIntervalMs);
+            long rampedIntervalMs = Math.min(suggestedIntervalMs, currentMaximumIntervalMs);
+            if (rampedIntervalMs >= suggestedIntervalMs || currentMaximumIntervalMs >= MAX_UPDATE_INTERVAL_MS) {
+                reset();
+            }
+            return rampedIntervalMs;
+        }
+
+        private long restart(long suggestedIntervalMs) {
+            active = true;
+            currentMaximumIntervalMs = MIN_UPDATE_INTERVAL_MS;
+            return Math.min(suggestedIntervalMs, currentMaximumIntervalMs);
         }
     }
 }

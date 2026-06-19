@@ -137,6 +137,64 @@ public class NavigationTurnStateTest {
     }
 
     @Test
+    public void evaluate_rampsUpdateIntervalUpAfterPassedTurn() {
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002),
+                        new LatLon(0.0, 0.003),
+                        new LatLon(0.0, 0.004)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 2, 0, 0.0, 0),
+                        new VoiceHint(4, 5, 0, 0.0, 0)
+                ),
+                400.0,
+                444.0
+        );
+        PolylineIndex polylineIndex = new PolylineIndex(route.track);
+        state.onRouteApplied(route, polylineIndex, Collections.emptyList(), location(0.0, 0.0), 5f, 5f);
+
+        double afterFirstTurnMeters = polylineIndex.distanceAtPointIndex(1) + 6.0;
+        NavigationTurnState.Progress passedTurn = state.evaluate(
+                route,
+                polylineIndex,
+                afterFirstTurnMeters,
+                1,
+                0f,
+                1_000L,
+                0L
+        );
+        NavigationTurnState.Progress firstRampStep = state.evaluate(
+                route,
+                polylineIndex,
+                afterFirstTurnMeters,
+                1,
+                0f,
+                4_000L,
+                0L
+        );
+        NavigationTurnState.Progress secondRampStep = state.evaluate(
+                route,
+                polylineIndex,
+                afterFirstTurnMeters,
+                1,
+                0f,
+                9_000L,
+                0L
+        );
+
+        assertEquals(1, passedTurn.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.PASSED, passedTurn.turnEvents.get(0).type);
+        assertEquals(3_000L, passedTurn.suggestedUpdateIntervalMs);
+        assertTrue(firstRampStep.turnEvents.isEmpty());
+        assertEquals(5_000L, firstRampStep.suggestedUpdateIntervalMs);
+        assertEquals(8_000L, secondRampStep.suggestedUpdateIntervalMs);
+    }
+
+    @Test
     public void evaluate_activatesTurnManeuverCueForFiveSecondSignal() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = new GeoJsonRoute(

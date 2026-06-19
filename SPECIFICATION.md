@@ -234,6 +234,7 @@ The app must monitor user position:
 - When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 3 seconds
 - Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
 - When the next maneuver or arrival is estimated within about 3 minutes, the dynamic interval should be capped at 20 seconds so speed changes cannot leave the app waiting through a long quiet window near guidance-critical points
+- After a maneuver instruction has just been passed, the dynamic interval must ramp upward through the fixed bucket set one accepted route evaluation at a time instead of jumping directly from the minimum interval to the larger interval for the following direction
 - The post-warmup dynamic interval must be snapped to a small fixed bucket set instead of continuously varying on every update
 - The bucket set must currently be `3s`, `5s`, `8s`, `12s`, `20s`, `30s`, and `60s`
 - The dynamic interval must never be lower than 3 seconds

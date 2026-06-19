@@ -33,6 +33,7 @@ public final class NavigationTurnState {
         initialTurnNotificationSent = false;
         destinationReached = false;
         intermediateDestinationReachedTrackIndex = -1;
+        updateScheduler.resetPostManeuverIntervalRamp();
         maneuverCueState.clear();
     }
 
@@ -87,7 +88,7 @@ public final class NavigationTurnState {
         maneuverCueState.update(progress.signals);
         maneuverCueState.clearIfPassed(polylineIndex, alongTrackMeters);
         clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
-        long suggestedUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
+        long naturalUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
                 nowMs,
                 fastChecksUntilMs,
                 route,
@@ -97,6 +98,10 @@ public final class NavigationTurnState {
                 alongTrackMeters,
                 currentSegmentIndex,
                 speedMps
+        );
+        long suggestedUpdateIntervalMs = updateScheduler.applyPostManeuverIntervalRamp(
+                naturalUpdateIntervalMs,
+                hasPassedInstruction(progress.signals)
         );
         return new Progress(toTurnEvents(progress.signals), suggestedUpdateIntervalMs);
     }
@@ -118,6 +123,7 @@ public final class NavigationTurnState {
         initialTurnNotificationSent = false;
         destinationReached = false;
         intermediateDestinationReachedTrackIndex = -1;
+        updateScheduler.resetPostManeuverIntervalRamp();
         maneuverCueState.clear();
         return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps, accuracyMeters);
     }
@@ -135,6 +141,7 @@ public final class NavigationTurnState {
         initialTurnNotificationSent = true;
         destinationReached = true;
         intermediateDestinationReachedTrackIndex = -1;
+        updateScheduler.resetPostManeuverIntervalRamp();
         maneuverCueState.clear();
         return NavigationTurnManeuverCueState.destinationArrival(route.track.size() - 1);
     }
@@ -145,6 +152,7 @@ public final class NavigationTurnState {
         notified20 = false;
         notified5 = false;
         intermediateDestinationReachedTrackIndex = trackIndex;
+        updateScheduler.resetPostManeuverIntervalRamp();
         maneuverCueState.clear();
         guidanceHints.advancePastIntermediateDestination(trackIndex);
         syncNextRouteHintIndex();
@@ -231,6 +239,15 @@ public final class NavigationTurnState {
     @NonNull
     private static List<NavigationTurnEvent> noTurnEvents() {
         return new ArrayList<>();
+    }
+
+    private static boolean hasPassedInstruction(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
+        for (TurnEventPlanner.TurnSignal signal : signals) {
+            if (signal.type == TurnEventPlanner.TurnSignal.Type.PASSED) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @NonNull
