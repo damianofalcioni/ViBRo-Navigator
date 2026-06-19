@@ -33,11 +33,11 @@ Core product constraints:
 
 The app must show a main UI implemented as an Android `Activity`.
 
-The main UI must include a routing-profile selector at the top.
+The main UI must include a navigation-mode selector at the top, with the BRouter profile selector directly below it.
 
 #### 1.1 Routing profiles
 
-- The selector items must include the BRouter profile names plus the special straight-line profile `Straight Line - No BRouter`
+- The BRouter profile selector items must include BRouter profile names plus a single custom-profile entry
 - Profiles may come from bundled BRouter internal profiles or from user-accessible `.brf` files in autodiscovered external `profiles2` folders
 - The selector is profile-based, not a separate vehicle-type toggle
 - Profile handling must remain compatible with both bundled BRouter profiles and autodiscovered external `profiles2` folders
@@ -46,14 +46,12 @@ The main UI must include a routing-profile selector at the top.
 - The routing-profile selector must use the same external `profiles2` discovery logic as the custom-profile picker
 - When one or more external `profiles2` folders are discoverable, the selector should list those external `.brf` profiles alongside bundled BRouter profiles
 - When no external `profiles2` folder is discoverable, the selector must fall back to bundled BRouter profiles if bundled profiles are available
-- When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show the straight-line profile and a single custom-profile entry so the user can navigate without BRouter or pick a `.brf` file manually
-- The straight-line profile must not be handled as a BRouter profile, must not require BRouter to be installed, and must remain visible and usable when no BRouter profiles are available
-- The straight-line profile info UI must explain that it points the compass toward the next destination, shows arrival distance and ETA from straight-line legs, and suppresses route lines and turn directions
+- When neither discoverable external `profiles2` folders nor bundled BRouter profiles are available, the selector must still show a single custom-profile entry so the user can pick a `.brf` file manually
+- Straight-line guidance must be selected through the navigation-mode selector, not as a BRouter profile row, and must remain visible and usable when BRouter is not installed
 - The selector must continue to behave like a normal dropdown even when a custom profile is currently selected
 - Bundled BRouter profile rows in the opened selector must include an info control that opens a UI showing the profile title, strengths, weaknesses, and distinctive usage guidance; custom or unknown external profiles must not get bundled-profile descriptions
-- The opened selector must show a separator line after the straight-line profile row
 - Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
-- A profile-settings icon button must be shown next to the routing-profile selector and must be disabled when the straight-line profile is selected
+- A profile-settings icon button must be shown next to the routing-profile selector and must be disabled when Straight Line mode is selected
 - For a selected BRouter profile, the profile-settings UI must parse editable parameters declared in the selected `.brf` profile using BRouter's `%parameter% | description | type` comment convention
 - The profile-settings UI must show each parameter name and a type-appropriate input: switch for boolean parameters, numeric input for number/integer parameters, spinner for bracketed option lists, and text input when no supported type can be inferred
 - When a profile parameter has a description, the UI must show an information button for that parameter
@@ -74,14 +72,15 @@ The main UI must include a routing-profile selector at the top.
   `/storage/<sdcard-uuid>/Android/media/btools.routingapp/brouter/profiles2`
   `/storage/<sdcard-uuid>/Android/data/btools.routingapp/files/brouter/profiles2`
 
-#### 1.2 Route mode tabs
+#### 1.2 Navigation mode selector
 
-- Below the routing-profile selector, the main UI must show a compact two-option route-mode selector with `Route` and `Round trip`
+- Above the routing-profile selector, the main UI must show a navigation-mode spinner with `Route mode`, `Round Trip mode`, and `Straight Line mode`
 - In `Route` mode, the main UI must show the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, plus button, and start navigation button
 - In `Round trip` mode, the main UI must hide the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, and plus button
-- In `Round trip` mode, the main UI must show a single roundtrip-distance field and the start navigation button
-- The roundtrip-distance field must accept meters when metric units are active, and miles when the imperial-units setting is active
-- Round trip mode must use the selected BRouter profile and must not be startable with the special straight-line profile
+- In `Round trip` mode, the main UI must show a single average roundtrip-distance field and the start navigation button
+- The average roundtrip-distance field must accept meters when metric units are active, and miles when the imperial-units setting is active
+- Round trip mode must use the selected BRouter profile and must not be startable without a selected BRouter profile
+- In `Straight Line mode`, the main UI must show the same destination, stop, saved-route, and start controls as Route mode, but the BRouter profile selector and profile-settings button must be disabled because BRouter is not used
 
 ### 2. Destination input
 
@@ -185,8 +184,8 @@ Pressing the button must:
 - Open a new navigation UI implemented as an Android `Activity`
 - Access the current user location
 - For BRouter profiles, use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
-- For the straight-line profile, skip BRouter route calculation and navigate directly toward the next destination point
-- In round trip mode, use the installed BRouter app intent/service integration to calculate a circular route from the current location using the entered roundtrip distance and the selected BRouter profile
+- For Straight Line mode, skip BRouter route calculation and navigate directly toward the next destination point
+- In round trip mode, use the installed BRouter app intent/service integration to calculate a circular route from the current location using the selected BRouter profile; the user enters an intended average roundtrip distance and the app converts that distance to a circle radius for BRouter
 - Include any intermediate stops in BRouter route calculations, and in straight-line mode treat them as ordered direct legs toward the final destination
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 - The first BRouter route calculation must only use a startup location fix that is recent and has location accuracy of 25 meters or better, whether that fix came from a cached seed, one-shot current-location request, or live location update
@@ -198,8 +197,8 @@ Pressing the button must:
 - On first main-screen open without BRouter installed, the app should offer direct install options for the BRouter app page, including Play Store and F-Droid targets when those intents are available
 - If no install target can be opened on the device, the app must fail gracefully with a short user-visible message rather than crashing
 - When BRouter is not installed and a BRouter-backed profile or custom profile is selected, pressing start navigation must stop before profile resolution and must show a missing-BRouter message instead of opening the custom-profile picker
-- When BRouter is not installed and the straight-line profile is selected, pressing start navigation must continue without a missing-BRouter message
-- Round trip mode must require a selected BRouter profile; if the special straight-line profile is selected, pressing start navigation must show a short message and must not start navigation
+- When BRouter is not installed and Straight Line mode is selected, pressing start navigation must continue without a missing-BRouter message
+- Round trip mode must require a selected BRouter profile; pressing start navigation without an applicable BRouter profile must show a short message and must not start navigation
 
 #### 4.3 BRouter integration
 
@@ -217,7 +216,8 @@ The implementation must use BRouter integration compatible with these references
 - Route calculations must send the selected BRouter `profile` explicitly
 - The app must not force a separate `v` vehicle-mode parameter when an explicit profile is supplied
 - The selected `.brf` file is the source of routing behavior for walk, bike, or car use cases
-- Round trip route calculations must send BRouter `engineMode=4`, the current location as the only explicit route point, `roundTripDistance` in meters, and `direction=-1`; they must omit `roundTripPoints` so BRouter uses its default helper-point count
+- Round trip route calculations must send BRouter `engineMode=4`, the current location as the only explicit route point, `roundTripDistance` as the calculated circle radius in meters, and `direction=-1`; they must omit `roundTripPoints` so BRouter uses its default helper-point count
+- The BRouter roundtrip radius must be calculated from the user-entered intended average roundtrip distance as `distance / (2 * pi)`, after converting imperial input to meters when needed
 - Round trip route calculations must still send saved non-default profile parameter overrides through `extraParams`
 - Bundled internal BRouter profiles must remain usable even when no autodiscovered external profile folder is accessible
 - Custom external profile browsing should target a real accessible `profiles2` folder when one can be found, but normal routing must not depend on that folder existing
@@ -269,10 +269,11 @@ The app must monitor user position:
 - In straight-line mode, the progress line for the final destination must sum the direct remaining legs through all unreached intermediate stops, such as current location to next stop plus stop to stop plus last stop to final destination, instead of using a single shortcut from the current location to the final destination
 - In straight-line mode, displayed arrival times must use the same straight-line remaining distances and the current speed; if current speed is unavailable or stationary, the ETA must be unavailable
 - In round trip mode, the route end is allowed to be near the route start; the navigation session must not emit final-arrival guidance at route load or while matched near the start of the loop unless progress is also near the end of the loaded route
+- In round trip mode, the blocked-road action must be disabled because blocked-road no-go recalculation is not applicable to a circular route request
 
 #### 4.4.1 Off-track reroute
 
-- The route must be recalculated whenever the user position differs from the current track by more than an off-track threshold derived from recent location confidence
+- In normal Route mode, the route must be recalculated whenever the user position differs from the current track by more than an off-track threshold derived from recent location confidence
 - Off-track distance must be measured against the nearest matched point on the active route geometry
 - The off-track threshold should use a short-window smoothed location-accuracy estimate rather than a single raw fix accuracy so one bad GPS sample does not immediately widen the tolerance
 - The off-track threshold must currently be `max(smoothedAccuracy + 8 meters, 10 meters)`
@@ -280,7 +281,8 @@ The app must monitor user position:
 - Clearly large misses beyond the threshold may reroute immediately without waiting for a second confirmation sample
 - The size of that immediate-reroute margin may shrink at higher travel speeds so driving-style use reacts faster without making low-speed walking reroutes twitchy
 - When a route recalculation starts after one or more intermediate stops have been reached, the recalculation must pass only the remaining unreached intermediate stops to BRouter; passed stops must not be reintroduced into the new route request, compass targets, or intermediate-stop progress state
-- Round trip reroutes and blocked-road recalculations must keep the active roundtrip mode, selected profile, profile parameter overrides, and roundtrip distance captured when navigation started
+- In Round Trip mode, confirmed off-track detection must send an off-route notification without requesting a route recalculation
+- Startup and route-unavailable calculations in Round Trip mode must keep the active roundtrip mode, selected profile, profile parameter overrides, and calculated BRouter radius captured when navigation started
 
 #### 4.4.2 Wrong-direction reroute
 

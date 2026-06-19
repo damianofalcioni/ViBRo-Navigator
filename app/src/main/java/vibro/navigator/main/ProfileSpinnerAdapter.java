@@ -50,7 +50,6 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
 
     private void bindDropdown(@NonNull DropDownHolder holder, @Nullable ProfileSpinnerOption option) {
         holder.label.setText(option == null ? "" : option.toString());
-        holder.separator.setVisibility(option != null && option.isStraightLine() ? View.VISIBLE : View.GONE);
         BundledProfileInfo info = profileInfo(option);
         if (info == null) {
             hideProfileActions(holder);
@@ -63,9 +62,6 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
     private static BundledProfileInfo profileInfo(@Nullable ProfileSpinnerOption option) {
         if (option == null || option.isCustom()) {
             return null;
-        }
-        if (option.isStraightLine()) {
-            return BundledProfileInfo.straightLine();
         }
         return BundledProfileInfo.forProfile(option.profileName());
     }
@@ -122,7 +118,6 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
         final TextView label;
         final ImageView attentionIcon;
         final ImageButton infoButton;
-        final View separator;
         boolean infoTouchActive;
 
         DropDownHolder(@NonNull View view) {
@@ -130,7 +125,6 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
             label = view.findViewById(android.R.id.text1);
             attentionIcon = view.findViewById(R.id.profileAttentionIcon);
             infoButton = view.findViewById(R.id.profileInfoButton);
-            separator = view.findViewById(R.id.profileStraightLineSeparator);
         }
     }
 

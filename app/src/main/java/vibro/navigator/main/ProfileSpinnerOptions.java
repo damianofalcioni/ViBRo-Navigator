@@ -23,9 +23,6 @@ final class ProfileSpinnerOptions {
         profiles.clear();
         profiles.addAll(newProfiles);
         options.clear();
-        options.add(ProfileSpinnerOption.straightLine(
-                context.getString(R.string.label_vehicle_profile_straight_line)
-        ));
         for (String profile : profiles) {
             options.add(new ProfileSpinnerOption(profile, profile, false));
         }
@@ -64,15 +61,11 @@ final class ProfileSpinnerOptions {
         if (brouterPosition >= 0) {
             return brouterPosition;
         }
-        return findStraightLinePosition();
+        return findCustomPosition();
     }
 
     int findCustomPosition() {
         return findPosition(ProfileSpinnerOption.CUSTOM_KEY);
-    }
-
-    int findStraightLinePosition() {
-        return findPosition(ProfileSpinnerOption.STRAIGHT_LINE_KEY);
     }
 
     private int defaultPosition(boolean preferBRouterProfile) {
@@ -82,14 +75,14 @@ final class ProfileSpinnerOptions {
                 return brouterPosition;
             }
         }
-        int straightLinePosition = findStraightLinePosition();
-        return straightLinePosition >= 0 ? straightLinePosition : 0;
+        int customPosition = findCustomPosition();
+        return customPosition >= 0 ? customPosition : 0;
     }
 
     private int findFirstBRouterProfilePosition() {
         for (int i = 0; i < options.size(); i++) {
             ProfileSpinnerOption option = options.get(i);
-            if (!option.isCustom() && !option.isStraightLine()) {
+            if (!option.isCustom()) {
                 return i;
             }
         }

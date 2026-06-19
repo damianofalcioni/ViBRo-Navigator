@@ -118,9 +118,6 @@ final class ProfileSpinnerController {
         if (option == null) {
             return null;
         }
-        if (option.isStraightLine()) {
-            return ProfileSelection.straightLine();
-        }
         if (!profilesRepository.isBRouterInstalled(context)) {
             Toast.makeText(context, R.string.msg_brouter_not_found, Toast.LENGTH_SHORT).show();
             return null;

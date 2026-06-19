@@ -62,14 +62,19 @@ public class NavigationTextFormatterTest {
 
     @Test
     public void formatOffRouteNotification_formatsOffTrackDetails() {
+        NavigationRerouteNotice notice = NavigationRerouteNotice.fromDecision(
+                new RouteDeviationPolicy().evaluate(25.0, 8f, 90.0, 90.0)
+        );
         String message = NavigationTextFormatterRules.formatOffRouteNotification(
                 METRIC,
-                NavigationRerouteNotice.fromDecision(
-                        new RouteDeviationPolicy().evaluate(25.0, 8f, 90.0, 90.0)
-                )
+                notice
         );
 
         assertEquals("Off-track detected. Distance 25 m, threshold 16 m. Recalculating route.", message);
+        assertEquals(
+                "Off-track detected. Distance 25 m, threshold 16 m.",
+                NavigationTextFormatterRules.formatOffRouteNotification(METRIC, notice.asNotificationOnly())
+        );
     }
 
     @Test

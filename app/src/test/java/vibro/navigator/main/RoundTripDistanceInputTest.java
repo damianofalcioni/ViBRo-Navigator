@@ -17,9 +17,16 @@ public class RoundTripDistanceInputTest {
     }
 
     @Test
+    public void parseBRouterRadiusMeters_convertsAverageRoundTripDistanceToCircleRadius() {
+        assertEquals(Integer.valueOf(2387), RoundTripDistanceInput.parseBRouterRadiusMeters("15000", false));
+        assertEquals(Integer.valueOf(2561), RoundTripDistanceInput.parseBRouterRadiusMeters("10", true));
+    }
+
+    @Test
     public void parseDistanceMeters_rejectsInvalidValues() {
         assertNull(RoundTripDistanceInput.parseDistanceMeters("", false));
         assertNull(RoundTripDistanceInput.parseDistanceMeters("0", false));
         assertNull(RoundTripDistanceInput.parseDistanceMeters("bad", false));
+        assertNull(RoundTripDistanceInput.parseBRouterRadiusMeters("bad", false));
     }
 }

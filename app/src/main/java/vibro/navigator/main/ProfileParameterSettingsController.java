@@ -29,6 +29,7 @@ final class ProfileParameterSettingsController {
     private final BRouterProfilesRepository profilesRepository;
     @NonNull
     private final ProfileSpinnerController profileSpinnerController;
+    private boolean profileSelectionApplicable = true;
 
     ProfileParameterSettingsController(
             @NonNull Activity activity,
@@ -45,9 +46,14 @@ final class ProfileParameterSettingsController {
     }
 
     void updateButtonState() {
-        boolean enabled = selectedProfileName() != null;
+        boolean enabled = profileSelectionApplicable && selectedProfileName() != null;
         button.setEnabled(enabled);
         button.setAlpha(enabled ? 1.0f : 0.38f);
+    }
+
+    void setProfileSelectionApplicable(boolean applicable) {
+        profileSelectionApplicable = applicable;
+        updateButtonState();
     }
 
     private void showSelectedProfileSettings() {

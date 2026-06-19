@@ -5,7 +5,6 @@ import androidx.annotation.Nullable;
 
 final class ProfileSpinnerOption {
     static final String CUSTOM_KEY = "__custom__";
-    static final String STRAIGHT_LINE_KEY = "__straight_line__";
 
     @NonNull
     private final String label;
@@ -24,17 +23,8 @@ final class ProfileSpinnerOption {
         this.kind = kind;
     }
 
-    @NonNull
-    static ProfileSpinnerOption straightLine(@NonNull String label) {
-        return new ProfileSpinnerOption(label, null, Kind.STRAIGHT_LINE);
-    }
-
     boolean isCustom() {
         return kind == Kind.CUSTOM;
-    }
-
-    boolean isStraightLine() {
-        return kind == Kind.STRAIGHT_LINE;
     }
 
     @Nullable
@@ -46,9 +36,6 @@ final class ProfileSpinnerOption {
     String selectionKey() {
         if (kind == Kind.CUSTOM) {
             return CUSTOM_KEY;
-        }
-        if (kind == Kind.STRAIGHT_LINE) {
-            return STRAIGHT_LINE_KEY;
         }
         return safe(profileName);
     }
@@ -66,8 +53,7 @@ final class ProfileSpinnerOption {
 
     private enum Kind {
         BROUTER,
-        CUSTOM,
-        STRAIGHT_LINE
+        CUSTOM
     }
 }
 

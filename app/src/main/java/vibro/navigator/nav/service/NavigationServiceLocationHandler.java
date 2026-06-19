@@ -116,7 +116,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         controllers.locationController.recordAcceptedLocationUpdate();
-        applyRouteUpdateRequest(result, controllers.locationController);
+        applyRouteUpdateRequest(result, controllers);
         if (result.getWrongDirectionNotice() != null) {
             controllers.foregroundController.sendWrongDirectionNotification(result.getWrongDirectionNotice());
         }
@@ -140,14 +140,17 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     private void applyRouteUpdateRequest(
             @NonNull NavigationLocationUpdateResult result,
-            @NonNull NavigationLocationController controller
+            @NonNull Controllers controllers
     ) {
         if (result.shouldRecalculateRoute()) {
             routeRecalculator.request(false, result.getRerouteNotice(), recalculationReason(result));
             return;
         }
+        if (result.getRerouteNotice() != null) {
+            controllers.foregroundController.sendOffRouteNotification(result.getRerouteNotice());
+        }
         if (result.getSuggestedUpdateIntervalMs() > 0L) {
-            controller.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
+            controllers.locationController.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
         }
     }
 

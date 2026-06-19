@@ -235,6 +235,50 @@ public class NavigationSessionTest {
     }
 
     @Test
+    public void roundTripModeKeepsOffTrackNoticeWithoutRouteRecalculationOrBlockedRoadAction() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                null,
+                null,
+                null,
+                Collections.emptyList(),
+                2_387
+        ));
+        long nowMs = System.currentTimeMillis();
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        ResourceAdapter.onRawLocationChanged(session, context, locationWithSpeed(0.0, 0.0, nowMs, 5f), nowMs);
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
+        assertNotNull(snapshot);
+        ResourceAdapter.applyRouteResult(session, context, snapshot, routeWithoutHints(), nowMs);
+
+        NavigationLocationUpdateResult offTrackResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0003, 0.0, nowMs + 2_000L, 5f),
+                nowMs + 2_000L
+        );
+        NavState state = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 2_000L,
+                null,
+                null,
+                null
+        );
+
+        assertFalse(offTrackResult.shouldRecalculateRoute());
+        assertNotNull(offTrackResult.getRerouteNotice());
+        assertFalse(offTrackResult.getRerouteNotice().routeRecalculationExpected);
+        assertFalse(state.routeStatus.blockedRoadActionAvailable);
+        assertFalse(session.canAddBlockedWaypoint());
+    }
+
+    @Test
     public void straightLineModeUsesTargetDistanceForUpdateIntervalsAfterWarmup() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();

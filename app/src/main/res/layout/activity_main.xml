@@ -31,9 +31,26 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/routeModeLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
+            android:text="@string/label_route_mode"
+            android:textColor="?attr/vibroTextPrimaryColor" />
+
+        <Spinner
+            android:id="@+id/routeModeSpinner"
+            style="@style/Widget.ViBRoNavigator.Spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:spinnerMode="dropdown" />
+
+        <TextView
+            android:id="@+id/profileLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="@string/label_vehicle_profile"
             android:textColor="?attr/vibroTextPrimaryColor" />
 
@@ -60,39 +77,6 @@
                 android:contentDescription="@string/action_profile_settings"
                 android:src="@drawable/ic_settings" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/routeModeLabel"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/label_route_mode"
-            android:textColor="?attr/vibroTextPrimaryColor" />
-
-        <RadioGroup
-            android:id="@+id/routeModeTabs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <RadioButton
-                android:id="@+id/routeModeRouteTab"
-                style="@style/Widget.ViBRoNavigator.RouteModeTab"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:text="@string/label_route_mode_route" />
-
-            <RadioButton
-                android:id="@+id/routeModeRoundTripTab"
-                style="@style/Widget.ViBRoNavigator.RouteModeTab"
-                android:layout_width="0dp"
-                android:layout_height="48dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="@string/label_route_mode_round_trip" />
-        </RadioGroup>
 
         <TextView
             android:id="@+id/destinationLabel"

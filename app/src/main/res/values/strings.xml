@@ -48,11 +48,12 @@
 
     <string name="label_vehicle_profile">BRouter Profile</string>
     <string name="label_route_mode">Route mode</string>
-    <string name="label_route_mode_route">Route</string>
-    <string name="label_route_mode_round_trip">Round trip</string>
+    <string name="label_route_mode_route">Route mode</string>
+    <string name="label_route_mode_round_trip">Round Trip mode</string>
+    <string name="label_route_mode_straight_line">Straight Line mode</string>
     <string name="label_destination">Destination</string>
-    <string name="label_round_trip_distance_m">Round trip distance (m)</string>
-    <string name="label_round_trip_distance_mi">Round trip distance (mi)</string>
+    <string name="label_round_trip_distance_m">Average round trip distance (m)</string>
+    <string name="label_round_trip_distance_mi">Average round trip distance (mi)</string>
     <string name="label_profile_attention_icon">Experimental or debug profile</string>
     <string name="format_profile_info_content_description">Show information for %1$s</string>
     <string name="format_stop_label">Stop %1$d</string>
@@ -115,14 +116,11 @@
     <string name="label_exported_route_gpx">ViBRo route GPX</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
-    <string name="label_vehicle_profile_straight_line">Straight Line - No BRouter</string>
     <string name="title_profile_parameters">Profile settings: %1$s</string>
     <string name="title_profile_parameter_description">%1$s</string>
     <string name="title_profile_parameters_reset_confirm">Reset profile settings?</string>
     <string name="msg_profile_parameters_reset_confirm">Restore this profile\'s settings to the values defined in the profile?</string>
     <string name="format_profile_parameter_info_content_description">Show parameter information for %1$s</string>
-    <string name="profile_info_straight_line_title">Straight Line - No BRouter</string>
-    <string name="profile_info_straight_line_description">Straight-line guidance that does not use BRouter or a routing profile. It points the compass toward the next destination, shows remaining arrival distance and ETA from straight-line legs, and shows destination-only guidance messages without route maneuver directions. It is useful when BRouter is not installed or when only bearing-to-target guidance is needed.</string>
     <string name="profile_info_trekking_title">Trekking bike</string>
     <string name="profile_info_trekking_description">Balanced bike routing for everyday cycling, touring, and practical navigation. Its main strength is versatility: it avoids heavy car traffic, supports cycle routes, considers elevation, and usually produces routes that feel reasonable for normal cyclists. Its weakness is that it is not highly specialized: road cyclists may find it slower than `fastbike`, while off-road riders may find it too conservative compared with `mtb` or `gravel`. Its distinctive aspect is that it is the safest general-purpose bicycle profile and probably the best default for most users.</string>
     <string name="profile_info_trekking_ignore_cr_title">Trekking, ignore cycle routes</string>
@@ -283,6 +281,8 @@
     </plurals>
     <string name="format_off_route_off_track_notification">Off-track detected. Distance %1$s, threshold %2$s. Recalculating route.</string>
     <string name="format_off_route_bearing_notification">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route.</string>
+    <string name="format_off_route_off_track_notice_only">Off-track detected. Distance %1$s, threshold %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s.</string>
     <string name="format_wrong_direction_notification">Wrong direction detected. Target %1$s, actual %2$s, diff %3$s.</string>
     <string name="format_startup_orientation_notification">Turn yourself %1$s %2$s to face the route.</string>
     <string name="format_notification_symbol_test_bearing_line">%1$s bearing sample</string>

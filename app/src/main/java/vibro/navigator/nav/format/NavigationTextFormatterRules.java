@@ -53,13 +53,17 @@ final class NavigationTextFormatterRules {
         switch (rerouteNotice.reason) {
             case OFF_TRACK:
                 return resources.getString(
-                        R.string.format_off_route_off_track_notification,
+                        rerouteNotice.routeRecalculationExpected
+                                ? R.string.format_off_route_off_track_notification
+                                : R.string.format_off_route_off_track_notice_only,
                         NavigationMeasurementFormatter.formatDistance(resources, rerouteNotice.distanceToTrackMeters),
                         NavigationMeasurementFormatter.formatDistance(resources, rerouteNotice.offTrackThresholdMeters)
                 );
             case BEARING_MISMATCH:
                 return resources.getString(
-                        R.string.format_off_route_bearing_notification,
+                        rerouteNotice.routeRecalculationExpected
+                                ? R.string.format_off_route_bearing_notification
+                                : R.string.format_off_route_bearing_notice_only,
                         formatBearingDegrees(resources, rerouteNotice.bearingDiffDegrees),
                         formatBearingDegrees(resources, rerouteNotice.expectedBearingDegrees),
                         formatBearingDegrees(resources, rerouteNotice.actualBearingDegrees)

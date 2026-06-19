@@ -19,6 +19,15 @@ final class RoundTripDistanceInput {
     }
 
     @Nullable
+    static Integer parseBRouterRadiusMeters(@Nullable CharSequence rawValue, boolean imperialUnitsEnabled) {
+        Integer averageDistanceMeters = parseDistanceMeters(rawValue, imperialUnitsEnabled);
+        if (averageDistanceMeters == null) {
+            return null;
+        }
+        return roundedPositiveMeters(averageDistanceMeters / (2.0 * Math.PI));
+    }
+
+    @Nullable
     private static Double parseEnteredDistance(@Nullable CharSequence rawValue) {
         String normalized = normalize(rawValue);
         if (normalized == null) {

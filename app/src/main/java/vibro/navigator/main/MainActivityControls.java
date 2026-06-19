@@ -7,7 +7,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -18,11 +17,13 @@ final class MainActivityControls {
     @NonNull
     final ImageButton aboutButton;
     @NonNull
+    final Spinner routeModeSpinner;
+    @NonNull
+    final TextView profileLabel;
+    @NonNull
     final Spinner profileSpinner;
     @NonNull
     final ImageButton profileSettingsButton;
-    @NonNull
-    final RadioGroup routeModeTabs;
     @NonNull
     final View destinationLabel;
     @NonNull
@@ -56,9 +57,10 @@ final class MainActivityControls {
 
     private MainActivityControls(
             @NonNull ImageButton aboutButton,
+            @NonNull Spinner routeModeSpinner,
+            @NonNull TextView profileLabel,
             @NonNull Spinner profileSpinner,
             @NonNull ImageButton profileSettingsButton,
-            @NonNull RadioGroup routeModeTabs,
             @NonNull View destinationLabel,
             @NonNull View routeSetupPanel,
             @NonNull View roundTripSetupPanel,
@@ -76,9 +78,10 @@ final class MainActivityControls {
             @NonNull ImageButton roundTripStartNavButton
     ) {
         this.aboutButton = aboutButton;
+        this.routeModeSpinner = routeModeSpinner;
+        this.profileLabel = profileLabel;
         this.profileSpinner = profileSpinner;
         this.profileSettingsButton = profileSettingsButton;
-        this.routeModeTabs = routeModeTabs;
         this.destinationLabel = destinationLabel;
         this.routeSetupPanel = routeSetupPanel;
         this.roundTripSetupPanel = roundTripSetupPanel;
@@ -100,9 +103,10 @@ final class MainActivityControls {
     static MainActivityControls bind(@NonNull MainActivity activity) {
         return new MainActivityControls(
                 activity.findViewById(R.id.aboutButton),
+                activity.findViewById(R.id.routeModeSpinner),
+                activity.findViewById(R.id.profileLabel),
                 activity.findViewById(R.id.profileSpinner),
                 activity.findViewById(R.id.profileSettingsButton),
-                activity.findViewById(R.id.routeModeTabs),
                 activity.findViewById(R.id.destinationLabel),
                 activity.findViewById(R.id.routeSetupPanel),
                 activity.findViewById(R.id.roundTripSetupPanel),

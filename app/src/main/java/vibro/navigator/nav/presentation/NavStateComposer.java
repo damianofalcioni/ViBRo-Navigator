@@ -185,6 +185,21 @@ public final class NavStateComposer {
     }
 
     @NonNull
+    public static NavState withBlockedRoadActionAvailable(@NonNull NavState base, boolean available) {
+        return new NavState(
+                new NavRouteStatus(
+                        base.routeStatus.guidance,
+                        base.routeStatus.progress,
+                        base.routeStatus.compassState,
+                        base.routeStatus.speedLimit,
+                        available
+                ),
+                base.gpsStatus,
+                base.pauseStatus
+        );
+    }
+
+    @NonNull
     public static NavState withPauseState(@NonNull Context context, @NonNull NavState base, boolean paused) {
         return NavStateResourceComposer.withPauseState(new AndroidNavigationTextResources(context), base, paused);
     }

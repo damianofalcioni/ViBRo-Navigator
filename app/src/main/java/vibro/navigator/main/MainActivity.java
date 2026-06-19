@@ -41,19 +41,21 @@ public class MainActivity extends Activity {
         MainActivityControls controls = MainActivityControls.bind(this);
 
         MainActivityAboutLauncher.configure(this, controls.aboutButton);
+        profileCoordinator = MainActivityProfileCoordinator.configure(this, controls);
+        boolean brouterInstalled = profileCoordinator.isBRouterInstalled();
         routeModeController = new MainActivityRouteModeController(
                 this,
-                controls.routeModeTabs,
+                controls.routeModeSpinner,
+                controls.profileLabel,
+                controls.profileSpinner,
                 controls.destinationLabel,
                 controls.routeSetupPanel,
                 controls.roundTripSetupPanel,
                 controls.roundTripDistanceLabel,
                 controls.roundTripDistanceEdit
         );
-        routeModeController.configure(savedInstanceState);
-
-        profileCoordinator = MainActivityProfileCoordinator.configure(this, controls);
-        boolean brouterInstalled = profileCoordinator.isBRouterInstalled();
+        routeModeController.configure(savedInstanceState, brouterInstalled);
+        routeModeController.setModeChangeListener(profileCoordinator::onRouteModeChanged);
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
         if (!brouterInstalled && savedInstanceState == null) {
             MainActivityBRouterInstallPrompt.show(this);
@@ -175,7 +177,7 @@ public class MainActivity extends Activity {
     private void startNavigationFromInputs() {
         AppLogger.i(TAG, "Start navigation tapped destinationRaw=" + destinationController.getRawText().trim()
                 + " stopsVisible=" + stopController.size());
-        ProfileSelection profileSelection = profileCoordinator.resolveSelectedProfileSelection();
+        ProfileSelection profileSelection = resolveProfileSelectionForCurrentMode();
         if (profileSelection == null) {
             return;
         }
@@ -198,6 +200,14 @@ public class MainActivity extends Activity {
 
     private void launchNavigation(@NonNull NavigationInputResolver.Result input) {
         MainActivityNavigationLauncher.launch(this, input.request);
+    }
+
+    @Nullable
+    private ProfileSelection resolveProfileSelectionForCurrentMode() {
+        if (routeModeController.isStraightLineMode()) {
+            return ProfileSelection.straightLine();
+        }
+        return profileCoordinator.resolveSelectedProfileSelection();
     }
 
     @Override

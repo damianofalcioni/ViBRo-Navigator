@@ -99,6 +99,22 @@ public final class NavigationRouteEvaluation {
         return shouldRecalculateRoute;
     }
 
+    @NonNull
+    NavigationRouteEvaluation asNotificationOnly() {
+        if (rerouteNotice == null || !shouldRecalculateRoute) {
+            return this;
+        }
+        return new NavigationRouteEvaluation(
+                false,
+                stableOnRouteSample,
+                suggestedUpdateIntervalMs,
+                null,
+                rerouteNotice.asNotificationOnly(),
+                wrongDirectionNotice,
+                turnEvents
+        );
+    }
+
     public boolean isStableOnRouteSample() {
         return stableOnRouteSample;
     }

@@ -173,6 +173,14 @@ public final class TestNavigationTextResources implements NavigationTextResource
                 "Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s. Recalculating route."
         );
         strings.put(
+                R.string.format_off_route_off_track_notice_only,
+                "Off-track detected. Distance %1$s, threshold %2$s."
+        );
+        strings.put(
+                R.string.format_off_route_bearing_notice_only,
+                "Bearing mismatch detected. Diff %1$s, expected %2$s, actual %3$s."
+        );
+        strings.put(
                 R.string.format_wrong_direction_notification,
                 "Wrong direction detected. Target %1$s, actual %2$s, diff %3$s."
         );

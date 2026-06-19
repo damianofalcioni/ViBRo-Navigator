@@ -11,7 +11,7 @@ final class ProfileSpinnerSelectedProfile {
             @Nullable ProfileSpinnerOption option,
             @Nullable String customProfileName
     ) {
-        if (option == null || option.isStraightLine()) {
+        if (option == null) {
             return null;
         }
         String profileName = option.isCustom() ? customProfileName : option.profileName();

@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 
 final class MainActivityProfileCoordinator {
     @NonNull
@@ -17,17 +18,21 @@ final class MainActivityProfileCoordinator {
     private final MainActivityProfilePicker profilePicker;
     @NonNull
     private final ProfileSpinnerController profileSpinnerController;
+    @NonNull
+    private final ProfileParameterSettingsController profileParameterSettingsController;
 
     private MainActivityProfileCoordinator(
             @NonNull MainActivity activity,
             @NonNull BRouterProfilesRepository profilesRepository,
             @NonNull MainActivityProfilePicker profilePicker,
-            @NonNull ProfileSpinnerController profileSpinnerController
+            @NonNull ProfileSpinnerController profileSpinnerController,
+            @NonNull ProfileParameterSettingsController profileParameterSettingsController
     ) {
         this.activity = activity;
         this.profilesRepository = profilesRepository;
         this.profilePicker = profilePicker;
         this.profileSpinnerController = profileSpinnerController;
+        this.profileParameterSettingsController = profileParameterSettingsController;
     }
 
     @NonNull
@@ -58,7 +63,8 @@ final class MainActivityProfileCoordinator {
                 activity,
                 profilesRepository,
                 profilePicker,
-                profileSpinnerController
+                profileSpinnerController,
+                profileParameterSettingsController
         );
     }
 
@@ -77,6 +83,10 @@ final class MainActivityProfileCoordinator {
     @Nullable
     ProfileSelection resolveSelectedProfileSelection() {
         return profileSpinnerController.resolveSelectedProfileSelection();
+    }
+
+    void onRouteModeChanged(@NonNull NavigationRoutingMode mode) {
+        profileParameterSettingsController.setProfileSelectionApplicable(mode != NavigationRoutingMode.STRAIGHT_LINE);
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

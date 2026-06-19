@@ -109,7 +109,7 @@ public final class NavigationSession {
     }
 
     public boolean canAddBlockedWaypoint() {
-        return started && !currentRequest.isStraightLine();
+        return started && !currentRequest.isStraightLine() && !currentRequest.isRoundTrip();
     }
 
     @Nullable

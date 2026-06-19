@@ -60,7 +60,7 @@ public final class BRouterRouter {
         AppLogger.i(TAG, "Building round trip request start=" + start.lat + "," + start.lon
                 + " profile=" + profile
                 + " profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
-                + " distanceMeters=" + roundTripDistanceMeters
+                + " radiusMeters=" + roundTripDistanceMeters
                 + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
         String decoded = client.requestRoutePayload(BRouterRouteRequest.roundTrip(
                 start,

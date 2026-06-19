@@ -11,6 +11,7 @@ import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 
@@ -112,6 +113,9 @@ final class NavigationSessionStateBuilder {
             );
         }
         NavState baseState = routeState.advanceDisplayState(snapshot);
+        if (currentRequest.isRoundTrip()) {
+            baseState = NavStateComposer.withBlockedRoadActionAvailable(baseState, false);
+        }
         return NavStateResourceComposer.withPauseState(textResources, baseState, paused);
     }
 }

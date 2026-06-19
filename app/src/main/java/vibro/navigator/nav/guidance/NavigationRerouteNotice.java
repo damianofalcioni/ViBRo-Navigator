@@ -14,6 +14,7 @@ public final class NavigationRerouteNotice {
     public final double expectedBearingDegrees;
     @Nullable
     public final Double actualBearingDegrees;
+    public final boolean routeRecalculationExpected;
 
     private NavigationRerouteNotice(
             @NonNull RouteDeviationPolicy.Reason reason,
@@ -21,7 +22,8 @@ public final class NavigationRerouteNotice {
             double offTrackThresholdMeters,
             @Nullable Double bearingDiffDegrees,
             double expectedBearingDegrees,
-            @Nullable Double actualBearingDegrees
+            @Nullable Double actualBearingDegrees,
+            boolean routeRecalculationExpected
     ) {
         this.reason = reason;
         this.distanceToTrackMeters = distanceToTrackMeters;
@@ -29,6 +31,7 @@ public final class NavigationRerouteNotice {
         this.bearingDiffDegrees = bearingDiffDegrees;
         this.expectedBearingDegrees = expectedBearingDegrees;
         this.actualBearingDegrees = actualBearingDegrees;
+        this.routeRecalculationExpected = routeRecalculationExpected;
     }
 
     @NonNull
@@ -39,7 +42,24 @@ public final class NavigationRerouteNotice {
                 decision.offTrackThresholdMeters,
                 decision.bearingDiffDegrees,
                 decision.expectedBearingDegrees,
-                decision.actualBearingDegrees
+                decision.actualBearingDegrees,
+                true
+        );
+    }
+
+    @NonNull
+    public NavigationRerouteNotice asNotificationOnly() {
+        if (!routeRecalculationExpected) {
+            return this;
+        }
+        return new NavigationRerouteNotice(
+                reason,
+                distanceToTrackMeters,
+                offTrackThresholdMeters,
+                bearingDiffDegrees,
+                expectedBearingDegrees,
+                actualBearingDegrees,
+                false
         );
     }
 }
