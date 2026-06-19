@@ -1,5 +1,6 @@
 package vibro.navigator.main;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -27,11 +28,13 @@ final class MainActivityRouteModeController {
     private static final float DISABLED_ALPHA = 0.38f;
 
     @NonNull
-    private final MainActivity activity;
+    private final Activity activity;
     @NonNull
     private final Spinner routeModeSpinner;
     @NonNull
     private final TextView profileLabel;
+    @NonNull
+    private final View profileSelectionPanel;
     @NonNull
     private final Spinner profileSpinner;
     @NonNull
@@ -49,9 +52,10 @@ final class MainActivityRouteModeController {
     };
 
     MainActivityRouteModeController(
-            @NonNull MainActivity activity,
+            @NonNull Activity activity,
             @NonNull Spinner routeModeSpinner,
             @NonNull TextView profileLabel,
+            @NonNull View profileSelectionPanel,
             @NonNull Spinner profileSpinner,
             @NonNull View destinationLabel,
             @NonNull View routeSetupPanel,
@@ -62,6 +66,7 @@ final class MainActivityRouteModeController {
         this.activity = activity;
         this.routeModeSpinner = routeModeSpinner;
         this.profileLabel = profileLabel;
+        this.profileSelectionPanel = profileSelectionPanel;
         this.profileSpinner = profileSpinner;
         this.destinationLabel = destinationLabel;
         this.routeSetupPanel = routeSetupPanel;
@@ -73,10 +78,11 @@ final class MainActivityRouteModeController {
     void configure(@Nullable Bundle savedInstanceState, boolean brouterInstalled) {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 activity,
-                android.R.layout.simple_spinner_item,
+                R.layout.item_profile_spinner,
+                android.R.id.text1,
                 MainActivityRouteModeOption.labels(activity)
         );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_profile_spinner_bundled_dropdown);
         routeModeSpinner.setAdapter(adapter);
         routeModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -133,10 +139,10 @@ final class MainActivityRouteModeController {
         boolean imperial = AppSettings.isImperialUnitsEnabled(activity);
         roundTripDistanceLabel.setText(imperial
                 ? R.string.label_round_trip_distance_mi
-                : R.string.label_round_trip_distance_m);
+                : R.string.label_round_trip_distance_km);
         roundTripDistanceEdit.setHint(imperial
                 ? R.string.hint_round_trip_distance_mi
-                : R.string.hint_round_trip_distance_m);
+                : R.string.hint_round_trip_distance_km);
     }
 
     @Nullable
@@ -172,6 +178,9 @@ final class MainActivityRouteModeController {
     }
 
     private void renderBRouterProfileSelection(boolean enabled) {
+        int visibility = enabled ? View.VISIBLE : View.GONE;
+        profileLabel.setVisibility(visibility);
+        profileSelectionPanel.setVisibility(visibility);
         profileLabel.setEnabled(enabled);
         profileSpinner.setEnabled(enabled);
         profileLabel.setAlpha(enabled ? ENABLED_ALPHA : DISABLED_ALPHA);

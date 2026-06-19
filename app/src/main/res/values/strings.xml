@@ -47,12 +47,11 @@
     <string name="action_reset_defaults">Reset defaults</string>
 
     <string name="label_vehicle_profile">BRouter Profile</string>
-    <string name="label_route_mode">Route mode</string>
     <string name="label_route_mode_route">Route mode</string>
     <string name="label_route_mode_round_trip">Round Trip mode</string>
     <string name="label_route_mode_straight_line">Straight Line mode</string>
     <string name="label_destination">Destination</string>
-    <string name="label_round_trip_distance_m">Average round trip distance (m)</string>
+    <string name="label_round_trip_distance_km">Average round trip distance (km)</string>
     <string name="label_round_trip_distance_mi">Average round trip distance (mi)</string>
     <string name="label_profile_attention_icon">Experimental or debug profile</string>
     <string name="format_profile_info_content_description">Show information for %1$s</string>
@@ -61,7 +60,7 @@
 
     <string name="hint_search_destination">Search destination or paste coordinates</string>
     <string name="hint_search_stop">Search stop or paste coordinates</string>
-    <string name="hint_round_trip_distance_m">15000</string>
+    <string name="hint_round_trip_distance_km">15</string>
     <string name="hint_round_trip_distance_mi">10</string>
     <string name="hint_saved_route_name">Route name</string>
 

@@ -47,6 +47,7 @@ public class MainActivity extends Activity {
                 this,
                 controls.routeModeSpinner,
                 controls.profileLabel,
+                controls.profileSelectionPanel,
                 controls.profileSpinner,
                 controls.destinationLabel,
                 controls.routeSetupPanel,

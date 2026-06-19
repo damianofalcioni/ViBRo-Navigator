@@ -3,6 +3,7 @@ package vibro.navigator.main;
 import androidx.annotation.Nullable;
 
 final class RoundTripDistanceInput {
+    private static final double METERS_PER_KILOMETER = 1000.0;
     private static final double METERS_PER_MILE = 1609.344;
 
     private RoundTripDistanceInput() {
@@ -14,7 +15,7 @@ final class RoundTripDistanceInput {
         if (entered == null) {
             return null;
         }
-        double meters = imperialUnitsEnabled ? entered * METERS_PER_MILE : entered;
+        double meters = imperialUnitsEnabled ? entered * METERS_PER_MILE : entered * METERS_PER_KILOMETER;
         return roundedPositiveMeters(meters);
     }
 

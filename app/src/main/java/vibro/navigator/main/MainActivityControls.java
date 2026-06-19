@@ -21,6 +21,8 @@ final class MainActivityControls {
     @NonNull
     final TextView profileLabel;
     @NonNull
+    final View profileSelectionPanel;
+    @NonNull
     final Spinner profileSpinner;
     @NonNull
     final ImageButton profileSettingsButton;
@@ -59,6 +61,7 @@ final class MainActivityControls {
             @NonNull ImageButton aboutButton,
             @NonNull Spinner routeModeSpinner,
             @NonNull TextView profileLabel,
+            @NonNull View profileSelectionPanel,
             @NonNull Spinner profileSpinner,
             @NonNull ImageButton profileSettingsButton,
             @NonNull View destinationLabel,
@@ -80,6 +83,7 @@ final class MainActivityControls {
         this.aboutButton = aboutButton;
         this.routeModeSpinner = routeModeSpinner;
         this.profileLabel = profileLabel;
+        this.profileSelectionPanel = profileSelectionPanel;
         this.profileSpinner = profileSpinner;
         this.profileSettingsButton = profileSettingsButton;
         this.destinationLabel = destinationLabel;
@@ -105,6 +109,7 @@ final class MainActivityControls {
                 activity.findViewById(R.id.aboutButton),
                 activity.findViewById(R.id.routeModeSpinner),
                 activity.findViewById(R.id.profileLabel),
+                activity.findViewById(R.id.profileSelectionPanel),
                 activity.findViewById(R.id.profileSpinner),
                 activity.findViewById(R.id.profileSettingsButton),
                 activity.findViewById(R.id.destinationLabel),

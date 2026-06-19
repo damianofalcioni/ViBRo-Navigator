@@ -33,7 +33,7 @@ Core product constraints:
 
 The app must show a main UI implemented as an Android `Activity`.
 
-The main UI must include a navigation-mode selector at the top, with the BRouter profile selector directly below it.
+The main UI must include a navigation-mode selector at the top, with the BRouter profile selector directly below it when a BRouter-backed mode is active.
 
 #### 1.1 Routing profiles
 
@@ -51,7 +51,7 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 - The selector must continue to behave like a normal dropdown even when a custom profile is currently selected
 - Bundled BRouter profile rows in the opened selector must include an info control that opens a UI showing the profile title, strengths, weaknesses, and distinctive usage guidance; custom or unknown external profiles must not get bundled-profile descriptions
 - Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
-- A profile-settings icon button must be shown next to the routing-profile selector and must be disabled when Straight Line mode is selected
+- A profile-settings icon button must be shown next to the routing-profile selector in BRouter-backed modes and hidden when Straight Line mode is selected
 - For a selected BRouter profile, the profile-settings UI must parse editable parameters declared in the selected `.brf` profile using BRouter's `%parameter% | description | type` comment convention
 - The profile-settings UI must show each parameter name and a type-appropriate input: switch for boolean parameters, numeric input for number/integer parameters, spinner for bracketed option lists, and text input when no supported type can be inferred
 - When a profile parameter has a description, the UI must show an information button for that parameter
@@ -74,13 +74,13 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 
 #### 1.2 Navigation mode selector
 
-- Above the routing-profile selector, the main UI must show a navigation-mode spinner with `Route mode`, `Round Trip mode`, and `Straight Line mode`
+- The main UI must show a navigation-mode spinner with `Route mode`, `Round Trip mode`, and `Straight Line mode`
 - In `Route` mode, the main UI must show the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, plus button, and start navigation button
 - In `Round trip` mode, the main UI must hide the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, and plus button
 - In `Round trip` mode, the main UI must show a single average roundtrip-distance field and the start navigation button
-- The average roundtrip-distance field must accept meters when metric units are active, and miles when the imperial-units setting is active
+- The average roundtrip-distance field must accept kilometers when metric units are active, and miles when the imperial-units setting is active
 - Round trip mode must use the selected BRouter profile and must not be startable without a selected BRouter profile
-- In `Straight Line mode`, the main UI must show the same destination, stop, saved-route, and start controls as Route mode, but the BRouter profile selector and profile-settings button must be disabled because BRouter is not used
+- In `Straight Line mode`, the main UI must show the same destination, stop, saved-route, and start controls as Route mode, but hide the BRouter profile selector and profile-settings button because BRouter is not used
 
 ### 2. Destination input
 

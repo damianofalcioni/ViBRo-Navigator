@@ -7,8 +7,8 @@ import org.junit.Test;
 
 public class RoundTripDistanceInputTest {
     @Test
-    public void parseDistanceMeters_usesMetersInMetricMode() {
-        assertEquals(Integer.valueOf(15000), RoundTripDistanceInput.parseDistanceMeters("15000", false));
+    public void parseDistanceMeters_usesKilometersInMetricMode() {
+        assertEquals(Integer.valueOf(15000), RoundTripDistanceInput.parseDistanceMeters("15", false));
     }
 
     @Test
@@ -18,7 +18,7 @@ public class RoundTripDistanceInputTest {
 
     @Test
     public void parseBRouterRadiusMeters_convertsAverageRoundTripDistanceToCircleRadius() {
-        assertEquals(Integer.valueOf(2387), RoundTripDistanceInput.parseBRouterRadiusMeters("15000", false));
+        assertEquals(Integer.valueOf(2387), RoundTripDistanceInput.parseBRouterRadiusMeters("15", false));
         assertEquals(Integer.valueOf(2561), RoundTripDistanceInput.parseBRouterRadiusMeters("10", true));
     }
 
