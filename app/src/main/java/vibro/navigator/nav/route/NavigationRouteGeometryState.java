@@ -18,11 +18,13 @@ public final class NavigationRouteGeometryState {
     @Nullable
     private PolylineIndex polylineIndex;
     private int lastSegmentIndex = -1;
+    private boolean roundTripRoute;
 
     public void reset() {
         route = null;
         polylineIndex = null;
         lastSegmentIndex = -1;
+        roundTripRoute = false;
     }
 
     public boolean hasActiveRoute() {
@@ -34,9 +36,14 @@ public final class NavigationRouteGeometryState {
     }
 
     public void loadRoute(@NonNull GeoJsonRoute newRoute) {
+        loadRoute(newRoute, false);
+    }
+
+    public void loadRoute(@NonNull GeoJsonRoute newRoute, boolean roundTripRoute) {
         route = newRoute;
         polylineIndex = new PolylineIndex(newRoute.track);
         lastSegmentIndex = -1;
+        this.roundTripRoute = roundTripRoute;
     }
 
     @Nullable
@@ -86,6 +93,14 @@ public final class NavigationRouteGeometryState {
     }
 
     public boolean isWithinDestinationReachedRadius(@NonNull NavigationLocation location, float accuracyMeters) {
+        return isWithinDestinationReachedRadius(location, accuracyMeters, null);
+    }
+
+    public boolean isWithinDestinationReachedRadius(
+            @NonNull NavigationLocation location,
+            float accuracyMeters,
+            @Nullable PolylineIndex.Match match
+    ) {
         if (route == null || route.track.isEmpty()) {
             return false;
         }
@@ -97,6 +112,19 @@ public final class NavigationRouteGeometryState {
                 destination.lon
         );
         double destinationReachedRadiusMeters = resolveDestinationReachedRadiusMeters(accuracyMeters);
-        return destinationDistanceMeters <= destinationReachedRadiusMeters;
+        if (destinationDistanceMeters > destinationReachedRadiusMeters) {
+            return false;
+        }
+        return !roundTripRoute || isNearRouteEnd(match, destinationReachedRadiusMeters);
+    }
+
+    private boolean isNearRouteEnd(@Nullable PolylineIndex.Match match, double destinationReachedRadiusMeters) {
+        if (route == null || match == null) {
+            return false;
+        }
+        double routeLengthMeters = Math.max(0.0, route.trackLengthMeters);
+        double endThresholdMeters = Math.max(destinationReachedRadiusMeters, 25.0);
+        return routeLengthMeters <= endThresholdMeters
+                || match.alongTrackMeters >= routeLengthMeters - endThresholdMeters;
     }
 }

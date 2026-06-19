@@ -39,12 +39,14 @@ abstract class NavigationSessionRouteStateTestSupport {
         return new NavigationRouteRequestSnapshot(
                 1,
                 1,
+                request.routingMode,
                 new LatLon(0.0, 0.0),
                 request.stops,
                 request.destination,
                 request.profile,
                 request.profileParameters,
-                Collections.emptyList()
+                Collections.emptyList(),
+                request.roundTripDistanceMeters
         );
     }
 

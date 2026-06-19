@@ -22,6 +22,8 @@ public final class AndroidNavigationRequestIntentContract {
     public static final String EXTRA_DEST_LAT = "vibro.navigator.extra.DEST_LAT";
     public static final String EXTRA_DEST_LON = "vibro.navigator.extra.DEST_LON";
     public static final String EXTRA_STOPS = "vibro.navigator.extra.STOPS";
+    public static final String EXTRA_ROUND_TRIP_DISTANCE_METERS =
+            "vibro.navigator.extra.ROUND_TRIP_DISTANCE_METERS";
 
     private AndroidNavigationRequestIntentContract() {
     }
@@ -39,7 +41,8 @@ public final class AndroidNavigationRequestIntentContract {
                 intent.getStringExtra(EXTRA_DEST_NAME),
                 intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN),
                 intent.getDoubleExtra(EXTRA_DEST_LON, Double.NaN),
-                intent.getStringArrayListExtra(EXTRA_STOPS)
+                intent.getStringArrayListExtra(EXTRA_STOPS),
+                intent.getIntExtra(EXTRA_ROUND_TRIP_DISTANCE_METERS, 0)
         ));
     }
 
@@ -67,7 +70,8 @@ public final class AndroidNavigationRequestIntentContract {
                 extras.profileParameters,
                 extras.destinationName,
                 destination,
-                stops
+                stops,
+                extras.roundTripDistanceMeters
         );
     }
 
@@ -90,6 +94,9 @@ public final class AndroidNavigationRequestIntentContract {
         if (!extras.stops.isEmpty()) {
             intent.putStringArrayListExtra(EXTRA_STOPS, extras.stops);
         }
+        if (extras.roundTripDistanceMeters > 0) {
+            intent.putExtra(EXTRA_ROUND_TRIP_DISTANCE_METERS, extras.roundTripDistanceMeters);
+        }
     }
 
     @NonNull
@@ -103,7 +110,8 @@ public final class AndroidNavigationRequestIntentContract {
                 request.destinationName,
                 destinationLat,
                 destinationLon,
-                toStopStrings(request.stops)
+                toStopStrings(request.stops),
+                request.roundTripDistanceMeters
         );
     }
 
@@ -149,6 +157,7 @@ public final class AndroidNavigationRequestIntentContract {
         final double destinationLon;
         @NonNull
         final ArrayList<String> stops;
+        final int roundTripDistanceMeters;
 
         Extras(
                 @Nullable String profile,
@@ -157,7 +166,7 @@ public final class AndroidNavigationRequestIntentContract {
                 double destinationLon,
                 @Nullable ArrayList<String> stops
         ) {
-            this(null, profile, null, destinationName, destinationLat, destinationLon, stops);
+            this(null, profile, null, destinationName, destinationLat, destinationLon, stops, 0);
         }
 
         Extras(
@@ -169,6 +178,19 @@ public final class AndroidNavigationRequestIntentContract {
                 double destinationLon,
                 @Nullable ArrayList<String> stops
         ) {
+            this(routingMode, profile, profileParameters, destinationName, destinationLat, destinationLon, stops, 0);
+        }
+
+        Extras(
+                @Nullable String routingMode,
+                @Nullable String profile,
+                @Nullable String profileParameters,
+                @Nullable String destinationName,
+                double destinationLat,
+                double destinationLon,
+                @Nullable ArrayList<String> stops,
+                int roundTripDistanceMeters
+        ) {
             this.routingMode = NavigationRoutingMode.fromSerializedName(routingMode).serializedName();
             this.profile = profile;
             this.profileParameters = clean(profileParameters);
@@ -176,6 +198,7 @@ public final class AndroidNavigationRequestIntentContract {
             this.destinationLat = destinationLat;
             this.destinationLon = destinationLon;
             this.stops = stops == null ? new ArrayList<>() : new ArrayList<>(stops);
+            this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
         }
 
         @Nullable

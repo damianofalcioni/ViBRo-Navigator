@@ -9,6 +9,7 @@ import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.dispatch.TaskScheduler;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import org.junit.Test;
@@ -25,6 +26,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class NavigationRouteExecutorTest {
+    private static final String PROFILE_PARAMETERS = "avoid_path=1";
+
 
     @Test
     public void requestRouteDeliversSuccessfulResult() throws Exception {
@@ -530,7 +533,7 @@ public class NavigationRouteExecutorTest {
 
         try {
             executor.requestRoute(
-                    routeSnapshot("avoid_path=1"),
+                    routeSnapshot(PROFILE_PARAMETERS),
                     new NavigationRouteExecutor.Callback() {
                         @Override
                         public void onRouteApplied(
@@ -552,7 +555,52 @@ public class NavigationRouteExecutorTest {
             );
 
             assertTrue(latch.await(2, TimeUnit.SECONDS));
-            assertEquals("avoid_path=1", receivedProfileParameters.get());
+            assertEquals(PROFILE_PARAMETERS, receivedProfileParameters.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void requestRouteDispatchesRoundTripSnapshotToRoundTripCalculator() throws Exception {
+        AtomicReference<Integer> receivedDistanceMeters = new AtomicReference<>();
+        AtomicReference<String> receivedProfileParameters = new AtomicReference<>();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                new RoundTripCapturingCalculator(receivedDistanceMeters, receivedProfileParameters),
+                Executors.newSingleThreadExecutor(),
+                Runnable::run
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        try {
+            executor.requestRoute(
+                    roundTripSnapshot(PROFILE_PARAMETERS, 15_000),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationRouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationRouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            failure.set(error);
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
+            assertNull(failure.get());
+            assertEquals(Integer.valueOf(15_000), receivedDistanceMeters.get());
+            assertEquals(PROFILE_PARAMETERS, receivedProfileParameters.get());
         } finally {
             executor.shutdown();
         }
@@ -610,6 +658,21 @@ public class NavigationRouteExecutorTest {
                 "trekking",
                 profileParameters,
                 Collections.emptyList()
+        );
+    }
+
+    private static NavigationRouteRequestSnapshot roundTripSnapshot(String profileParameters, int distanceMeters) {
+        return new NavigationRouteRequestSnapshot(
+                1,
+                1,
+                NavigationRoutingMode.ROUND_TRIP,
+                new LatLon(48.2082, 16.3738),
+                Collections.emptyList(),
+                null,
+                "trekking",
+                profileParameters,
+                Collections.emptyList(),
+                distanceMeters
         );
     }
 
@@ -679,6 +742,54 @@ public class NavigationRouteExecutorTest {
         ) {
             receivedProfileParameters.set(profileParameters);
             return routeGeoJson(start, intermediates, destination, profile, blocked);
+        }
+    }
+
+    private static final class RoundTripCapturingCalculator
+            implements NavigationRouteExecutor.RouteCalculator {
+        private final AtomicReference<Integer> receivedDistanceMeters;
+        private final AtomicReference<String> receivedProfileParameters;
+
+        private RoundTripCapturingCalculator(
+                AtomicReference<Integer> receivedDistanceMeters,
+                AtomicReference<String> receivedProfileParameters
+        ) {
+            this.receivedDistanceMeters = receivedDistanceMeters;
+            this.receivedProfileParameters = receivedProfileParameters;
+        }
+
+        @Override
+        public GeoJsonRoute routeGeoJson(
+                LatLon start,
+                java.util.List<LatLon> intermediates,
+                LatLon destination,
+                String profile,
+                java.util.List<NogoPoint> blocked
+        ) {
+            return new GeoJsonRoute(
+                    Arrays.asList(start, destination),
+                    Collections.emptyList(),
+                    42.0,
+                    120.0
+            );
+        }
+
+        @Override
+        public GeoJsonRoute roundTripGeoJson(
+                LatLon start,
+                String profile,
+                java.util.List<NogoPoint> blocked,
+                int roundTripDistanceMeters,
+                String profileParameters
+        ) {
+            receivedDistanceMeters.set(roundTripDistanceMeters);
+            receivedProfileParameters.set(profileParameters);
+            return new GeoJsonRoute(
+                    Arrays.asList(start, new LatLon(start.lat, start.lon + 0.001), start),
+                    Collections.emptyList(),
+                    120.0,
+                    220.0
+            );
         }
     }
 }

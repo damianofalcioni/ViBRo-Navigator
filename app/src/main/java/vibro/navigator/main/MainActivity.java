@@ -1,11 +1,6 @@
 package vibro.navigator.main;
 
 import vibro.navigator.R;
-
-
-import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
-import vibro.navigator.nav.ui.NavigationActivity;
-import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,7 +8,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
@@ -30,11 +24,10 @@ public class MainActivity extends Activity {
 
     private PoiInputController destinationController;
     private PoiHistoryStore historyStore;
-    private ProfileSpinnerController profileSpinnerController;
-    private ProfileParameterSettingsController profileParameterSettingsController;
+    private MainActivityProfileCoordinator profileCoordinator;
     private MainActivityStopController stopController;
-    private MainActivityProfilePicker profilePicker;
     private MainActivityMapPickerCoordinator mapPickerCoordinator;
+    private MainActivityRouteModeController routeModeController;
     private boolean appliedLightTheme;
 
     @Override
@@ -48,27 +41,19 @@ public class MainActivity extends Activity {
         MainActivityControls controls = MainActivityControls.bind(this);
 
         MainActivityAboutLauncher.configure(this, controls.aboutButton);
-
-        BRouterProfilesRepository profilesRepository = AndroidBRouterProfilesRepositoryFactory.create();
-        profilePicker = new MainActivityProfilePicker(this, profilesRepository);
-        profileSpinnerController = new ProfileSpinnerController(
+        routeModeController = new MainActivityRouteModeController(
                 this,
-                controls.profileSpinner,
-                profilesRepository,
-                profilePicker::startCustomProfilePicker
+                controls.routeModeTabs,
+                controls.destinationLabel,
+                controls.routeSetupPanel,
+                controls.roundTripSetupPanel,
+                controls.roundTripDistanceLabel,
+                controls.roundTripDistanceEdit
         );
-        profileParameterSettingsController = new ProfileParameterSettingsController(
-                this,
-                controls.profileSettingsButton,
-                profilesRepository,
-                profileSpinnerController
-        );
-        profileSpinnerController.setSelectionChangeListener(
-                profileParameterSettingsController::updateButtonState
-        );
-        profilePicker.attachProfileSpinnerController(profileSpinnerController);
+        routeModeController.configure(savedInstanceState);
 
-        boolean brouterInstalled = profilesRepository.isBRouterInstalled(this);
+        profileCoordinator = MainActivityProfileCoordinator.configure(this, controls);
+        boolean brouterInstalled = profileCoordinator.isBRouterInstalled();
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
         if (!brouterInstalled && savedInstanceState == null) {
             MainActivityBRouterInstallPrompt.show(this);
@@ -111,14 +96,11 @@ public class MainActivity extends Activity {
         });
 
         controls.startNavButton.setOnClickListener(v -> startNavigationFromInputs());
+        controls.roundTripStartNavButton.setOnClickListener(v -> startNavigationFromInputs());
 
         stopController.restoreRows(savedInstanceState);
 
-        if (brouterInstalled) {
-            profilePicker.refreshProfiles();
-        } else {
-            profileSpinnerController.refresh();
-        }
+        profileCoordinator.refresh(brouterInstalled);
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
             return;
         }
@@ -133,6 +115,9 @@ public class MainActivity extends Activity {
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, intent)) {
             return;
         }
+        if (routeModeController != null) {
+            routeModeController.showRouteMode();
+        }
         MainActivityIntentHandler.handleIncomingIntent(this, intent, destinationController);
     }
 
@@ -140,6 +125,9 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
+        if (routeModeController != null) {
+            routeModeController.updateDistanceUnitText();
+        }
     }
 
     private void openStopMapPicker(@NonNull PoiInputController stopInputController) {
@@ -158,6 +146,9 @@ public class MainActivity extends Activity {
         }
         if (stopController != null) {
             stopController.saveState(outState);
+        }
+        if (routeModeController != null) {
+            routeModeController.saveState(outState);
         }
     }
 
@@ -184,8 +175,12 @@ public class MainActivity extends Activity {
     private void startNavigationFromInputs() {
         AppLogger.i(TAG, "Start navigation tapped destinationRaw=" + destinationController.getRawText().trim()
                 + " stopsVisible=" + stopController.size());
-        ProfileSelection profileSelection = profileSpinnerController.resolveSelectedProfileSelection();
+        ProfileSelection profileSelection = profileCoordinator.resolveSelectedProfileSelection();
         if (profileSelection == null) {
+            return;
+        }
+        if (routeModeController.isRoundTripMode()) {
+            routeModeController.startRoundTripNavigation(profileSelection);
             return;
         }
         NavigationInputResolver.Result input = NavigationInputResolver.resolve(
@@ -202,10 +197,7 @@ public class MainActivity extends Activity {
     }
 
     private void launchNavigation(@NonNull NavigationInputResolver.Result input) {
-        AppLogger.i(TAG, "Starting NavigationActivity " + input.request.describe());
-        Intent intent = new Intent(this, NavigationActivity.class);
-        AndroidNavigationRequestIntentContract.putInto(intent, input.request);
-        startActivity(intent);
+        MainActivityNavigationLauncher.launch(this, input.request);
     }
 
     @Override
@@ -214,7 +206,7 @@ public class MainActivity extends Activity {
         AppLogger.i(TAG, "onActivityResult requestCode=" + requestCode
                 + " resultCode=" + resultCode
                 + " hasData=" + (data != null));
-        if (profilePicker != null && profilePicker.handleActivityResult(requestCode, resultCode, data)) {
+        if (profileCoordinator != null && profileCoordinator.handleActivityResult(requestCode, resultCode, data)) {
             return;
         }
         mapPickerCoordinator.handleActivityResult(

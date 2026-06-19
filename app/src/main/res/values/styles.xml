@@ -66,4 +66,16 @@
         <item name="android:popupBackground">@drawable/bg_spinner_popup</item>
         <item name="android:dropDownSelector">@drawable/bg_spinner_dropdown_item</item>
     </style>
+
+    <style name="Widget.ViBRoNavigator.RouteModeTab" parent="@android:style/Widget.CompoundButton.RadioButton">
+        <item name="android:button">@null</item>
+        <item name="android:background">@drawable/bg_route_mode_tab</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:textColor">?attr/vibroTextPrimaryColor</item>
+        <item name="android:textSize">15sp</item>
+    </style>
 </resources>

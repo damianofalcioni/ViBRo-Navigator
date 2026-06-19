@@ -188,12 +188,14 @@ public final class NavigationRouteRequestManager {
         NavigationRouteRequestSnapshot snapshot = new NavigationRouteRequestSnapshot(
                 requestNumber,
                 requestToken,
+                request.routingMode,
                 new LatLon(lastFiltered.getLatitude(), lastFiltered.getLongitude()),
                 new ArrayList<>(intermediates),
                 request.destination,
                 request.profile,
                 request.profileParameters,
-                new ArrayList<>(blocked)
+                new ArrayList<>(blocked),
+                request.roundTripDistanceMeters
         );
         routeCalculationInProgress = true;
         activeRequestStartLocation = new NavigationLocation(lastFiltered);

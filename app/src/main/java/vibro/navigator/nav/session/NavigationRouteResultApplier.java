@@ -68,7 +68,7 @@ final class NavigationRouteResultApplier {
         GeoJsonRoute route = input.route;
         routeStartApproachState.apply(approachPlan);
         logRouteStartApproachIfNeeded(approachPlan);
-        geometryState.loadRoute(route);
+        geometryState.loadRoute(route, input.snapshot.isRoundTrip());
         displayState.onRouteApplied(
                 input.textResources,
                 route,
@@ -113,7 +113,9 @@ final class NavigationRouteResultApplier {
             float accuracyMeters,
             boolean suppressInitialTurnEvent
     ) {
-        if (input.lastFiltered != null && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
+        if (!input.snapshot.isRoundTrip()
+                && input.lastFiltered != null
+                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
             return turnState.onDestinationReached(route);
         }
 

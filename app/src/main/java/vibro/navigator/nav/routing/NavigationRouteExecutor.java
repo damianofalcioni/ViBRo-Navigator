@@ -55,6 +55,17 @@ public final class NavigationRouteExecutor {
         ) throws Exception {
             return routeGeoJson(start, intermediates, destination, profile, blocked);
         }
+
+        @NonNull
+        public default GeoJsonRoute roundTripGeoJson(
+                @NonNull LatLon start,
+                @NonNull String profile,
+                @NonNull List<NogoPoint> blocked,
+                int roundTripDistanceMeters,
+                @NonNull String profileParameters
+        ) throws Exception {
+            return routeGeoJson(start, java.util.Collections.emptyList(), start, profile, blocked, profileParameters);
+        }
     }
 
     @VisibleForTesting

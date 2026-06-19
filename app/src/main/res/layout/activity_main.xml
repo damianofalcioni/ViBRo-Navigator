@@ -62,6 +62,40 @@
         </LinearLayout>
 
         <TextView
+            android:id="@+id/routeModeLabel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/label_route_mode"
+            android:textColor="?attr/vibroTextPrimaryColor" />
+
+        <RadioGroup
+            android:id="@+id/routeModeTabs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/routeModeRouteTab"
+                style="@style/Widget.ViBRoNavigator.RouteModeTab"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="@string/label_route_mode_route" />
+
+            <RadioButton
+                android:id="@+id/routeModeRoundTripTab"
+                style="@style/Widget.ViBRoNavigator.RouteModeTab"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/label_route_mode_round_trip" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/destinationLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -179,6 +213,51 @@
                 </LinearLayout>
             </LinearLayout>
         </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/roundTripSetupPanel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/roundTripDistanceLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/vibroTextPrimaryColor" />
+
+            <EditText
+                android:id="@+id/roundTripDistanceEdit"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:importantForAutofill="no"
+                android:imeOptions="actionDone"
+                android:inputType="numberDecimal"
+                android:textColor="?attr/vibroTextPrimaryColor"
+                android:textColorHint="?attr/vibroTextHintColor" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="36dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/roundTripStartNavButton"
+                    style="@style/Widget.ViBRoNavigator.IconButton.Circle"
+                    android:layout_width="132dp"
+                    android:layout_height="132dp"
+                    android:contentDescription="@string/action_start_navigation"
+                    android:padding="30dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_play"
+                    android:tint="@null" />
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

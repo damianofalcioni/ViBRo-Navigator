@@ -14,7 +14,7 @@ public final class BRouterRouteRequest {
     public final LatLon start;
     @NonNull
     public final List<LatLon> intermediates;
-    @NonNull
+    @Nullable
     public final LatLon destination;
     @NonNull
     public final String profile;
@@ -22,6 +22,7 @@ public final class BRouterRouteRequest {
     public final String profileParameters;
     @NonNull
     public final List<NogoPoint> blockedWaypoints;
+    public final int roundTripDistanceMeters;
 
     public BRouterRouteRequest(
             @NonNull LatLon start,
@@ -41,12 +42,48 @@ public final class BRouterRouteRequest {
             @Nullable String profileParameters,
             @Nullable List<NogoPoint> blockedWaypoints
     ) {
+        this(start, intermediates, destination, profile, profileParameters, blockedWaypoints, 0);
+    }
+
+    private BRouterRouteRequest(
+            @NonNull LatLon start,
+            @Nullable List<LatLon> intermediates,
+            @Nullable LatLon destination,
+            @NonNull String profile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters
+    ) {
         this.start = start;
         this.intermediates = immutableCopy(intermediates);
         this.destination = destination;
         this.profile = profile;
         this.profileParameters = clean(profileParameters);
         this.blockedWaypoints = immutableCopy(blockedWaypoints);
+        this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
+    }
+
+    @NonNull
+    public static BRouterRouteRequest roundTrip(
+            @NonNull LatLon start,
+            @NonNull String profile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters
+    ) {
+        return new BRouterRouteRequest(
+                start,
+                Collections.emptyList(),
+                null,
+                profile,
+                profileParameters,
+                blockedWaypoints,
+                roundTripDistanceMeters
+        );
+    }
+
+    public boolean isRoundTrip() {
+        return roundTripDistanceMeters > 0;
     }
 
     @NonNull

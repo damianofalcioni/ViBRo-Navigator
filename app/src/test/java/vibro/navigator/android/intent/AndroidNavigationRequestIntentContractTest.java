@@ -141,4 +141,29 @@ public class AndroidNavigationRequestIntentContractTest {
         assertEquals(PROFILE_PARAMETERS, extras.profileParameters);
         assertEquals(PROFILE_PARAMETERS, restored.profileParameters);
     }
+
+    @Test
+    public void toExtras_thenFromExtras_preservesRoundTripModeAndDistance() {
+        NavigationRequest original = new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                PROFILE,
+                PROFILE_PARAMETERS,
+                null,
+                null,
+                new ArrayList<>(),
+                15_000
+        );
+
+        AndroidNavigationRequestIntentContract.Extras extras =
+                AndroidNavigationRequestIntentContract.toExtras(original);
+        NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
+
+        assertTrue(restored.isComplete());
+        assertEquals(NavigationRoutingMode.ROUND_TRIP, restored.routingMode);
+        assertEquals(PROFILE, restored.profile);
+        assertEquals(PROFILE_PARAMETERS, restored.profileParameters);
+        assertNull(restored.destination);
+        assertEquals(15_000, extras.roundTripDistanceMeters);
+        assertEquals(15_000, restored.roundTripDistanceMeters);
+    }
 }

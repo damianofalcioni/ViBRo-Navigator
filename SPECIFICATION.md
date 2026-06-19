@@ -74,9 +74,18 @@ The main UI must include a routing-profile selector at the top.
   `/storage/<sdcard-uuid>/Android/media/btools.routingapp/brouter/profiles2`
   `/storage/<sdcard-uuid>/Android/data/btools.routingapp/files/brouter/profiles2`
 
+#### 1.2 Route mode tabs
+
+- Below the routing-profile selector, the main UI must show a compact two-option route-mode selector with `Route` and `Round trip`
+- In `Route` mode, the main UI must show the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, plus button, and start navigation button
+- In `Round trip` mode, the main UI must hide the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, and plus button
+- In `Round trip` mode, the main UI must show a single roundtrip-distance field and the start navigation button
+- The roundtrip-distance field must accept meters when metric units are active, and miles when the imperial-units setting is active
+- Round trip mode must use the selected BRouter profile and must not be startable with the special straight-line profile
+
 ### 2. Destination input
 
-Below the routing-profile selector, the app must show an input field for searching a destination POI or coordinates.
+In `Route` mode, below the route-mode selector, the app must show an input field for searching a destination POI or coordinates.
 
 #### 2.1 History dropdown before typing
 
@@ -177,6 +186,7 @@ Pressing the button must:
 - Access the current user location
 - For BRouter profiles, use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
 - For the straight-line profile, skip BRouter route calculation and navigate directly toward the next destination point
+- In round trip mode, use the installed BRouter app intent/service integration to calculate a circular route from the current location using the entered roundtrip distance and the selected BRouter profile
 - Include any intermediate stops in BRouter route calculations, and in straight-line mode treat them as ordered direct legs toward the final destination
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 - The first BRouter route calculation must only use a startup location fix that is recent and has location accuracy of 25 meters or better, whether that fix came from a cached seed, one-shot current-location request, or live location update
@@ -189,6 +199,7 @@ Pressing the button must:
 - If no install target can be opened on the device, the app must fail gracefully with a short user-visible message rather than crashing
 - When BRouter is not installed and a BRouter-backed profile or custom profile is selected, pressing start navigation must stop before profile resolution and must show a missing-BRouter message instead of opening the custom-profile picker
 - When BRouter is not installed and the straight-line profile is selected, pressing start navigation must continue without a missing-BRouter message
+- Round trip mode must require a selected BRouter profile; if the special straight-line profile is selected, pressing start navigation must show a short message and must not start navigation
 
 #### 4.3 BRouter integration
 
@@ -206,6 +217,8 @@ The implementation must use BRouter integration compatible with these references
 - Route calculations must send the selected BRouter `profile` explicitly
 - The app must not force a separate `v` vehicle-mode parameter when an explicit profile is supplied
 - The selected `.brf` file is the source of routing behavior for walk, bike, or car use cases
+- Round trip route calculations must send BRouter `engineMode=4`, the current location as the only explicit route point, `roundTripDistance` in meters, and `direction=-1`; they must omit `roundTripPoints` so BRouter uses its default helper-point count
+- Round trip route calculations must still send saved non-default profile parameter overrides through `extraParams`
 - Bundled internal BRouter profiles must remain usable even when no autodiscovered external profile folder is accessible
 - Custom external profile browsing should target a real accessible `profiles2` folder when one can be found, but normal routing must not depend on that folder existing
 - The picker-initial-location logic for custom external profiles must use the same version-agnostic multi-path probing strategy as the profile-discovery logic, rather than switching candidate path sets solely by Android version
@@ -255,6 +268,7 @@ The app must monitor user position:
 - In straight-line mode, the progress line for the next stop must use the direct distance from the current location to that stop
 - In straight-line mode, the progress line for the final destination must sum the direct remaining legs through all unreached intermediate stops, such as current location to next stop plus stop to stop plus last stop to final destination, instead of using a single shortcut from the current location to the final destination
 - In straight-line mode, displayed arrival times must use the same straight-line remaining distances and the current speed; if current speed is unavailable or stationary, the ETA must be unavailable
+- In round trip mode, the route end is allowed to be near the route start; the navigation session must not emit final-arrival guidance at route load or while matched near the start of the loop unless progress is also near the end of the loaded route
 
 #### 4.4.1 Off-track reroute
 
@@ -266,6 +280,7 @@ The app must monitor user position:
 - Clearly large misses beyond the threshold may reroute immediately without waiting for a second confirmation sample
 - The size of that immediate-reroute margin may shrink at higher travel speeds so driving-style use reacts faster without making low-speed walking reroutes twitchy
 - When a route recalculation starts after one or more intermediate stops have been reached, the recalculation must pass only the remaining unreached intermediate stops to BRouter; passed stops must not be reintroduced into the new route request, compass targets, or intermediate-stop progress state
+- Round trip reroutes and blocked-road recalculations must keep the active roundtrip mode, selected profile, profile parameter overrides, and roundtrip distance captured when navigation started
 
 #### 4.4.2 Wrong-direction reroute
 

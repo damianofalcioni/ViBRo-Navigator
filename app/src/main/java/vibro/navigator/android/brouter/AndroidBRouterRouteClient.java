@@ -13,8 +13,6 @@ import btools.routingapp.IBRouterService;
 import vibro.navigator.brouter.BRouterRouteClient;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.BRouterRouteRequest;
-import vibro.navigator.brouter.NogoPoint;
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
 
 import java.io.BufferedReader;
@@ -22,8 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public final class AndroidBRouterRouteClient implements BRouterRouteClient {
@@ -152,61 +148,7 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
 
     @NonNull
     static Bundle buildRouteParams(@NonNull BRouterRouteRequest request) {
-        List<LatLon> points = new ArrayList<>();
-        points.add(request.start);
-        points.addAll(request.intermediates);
-        points.add(request.destination);
-
-        Bundle bundle = new Bundle();
-        bundle.putDoubleArray("lats", latitudes(points));
-        bundle.putDoubleArray("lons", longitudes(points));
-        putNogos(bundle, request.blockedWaypoints);
-        bundle.putString("profile", request.profile);
-        if (request.profileParameters != null) {
-            bundle.putString("extraParams", request.profileParameters);
-        }
-
-        // GeoJSON output from BRouter is called "json" and follows GeoJSON FeatureCollection.
-        bundle.putString("format", "json");
-        bundle.putString("trackFormat", "json");
-
-        // Use BRouter-native turn hints so exits and beeline hints remain distinct.
-        bundle.putString("timode", "9");
-        bundle.putString("acceptCompressedResult", "true");
-        return bundle;
-    }
-
-    @NonNull
-    private static double[] latitudes(@NonNull List<LatLon> points) {
-        double[] lats = new double[points.size()];
-        for (int i = 0; i < points.size(); i++) {
-            lats[i] = points.get(i).lat;
-        }
-        return lats;
-    }
-
-    @NonNull
-    private static double[] longitudes(@NonNull List<LatLon> points) {
-        double[] lons = new double[points.size()];
-        for (int i = 0; i < points.size(); i++) {
-            lons[i] = points.get(i).lon;
-        }
-        return lons;
-    }
-
-    private static void putNogos(@NonNull Bundle bundle, @NonNull List<NogoPoint> nogos) {
-        double[] nogoLats = new double[nogos.size()];
-        double[] nogoLons = new double[nogos.size()];
-        double[] nogoRadi = new double[nogos.size()];
-        for (int i = 0; i < nogos.size(); i++) {
-            NogoPoint nogo = nogos.get(i);
-            nogoLats[i] = nogo.lat;
-            nogoLons[i] = nogo.lon;
-            nogoRadi[i] = nogo.radiusMeters;
-        }
-        bundle.putDoubleArray("nogoLats", nogoLats);
-        bundle.putDoubleArray("nogoLons", nogoLons);
-        bundle.putDoubleArray("nogoRadi", nogoRadi);
+        return AndroidBRouterRouteParams.build(request);
     }
 
     @NonNull

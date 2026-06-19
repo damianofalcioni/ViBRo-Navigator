@@ -33,14 +33,7 @@ final class NavigationRouteRetryPolicy {
         while (true) {
             attempt++;
             try {
-                return routeCalculator.routeGeoJson(
-                        snapshot.start,
-                        snapshot.intermediates,
-                        requireDestination(snapshot),
-                        requireProfile(snapshot),
-                        snapshot.blocked,
-                        profileParameters(snapshot)
-                );
+                return calculateSnapshotRoute(routeCalculator, snapshot);
             } catch (Exception e) {
                 if (!shouldRetryTransientRouteFailure(e, attempt)) {
                     throw e;
@@ -51,6 +44,30 @@ final class NavigationRouteRetryPolicy {
                 sleepBeforeRetry();
             }
         }
+    }
+
+    @NonNull
+    private static GeoJsonRoute calculateSnapshotRoute(
+            @NonNull NavigationRouteExecutor.RouteCalculator routeCalculator,
+            @NonNull NavigationRouteRequestSnapshot snapshot
+    ) throws Exception {
+        if (snapshot.isRoundTrip()) {
+            return routeCalculator.roundTripGeoJson(
+                    snapshot.start,
+                    requireProfile(snapshot),
+                    snapshot.blocked,
+                    requireRoundTripDistance(snapshot),
+                    profileParameters(snapshot)
+            );
+        }
+        return routeCalculator.routeGeoJson(
+                snapshot.start,
+                snapshot.intermediates,
+                requireDestination(snapshot),
+                requireProfile(snapshot),
+                snapshot.blocked,
+                profileParameters(snapshot)
+        );
     }
 
     @NonNull
@@ -67,6 +84,13 @@ final class NavigationRouteRetryPolicy {
             throw new IllegalStateException("Route request is missing a profile");
         }
         return snapshot.profile;
+    }
+
+    private static int requireRoundTripDistance(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        if (snapshot.roundTripDistanceMeters <= 0) {
+            throw new IllegalStateException("Round trip route request is missing a distance");
+        }
+        return snapshot.roundTripDistanceMeters;
     }
 
     @NonNull

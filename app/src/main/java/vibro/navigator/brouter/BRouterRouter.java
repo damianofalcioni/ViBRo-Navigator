@@ -49,6 +49,35 @@ public final class BRouterRouter {
     }
 
     @NonNull
+    public GeoJsonRoute roundTripGeoJson(
+            @NonNull BRouterRouteClient client,
+            @NonNull LatLon start,
+            @NonNull String profile,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters,
+            @Nullable String profileParameters
+    ) throws Exception {
+        AppLogger.i(TAG, "Building round trip request start=" + start.lat + "," + start.lon
+                + " profile=" + profile
+                + " profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
+                + " distanceMeters=" + roundTripDistanceMeters
+                + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
+        String decoded = client.requestRoutePayload(BRouterRouteRequest.roundTrip(
+                start,
+                profile,
+                profileParameters,
+                blockedWaypoints,
+                roundTripDistanceMeters
+        ));
+        if (decoded == null) {
+            AppLogger.w(TAG, "BRouter returned null round trip payload");
+            throw BRouterRouteException.serviceUnavailable("BRouter service not available");
+        }
+        AppLogger.dMultiline(TAG, "Full BRouter response=", decoded);
+        return parseRoutePayload(decoded);
+    }
+
+    @NonNull
     private String requestRoutePayload(
             @NonNull BRouterRouteClient client,
             @NonNull LatLon start,

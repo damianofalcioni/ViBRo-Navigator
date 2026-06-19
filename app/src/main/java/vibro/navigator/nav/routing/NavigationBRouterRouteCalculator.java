@@ -45,6 +45,18 @@ public final class NavigationBRouterRouteCalculator implements NavigationRouteEx
         return router.routeGeoJson(client, start, intermediates, destination, profile, blocked, profileParameters);
     }
 
+    @NonNull
+    @Override
+    public synchronized GeoJsonRoute roundTripGeoJson(
+            @NonNull LatLon start,
+            @NonNull String profile,
+            @NonNull List<NogoPoint> blocked,
+            int roundTripDistanceMeters,
+            @NonNull String profileParameters
+    ) throws Exception {
+        return router.roundTripGeoJson(client, start, profile, blocked, roundTripDistanceMeters, profileParameters);
+    }
+
     @Override
     public synchronized void close() {
         try {

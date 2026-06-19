@@ -22,6 +22,7 @@ public final class NavigationRequest {
     public final LatLon destination;
     @NonNull
     public final List<LatLon> stops;
+    public final int roundTripDistanceMeters;
 
     public NavigationRequest(
             @Nullable String profile,
@@ -50,20 +51,40 @@ public final class NavigationRequest {
             @Nullable LatLon destination,
             @NonNull List<LatLon> stops
     ) {
+        this(routingMode, profile, profileParameters, destinationName, destination, stops, 0);
+    }
+
+    public NavigationRequest(
+            @NonNull NavigationRoutingMode routingMode,
+            @Nullable String profile,
+            @Nullable String profileParameters,
+            @Nullable String destinationName,
+            @Nullable LatLon destination,
+            @NonNull List<LatLon> stops,
+            int roundTripDistanceMeters
+    ) {
         this.routingMode = routingMode;
         this.profile = profile;
         this.profileParameters = clean(profileParameters);
         this.destinationName = destinationName;
         this.destination = destination;
         this.stops = Collections.unmodifiableList(new ArrayList<>(stops));
+        this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
     }
 
     public boolean isComplete() {
-        return destination != null && (isStraightLine() || (profile != null && !profile.trim().isEmpty()));
+        if (isRoundTrip()) {
+            return hasProfile() && roundTripDistanceMeters > 0;
+        }
+        return destination != null && (isStraightLine() || hasProfile());
     }
 
     public boolean isStraightLine() {
         return routingMode == NavigationRoutingMode.STRAIGHT_LINE;
+    }
+
+    public boolean isRoundTrip() {
+        return routingMode == NavigationRoutingMode.ROUND_TRIP;
     }
 
     @NonNull
@@ -73,7 +94,8 @@ public final class NavigationRequest {
                 + ", profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
                 + ", destName=" + safe(destinationName)
                 + ", destination=" + formatLatLon(destination)
-                + ", stops=" + stops.size();
+                + ", stops=" + stops.size()
+                + ", roundTripDistanceMeters=" + roundTripDistanceMeters;
     }
 
     @NonNull
@@ -87,6 +109,10 @@ public final class NavigationRequest {
     @NonNull
     private static String safe(@Nullable String value) {
         return value == null ? "null" : value;
+    }
+
+    private boolean hasProfile() {
+        return profile != null && !profile.trim().isEmpty();
     }
 
     @Nullable

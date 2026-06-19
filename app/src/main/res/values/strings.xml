@@ -47,7 +47,12 @@
     <string name="action_reset_defaults">Reset defaults</string>
 
     <string name="label_vehicle_profile">BRouter Profile</string>
+    <string name="label_route_mode">Route mode</string>
+    <string name="label_route_mode_route">Route</string>
+    <string name="label_route_mode_round_trip">Round trip</string>
     <string name="label_destination">Destination</string>
+    <string name="label_round_trip_distance_m">Round trip distance (m)</string>
+    <string name="label_round_trip_distance_mi">Round trip distance (mi)</string>
     <string name="label_profile_attention_icon">Experimental or debug profile</string>
     <string name="format_profile_info_content_description">Show information for %1$s</string>
     <string name="format_stop_label">Stop %1$d</string>
@@ -55,6 +60,8 @@
 
     <string name="hint_search_destination">Search destination or paste coordinates</string>
     <string name="hint_search_stop">Search stop or paste coordinates</string>
+    <string name="hint_round_trip_distance_m">15000</string>
+    <string name="hint_round_trip_distance_mi">10</string>
     <string name="hint_saved_route_name">Route name</string>
 
     <string name="msg_missing_destination">Select a destination</string>
@@ -62,6 +69,8 @@
     <string name="msg_invalid_route_name">Enter a route name</string>
     <string name="msg_invalid_coordinates">Select a place with coordinates</string>
     <string name="msg_invalid_stop">Remove or select a stop with coordinates</string>
+    <string name="msg_invalid_round_trip_distance">Enter a valid round trip distance</string>
+    <string name="msg_round_trip_requires_brouter_profile">Select a BRouter profile for round trip mode</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
     <string name="title_brouter_not_found">BRouter required</string>
     <string name="title_stop_navigation_confirm">Stop navigation?</string>

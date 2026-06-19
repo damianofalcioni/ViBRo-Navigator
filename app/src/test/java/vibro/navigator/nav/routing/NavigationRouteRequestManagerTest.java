@@ -28,6 +28,8 @@ import java.util.List;
 public class NavigationRouteRequestManagerTest {
     private static final String FUSED_PROVIDER = "fused";
     private static final String BLOCKED_ROAD_NOTICE = "Blocked road added. Recalculating route.";
+    private static final String TREKKING_PROFILE = "trekking";
+    private static final String PROFILE_PARAMETERS = "avoid_path=1";
 
     @Test
     public void prepare_allowsFirstRouteRequestAtZeroTimestamp() {
@@ -326,8 +328,8 @@ public class NavigationRouteRequestManagerTest {
         manager.reset();
         NavigationRequest request = new NavigationRequest(
                 NavigationRoutingMode.BROUTER,
-                "trekking",
-                "avoid_path=1",
+                TREKKING_PROFILE,
+                PROFILE_PARAMETERS,
                 "Destination",
                 new LatLon(48.2082, 16.3738),
                 Collections.emptyList()
@@ -343,7 +345,37 @@ public class NavigationRouteRequestManagerTest {
         );
 
         assertNotNull(snapshot);
-        assertEquals("avoid_path=1", snapshot.profileParameters);
+        assertEquals(PROFILE_PARAMETERS, snapshot.profileParameters);
+    }
+
+    @Test
+    public void prepare_copiesRoundTripModeAndDistanceIntoSnapshot() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+        NavigationRequest request = new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                PROFILE_PARAMETERS,
+                null,
+                null,
+                Collections.emptyList(),
+                15_000
+        );
+
+        NavigationRouteRequestSnapshot snapshot = manager.prepare(
+                true,
+                2_000L,
+                request,
+                location(0.0, 0.0, 2_000L),
+                Collections.emptyList(),
+                null
+        );
+
+        assertNotNull(snapshot);
+        assertEquals(NavigationRoutingMode.ROUND_TRIP, snapshot.routingMode);
+        assertEquals(15_000, snapshot.roundTripDistanceMeters);
+        assertEquals(PROFILE_PARAMETERS, snapshot.profileParameters);
+        assertNull(snapshot.destination);
     }
 
     @Test

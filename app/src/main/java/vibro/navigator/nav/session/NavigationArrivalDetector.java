@@ -3,8 +3,10 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
+import vibro.navigator.nav.route.PolylineIndex;
 
 final class NavigationArrivalDetector {
     @NonNull
@@ -15,6 +17,14 @@ final class NavigationArrivalDetector {
     }
 
     boolean isDestinationReached(@NonNull NavigationLocation location, float accuracyMeters) {
-        return geometryState.isWithinDestinationReachedRadius(location, accuracyMeters);
+        return isDestinationReached(location, accuracyMeters, null);
+    }
+
+    boolean isDestinationReached(
+            @NonNull NavigationLocation location,
+            float accuracyMeters,
+            @Nullable PolylineIndex.Match match
+    ) {
+        return geometryState.isWithinDestinationReachedRadius(location, accuracyMeters, match);
     }
 }

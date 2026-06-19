@@ -7,7 +7,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -19,6 +21,18 @@ final class MainActivityControls {
     final Spinner profileSpinner;
     @NonNull
     final ImageButton profileSettingsButton;
+    @NonNull
+    final RadioGroup routeModeTabs;
+    @NonNull
+    final View destinationLabel;
+    @NonNull
+    final View routeSetupPanel;
+    @NonNull
+    final View roundTripSetupPanel;
+    @NonNull
+    final TextView roundTripDistanceLabel;
+    @NonNull
+    final EditText roundTripDistanceEdit;
     @NonNull
     final EditText destinationEdit;
     @NonNull
@@ -37,11 +51,19 @@ final class MainActivityControls {
     final ImageButton restoreRouteButton;
     @NonNull
     final ImageButton startNavButton;
+    @NonNull
+    final ImageButton roundTripStartNavButton;
 
     private MainActivityControls(
             @NonNull ImageButton aboutButton,
             @NonNull Spinner profileSpinner,
             @NonNull ImageButton profileSettingsButton,
+            @NonNull RadioGroup routeModeTabs,
+            @NonNull View destinationLabel,
+            @NonNull View routeSetupPanel,
+            @NonNull View roundTripSetupPanel,
+            @NonNull TextView roundTripDistanceLabel,
+            @NonNull EditText roundTripDistanceEdit,
             @NonNull EditText destinationEdit,
             @NonNull ImageButton destinationMapButton,
             @NonNull View destinationRow,
@@ -50,11 +72,18 @@ final class MainActivityControls {
             @NonNull ImageButton saveRouteButton,
             @NonNull Button addStopButton,
             @NonNull ImageButton restoreRouteButton,
-            @NonNull ImageButton startNavButton
+            @NonNull ImageButton startNavButton,
+            @NonNull ImageButton roundTripStartNavButton
     ) {
         this.aboutButton = aboutButton;
         this.profileSpinner = profileSpinner;
         this.profileSettingsButton = profileSettingsButton;
+        this.routeModeTabs = routeModeTabs;
+        this.destinationLabel = destinationLabel;
+        this.routeSetupPanel = routeSetupPanel;
+        this.roundTripSetupPanel = roundTripSetupPanel;
+        this.roundTripDistanceLabel = roundTripDistanceLabel;
+        this.roundTripDistanceEdit = roundTripDistanceEdit;
         this.destinationEdit = destinationEdit;
         this.destinationMapButton = destinationMapButton;
         this.destinationRow = destinationRow;
@@ -64,6 +93,7 @@ final class MainActivityControls {
         this.addStopButton = addStopButton;
         this.restoreRouteButton = restoreRouteButton;
         this.startNavButton = startNavButton;
+        this.roundTripStartNavButton = roundTripStartNavButton;
     }
 
     @NonNull
@@ -72,6 +102,12 @@ final class MainActivityControls {
                 activity.findViewById(R.id.aboutButton),
                 activity.findViewById(R.id.profileSpinner),
                 activity.findViewById(R.id.profileSettingsButton),
+                activity.findViewById(R.id.routeModeTabs),
+                activity.findViewById(R.id.destinationLabel),
+                activity.findViewById(R.id.routeSetupPanel),
+                activity.findViewById(R.id.roundTripSetupPanel),
+                activity.findViewById(R.id.roundTripDistanceLabel),
+                activity.findViewById(R.id.roundTripDistanceEdit),
                 activity.findViewById(R.id.destinationEdit),
                 activity.findViewById(R.id.destinationMapButton),
                 activity.findViewById(R.id.destinationRow),
@@ -80,7 +116,8 @@ final class MainActivityControls {
                 activity.findViewById(R.id.saveRouteButton),
                 activity.findViewById(R.id.addStopButton),
                 activity.findViewById(R.id.restoreRouteButton),
-                activity.findViewById(R.id.startNavButton)
+                activity.findViewById(R.id.startNavButton),
+                activity.findViewById(R.id.roundTripStartNavButton)
         );
     }
 }

@@ -25,6 +25,8 @@ import vibro.navigator.geo.LatLon;
 
 @RunWith(RobolectricTestRunner.class)
 public class AndroidBRouterRouteClientTest {
+    private static final String PROFILE_TREKKING = "trekking";
+    private static final String PROFILE_PARAMETERS = "avoid_path=1";
 
     @Test
     public void buildRouteParams_encodesProfilePointsNogosAndGeoJsonMode() {
@@ -32,7 +34,7 @@ public class AndroidBRouterRouteClientTest {
                 new LatLon(48.0, 16.0),
                 Collections.singletonList(new LatLon(48.1, 16.1)),
                 new LatLon(48.2, 16.2),
-                "trekking",
+                PROFILE_TREKKING,
                 Arrays.asList(
                         new NogoPoint(48.3, 16.3, 25.0),
                         new NogoPoint(48.4, 16.4, 40.0)
@@ -46,7 +48,7 @@ public class AndroidBRouterRouteClientTest {
         assertArrayEquals(new double[]{48.3, 48.4}, params.getDoubleArray("nogoLats"), 0.0);
         assertArrayEquals(new double[]{16.3, 16.4}, params.getDoubleArray("nogoLons"), 0.0);
         assertArrayEquals(new double[]{25.0, 40.0}, params.getDoubleArray("nogoRadi"), 0.0);
-        assertEquals("trekking", params.getString("profile"));
+        assertEquals(PROFILE_TREKKING, params.getString("profile"));
         assertEquals("json", params.getString("format"));
         assertEquals("json", params.getString("trackFormat"));
         assertEquals("9", params.getString("timode"));
@@ -61,7 +63,7 @@ public class AndroidBRouterRouteClientTest {
                 new LatLon(48.0, 16.0),
                 Collections.emptyList(),
                 new LatLon(48.2, 16.2),
-                "trekking",
+                PROFILE_TREKKING,
                 "avoid_path=1&uphillcost=90",
                 Collections.emptyList()
         );
@@ -69,6 +71,27 @@ public class AndroidBRouterRouteClientTest {
         Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
 
         assertEquals("avoid_path=1&uphillcost=90", params.getString("extraParams"));
+    }
+
+    @Test
+    public void buildRouteParams_encodesRoundTripModeWithSingleStartPoint() {
+        BRouterRouteRequest request = BRouterRouteRequest.roundTrip(
+                new LatLon(48.0, 16.0),
+                PROFILE_TREKKING,
+                PROFILE_PARAMETERS,
+                Collections.singletonList(new NogoPoint(48.3, 16.3, 25.0)),
+                15_000
+        );
+
+        Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
+
+        assertArrayEquals(new double[]{48.0}, params.getDoubleArray("lats"), 0.0);
+        assertArrayEquals(new double[]{16.0}, params.getDoubleArray("lons"), 0.0);
+        assertEquals(4, params.getInt("engineMode"));
+        assertEquals(-1, params.getInt("direction"));
+        assertEquals(15_000, params.getInt("roundTripDistance"));
+        assertFalse(params.containsKey("roundTripPoints"));
+        assertEquals(PROFILE_PARAMETERS, params.getString("extraParams"));
     }
 
     @Test

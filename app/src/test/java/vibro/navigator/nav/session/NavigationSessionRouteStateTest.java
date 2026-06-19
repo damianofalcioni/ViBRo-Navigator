@@ -6,6 +6,7 @@ import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -311,6 +312,70 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertEquals("■ Destination reached", navState.routeStatus.guidance.nextLine);
         assertEquals(context.getString(R.string.nav_destination_reached), navState.routeStatus.progress.destinationLine);
         assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
+    }
+
+    @Test
+    public void roundTripRouteDoesNotEmitArrivalAtRouteStart() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                null,
+                null,
+                null,
+                Collections.emptyList(),
+                15_000
+        );
+        GeoJsonRoute loopRoute = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.001, 0.001),
+                        new LatLon(0.0, 0.0)
+                ),
+                Collections.emptyList(),
+                300.0,
+                380.0
+        );
+
+        List<NavigationTurnEvent> initialEvents = state.applyRouteResult(
+                context,
+                snapshot(request),
+                loopRoute,
+                location(0.0, 0.0, 1_000L),
+                0f,
+                500L
+        );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.0, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavState navState = state.buildState(
+                context,
+                location(0.0, 0.0, 2_000L),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null,
+                null
+        );
+
+        assertTrue(initialEvents.isEmpty());
+        assertTrue(evaluation.turnEvents.isEmpty());
+        assertFalse(navState.routeStatus.progress.destinationLine.equals(
+                context.getString(R.string.nav_destination_reached)
+        ));
     }
 
     @Test

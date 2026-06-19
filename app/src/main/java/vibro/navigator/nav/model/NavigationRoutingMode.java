@@ -5,7 +5,8 @@ import androidx.annotation.Nullable;
 
 public enum NavigationRoutingMode {
     BROUTER("brouter"),
-    STRAIGHT_LINE("straight_line");
+    STRAIGHT_LINE("straight_line"),
+    ROUND_TRIP("round_trip");
 
     @NonNull
     private final String serializedName;

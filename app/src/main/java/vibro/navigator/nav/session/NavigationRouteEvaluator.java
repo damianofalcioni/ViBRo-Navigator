@@ -139,7 +139,7 @@ final class NavigationRouteEvaluator {
                 match.alongTrackMeters,
                 nowMs
         );
-        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters)) {
+        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match)) {
             deviationHandler.clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return NavigationRouteEvaluation.keepRoute(
@@ -245,7 +245,7 @@ final class NavigationRouteEvaluator {
         double offTrackThresholdMeters = RouteDeviationPolicy.resolveOffTrackThresholdMeters(trustedAccuracyMeters);
         boolean trustedRouteMatch = rememberTrustedRouteMatchForReacquisition(match, offTrackThresholdMeters);
         NavigationRouteEvaluation reachedTarget =
-                reachedTargetWhileReacquiring(filtered, trustedAccuracyMeters, trustedRouteMatch);
+                reachedTargetWhileReacquiring(filtered, match, trustedAccuracyMeters, trustedRouteMatch);
         if (reachedTarget != null) {
             return reachedTarget;
         }
@@ -283,13 +283,14 @@ final class NavigationRouteEvaluator {
     @Nullable
     private NavigationRouteEvaluation reachedTargetWhileReacquiring(
             @NonNull NavigationLocation filtered,
+            @NonNull PolylineIndex.Match match,
             float trustedAccuracyMeters,
             boolean trustedRouteMatch
     ) {
         if (!trustedRouteMatch) {
             return null;
         }
-        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters)) {
+        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match)) {
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
                     NO_SUGGESTED_INTERVAL,
