@@ -131,6 +131,7 @@ final class AboutPoiCategorySettings {
 
         ImageButton addButton = createIconButton(R.drawable.ic_plus, R.string.action_add_poi_category);
         addButton.setId(R.id.aboutPoiCategoryAddButton);
+        AndroidThemedButtons.applyBorderedIconButtonBackground(addButton);
         addButton.setOnClickListener(v -> addCategoryRow(categoryList, rows, "", true));
         row.addView(addButton, new LinearLayout.LayoutParams(dp(44), dp(44)));
         return row;
@@ -160,7 +161,7 @@ final class AboutPoiCategorySettings {
 
         CategoryRow categoryRow = new CategoryRow(editText, rowSwitch);
         rows.add(categoryRow);
-        ImageButton removeButton = createIconButton(R.drawable.ic_close, R.string.action_remove_poi_category);
+        ImageButton removeButton = createIconButton(R.drawable.ic_delete, R.string.action_remove_poi_category);
         removeButton.setOnClickListener(v -> {
             categoryList.removeView(row);
             rows.remove(categoryRow);

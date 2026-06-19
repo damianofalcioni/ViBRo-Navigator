@@ -8,19 +8,30 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.R;
+
 public final class AndroidThemedButtons {
     private AndroidThemedButtons() {
     }
 
     public static void applyIconButtonBackground(@NonNull ImageButton button) {
-        applyBackground(button);
+        applyBorderlessSelectableBackground(button);
+    }
+
+    public static void applyBorderedIconButtonBackground(@NonNull ImageButton button) {
+        applyDrawableBackground(button, R.drawable.bg_button_icon);
     }
 
     public static void applySecondaryButtonBackground(@NonNull TextView button) {
-        applyBackground(button);
+        applyDrawableBackground(button, R.drawable.bg_button_secondary);
     }
 
-    private static void applyBackground(@NonNull View view) {
+    private static void applyDrawableBackground(@NonNull View view, int backgroundResId) {
+        view.setBackgroundResource(backgroundResId);
+        view.setBackgroundTintList(null);
+    }
+
+    private static void applyBorderlessSelectableBackground(@NonNull View view) {
         view.setBackgroundResource(borderlessSelectableBackground(view.getContext()));
         view.setBackgroundTintList(null);
     }

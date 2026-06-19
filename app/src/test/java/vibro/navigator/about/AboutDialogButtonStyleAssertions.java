@@ -8,6 +8,8 @@ import android.app.Activity;
 import android.util.TypedValue;
 import android.view.View;
 
+import vibro.navigator.R;
+
 final class AboutDialogButtonStyleAssertions {
     private AboutDialogButtonStyleAssertions() {
     }
@@ -15,6 +17,16 @@ final class AboutDialogButtonStyleAssertions {
     static void assertBorderlessProfileInfoBackground(Activity activity, View button) {
         assertTrue(button.getBackgroundTintList() == null);
         assertEquals(borderlessSelectableBackground(activity), shadowOf(button.getBackground()).getCreatedFromResId());
+    }
+
+    static void assertIconButtonBackground(View button) {
+        assertTrue(button.getBackgroundTintList() == null);
+        assertEquals(R.drawable.bg_button_icon, shadowOf(button.getBackground()).getCreatedFromResId());
+    }
+
+    static void assertSecondaryButtonBackground(View button) {
+        assertTrue(button.getBackgroundTintList() == null);
+        assertEquals(R.drawable.bg_button_secondary, shadowOf(button.getBackground()).getCreatedFromResId());
     }
 
     private static int borderlessSelectableBackground(Activity activity) {

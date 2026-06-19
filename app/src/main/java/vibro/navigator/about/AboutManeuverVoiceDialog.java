@@ -119,7 +119,7 @@ final class AboutManeuverVoiceDialog {
     ) {
         ImageButton button = new ImageButton(activity);
         button.setId(R.id.aboutManeuverVoicePlayButton);
-        AndroidThemedButtons.applyIconButtonBackground(button);
+        AndroidThemedButtons.applyBorderedIconButtonBackground(button);
         button.setContentDescription(activity.getString(R.string.action_test_maneuver_voice));
         button.setImageResource(R.drawable.ic_play);
         button.setPadding(dp(activity, 10), dp(activity, 10), dp(activity, 10), dp(activity, 10));

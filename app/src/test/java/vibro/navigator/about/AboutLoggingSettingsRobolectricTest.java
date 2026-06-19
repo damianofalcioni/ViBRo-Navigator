@@ -1,6 +1,7 @@
 package vibro.navigator.about;
 
-import static vibro.navigator.about.AboutDialogButtonStyleAssertions.assertBorderlessProfileInfoBackground;
+import static vibro.navigator.about.AboutDialogButtonStyleAssertions.assertIconButtonBackground;
+import static vibro.navigator.about.AboutDialogButtonStyleAssertions.assertSecondaryButtonBackground;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -42,6 +43,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
@@ -330,7 +332,10 @@ public class AboutLoggingSettingsRobolectricTest {
         firstField.setText("Fuel");
         categorySwitchAt(categoryList, 0).setChecked(true);
         ImageButton addButton = dialog.findViewById(R.id.aboutPoiCategoryAddButton);
-        assertBorderlessProfileInfoBackground(activity, addButton);
+        LinearLayout firstCategoryRow = (LinearLayout) categoryList.getChildAt(0);
+        ImageButton removeButton = (ImageButton) firstCategoryRow.getChildAt(2);
+        assertIconButtonBackground(addButton);
+        assertEquals(R.drawable.ic_delete, (int) ReflectionHelpers.getField(removeButton, "mResource"));
         addButton.performClick();
         categoryFieldAt(categoryList, 1).setText("Restaurant");
         categorySwitchAt(categoryList, 1).setChecked(false);
@@ -355,7 +360,7 @@ public class AboutLoggingSettingsRobolectricTest {
         Spinner spinner = dialog.findViewById(R.id.aboutManeuverVoiceSpinner);
         ImageButton playButton = dialog.findViewById(R.id.aboutManeuverVoicePlayButton);
 
-        assertBorderlessProfileInfoBackground(activity, playButton);
+        assertIconButtonBackground(playButton);
         assertEquals(activity.getString(R.string.label_maneuver_voice_spinner), voiceLabel.getText().toString());
         assertEquals(
                 activity.getString(R.string.action_test_maneuver_voice),
@@ -383,7 +388,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         Button ttsSettingsButton = dialog.findViewById(R.id.aboutTtsSettingsButton);
 
-        assertBorderlessProfileInfoBackground(activity, ttsSettingsButton);
+        assertSecondaryButtonBackground(ttsSettingsButton);
         assertEquals(
                 activity.getString(R.string.action_android_tts_settings_short),
                 ttsSettingsButton.getText().toString()
