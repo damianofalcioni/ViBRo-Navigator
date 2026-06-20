@@ -77,7 +77,7 @@ final class NavigationRouteEvaluator {
             return evaluateUnavailableRoute(filtered, accuracyMeters, nowMs);
         }
 
-        PolylineIndex.Match match = geometryState.match(filtered);
+        PolylineIndex.Match match = geometryState.match(filtered, accuracyMeters);
         if (match == null) {
             AppLogger.w(TAG, "Route match failed, requesting recalculation");
             return NavigationRouteEvaluation.requestRecalculation(
@@ -123,7 +123,7 @@ final class NavigationRouteEvaluator {
         float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
         displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
         NavigationRouteEvaluation routeStartApproach =
-                evaluateRouteStartApproachIfNeeded(filtered, match, speedMps, likelyStationary, trustedAccuracyMeters);
+                evaluateRouteStartApproachIfNeeded(filtered, speedMps, likelyStationary, trustedAccuracyMeters);
         if (routeStartApproach != null) {
             return routeStartApproach;
         }
@@ -195,7 +195,6 @@ final class NavigationRouteEvaluator {
     @Nullable
     private NavigationRouteEvaluation evaluateRouteStartApproachIfNeeded(
             @NonNull NavigationLocation filtered,
-            @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
             float trustedAccuracyMeters
@@ -203,7 +202,8 @@ final class NavigationRouteEvaluator {
         if (!routeStartApproachState.isActive()) {
             return null;
         }
-        if (!routeStartApproachState.isReached(match, trustedAccuracyMeters)) {
+        PolylineIndex.Match routeStartMatch = geometryState.matchInitialRoutePart(filtered, trustedAccuracyMeters);
+        if (routeStartMatch == null || !routeStartApproachState.isReached(routeStartMatch, trustedAccuracyMeters)) {
             deviationHandler.clearDeviationEvidence();
             return NavigationRouteEvaluation.keepRoute(
                     Collections.emptyList(),
@@ -213,7 +213,7 @@ final class NavigationRouteEvaluator {
         }
         routeStartApproachState.reset();
         displayState.clearRouteStartApproachTarget();
-        geometryState.rememberSegment(match);
+        geometryState.rememberSegment(routeStartMatch);
         return NavigationRouteEvaluation.keepRoute(
                 turnState.buildInitialTurnEventIfNeeded(
                         geometryState.route(),

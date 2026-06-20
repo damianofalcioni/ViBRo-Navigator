@@ -34,11 +34,15 @@ final class NavigationBlockedPointSelector {
             return added;
         }
 
-        PolylineIndex.Match match = geometryState.match(lastFiltered);
+        PolylineIndex.Match match = geometryState.match(lastFiltered, accuracyOf(lastFiltered));
         if (match == null) {
             return added;
         }
 
         return blockedRouteState.addBlockedPointsAhead(geometryState.polylineIndex(), match.alongTrackMeters, nowMs);
+    }
+
+    private static float accuracyOf(@NonNull NavigationLocation location) {
+        return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
     }
 }

@@ -111,6 +111,23 @@ public final class PolylineIndex {
     }
 
     @Nullable
+    Match matchBeforeDistance(@NonNull LatLon p, double maxAlongTrackMeters) {
+        if (pts.size() < 2) {
+            return null;
+        }
+
+        double safeMaxAlongTrackMeters = Math.max(0.0, maxAlongTrackMeters);
+        int end = 0;
+        for (int i = 0; i <= pts.size() - 2; i++) {
+            if (distanceAtPointIndex(i) > safeMaxAlongTrackMeters) {
+                break;
+            }
+            end = i;
+        }
+        return findBestMatchInRange(p, 0, end);
+    }
+
+    @Nullable
     private Match findBestMatchInRange(@NonNull LatLon p, int start, int end) {
         Match best = null;
         for (int i = start; i <= end; i++) {

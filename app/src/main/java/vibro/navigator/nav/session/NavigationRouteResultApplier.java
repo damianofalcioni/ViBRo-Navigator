@@ -123,7 +123,7 @@ final class NavigationRouteResultApplier {
                 route,
                 geometryState.polylineIndex(),
                 input.snapshot.intermediates,
-                toLatLon(input.lastFiltered),
+                initialGuidanceLocation(input, route),
                 initialSpeedMps,
                 suppressInitialTurnEvent ? Float.MAX_VALUE : accuracyMeters
         );
@@ -146,5 +146,17 @@ final class NavigationRouteResultApplier {
     @Nullable
     private static LatLon toLatLon(@Nullable NavigationLocation location) {
         return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
+    }
+
+    @Nullable
+    private static LatLon initialGuidanceLocation(
+            @NonNull NavigationRouteResultInput input,
+            @NonNull GeoJsonRoute route
+    ) {
+        if (input.snapshot.isRoundTrip() && !route.track.isEmpty()) {
+            LatLon start = route.track.get(0);
+            return new LatLon(start.lat, start.lon);
+        }
+        return toLatLon(input.lastFiltered);
     }
 }

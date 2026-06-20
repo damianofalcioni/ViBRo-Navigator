@@ -206,9 +206,7 @@ public final class NavigationSessionRouteState {
     public NavState advanceDisplayState(@NonNull NavigationDisplaySnapshot snapshot) {
         NavState state = components.displayState.buildState(
                 snapshot,
-                components.geometryState.route(),
-                components.geometryState.polylineIndex(),
-                components.geometryState.lastSegmentIndex(),
+                components.geometryState,
                 components.turnState,
                 components.progressTracker
         );

@@ -7,7 +7,6 @@ import vibro.navigator.nav.location.NavigationLocation;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 
@@ -19,12 +18,14 @@ public final class NavigationRouteGeometryState {
     private PolylineIndex polylineIndex;
     private int lastSegmentIndex = -1;
     private boolean roundTripRoute;
+    private boolean roundTripDepartureObserved;
 
     public void reset() {
         route = null;
         polylineIndex = null;
         lastSegmentIndex = -1;
         roundTripRoute = false;
+        roundTripDepartureObserved = false;
     }
 
     public boolean hasActiveRoute() {
@@ -44,6 +45,7 @@ public final class NavigationRouteGeometryState {
         polylineIndex = new PolylineIndex(newRoute.track);
         lastSegmentIndex = -1;
         this.roundTripRoute = roundTripRoute;
+        roundTripDepartureObserved = false;
     }
 
     @Nullable
@@ -56,23 +58,38 @@ public final class NavigationRouteGeometryState {
         return polylineIndex;
     }
 
-    public int lastSegmentIndex() {
-        return lastSegmentIndex;
-    }
-
     public void rememberSegment(@NonNull PolylineIndex.Match match) {
         lastSegmentIndex = match.segmentIndex;
     }
 
     @Nullable
-    public PolylineIndex.Match match(@NonNull NavigationLocation location) {
+    public PolylineIndex.Match match(@NonNull NavigationLocation location, float accuracyMeters) {
         if (polylineIndex == null) {
             return null;
         }
-        return polylineIndex.match(
-                new LatLon(location.getLatitude(), location.getLongitude()),
-                lastSegmentIndex
+        LatLon point = new LatLon(location.getLatitude(), location.getLongitude());
+        PolylineIndex.Match match = polylineIndex.match(point, lastSegmentIndex);
+        if (match == null || !shouldUseRoundTripStartMatch()) {
+            return match;
+        }
+        PolylineIndex.Match startMatch = polylineIndex.matchBeforeDistance(
+                point,
+                NavigationRouteGeometryMetrics.routeStartAnchorWindowMeters(route, polylineIndex, accuracyMeters)
         );
+        return startMatch != null ? startMatch : match;
+    }
+
+    @Nullable
+    public PolylineIndex.Match matchInitialRoutePart(@NonNull NavigationLocation location, float accuracyMeters) {
+        if (polylineIndex == null) {
+            return null;
+        }
+        LatLon point = new LatLon(location.getLatitude(), location.getLongitude());
+        PolylineIndex.Match startMatch = polylineIndex.matchBeforeDistance(
+                point,
+                NavigationRouteGeometryMetrics.routeStartAnchorWindowMeters(route, polylineIndex, accuracyMeters)
+        );
+        return startMatch != null ? startMatch : polylineIndex.match(point, lastSegmentIndex);
     }
 
     @Nullable
@@ -80,7 +97,8 @@ public final class NavigationRouteGeometryState {
         if (lastFiltered == null || isRouteUnavailable()) {
             return null;
         }
-        PolylineIndex.Match match = match(lastFiltered);
+        float accuracyMeters = lastFiltered.hasAccuracy() ? lastFiltered.getAccuracy() : Float.MAX_VALUE;
+        PolylineIndex.Match match = match(lastFiltered, accuracyMeters);
         return match == null ? null : expectedBearingDegrees(match);
     }
 
@@ -104,27 +122,42 @@ public final class NavigationRouteGeometryState {
         if (route == null || route.track.isEmpty()) {
             return false;
         }
-        LatLon destination = route.track.get(route.track.size() - 1);
-        double destinationDistanceMeters = GeoMath.distanceMeters(
-                location.getLatitude(),
-                location.getLongitude(),
-                destination.lat,
-                destination.lon
-        );
         double destinationReachedRadiusMeters = resolveDestinationReachedRadiusMeters(accuracyMeters);
-        if (destinationDistanceMeters > destinationReachedRadiusMeters) {
+        if (!NavigationRouteGeometryMetrics.isInsideDestinationReachedRadius(route, location, accuracyMeters)) {
+            rememberRoundTripDeparture(match, accuracyMeters, destinationReachedRadiusMeters);
             return false;
         }
-        return !roundTripRoute || isNearRouteEnd(match, destinationReachedRadiusMeters);
+        return !roundTripRoute
+                || (roundTripDepartureObserved && isNearRouteEnd(match, destinationReachedRadiusMeters));
     }
 
     private boolean isNearRouteEnd(@Nullable PolylineIndex.Match match, double destinationReachedRadiusMeters) {
         if (route == null || match == null) {
             return false;
         }
-        double routeLengthMeters = Math.max(0.0, route.trackLengthMeters);
+        double routeLengthMeters = NavigationRouteGeometryMetrics.routeLengthMeters(route, polylineIndex);
         double endThresholdMeters = Math.max(destinationReachedRadiusMeters, 25.0);
         return routeLengthMeters <= endThresholdMeters
                 || match.alongTrackMeters >= routeLengthMeters - endThresholdMeters;
+    }
+
+    private boolean shouldUseRoundTripStartMatch() {
+        return roundTripRoute && !roundTripDepartureObserved;
+    }
+
+    private void rememberRoundTripDeparture(
+            @Nullable PolylineIndex.Match match,
+            float accuracyMeters,
+            double destinationReachedRadiusMeters
+    ) {
+        if (!roundTripRoute || roundTripDepartureObserved || match == null) {
+            return;
+        }
+        double routeStartAnchorWindowMeters =
+                NavigationRouteGeometryMetrics.routeStartAnchorWindowMeters(route, polylineIndex, accuracyMeters);
+        if (match.alongTrackMeters > routeStartAnchorWindowMeters
+                && match.distanceToTrackMeters <= destinationReachedRadiusMeters) {
+            roundTripDepartureObserved = true;
+        }
     }
 }

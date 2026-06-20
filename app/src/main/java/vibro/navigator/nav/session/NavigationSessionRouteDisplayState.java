@@ -67,9 +67,7 @@ public final class NavigationSessionRouteDisplayState {
     @NonNull
     public NavState buildState(
             @NonNull NavigationDisplaySnapshot snapshot,
-            @Nullable GeoJsonRoute route,
-            @Nullable PolylineIndex polylineIndex,
-            int lastSegmentIndex,
+            @NonNull NavigationRouteGeometryState geometryState,
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationRouteProgressTracker progressTracker
     ) {
@@ -82,14 +80,13 @@ public final class NavigationSessionRouteDisplayState {
             return buildCalculatingState(snapshot, gpsStatusLine);
         }
 
+        GeoJsonRoute route = geometryState.route();
+        PolylineIndex polylineIndex = geometryState.polylineIndex();
         if (route == null || polylineIndex == null) {
             return buildStateWithoutRoute(snapshot, gpsStatusLine);
         }
 
-        PolylineIndex.Match match = polylineIndex.match(
-                new LatLon(snapshot.lastFiltered.getLatitude(), snapshot.lastFiltered.getLongitude()),
-                lastSegmentIndex
-        );
+        PolylineIndex.Match match = geometryState.match(snapshot.lastFiltered, snapshot.accuracyMeters);
         if (match == null) {
             return NavStateComposer.withGpsStatus(
                     NavStateResourceComposer.waiting(snapshot.textResources),

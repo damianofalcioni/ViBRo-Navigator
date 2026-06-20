@@ -318,26 +318,8 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
     public void roundTripRouteDoesNotEmitArrivalAtRouteStart() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
-        NavigationRequest request = new NavigationRequest(
-                NavigationRoutingMode.ROUND_TRIP,
-                TREKKING_PROFILE,
-                null,
-                null,
-                null,
-                Collections.emptyList(),
-                15_000
-        );
-        GeoJsonRoute loopRoute = new GeoJsonRoute(
-                Arrays.asList(
-                        new LatLon(0.0, 0.0),
-                        new LatLon(0.0, 0.001),
-                        new LatLon(0.001, 0.001),
-                        new LatLon(0.0, 0.0)
-                ),
-                Collections.emptyList(),
-                300.0,
-                380.0
-        );
+        NavigationRequest request = roundTripRequest();
+        GeoJsonRoute loopRoute = roundTripLoopRoute(Collections.<VoiceHint>emptyList(), 380.0);
 
         List<NavigationTurnEvent> initialEvents = state.applyRouteResult(
                 context,
@@ -376,6 +358,148 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertFalse(navState.routeStatus.progress.destinationLine.equals(
                 context.getString(R.string.nav_destination_reached)
         ));
+    }
+
+    @Test
+    public void roundTripRouteDoesNotEmitArrivalWhenStartMatchesFinalSegment() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        GeoJsonRoute loopRoute = roundTripLoopRoute(
+                Collections.singletonList(new VoiceHint(3, 100, 0, 0.0, 0)),
+                380.0
+        );
+        NavigationLocation ambiguousStart = location(0.000005, 0.000005, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(roundTripRequest()),
+                loopRoute,
+                ambiguousStart,
+                0f,
+                500L
+        );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                ambiguousStart,
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavState navState = state.buildState(
+                context,
+                ambiguousStart,
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                2_000L,
+                false,
+                null,
+                null
+        );
+
+        assertTrue(evaluation.turnEvents.isEmpty());
+        assertFalse(navState.routeStatus.guidance.nextLine.equals("■ Destination reached"));
+        assertFalse(navState.routeStatus.progress.destinationLine.equals(
+                context.getString(R.string.nav_destination_reached)
+        ));
+    }
+
+    @Test
+    public void roundTripRouteDoesNotEmitArrivalAtRouteStartWhenTrackLengthMetadataIsMissing() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        state.applyRouteResult(
+                context,
+                snapshot(roundTripRequest()),
+                roundTripLoopRoute(Collections.<VoiceHint>emptyList(), 0.0),
+                location(0.0, 0.0, 1_000L),
+                0f,
+                500L
+        );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.0, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertTrue(evaluation.turnEvents.isEmpty());
+    }
+
+    @Test
+    public void roundTripRouteDoesNotTreatStartupGpsJitterAsDepartureAndArrival() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        state.applyRouteResult(
+                context,
+                snapshot(roundTripRequest()),
+                roundTripLoopRoute(Collections.<VoiceHint>emptyList(), 380.0),
+                location(0.0, 0.0, 1_000L),
+                0f,
+                500L
+        );
+        state.evaluateLocation(
+                location(0.00014, 0.0, 2_000L),
+                0f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                location(0.0, 0.0, 3_000L),
+                0f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
+
+        assertTrue(evaluation.turnEvents.isEmpty());
+    }
+
+    @Test
+    public void roundTripRouteEmitsArrivalAfterLeavingAndReturningToRouteEnd() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        GeoJsonRoute loopRoute = roundTripLoopRoute(Collections.<VoiceHint>emptyList(), 380.0);
+
+        state.applyRouteResult(
+                context,
+                snapshot(roundTripRequest()),
+                loopRoute,
+                location(0.0, 0.0, 1_000L),
+                0f,
+                500L
+        );
+        state.evaluateLocation(
+                location(0.0, 0.0005, 2_000L),
+                1f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+                location(0.000005, 0.000005, 3_000L),
+                1f,
+                5f,
+                225.0,
+                3_000L,
+                0L
+        );
+
+        assertEquals(1, arrivalEvaluation.turnEvents.size());
+        assertEquals(100, arrivalEvaluation.turnEvents.get(0).hint.command);
     }
 
     @Test
@@ -695,5 +819,36 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertEquals(1, turnEvents.size());
         assertEquals(NavigationTurnEvent.Type.INITIAL, turnEvents.get(0).type);
         assertEquals(42.0, turnEvents.get(0).timeSeconds, 0.0);
+    }
+
+    @NonNull
+    private static NavigationRequest roundTripRequest() {
+        return new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                null,
+                null,
+                null,
+                Collections.emptyList(),
+                15_000
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute roundTripLoopRoute(
+            @NonNull List<VoiceHint> voiceHints,
+            double trackLengthMeters
+    ) {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.001, 0.001),
+                        new LatLon(0.0, 0.0)
+                ),
+                voiceHints,
+                300.0,
+                trackLengthMeters
+        );
     }
 }

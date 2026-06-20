@@ -17,6 +17,7 @@ import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
@@ -88,6 +89,47 @@ public class NavigationRouteStartApproachStateTest {
         assertNull(reachedState.routeStatus.compassState.routeStartApproachProjection);
     }
 
+    @Test
+    public void roundTripRouteStartApproachIgnoresClosedLoopFinalSegment() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                null,
+                null,
+                null,
+                Collections.emptyList(),
+                15_000
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                roundTripRouteStartingAwayAndEndingAtRequestedStart(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+        NavigationRouteEvaluation approachEvaluation = state.evaluateLocation(
+                requestedStart,
+                1.4f,
+                3f,
+                90.0,
+                1_000L,
+                0L
+        );
+        NavState approachState = buildState(context, state, requestedStart, 1_000L);
+
+        assertFalse(approachEvaluation.shouldRecalculateRoute());
+        assertFalse(approachEvaluation.isStableOnRouteSample());
+        assertTrue(approachEvaluation.turnEvents.isEmpty());
+        assertTrue(approachState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_beeline)));
+        assertNotNull(approachState.routeStatus.compassState);
+        assertNotNull(approachState.routeStatus.compassState.routeStartApproachProjection);
+    }
+
     @NonNull
     private static NavState buildState(
             @NonNull NavigationTextResources context,
@@ -127,6 +169,20 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @NonNull
+    private static GeoJsonRoute roundTripRouteStartingAwayAndEndingAtRequestedStart() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.001, 0.001),
+                        new LatLon(0.0, 0.0)
+                ),
+                Collections.emptyList(),
+                180.0,
+                268.0
+        );
+    }
+
+    @NonNull
     private static NavigationRouteRequestSnapshot snapshot(
             @NonNull NavigationRequest request,
             @NonNull LatLon start
@@ -134,12 +190,14 @@ public class NavigationRouteStartApproachStateTest {
         return new NavigationRouteRequestSnapshot(
                 1,
                 1,
+                request.routingMode,
                 start,
                 request.stops,
                 request.destination,
                 request.profile,
                 request.profileParameters,
-                Collections.emptyList()
+                Collections.emptyList(),
+                request.roundTripDistanceMeters
         );
     }
 
