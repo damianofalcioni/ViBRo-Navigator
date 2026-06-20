@@ -112,7 +112,7 @@ final class NavigationSessionStateBuilder {
                     paused
             );
         }
-        NavState baseState = routeState.advanceDisplayState(snapshot);
+        NavState baseState = routeState.advanceDisplayState(snapshot, currentRequest.isRoundTrip());
         if (currentRequest.isRoundTrip()) {
             baseState = NavStateComposer.withBlockedRoadActionAvailable(baseState, false);
         }

@@ -8,6 +8,7 @@ import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession.ResourceAdapter;
 import static org.junit.Assert.assertFalse;
@@ -279,6 +280,41 @@ public class NavigationSessionTest {
     }
 
     @Test
+    public void roundTripModeAlwaysShowsNextManeuverCueInCompass() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                null,
+                null,
+                null,
+                Collections.emptyList(),
+                2_387
+        ));
+        long nowMs = System.currentTimeMillis();
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        ResourceAdapter.onRawLocationChanged(session, context, locationWithSpeed(0.0, 0.0, nowMs, 5f), nowMs);
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
+        assertNotNull(snapshot);
+        ResourceAdapter.applyRouteResult(session, context, snapshot, roundTripRouteWithManeuver(), nowMs);
+        NavState state = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 1_000L,
+                null,
+                90.0,
+                null
+        );
+
+        assertNotNull(state.routeStatus.compassState);
+        assertNotNull(state.routeStatus.compassState.orientationCue);
+        assertEquals(0.0f, state.routeStatus.compassState.orientationCue.targetHeadingDegrees, 0.01f);
+    }
+
+    @Test
     public void straightLineModeUsesTargetDistanceForUpdateIntervalsAfterWarmup() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
@@ -485,6 +521,21 @@ public class NavigationSessionTest {
                 Collections.emptyList(),
                 180.0,
                 333.0
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute roundTripRouteWithManeuver() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.001, 0.001),
+                        new LatLon(0.0, 0.0)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, -90)),
+                300.0,
+                380.0
         );
     }
 

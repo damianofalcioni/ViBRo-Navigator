@@ -204,11 +204,20 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public NavState advanceDisplayState(@NonNull NavigationDisplaySnapshot snapshot) {
+        return advanceDisplayState(snapshot, false);
+    }
+
+    @NonNull
+    public NavState advanceDisplayState(
+            @NonNull NavigationDisplaySnapshot snapshot,
+            boolean showNextManeuverCue
+    ) {
         NavState state = components.displayState.buildState(
                 snapshot,
                 components.geometryState,
                 components.turnState,
-                components.progressTracker
+                components.progressTracker,
+                showNextManeuverCue
         );
         components.displayState.rememberRenderedState(state, snapshot);
         return state;

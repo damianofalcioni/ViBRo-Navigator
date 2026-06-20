@@ -269,6 +269,7 @@ The app must monitor user position:
 - In straight-line mode, the progress line for the final destination must sum the direct remaining legs through all unreached intermediate stops, such as current location to next stop plus stop to stop plus last stop to final destination, instead of using a single shortcut from the current location to the final destination
 - In straight-line mode, displayed arrival times must use the same straight-line remaining distances and the current speed; if current speed is unavailable or stationary, the ETA must be unavailable
 - In round trip mode, the route end is allowed to be near the route start; the navigation session must not emit final-arrival guidance at route load or while matched near the start of the loop unless progress is also near the end of the loaded route
+- In round trip mode, the compass must keep showing the next real BRouter maneuver cue whenever that maneuver is still ahead, even before the maneuver reaches notification timing thresholds; synthetic arrival hints must not replace the maneuver cue
 - In round trip mode, the blocked-road action must be disabled because blocked-road no-go recalculation is not applicable to a circular route request
 
 #### 4.4.1 Off-track reroute

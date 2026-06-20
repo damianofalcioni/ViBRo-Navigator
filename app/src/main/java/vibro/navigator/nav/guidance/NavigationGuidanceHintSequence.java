@@ -95,11 +95,31 @@ final class NavigationGuidanceHintSequence {
     }
 
     @Nullable
+    Integer nextTurnManeuverDegrees() {
+        VoiceHint nextHint = nextTurnManeuverHint();
+        return nextHint == null ? null : nextHint.angleDegrees;
+    }
+
+    @Nullable
+    Integer nextTurnManeuverTrackIndex() {
+        VoiceHint nextHint = nextTurnManeuverHint();
+        return nextHint == null ? null : nextHint.indexInTrack;
+    }
+
+    @Nullable
     Double nextAlongTrackMeters() {
         if (nextIndex < 0 || nextIndex >= hintAlongTrackMeters.size()) {
             return null;
         }
         return hintAlongTrackMeters.get(nextIndex);
+    }
+
+    @Nullable
+    private VoiceHint nextTurnManeuverHint() {
+        VoiceHint nextHint = nextHint();
+        return nextHint == null || NavigationTurnManeuverCueState.isSyntheticArrivalHint(nextHint)
+                ? null
+                : nextHint;
     }
 
     private void replaceWith(@NonNull NavigationGuidanceHintSequenceBuilder.BuiltHints builtHints) {

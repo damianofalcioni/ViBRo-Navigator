@@ -59,6 +59,16 @@ public final class NavigationTurnState {
         return maneuverCueState.activeTurnManeuverTrackIndex();
     }
 
+    @Nullable
+    public Integer getNextTurnManeuverDegrees() {
+        return guidanceHints.nextTurnManeuverDegrees();
+    }
+
+    @Nullable
+    public Integer getNextTurnManeuverTrackIndex() {
+        return guidanceHints.nextTurnManeuverTrackIndex();
+    }
+
     @NonNull
     public Progress evaluate(
             @NonNull GeoJsonRoute route,

@@ -71,6 +71,17 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationRouteProgressTracker progressTracker
     ) {
+        return buildState(snapshot, geometryState, turnState, progressTracker, false);
+    }
+
+    @NonNull
+    public NavState buildState(
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @NonNull NavigationRouteGeometryState geometryState,
+            @NonNull NavigationTurnState turnState,
+            @NonNull NavigationRouteProgressTracker progressTracker,
+            boolean showNextManeuverCue
+    ) {
         String gpsStatusLine = buildGpsStatusLine(snapshot);
         if (snapshot.lastFiltered == null) {
             return buildStateWithoutLocation(snapshot, gpsStatusLine);
@@ -101,12 +112,12 @@ public final class NavigationSessionRouteDisplayState {
                 snapshot.likelyStationary
         );
         float compassAccuracyMeters = compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters);
-        CompassOrientationCue orientationCue = compassMemory.resolveOrientationCue(
-                snapshot.orientationCue,
-                turnState.getActiveTurnManeuverDegrees(),
-                turnState.getActiveTurnManeuverTrackIndex(),
+        CompassOrientationCue orientationCue = resolveOrientationCue(
+                snapshot,
+                turnState,
                 polylineIndex,
-                snapshot.headingDegrees
+                match,
+                showNextManeuverCue
         );
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters)
@@ -294,6 +305,40 @@ public final class NavigationSessionRouteDisplayState {
             }
         }
         return lastTrackIndex;
+    }
+
+    private static boolean isCueTrackStillAhead(
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            @Nullable Integer trackIndex
+    ) {
+        return trackIndex != null && alongTrackMeters < index.distanceAtPointIndex(trackIndex);
+    }
+
+    @Nullable
+    private CompassOrientationCue resolveOrientationCue(
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @NonNull NavigationTurnState turnState,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull PolylineIndex.Match match,
+            boolean showNextManeuverCue
+    ) {
+        Integer turnManeuverDegrees = turnState.getActiveTurnManeuverDegrees();
+        Integer turnManeuverTrackIndex = turnState.getActiveTurnManeuverTrackIndex();
+        if (turnManeuverDegrees == null && showNextManeuverCue) {
+            Integer nextTrackIndex = turnState.getNextTurnManeuverTrackIndex();
+            if (isCueTrackStillAhead(polylineIndex, match.alongTrackMeters, nextTrackIndex)) {
+                turnManeuverDegrees = turnState.getNextTurnManeuverDegrees();
+                turnManeuverTrackIndex = nextTrackIndex;
+            }
+        }
+        return compassMemory.resolveOrientationCue(
+                snapshot.orientationCue,
+                turnManeuverDegrees,
+                turnManeuverTrackIndex,
+                polylineIndex,
+                snapshot.headingDegrees
+        );
     }
 
     @NonNull
