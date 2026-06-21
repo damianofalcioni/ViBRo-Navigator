@@ -42,6 +42,11 @@ final class MainActivityRouteModeOption {
         return OPTIONS[position].mode;
     }
 
+    static boolean isEnabled(int position, boolean brouterInstalled) {
+        NavigationRoutingMode mode = modeAt(position);
+        return brouterInstalled || mode == NavigationRoutingMode.STRAIGHT_LINE;
+    }
+
     static int positionOf(@NonNull NavigationRoutingMode mode) {
         for (int i = 0; i < OPTIONS.length; i++) {
             if (OPTIONS[i].mode == mode) {

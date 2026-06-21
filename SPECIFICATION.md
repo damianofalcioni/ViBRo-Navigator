@@ -75,6 +75,7 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 #### 1.2 Navigation mode selector
 
 - The main UI must show a navigation-mode spinner with `Route mode`, `Round Trip mode`, and `Straight Line mode`
+- If BRouter is not installed, `Route mode` and `Round Trip mode` must remain visible in the navigation-mode spinner but be disabled, while `Straight Line mode` remains selectable
 - In `Route` mode, the main UI must show the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, plus button, and start navigation button
 - In `Round trip` mode, the main UI must hide the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, and plus button
 - In `Round trip` mode, the main UI must show a single average roundtrip-distance field and the start navigation button
@@ -137,7 +138,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 
 Below the destination input, the app must show a centered plus button. An icon-only save-route button must be shown immediately to the left of the plus button, and an icon-only restore-route button must be shown immediately to the right.
 
-The destination, intermediate stops, and start-navigation area must include a non-interactive route-direction rail on the left side. The rail must use the app's red route color, start at the destination field, continue toward the start button/current-position marker, show bullets for the final destination and each intermediate stop, and show a directional arrow pointing from the current position toward the destination. Intermediate stop inputs must stay in entry order so pressing the plus button adds the next editable field near the plus button. In straight-line guidance, those stop inputs are consumed from the current-position side upward so the bottom visible stop is reached first, then the stops above it, then the final destination.
+The destination, intermediate stops, and start-navigation area must include a non-interactive route-direction rail on the left side. The rail must use the app's red route color, start at the destination field, continue toward the start button/current-position marker, show bullets for the final destination and each intermediate stop, and show a directional arrow pointing from the current position toward the destination. In straight-line guidance, the vertical rail line must be dotted. Intermediate stop inputs must stay in entry order so pressing the plus button adds the next editable field near the plus button. In straight-line guidance, those stop inputs are consumed from the current-position side upward so the bottom visible stop is reached first, then the stops above it, then the final destination.
 
 #### 3.1 Add stop field
 

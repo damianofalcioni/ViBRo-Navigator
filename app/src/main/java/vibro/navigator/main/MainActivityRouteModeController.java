@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -47,6 +46,7 @@ final class MainActivityRouteModeController {
     private final TextView roundTripDistanceLabel;
     @NonNull
     private final EditText roundTripDistanceEdit;
+    private boolean brouterInstalled;
     @NonNull
     private ModeChangeListener modeChangeListener = mode -> {
     };
@@ -76,19 +76,18 @@ final class MainActivityRouteModeController {
     }
 
     void configure(@Nullable Bundle savedInstanceState, boolean brouterInstalled) {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                activity,
-                R.layout.item_profile_spinner,
-                android.R.id.text1,
-                MainActivityRouteModeOption.labels(activity)
-        );
-        adapter.setDropDownViewResource(R.layout.item_profile_spinner_bundled_dropdown);
-        routeModeSpinner.setAdapter(adapter);
+        this.brouterInstalled = brouterInstalled;
+        routeModeSpinner.setAdapter(new MainActivityRouteModeAdapter(activity, brouterInstalled));
         routeModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                render(currentRoutingMode());
-                modeChangeListener.onRouteModeChanged(currentRoutingMode());
+                NavigationRoutingMode selectedMode = currentRoutingMode();
+                if (!isModeEnabled(selectedMode)) {
+                    selectMode(NavigationRoutingMode.STRAIGHT_LINE);
+                    return;
+                }
+                render(selectedMode);
+                modeChangeListener.onRouteModeChanged(selectedMode);
             }
 
             @Override
@@ -98,9 +97,7 @@ final class MainActivityRouteModeController {
         if (savedInstanceState != null) {
             roundTripDistanceEdit.setText(savedInstanceState.getString(STATE_ROUND_TRIP_DISTANCE, ""));
         }
-        routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(
-                restoredMode(savedInstanceState, brouterInstalled)
-        ), false);
+        selectMode(restoredMode(savedInstanceState, brouterInstalled));
         updateDistanceUnitText();
         render(currentRoutingMode());
     }
@@ -130,7 +127,7 @@ final class MainActivityRouteModeController {
     }
 
     void showRouteMode() {
-        routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.BROUTER), false);
+        selectMode(availableMode(NavigationRoutingMode.BROUTER, brouterInstalled));
         render(currentRoutingMode());
         modeChangeListener.onRouteModeChanged(currentRoutingMode());
     }
@@ -192,14 +189,35 @@ final class MainActivityRouteModeController {
         if (savedInstanceState == null) {
             return brouterInstalled ? NavigationRoutingMode.BROUTER : NavigationRoutingMode.STRAIGHT_LINE;
         }
+        NavigationRoutingMode restored;
         if (savedInstanceState.containsKey(STATE_ROUTING_MODE)) {
-            return NavigationRoutingMode.fromSerializedName(
+            restored = NavigationRoutingMode.fromSerializedName(
                     savedInstanceState.getString(STATE_ROUTING_MODE)
             );
+        } else {
+            restored = savedInstanceState.getBoolean(STATE_ROUND_TRIP_MODE, false)
+                    ? NavigationRoutingMode.ROUND_TRIP
+                    : NavigationRoutingMode.BROUTER;
         }
-        return savedInstanceState.getBoolean(STATE_ROUND_TRIP_MODE, false)
-                ? NavigationRoutingMode.ROUND_TRIP
-                : NavigationRoutingMode.BROUTER;
+        return availableMode(restored, brouterInstalled);
+    }
+
+    @NonNull
+    private static NavigationRoutingMode availableMode(
+            @NonNull NavigationRoutingMode mode,
+            boolean brouterInstalled
+    ) {
+        return brouterInstalled || mode == NavigationRoutingMode.STRAIGHT_LINE
+                ? mode
+                : NavigationRoutingMode.STRAIGHT_LINE;
+    }
+
+    private boolean isModeEnabled(@NonNull NavigationRoutingMode mode) {
+        return availableMode(mode, brouterInstalled) == mode;
+    }
+
+    private void selectMode(@NonNull NavigationRoutingMode mode) {
+        routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(mode), false);
     }
 
     @Nullable

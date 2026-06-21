@@ -6,9 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ListAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -56,6 +58,38 @@ public class MainActivityRouteModeControllerTest {
         assertEquals(View.VISIBLE, fixture.destinationLabel.getVisibility());
         assertEquals(View.VISIBLE, fixture.routeSetupPanel.getVisibility());
         assertEquals(View.GONE, fixture.roundTripSetupPanel.getVisibility());
+    }
+
+    @Test
+    public void configure_disablesBRouterBackedRouteModesWhenBRouterIsMissing() {
+        Fixture fixture = Fixture.create();
+
+        fixture.controller.configure(null, false);
+
+        ListAdapter adapter = (ListAdapter) fixture.routeModeSpinner.getAdapter();
+        assertEquals(3, adapter.getCount());
+        assertFalse(adapter.areAllItemsEnabled());
+        assertFalse(adapter.isEnabled(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.BROUTER)));
+        assertFalse(adapter.isEnabled(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.ROUND_TRIP)));
+        assertTrue(adapter.isEnabled(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.STRAIGHT_LINE)));
+    }
+
+    @Test
+    public void configure_coercesRestoredBRouterModeToStraightLineWhenBRouterIsMissing() {
+        Fixture savedFixture = Fixture.create();
+        savedFixture.controller.configure(null, true);
+        savedFixture.routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(
+                NavigationRoutingMode.ROUND_TRIP
+        ));
+        Bundle state = new Bundle();
+        savedFixture.controller.saveState(state);
+
+        Fixture fixture = Fixture.create();
+        fixture.controller.configure(state, false);
+
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE, fixture.controller.currentRoutingMode());
+        assertEquals(View.GONE, fixture.roundTripSetupPanel.getVisibility());
+        assertEquals(View.VISIBLE, fixture.routeSetupPanel.getVisibility());
     }
 
     @Test

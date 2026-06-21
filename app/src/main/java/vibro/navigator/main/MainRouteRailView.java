@@ -4,8 +4,10 @@ import vibro.navigator.R;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.PathEffect;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
@@ -19,11 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class MainRouteRailView extends View {
+    private static final float STRAIGHT_LINE_DOT_LENGTH_DP = 2.0f;
+    private static final float STRAIGHT_LINE_DOT_GAP_DP = 6.0f;
 
     @NonNull
     private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     @NonNull
     private final Paint markerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    @NonNull
+    private final Path linePath = new Path();
     @NonNull
     private final Path arrowPath = new Path();
     @NonNull
@@ -40,6 +46,9 @@ public final class MainRouteRailView extends View {
 
     @NonNull
     private final RailMetrics metrics;
+    @NonNull
+    private final PathEffect straightLineLineEffect;
+    private boolean straightLineMode;
 
     public MainRouteRailView(@NonNull Context context) {
         this(context, null);
@@ -52,7 +61,15 @@ public final class MainRouteRailView extends View {
     public MainRouteRailView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         metrics = RailMetrics.create(context);
+        straightLineLineEffect = new DashPathEffect(
+                new float[] {
+                        dp(context, STRAIGHT_LINE_DOT_LENGTH_DP),
+                        dp(context, STRAIGHT_LINE_DOT_GAP_DP)
+                },
+                0f
+        );
         int routeColor = ContextCompat.getColor(context, R.color.compass_route);
+        linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setColor(routeColor);
         linePaint.setStrokeCap(Paint.Cap.ROUND);
         linePaint.setStrokeWidth(metrics.lineWidth);
@@ -72,6 +89,19 @@ public final class MainRouteRailView extends View {
         invalidate();
     }
 
+    void setStraightLineMode(boolean straightLineMode) {
+        if (this.straightLineMode == straightLineMode) {
+            return;
+        }
+        this.straightLineMode = straightLineMode;
+        linePaint.setPathEffect(straightLineMode ? straightLineLineEffect : null);
+        invalidate();
+    }
+
+    Paint linePaintForTest() {
+        return linePaint;
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
@@ -85,12 +115,23 @@ public final class MainRouteRailView extends View {
         }
 
         float currentMarkerEdgeY = currentMarkerEdgeY(currentY, destinationY);
-        canvas.drawLine(metrics.railX, destinationY, metrics.railX, currentMarkerEdgeY, linePaint);
+        drawRailLine(canvas, destinationY, currentMarkerEdgeY);
 
         drawRouteArrow(canvas, currentMarkerEdgeY, destinationY);
         drawFilledMarker(canvas, destinationY);
         drawStopMarkers(canvas);
         drawCurrentPositionMarker(canvas, currentY);
+    }
+
+    void drawRailLineForTest(@NonNull Canvas canvas, float startY, float stopY) {
+        drawRailLine(canvas, startY, stopY);
+    }
+
+    private void drawRailLine(@NonNull Canvas canvas, float startY, float stopY) {
+        linePath.reset();
+        linePath.moveTo(metrics.railX, startY);
+        linePath.lineTo(metrics.railX, stopY);
+        canvas.drawPath(linePath, linePaint);
     }
 
     private float currentMarkerEdgeY(float currentY, float destinationY) {

@@ -14,6 +14,7 @@ import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 
 // Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
 public class MainActivity extends Activity {
@@ -56,7 +57,10 @@ public class MainActivity extends Activity {
                 controls.roundTripDistanceEdit
         );
         routeModeController.configure(savedInstanceState, brouterInstalled);
-        routeModeController.setModeChangeListener(profileCoordinator::onRouteModeChanged);
+        routeModeController.setModeChangeListener(mode -> {
+            profileCoordinator.onRouteModeChanged(mode);
+            controls.routeRailView.setStraightLineMode(mode == NavigationRoutingMode.STRAIGHT_LINE);
+        });
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
         if (!brouterInstalled && savedInstanceState == null) {
             MainActivityBRouterInstallPrompt.show(this);
