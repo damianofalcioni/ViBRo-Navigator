@@ -16,11 +16,16 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.XmlResourceParser;
 import android.os.Build;
 import android.os.IBinder;
 import android.service.notification.StatusBarNotification;
 
+import androidx.test.core.app.ApplicationProvider;
+
+import vibro.navigator.R;
 import vibro.navigator.android.foreground.AndroidNavigationForegroundController;
 import vibro.navigator.nav.route.VoiceHint;
 
@@ -30,10 +35,13 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ServiceController;
 import org.robolectric.annotation.Config;
+import org.xmlpull.v1.XmlPullParser;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 public class NavigationForegroundControllerTest {
+
+    private static final String ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android";
 
     @Test
     public void ensureChannelsCreatesSilentDirectionalChannelsAndRemovesLegacyIds() {
@@ -148,10 +156,36 @@ public class NavigationForegroundControllerTest {
         serviceController.destroy();
     }
 
+    @Test
+    public void notificationIconUsesPackageStableWhiteFill() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        assertEquals(R.color.white, notificationIconFillColorResId(context));
+    }
+
     private static Notification lastPostedNotification(NotificationManager notificationManager) {
         StatusBarNotification[] notifications = notificationManager.getActiveNotifications();
         assertEquals(1, notifications.length);
-        return notifications[0].getNotification();
+        Notification notification = notifications[0].getNotification();
+        assertNotNull(notification.getSmallIcon());
+        assertEquals(R.drawable.ic_notification, notification.getSmallIcon().getResId());
+        return notification;
+    }
+
+    private static int notificationIconFillColorResId(Context context) throws Exception {
+        XmlResourceParser parser = context.getResources().getXml(R.drawable.ic_notification);
+        try {
+            int eventType = parser.getEventType();
+            while (eventType != XmlPullParser.END_DOCUMENT) {
+                if (eventType == XmlPullParser.START_TAG && "path".equals(parser.getName())) {
+                    return parser.getAttributeResourceValue(ANDROID_XML_NAMESPACE, "fillColor", 0);
+                }
+                eventType = parser.next();
+            }
+        } finally {
+            parser.close();
+        }
+        return 0;
     }
 
     public static final class TestService extends Service {

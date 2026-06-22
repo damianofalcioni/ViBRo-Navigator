@@ -134,6 +134,8 @@ public class NavigationNotificationDebugHelperTest {
         assertEquals(1, notifications.length);
         Notification notification = notifications[0].getNotification();
         assertEquals(expectedChannelId, notification.getChannelId());
+        assertNotNull(notification.getSmallIcon());
+        assertEquals(R.drawable.ic_notification, notification.getSmallIcon().getResId());
         assertEquals(
                 ApplicationProvider.getApplicationContext().getString(expectedTitleRes),
                 notification.extras.getString(Notification.EXTRA_TITLE)
