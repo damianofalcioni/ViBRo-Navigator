@@ -9,6 +9,7 @@ import androidx.annotation.ColorRes;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.settings.AppThemeSettings;
@@ -44,6 +45,7 @@ public final class AndroidAppTheme {
         activity.setTheme(lightThemeEnabled
                 ? R.style.Theme_ViBRoNavigator_Light
                 : R.style.Theme_ViBRoNavigator);
+        applySystemBarAppearance(activity, lightThemeEnabled);
         return lightThemeEnabled;
     }
 
@@ -75,5 +77,14 @@ public final class AndroidAppTheme {
             }
         }
         throw new IllegalArgumentException("Theme attribute not defined: " + attrResId);
+    }
+
+    private static void applySystemBarAppearance(@NonNull Activity activity, boolean lightThemeEnabled) {
+        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(
+                activity.getWindow(),
+                activity.getWindow().getDecorView()
+        );
+        controller.setAppearanceLightStatusBars(lightThemeEnabled);
+        controller.setAppearanceLightNavigationBars(lightThemeEnabled);
     }
 }

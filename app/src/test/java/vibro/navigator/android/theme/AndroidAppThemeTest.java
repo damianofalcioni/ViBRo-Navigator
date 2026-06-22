@@ -9,6 +9,7 @@ import android.app.Application;
 import android.util.TypedValue;
 
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Before;
@@ -16,6 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import vibro.navigator.R;
 import vibro.navigator.settings.AppThemeSettings;
@@ -92,6 +94,34 @@ public class AndroidAppThemeTest {
         ));
     }
 
+    @Test
+    @Config(sdk = 27)
+    public void darkThemeClearsLightSystemBarAppearance() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        WindowInsetsControllerCompat controller = windowInsetsController(activity);
+        controller.setAppearanceLightStatusBars(true);
+        controller.setAppearanceLightNavigationBars(true);
+
+        AndroidAppTheme.apply(activity);
+
+        assertFalse(controller.isAppearanceLightStatusBars());
+        assertFalse(controller.isAppearanceLightNavigationBars());
+    }
+
+    @Test
+    @Config(sdk = 27)
+    public void lightThemeUsesLightSystemBarAppearance() {
+        Application context = ApplicationProvider.getApplicationContext();
+        AppThemeSettings.setLightThemeEnabled(context, true);
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        AndroidAppTheme.apply(activity);
+
+        WindowInsetsControllerCompat controller = windowInsetsController(activity);
+        assertTrue(controller.isAppearanceLightStatusBars());
+        assertTrue(controller.isAppearanceLightNavigationBars());
+    }
+
     private static int platformThemeColor(Activity activity, int attrResId) {
         TypedValue value = new TypedValue();
         assertTrue(activity.getTheme().resolveAttribute(attrResId, value, true));
@@ -99,5 +129,9 @@ public class AndroidAppThemeTest {
             return ContextCompat.getColor(activity, value.resourceId);
         }
         return value.data;
+    }
+
+    private static WindowInsetsControllerCompat windowInsetsController(Activity activity) {
+        return new WindowInsetsControllerCompat(activity.getWindow(), activity.getWindow().getDecorView());
     }
 }
