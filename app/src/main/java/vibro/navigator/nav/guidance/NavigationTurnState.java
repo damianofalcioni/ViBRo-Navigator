@@ -111,7 +111,7 @@ public final class NavigationTurnState {
         );
         long suggestedUpdateIntervalMs = updateScheduler.applyPostManeuverIntervalRamp(
                 naturalUpdateIntervalMs,
-                hasPassedInstruction(progress.signals)
+                progress.advancedPastInstruction
         );
         return new Progress(toTurnEvents(progress.signals), suggestedUpdateIntervalMs);
     }
@@ -249,15 +249,6 @@ public final class NavigationTurnState {
     @NonNull
     private static List<NavigationTurnEvent> noTurnEvents() {
         return new ArrayList<>();
-    }
-
-    private static boolean hasPassedInstruction(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
-        for (TurnEventPlanner.TurnSignal signal : signals) {
-            if (signal.type == TurnEventPlanner.TurnSignal.Type.PASSED) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @NonNull

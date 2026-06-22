@@ -23,13 +23,21 @@ public final class TurnEventPlanner {
         final int nextHintIdx;
         final boolean notified20;
         final boolean notified5;
+        final boolean advancedPastInstruction;
         @NonNull
         final List<TurnSignal> signals;
 
-        private Progress(int nextHintIdx, boolean notified20, boolean notified5, @NonNull List<TurnSignal> signals) {
+        private Progress(
+                int nextHintIdx,
+                boolean notified20,
+                boolean notified5,
+                boolean advancedPastInstruction,
+                @NonNull List<TurnSignal> signals
+        ) {
             this.nextHintIdx = nextHintIdx;
             this.notified20 = notified20;
             this.notified5 = notified5;
+            this.advancedPastInstruction = advancedPastInstruction;
             this.signals = signals;
         }
     }
@@ -135,7 +143,7 @@ public final class TurnEventPlanner {
             float speedMps
     ) {
         if (hints.isEmpty() || nextHintIdx >= hints.size()) {
-            return new Progress(nextHintIdx, notified20, notified5, Collections.emptyList());
+            return new Progress(nextHintIdx, notified20, notified5, false, Collections.emptyList());
         }
 
         List<TurnSignal> signals = new ArrayList<>();
@@ -155,7 +163,8 @@ public final class TurnEventPlanner {
         AdvanceCursor cursor = new AdvanceCursor(
                 consumed.nextHintIdx,
                 consumed.notified20,
-                consumed.notified5
+                consumed.notified5,
+                consumed.advancedPastInstruction
         );
 
         if (cursor.nextHintIdx >= hints.size()) {
@@ -211,29 +220,48 @@ public final class TurnEventPlanner {
             updatedNotified20 = true;
             updatedNotified5 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
-            return new Progress(cursor.nextHintIdx, updatedNotified20, updatedNotified5, signals);
+            return new Progress(
+                    cursor.nextHintIdx,
+                    updatedNotified20,
+                    updatedNotified5,
+                    cursor.advancedPastInstruction,
+                    signals
+            );
         }
         if (!cursor.notified20 && timeToNextSeconds <= PREPARATORY_IMMINENT_THRESHOLD_SECONDS) {
             updatedNotified20 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
         }
-        return new Progress(cursor.nextHintIdx, updatedNotified20, updatedNotified5, signals);
+        return new Progress(
+                cursor.nextHintIdx,
+                updatedNotified20,
+                updatedNotified5,
+                cursor.advancedPastInstruction,
+                signals
+        );
     }
 
     private static final class AdvanceCursor {
         public final int nextHintIdx;
         public final boolean notified20;
         public final boolean notified5;
+        public final boolean advancedPastInstruction;
 
-        private AdvanceCursor(int nextHintIdx, boolean notified20, boolean notified5) {
+        private AdvanceCursor(
+                int nextHintIdx,
+                boolean notified20,
+                boolean notified5,
+                boolean advancedPastInstruction
+        ) {
             this.nextHintIdx = nextHintIdx;
             this.notified20 = notified20;
             this.notified5 = notified5;
+            this.advancedPastInstruction = advancedPastInstruction;
         }
 
         @NonNull
         public Progress toProgress(@NonNull List<TurnSignal> signals) {
-            return new Progress(nextHintIdx, notified20, notified5, signals);
+            return new Progress(nextHintIdx, notified20, notified5, advancedPastInstruction, signals);
         }
     }
 

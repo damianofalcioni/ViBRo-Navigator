@@ -139,21 +139,7 @@ public class NavigationTurnStateTest {
     @Test
     public void evaluate_rampsUpdateIntervalUpAfterPassedTurn() {
         NavigationTurnState state = new NavigationTurnState();
-        GeoJsonRoute route = new GeoJsonRoute(
-                Arrays.asList(
-                        new LatLon(0.0, 0.0),
-                        new LatLon(0.0, 0.001),
-                        new LatLon(0.0, 0.002),
-                        new LatLon(0.0, 0.003),
-                        new LatLon(0.0, 0.004)
-                ),
-                Arrays.asList(
-                        new VoiceHint(1, 2, 0, 0.0, 0),
-                        new VoiceHint(4, 5, 0, 0.0, 0)
-                ),
-                400.0,
-                444.0
-        );
+        GeoJsonRoute route = routeWithTwoTurnHints();
         PolylineIndex polylineIndex = new PolylineIndex(route.track);
         state.onRouteApplied(route, polylineIndex, Collections.emptyList(), location(0.0, 0.0), 5f, 5f);
 
@@ -195,6 +181,49 @@ public class NavigationTurnStateTest {
     }
 
     @Test
+    public void evaluate_rampsUpdateIntervalUpAfterRetiredTurnWithoutPassedNotification() {
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = routeWithTwoTurnHints();
+        PolylineIndex polylineIndex = new PolylineIndex(route.track);
+        state.onRouteApplied(route, polylineIndex, Collections.emptyList(), location(0.0, 0.0), 1f, 5f);
+
+        double firstTurnMeters = polylineIndex.distanceAtPointIndex(1);
+        NavigationTurnState.Progress imminentTurn = state.evaluate(
+                route,
+                polylineIndex,
+                firstTurnMeters - 3.0,
+                0,
+                1f,
+                1_000L,
+                0L
+        );
+        NavigationTurnState.Progress retiredTurn = state.evaluate(
+                route,
+                polylineIndex,
+                firstTurnMeters + 1.0,
+                1,
+                0f,
+                4_000L,
+                0L
+        );
+        NavigationTurnState.Progress firstRampStep = state.evaluate(
+                route,
+                polylineIndex,
+                firstTurnMeters + 1.0,
+                1,
+                0f,
+                7_000L,
+                0L
+        );
+
+        assertEquals(1, imminentTurn.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, imminentTurn.turnEvents.get(0).type);
+        assertTrue(retiredTurn.turnEvents.isEmpty());
+        assertEquals(3_000L, retiredTurn.suggestedUpdateIntervalMs);
+        assertEquals(5_000L, firstRampStep.suggestedUpdateIntervalMs);
+    }
+
+    @Test
     public void evaluate_activatesTurnManeuverCueForFiveSecondSignal() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = new GeoJsonRoute(
@@ -231,6 +260,24 @@ public class NavigationTurnStateTest {
                 Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
                 60.0,
                 111.0
+        );
+    }
+
+    private static GeoJsonRoute routeWithTwoTurnHints() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002),
+                        new LatLon(0.0, 0.003),
+                        new LatLon(0.0, 0.004)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 2, 0, 0.0, 0),
+                        new VoiceHint(4, 5, 0, 0.0, 0)
+                ),
+                400.0,
+                444.0
         );
     }
 
