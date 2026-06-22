@@ -75,6 +75,7 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 #### 1.2 Navigation mode selector
 
 - The main UI must show a navigation-mode spinner with `Route mode`, `Round Trip mode`, and `Straight Line mode`
+- Each row in the opened navigation-mode selector must include an info control that briefly explains the selected mode
 - If BRouter is not installed, `Route mode` and `Round Trip mode` must remain visible in the navigation-mode spinner but be disabled, while `Straight Line mode` remains selectable
 - In `Route` mode, the main UI must show the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, plus button, and start navigation button
 - In `Round trip` mode, the main UI must hide the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, and plus button

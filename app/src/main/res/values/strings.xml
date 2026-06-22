@@ -55,6 +55,7 @@
     <string name="label_round_trip_distance_mi">Average round trip distance (mi)</string>
     <string name="label_profile_attention_icon">Experimental or debug profile</string>
     <string name="format_profile_info_content_description">Show information for %1$s</string>
+    <string name="format_route_mode_info_content_description">Show mode information for %1$s</string>
     <string name="format_stop_label">Stop %1$d</string>
     <string name="format_default_saved_route_name">Route %1$s</string>
 
@@ -120,6 +121,9 @@
     <string name="title_profile_parameters_reset_confirm">Reset profile settings?</string>
     <string name="msg_profile_parameters_reset_confirm">Restore this profile\'s settings to the values defined in the profile?</string>
     <string name="format_profile_parameter_info_content_description">Show parameter information for %1$s</string>
+    <string name="route_mode_info_route_description">Calculates a BRouter route from your current position through any stops to the destination.</string>
+    <string name="route_mode_info_round_trip_description">Calculates a circular BRouter route from your current position using the selected profile and average trip distance.</string>
+    <string name="route_mode_info_straight_line_description">Skips BRouter and guides directly toward the destination and stops with beeline distance and direction.</string>
     <string name="profile_info_trekking_title">Trekking bike</string>
     <string name="profile_info_trekking_description">Balanced bike routing for everyday cycling, touring, and practical navigation. Its main strength is versatility: it avoids heavy car traffic, supports cycle routes, considers elevation, and usually produces routes that feel reasonable for normal cyclists. Its weakness is that it is not highly specialized: road cyclists may find it slower than `fastbike`, while off-road riders may find it too conservative compared with `mtb` or `gravel`. Its distinctive aspect is that it is the safest general-purpose bicycle profile and probably the best default for most users.</string>
     <string name="profile_info_trekking_ignore_cr_title">Trekking, ignore cycle routes</string>

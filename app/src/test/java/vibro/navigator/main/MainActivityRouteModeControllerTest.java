@@ -10,9 +10,11 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -72,6 +74,40 @@ public class MainActivityRouteModeControllerTest {
         assertFalse(adapter.isEnabled(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.BROUTER)));
         assertFalse(adapter.isEnabled(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.ROUND_TRIP)));
         assertTrue(adapter.isEnabled(MainActivityRouteModeOption.positionOf(NavigationRoutingMode.STRAIGHT_LINE)));
+    }
+
+    @Test
+    public void configure_showsInfoButtonForEveryRouteModeDropdownEntry() {
+        Fixture fixture = Fixture.create();
+
+        fixture.controller.configure(null, true);
+
+        SpinnerAdapter adapter = fixture.routeModeSpinner.getAdapter();
+        for (int position = 0; position < adapter.getCount(); position++) {
+            View row = adapter.getDropDownView(position, null, fixture.routeModeSpinner);
+            ImageButton infoButton = row.findViewById(R.id.profileInfoButton);
+            String label = fixture.activity.getString(MainActivityRouteModeOption.labelResAt(position));
+            assertNotNull(infoButton);
+            assertEquals(View.VISIBLE, infoButton.getVisibility());
+            assertEquals(
+                    fixture.activity.getString(R.string.format_route_mode_info_content_description, label),
+                    infoButton.getContentDescription().toString()
+            );
+            assertFalse(infoButton.isClickable());
+            assertFalse(infoButton.isFocusable());
+            assertFalse(infoButton.isFocusableInTouchMode());
+        }
+    }
+
+    @Test
+    public void configure_keepsInfoButtonVisibleForDisabledBRouterModes() {
+        Fixture fixture = Fixture.create();
+
+        fixture.controller.configure(null, false);
+
+        SpinnerAdapter adapter = fixture.routeModeSpinner.getAdapter();
+        assertInfoButtonVisibleFor(adapter, fixture, NavigationRoutingMode.BROUTER);
+        assertInfoButtonVisibleFor(adapter, fixture, NavigationRoutingMode.ROUND_TRIP);
     }
 
     @Test
@@ -154,6 +190,21 @@ public class MainActivityRouteModeControllerTest {
                 value,
                 activity.getResources().getDisplayMetrics()
         );
+    }
+
+    private static void assertInfoButtonVisibleFor(
+            @NonNull SpinnerAdapter adapter,
+            @NonNull Fixture fixture,
+            @NonNull NavigationRoutingMode mode
+    ) {
+        View row = adapter.getDropDownView(
+                MainActivityRouteModeOption.positionOf(mode),
+                null,
+                fixture.routeModeSpinner
+        );
+        ImageButton infoButton = row.findViewById(R.id.profileInfoButton);
+        assertNotNull(infoButton);
+        assertEquals(View.VISIBLE, infoButton.getVisibility());
     }
 
     private static final class Fixture {
