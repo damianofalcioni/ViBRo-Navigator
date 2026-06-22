@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
@@ -18,7 +19,9 @@ import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.test.core.app.ApplicationProvider;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -26,11 +29,22 @@ import org.robolectric.RobolectricTestRunner;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.settings.AppMainUiSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityRouteModeControllerTest {
     private static final int ROUTE_MODE_ITEM_PADDING_DP = 14;
     private static final int ROUTE_MODE_ITEM_TEXT_SIZE_SP = 16;
+    private static final String PREFS_APP_SETTINGS = "vibro.navigator.settings";
+
+    @Before
+    public void setUp() {
+        ApplicationProvider.getApplicationContext()
+                .getSharedPreferences(PREFS_APP_SETTINGS, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit();
+    }
 
     @Test
     public void configure_usesProfileSpinnerItemStyleForRouteModeSpinner() {
@@ -126,6 +140,46 @@ public class MainActivityRouteModeControllerTest {
         assertEquals(NavigationRoutingMode.STRAIGHT_LINE, fixture.controller.currentRoutingMode());
         assertEquals(View.GONE, fixture.roundTripSetupPanel.getVisibility());
         assertEquals(View.VISIBLE, fixture.routeSetupPanel.getVisibility());
+    }
+
+    @Test
+    public void configure_restoresPersistedRouteModeOnColdStart() {
+        Fixture fixture = Fixture.create();
+        AppMainUiSettings.setRoutingMode(fixture.activity, NavigationRoutingMode.ROUND_TRIP);
+
+        fixture.controller.configure(null, true);
+
+        assertEquals(NavigationRoutingMode.ROUND_TRIP, fixture.controller.currentRoutingMode());
+        assertEquals(View.VISIBLE, fixture.roundTripSetupPanel.getVisibility());
+        assertEquals(View.GONE, fixture.routeSetupPanel.getVisibility());
+    }
+
+    @Test
+    public void configure_coercesPersistedBRouterModeToStraightLineWhenBRouterIsMissing() {
+        Fixture fixture = Fixture.create();
+        AppMainUiSettings.setRoutingMode(fixture.activity, NavigationRoutingMode.ROUND_TRIP);
+
+        fixture.controller.configure(null, false);
+
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE, fixture.controller.currentRoutingMode());
+        assertEquals(View.GONE, fixture.roundTripSetupPanel.getVisibility());
+        assertEquals(View.VISIBLE, fixture.routeSetupPanel.getVisibility());
+    }
+
+    @Test
+    public void selectingRouteModePersistsForNextColdStart() {
+        Fixture selectedFixture = Fixture.create();
+        selectedFixture.controller.configure(null, true);
+        selectedFixture.routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(
+                NavigationRoutingMode.STRAIGHT_LINE
+        ));
+
+        Fixture restoredFixture = Fixture.create();
+        restoredFixture.controller.configure(null, true);
+
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE, restoredFixture.controller.currentRoutingMode());
+        assertEquals(View.GONE, restoredFixture.profileLabel.getVisibility());
+        assertEquals(View.GONE, restoredFixture.profileSelectionPanel.getVisibility());
     }
 
     @Test

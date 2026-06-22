@@ -16,6 +16,7 @@ import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.brouter.BRouterProfileParameter;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 
@@ -78,6 +79,7 @@ public class AppDataBackupTest {
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.ROUND_TRIP);
         AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppSettings.setGooglePoiSearchEnabled(context, false);
@@ -123,6 +125,7 @@ public class AppDataBackupTest {
         assertEquals(originalPoi.lon, restoredPois.get(0).lon, 0.0d);
         assertFalse(AppSettings.isFusedLocationEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
+        assertEquals(NavigationRoutingMode.ROUND_TRIP, AppMainUiSettings.getRoutingMode(context));
         assertTrue(AppThemeSettings.isLightThemeEnabled(context));
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
         assertTrue(AppSettings.hasValidGooglePoiApiKey(context));
@@ -144,6 +147,7 @@ public class AppDataBackupTest {
     @Test
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.STRAIGHT_LINE);
         AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
         AppSettings.setGooglePoiSearchEnabled(context, false);
@@ -159,6 +163,7 @@ public class AppDataBackupTest {
         JSONObject sharedPreferences = root.getJSONObject(KEY_SHARED_PREFERENCES);
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
+        JSONObject mainUiRoutingMode = appSettings.getJSONObject("main_ui_routing_mode");
         JSONObject lightTheme = appSettings.getJSONObject("light_theme");
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
         JSONObject googlePoiApiKeyValid = appSettings.getJSONObject("google_poi_api_key_valid");
@@ -171,6 +176,8 @@ public class AppDataBackupTest {
         assertEquals(1, root.getInt("schemaVersion"));
         assertEquals(BACKUP_TYPE_BOOLEAN, imperialUnits.getString(BACKUP_TYPE));
         assertTrue(imperialUnits.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_STRING, mainUiRoutingMode.getString(BACKUP_TYPE));
+        assertEquals(NavigationRoutingMode.STRAIGHT_LINE.serializedName(), mainUiRoutingMode.getString(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, lightTheme.getString(BACKUP_TYPE));
         assertTrue(lightTheme.getBoolean(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_STRING, googlePoiApiKey.getString(BACKUP_TYPE));

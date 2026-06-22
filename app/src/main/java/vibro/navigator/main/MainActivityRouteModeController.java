@@ -17,6 +17,7 @@ import java.util.Collections;
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.settings.AppMainUiSettings;
 import vibro.navigator.settings.AppSettings;
 
 final class MainActivityRouteModeController {
@@ -47,6 +48,7 @@ final class MainActivityRouteModeController {
     @NonNull
     private final EditText roundTripDistanceEdit;
     private boolean brouterInstalled;
+    private boolean restoringSelection;
     @NonNull
     private ModeChangeListener modeChangeListener = mode -> {
     };
@@ -77,6 +79,7 @@ final class MainActivityRouteModeController {
 
     void configure(@Nullable Bundle savedInstanceState, boolean brouterInstalled) {
         this.brouterInstalled = brouterInstalled;
+        restoringSelection = true;
         routeModeSpinner.setAdapter(new MainActivityRouteModeAdapter(activity, brouterInstalled));
         routeModeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -87,6 +90,9 @@ final class MainActivityRouteModeController {
                     return;
                 }
                 render(selectedMode);
+                if (!restoringSelection) {
+                    AppMainUiSettings.setRoutingMode(activity, selectedMode);
+                }
                 modeChangeListener.onRouteModeChanged(selectedMode);
             }
 
@@ -97,7 +103,8 @@ final class MainActivityRouteModeController {
         if (savedInstanceState != null) {
             roundTripDistanceEdit.setText(savedInstanceState.getString(STATE_ROUND_TRIP_DISTANCE, ""));
         }
-        selectMode(restoredMode(savedInstanceState, brouterInstalled));
+        selectMode(restoredMode(savedInstanceState));
+        restoringSelection = false;
         updateDistanceUnitText();
         render(currentRoutingMode());
     }
@@ -129,6 +136,7 @@ final class MainActivityRouteModeController {
     void showRouteMode() {
         selectMode(availableMode(NavigationRoutingMode.BROUTER, brouterInstalled));
         render(currentRoutingMode());
+        AppMainUiSettings.setRoutingMode(activity, currentRoutingMode());
         modeChangeListener.onRouteModeChanged(currentRoutingMode());
     }
 
@@ -185,9 +193,9 @@ final class MainActivityRouteModeController {
     }
 
     @NonNull
-    private static NavigationRoutingMode restoredMode(@Nullable Bundle savedInstanceState, boolean brouterInstalled) {
+    private NavigationRoutingMode restoredMode(@Nullable Bundle savedInstanceState) {
         if (savedInstanceState == null) {
-            return brouterInstalled ? NavigationRoutingMode.BROUTER : NavigationRoutingMode.STRAIGHT_LINE;
+            return availableMode(AppMainUiSettings.getRoutingMode(activity), brouterInstalled);
         }
         NavigationRoutingMode restored;
         if (savedInstanceState.containsKey(STATE_ROUTING_MODE)) {
