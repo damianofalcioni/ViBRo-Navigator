@@ -103,7 +103,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:paddingStart="18dp">
+                    android:paddingStart="18dp"
+                    android:paddingEnd="0dp">
 
                     <EditText
                         android:id="@+id/destinationEdit"
@@ -132,7 +133,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:paddingStart="18dp" />
+                    android:paddingStart="18dp"
+                    android:paddingEnd="0dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
