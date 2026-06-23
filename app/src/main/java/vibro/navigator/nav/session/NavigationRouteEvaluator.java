@@ -123,7 +123,7 @@ final class NavigationRouteEvaluator {
         float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
         displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
         NavigationRouteEvaluation routeStartApproach =
-                evaluateRouteStartApproachIfNeeded(filtered, speedMps, likelyStationary, trustedAccuracyMeters);
+                evaluateRouteStartApproachIfNeeded(filtered, match, speedMps, likelyStationary, trustedAccuracyMeters);
         if (routeStartApproach != null) {
             return routeStartApproach;
         }
@@ -195,6 +195,7 @@ final class NavigationRouteEvaluator {
     @Nullable
     private NavigationRouteEvaluation evaluateRouteStartApproachIfNeeded(
             @NonNull NavigationLocation filtered,
+            @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
             float trustedAccuracyMeters
@@ -202,8 +203,7 @@ final class NavigationRouteEvaluator {
         if (!routeStartApproachState.isActive()) {
             return null;
         }
-        PolylineIndex.Match routeStartMatch = geometryState.matchInitialRoutePart(filtered, trustedAccuracyMeters);
-        if (routeStartMatch == null || !routeStartApproachState.isReached(routeStartMatch, trustedAccuracyMeters)) {
+        if (!routeStartApproachState.isReached(match, trustedAccuracyMeters)) {
             deviationHandler.clearDeviationEvidence();
             return NavigationRouteEvaluation.keepRoute(
                     Collections.emptyList(),
@@ -213,7 +213,7 @@ final class NavigationRouteEvaluator {
         }
         routeStartApproachState.reset();
         displayState.clearRouteStartApproachTarget();
-        geometryState.rememberSegment(routeStartMatch);
+        geometryState.rememberSegment(match);
         return NavigationRouteEvaluation.keepRoute(
                 turnState.buildInitialTurnEventIfNeeded(
                         geometryState.route(),

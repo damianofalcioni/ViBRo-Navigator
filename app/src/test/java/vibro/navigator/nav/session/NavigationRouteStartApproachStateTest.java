@@ -90,6 +90,45 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @Test
+    public void brouterRouteStartApproachClearsWhenUserJoinsLaterRouteSegment() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.0025),
+                Collections.emptyList()
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                routeWithLaterJoinSegment(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+
+        NavigationLocation laterRoutePoint = location(0.0, 0.0016, 2_000L);
+        NavigationRouteEvaluation reachedEvaluation = state.evaluateLocation(
+                laterRoutePoint,
+                1.4f,
+                3f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavState reachedState = buildState(context, state, laterRoutePoint, 2_000L);
+
+        assertFalse(reachedEvaluation.shouldRecalculateRoute());
+        assertTrue(reachedEvaluation.isStableOnRouteSample());
+        assertFalse(reachedState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_beeline)));
+        assertNotNull(reachedState.routeStatus.compassState);
+        assertNull(reachedState.routeStatus.compassState.routeStartApproachProjection);
+    }
+
+    @Test
     public void roundTripRouteStartApproachIgnoresClosedLoopFinalSegment() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -163,6 +202,20 @@ public class NavigationRouteStartApproachStateTest {
                         new LatLon(0.0, 0.003)
                 ),
                 Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                120.0,
+                222.0
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute routeWithLaterJoinSegment() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0010),
+                        new LatLon(0.0, 0.0013),
+                        new LatLon(0.0, 0.0025)
+                ),
+                Collections.singletonList(new VoiceHint(1, 5, 0, 0.0, 0)),
                 120.0,
                 222.0
         );
