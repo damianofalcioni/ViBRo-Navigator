@@ -153,6 +153,15 @@ public class NavigationTurnStateTest {
                 1_000L,
                 0L
         );
+        NavigationTurnState.Progress earlyAfterPassedTurn = state.evaluate(
+                route,
+                polylineIndex,
+                afterFirstTurnMeters,
+                1,
+                0f,
+                3_999L,
+                0L
+        );
         NavigationTurnState.Progress firstRampStep = state.evaluate(
                 route,
                 polylineIndex,
@@ -160,6 +169,15 @@ public class NavigationTurnStateTest {
                 1,
                 0f,
                 4_000L,
+                0L
+        );
+        NavigationTurnState.Progress earlyAfterFirstRampStep = state.evaluate(
+                route,
+                polylineIndex,
+                afterFirstTurnMeters,
+                1,
+                0f,
+                8_999L,
                 0L
         );
         NavigationTurnState.Progress secondRampStep = state.evaluate(
@@ -175,8 +193,12 @@ public class NavigationTurnStateTest {
         assertEquals(1, passedTurn.turnEvents.size());
         assertEquals(NavigationTurnEvent.Type.PASSED, passedTurn.turnEvents.get(0).type);
         assertEquals(3_000L, passedTurn.suggestedUpdateIntervalMs);
+        assertTrue(earlyAfterPassedTurn.turnEvents.isEmpty());
+        assertEquals(3_000L, earlyAfterPassedTurn.suggestedUpdateIntervalMs);
         assertTrue(firstRampStep.turnEvents.isEmpty());
         assertEquals(5_000L, firstRampStep.suggestedUpdateIntervalMs);
+        assertTrue(earlyAfterFirstRampStep.turnEvents.isEmpty());
+        assertEquals(5_000L, earlyAfterFirstRampStep.suggestedUpdateIntervalMs);
         assertEquals(8_000L, secondRampStep.suggestedUpdateIntervalMs);
     }
 

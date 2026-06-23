@@ -2,7 +2,9 @@ package vibro.navigator.nav.service;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.dispatch.TaskScheduler;
+import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.session.NavigationSession;
 
 final class NavigationServiceDependencies {
@@ -50,6 +52,13 @@ final class NavigationServiceDependencies {
                 tracking.orientationController,
                 foreground.controller,
                 turnEvents,
+                () -> {
+                    long nowMs = AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs();
+                    tracking.locationController.requestLocationUpdates(
+                            NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS
+                    );
+                    return nowMs;
+                },
                 stateEmitter,
                 routeRecalculator
         );

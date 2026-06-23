@@ -330,11 +330,12 @@ public class NavigationSessionTest {
         assertTrue(ResourceAdapter.start(session, context, nowMs));
         NavigationLocationUpdateResult result = null;
         for (int i = 0; i < 6; i++) {
+            long sampleTimeMs = nowMs + i * 3_000L;
             result = ResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithSpeed(0.0, i * 0.00001, nowMs + i * 1_000L, 2f),
-                    nowMs + i * 1_000L
+                    locationWithSpeed(0.0, i * 0.00001, sampleTimeMs, 2f),
+                    sampleTimeMs
             );
         }
 

@@ -243,7 +243,9 @@ The app must monitor user position:
 
 - Every 3 seconds while startup route lock is still stabilizing, for at most the first 60 seconds after navigation starts
 - Startup fast polling may end earlier once the app has gathered 5 consecutive accurate on-route updates after a route is active
+- Those 5 stable updates must represent separate fast-polling intervals; clustered provider callbacks that arrive before the 3-second fast interval has elapsed must not end fast polling early
 - An accurate warmup update means an on-route evaluation with location accuracy of 25 meters or better
+- After a new route is applied, including after an off-track recalculation, the app must immediately re-enter 3-second location polling before returning to dynamic intervals after stable on-route fixes
 - After startup fast polling has ended, a long gap between accepted location evaluations must temporarily resume 3-second checks so the app can restabilize position accuracy before continuing with long dynamic intervals
 - The first accepted fix after such a long gap must be treated as location reacquisition: reset stale Kalman velocity and motion/progress evidence, use trusted on-route matches to catch up route/turn state, but suppress immediate off-route or wrong-direction reroutes until follow-up samples confirm the deviation
 - Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance when the next maneuver still lies on the current matched route segment and live speed is available, or route timing metadata when the next maneuver lies beyond the current matched route segment
@@ -251,6 +253,7 @@ The app must monitor user position:
 - Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
 - When the next maneuver or arrival is estimated within about 3 minutes, the dynamic interval should be capped at 20 seconds so speed changes cannot leave the app waiting through a long quiet window near guidance-critical points
 - After a maneuver instruction has just been passed, the dynamic interval must ramp upward through the fixed bucket set one accepted route evaluation at a time instead of jumping directly from the minimum interval to the larger interval for the following direction
+- During that post-maneuver ramp, an accepted provider callback that arrives before the current ramp bucket has elapsed must keep the current bucket instead of advancing to the next bucket early
 - The post-warmup dynamic interval must be snapped to a small fixed bucket set instead of continuously varying on every update
 - The bucket set must currently be `3s`, `5s`, `8s`, `12s`, `20s`, `30s`, and `60s`
 - The dynamic interval must never be lower than 3 seconds

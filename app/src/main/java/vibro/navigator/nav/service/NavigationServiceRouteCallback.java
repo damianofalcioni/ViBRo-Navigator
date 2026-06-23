@@ -27,6 +27,10 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         void request(@NonNull PendingRouteRecalculation pendingRecalculation);
     }
 
+    public interface RouteAppliedLocationRequester {
+        long requestFastLocationUpdates();
+    }
+
     private static final String TAG = "NavigationService";
 
     private final Context context;
@@ -34,6 +38,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
     private final NavigationOrientationController orientationController;
     private final NavigationForegroundController foregroundController;
     private final TurnEventDispatcher turnEventDispatcher;
+    private final RouteAppliedLocationRequester routeAppliedLocationRequester;
     private final Runnable stateEmitter;
     private final RouteRecalculator routeRecalculator;
 
@@ -43,6 +48,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @NonNull NavigationOrientationController orientationController,
             @NonNull NavigationForegroundController foregroundController,
             @NonNull TurnEventDispatcher turnEventDispatcher,
+            @NonNull RouteAppliedLocationRequester routeAppliedLocationRequester,
             @NonNull Runnable stateEmitter,
             @NonNull RouteRecalculator routeRecalculator
     ) {
@@ -51,6 +57,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         this.orientationController = orientationController;
         this.foregroundController = foregroundController;
         this.turnEventDispatcher = turnEventDispatcher;
+        this.routeAppliedLocationRequester = routeAppliedLocationRequester;
         this.stateEmitter = stateEmitter;
         this.routeRecalculator = routeRecalculator;
     }
@@ -64,7 +71,14 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         if (!navigationSession.isCurrentRouteRequest(snapshot)) {
             return;
         }
-        turnEventDispatcher.dispatch(navigationSession.applyRouteResult(context, snapshot, newRoute, beganAt));
+        long routeAppliedAtElapsedMs = routeAppliedLocationRequester.requestFastLocationUpdates();
+        turnEventDispatcher.dispatch(navigationSession.applyRouteResult(
+                context,
+                snapshot,
+                newRoute,
+                beganAt,
+                routeAppliedAtElapsedMs
+        ));
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
         PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();

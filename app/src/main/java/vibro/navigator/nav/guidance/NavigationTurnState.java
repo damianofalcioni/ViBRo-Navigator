@@ -111,7 +111,8 @@ public final class NavigationTurnState {
         );
         long suggestedUpdateIntervalMs = updateScheduler.applyPostManeuverIntervalRamp(
                 naturalUpdateIntervalMs,
-                progress.advancedPastInstruction
+                progress.advancedPastInstruction,
+                nowMs
         );
         return new Progress(toTurnEvents(progress.signals), suggestedUpdateIntervalMs);
     }

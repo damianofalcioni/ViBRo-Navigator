@@ -36,15 +36,46 @@ public class NavigationServiceRouteCallbackTest {
         NavigationSession session = sessionWithPreparedRouteRequest(context);
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
         CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
+        CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
         CountingRunnable stateEmitter = new CountingRunnable();
-        NavigationServiceRouteCallback callback = callback(context, session, turnEvents, stateEmitter);
+        NavigationServiceRouteCallback callback = callback(
+                context,
+                session,
+                turnEvents,
+                fastLocationRequester,
+                stateEmitter
+        );
         session.stop();
 
         callback.onRouteApplied(snapshot, route(), NOW_MS);
 
         assertEquals(0, turnEvents.calls);
+        assertEquals(0, fastLocationRequester.calls);
         assertEquals(0, stateEmitter.calls);
         assertFalse(session.hasActiveRoute());
+    }
+
+    @Test
+    public void onRouteApplied_requestsFastLocationUpdatesForCurrentRoute() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSession session = sessionWithPreparedRouteRequest(context);
+        NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
+        CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
+        CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
+        CountingRunnable stateEmitter = new CountingRunnable();
+        NavigationServiceRouteCallback callback = callback(
+                context,
+                session,
+                turnEvents,
+                fastLocationRequester,
+                stateEmitter
+        );
+
+        callback.onRouteApplied(snapshot, route(), NOW_MS);
+
+        assertEquals(1, turnEvents.calls);
+        assertEquals(1, fastLocationRequester.calls);
+        assertEquals(1, stateEmitter.calls);
     }
 
     @Test
@@ -54,7 +85,13 @@ public class NavigationServiceRouteCallbackTest {
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
         CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
         CountingRunnable stateEmitter = new CountingRunnable();
-        NavigationServiceRouteCallback callback = callback(context, session, turnEvents, stateEmitter);
+        NavigationServiceRouteCallback callback = callback(
+                context,
+                session,
+                turnEvents,
+                new CountingFastLocationRequester(),
+                stateEmitter
+        );
         session.stop();
 
         callback.onRouteFailure(snapshot, new IllegalStateException("old route failed"));
@@ -83,6 +120,7 @@ public class NavigationServiceRouteCallbackTest {
             @NonNull Context context,
             @NonNull NavigationSession session,
             @NonNull CountingTurnEventDispatcher turnEvents,
+            @NonNull CountingFastLocationRequester fastLocationRequester,
             @NonNull CountingRunnable stateEmitter
     ) {
         return new NavigationServiceRouteCallback(
@@ -91,6 +129,7 @@ public class NavigationServiceRouteCallbackTest {
                 NoOpNavigationOrientation.create(NOW_MS),
                 new NoOpForegroundController(),
                 turnEvents,
+                fastLocationRequester,
                 stateEmitter,
                 pending -> {
                 }
@@ -132,6 +171,17 @@ public class NavigationServiceRouteCallbackTest {
         @Override
         public void dispatch(@NonNull List<NavigationTurnEvent> turnEvents) {
             calls++;
+        }
+    }
+
+    private static final class CountingFastLocationRequester
+            implements NavigationServiceRouteCallback.RouteAppliedLocationRequester {
+        private int calls;
+
+        @Override
+        public long requestFastLocationUpdates() {
+            calls++;
+            return NOW_MS;
         }
     }
 

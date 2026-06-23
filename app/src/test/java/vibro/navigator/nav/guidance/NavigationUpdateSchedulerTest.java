@@ -223,6 +223,15 @@ public class NavigationUpdateSchedulerTest {
         assertEquals(3000L, intervalMs);
     }
 
+    @Test
+    public void applyPostManeuverIntervalRamp_holdsCurrentBucketUntilElapsed() {
+        assertEquals(3000L, scheduler.applyPostManeuverIntervalRamp(20_000L, true, 1_000L));
+        assertEquals(3000L, scheduler.applyPostManeuverIntervalRamp(20_000L, false, 3_999L));
+        assertEquals(5000L, scheduler.applyPostManeuverIntervalRamp(20_000L, false, 4_000L));
+        assertEquals(5000L, scheduler.applyPostManeuverIntervalRamp(20_000L, false, 8_999L));
+        assertEquals(8000L, scheduler.applyPostManeuverIntervalRamp(20_000L, false, 9_000L));
+    }
+
     private static GeoJsonRoute route(List<LatLon> track, List<VoiceHint> voiceHints) {
         return new GeoJsonRoute(track, voiceHints, 120.0, 111.0);
     }

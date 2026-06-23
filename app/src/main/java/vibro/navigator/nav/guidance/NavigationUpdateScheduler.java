@@ -84,8 +84,8 @@ public final class NavigationUpdateScheduler {
         return intervalFromTimeToTarget(timeToNextSeconds);
     }
 
-    long applyPostManeuverIntervalRamp(long suggestedIntervalMs, boolean passedInstruction) {
-        return postManeuverIntervalRamp.apply(suggestedIntervalMs, passedInstruction);
+    long applyPostManeuverIntervalRamp(long suggestedIntervalMs, boolean passedInstruction, long nowMs) {
+        return postManeuverIntervalRamp.apply(suggestedIntervalMs, passedInstruction, nowMs);
     }
 
     void resetPostManeuverIntervalRamp() {
@@ -202,39 +202,56 @@ public final class NavigationUpdateScheduler {
     private static final class PostManeuverIntervalRamp {
         private boolean active;
         private long currentMaximumIntervalMs = MIN_UPDATE_INTERVAL_MS;
+        private long currentBucketStartedAtMs;
 
         void reset() {
             active = false;
             currentMaximumIntervalMs = MIN_UPDATE_INTERVAL_MS;
+            currentBucketStartedAtMs = 0L;
         }
 
-        long apply(long suggestedIntervalMs, boolean passedInstruction) {
+        long apply(long suggestedIntervalMs, boolean passedInstruction, long nowMs) {
             if (suggestedIntervalMs <= 0L) {
                 reset();
                 return suggestedIntervalMs;
             }
             if (passedInstruction) {
-                return restart(suggestedIntervalMs);
+                return restart(suggestedIntervalMs, nowMs);
             }
             if (!active) {
                 return suggestedIntervalMs;
             }
-            if (suggestedIntervalMs <= currentMaximumIntervalMs) {
+            return applyActiveRamp(suggestedIntervalMs, nowMs);
+        }
+
+        private long applyActiveRamp(long suggestedIntervalMs, long nowMs) {
+            if (suggestedIntervalMs < currentMaximumIntervalMs) {
                 reset();
                 return suggestedIntervalMs;
             }
-            currentMaximumIntervalMs = nextHigherBucket(currentMaximumIntervalMs);
-            long rampedIntervalMs = Math.min(suggestedIntervalMs, currentMaximumIntervalMs);
-            if (rampedIntervalMs >= suggestedIntervalMs || currentMaximumIntervalMs >= MAX_UPDATE_INTERVAL_MS) {
-                reset();
+            if (suggestedIntervalMs == currentMaximumIntervalMs) {
+                if (hasCurrentBucketElapsed(nowMs)) {
+                    reset();
+                }
+                return suggestedIntervalMs;
             }
-            return rampedIntervalMs;
+            if (!hasCurrentBucketElapsed(nowMs)) {
+                return currentMaximumIntervalMs;
+            }
+            currentMaximumIntervalMs = nextHigherBucket(currentMaximumIntervalMs);
+            currentBucketStartedAtMs = nowMs;
+            return Math.min(suggestedIntervalMs, currentMaximumIntervalMs);
         }
 
-        private long restart(long suggestedIntervalMs) {
-            active = true;
+        private long restart(long suggestedIntervalMs, long nowMs) {
             currentMaximumIntervalMs = MIN_UPDATE_INTERVAL_MS;
+            currentBucketStartedAtMs = nowMs;
+            active = suggestedIntervalMs > currentMaximumIntervalMs;
             return Math.min(suggestedIntervalMs, currentMaximumIntervalMs);
+        }
+
+        private boolean hasCurrentBucketElapsed(long nowMs) {
+            return nowMs - currentBucketStartedAtMs >= currentMaximumIntervalMs;
         }
     }
 }

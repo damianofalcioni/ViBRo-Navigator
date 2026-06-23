@@ -185,14 +185,16 @@ public final class NavigationSession {
             @NonNull Context context,
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
-            long beganAt
+            long beganAt,
+            long routeAppliedAtElapsedMs
     ) {
         return ResourceAdapter.applyRouteResult(
                 this,
                 new AndroidNavigationTextResources(context),
                 snapshot,
                 newRoute,
-                beganAt
+                beganAt,
+                routeAppliedAtElapsedMs
         );
     }
 
@@ -304,10 +306,22 @@ public final class NavigationSession {
                 @NonNull GeoJsonRoute newRoute,
                 long beganAt
         ) {
+            return applyRouteResult(session, textResources, snapshot, newRoute, beganAt, beganAt);
+        }
+
+        @NonNull
+        public static List<NavigationTurnEvent> applyRouteResult(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                @NonNull NavigationRouteRequestSnapshot snapshot,
+                @NonNull GeoJsonRoute newRoute,
+                long beganAt,
+                long routeAppliedAtElapsedMs
+        ) {
             if (!session.components.routeRequestManager.onRouteApplied(snapshot)) {
                 return Collections.emptyList();
             }
-            session.components.warmupController.onRouteApplied();
+            session.components.warmupController.onRouteApplied(routeAppliedAtElapsedMs);
             NavigationLocation lastFiltered = session.components.locationState.getLastFilteredLocation();
             float speedMps = lastFiltered != null ? session.components.locationState.speedMps(lastFiltered) : 0f;
             return session.components.routeState.applyRouteResult(

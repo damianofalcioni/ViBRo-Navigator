@@ -37,6 +37,7 @@ final class NavigationRoutingRuntime {
             @NonNull NavigationOrientationController orientationController,
             @NonNull NavigationForegroundController foregroundController,
             @NonNull NavigationServiceTurnEvents turnEvents,
+            @NonNull NavigationServiceRouteCallback.RouteAppliedLocationRequester routeAppliedLocationRequester,
             @NonNull Runnable stateEmitter,
             @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
     ) {
@@ -52,6 +53,7 @@ final class NavigationRoutingRuntime {
                 orientationController,
                 foregroundController,
                 turnEvents,
+                routeAppliedLocationRequester,
                 stateEmitter,
                 routeRecalculator
         );

@@ -22,10 +22,22 @@ public class NavigationWarmupControllerTest {
         controller.reset(1_000L);
 
         for (int i = 0; i < 5; i++) {
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
+        }
+
+        assertTrue(controller.getFastChecksUntilMs() < 14_000L);
+    }
+
+    @Test
+    public void recordEvaluation_keepsWarmupActiveForEarlyStableCallbacks() {
+        NavigationWarmupController controller = new NavigationWarmupController();
+        controller.reset(1_000L);
+
+        for (int i = 0; i < 5; i++) {
             controller.recordEvaluation(true, 10f, 2_000L + i);
         }
 
-        assertTrue(controller.getFastChecksUntilMs() < 2_004L);
+        assertEquals(61_000L, controller.getFastChecksUntilMs());
     }
 
     @Test
@@ -34,13 +46,13 @@ public class NavigationWarmupControllerTest {
         controller.reset(1_000L);
 
         for (int i = 0; i < 4; i++) {
-            controller.recordEvaluation(true, 10f, 2_000L + i);
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
         }
         controller.recordEvaluation(true, 40f, 3_000L);
-        controller.recordEvaluation(true, 10f, 3_001L);
-        controller.recordEvaluation(true, 10f, 3_002L);
-        controller.recordEvaluation(true, 10f, 3_003L);
-        controller.recordEvaluation(true, 10f, 3_004L);
+        controller.recordEvaluation(true, 10f, 13_001L);
+        controller.recordEvaluation(true, 10f, 16_001L);
+        controller.recordEvaluation(true, 10f, 19_001L);
+        controller.recordEvaluation(true, 10f, 22_001L);
 
         assertEquals(61_000L, controller.getFastChecksUntilMs());
     }
@@ -51,15 +63,28 @@ public class NavigationWarmupControllerTest {
         controller.reset(1_000L);
 
         for (int i = 0; i < 4; i++) {
-            controller.recordEvaluation(true, 10f, 2_000L + i);
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
         }
-        controller.onRouteApplied();
-        controller.recordEvaluation(true, 10f, 3_000L);
-        controller.recordEvaluation(true, 10f, 3_001L);
-        controller.recordEvaluation(true, 10f, 3_002L);
-        controller.recordEvaluation(true, 10f, 3_003L);
+        controller.onRouteApplied(12_000L);
+        controller.recordEvaluation(true, 10f, 12_000L);
+        controller.recordEvaluation(true, 10f, 15_000L);
+        controller.recordEvaluation(true, 10f, 18_000L);
+        controller.recordEvaluation(true, 10f, 21_000L);
 
-        assertEquals(61_000L, controller.getFastChecksUntilMs());
+        assertEquals(72_000L, controller.getFastChecksUntilMs());
+    }
+
+    @Test
+    public void onRouteApplied_restartsFastPollingAfterDynamicIntervalExited() {
+        NavigationWarmupController controller = new NavigationWarmupController();
+        controller.reset(1_000L);
+
+        for (int i = 0; i < 5; i++) {
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
+        }
+        controller.onRouteApplied(10_000L);
+
+        assertEquals(70_000L, controller.fastChecksUntilMsForEvaluation(10_100L));
     }
 
     @Test
@@ -68,12 +93,12 @@ public class NavigationWarmupControllerTest {
         controller.reset(1_000L);
 
         for (int i = 0; i < 5; i++) {
-            controller.recordEvaluation(true, 10f, 2_000L + i);
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
         }
 
-        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(20_000L);
+        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(30_000L);
 
-        assertEquals(80_000L, fastChecksUntilMs);
+        assertEquals(90_000L, fastChecksUntilMs);
     }
 
     @Test
@@ -82,11 +107,11 @@ public class NavigationWarmupControllerTest {
         controller.reset(1_000L);
 
         for (int i = 0; i < 5; i++) {
-            controller.recordEvaluation(true, 10f, 2_000L + i);
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
         }
 
-        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(10_000L);
+        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(20_000L);
 
-        assertTrue(fastChecksUntilMs < 10_000L);
+        assertTrue(fastChecksUntilMs < 20_000L);
     }
 }
