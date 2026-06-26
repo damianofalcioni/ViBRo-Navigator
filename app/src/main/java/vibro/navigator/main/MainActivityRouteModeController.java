@@ -47,6 +47,8 @@ final class MainActivityRouteModeController {
     private final TextView roundTripDistanceLabel;
     @NonNull
     private final EditText roundTripDistanceEdit;
+    @NonNull
+    private final MainActivityRouteModeFocusController focusController;
     private boolean brouterInstalled;
     private boolean restoringSelection;
     @NonNull
@@ -75,6 +77,12 @@ final class MainActivityRouteModeController {
         this.roundTripSetupPanel = roundTripSetupPanel;
         this.roundTripDistanceLabel = roundTripDistanceLabel;
         this.roundTripDistanceEdit = roundTripDistanceEdit;
+        focusController = new MainActivityRouteModeFocusController(
+                activity,
+                routeModeSpinner,
+                routeSetupPanel,
+                roundTripSetupPanel
+        );
     }
 
     void configure(@Nullable Bundle savedInstanceState, boolean brouterInstalled) {
@@ -176,10 +184,12 @@ final class MainActivityRouteModeController {
 
     private void render(@NonNull NavigationRoutingMode mode) {
         boolean roundTripMode = mode == NavigationRoutingMode.ROUND_TRIP;
+        boolean restoringRouteSetup = focusController.prepareForRender(roundTripMode);
         destinationLabel.setVisibility(roundTripMode ? View.GONE : View.VISIBLE);
         routeSetupPanel.setVisibility(roundTripMode ? View.GONE : View.VISIBLE);
         roundTripSetupPanel.setVisibility(roundTripMode ? View.VISIBLE : View.GONE);
         renderBRouterProfileSelection(mode != NavigationRoutingMode.STRAIGHT_LINE);
+        focusController.completeRender(restoringRouteSetup);
     }
 
     private void renderBRouterProfileSelection(boolean enabled) {

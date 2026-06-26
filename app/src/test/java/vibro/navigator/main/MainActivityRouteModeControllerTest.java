@@ -4,9 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Looper;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
@@ -30,6 +32,8 @@ import org.robolectric.RobolectricTestRunner;
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.settings.AppMainUiSettings;
+
+import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityRouteModeControllerTest {
@@ -219,6 +223,16 @@ public class MainActivityRouteModeControllerTest {
     }
 
     @Test
+    public void selectingRouteModeAfterRoundTripSuppressesRestoredDestinationFocus() {
+        assertReturningFromRoundTripSuppressesRestoredDestinationFocus(NavigationRoutingMode.BROUTER);
+    }
+
+    @Test
+    public void selectingStraightLineModeAfterRoundTripSuppressesRestoredDestinationFocus() {
+        assertReturningFromRoundTripSuppressesRestoredDestinationFocus(NavigationRoutingMode.STRAIGHT_LINE);
+    }
+
+    @Test
     public void updateDistanceUnitText_usesKilometersForMetricRoundTripDistance() {
         Fixture fixture = Fixture.create();
 
@@ -244,6 +258,25 @@ public class MainActivityRouteModeControllerTest {
                 value,
                 activity.getResources().getDisplayMetrics()
         );
+    }
+
+    private static void assertReturningFromRoundTripSuppressesRestoredDestinationFocus(
+            @NonNull NavigationRoutingMode targetMode
+    ) {
+        Fixture fixture = Fixture.create();
+        fixture.controller.configure(null, true);
+        fixture.routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(
+                NavigationRoutingMode.ROUND_TRIP
+        ));
+        fixture.roundTripDistanceEdit.requestFocus();
+
+        fixture.routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(targetMode));
+        fixture.destinationEdit.requestFocus();
+        shadowOf(Looper.getMainLooper()).idleFor(150, TimeUnit.MILLISECONDS);
+
+        assertFalse(fixture.destinationEdit.hasFocus());
+        assertFalse(fixture.roundTripDistanceEdit.hasFocus());
+        assertTrue(fixture.routeModeSpinner.hasFocus());
     }
 
     private static void assertInfoButtonVisibleFor(
@@ -283,6 +316,8 @@ public class MainActivityRouteModeControllerTest {
         @NonNull
         final EditText roundTripDistanceEdit;
         @NonNull
+        final EditText destinationEdit;
+        @NonNull
         final MainActivityRouteModeController controller;
 
         private Fixture(
@@ -295,7 +330,8 @@ public class MainActivityRouteModeControllerTest {
                 @NonNull View routeSetupPanel,
                 @NonNull View roundTripSetupPanel,
                 @NonNull TextView roundTripDistanceLabel,
-                @NonNull EditText roundTripDistanceEdit
+                @NonNull EditText roundTripDistanceEdit,
+                @NonNull EditText destinationEdit
         ) {
             this.activity = activity;
             this.routeModeSpinner = routeModeSpinner;
@@ -307,6 +343,7 @@ public class MainActivityRouteModeControllerTest {
             this.roundTripSetupPanel = roundTripSetupPanel;
             this.roundTripDistanceLabel = roundTripDistanceLabel;
             this.roundTripDistanceEdit = roundTripDistanceEdit;
+            this.destinationEdit = destinationEdit;
             this.controller = new MainActivityRouteModeController(
                     activity,
                     routeModeSpinner,
@@ -324,17 +361,34 @@ public class MainActivityRouteModeControllerTest {
         @NonNull
         static Fixture create() {
             Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+            LinearLayout root = new LinearLayout(activity);
+            root.setFocusableInTouchMode(true);
+            Spinner routeModeSpinner = new Spinner(activity);
+            LinearLayout profileSelectionPanel = new LinearLayout(activity);
+            Spinner profileSpinner = new Spinner(activity);
+            LinearLayout routeSetupPanel = new LinearLayout(activity);
+            EditText destinationEdit = new EditText(activity);
+            LinearLayout roundTripSetupPanel = new LinearLayout(activity);
+            EditText roundTripDistanceEdit = new EditText(activity);
+            routeSetupPanel.addView(destinationEdit);
+            roundTripSetupPanel.addView(roundTripDistanceEdit);
+            root.addView(routeModeSpinner);
+            root.addView(profileSelectionPanel);
+            root.addView(routeSetupPanel);
+            root.addView(roundTripSetupPanel);
+            activity.setContentView(root);
             return new Fixture(
                     activity,
-                    new Spinner(activity),
+                    routeModeSpinner,
                     new TextView(activity),
-                    new LinearLayout(activity),
-                    new Spinner(activity),
+                    profileSelectionPanel,
+                    profileSpinner,
                     new TextView(activity),
-                    new LinearLayout(activity),
-                    new LinearLayout(activity),
+                    routeSetupPanel,
+                    roundTripSetupPanel,
                     new TextView(activity),
-                    new EditText(activity)
+                    roundTripDistanceEdit,
+                    destinationEdit
             );
         }
     }
