@@ -183,6 +183,16 @@
             android:textSize="16sp" />
 
         <Switch
+            android:id="@+id/aboutCompassSurroundingStreetsSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/label_compass_surrounding_streets_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <Switch
             android:id="@+id/aboutAndroidAutoSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

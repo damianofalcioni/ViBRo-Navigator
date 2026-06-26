@@ -231,6 +231,14 @@ The implementation must use BRouter integration compatible with these references
 - A persisted SAF tree grant for `profiles2` must be treated as the highest-priority source for external-profile discovery and picker initial location, ahead of unguided path probing
 - A single-file SAF grant obtained from picking one `.brf` file must not be assumed to provide sibling-folder enumeration rights; folder enumeration must rely on a tree grant or on separately accessible autodiscovered paths
 
+#### 4.3.2 Local segment access
+
+- When surrounding-street display is enabled, the app must read nearby street geometry only from BRouter's already downloaded local `segments4` `.rd5` files
+- Surrounding-street display must not download additional maps and must not add an external map-rendering or map-parsing library
+- `segments4` discovery must use the same version-agnostic storage probing strategy as external `profiles2` discovery, including primary and removable storage and both `Android/media/.../brouter/segments4` and legacy `Android/data/.../brouter/segments4` layouts
+- Missing, inaccessible, corrupt, unsupported, or out-of-area BRouter segment files must fail quietly by omitting the surrounding-street overlay rather than blocking navigation or route guidance
+- BRouter segment reading for compass context must stay bounded to the current surrounding area and a fixed maximum number of drawable street segments
+
 #### 4.3.4 GeoJSON output
 
 - The app must request BRouter GeoJSON output using the Android-service parameters that produce a GeoJSON `FeatureCollection`
@@ -450,6 +458,9 @@ The navigation UI must show the following in large text:
 - The compass route geometry and hint-marker geometry should be sampled once per active route and reused across UI updates instead of rebuilding full projected route lists on every heading or location refresh
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
 - In the moving 60-second view, including after a tap from the full-route overview, the red route centerline and wider threshold overlay must remain continuously visible for the route portion crossing the compass instead of flickering or disappearing while off-screen route geometry is clipped
+- When enabled in settings, the compass must draw surrounding BRouter street geometry as stroke-only context lines using the app's compass accent/switch-setting color, behind the active route and without street labels, symbols, fills, or map-tile backgrounds
+- Surrounding-street extraction must run off the UI thread, reuse cached segment-file lookups, avoid per-frame decoding, skip work while a previous extraction is still running, and refresh only after a meaningful time or distance change around the current position
+- Surrounding-street context is supplemental only: it must not change route matching, reroute decisions, turn notifications, straight-line guidance, destination arrival, GPX export, or BRouter route requests
 - Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash
 - Transitions between the full-route overview and the moving 60-second view should use the same fast timing in both directions, reaching the target scale in about 1 second regardless of the total route length or overview radius delta
 - The current-position marker should be shown as a small center dot
@@ -626,6 +637,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units (ft/mi/mph) switch for distance, speed, elevation, and accuracy display values
 - The about page Settings section must show a Light Theme switch that enables or disables the app's optional light theme while keeping the black theme as the default
+- The about page Settings section must show a Show surrounding streets in compass switch that enables or disables the local-BRouter-segment street overlay in the navigation compass
 - The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and a trash remove button, plus a centered bordered `+` button that adds another field

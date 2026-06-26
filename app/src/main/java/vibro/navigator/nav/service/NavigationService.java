@@ -52,16 +52,21 @@ public class NavigationService extends Service {
                     this::runtime,
                     this::emitState
             );
+    @Nullable
+    private NavigationServiceRuntime runtime;
     private final NavigationServiceLocationHandler locationHandler = new NavigationServiceLocationHandler(
             this,
             navigationSession,
             turnEvents,
             routeRecalculator::requestForLocation,
             uiVisibility::isScreenInteractive,
+            location -> {
+                if (runtime != null) {
+                    runtime.onAcceptedLocationForSurroundingStreets(location);
+                }
+            },
             this::emitState
     );
-    @Nullable
-    private NavigationServiceRuntime runtime;
     private final NavigationForegroundCoordinator foregroundCoordinator =
             new NavigationForegroundCoordinator(
                     uiScheduler,
@@ -100,7 +105,7 @@ public class NavigationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        runtime = NavigationServiceRuntime.create(
+        runtime = NavigationServiceRuntimeFactory.create(
                 this,
                 uiScheduler,
                 navigationSession,
@@ -140,6 +145,7 @@ public class NavigationService extends Service {
 
     private void startNavigation() {
         runtime().resetTrackingState();
+        runtime().resetStreetOverlay();
 
         long nowElapsedMs = runtime().elapsedRealtimeMs();
         if (!navigationSession.start(this, nowElapsedMs)) {
@@ -190,6 +196,7 @@ public class NavigationService extends Service {
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
         navigationSession.stop();
+        runtime().resetStreetOverlay();
         foregroundCoordinator.stopMonitoring();
         runtime().stopTrackingAndOrientation();
         runtime().stopManeuverSpeech();
@@ -207,6 +214,7 @@ public class NavigationService extends Service {
                 runtime().displayHeadingAccuracyDegrees(),
                 runtime().activeOrientationCue()
         );
+        s = runtime().attachStreetOverlay(s);
         stateBroadcaster.dispatch(s);
     }
 
@@ -216,6 +224,7 @@ public class NavigationService extends Service {
         stopNavigation();
         if (runtime != null) {
             runtime.stopScreenInteractivityMonitor();
+            runtime.shutdownStreetOverlay();
             runtime.shutdownManeuverSpeaker();
             runtime.shutdownRouteExecutor();
             runtime = null;

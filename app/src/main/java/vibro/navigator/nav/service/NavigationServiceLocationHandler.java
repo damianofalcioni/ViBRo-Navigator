@@ -34,6 +34,10 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         );
     }
 
+    public interface SurroundingStreetLocationSink {
+        void onAcceptedLocation(@NonNull NavigationLocation location);
+    }
+
     private static final String TAG = "NavigationService";
     private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS =
             NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS;
@@ -43,6 +47,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private final NavigationServiceTurnEvents turnEvents;
     private final RouteRecalculator routeRecalculator;
     private final CurrentLocationSeedPolicy currentLocationSeedPolicy;
+    private final SurroundingStreetLocationSink surroundingStreetLocationSink;
     private final Runnable stateEmitter;
     private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
     @Nullable
@@ -58,6 +63,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull RouteRecalculator routeRecalculator,
             @NonNull CurrentLocationSeedPolicy currentLocationSeedPolicy,
+            @NonNull SurroundingStreetLocationSink surroundingStreetLocationSink,
             @NonNull Runnable stateEmitter
     ) {
         this.context = context;
@@ -65,6 +71,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         this.turnEvents = turnEvents;
         this.routeRecalculator = routeRecalculator;
         this.currentLocationSeedPolicy = currentLocationSeedPolicy;
+        this.surroundingStreetLocationSink = surroundingStreetLocationSink;
         this.stateEmitter = stateEmitter;
     }
 
@@ -116,6 +123,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         controllers.locationController.recordAcceptedLocationUpdate();
+        surroundingStreetLocationSink.onAcceptedLocation(location);
         applyRouteUpdateRequest(result, controllers);
         if (result.getWrongDirectionNotice() != null) {
             controllers.foregroundController.sendWrongDirectionNotification(result.getWrongDirectionNotice());

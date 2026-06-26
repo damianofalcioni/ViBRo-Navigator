@@ -32,6 +32,7 @@ import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 import vibro.navigator.settings.AppAndroidAutoSettings;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
 
@@ -63,6 +64,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppLogger.init(context);
         AppSettings.setFusedLocationEnabled(context, true);
         AppSettings.setImperialUnitsEnabled(context, false);
+        AppCompassSettings.setSurroundingStreetsEnabled(context, false);
         AppThemeSettings.setLightThemeEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, true);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
@@ -137,6 +139,7 @@ public class AboutLoggingSettingsRobolectricTest {
         idleInitialDiagnosticRender();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
+        Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
         Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
         TextView poiCategoriesLabel = activity.findViewById(R.id.aboutPoiCategoriesLabel);
         ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
@@ -156,6 +159,11 @@ public class AboutLoggingSettingsRobolectricTest {
 
         assertFalse(logEnabledSwitch.isChecked());
         assertFalse(imperialUnitsSwitch.isChecked());
+        assertEquals(
+                activity.getString(R.string.label_compass_surrounding_streets_enabled),
+                surroundingStreetsSwitch.getText().toString()
+        );
+        assertFalse(surroundingStreetsSwitch.isChecked());
         assertAndroidAutoSetting(activity, androidAutoSwitch);
         assertEquals(activity.getString(R.string.label_poi_categories), poiCategoriesLabel.getText().toString());
         assertEquals(
@@ -247,16 +255,22 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         Switch fusedLocationSwitch = activity.findViewById(R.id.aboutFusedLocationSwitch);
+        Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
 
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
+        assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
 
         imperialUnitsSwitch.performClick();
+        surroundingStreetsSwitch.performClick();
 
         assertTrue(imperialUnitsSwitch.isChecked());
+        assertTrue(surroundingStreetsSwitch.isChecked());
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
+        assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         idleDeferredSettingApply();
 
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
+        assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
 
         if (!DistributionServices.supportsFusedLocation()) {
             assertFalse(fusedLocationSwitch.isEnabled());

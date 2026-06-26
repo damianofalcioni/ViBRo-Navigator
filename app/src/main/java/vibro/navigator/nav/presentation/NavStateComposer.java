@@ -10,6 +10,7 @@ import java.util.List;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
@@ -193,6 +194,28 @@ public final class NavStateComposer {
                         base.routeStatus.compassState,
                         base.routeStatus.speedLimit,
                         available
+                ),
+                base.gpsStatus,
+                base.pauseStatus
+        );
+    }
+
+    @NonNull
+    public static NavState withCompassStreetOverlay(
+            @NonNull NavState base,
+            @NonNull CompassStreetOverlay streetOverlay
+    ) {
+        NavCompassState compassState = base.routeStatus.compassState;
+        if (compassState == null || streetOverlay.isEmpty()) {
+            return base;
+        }
+        return new NavState(
+                new NavRouteStatus(
+                        base.routeStatus.guidance,
+                        base.routeStatus.progress,
+                        compassState.withStreetOverlay(streetOverlay),
+                        base.routeStatus.speedLimit,
+                        base.routeStatus.blockedRoadActionAvailable
                 ),
                 base.gpsStatus,
                 base.pauseStatus

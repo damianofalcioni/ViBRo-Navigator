@@ -9,6 +9,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
 
@@ -25,6 +26,8 @@ final class AboutSettingsSwitches {
     @NonNull
     private final Switch lightThemeSwitch;
     @NonNull
+    private final Switch surroundingStreetsSwitch;
+    @NonNull
     private final Runnable afterSettingApplied;
     @NonNull
     private final TaskScheduler settingsChangeScheduler = AndroidTaskScheduler.main();
@@ -33,6 +36,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting fusedLocationSetting;
     private AboutDeferredBooleanSetting imperialUnitsSetting;
     private AboutDeferredBooleanSetting lightThemeSetting;
+    private AboutDeferredBooleanSetting surroundingStreetsSetting;
 
     AboutSettingsSwitches(
             @NonNull Activity activity,
@@ -40,6 +44,7 @@ final class AboutSettingsSwitches {
             @NonNull Switch fusedLocationSwitch,
             @NonNull Switch imperialUnitsSwitch,
             @NonNull Switch lightThemeSwitch,
+            @NonNull Switch surroundingStreetsSwitch,
             @NonNull Runnable afterSettingApplied
     ) {
         this.activity = activity;
@@ -47,6 +52,7 @@ final class AboutSettingsSwitches {
         this.fusedLocationSwitch = fusedLocationSwitch;
         this.imperialUnitsSwitch = imperialUnitsSwitch;
         this.lightThemeSwitch = lightThemeSwitch;
+        this.surroundingStreetsSwitch = surroundingStreetsSwitch;
         this.afterSettingApplied = afterSettingApplied;
     }
 
@@ -55,6 +61,7 @@ final class AboutSettingsSwitches {
         configureFusedLocationSwitch();
         configureImperialUnitsSwitch();
         configureLightThemeSwitch();
+        configureSurroundingStreetsSwitch();
     }
 
     void render() {
@@ -65,6 +72,10 @@ final class AboutSettingsSwitches {
         );
         imperialUnitsSetting.render(imperialUnitsSwitch, AppSettings.isImperialUnitsEnabled(activity));
         lightThemeSetting.render(lightThemeSwitch, AppThemeSettings.isLightThemeEnabled(activity));
+        surroundingStreetsSetting.render(
+                surroundingStreetsSwitch,
+                AppCompassSettings.isSurroundingStreetsEnabled(activity)
+        );
     }
 
     void flush() {
@@ -72,6 +83,7 @@ final class AboutSettingsSwitches {
         fusedLocationSetting.flush();
         imperialUnitsSetting.flush();
         lightThemeSetting.flush(false);
+        surroundingStreetsSetting.flush(false);
     }
 
     private void configureLogEnabledSwitch() {
@@ -123,6 +135,20 @@ final class AboutSettingsSwitches {
         lightThemeSetting.render(lightThemeSwitch, AppThemeSettings.isLightThemeEnabled(activity));
         lightThemeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 lightThemeSetting.set(isChecked));
+    }
+
+    private void configureSurroundingStreetsSwitch() {
+        surroundingStreetsSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppCompassSettings.setSurroundingStreetsEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        surroundingStreetsSetting.render(
+                surroundingStreetsSwitch,
+                AppCompassSettings.isSurroundingStreetsEnabled(activity)
+        );
+        surroundingStreetsSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                surroundingStreetsSetting.set(isChecked));
     }
 
     private void recreateForThemeChange() {

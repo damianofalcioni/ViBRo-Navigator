@@ -4,13 +4,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
-import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.compass.CompassOrientationCue;
+import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
-import vibro.navigator.nav.session.NavigationSession;
 
 final class NavigationServiceRuntime {
     @NonNull
@@ -21,39 +21,18 @@ final class NavigationServiceRuntime {
     private final NavigationTrackingRuntime tracking;
     @NonNull
     private final NavigationRoutingRuntime routing;
+    @NonNull
+    private final NavigationServiceStreetOverlay streetOverlay;
 
-    private NavigationServiceRuntime(
-            @NonNull NavigationServiceDependencies dependencies
+    NavigationServiceRuntime(
+            @NonNull NavigationServiceDependencies dependencies,
+            @NonNull NavigationServiceStreetOverlay streetOverlay
     ) {
         foregroundController = dependencies.foreground.controller;
         screenInteractivityMonitor = dependencies.foreground.screenInteractivityMonitor;
         tracking = dependencies.tracking;
         routing = dependencies.routing;
-    }
-
-    @NonNull
-    static NavigationServiceRuntime create(
-            @NonNull NavigationService service,
-            @NonNull TaskScheduler uiScheduler,
-            @NonNull NavigationSession navigationSession,
-            @NonNull NavigationServiceTurnEvents turnEvents,
-            @NonNull NavigationServiceLocationHandler locationHandler,
-            @NonNull NavigationServiceUiVisibility uiVisibility,
-            @NonNull Runnable stateEmitter,
-            @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
-    ) {
-        NavigationServiceDependencies dependencies = NavigationServiceDependencies.create(
-                service,
-                uiScheduler,
-                navigationSession,
-                turnEvents,
-                locationHandler,
-                uiVisibility,
-                stateEmitter,
-                routeRecalculator
-        );
-        uiVisibility.setScreenInteractive(dependencies.foreground.screenInteractive);
-        return new NavigationServiceRuntime(dependencies);
+        this.streetOverlay = streetOverlay;
     }
 
     @NonNull
@@ -67,6 +46,19 @@ final class NavigationServiceRuntime {
 
     void resetTrackingState() {
         tracking.locationController.resetTrackingState();
+    }
+
+    void resetStreetOverlay() {
+        streetOverlay.reset();
+    }
+
+    void onAcceptedLocationForSurroundingStreets(@NonNull NavigationLocation location) {
+        streetOverlay.onAcceptedLocation(location);
+    }
+
+    @NonNull
+    NavState attachStreetOverlay(@NonNull NavState state) {
+        return streetOverlay.attach(state);
     }
 
     void requestLocationUpdates(long intervalMs) {
@@ -136,6 +128,10 @@ final class NavigationServiceRuntime {
 
     void shutdownRouteExecutor() {
         routing.executor.shutdown();
+    }
+
+    void shutdownStreetOverlay() {
+        streetOverlay.shutdown();
     }
 
     void shutdownManeuverSpeaker() {
