@@ -13,13 +13,17 @@ public final class BRouterSegmentDependencies {
     @NonNull
     final DocumentAccess documentAccess;
     @NonNull
+    final FileAccess fileAccess;
+    @NonNull
     final StorageVolumeAccess storageVolumeAccess;
 
     public BRouterSegmentDependencies(
             @NonNull DocumentAccess documentAccess,
+            @NonNull FileAccess fileAccess,
             @NonNull StorageVolumeAccess storageVolumeAccess
     ) {
         this.documentAccess = documentAccess;
+        this.fileAccess = fileAccess;
         this.storageVolumeAccess = storageVolumeAccess;
     }
 
@@ -34,6 +38,17 @@ public final class BRouterSegmentDependencies {
 
         @Nullable
         BRouterSegmentReadFile openReadFile(@NonNull Context context, @NonNull Uri documentUri) throws IOException;
+    }
+
+    public interface FileAccess {
+        boolean canReadFiles(@NonNull Context context);
+
+        @Nullable
+        BRouterSegmentReadFile openReadFile(
+                @NonNull Context context,
+                @NonNull String directoryDocumentId,
+                @NonNull String fileName
+        ) throws IOException;
     }
 
     public interface StorageVolumeAccess {

@@ -23,6 +23,7 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
     public static BRouterSegmentsRepository create() {
         return new BRouterSegmentsRepository(new BRouterSegmentDependencies(
                 new AndroidDocuments(),
+                new AndroidSegmentFiles(),
                 AndroidStorageVolumes::secondaryStorageRootIds
         ));
     }
@@ -50,6 +51,23 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
         public BRouterSegmentReadFile openReadFile(@NonNull Context context, @NonNull Uri documentUri)
                 throws IOException {
             return AndroidDocumentReadFile.open(context, documentUri);
+        }
+    }
+
+    private static final class AndroidSegmentFiles implements BRouterSegmentDependencies.FileAccess {
+        @Override
+        public boolean canReadFiles(@NonNull Context context) {
+            return AndroidBRouterSegmentFileAccess.canReadFiles(context);
+        }
+
+        @Nullable
+        @Override
+        public BRouterSegmentReadFile openReadFile(
+                @NonNull Context context,
+                @NonNull String directoryDocumentId,
+                @NonNull String fileName
+        ) throws IOException {
+            return AndroidBRouterSegmentFileAccess.openReadFile(context, directoryDocumentId, fileName);
         }
     }
 }

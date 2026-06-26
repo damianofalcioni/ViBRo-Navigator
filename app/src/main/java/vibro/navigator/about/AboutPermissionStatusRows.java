@@ -10,9 +10,11 @@ import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.nav.startup.NavigationPreflight;
+import vibro.navigator.settings.AppCompassSettings;
 
 final class AboutPermissionStatusRows {
 
@@ -26,6 +28,8 @@ final class AboutPermissionStatusRows {
     private final PermissionRow notificationsRow;
     @NonNull
     private final PermissionRow batteryOptimizationRow;
+    @NonNull
+    private final PermissionRow surroundingStreetStorageRow;
 
     AboutPermissionStatusRows(@NonNull Activity activity) {
         this.activity = activity;
@@ -61,6 +65,14 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionBatteryStatus,
                 AndroidNavigationPreflight::newBatteryOptimizationIntent
         );
+        surroundingStreetStorageRow = new PermissionRow(
+                activity,
+                R.id.aboutPermissionSurroundingStreetStorageRow,
+                R.id.aboutPermissionSurroundingStreetStorageMark,
+                R.id.aboutPermissionSurroundingStreetStorageLabel,
+                R.id.aboutPermissionSurroundingStreetStorageStatus,
+                AndroidNavigationPreflight::newAppDetailsSettingsIntent
+        );
     }
 
     void render() {
@@ -69,6 +81,16 @@ final class AboutPermissionStatusRows {
         locationServicesRow.render(status.locationEnabled);
         notificationsRow.render(status.hasNotificationAccess());
         batteryOptimizationRow.render(!status.needsBatteryOptimizationExemption);
+        renderSurroundingStreetStorage();
+    }
+
+    private void renderSurroundingStreetStorage() {
+        boolean visible = AppCompassSettings.isSurroundingStreetsEnabled(activity)
+                && AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant();
+        surroundingStreetStorageRow.setVisible(visible);
+        if (visible) {
+            surroundingStreetStorageRow.render(AndroidLegacyExternalStorageAccess.hasReadPermission(activity));
+        }
     }
 
     private interface SettingsIntentFactory {
@@ -122,6 +144,10 @@ final class AboutPermissionStatusRows {
                     labelView.getText(),
                     statusView.getText()
             ));
+        }
+
+        void setVisible(boolean visible) {
+            rowView.setVisibility(visible ? View.VISIBLE : View.GONE);
         }
 
         private void openSettings(@NonNull Intent intent) {

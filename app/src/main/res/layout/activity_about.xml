@@ -512,6 +512,45 @@
                     android:textColor="@color/success"
                     android:textSize="14sp" />
             </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/aboutPermissionSurroundingStreetStorageRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <View
+                    android:id="@+id/aboutPermissionSurroundingStreetStorageMark"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@drawable/bg_permission_status_ok"
+                    android:importantForAccessibility="no" />
+
+                <TextView
+                    android:id="@+id/aboutPermissionSurroundingStreetStorageLabel"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_permission_surrounding_street_storage"
+                    android:textColor="?attr/vibroTextPrimaryColor"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/aboutPermissionSurroundingStreetStorageStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/permission_status_ok"
+                    android:textColor="@color/success"
+                    android:textSize="14sp" />
+            </LinearLayout>
         </LinearLayout>
 
         <TextView

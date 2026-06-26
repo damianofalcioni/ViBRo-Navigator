@@ -2,10 +2,13 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
@@ -14,6 +17,7 @@ import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
 
 final class AboutSettingsSwitches {
+    static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3001;
 
     @NonNull
     private final Activity activity;
@@ -86,6 +90,25 @@ final class AboutSettingsSwitches {
         surroundingStreetsSetting.flush(false);
     }
 
+    void onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+        if (requestCode != REQUEST_SURROUNDING_STREETS_STORAGE) {
+            return;
+        }
+        if (AndroidLegacyExternalStorageAccess.isReadPermissionGranted(grantResults)) {
+            surroundingStreetsSetting.set(true);
+            surroundingStreetsSetting.flush();
+            render();
+            return;
+        }
+        AppCompassSettings.setSurroundingStreetsEnabled(activity, false);
+        render();
+        Toast.makeText(
+                activity,
+                R.string.msg_compass_surrounding_streets_storage_permission_required,
+                Toast.LENGTH_SHORT
+        ).show();
+    }
+
     private void configureLogEnabledSwitch() {
         logEnabledSetting = new AboutDeferredBooleanSetting(
                 settingsChangeScheduler,
@@ -147,8 +170,16 @@ final class AboutSettingsSwitches {
                 surroundingStreetsSwitch,
                 AppCompassSettings.isSurroundingStreetsEnabled(activity)
         );
-        surroundingStreetsSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
-                surroundingStreetsSetting.set(isChecked));
+        surroundingStreetsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked && AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity)) {
+                AndroidLegacyExternalStorageAccess.requestReadPermission(
+                        activity,
+                        REQUEST_SURROUNDING_STREETS_STORAGE
+                );
+                return;
+            }
+            surroundingStreetsSetting.set(isChecked);
+        });
     }
 
     private void recreateForThemeChange() {

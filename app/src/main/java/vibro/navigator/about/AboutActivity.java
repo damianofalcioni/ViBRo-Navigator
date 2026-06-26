@@ -10,6 +10,8 @@ import android.view.View;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import vibro.navigator.android.theme.AndroidAppTheme;
 
 public class AboutActivity extends Activity {
@@ -120,6 +122,16 @@ public class AboutActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         databaseBackupActions.handleActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            @NonNull String[] permissions,
+            @NonNull int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        settingsSwitches.onRequestPermissionsResult(requestCode, grantResults);
     }
 
     private void scheduleDiagnosticSectionRender() {

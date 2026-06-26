@@ -28,9 +28,13 @@ public final class BRouterSegmentsRepository {
     @NonNull
     private final Map<String, Uri> segmentFileUris = new HashMap<>();
     @NonNull
+    private final Map<String, String> segmentFileDirectoryIds = new HashMap<>();
+    @NonNull
     private final Set<String> missingSegmentFiles = new HashSet<>();
     @Nullable
     private List<Uri> discoveryTreeUris;
+    @Nullable
+    private List<String> discoveryDirectoryIds;
 
     public BRouterSegmentsRepository(@NonNull BRouterSegmentDependencies dependencies) {
         this.dependencies = dependencies;
@@ -69,15 +73,73 @@ public final class BRouterSegmentsRepository {
     ) {
         Uri documentUri = resolveSegmentFileUri(context, fileName);
         if (documentUri == null) {
+            readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
             return;
         }
         try (BRouterSegmentReadFile readFile = dependencies.documentAccess.openReadFile(context, documentUri)) {
             if (readFile == null) {
+                readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
                 return;
             }
             new BRouterRd5StreetReader(readFile, fileName).read(bounds, maxSegments, out);
         } catch (IOException | RuntimeException e) {
             AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
+            readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
+        }
+    }
+
+    private void readLocalSegmentFile(
+            @NonNull Context context,
+            @NonNull String fileName,
+            @NonNull BRouterSegmentBounds bounds,
+            int maxSegments,
+            @NonNull List<CompassStreetSegment> out
+    ) {
+        if (!dependencies.fileAccess.canReadFiles(context)) {
+            return;
+        }
+        if (readCachedLocalSegmentFile(context, fileName, bounds, maxSegments, out)) {
+            return;
+        }
+        for (String directoryId : discoveryDirectoryIds(context)) {
+            if (readLocalSegmentFile(context, directoryId, fileName, bounds, maxSegments, out)) {
+                segmentFileDirectoryIds.put(fileName, directoryId);
+                return;
+            }
+        }
+        missingSegmentFiles.add(fileName);
+        AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
+    }
+
+    private boolean readCachedLocalSegmentFile(
+            @NonNull Context context,
+            @NonNull String fileName,
+            @NonNull BRouterSegmentBounds bounds,
+            int maxSegments,
+            @NonNull List<CompassStreetSegment> out
+    ) {
+        String directoryId = segmentFileDirectoryIds.get(fileName);
+        return directoryId != null
+                && readLocalSegmentFile(context, directoryId, fileName, bounds, maxSegments, out);
+    }
+
+    private boolean readLocalSegmentFile(
+            @NonNull Context context,
+            @NonNull String directoryId,
+            @NonNull String fileName,
+            @NonNull BRouterSegmentBounds bounds,
+            int maxSegments,
+            @NonNull List<CompassStreetSegment> out
+    ) {
+        try (BRouterSegmentReadFile readFile = dependencies.fileAccess.openReadFile(context, directoryId, fileName)) {
+            if (readFile == null) {
+                return false;
+            }
+            new BRouterRd5StreetReader(readFile, fileName).read(bounds, maxSegments, out);
+            return true;
+        } catch (IOException | RuntimeException e) {
+            AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
+            return false;
         }
     }
 
@@ -96,8 +158,6 @@ public final class BRouterSegmentsRepository {
                 return documentUri;
             }
         }
-        missingSegmentFiles.add(fileName);
-        AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
         return null;
     }
 
@@ -107,5 +167,13 @@ public final class BRouterSegmentsRepository {
             discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context);
         }
         return discoveryTreeUris;
+    }
+
+    @NonNull
+    private List<String> discoveryDirectoryIds(@NonNull Context context) {
+        if (discoveryDirectoryIds == null) {
+            discoveryDirectoryIds = segmentDirectories.getSegmentsDocumentIdCandidates(context);
+        }
+        return discoveryDirectoryIds;
     }
 }

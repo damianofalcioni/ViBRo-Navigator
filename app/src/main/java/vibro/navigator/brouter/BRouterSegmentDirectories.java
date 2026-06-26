@@ -29,7 +29,7 @@ final class BRouterSegmentDirectories {
     @NonNull
     List<Uri> resolveSegmentsDiscoveryTreeUris(@NonNull Context context) {
         List<Uri> out = new ArrayList<>();
-        for (String documentId : directoryCandidates.getSegmentsDocumentIdCandidates(context)) {
+        for (String documentId : getSegmentsDocumentIdCandidates(context)) {
             if (documentAccess.externalStorageDocumentExists(context, documentId)) {
                 addDiscoveryTreeUri(out, documentAccess.buildExternalStorageTreeUri(documentId));
             }
@@ -38,6 +38,11 @@ final class BRouterSegmentDirectories {
             AppLogger.d(TAG, "No accessible BRouter segments4 path detected");
         }
         return out;
+    }
+
+    @NonNull
+    List<String> getSegmentsDocumentIdCandidates(@NonNull Context context) {
+        return directoryCandidates.getSegmentsDocumentIdCandidates(context);
     }
 
     private void addDiscoveryTreeUri(@NonNull List<Uri> out, @NonNull Uri treeUri) {

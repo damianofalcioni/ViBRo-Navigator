@@ -236,6 +236,7 @@ The implementation must use BRouter integration compatible with these references
 - When surrounding-street display is enabled, the app must read nearby street geometry only from BRouter's already downloaded local `segments4` `.rd5` files
 - Surrounding-street display must not download additional maps and must not add an external map-rendering or map-parsing library
 - `segments4` discovery must use the same version-agnostic storage probing strategy as external `profiles2` discovery, including primary and removable storage and both `Android/media/.../brouter/segments4` and legacy `Android/data/.../brouter/segments4` layouts
+- On Android versions where BRouter's legacy external `Android/data/.../segments4` files are readable only with runtime external-storage access, enabling surrounding-street display must request that storage access before persisting the setting
 - Missing, inaccessible, corrupt, unsupported, or out-of-area BRouter segment files must fail quietly by omitting the surrounding-street overlay rather than blocking navigation or route guidance
 - BRouter segment reading for compass context must stay bounded to the current surrounding area and a fixed maximum number of drawable street segments
 
@@ -638,6 +639,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Use imperial units (ft/mi/mph) switch for distance, speed, elevation, and accuracy display values
 - The about page Settings section must show a Light Theme switch that enables or disables the app's optional light theme while keeping the black theme as the default
 - The about page Settings section must show a Show surrounding streets in compass switch that enables or disables the local-BRouter-segment street overlay in the navigation compass
+- When legacy external-storage permission is required to read local BRouter street segment files, enabling the Show surrounding streets in compass switch must request that permission and leave the setting disabled if permission is denied
 - The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and a trash remove button, plus a centered bordered `+` button that adds another field
@@ -675,6 +677,7 @@ The navigation UI must show the following in large text:
   - device location services
   - app notifications
   - battery optimization exemption
+- When Show surrounding streets in compass is enabled and legacy external-storage permission is relevant on the current Android version, the Required access block must also show a BRouter street storage row with OK/KO status; when the setting is disabled or the permission is not relevant, that row must be hidden
 - Each Required access row must show a green OK or red KO mark and a short status label
 - Tapping a Required access row must open the most specific relevant Android settings page available, falling back to app details when needed in the same OEM-compatible style as navigation startup settings redirects
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
