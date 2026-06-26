@@ -76,6 +76,36 @@
                 android:text="@string/about_report_issue_link"
                 android:textColor="?android:attr/textColorLink"
                 android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/aboutPrivacyPolicyLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_info"
+                android:drawablePadding="8dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:text="@string/about_privacy_policy_link"
+                android:textColor="?android:attr/textColorLink"
+                android:textSize="15sp" />
+
+            <TextView
+                android:id="@+id/aboutTermsOfServiceLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_list"
+                android:drawablePadding="8dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:text="@string/about_terms_of_service_link"
+                android:textColor="?android:attr/textColorLink"
+                android:textSize="15sp" />
         </LinearLayout>
 
         <TextView

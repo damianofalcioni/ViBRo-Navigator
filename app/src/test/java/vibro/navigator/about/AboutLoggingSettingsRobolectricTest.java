@@ -144,8 +144,6 @@ public class AboutLoggingSettingsRobolectricTest {
         TextView sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         TextView sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         TextView symbolTestTitle = activity.findViewById(R.id.aboutSymbolTestTitle);
-        TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
-        TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
         Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
         Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
         Button symbolTestLeftButton = activity.findViewById(R.id.aboutSymbolTestLeftButton);
@@ -182,8 +180,20 @@ public class AboutLoggingSettingsRobolectricTest {
         assertEquals(View.VISIBLE, importDatabaseButton.getVisibility());
         assertHasStartIcon(exportDatabaseButton);
         assertHasStartIcon(importDatabaseButton);
-        assertEquals(activity.getString(R.string.about_source_code_link), sourceCodeLink.getText().toString());
-        assertEquals(activity.getString(R.string.about_report_issue_link), reportIssueLink.getText().toString());
+        assertEquals(
+                Arrays.asList(
+                        activity.getString(R.string.about_source_code_link),
+                        activity.getString(R.string.about_report_issue_link),
+                        activity.getString(R.string.about_privacy_policy_link),
+                        activity.getString(R.string.about_terms_of_service_link)
+                ),
+                Arrays.asList(
+                        ((TextView) activity.findViewById(R.id.aboutSourceCodeLink)).getText().toString(),
+                        ((TextView) activity.findViewById(R.id.aboutReportIssueLink)).getText().toString(),
+                        ((TextView) activity.findViewById(R.id.aboutPrivacyPolicyLink)).getText().toString(),
+                        ((TextView) activity.findViewById(R.id.aboutTermsOfServiceLink)).getText().toString()
+                )
+        );
         assertEquals(View.VISIBLE, sensorStatusTitle.getVisibility());
         assertEquals(View.VISIBLE, sensorStatusBody.getVisibility());
         assertEquals(View.VISIBLE, symbolTestTitle.getVisibility());
@@ -422,23 +432,43 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
         TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
         TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
+        TextView privacyPolicyLink = activity.findViewById(R.id.aboutPrivacyPolicyLink);
+        TextView termsOfServiceLink = activity.findViewById(R.id.aboutTermsOfServiceLink);
         TextView credits = activity.findViewById(R.id.aboutCredits);
         int expectedProjectLinkColor = credits.getLinkTextColors().getDefaultColor();
 
         assertNotEquals(ContextCompat.getColor(activity, R.color.success), expectedProjectLinkColor);
         assertEquals(expectedProjectLinkColor, sourceCodeLink.getCurrentTextColor());
         assertEquals(expectedProjectLinkColor, reportIssueLink.getCurrentTextColor());
+        assertEquals(expectedProjectLinkColor, privacyPolicyLink.getCurrentTextColor());
+        assertEquals(expectedProjectLinkColor, termsOfServiceLink.getCurrentTextColor());
         assertTrue(TextViewCompat.getCompoundDrawableTintList(sourceCodeLink) == null);
         assertTrue(TextViewCompat.getCompoundDrawableTintList(reportIssueLink) == null);
+        assertTrue(TextViewCompat.getCompoundDrawableTintList(privacyPolicyLink) == null);
+        assertTrue(TextViewCompat.getCompoundDrawableTintList(termsOfServiceLink) == null);
         sourceCodeLink.performClick();
         Intent sourceIntent = shadowOf(activity).getNextStartedActivity();
         reportIssueLink.performClick();
         Intent issueIntent = shadowOf(activity).getNextStartedActivity();
+        privacyPolicyLink.performClick();
+        Intent privacyIntent = shadowOf(activity).getNextStartedActivity();
+        termsOfServiceLink.performClick();
+        Intent termsIntent = shadowOf(activity).getNextStartedActivity();
 
         assertEquals(Intent.ACTION_VIEW, sourceIntent.getAction());
         assertEquals("https://github.com/damianofalcioni/ViBRo-Navigator", sourceIntent.getDataString());
         assertEquals(Intent.ACTION_VIEW, issueIntent.getAction());
         assertEquals("https://github.com/damianofalcioni/ViBRo-Navigator/issues/new", issueIntent.getDataString());
+        assertEquals(Intent.ACTION_VIEW, privacyIntent.getAction());
+        assertEquals(
+                "https://damianofalcioni.github.io/ViBRo-Navigator/privacy-policy/",
+                privacyIntent.getDataString()
+        );
+        assertEquals(Intent.ACTION_VIEW, termsIntent.getAction());
+        assertEquals(
+                "https://damianofalcioni.github.io/ViBRo-Navigator/terms-of-service/",
+                termsIntent.getDataString()
+        );
     }
 
     @Test

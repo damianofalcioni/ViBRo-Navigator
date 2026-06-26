@@ -614,7 +614,7 @@ The navigation UI must show the following in large text:
 - The about page must contain:
   - The app version
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
-  - Links immediately after the summary to the project source code and the GitHub new-issue page
+  - Links immediately after the summary to the project source code, the GitHub new-issue page, the public Privacy Policy, and the public Terms of Service
   - Copyright and license text
   - API/data-source attribution stating the active POI search data source and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
   - A Settings section below the about text
@@ -718,6 +718,7 @@ The navigation UI must show the following in large text:
 - GitHub Actions and F-Droid metadata must build the `fdroid` flavor for F-Droid readiness and submission paths.
 - Upstream release automation may build both `fdroid` and `gplay` release APKs, with artifacts kept under their flavor-specific Gradle output paths.
 - Upstream app-store metadata should be maintained in the source repository using the `fastlane/metadata/android/en-US/...` layout so F-Droid can reuse the app description, changelog, icon, and screenshots directly from upstream.
+- Public store-facing legal and disclosure documents must live under `docs/` so GitHub Pages can serve stable public URLs for the Privacy Policy, Terms of Service, local data-deletion instructions, and maintainer store-disclosure notes.
 - The repository should provide maintainer-facing submission documentation for official F-Droid inclusion. That documentation is an operator runbook for project maintainers and should not be treated as end-user product documentation.
 - GitHub Actions may automate F-Droid readiness checks and preparation of a `fdroiddata` merge request, but the specification should assume that official publication still requires F-Droid maintainer review and F-Droid-side rebuild/sign/publish steps.
 - Release builds intended for upstream verification and F-Droid consumption must be unsigned by default in CI unless an explicit maintainer-controlled signing flow is being used outside the F-Droid path.

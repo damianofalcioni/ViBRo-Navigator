@@ -112,7 +112,6 @@ ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low,
 * Navigation logic split into small, testable modules
 * Check [`AGENT.md`](./AGENT.md) and [`SPECIFICATION.md`](./SPECIFICATION.md) for more details
 
-
 ---
 
 ## 📄 License

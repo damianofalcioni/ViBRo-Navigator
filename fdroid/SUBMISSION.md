@@ -6,14 +6,15 @@ This directory contains a draft `fdroiddata` metadata file for
 Before opening the official F-Droid merge request, complete these steps:
 
 1. Push the repository to a public GitHub URL.
-2. Commit the current F-Droid prep changes.
-3. Create and push a release tag matching `versionName`, for example `v0.1.0`.
-4. Replace the placeholders in `fdroid/vibro.navigator.yml`:
-   - `REPLACE_WITH_GITHUB_OWNER`
-   - `REPLACE_WITH_RELEASE_TAG_OR_COMMIT`
-5. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
+2. Enable GitHub Pages from the repository `docs/` folder so the public
+   store-document URLs are live.
+3. Commit the current F-Droid prep changes.
+4. Create and push a release tag matching `versionName`, for example `v0.1.0`.
+5. Replace `REPLACE_WITH_RELEASE_TAG_OR_COMMIT` in
+   `fdroid/vibro.navigator.yml`.
+6. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
    `metadata/vibro.navigator.yml`.
-6. Run the standard validation flow in the F-Droid build container:
+7. Run the standard validation flow in the F-Droid build container:
    - `fdroid readmeta`
    - `fdroid rewritemeta vibro.navigator`
    - `fdroid checkupdates --allow-dirty vibro.navigator`
@@ -23,6 +24,7 @@ Before opening the official F-Droid merge request, complete these steps:
 Useful repository files already prepared upstream:
 
 - `fastlane/metadata/android/en-US/...`
+- `docs/`
 - `.github/workflows/fdroid-ready.yml`
 - `.github/workflows/fdroid-submit.yml`
 
@@ -34,6 +36,8 @@ Notes:
   specific and should not be present in F-Droid builds.
 - `AllowedAPKSigningKeys` is optional and should only be added if you later
   publish a signed upstream APK that you want F-Droid to verify against.
+- The F-Droid `WebSite` field should point to the GitHub Pages app site, while
+  `SourceCode` and `IssueTracker` should point to GitHub.
 
 ## GitHub Action automation
 

@@ -5,7 +5,7 @@ AuthorName: Damiano Falcioni
 Summary: Vibrating/Vibe-coded BRouter Navigator is a lightweight, offline-first, and battery-efficient Android navigation app built on top of BRouter
 
 # Replace these with the final public GitHub URLs before submitting to fdroiddata.
-WebSite: https://github.com/damianofalcioni/ViBRo-Navigator
+WebSite: https://damianofalcioni.github.io/ViBRo-Navigator/
 SourceCode: https://github.com/damianofalcioni/ViBRo-Navigator
 IssueTracker: https://github.com/damianofalcioni/ViBRo-Navigator/issues
 RepoType: git

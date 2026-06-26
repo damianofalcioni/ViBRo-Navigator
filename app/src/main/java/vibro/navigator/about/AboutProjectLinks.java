@@ -17,19 +17,31 @@ final class AboutProjectLinks {
     private static final String TAG = "AboutProjectLinks";
     private static final String SOURCE_CODE_URL = "https://github.com/damianofalcioni/ViBRo-Navigator";
     private static final String ISSUE_URL = "https://github.com/damianofalcioni/ViBRo-Navigator/issues/new";
+    private static final String PAGES_BASE_URL = "https://damianofalcioni.github.io/ViBRo-Navigator";
+    private static final String PRIVACY_POLICY_URL = PAGES_BASE_URL + "/privacy-policy/";
+    private static final String TERMS_OF_SERVICE_URL = PAGES_BASE_URL + "/terms-of-service/";
 
     private AboutProjectLinks() {
     }
 
     static void configure(@NonNull Activity activity) {
-        TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
-        TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
         TextView credits = activity.findViewById(R.id.aboutCredits);
         ColorStateList linkColors = credits.getLinkTextColors();
-        applyLinkColors(sourceCodeLink, linkColors);
-        applyLinkColors(reportIssueLink, linkColors);
-        sourceCodeLink.setOnClickListener(v -> openWebUrl(activity, SOURCE_CODE_URL));
-        reportIssueLink.setOnClickListener(v -> openWebUrl(activity, ISSUE_URL));
+        configureLink(activity, R.id.aboutSourceCodeLink, linkColors, SOURCE_CODE_URL);
+        configureLink(activity, R.id.aboutReportIssueLink, linkColors, ISSUE_URL);
+        configureLink(activity, R.id.aboutPrivacyPolicyLink, linkColors, PRIVACY_POLICY_URL);
+        configureLink(activity, R.id.aboutTermsOfServiceLink, linkColors, TERMS_OF_SERVICE_URL);
+    }
+
+    private static void configureLink(
+            @NonNull Activity activity,
+            int viewId,
+            @NonNull ColorStateList linkColors,
+            @NonNull String url
+    ) {
+        TextView link = activity.findViewById(viewId);
+        applyLinkColors(link, linkColors);
+        link.setOnClickListener(v -> openWebUrl(activity, url));
     }
 
     private static void applyLinkColors(@NonNull TextView link, @NonNull ColorStateList linkColors) {
