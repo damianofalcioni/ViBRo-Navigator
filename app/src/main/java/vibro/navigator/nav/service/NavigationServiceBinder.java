@@ -3,6 +3,7 @@ package vibro.navigator.nav.service;
 
 import vibro.navigator.nav.location.NavigationLocationFormatter;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.compass.NavCompassState;
 import android.os.Binder;
 
 import androidx.annotation.NonNull;
@@ -30,6 +31,8 @@ public final class NavigationServiceBinder extends Binder {
         void ensureForegroundNotification();
 
         void setNavigationUiVisible(boolean visible);
+
+        void setCompassStreetViewport(@Nullable NavCompassState compassState);
 
         boolean isNavigationPaused();
 
@@ -74,6 +77,10 @@ public final class NavigationServiceBinder extends Binder {
 
     public void setNavigationUiVisible(boolean visible) {
         host.setNavigationUiVisible(visible);
+    }
+
+    public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
+        host.setCompassStreetViewport(compassState);
     }
 
     public void unregisterListener(@NonNull NavigationService.Listener listener) {

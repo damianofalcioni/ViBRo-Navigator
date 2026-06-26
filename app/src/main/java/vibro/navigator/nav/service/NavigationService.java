@@ -86,6 +86,11 @@ public class NavigationService extends Service {
             navigationSession,
             uiVisibility,
             this::emitState,
+            compassState -> {
+                if (runtime != null) {
+                    runtime.onCompassStreetViewport(compassState);
+                }
+            },
             notice -> routeRecalculator.request(true, null, notice),
             () -> {
                 stopNavigation();

@@ -17,8 +17,9 @@ import java.util.Set;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.streets.SurroundingStreetRepository;
 
-public final class BRouterSegmentsRepository {
+public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
     private static final String TAG = "BRouterSegments";
 
     @NonNull
@@ -45,6 +46,7 @@ public final class BRouterSegmentsRepository {
     }
 
     @NonNull
+    @Override
     public CompassStreetOverlay loadSurroundingStreets(
             @NonNull Context context,
             double latitude,

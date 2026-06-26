@@ -224,6 +224,7 @@ public class NavigationActivity extends Activity {
         if (bound) {
             try {
                 if (navBinder != null) {
+                    navBinder.setCompassStreetViewport(null);
                     navBinder.setNavigationUiVisible(false);
                     navBinder.unregisterListener(navListener);
                 }

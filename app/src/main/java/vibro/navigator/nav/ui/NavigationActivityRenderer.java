@@ -71,6 +71,8 @@ final class NavigationActivityRenderer {
 
     @Nullable
     private NavState currentState;
+    @Nullable
+    private NavigationServiceBinder currentBinder;
     private String lastRenderedStateKey = "";
 
     NavigationActivityRenderer(
@@ -108,6 +110,7 @@ final class NavigationActivityRenderer {
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
         currentState = state;
+        currentBinder = navBinder;
         next.setText(state.routeStatus.guidance.nextLine);
         afterNext.setText(state.routeStatus.guidance.afterNextLine);
         destination.setText(state.routeStatus.displayStatusBlock());
@@ -205,7 +208,11 @@ final class NavigationActivityRenderer {
     private void renderCompassState() {
         @Nullable NavCompassState compassState = currentState == null ? null : currentState.routeStatus.compassState;
         compass.setNavigationPaused(currentState != null && currentState.pauseStatus.paused);
-        compass.setCompassState(compassModeController.resolve(compassState));
+        NavCompassState displayedCompassState = compassModeController.resolve(compassState);
+        compass.setCompassState(displayedCompassState);
+        if (currentBinder != null) {
+            currentBinder.setCompassStreetViewport(displayedCompassState);
+        }
         cancelPendingCompassTransition();
         if (compassModeController.isTransitionInProgress()) {
             uiScheduler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);

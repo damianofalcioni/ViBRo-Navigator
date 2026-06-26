@@ -7,9 +7,8 @@ import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 
-import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetSegment;
@@ -35,7 +34,10 @@ final class NavigationCompassStreetRenderer {
             float routeRadius,
             float headingDegrees
     ) {
-        if (state == null || state.streetOverlay.isEmpty() || state.radiusState.visibleRadiusMeters <= 0f) {
+        if (state == null
+                || !state.displayMode.movingScaleActive
+                || state.streetOverlay.isEmpty()
+                || state.radiusState.visibleRadiusMeters <= 0f) {
             return;
         }
         ensureInitialized(context);
@@ -53,7 +55,7 @@ final class NavigationCompassStreetRenderer {
         streetPaint.setStrokeWidth(dp(context, STREET_STROKE_WIDTH_DP));
         streetPaint.setStrokeJoin(Paint.Join.ROUND);
         streetPaint.setStrokeCap(Paint.Cap.ROUND);
-        streetPaint.setColor(ContextCompat.getColor(context, R.color.compass_accent));
+        streetPaint.setColor(AndroidAppTheme.color(context, android.R.attr.colorControlActivated));
         streetPaint.setAlpha(STREET_ALPHA);
         initialized = true;
     }

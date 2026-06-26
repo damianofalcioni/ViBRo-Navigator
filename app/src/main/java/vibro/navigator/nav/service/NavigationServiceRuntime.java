@@ -7,6 +7,7 @@ import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.compass.CompassOrientationCue;
+import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
@@ -54,6 +55,14 @@ final class NavigationServiceRuntime {
 
     void onAcceptedLocationForSurroundingStreets(@NonNull NavigationLocation location) {
         streetOverlay.onAcceptedLocation(location);
+    }
+
+    void onCompassStreetViewport(@Nullable NavCompassState compassState) {
+        if (compassState == null) {
+            streetOverlay.clearCompassViewport();
+            return;
+        }
+        streetOverlay.onCompassViewport(compassState);
     }
 
     @NonNull

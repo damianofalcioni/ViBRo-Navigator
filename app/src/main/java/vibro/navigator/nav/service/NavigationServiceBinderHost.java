@@ -3,6 +3,7 @@ package vibro.navigator.nav.service;
 
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.session.NavigationSession;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -21,12 +22,17 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
         void request(@NonNull String inProgressNotice);
     }
 
+    public interface CompassStreetViewportSink {
+        void set(@Nullable NavCompassState compassState);
+    }
+
     private final Context context;
     private final NavigationStateBroadcaster stateBroadcaster;
     private final NavigationForegroundCoordinator foregroundCoordinator;
     private final NavigationSession navigationSession;
     private final NavigationServiceUiVisibility uiVisibility;
     private final Runnable stateEmitter;
+    private final CompassStreetViewportSink compassStreetViewportSink;
     private final BlockedRoadRouteRecalculator blockedRoadRouteRecalculator;
     private final Runnable stopNavigationAndService;
     private final Runnable pauseNavigation;
@@ -40,6 +46,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationServiceUiVisibility uiVisibility,
             @NonNull Runnable stateEmitter,
+            @NonNull CompassStreetViewportSink compassStreetViewportSink,
             @NonNull BlockedRoadRouteRecalculator blockedRoadRouteRecalculator,
             @NonNull Runnable stopNavigationAndService,
             @NonNull Runnable pauseNavigation,
@@ -51,6 +58,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
         this.navigationSession = navigationSession;
         this.uiVisibility = uiVisibility;
         this.stateEmitter = stateEmitter;
+        this.compassStreetViewportSink = compassStreetViewportSink;
         this.blockedRoadRouteRecalculator = blockedRoadRouteRecalculator;
         this.stopNavigationAndService = stopNavigationAndService;
         this.pauseNavigation = pauseNavigation;
@@ -85,6 +93,11 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Override
     public void setNavigationUiVisible(boolean visible) {
         uiVisibility.setNavigationUiVisible(visible);
+    }
+
+    @Override
+    public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
+        compassStreetViewportSink.set(compassState);
     }
 
     @Override

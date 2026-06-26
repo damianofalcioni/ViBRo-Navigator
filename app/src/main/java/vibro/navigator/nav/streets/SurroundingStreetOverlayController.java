@@ -7,17 +7,16 @@ import androidx.annotation.NonNull;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
+import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.settings.AppCompassSettings;
 
 public final class SurroundingStreetOverlayController {
     private static final String TAG = "SurroundingStreets";
-    private static final double STREET_RADIUS_METERS = 700.0d;
     private static final int MAX_STREET_SEGMENTS = 2_000;
 
     @NonNull
@@ -27,27 +26,33 @@ public final class SurroundingStreetOverlayController {
     @NonNull
     private final ElapsedRealtimeClock elapsedRealtimeClock;
     @NonNull
-    private final BRouterSegmentsRepository repository;
+    private final SurroundingStreetRepository repository;
     @NonNull
     private final Runnable stateEmitter;
     @NonNull
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     @NonNull
     private final SurroundingStreetRefreshPolicy refreshPolicy = new SurroundingStreetRefreshPolicy();
+    @NonNull
+    private final SurroundingStreetViewportPolicy viewportPolicy = new SurroundingStreetViewportPolicy();
 
     @NonNull
     private CompassStreetOverlay overlay = CompassStreetOverlay.EMPTY;
+    private NavigationLocation lastAcceptedLocation;
     private NavigationLocation lastRefreshLocation;
+    private double activeRadiusMeters;
+    private double lastRefreshRadiusMeters;
     private long lastRefreshElapsedMs;
     private boolean inFlight;
     private int generation;
+    private boolean viewportActive;
     private boolean shutdown;
 
     public SurroundingStreetOverlayController(
             @NonNull Context context,
             @NonNull TaskScheduler resultScheduler,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock,
-            @NonNull BRouterSegmentsRepository repository,
+            @NonNull SurroundingStreetRepository repository,
             @NonNull Runnable stateEmitter
     ) {
         appContext = context.getApplicationContext();
@@ -61,11 +66,23 @@ public final class SurroundingStreetOverlayController {
         generation++;
         inFlight = false;
         overlay = CompassStreetOverlay.EMPTY;
+        lastAcceptedLocation = null;
         lastRefreshLocation = null;
+        activeRadiusMeters = 0.0d;
+        lastRefreshRadiusMeters = 0.0d;
         lastRefreshElapsedMs = 0L;
+        viewportActive = false;
     }
 
     public void onAcceptedLocation(@NonNull NavigationLocation location) {
+        if (shutdown) {
+            return;
+        }
+        lastAcceptedLocation = new NavigationLocation(location);
+        requestOverlayIfNeeded();
+    }
+
+    public void onCompassViewport(@NonNull NavCompassState compassState) {
         if (shutdown) {
             return;
         }
@@ -73,16 +90,49 @@ public final class SurroundingStreetOverlayController {
             clearIfNeeded();
             return;
         }
-        long nowElapsedMs = elapsedRealtimeClock.elapsedRealtimeMs();
-        if (!refreshPolicy.shouldRefresh(location, lastRefreshLocation, lastRefreshElapsedMs, nowElapsedMs, inFlight)) {
+        if (!viewportPolicy.shouldShow(compassState)) {
+            clearIfNeeded();
             return;
         }
-        requestOverlay(location, nowElapsedMs);
+        viewportActive = true;
+        activeRadiusMeters = viewportPolicy.extractionRadiusMeters(compassState);
+        requestOverlayIfNeeded();
+    }
+
+    public void clearCompassViewport() {
+        clearIfNeeded();
+    }
+
+    private void requestOverlayIfNeeded() {
+        if (shutdown) {
+            return;
+        }
+        if (!AppCompassSettings.isSurroundingStreetsEnabled(appContext)) {
+            clearIfNeeded();
+            return;
+        }
+        NavigationLocation location = lastAcceptedLocation;
+        if (!viewportActive || location == null) {
+            return;
+        }
+        long nowElapsedMs = elapsedRealtimeClock.elapsedRealtimeMs();
+        if (!refreshPolicy.shouldRefresh(
+                location,
+                lastRefreshLocation,
+                lastRefreshRadiusMeters,
+                activeRadiusMeters,
+                lastRefreshElapsedMs,
+                nowElapsedMs,
+                inFlight
+        )) {
+            return;
+        }
+        requestOverlay(location, activeRadiusMeters, nowElapsedMs);
     }
 
     @NonNull
     public CompassStreetOverlay currentOverlay() {
-        return AppCompassSettings.isSurroundingStreetsEnabled(appContext)
+        return AppCompassSettings.isSurroundingStreetsEnabled(appContext) && viewportActive
                 ? overlay
                 : CompassStreetOverlay.EMPTY;
     }
@@ -93,24 +143,34 @@ public final class SurroundingStreetOverlayController {
         executor.shutdownNow();
     }
 
-    private void requestOverlay(@NonNull NavigationLocation location, long nowElapsedMs) {
+    private void requestOverlay(
+            @NonNull NavigationLocation location,
+            double radiusMeters,
+            long nowElapsedMs
+    ) {
         NavigationLocation requestLocation = new NavigationLocation(location);
         int requestGeneration = ++generation;
         inFlight = true;
         executor.execute(() -> {
-            CompassStreetOverlay loaded = loadOverlay(requestLocation);
-            resultScheduler.post(() -> applyOverlay(requestGeneration, requestLocation, nowElapsedMs, loaded));
+            CompassStreetOverlay loaded = loadOverlay(requestLocation, radiusMeters);
+            resultScheduler.post(() -> applyOverlay(
+                    requestGeneration,
+                    requestLocation,
+                    radiusMeters,
+                    nowElapsedMs,
+                    loaded
+            ));
         });
     }
 
     @NonNull
-    private CompassStreetOverlay loadOverlay(@NonNull NavigationLocation location) {
+    private CompassStreetOverlay loadOverlay(@NonNull NavigationLocation location, double radiusMeters) {
         try {
             return repository.loadSurroundingStreets(
                     appContext,
                     location.getLatitude(),
                     location.getLongitude(),
-                    STREET_RADIUS_METERS,
+                    radiusMeters,
                     MAX_STREET_SEGMENTS
             );
         } catch (RuntimeException e) {
@@ -122,6 +182,7 @@ public final class SurroundingStreetOverlayController {
     private void applyOverlay(
             int requestGeneration,
             @NonNull NavigationLocation requestLocation,
+            double requestRadiusMeters,
             long requestElapsedMs,
             @NonNull CompassStreetOverlay loaded
     ) {
@@ -130,18 +191,23 @@ public final class SurroundingStreetOverlayController {
         }
         inFlight = false;
         lastRefreshLocation = requestLocation;
+        lastRefreshRadiusMeters = requestRadiusMeters;
         lastRefreshElapsedMs = requestElapsedMs;
-        overlay = AppCompassSettings.isSurroundingStreetsEnabled(appContext)
+        overlay = AppCompassSettings.isSurroundingStreetsEnabled(appContext) && viewportActive
                 ? loaded
                 : CompassStreetOverlay.EMPTY;
         stateEmitter.run();
+        requestOverlayIfNeeded();
     }
 
     private void clearIfNeeded() {
         generation++;
         inFlight = false;
         lastRefreshLocation = null;
+        activeRadiusMeters = 0.0d;
+        lastRefreshRadiusMeters = 0.0d;
         lastRefreshElapsedMs = 0L;
+        viewportActive = false;
         overlay = CompassStreetOverlay.EMPTY;
     }
 }
