@@ -127,6 +127,11 @@ public final class MainRouteRailView extends View {
         drawRailLine(canvas, startY, stopY);
     }
 
+    @Nullable
+    Float routeArrowCenterYForTest(float currentMarkerEdgeY, float destinationY) {
+        return routeArrowCenterY(currentMarkerEdgeY, destinationY);
+    }
+
     private void drawRailLine(@NonNull Canvas canvas, float startY, float stopY) {
         linePath.reset();
         linePath.moveTo(metrics.railX, startY);
@@ -135,18 +140,30 @@ public final class MainRouteRailView extends View {
     }
 
     private float currentMarkerEdgeY(float currentY, float destinationY) {
-        float directionToDestination = destinationY < currentY ? -1.0f : 1.0f;
+        float directionToDestination = directionToward(currentY, destinationY);
         return currentY + (directionToDestination * metrics.currentMarkerClearance);
     }
 
     private void drawRouteArrow(@NonNull Canvas canvas, float currentMarkerEdgeY, float destinationY) {
-        float segmentLength = Math.abs(destinationY - currentMarkerEdgeY);
-        if (segmentLength < metrics.minArrowSegmentLength) {
+        Float arrowCenterY = routeArrowCenterY(currentMarkerEdgeY, destinationY);
+        if (arrowCenterY == null) {
             return;
         }
-        float direction = destinationY < currentMarkerEdgeY ? -1.0f : 1.0f;
-        float arrowOffset = Math.min(segmentLength / 3.0f, metrics.maxArrowOffsetFromCurrent);
-        drawArrow(canvas, currentMarkerEdgeY + (direction * arrowOffset), direction);
+        drawArrow(canvas, arrowCenterY, directionToward(currentMarkerEdgeY, destinationY));
+    }
+
+    @Nullable
+    private Float routeArrowCenterY(float currentMarkerEdgeY, float destinationY) {
+        float segmentLength = Math.abs(destinationY - currentMarkerEdgeY);
+        if (segmentLength < metrics.minArrowSegmentLength) {
+            return null;
+        }
+        float direction = directionToward(currentMarkerEdgeY, destinationY);
+        return currentMarkerEdgeY + (direction * metrics.arrowOffsetFromCurrent);
+    }
+
+    private static float directionToward(float startY, float targetY) {
+        return targetY < startY ? -1.0f : 1.0f;
     }
 
     private void drawArrow(@NonNull Canvas canvas, float centerY, float direction) {
@@ -212,7 +229,7 @@ public final class MainRouteRailView extends View {
         private final float arrowHalfWidth;
         private final float arrowHeight;
         private final float minArrowSegmentLength;
-        private final float maxArrowOffsetFromCurrent;
+        private final float arrowOffsetFromCurrent;
 
         private RailMetrics(@NonNull Context context) {
             railX = dp(context, 6.0f);
@@ -224,8 +241,8 @@ public final class MainRouteRailView extends View {
             currentMarkerClearance = currentMarkerRadius + currentMarkerStrokeWidth + lineWidth;
             arrowHalfWidth = dp(context, 4.5f);
             arrowHeight = dp(context, 9.0f);
-            minArrowSegmentLength = dp(context, 42.0f);
-            maxArrowOffsetFromCurrent = dp(context, 96.0f);
+            arrowOffsetFromCurrent = dp(context, 96.0f);
+            minArrowSegmentLength = arrowOffsetFromCurrent + arrowHeight;
         }
 
         @NonNull

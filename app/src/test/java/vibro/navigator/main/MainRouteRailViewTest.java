@@ -3,6 +3,7 @@ package vibro.navigator.main;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -49,6 +50,31 @@ public class MainRouteRailViewTest {
         railView.setStraightLineMode(false);
 
         assertNull(railView.linePaintForTest().getPathEffect());
+    }
+
+    @Test
+    public void routeArrowKeepsFixedDistanceFromRailBottomInRouteAndStraightLineModes() {
+        MainRouteRailView railView = railView();
+
+        assertArrowTracksBottomWithFixedOffset(railView);
+
+        railView.setStraightLineMode(true);
+
+        assertArrowTracksBottomWithFixedOffset(railView);
+    }
+
+    private static void assertArrowTracksBottomWithFixedOffset(MainRouteRailView railView) {
+        float destinationY = 20f;
+        float firstRailBottomY = 240f;
+        float secondRailBottomY = 320f;
+
+        Float firstArrowY = railView.routeArrowCenterYForTest(firstRailBottomY, destinationY);
+        Float secondArrowY = railView.routeArrowCenterYForTest(secondRailBottomY, destinationY);
+
+        assertNotNull(firstArrowY);
+        assertNotNull(secondArrowY);
+        assertEquals(firstRailBottomY - firstArrowY, secondRailBottomY - secondArrowY, 0.01f);
+        assertTrue(secondArrowY > firstArrowY);
     }
 
     private static MainRouteRailView railView() {
