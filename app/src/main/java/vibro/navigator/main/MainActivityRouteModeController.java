@@ -7,12 +7,9 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
-import java.util.Collections;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -24,6 +21,7 @@ final class MainActivityRouteModeController {
     private static final String STATE_ROUTING_MODE = "vibro.navigator.main.ROUTING_MODE";
     private static final String STATE_ROUND_TRIP_MODE = "vibro.navigator.main.ROUND_TRIP_MODE";
     private static final String STATE_ROUND_TRIP_DISTANCE = "vibro.navigator.main.ROUND_TRIP_DISTANCE";
+    private static final String STATE_ROUND_TRIP_DIRECTION = "vibro.navigator.main.ROUND_TRIP_DIRECTION";
     private static final float ENABLED_ALPHA = 1.0f;
     private static final float DISABLED_ALPHA = 0.38f;
 
@@ -48,7 +46,11 @@ final class MainActivityRouteModeController {
     @NonNull
     private final EditText roundTripDistanceEdit;
     @NonNull
+    private final EditText roundTripDirectionEdit;
+    @NonNull
     private final MainActivityRouteModeFocusController focusController;
+    @NonNull
+    private final MainActivityRoundTripRequestFactory roundTripRequestFactory;
     private boolean brouterInstalled;
     private boolean restoringSelection;
     @NonNull
@@ -65,7 +67,8 @@ final class MainActivityRouteModeController {
             @NonNull View routeSetupPanel,
             @NonNull View roundTripSetupPanel,
             @NonNull TextView roundTripDistanceLabel,
-            @NonNull EditText roundTripDistanceEdit
+            @NonNull EditText roundTripDistanceEdit,
+            @NonNull EditText roundTripDirectionEdit
     ) {
         this.activity = activity;
         this.routeModeSpinner = routeModeSpinner;
@@ -77,6 +80,12 @@ final class MainActivityRouteModeController {
         this.roundTripSetupPanel = roundTripSetupPanel;
         this.roundTripDistanceLabel = roundTripDistanceLabel;
         this.roundTripDistanceEdit = roundTripDistanceEdit;
+        this.roundTripDirectionEdit = roundTripDirectionEdit;
+        roundTripRequestFactory = new MainActivityRoundTripRequestFactory(
+                activity,
+                roundTripDistanceEdit,
+                roundTripDirectionEdit
+        );
         focusController = new MainActivityRouteModeFocusController(
                 activity,
                 routeModeSpinner,
@@ -110,6 +119,7 @@ final class MainActivityRouteModeController {
         });
         if (savedInstanceState != null) {
             roundTripDistanceEdit.setText(savedInstanceState.getString(STATE_ROUND_TRIP_DISTANCE, ""));
+            roundTripDirectionEdit.setText(savedInstanceState.getString(STATE_ROUND_TRIP_DIRECTION, ""));
         }
         selectMode(restoredMode(savedInstanceState));
         restoringSelection = false;
@@ -126,6 +136,7 @@ final class MainActivityRouteModeController {
         outState.putString(STATE_ROUTING_MODE, currentRoutingMode().serializedName());
         outState.putBoolean(STATE_ROUND_TRIP_MODE, isRoundTripMode());
         outState.putString(STATE_ROUND_TRIP_DISTANCE, roundTripDistanceEdit.getText().toString());
+        outState.putString(STATE_ROUND_TRIP_DIRECTION, roundTripDirectionEdit.getText().toString());
     }
 
     @NonNull
@@ -158,24 +169,8 @@ final class MainActivityRouteModeController {
                 : R.string.hint_round_trip_distance_km);
     }
 
-    @Nullable
-    Integer resolveBRouterRoundTripRadiusMeters() {
-        Integer radiusMeters = RoundTripDistanceInput.parseBRouterRadiusMeters(
-                roundTripDistanceEdit.getText(),
-                AppSettings.isImperialUnitsEnabled(activity)
-        );
-        if (radiusMeters == null) {
-            Toast.makeText(activity, R.string.msg_invalid_round_trip_distance, Toast.LENGTH_SHORT).show();
-        }
-        return radiusMeters;
-    }
-
     void startRoundTripNavigation(@NonNull ProfileSelection profileSelection) {
-        Integer radiusMeters = resolveBRouterRoundTripRadiusMeters();
-        if (radiusMeters == null) {
-            return;
-        }
-        NavigationRequest request = resolveRequest(profileSelection, radiusMeters);
+        NavigationRequest request = roundTripRequestFactory.resolveRequest(profileSelection);
         if (request == null) {
             return;
         }
@@ -236,25 +231,6 @@ final class MainActivityRouteModeController {
 
     private void selectMode(@NonNull NavigationRoutingMode mode) {
         routeModeSpinner.setSelection(MainActivityRouteModeOption.positionOf(mode), false);
-    }
-
-    @Nullable
-    private NavigationRequest resolveRequest(@NonNull ProfileSelection profileSelection, int radiusMeters) {
-        if (profileSelection.routingMode != NavigationRoutingMode.BROUTER
-                || profileSelection.profileName == null
-                || profileSelection.profileName.trim().isEmpty()) {
-            Toast.makeText(activity, R.string.msg_round_trip_requires_brouter_profile, Toast.LENGTH_SHORT).show();
-            return null;
-        }
-        return new NavigationRequest(
-                NavigationRoutingMode.ROUND_TRIP,
-                profileSelection.profileName,
-                profileSelection.profileParameters,
-                null,
-                null,
-                Collections.emptyList(),
-                radiusMeters
-        );
     }
 
     interface ModeChangeListener {

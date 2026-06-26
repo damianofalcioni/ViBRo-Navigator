@@ -37,6 +37,10 @@ final class MainActivityControls {
     @NonNull
     final EditText roundTripDistanceEdit;
     @NonNull
+    final EditText roundTripDirectionEdit;
+    @NonNull
+    final MainRoundTripDirectionCompassView roundTripDirectionCompass;
+    @NonNull
     final EditText destinationEdit;
     @NonNull
     final ImageButton destinationMapButton;
@@ -69,6 +73,8 @@ final class MainActivityControls {
             @NonNull View roundTripSetupPanel,
             @NonNull TextView roundTripDistanceLabel,
             @NonNull EditText roundTripDistanceEdit,
+            @NonNull EditText roundTripDirectionEdit,
+            @NonNull MainRoundTripDirectionCompassView roundTripDirectionCompass,
             @NonNull EditText destinationEdit,
             @NonNull ImageButton destinationMapButton,
             @NonNull View destinationRow,
@@ -91,6 +97,8 @@ final class MainActivityControls {
         this.roundTripSetupPanel = roundTripSetupPanel;
         this.roundTripDistanceLabel = roundTripDistanceLabel;
         this.roundTripDistanceEdit = roundTripDistanceEdit;
+        this.roundTripDirectionEdit = roundTripDirectionEdit;
+        this.roundTripDirectionCompass = roundTripDirectionCompass;
         this.destinationEdit = destinationEdit;
         this.destinationMapButton = destinationMapButton;
         this.destinationRow = destinationRow;
@@ -117,6 +125,8 @@ final class MainActivityControls {
                 activity.findViewById(R.id.roundTripSetupPanel),
                 activity.findViewById(R.id.roundTripDistanceLabel),
                 activity.findViewById(R.id.roundTripDistanceEdit),
+                activity.findViewById(R.id.roundTripDirectionEdit),
+                activity.findViewById(R.id.roundTripDirectionCompass),
                 activity.findViewById(R.id.destinationEdit),
                 activity.findViewById(R.id.destinationMapButton),
                 activity.findViewById(R.id.destinationRow),

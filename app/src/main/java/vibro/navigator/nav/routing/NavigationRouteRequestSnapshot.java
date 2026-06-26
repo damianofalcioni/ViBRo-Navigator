@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.nav.model.RoundTripDirection;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,6 +30,7 @@ public final class NavigationRouteRequestSnapshot {
     @NonNull
     public final List<NogoPoint> blocked;
     public final int roundTripDistanceMeters;
+    public final int roundTripDirectionDegrees;
 
     public NavigationRouteRequestSnapshot(
             int requestNumber,
@@ -50,7 +52,8 @@ public final class NavigationRouteRequestSnapshot {
                 profile,
                 profileParameters,
                 blocked,
-                0
+                0,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
         );
     }
 
@@ -66,6 +69,34 @@ public final class NavigationRouteRequestSnapshot {
             @NonNull List<NogoPoint> blocked,
             int roundTripDistanceMeters
     ) {
+        this(
+                requestNumber,
+                requestToken,
+                routingMode,
+                start,
+                intermediates,
+                destination,
+                profile,
+                profileParameters,
+                blocked,
+                roundTripDistanceMeters,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+        );
+    }
+
+    public NavigationRouteRequestSnapshot(
+            int requestNumber,
+            int requestToken,
+            @NonNull NavigationRoutingMode routingMode,
+            @NonNull LatLon start,
+            @NonNull List<LatLon> intermediates,
+            @Nullable LatLon destination,
+            @Nullable String profile,
+            @Nullable String profileParameters,
+            @NonNull List<NogoPoint> blocked,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees
+    ) {
         this.requestNumber = requestNumber;
         this.requestToken = requestToken;
         this.routingMode = routingMode;
@@ -76,6 +107,7 @@ public final class NavigationRouteRequestSnapshot {
         this.profileParameters = clean(profileParameters);
         this.blocked = immutableCopy(blocked);
         this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
+        this.roundTripDirectionDegrees = RoundTripDirection.sanitizeDirectionDegrees(roundTripDirectionDegrees);
     }
 
     public boolean isRoundTrip() {

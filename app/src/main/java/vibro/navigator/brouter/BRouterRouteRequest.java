@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.model.RoundTripDirection;
 
 public final class BRouterRouteRequest {
     @NonNull
@@ -23,6 +24,7 @@ public final class BRouterRouteRequest {
     @NonNull
     public final List<NogoPoint> blockedWaypoints;
     public final int roundTripDistanceMeters;
+    public final int roundTripDirectionDegrees;
 
     public BRouterRouteRequest(
             @NonNull LatLon start,
@@ -54,6 +56,28 @@ public final class BRouterRouteRequest {
             @Nullable List<NogoPoint> blockedWaypoints,
             int roundTripDistanceMeters
     ) {
+        this(
+                start,
+                intermediates,
+                destination,
+                profile,
+                profileParameters,
+                blockedWaypoints,
+                roundTripDistanceMeters,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+        );
+    }
+
+    private BRouterRouteRequest(
+            @NonNull LatLon start,
+            @Nullable List<LatLon> intermediates,
+            @Nullable LatLon destination,
+            @NonNull String profile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees
+    ) {
         this.start = start;
         this.intermediates = immutableCopy(intermediates);
         this.destination = destination;
@@ -61,6 +85,7 @@ public final class BRouterRouteRequest {
         this.profileParameters = clean(profileParameters);
         this.blockedWaypoints = immutableCopy(blockedWaypoints);
         this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
+        this.roundTripDirectionDegrees = RoundTripDirection.sanitizeDirectionDegrees(roundTripDirectionDegrees);
     }
 
     @NonNull
@@ -71,6 +96,19 @@ public final class BRouterRouteRequest {
             @Nullable List<NogoPoint> blockedWaypoints,
             int roundTripDistanceMeters
     ) {
+        return roundTrip(start, profile, profileParameters, blockedWaypoints, roundTripDistanceMeters,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES);
+    }
+
+    @NonNull
+    public static BRouterRouteRequest roundTrip(
+            @NonNull LatLon start,
+            @NonNull String profile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees
+    ) {
         return new BRouterRouteRequest(
                 start,
                 Collections.emptyList(),
@@ -78,7 +116,8 @@ public final class BRouterRouteRequest {
                 profile,
                 profileParameters,
                 blockedWaypoints,
-                roundTripDistanceMeters
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees
         );
     }
 

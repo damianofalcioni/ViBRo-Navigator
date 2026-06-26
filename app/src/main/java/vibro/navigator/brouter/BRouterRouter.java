@@ -55,19 +55,22 @@ public final class BRouterRouter {
             @NonNull String profile,
             @Nullable List<NogoPoint> blockedWaypoints,
             int roundTripDistanceMeters,
+            int roundTripDirectionDegrees,
             @Nullable String profileParameters
     ) throws Exception {
         AppLogger.i(TAG, "Building round trip request start=" + start.lat + "," + start.lon
                 + " profile=" + profile
                 + " profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
                 + " radiusMeters=" + roundTripDistanceMeters
+                + " directionDegrees=" + roundTripDirectionDegrees
                 + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
         String decoded = client.requestRoutePayload(BRouterRouteRequest.roundTrip(
                 start,
                 profile,
                 profileParameters,
                 blockedWaypoints,
-                roundTripDistanceMeters
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees
         ));
         if (decoded == null) {
             AppLogger.w(TAG, "BRouter returned null round trip payload");

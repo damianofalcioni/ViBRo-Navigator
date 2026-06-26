@@ -7,6 +7,7 @@ import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.model.RoundTripDirection;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import java.util.List;
@@ -62,6 +63,25 @@ public final class NavigationRouteExecutor {
                 @NonNull String profile,
                 @NonNull List<NogoPoint> blocked,
                 int roundTripDistanceMeters,
+                @NonNull String profileParameters
+        ) throws Exception {
+            return roundTripGeoJson(
+                    start,
+                    profile,
+                    blocked,
+                    roundTripDistanceMeters,
+                    RoundTripDirection.DEFAULT_DIRECTION_DEGREES,
+                    profileParameters
+            );
+        }
+
+        @NonNull
+        public default GeoJsonRoute roundTripGeoJson(
+                @NonNull LatLon start,
+                @NonNull String profile,
+                @NonNull List<NogoPoint> blocked,
+                int roundTripDistanceMeters,
+                int roundTripDirectionDegrees,
                 @NonNull String profileParameters
         ) throws Exception {
             return routeGeoJson(start, java.util.Collections.emptyList(), start, profile, blocked, profileParameters);

@@ -248,6 +248,20 @@ public class MainActivityRouteModeControllerTest {
         );
     }
 
+    @Test
+    public void configure_restoresSavedRoundTripDirectionText() {
+        Fixture savedFixture = Fixture.create();
+        savedFixture.controller.configure(null, true);
+        savedFixture.roundTripDirectionEdit.setText("123");
+        Bundle state = new Bundle();
+        savedFixture.controller.saveState(state);
+
+        Fixture fixture = Fixture.create();
+        fixture.controller.configure(state, true);
+
+        assertEquals("123", fixture.roundTripDirectionEdit.getText().toString());
+    }
+
     private static int dp(@NonNull Activity activity, int value) {
         return Math.round(value * activity.getResources().getDisplayMetrics().density);
     }
@@ -316,6 +330,8 @@ public class MainActivityRouteModeControllerTest {
         @NonNull
         final EditText roundTripDistanceEdit;
         @NonNull
+        final EditText roundTripDirectionEdit;
+        @NonNull
         final EditText destinationEdit;
         @NonNull
         final MainActivityRouteModeController controller;
@@ -331,6 +347,7 @@ public class MainActivityRouteModeControllerTest {
                 @NonNull View roundTripSetupPanel,
                 @NonNull TextView roundTripDistanceLabel,
                 @NonNull EditText roundTripDistanceEdit,
+                @NonNull EditText roundTripDirectionEdit,
                 @NonNull EditText destinationEdit
         ) {
             this.activity = activity;
@@ -343,6 +360,7 @@ public class MainActivityRouteModeControllerTest {
             this.roundTripSetupPanel = roundTripSetupPanel;
             this.roundTripDistanceLabel = roundTripDistanceLabel;
             this.roundTripDistanceEdit = roundTripDistanceEdit;
+            this.roundTripDirectionEdit = roundTripDirectionEdit;
             this.destinationEdit = destinationEdit;
             this.controller = new MainActivityRouteModeController(
                     activity,
@@ -354,7 +372,8 @@ public class MainActivityRouteModeControllerTest {
                     routeSetupPanel,
                     roundTripSetupPanel,
                     roundTripDistanceLabel,
-                    roundTripDistanceEdit
+                    roundTripDistanceEdit,
+                    roundTripDirectionEdit
             );
         }
 
@@ -370,8 +389,10 @@ public class MainActivityRouteModeControllerTest {
             EditText destinationEdit = new EditText(activity);
             LinearLayout roundTripSetupPanel = new LinearLayout(activity);
             EditText roundTripDistanceEdit = new EditText(activity);
+            EditText roundTripDirectionEdit = new EditText(activity);
             routeSetupPanel.addView(destinationEdit);
             roundTripSetupPanel.addView(roundTripDistanceEdit);
+            roundTripSetupPanel.addView(roundTripDirectionEdit);
             root.addView(routeModeSpinner);
             root.addView(profileSelectionPanel);
             root.addView(routeSetupPanel);
@@ -388,6 +409,7 @@ public class MainActivityRouteModeControllerTest {
                     roundTripSetupPanel,
                     new TextView(activity),
                     roundTripDistanceEdit,
+                    roundTripDirectionEdit,
                     destinationEdit
             );
         }

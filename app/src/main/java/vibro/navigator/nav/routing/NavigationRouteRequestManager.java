@@ -195,7 +195,8 @@ public final class NavigationRouteRequestManager {
                 request.profile,
                 request.profileParameters,
                 new ArrayList<>(blocked),
-                request.roundTripDistanceMeters
+                request.roundTripDistanceMeters,
+                request.roundTripDirectionDegrees
         );
         routeCalculationInProgress = true;
         activeRequestStartLocation = new NavigationLocation(lastFiltered);
@@ -208,7 +209,8 @@ public final class NavigationRouteRequestManager {
                 + " start=" + formatLatLon(snapshot.start)
                 + " destination=" + formatLatLon(snapshot.destination)
                 + " intermediates=" + snapshot.intermediates.size()
-                + " blocked=" + snapshot.blocked.size());
+                + " blocked=" + snapshot.blocked.size()
+                + " roundTripDirectionDegrees=" + snapshot.roundTripDirectionDegrees);
         return snapshot;
     }
 

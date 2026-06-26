@@ -57,6 +57,7 @@ final class NavigationRouteRetryPolicy {
                     requireProfile(snapshot),
                     snapshot.blocked,
                     requireRoundTripDistance(snapshot),
+                    snapshot.roundTripDirectionDegrees,
                     profileParameters(snapshot)
             );
         }

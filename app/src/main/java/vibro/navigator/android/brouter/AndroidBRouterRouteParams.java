@@ -59,7 +59,7 @@ final class AndroidBRouterRouteParams {
             return;
         }
         bundle.putInt("engineMode", 4);
-        bundle.putInt("direction", -1);
+        bundle.putInt("direction", request.roundTripDirectionDegrees);
         bundle.putInt("roundTripDistance", request.roundTripDistanceMeters);
     }
 

@@ -218,6 +218,42 @@
                 android:textColor="?attr/vibroTextPrimaryColor"
                 android:textColorHint="?attr/vibroTextHintColor" />
 
+            <TextView
+                android:id="@+id/roundTripDirectionLabel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/label_round_trip_direction"
+                android:textColor="?attr/vibroTextPrimaryColor" />
+
+            <LinearLayout
+                android:id="@+id/roundTripDirectionRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/roundTripDirectionEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="@string/hint_round_trip_direction"
+                    android:importantForAutofill="no"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:textColor="?attr/vibroTextPrimaryColor"
+                    android:textColorHint="?attr/vibroTextHintColor" />
+
+                <vibro.navigator.main.MainRoundTripDirectionCompassView
+                    android:id="@+id/roundTripDirectionCompass"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="8dp"
+                    android:contentDescription="@string/label_round_trip_direction_compass" />
+            </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

@@ -13,7 +13,10 @@ import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.android.display.AndroidDisplayRotationProvider;
+import vibro.navigator.android.sensor.AndroidGeomagneticOrientationMonitor;
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 
 // Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
@@ -29,6 +32,7 @@ public class MainActivity extends Activity {
     private MainActivityStopController stopController;
     private MainActivityMapPickerCoordinator mapPickerCoordinator;
     private MainActivityRouteModeController routeModeController;
+    private MainActivityRoundTripDirectionController roundTripDirectionController;
     private boolean appliedLightTheme;
 
     @Override
@@ -54,12 +58,21 @@ public class MainActivity extends Activity {
                 controls.routeSetupPanel,
                 controls.roundTripSetupPanel,
                 controls.roundTripDistanceLabel,
-                controls.roundTripDistanceEdit
+                controls.roundTripDistanceEdit,
+                controls.roundTripDirectionEdit
+        );
+        roundTripDirectionController = new MainActivityRoundTripDirectionController(
+                controls.roundTripDirectionEdit,
+                controls.roundTripDirectionCompass,
+                callback -> new AndroidGeomagneticOrientationMonitor(this, callback),
+                new AndroidDisplayRotationProvider(this),
+                AndroidElapsedRealtimeClock.INSTANCE
         );
         routeModeController.configure(savedInstanceState, brouterInstalled);
         routeModeController.setModeChangeListener(mode -> {
             profileCoordinator.onRouteModeChanged(mode);
             controls.routeRailView.setStraightLineMode(mode == NavigationRoutingMode.STRAIGHT_LINE);
+            roundTripDirectionController.onRouteModeChanged(mode);
         });
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
         if (!brouterInstalled && savedInstanceState == null) {
@@ -135,6 +148,17 @@ public class MainActivity extends Activity {
         if (routeModeController != null) {
             routeModeController.updateDistanceUnitText();
         }
+        if (roundTripDirectionController != null) {
+            roundTripDirectionController.onResume();
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        if (roundTripDirectionController != null) {
+            roundTripDirectionController.onPause();
+        }
+        super.onPause();
     }
 
     private void openStopMapPicker(@NonNull PoiInputController stopInputController) {
@@ -176,6 +200,9 @@ public class MainActivity extends Activity {
         }
         if (stopController != null) {
             stopController.dispose();
+        }
+        if (roundTripDirectionController != null) {
+            roundTripDirectionController.dispose();
         }
     }
 

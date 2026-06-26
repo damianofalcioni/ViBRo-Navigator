@@ -250,7 +250,8 @@ public class NavigationRouteStartApproachStateTest {
                 request.profile,
                 request.profileParameters,
                 Collections.emptyList(),
-                request.roundTripDistanceMeters
+                request.roundTripDistanceMeters,
+                request.roundTripDirectionDegrees
         );
     }
 

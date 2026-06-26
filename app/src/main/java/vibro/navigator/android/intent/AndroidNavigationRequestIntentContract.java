@@ -12,6 +12,7 @@ import java.util.List;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.nav.model.RoundTripDirection;
 
 public final class AndroidNavigationRequestIntentContract {
 
@@ -24,6 +25,8 @@ public final class AndroidNavigationRequestIntentContract {
     public static final String EXTRA_STOPS = "vibro.navigator.extra.STOPS";
     public static final String EXTRA_ROUND_TRIP_DISTANCE_METERS =
             "vibro.navigator.extra.ROUND_TRIP_DISTANCE_METERS";
+    public static final String EXTRA_ROUND_TRIP_DIRECTION_DEGREES =
+            "vibro.navigator.extra.ROUND_TRIP_DIRECTION_DEGREES";
 
     private AndroidNavigationRequestIntentContract() {
     }
@@ -42,7 +45,11 @@ public final class AndroidNavigationRequestIntentContract {
                 intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN),
                 intent.getDoubleExtra(EXTRA_DEST_LON, Double.NaN),
                 intent.getStringArrayListExtra(EXTRA_STOPS),
-                intent.getIntExtra(EXTRA_ROUND_TRIP_DISTANCE_METERS, 0)
+                intent.getIntExtra(EXTRA_ROUND_TRIP_DISTANCE_METERS, 0),
+                intent.getIntExtra(
+                        EXTRA_ROUND_TRIP_DIRECTION_DEGREES,
+                        RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+                )
         ));
     }
 
@@ -71,7 +78,8 @@ public final class AndroidNavigationRequestIntentContract {
                 extras.destinationName,
                 destination,
                 stops,
-                extras.roundTripDistanceMeters
+                extras.roundTripDistanceMeters,
+                extras.roundTripDirectionDegrees
         );
     }
 
@@ -96,6 +104,7 @@ public final class AndroidNavigationRequestIntentContract {
         }
         if (extras.roundTripDistanceMeters > 0) {
             intent.putExtra(EXTRA_ROUND_TRIP_DISTANCE_METERS, extras.roundTripDistanceMeters);
+            intent.putExtra(EXTRA_ROUND_TRIP_DIRECTION_DEGREES, extras.roundTripDirectionDegrees);
         }
     }
 
@@ -111,7 +120,8 @@ public final class AndroidNavigationRequestIntentContract {
                 destinationLat,
                 destinationLon,
                 toStopStrings(request.stops),
-                request.roundTripDistanceMeters
+                request.roundTripDistanceMeters,
+                request.roundTripDirectionDegrees
         );
     }
 
@@ -158,6 +168,7 @@ public final class AndroidNavigationRequestIntentContract {
         @NonNull
         final ArrayList<String> stops;
         final int roundTripDistanceMeters;
+        final int roundTripDirectionDegrees;
 
         Extras(
                 @Nullable String profile,
@@ -166,7 +177,17 @@ public final class AndroidNavigationRequestIntentContract {
                 double destinationLon,
                 @Nullable ArrayList<String> stops
         ) {
-            this(null, profile, null, destinationName, destinationLat, destinationLon, stops, 0);
+            this(
+                    null,
+                    profile,
+                    null,
+                    destinationName,
+                    destinationLat,
+                    destinationLon,
+                    stops,
+                    0,
+                    RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+            );
         }
 
         Extras(
@@ -178,7 +199,17 @@ public final class AndroidNavigationRequestIntentContract {
                 double destinationLon,
                 @Nullable ArrayList<String> stops
         ) {
-            this(routingMode, profile, profileParameters, destinationName, destinationLat, destinationLon, stops, 0);
+            this(
+                    routingMode,
+                    profile,
+                    profileParameters,
+                    destinationName,
+                    destinationLat,
+                    destinationLon,
+                    stops,
+                    0,
+                    RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+            );
         }
 
         Extras(
@@ -191,6 +222,30 @@ public final class AndroidNavigationRequestIntentContract {
                 @Nullable ArrayList<String> stops,
                 int roundTripDistanceMeters
         ) {
+            this(
+                    routingMode,
+                    profile,
+                    profileParameters,
+                    destinationName,
+                    destinationLat,
+                    destinationLon,
+                    stops,
+                    roundTripDistanceMeters,
+                    RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+            );
+        }
+
+        Extras(
+                @Nullable String routingMode,
+                @Nullable String profile,
+                @Nullable String profileParameters,
+                @Nullable String destinationName,
+                double destinationLat,
+                double destinationLon,
+                @Nullable ArrayList<String> stops,
+                int roundTripDistanceMeters,
+                int roundTripDirectionDegrees
+        ) {
             this.routingMode = NavigationRoutingMode.fromSerializedName(routingMode).serializedName();
             this.profile = profile;
             this.profileParameters = clean(profileParameters);
@@ -199,6 +254,7 @@ public final class AndroidNavigationRequestIntentContract {
             this.destinationLon = destinationLon;
             this.stops = stops == null ? new ArrayList<>() : new ArrayList<>(stops);
             this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
+            this.roundTripDirectionDegrees = RoundTripDirection.sanitizeDirectionDegrees(roundTripDirectionDegrees);
         }
 
         @Nullable

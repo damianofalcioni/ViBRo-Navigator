@@ -80,8 +80,10 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 - If BRouter is not installed, `Route mode` and `Round Trip mode` must remain visible in the navigation-mode spinner but be disabled, while `Straight Line mode` remains selectable
 - In `Route` mode, the main UI must show the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, plus button, and start navigation button
 - In `Round trip` mode, the main UI must hide the destination input, destination map picker, intermediate stop inputs, red route-direction rail, saved-route controls, and plus button
-- In `Round trip` mode, the main UI must show a single average roundtrip-distance field and the start navigation button
+- In `Round trip` mode, the main UI must show an average roundtrip-distance field, a roundtrip-direction field, a small live compass next to that direction field, and the start navigation button
 - The average roundtrip-distance field must accept kilometers when metric units are active, and miles when the imperial-units setting is active
+- The roundtrip-direction field must accept compass bearing degrees from `0` through `359`, and while Round Trip mode is visible it must be filled live from the app compass orientation
+- The small roundtrip-direction compass must rotate live with the compass orientation and keep a visible green or red outer status ring based on the current heading accuracy
 - Round trip mode must use the selected BRouter profile and must not be startable without a selected BRouter profile
 - In `Straight Line mode`, the main UI must show the same destination, stop, saved-route, and start controls as Route mode, but hide the BRouter profile selector and profile-settings button because BRouter is not used
 
@@ -188,7 +190,7 @@ Pressing the button must:
 - Access the current user location
 - For BRouter profiles, use the installed BRouter app intent/service integration to calculate a path from the current location to the destination
 - For Straight Line mode, skip BRouter route calculation and navigate directly toward the next destination point
-- In round trip mode, use the installed BRouter app intent/service integration to calculate a circular route from the current location using the selected BRouter profile; the user enters an intended average roundtrip distance and the app converts that distance to a circle radius for BRouter
+- In round trip mode, use the installed BRouter app intent/service integration to calculate a circular route from the current location using the selected BRouter profile; the user enters an intended average roundtrip distance and the app converts that distance to a circle radius for BRouter, while the roundtrip direction sent to BRouter comes from the direction field
 - Include any intermediate stops in BRouter route calculations, and in straight-line mode treat them as ordered direct legs toward the final destination
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 - The first BRouter route calculation must only use a startup location fix that is recent and has location accuracy of 25 meters or better, whether that fix came from a cached seed, one-shot current-location request, or live location update
@@ -219,7 +221,7 @@ The implementation must use BRouter integration compatible with these references
 - Route calculations must send the selected BRouter `profile` explicitly
 - The app must not force a separate `v` vehicle-mode parameter when an explicit profile is supplied
 - The selected `.brf` file is the source of routing behavior for walk, bike, or car use cases
-- Round trip route calculations must send BRouter `engineMode=4`, the current location as the only explicit route point, `roundTripDistance` as the calculated circle radius in meters, and `direction=-1`; they must omit `roundTripPoints` so BRouter uses its default helper-point count
+- Round trip route calculations must send BRouter `engineMode=4`, the current location as the only explicit route point, `roundTripDistance` as the calculated circle radius in meters, and `direction` from the roundtrip-direction field; they must omit `roundTripPoints` so BRouter uses its default helper-point count
 - The BRouter roundtrip radius must be calculated from the user-entered intended average roundtrip distance as `distance / (2 * pi)`, after converting imperial input to meters when needed
 - Round trip route calculations must still send saved non-default profile parameter overrides through `extraParams`
 - Bundled internal BRouter profiles must remain usable even when no autodiscovered external profile folder is accessible

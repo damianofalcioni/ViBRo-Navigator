@@ -564,9 +564,14 @@ public class NavigationRouteExecutorTest {
     @Test
     public void requestRouteDispatchesRoundTripSnapshotToRoundTripCalculator() throws Exception {
         AtomicReference<Integer> receivedDistanceMeters = new AtomicReference<>();
+        AtomicReference<Integer> receivedDirectionDegrees = new AtomicReference<>();
         AtomicReference<String> receivedProfileParameters = new AtomicReference<>();
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                new RoundTripCapturingCalculator(receivedDistanceMeters, receivedProfileParameters),
+                new RoundTripCapturingCalculator(
+                        receivedDistanceMeters,
+                        receivedDirectionDegrees,
+                        receivedProfileParameters
+                ),
                 Executors.newSingleThreadExecutor(),
                 Runnable::run
         );
@@ -600,6 +605,7 @@ public class NavigationRouteExecutorTest {
             assertTrue(latch.await(2, TimeUnit.SECONDS));
             assertNull(failure.get());
             assertEquals(Integer.valueOf(15_000), receivedDistanceMeters.get());
+            assertEquals(Integer.valueOf(123), receivedDirectionDegrees.get());
             assertEquals(PROFILE_PARAMETERS, receivedProfileParameters.get());
         } finally {
             executor.shutdown();
@@ -672,7 +678,8 @@ public class NavigationRouteExecutorTest {
                 "trekking",
                 profileParameters,
                 Collections.emptyList(),
-                distanceMeters
+                distanceMeters,
+                123
         );
     }
 
@@ -748,13 +755,16 @@ public class NavigationRouteExecutorTest {
     private static final class RoundTripCapturingCalculator
             implements NavigationRouteExecutor.RouteCalculator {
         private final AtomicReference<Integer> receivedDistanceMeters;
+        private final AtomicReference<Integer> receivedDirectionDegrees;
         private final AtomicReference<String> receivedProfileParameters;
 
         private RoundTripCapturingCalculator(
                 AtomicReference<Integer> receivedDistanceMeters,
+                AtomicReference<Integer> receivedDirectionDegrees,
                 AtomicReference<String> receivedProfileParameters
         ) {
             this.receivedDistanceMeters = receivedDistanceMeters;
+            this.receivedDirectionDegrees = receivedDirectionDegrees;
             this.receivedProfileParameters = receivedProfileParameters;
         }
 
@@ -780,9 +790,11 @@ public class NavigationRouteExecutorTest {
                 String profile,
                 java.util.List<NogoPoint> blocked,
                 int roundTripDistanceMeters,
+                int roundTripDirectionDegrees,
                 String profileParameters
         ) {
             receivedDistanceMeters.set(roundTripDistanceMeters);
+            receivedDirectionDegrees.set(roundTripDirectionDegrees);
             receivedProfileParameters.set(profileParameters);
             return new GeoJsonRoute(
                     Arrays.asList(start, new LatLon(start.lat, start.lon + 0.001), start),

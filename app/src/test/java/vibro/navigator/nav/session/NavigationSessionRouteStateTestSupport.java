@@ -46,7 +46,8 @@ abstract class NavigationSessionRouteStateTestSupport {
                 request.profile,
                 request.profileParameters,
                 Collections.emptyList(),
-                request.roundTripDistanceMeters
+                request.roundTripDistanceMeters,
+                request.roundTripDirectionDegrees
         );
     }
 

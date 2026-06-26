@@ -23,6 +23,7 @@ public final class NavigationRequest {
     @NonNull
     public final List<LatLon> stops;
     public final int roundTripDistanceMeters;
+    public final int roundTripDirectionDegrees;
 
     public NavigationRequest(
             @Nullable String profile,
@@ -63,6 +64,28 @@ public final class NavigationRequest {
             @NonNull List<LatLon> stops,
             int roundTripDistanceMeters
     ) {
+        this(
+                routingMode,
+                profile,
+                profileParameters,
+                destinationName,
+                destination,
+                stops,
+                roundTripDistanceMeters,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+        );
+    }
+
+    public NavigationRequest(
+            @NonNull NavigationRoutingMode routingMode,
+            @Nullable String profile,
+            @Nullable String profileParameters,
+            @Nullable String destinationName,
+            @Nullable LatLon destination,
+            @NonNull List<LatLon> stops,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees
+    ) {
         this.routingMode = routingMode;
         this.profile = profile;
         this.profileParameters = clean(profileParameters);
@@ -70,6 +93,7 @@ public final class NavigationRequest {
         this.destination = destination;
         this.stops = Collections.unmodifiableList(new ArrayList<>(stops));
         this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
+        this.roundTripDirectionDegrees = RoundTripDirection.sanitizeDirectionDegrees(roundTripDirectionDegrees);
     }
 
     public boolean isComplete() {
@@ -95,7 +119,8 @@ public final class NavigationRequest {
                 + ", destName=" + safe(destinationName)
                 + ", destination=" + formatLatLon(destination)
                 + ", stops=" + stops.size()
-                + ", roundTripDistanceMeters=" + roundTripDistanceMeters;
+                + ", roundTripDistanceMeters=" + roundTripDistanceMeters
+                + ", roundTripDirectionDegrees=" + roundTripDirectionDegrees;
     }
 
     @NonNull

@@ -52,9 +52,18 @@ public final class NavigationBRouterRouteCalculator implements NavigationRouteEx
             @NonNull String profile,
             @NonNull List<NogoPoint> blocked,
             int roundTripDistanceMeters,
+            int roundTripDirectionDegrees,
             @NonNull String profileParameters
     ) throws Exception {
-        return router.roundTripGeoJson(client, start, profile, blocked, roundTripDistanceMeters, profileParameters);
+        return router.roundTripGeoJson(
+                client,
+                start,
+                profile,
+                blocked,
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees,
+                profileParameters
+        );
     }
 
     @Override

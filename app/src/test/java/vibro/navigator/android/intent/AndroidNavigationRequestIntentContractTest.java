@@ -151,7 +151,8 @@ public class AndroidNavigationRequestIntentContractTest {
                 null,
                 null,
                 new ArrayList<>(),
-                15_000
+                15_000,
+                123
         );
 
         AndroidNavigationRequestIntentContract.Extras extras =
@@ -165,5 +166,7 @@ public class AndroidNavigationRequestIntentContractTest {
         assertNull(restored.destination);
         assertEquals(15_000, extras.roundTripDistanceMeters);
         assertEquals(15_000, restored.roundTripDistanceMeters);
+        assertEquals(123, extras.roundTripDirectionDegrees);
+        assertEquals(123, restored.roundTripDirectionDegrees);
     }
 }

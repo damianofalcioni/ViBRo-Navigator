@@ -359,7 +359,8 @@ public class NavigationRouteRequestManagerTest {
                 null,
                 null,
                 Collections.emptyList(),
-                15_000
+                15_000,
+                123
         );
 
         NavigationRouteRequestSnapshot snapshot = manager.prepare(
@@ -374,6 +375,7 @@ public class NavigationRouteRequestManagerTest {
         assertNotNull(snapshot);
         assertEquals(NavigationRoutingMode.ROUND_TRIP, snapshot.routingMode);
         assertEquals(15_000, snapshot.roundTripDistanceMeters);
+        assertEquals(123, snapshot.roundTripDirectionDegrees);
         assertEquals(PROFILE_PARAMETERS, snapshot.profileParameters);
         assertNull(snapshot.destination);
     }

@@ -80,7 +80,8 @@ public class AndroidBRouterRouteClientTest {
                 PROFILE_TREKKING,
                 PROFILE_PARAMETERS,
                 Collections.singletonList(new NogoPoint(48.3, 16.3, 25.0)),
-                15_000
+                15_000,
+                123
         );
 
         Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
@@ -89,7 +90,7 @@ public class AndroidBRouterRouteClientTest {
         assertFalse(params.containsKey("lons"));
         assertEquals("16.0,48.0", params.getString("lonlats"));
         assertEquals(4, params.getInt("engineMode"));
-        assertEquals(-1, params.getInt("direction"));
+        assertEquals(123, params.getInt("direction"));
         assertEquals(15_000, params.getInt("roundTripDistance"));
         assertFalse(params.containsKey("roundTripPoints"));
         assertEquals(PROFILE_PARAMETERS, params.getString("extraParams"));
