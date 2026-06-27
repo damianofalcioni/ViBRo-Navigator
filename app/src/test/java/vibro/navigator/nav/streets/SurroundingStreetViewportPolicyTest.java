@@ -1,6 +1,5 @@
 package vibro.navigator.nav.streets;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -14,20 +13,13 @@ public class SurroundingStreetViewportPolicyTest {
     private final SurroundingStreetViewportPolicy policy = new SurroundingStreetViewportPolicy();
 
     @Test
-    public void shouldShow_onlyForZoomedMovingScaleViewport() {
+    public void shouldShow_onlyForValidMovingScaleViewport() {
         assertFalse(policy.shouldShow(null));
         assertFalse(policy.shouldShow(compassState(false, 90f)));
-        assertFalse(policy.shouldShow(compassState(true, 520f)));
+        assertFalse(policy.shouldShow(compassState(true, 0f)));
+        assertFalse(policy.shouldShow(compassState(true, Float.POSITIVE_INFINITY)));
         assertTrue(policy.shouldShow(compassState(true, 90f)));
-    }
-
-    @Test
-    public void extractionRadiusAddsSmallVisibleEdgePadding() {
-        assertEquals(
-                114.0d,
-                policy.extractionRadiusMeters(compassState(true, 90f)),
-                0.0d
-        );
+        assertTrue(policy.shouldShow(compassState(true, 1_200f)));
     }
 
     private static NavCompassState compassState(boolean movingScaleActive, float visibleRadiusMeters) {

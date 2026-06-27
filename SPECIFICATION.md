@@ -235,7 +235,7 @@ The implementation must use BRouter integration compatible with these references
 
 - When surrounding-street display is enabled, the app must read nearby street geometry only from BRouter's already downloaded local `segments4` `.rd5` files
 - Surrounding-street display must not download additional maps and must not add an external map-rendering or map-parsing library
-- The surrounding-street compass overlay must be shown only for a zoomed-in compass viewport, not for the full-route overview; street extraction should be bounded to the currently visible range plus a small edge margin
+- The surrounding-street compass overlay must be shown for moving-scale compass viewports with a valid positive radius, including high-speed expanded radii, but not for the full-route overview; drawing should remain clipped to the current compass viewport, while extraction should use a bounded in-memory session cache of local spatial chunks selected from the current position and route-ahead corridor
 - Surrounding streets in the compass must use the same active color as an enabled settings switch, rather than the compass orange accent color
 - `segments4` discovery must use the same version-agnostic storage probing strategy as external `profiles2` discovery, including primary and removable storage and both `Android/media/.../brouter/segments4` and legacy `Android/data/.../brouter/segments4` layouts
 - On Android versions where BRouter's legacy external `Android/data/.../segments4` files are readable only with runtime external-storage access, enabling surrounding-street display must request that storage access before persisting the setting
