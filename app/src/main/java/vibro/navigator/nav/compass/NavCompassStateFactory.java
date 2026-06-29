@@ -316,9 +316,10 @@ public final class NavCompassStateFactory {
 
     public static boolean hasReliableMovingSpeed(
             @NonNull NavigationLocation currentLocation,
+            float speedMps,
             boolean likelyStationary
     ) {
-        return CompassRadiusResolver.hasReliableMovingSpeed(currentLocation, likelyStationary);
+        return CompassRadiusResolver.hasReliableMovingSpeed(currentLocation, speedMps, likelyStationary);
     }
 
     public static float smoothVisibleRadiusMeters(

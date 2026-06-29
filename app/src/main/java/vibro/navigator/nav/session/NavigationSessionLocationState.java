@@ -91,6 +91,10 @@ public final class NavigationSessionLocationState {
         return motionModel.speedMps(location);
     }
 
+    public float displaySpeedMps(@NonNull NavigationLocation location) {
+        return motionModel.displaySpeedMps(location);
+    }
+
     @Nullable
     public Double actualBearingDegrees(@NonNull NavigationLocation location) {
         if (location.hasBearing() && speedMps(location) > MIN_RAW_BEARING_SPEED_MPS) {

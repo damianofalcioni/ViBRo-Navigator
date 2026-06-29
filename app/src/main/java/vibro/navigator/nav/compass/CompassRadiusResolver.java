@@ -29,7 +29,7 @@ public final class CompassRadiusResolver {
                 MIN_VISIBLE_RADIUS_METERS,
                 furthestDistanceMeters * 1.15
         );
-        boolean reliableMovingSpeed = hasReliableMovingSpeed(currentLocation, likelyStationary);
+        boolean reliableMovingSpeed = hasReliableMovingSpeed(currentLocation, speedMps, likelyStationary);
         boolean reusableMovingRadius = isReusableMovingRadius(previousReliableMovingRadiusMeters);
         float targetVisibleRadiusMeters = resolveTargetVisibleRadiusMeters(
                 fullRouteVisibleRadiusMeters,
@@ -67,12 +67,13 @@ public final class CompassRadiusResolver {
 
     public static boolean hasReliableMovingSpeed(
             @NonNull NavigationLocation currentLocation,
+            float speedMps,
             boolean likelyStationary
     ) {
         return !likelyStationary
                 && currentLocation.hasSpeed()
-                && Float.isFinite(currentLocation.getSpeed())
-                && currentLocation.getSpeed() > 0f;
+                && Float.isFinite(speedMps)
+                && speedMps > 0f;
     }
 
     public static float smoothVisibleRadiusMeters(

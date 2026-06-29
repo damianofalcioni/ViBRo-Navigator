@@ -449,6 +449,7 @@ The navigation UI must show the following in large text:
 - The inner circles must remain stable visual distance references for the route
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
 - When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
+- The moving compass zoom must use the same resolved trustworthy speed as the GPS status line, so raw native speed alone must not zoom the compass when stationary or noisy movement checks suppress the displayed speed
 - A single tap on the compass route view must toggle the currently displayed zoom mode between the stationary full-route overview and the moving 60-second view
 - Tap-driven zoom changes must use the same smooth radius transition used when the compass switches from stationary overview to moving 60-second view
 - That moving 60-second radius must not be capped to a smaller fixed maximum such as 600 meters
@@ -509,6 +510,7 @@ The navigation UI must show the following in large text:
 
 - The navigation UI must show a single GPS status line formatted as `<speed> ↑<elev> <bearing> • <accuracy> <bearing-accuracy> • (<sat>) #<fix-count> • <countdown>`
 - That line must show the current speed, current elevation, current horizontal accuracy, GPS bearing, GPS bearing accuracy, the current number of GNSS satellites used in the fix, and the total number of accepted location fixes acquired during the current navigation session, in that exact order
+- The displayed speed must suppress raw provider speed when recent filtered fixes show only stationary jitter
 - The current horizontal accuracy and GPS bearing-accuracy values in that line must be emphasized in orange when they are available
 - That GPS status line must stay on a single line and should reduce its text size as needed instead of wrapping onto a second line
 - When any of those values is unavailable, the UI must show `--` in that field instead of omitting it

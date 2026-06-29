@@ -16,6 +16,7 @@ public final class NavigationDisplaySnapshot {
     @Nullable
     final NavigationLocation lastFiltered;
     final float speedMps;
+    final float displaySpeedMps;
     final boolean likelyStationary;
     final float accuracyMeters;
     @Nullable
@@ -39,6 +40,7 @@ public final class NavigationDisplaySnapshot {
         textResources = builder.textResources;
         lastFiltered = builder.lastFiltered;
         speedMps = builder.speedMps;
+        displaySpeedMps = builder.displaySpeedMps;
         likelyStationary = builder.likelyStationary;
         accuracyMeters = builder.accuracyMeters;
         fixedSatelliteCount = builder.fixedSatelliteCount;
@@ -69,6 +71,7 @@ public final class NavigationDisplaySnapshot {
         @Nullable
         private NavigationLocation lastFiltered;
         private float speedMps;
+        private float displaySpeedMps;
         private boolean likelyStationary;
         private float accuracyMeters = Float.MAX_VALUE;
         @Nullable
@@ -99,8 +102,20 @@ public final class NavigationDisplaySnapshot {
                 boolean likelyStationary,
                 float accuracyMeters
         ) {
+            return location(lastFiltered, speedMps, speedMps, likelyStationary, accuracyMeters);
+        }
+
+        @NonNull
+        Builder location(
+                @Nullable NavigationLocation lastFiltered,
+                float speedMps,
+                float displaySpeedMps,
+                boolean likelyStationary,
+                float accuracyMeters
+        ) {
             this.lastFiltered = lastFiltered;
             this.speedMps = speedMps;
+            this.displaySpeedMps = displaySpeedMps;
             this.likelyStationary = likelyStationary;
             this.accuracyMeters = accuracyMeters;
             return this;

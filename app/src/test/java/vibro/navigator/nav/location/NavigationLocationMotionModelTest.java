@@ -39,6 +39,59 @@ public class NavigationLocationMotionModelTest {
         assertEquals(0.0, bearing, 1.0);
     }
 
+    @Test
+    public void speedMps_returnsZeroWhenFastReportedSpeedContradictsStationaryJitter() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000, 21f);
+        NavigationLocation second = location(2_000L, 2_000L, 48.2082003, 16.3738002, 19f);
+        NavigationLocation third = location(3_000L, 3_000L, 48.2082001, 16.3738001, 22f);
+
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(second);
+        model.recordFilteredLocation(third);
+
+        assertTrue(model.isLikelyStationary());
+        assertEquals(0.0f, model.speedMps(third), 0.0f);
+    }
+
+    @Test
+    public void displaySpeedMps_returnsZeroForLowReportedSpeedWithoutAccuracyAwareMovementEvidence() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000);
+        NavigationLocation second = location(4_000L, 4_000L, 48.2082270, 16.3738000, 1.2f);
+        first.setAccuracy(8f);
+        second.setAccuracy(8f);
+
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(second);
+
+        assertEquals(0.0f, model.displaySpeedMps(second), 0.0f);
+    }
+
+    @Test
+    public void displaySpeedMps_usesLowReportedSpeedWithAccuracyAwareMovementEvidence() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000);
+        NavigationLocation second = location(4_000L, 4_000L, 48.2082540, 16.3738000, 1.2f);
+        first.setAccuracy(5f);
+        second.setAccuracy(5f);
+
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(second);
+
+        assertEquals(1.2f, model.displaySpeedMps(second), 0.0f);
+    }
+
+    @Test
+    public void displaySpeedMps_returnsZeroForFirstReportedSpeedSample() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation location = location(1_000L, 1_000L, 48.2082000, 16.3738000, 20f);
+
+        model.recordFilteredLocation(location);
+
+        assertEquals(0.0f, model.displaySpeedMps(location), 0.0f);
+    }
+
     private static NavigationLocation location(
             long wallTimeMs,
             long elapsedRealtimeMs,
@@ -50,6 +103,18 @@ public class NavigationLocationMotionModelTest {
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setAccuracy(5f);
+        return location;
+    }
+
+    private static NavigationLocation location(
+            long wallTimeMs,
+            long elapsedRealtimeMs,
+            double lat,
+            double lon,
+            float speedMps
+    ) {
+        NavigationLocation location = location(wallTimeMs, elapsedRealtimeMs, lat, lon);
+        location.setSpeed(speedMps);
         return location;
     }
 }

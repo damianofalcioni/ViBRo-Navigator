@@ -44,10 +44,13 @@ public final class NavigationLocationMotionModel {
         if (lastFiltered == null) {
             return false;
         }
-        if (speedMps(lastFiltered) > MAX_STATIONARY_REPORTED_SPEED_MPS) {
+        pruneRecentFilteredLocations(lastFiltered.getElapsedRealtimeOrTimeMs());
+        if (hasStationaryRecentMotionEvidence()) {
+            return true;
+        }
+        if (reportedOrFallbackSpeedMps(lastFiltered) > MAX_STATIONARY_REPORTED_SPEED_MPS) {
             return false;
         }
-        pruneRecentFilteredLocations(lastFiltered.getElapsedRealtimeOrTimeMs());
         if (recentFilteredLocations.size() < 2) {
             return true;
         }
@@ -55,6 +58,24 @@ public final class NavigationLocationMotionModel {
     }
 
     public float speedMps(@NonNull NavigationLocation location) {
+        pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
+        if (hasStationaryRecentMotionEvidence()) {
+            return 0f;
+        }
+        return reportedOrFallbackSpeedMps(location);
+    }
+
+    public float displaySpeedMps(@NonNull NavigationLocation location) {
+        pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
+        return NavigationDisplaySpeedResolver.resolve(
+                location,
+                previousFiltered,
+                hasStationaryRecentMotionEvidence(),
+                reportedOrFallbackSpeedMps(location)
+        );
+    }
+
+    private float reportedOrFallbackSpeedMps(@NonNull NavigationLocation location) {
         if (location.hasSpeed()) {
             float reportedSpeedMps = location.getSpeed();
             return Float.isFinite(reportedSpeedMps) && reportedSpeedMps > 0f ? reportedSpeedMps : 0f;
@@ -102,6 +123,11 @@ public final class NavigationLocationMotionModel {
         return null;
     }
 
+    private boolean hasStationaryRecentMotionEvidence() {
+        return recentFilteredLocations.size() >= 2
+                && totalRecentDistanceMeters() <= MAX_STATIONARY_RECENT_DISTANCE_METERS;
+    }
+
     private double totalRecentDistanceMeters() {
         NavigationLocation previous = null;
         double cumulativeDistanceMeters = 0.0;
@@ -123,7 +149,7 @@ public final class NavigationLocationMotionModel {
         long cutoffTimeMs = newestTimeMs - RECENT_MOTION_WINDOW_MS;
         while (recentFilteredLocations.size() > 1
                 && recentFilteredLocations.peekFirst() != null
-                && recentFilteredLocations.peekFirst().getTime() < cutoffTimeMs) {
+                && recentFilteredLocations.peekFirst().getElapsedRealtimeOrTimeMs() < cutoffTimeMs) {
             recentFilteredLocations.removeFirst();
         }
     }

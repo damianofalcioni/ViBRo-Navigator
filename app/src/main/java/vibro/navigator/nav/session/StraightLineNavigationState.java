@@ -229,7 +229,7 @@ final class StraightLineNavigationState {
                 : StraightLineNavigationProgress.remainingTargetsAfterNext(request, nextStopIndex);
         return StraightLineNavCompassStateFactory.buildTargetCompassState(
                 snapshot.lastFiltered,
-                snapshot.speedMps,
+                snapshot.displaySpeedMps,
                 snapshot.likelyStationary,
                 snapshot.accuracyMeters,
                 target,
@@ -270,7 +270,7 @@ final class StraightLineNavigationState {
     @NonNull
     private static String buildGpsStatusLine(@NonNull NavigationDisplaySnapshot snapshot) {
         return NavCompassStateFactory.buildGpsStatusLine(
-                snapshot.speedMps,
+                snapshot.displaySpeedMps,
                 snapshot.lastFiltered,
                 snapshot.accuracyMeters,
                 snapshot.fixedSatelliteCount,

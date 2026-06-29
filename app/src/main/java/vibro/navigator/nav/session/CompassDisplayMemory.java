@@ -113,6 +113,7 @@ final class CompassDisplayMemory {
             @NonNull NavState state,
             long nowMs,
             @Nullable NavigationLocation lastFiltered,
+            float speedMps,
             boolean likelyStationary
     ) {
         if (state.routeStatus.compassState == null) {
@@ -120,7 +121,8 @@ final class CompassDisplayMemory {
         }
         lastVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
         lastRadiusUpdateTimeMs = nowMs;
-        if (lastFiltered != null && NavCompassStateFactory.hasReliableMovingSpeed(lastFiltered, likelyStationary)) {
+        if (lastFiltered != null
+                && NavCompassStateFactory.hasReliableMovingSpeed(lastFiltered, speedMps, likelyStationary)) {
             lastReliableMovingVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
         }
     }

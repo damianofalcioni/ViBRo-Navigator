@@ -83,6 +83,7 @@ final class NavigationSessionStateBuilder {
     ) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
+        float displaySpeedMps = lastFiltered != null ? locationState.displaySpeedMps(lastFiltered) : 0f;
         boolean likelyStationary = locationState.isLikelyStationary();
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
@@ -94,7 +95,7 @@ final class NavigationSessionStateBuilder {
                 displayHeadingAccuracyDegrees
         );
         NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(textResources)
-                .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
+                .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
                 .gps(fixedSatelliteCount, acquiredFixCount)
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
                 .orientationCue(orientationCue)

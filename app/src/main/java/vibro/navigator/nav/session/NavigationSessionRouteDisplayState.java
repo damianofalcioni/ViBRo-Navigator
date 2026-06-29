@@ -122,7 +122,7 @@ public final class NavigationSessionRouteDisplayState {
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters)
                 .motion(
-                        snapshot.speedMps,
+                        snapshot.displaySpeedMps,
                         snapshot.likelyStationary,
                         compassAccuracyMeters
                 )
@@ -143,7 +143,7 @@ public final class NavigationSessionRouteDisplayState {
                 .builder(snapshot.textResources, route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters, turnState.getNextHintIdx(), match.segmentIndex)
                 .motion(
-                        snapshot.speedMps,
+                        snapshot.displaySpeedMps,
                         etaSpeedMps,
                         snapshot.likelyStationary,
                         snapshot.accuracyMeters,
@@ -174,6 +174,7 @@ public final class NavigationSessionRouteDisplayState {
                     state,
                     snapshot.nowMs,
                     snapshot.lastFiltered,
+                    snapshot.displaySpeedMps,
                     snapshot.likelyStationary
             );
         }
@@ -192,7 +193,7 @@ public final class NavigationSessionRouteDisplayState {
             );
         }
         return NavStateResourceComposer.buildGpsStatusLine(
-                snapshot.speedMps,
+                snapshot.displaySpeedMps,
                 snapshot.lastFiltered,
                 snapshot.accuracyMeters,
                 snapshot.fixedSatelliteCount,
