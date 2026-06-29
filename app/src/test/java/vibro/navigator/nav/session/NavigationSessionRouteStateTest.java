@@ -48,7 +48,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
 
         assertFalse(evaluation.shouldRecalculateRoute());
         assertFalse(evaluation.isStableOnRouteSample());
-        assertEquals(3_000L, evaluation.getSuggestedUpdateIntervalMs());
+        assertEquals(1_000L, evaluation.getSuggestedUpdateIntervalMs());
         assertTrue(evaluation.turnEvents.isEmpty());
     }
 

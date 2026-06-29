@@ -9,6 +9,7 @@ import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
@@ -71,6 +72,10 @@ final class NavigationServiceRuntime {
     }
 
     void requestLocationUpdates(long intervalMs) {
+        if (intervalMs == NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS) {
+            tracking.locationController.requestStartupLocationUpdates();
+            return;
+        }
         tracking.locationController.requestLocationUpdates(intervalMs);
     }
 

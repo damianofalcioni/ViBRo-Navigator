@@ -168,6 +168,18 @@ public class NavigationLocationControllerTest {
     }
 
     @Test
+    public void requestStartupLocationUpdates_usesFastStartupFixInterval() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.requestStartupLocationUpdates();
+
+        assertEquals(NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS, provider.requestedMinTimeMs);
+        assertEquals(6_000L, controller.getNextEvaluationDeadlineElapsedMs());
+    }
+
+    @Test
     public void cancelCurrentLocationSeeds_cancelsLegacyAndFusedSeeds() {
         MutableClock clock = new MutableClock(5_000L);
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);

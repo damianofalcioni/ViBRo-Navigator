@@ -381,6 +381,58 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
     }
 
     @Test
+    public void buildState_withoutActiveRouteAndInaccurateFixWaitsForLocation() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationLocation currentLocation = location(0.0, 0.0, 1_000L);
+        currentLocation.setAccuracy(56f);
+
+        NavState navState = state.buildState(
+                context,
+                currentLocation,
+                5f,
+                false,
+                56f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null,
+                null
+        );
+
+        assertEquals(context.getString(R.string.nav_waiting_for_location_title), navState.routeStatus.guidance.nextLine);
+        assertEquals(context.getString(R.string.nav_waiting_for_location_body), navState.routeStatus.progress.detailBlock);
+    }
+
+    @Test
+    public void buildState_withoutActiveRouteAndAccurateFixShowsCalculatingRoute() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        NavState navState = state.buildState(
+                context,
+                location(0.0, 0.0, 1_000L),
+                5f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null,
+                null
+        );
+
+        assertEquals(context.getString(R.string.nav_calculating_route_title), navState.routeStatus.guidance.nextLine);
+        assertEquals(context.getString(R.string.nav_calculating_route_body), navState.routeStatus.progress.detailBlock);
+    }
+
+    @Test
     public void buildState_keepsIntermediateStopProgressSeparateFromDetailNoticeArea() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

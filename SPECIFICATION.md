@@ -194,6 +194,9 @@ Pressing the button must:
 - Include any intermediate stops in BRouter route calculations, and in straight-line mode treat them as ordered direct legs toward the final destination
 - A cached last-known location may only be used to accelerate startup when it is recent and accurate enough to represent the current user location; otherwise the first route calculation must wait for a one-shot current fix or a live location update
 - The first BRouter route calculation must only use a startup location fix that is recent and has location accuracy of 25 meters or better, whether that fix came from a cached seed, one-shot current-location request, or live location update
+- Until the first BRouter route calculation has a route-start-quality fix, startup live-location updates should be requested about once per second so indoor or cold-start acquisition settles as quickly as practical
+- While the first BRouter route calculation is still waiting for an accurate startup location, the navigation UI must continue to present the state as waiting for location rather than as an active BRouter route calculation
+- Startup GPS status must suppress speed values derived only from inaccurate or same-timestamp provider jumps; when movement evidence is weak, show stationary/unknown speed instead of high jitter-derived speeds
 - When a fresher startup fix arrives while the first no-active-route calculation is still running, the app should only queue a replacement BRouter request if the new fix materially changes the route start or meaningfully improves start accuracy; small startup jitter around the cached seed should not force a duplicate route calculation
 
 #### 4.1 Missing BRouter handling

@@ -12,6 +12,7 @@ import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
@@ -21,7 +22,8 @@ import vibro.navigator.logging.AppLogger;
 final class NavigationRouteEvaluator {
     private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
-    private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS = 3_000L;
+    private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS =
+            NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS;
     private static final long REACQUISITION_FOLLOW_UP_INTERVAL_MS = 3_000L;
     private static final long ROUTE_START_APPROACH_INTERVAL_MS = 3_000L;
 

@@ -13,6 +13,8 @@ final class NavigationDisplaySpeedResolver {
     private static final double LOW_SPEED_CONFIRMATION_ACCURACY_FACTOR = 0.4;
     private static final double MAX_LOW_SPEED_CONFIRMATION_DISTANCE_METERS = 8.0;
     private static final float MAX_TRUSTED_LOW_SPEED_BEARING_ACCURACY_DEGREES = 25f;
+    private static final long MIN_FALLBACK_DISPLAY_SPEED_ELAPSED_MS = 2_000L;
+    private static final float MAX_FALLBACK_DISPLAY_SPEED_ACCURACY_METERS = 25f;
 
     private NavigationDisplaySpeedResolver() {
     }
@@ -27,7 +29,7 @@ final class NavigationDisplaySpeedResolver {
             return 0f;
         }
         if (!location.hasSpeed()) {
-            return speedMps;
+            return resolveFallbackSpeed(location, previousFiltered, speedMps);
         }
         return resolveReportedSpeed(location, previousFiltered, speedMps);
     }
@@ -51,6 +53,44 @@ final class NavigationDisplaySpeedResolver {
             return 0f;
         }
         return speedMps;
+    }
+
+    private static float resolveFallbackSpeed(
+            @NonNull NavigationLocation location,
+            @Nullable NavigationLocation previousFiltered,
+            float speedMps
+    ) {
+        if (!hasFallbackMovementEvidence(previousFiltered, location)) {
+            return 0f;
+        }
+        return speedMps;
+    }
+
+    private static boolean hasFallbackMovementEvidence(
+            @Nullable NavigationLocation previousFiltered,
+            @NonNull NavigationLocation location
+    ) {
+        return hasBasicMovementEvidence(previousFiltered, location)
+                && hasEnoughFallbackElapsedTime(previousFiltered, location)
+                && hasAccurateFallbackFixes(previousFiltered, location);
+    }
+
+    private static boolean hasEnoughFallbackElapsedTime(
+            @Nullable NavigationLocation previousFiltered,
+            @NonNull NavigationLocation location
+    ) {
+        return previousFiltered != null
+                && location.getElapsedRealtimeOrTimeMs() - previousFiltered.getElapsedRealtimeOrTimeMs()
+                >= MIN_FALLBACK_DISPLAY_SPEED_ELAPSED_MS;
+    }
+
+    private static boolean hasAccurateFallbackFixes(
+            @Nullable NavigationLocation previousFiltered,
+            @NonNull NavigationLocation location
+    ) {
+        return previousFiltered != null
+                && displayableAccuracyMeters(previousFiltered) <= MAX_FALLBACK_DISPLAY_SPEED_ACCURACY_METERS
+                && displayableAccuracyMeters(location) <= MAX_FALLBACK_DISPLAY_SPEED_ACCURACY_METERS;
     }
 
     private static boolean hasBasicMovementEvidence(

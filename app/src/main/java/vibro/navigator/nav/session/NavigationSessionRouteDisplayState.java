@@ -243,20 +243,7 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationDisplaySnapshot snapshot,
             @NonNull String gpsStatusLine
     ) {
-        if (snapshot.lastRouteFailure != null) {
-            return NavStateComposer.withGpsStatus(NavStateResourceComposer.routeUnavailable(
-                    snapshot.textResources,
-                    NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, false),
-                    snapshot.nextEvaluationDeadlineElapsedMs
-            ), gpsStatusLine);
-        }
-        return NavStateComposer.withGpsStatus(
-                NavStateResourceComposer.calculatingRoute(
-                        snapshot.textResources,
-                        snapshot.nextEvaluationDeadlineElapsedMs
-                ),
-                gpsStatusLine
-        );
+        return NavigationNoRouteDisplayState.build(snapshot, gpsStatusLine);
     }
 
     @NonNull

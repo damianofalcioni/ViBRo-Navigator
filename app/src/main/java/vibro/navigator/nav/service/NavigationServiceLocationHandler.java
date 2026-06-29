@@ -158,8 +158,19 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             controllers.foregroundController.sendOffRouteNotification(result.getRerouteNotice());
         }
         if (result.getSuggestedUpdateIntervalMs() > 0L) {
-            controllers.locationController.requestLocationUpdates(result.getSuggestedUpdateIntervalMs());
+            requestSuggestedLocationUpdates(result.getSuggestedUpdateIntervalMs(), controllers.locationController);
         }
+    }
+
+    private static void requestSuggestedLocationUpdates(
+            long suggestedUpdateIntervalMs,
+            @NonNull NavigationLocationController locationController
+    ) {
+        if (suggestedUpdateIntervalMs == NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS) {
+            locationController.requestStartupLocationUpdates();
+            return;
+        }
+        locationController.requestLocationUpdates(suggestedUpdateIntervalMs);
     }
 
     @NonNull

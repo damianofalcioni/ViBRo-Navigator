@@ -92,6 +92,45 @@ public class NavigationLocationMotionModelTest {
         assertEquals(0.0f, model.displaySpeedMps(location), 0.0f);
     }
 
+    @Test
+    public void displaySpeedMps_returnsZeroForFallbackSpeedFromInaccurateProviderJump() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000);
+        NavigationLocation second = location(6_000L, 6_000L, 48.2099000, 16.3738000);
+        first.setAccuracy(60f);
+        second.setAccuracy(55f);
+
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(second);
+
+        assertEquals(0.0f, model.displaySpeedMps(second), 0.0f);
+    }
+
+    @Test
+    public void displaySpeedMps_returnsZeroForFallbackSpeedWithoutEnoughElapsedTime() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000);
+        NavigationLocation second = location(1_000L, 1_000L, 48.2082400, 16.3738000);
+
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(second);
+
+        assertEquals(0.0f, model.displaySpeedMps(second), 0.0f);
+    }
+
+    @Test
+    public void displaySpeedMps_usesFallbackSpeedForAccurateConfirmedMovement() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000);
+        NavigationLocation second = location(4_000L, 4_000L, 48.2083080, 16.3738000);
+
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(second);
+
+        assertTrue(model.displaySpeedMps(second) > 3.5f);
+        assertTrue(model.displaySpeedMps(second) < 4.5f);
+    }
+
     private static NavigationLocation location(
             long wallTimeMs,
             long elapsedRealtimeMs,

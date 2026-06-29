@@ -11,6 +11,7 @@ public final class NavigationLocationController {
 
     private static final String TAG = "NavLocation";
     public static final long DEFAULT_UPDATE_INTERVAL_MS = 3_000L;
+    public static final long STARTUP_UPDATE_INTERVAL_MS = 1_000L;
 
     private final NavigationLocationProvider providerAccess;
     private final NavigationGnssTracker gnssStatusTracker;
@@ -65,7 +66,15 @@ public final class NavigationLocationController {
     }
 
     public void requestLocationUpdates(long minTimeMs) {
-        long requestedMinTimeMs = Math.max(DEFAULT_UPDATE_INTERVAL_MS, minTimeMs);
+        requestLocationUpdates(minTimeMs, DEFAULT_UPDATE_INTERVAL_MS);
+    }
+
+    public void requestStartupLocationUpdates() {
+        requestLocationUpdates(STARTUP_UPDATE_INTERVAL_MS, STARTUP_UPDATE_INTERVAL_MS);
+    }
+
+    private void requestLocationUpdates(long minTimeMs, long minimumIntervalMs) {
+        long requestedMinTimeMs = Math.max(minimumIntervalMs, minTimeMs);
         NavigationLocationUpdateRequester.Result result = updateRequester.request(
                 requestedMinTimeMs,
                 fusedLocationUsePolicy.shouldUseFusedLocation(),

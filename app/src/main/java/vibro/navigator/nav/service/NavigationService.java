@@ -25,6 +25,8 @@ public class NavigationService extends Service {
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;
     private static final long DEFAULT_LOCATION_UPDATE_INTERVAL_MS =
             NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS;
+    private static final long STARTUP_LOCATION_UPDATE_INTERVAL_MS =
+            NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS;
 
     public interface Listener {
         void onState(@NonNull NavState state);
@@ -158,7 +160,7 @@ public class NavigationService extends Service {
             return;
         }
 
-        runtime().requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
+        runtime().requestLocationUpdates(STARTUP_LOCATION_UPDATE_INTERVAL_MS);
         requestCurrentLocationSeedsIfScreenInteractive();
         runtime().startOrientation();
         emitState();

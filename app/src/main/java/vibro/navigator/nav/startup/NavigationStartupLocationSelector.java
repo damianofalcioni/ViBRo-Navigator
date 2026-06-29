@@ -11,7 +11,7 @@ public final class NavigationStartupLocationSelector {
 
     private static final long MAX_AGE_MS = 15_000L;
     private static final float MAX_ACCURACY_METERS = 50f;
-    private static final float MAX_ROUTE_START_ACCURACY_METERS = 25f;
+    public static final float MAX_ROUTE_START_ACCURACY_METERS = 25f;
 
     private NavigationStartupLocationSelector() {
     }
