@@ -65,9 +65,6 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public boolean isOngoingNotificationVisible() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
         NotificationManager notificationManager = service.getSystemService(NotificationManager.class);
         if (notificationManager == null) {
             AppLogger.w(TAG, "NotificationManager unavailable while checking foreground notification");

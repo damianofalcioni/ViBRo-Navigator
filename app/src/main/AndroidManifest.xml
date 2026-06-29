@@ -29,7 +29,9 @@
             <action android:name="android.settings.IGNORE_BATTERY_OPTIMIZATION_SETTINGS" />
         </intent>
         <intent>
-            <action android:name="android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+            <action
+                android:name="android.settings.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"
+                tools:ignore="BatteryLife" />
             <data android:scheme="package" />
         </intent>
     </queries>
@@ -79,9 +81,7 @@
                 <data android:scheme="google.navigation" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -90,9 +90,7 @@
                     android:host="maps.google.com" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -101,9 +99,7 @@
                     android:host="maps.google.com" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -113,9 +109,7 @@
                     android:pathPrefix="/maps" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -125,9 +119,7 @@
                     android:pathPrefix="/maps" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -137,9 +129,7 @@
                     android:pathPrefix="/maps" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -149,9 +139,7 @@
                     android:pathPrefix="/maps" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -161,9 +149,7 @@
                     android:path="/" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -173,9 +159,7 @@
                     android:path="/" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -185,9 +169,7 @@
                     android:path="/" />
             </intent-filter>
 
-            <intent-filter
-                android:autoVerify="false"
-                tools:targetApi="m">
+            <intent-filter android:autoVerify="false">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

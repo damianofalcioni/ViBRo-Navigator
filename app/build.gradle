@@ -63,7 +63,7 @@ android {
 
     defaultConfig {
         applicationId = "vibro.navigator"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
@@ -129,10 +129,9 @@ android {
 }
 
 dependencies {
-    //noinspection GradleDependency: androidx.core 1.18.0 raises minSdk to 23; this app supports minSdk 21.
-    implementation "androidx.core:core:1.17.0"
+    implementation "androidx.core:core:1.19.0"
 
-    gplayImplementation "com.google.android.gms:play-services-location:21.3.0"
+    gplayImplementation "com.google.android.gms:play-services-location:21.4.0"
     gplayImplementation "androidx.car.app:app:1.7.0"
     gplayImplementation "androidx.car.app:app-projected:1.7.0"
 

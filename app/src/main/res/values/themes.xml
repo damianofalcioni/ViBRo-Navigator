@@ -56,5 +56,7 @@
         <item name="vibroCompassPausedRingColor">@color/light_text_secondary</item>
     </style>
 
-    <style name="Theme.ViBRoNavigator.Light" parent="@style/Theme.ViBRoNavigatorLightBase" />
+    <style name="Theme.ViBRoNavigator.Light" parent="@style/Theme.ViBRoNavigatorLightBase">
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
 </resources>

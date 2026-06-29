@@ -1,6 +1,7 @@
 package vibro.navigator.android.startup;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
@@ -64,21 +65,16 @@ public final class AndroidNavigationPreflight {
                 .putExtra(LEGACY_EXTRA_APP_UID, applicationInfo.uid);
     }
 
+    @SuppressLint("BatteryLife")
     @NonNull
     public static Intent newBatteryOptimizationRequestIntent(@NonNull Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
-                    .setData(Uri.fromParts("package", activity.getPackageName(), null));
-        }
-        return newAppDetailsSettingsIntent(activity);
+        return new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                .setData(Uri.fromParts("package", activity.getPackageName(), null));
     }
 
     @NonNull
     public static Intent newBatteryOptimizationSettingsIntent(@NonNull Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
-        }
-        return newAppDetailsSettingsIntent(activity);
+        return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
     }
 
     @NonNull
@@ -120,9 +116,6 @@ public final class AndroidNavigationPreflight {
     }
 
     private static boolean needsBatteryOptimizationExemption(@NonNull Activity activity) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return false;
-        }
         PowerManager powerManager = (PowerManager) activity.getSystemService(Activity.POWER_SERVICE);
         return powerManager != null && !powerManager.isIgnoringBatteryOptimizations(activity.getPackageName());
     }

@@ -34,10 +34,10 @@
   Uses BRouter for fully offline route calculation and turn instruction generation.
 
 * **Straight-line guidance without BRouter**
-  The `Straight Line - No BRouter` profile keeps compass and arrival guidance available even when BRouter is not installed.
-
+  The `Straight-line mode` keeps compass and arrival guidance available even when BRouter is not installed.
+  
 * **Minimal & dependency-light**
-  Built in pure Java with minimal external dependencies. APK size is ~250Kb for the F-Droid version and ~650Kb for the GPlay version !!
+  Built in pure Java with minimal external dependencies. APK size is ~400Kb for the F-Droid version and ~900Kb for the GPlay version !!
 
 * **Smart POI search**
 
@@ -52,9 +52,6 @@
 * **Intermediate stops support**
   Easily add, edit, and remove waypoints.
 
-* **Dynamic navigation updates**
-  Adaptive polling, rerouting, and turn estimation based on real-time conditions.
-
 * **Pause and blocked road support**
   Navigation can be paused and rerouted to avoid a blocked street.
 
@@ -66,6 +63,25 @@
   * Google Fused Location provider
   * Google Maps Geocoding for POI search
   * Android Auto integration
+
+---
+
+## 💡 Innovations
+
+* **Dynamic GPS fix acquisition**  
+  The GPS fix acquisition interval dynamically adapts to the remaining distance to the next direction point.
+
+* **Time-based distance to the next direction**  
+  Notifications are always triggered 20, 10, and 5 seconds before the next turn instruction, based on the current speed. No more guessing how far 500 meters are.
+
+* **Streets rendered directly from BRouter segments**  
+  No additional OSM data download is required. Nearby streets are extracted directly from the already downloaded BRouter segments.
+
+* **Smartband-friendly turn notifications**  
+  Uses non-permanent notifications and simple Unicode characters to render correctly on any smartband.
+
+* **3 easy-to-recognize vibration patterns for turn notification categories**  
+  Right turns, left turns, and other instructions can be quickly identified, even with the phone in your pocket.
 
 ---
 
@@ -100,7 +116,7 @@ ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low,
 
 ## 📦 Requirements
 
-* Android device (min SDK 21)
+* Android device (min SDK 23, Android 6.0)
 * BRouter installed for routed turn guidance; straight-line guidance works without BRouter
 
 ---

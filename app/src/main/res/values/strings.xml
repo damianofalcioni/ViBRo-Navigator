@@ -65,7 +65,7 @@
     <string name="hint_search_stop">Search stop or paste coordinates</string>
     <string name="hint_round_trip_distance_km">15</string>
     <string name="hint_round_trip_distance_mi">10</string>
-    <string name="hint_round_trip_direction">0-359</string>
+    <string name="hint_round_trip_direction">0&#8211;359</string>
     <string name="hint_saved_route_name">Route name</string>
 
     <string name="msg_missing_destination">Select a destination</string>

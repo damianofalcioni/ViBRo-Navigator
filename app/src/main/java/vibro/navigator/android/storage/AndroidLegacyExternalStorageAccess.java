@@ -15,8 +15,7 @@ public final class AndroidLegacyExternalStorageAccess {
     }
 
     public static boolean isRuntimeReadPermissionRelevant() {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && Build.VERSION.SDK_INT <= Build.VERSION_CODES.P;
+        return Build.VERSION.SDK_INT <= Build.VERSION_CODES.P;
     }
 
     public static boolean hasReadPermission(@NonNull Context context) {
@@ -29,9 +28,6 @@ public final class AndroidLegacyExternalStorageAccess {
     }
 
     public static boolean canReadSharedExternalFiles(@NonNull Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            return true;
-        }
         return isRuntimeReadPermissionRelevant() && hasReadPermission(context);
     }
 
