@@ -33,13 +33,21 @@ public final class PendingRouteRecalculation {
             @NonNull NavigationRouteRecalculationReason next,
             @Nullable String mergedNotice
     ) {
-        if (mergedNotice != null && next != NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE) {
+        if (mergedNotice != null && !isStartupReason(next)) {
+            return next;
+        }
+        if (isStartupReason(current) && !isStartupReason(next)) {
             return next;
         }
         if (current == NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
-                && next != NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE) {
+                && next == NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH) {
             return next;
         }
         return current;
+    }
+
+    private static boolean isStartupReason(@NonNull NavigationRouteRecalculationReason reason) {
+        return reason == NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+                || reason == NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH;
     }
 }

@@ -198,6 +198,7 @@ Pressing the button must:
 - While the first BRouter route calculation is still waiting for an accurate startup location, the navigation UI must continue to present the state as waiting for location rather than as an active BRouter route calculation
 - Startup GPS status must suppress speed values derived only from inaccurate or same-timestamp provider jumps; when movement evidence is weak, show stationary/unknown speed instead of high jitter-derived speeds
 - When a fresher startup fix arrives while the first no-active-route calculation is still running, the app should only queue a replacement BRouter request if the new fix materially changes the route start or meaningfully improves start accuracy; small startup jitter around the cached seed should not force a duplicate route calculation
+- When the first BRouter route has already returned with a route-start beeline and a materially stronger startup fix settles before the user reaches the returned route corridor, the app should refresh the startup route from the settled location instead of keeping a stale long beeline
 
 #### 4.1 Missing BRouter handling
 

@@ -74,7 +74,11 @@ final class NavigationSessionLocationEvaluator {
             @NonNull NavigationLocation rawLocation,
             long nowMs
     ) {
-        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(rawLocation, nowMs);
+        NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(
+                rawLocation,
+                nowMs,
+                shouldAllowStartupFilterReset(currentRequest)
+        );
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
         }
@@ -148,5 +152,9 @@ final class NavigationSessionLocationEvaluator {
                 evaluation.turnEvents,
                 evaluation.getSuggestedUpdateIntervalMs()
         );
+    }
+
+    private boolean shouldAllowStartupFilterReset(@NonNull NavigationRequest currentRequest) {
+        return !currentRequest.isStraightLine() && !routeState.hasActiveRoute();
     }
 }

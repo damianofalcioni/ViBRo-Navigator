@@ -225,6 +225,34 @@ public class NavigationSessionLocationStateTest {
     }
 
     @Test
+    public void onRawLocationChanged_resetsStartupFilterWhenFirstRouteGradeFixArrives() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+
+        state.onRawLocationChanged(
+                location(NavigationLocationProviders.NETWORK_PROVIDER, 1_000L, 48.2080000, 16.3730000, 300f),
+                1_000L,
+                true
+        );
+        state.onRawLocationChanged(
+                location("fused", 2_000L, 48.2079000, 16.3732000, 35f),
+                2_000L,
+                true
+        );
+        NavigationLocation gps = location(
+                NavigationLocationProviders.GPS_PROVIDER,
+                6_000L,
+                48.2071000,
+                16.3740000,
+                19f
+        );
+
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(gps, 6_000L, true);
+
+        assertEquals(gps.getLatitude(), accepted.getFilteredLocation().getLatitude(), 0.0);
+        assertEquals(gps.getLongitude(), accepted.getFilteredLocation().getLongitude(), 0.0);
+    }
+
+    @Test
     public void onRawLocationChanged_doesNotReacquireAfterShortAcceptedFixGap() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 1_000L;
@@ -245,6 +273,21 @@ public class NavigationSessionLocationStateTest {
         location.setTime(timeMs);
         location.setAccuracy(5f);
         location.setSpeed(speedMps);
+        return location;
+    }
+
+    private static NavigationLocation location(
+            String provider,
+            long timeMs,
+            double lat,
+            double lon,
+            float accuracyMeters
+    ) {
+        NavigationLocation location = new NavigationLocation(provider);
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(accuracyMeters);
         return location;
     }
 

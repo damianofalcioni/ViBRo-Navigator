@@ -205,27 +205,34 @@ final class NavigationRouteEvaluator {
         if (!routeStartApproachState.isActive()) {
             return null;
         }
-        if (!routeStartApproachState.isReached(match, trustedAccuracyMeters)) {
-            deviationHandler.clearDeviationEvidence();
+        if (routeStartApproachState.isReached(match, trustedAccuracyMeters)) {
+            routeStartApproachState.reset();
+            displayState.clearRouteStartApproachTarget();
+            geometryState.rememberSegment(match);
             return NavigationRouteEvaluation.keepRoute(
-                    Collections.emptyList(),
+                    turnState.buildInitialTurnEventIfNeeded(
+                            geometryState.route(),
+                            geometryState.polylineIndex(),
+                            new LatLon(filtered.getLatitude(), filtered.getLongitude()),
+                            likelyStationary ? 0f : speedMps,
+                            trustedAccuracyMeters
+                    ),
                     ROUTE_START_APPROACH_INTERVAL_MS,
-                    false
+                    true
             );
         }
-        routeStartApproachState.reset();
-        displayState.clearRouteStartApproachTarget();
-        geometryState.rememberSegment(match);
+        if (routeStartApproachState.shouldRefreshRouteStart(filtered)) {
+            AppLogger.i(TAG, "Refreshing route-start approach after improved startup NavigationLocation");
+            return NavigationRouteEvaluation.requestRecalculation(
+                    null,
+                    NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH
+            );
+        }
+        deviationHandler.clearDeviationEvidence();
         return NavigationRouteEvaluation.keepRoute(
-                turnState.buildInitialTurnEventIfNeeded(
-                        geometryState.route(),
-                        geometryState.polylineIndex(),
-                        new LatLon(filtered.getLatitude(), filtered.getLongitude()),
-                        likelyStationary ? 0f : speedMps,
-                        trustedAccuracyMeters
-                ),
+                Collections.emptyList(),
                 ROUTE_START_APPROACH_INTERVAL_MS,
-                true
+                false
         );
     }
 

@@ -21,6 +21,7 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -129,6 +130,41 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @Test
+    public void brouterRouteStartApproachRefreshesWhenStartupFixSettlesAwayFromRequestedStart() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                routeStartingAwayFromRequestedStart(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+
+        NavigationLocation settledFix = location(0.0003, 0.0, 2_000L);
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                settledFix,
+                1.4f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertTrue(evaluation.shouldRecalculateRoute());
+        assertEquals(NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH, evaluation.recalculationReason);
+    }
+
+    @Test
     public void roundTripRouteStartApproachIgnoresClosedLoopFinalSegment() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -167,6 +203,42 @@ public class NavigationRouteStartApproachStateTest {
         assertTrue(approachState.routeStatus.guidance.nextLine.contains(context.getString(R.string.direction_beeline)));
         assertNotNull(approachState.routeStatus.compassState);
         assertNotNull(approachState.routeStatus.compassState.routeStartApproachProjection);
+    }
+
+    @Test
+    public void roundTripRouteStartApproachDoesNotRefreshFromSettledStartupFix() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                NavigationRoutingMode.ROUND_TRIP,
+                TREKKING_PROFILE,
+                null,
+                null,
+                null,
+                Collections.emptyList(),
+                15_000
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                roundTripRouteStartingAwayAndEndingAtRequestedStart(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                location(0.0003, 0.0, 2_000L),
+                1.4f,
+                5f,
+                90.0,
+                2_000L,
+                0L
+        );
+
+        assertFalse(evaluation.shouldRecalculateRoute());
+        assertTrue(evaluation.turnEvents.isEmpty());
     }
 
     @NonNull

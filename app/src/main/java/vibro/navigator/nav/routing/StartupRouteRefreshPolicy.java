@@ -6,12 +6,28 @@ import vibro.navigator.nav.location.NavigationLocationProviders;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-final class StartupRouteRefreshPolicy {
+public final class StartupRouteRefreshPolicy {
     private static final float MIN_START_MOVE_METERS = 10f;
     private static final float MIN_ACCURACY_IMPROVEMENT_METERS = 8f;
     private static final float GPS_REFRESH_ACCURACY_METERS = 12f;
 
     private StartupRouteRefreshPolicy() {
+    }
+
+    public static boolean shouldQueuePending(
+            boolean force,
+            @NonNull NavigationRouteRecalculationReason activeRequestReason,
+            @NonNull NavigationRouteRecalculationReason nextReason,
+            @Nullable NavigationLocation activeRequestStart,
+            @Nullable NavigationLocation latestStart
+    ) {
+        if (force) {
+            return true;
+        }
+        if (!isStartupRouteRefreshReason(nextReason) || !isStartupRouteRefreshReason(activeRequestReason)) {
+            return true;
+        }
+        return shouldRefresh(activeRequestStart, latestStart);
     }
 
     public static boolean shouldRefresh(
@@ -24,6 +40,17 @@ final class StartupRouteRefreshPolicy {
         return hasMovedMaterially(activeRequestStart, latestStart)
                 || hasAccuracyImprovedMaterially(activeRequestStart, latestStart)
                 || isStrongGpsUpgrade(activeRequestStart, latestStart);
+    }
+
+    public static boolean shouldRefreshAppliedRouteStart(
+            @Nullable NavigationLocation activeRequestStart,
+            @Nullable NavigationLocation latestStart
+    ) {
+        if (activeRequestStart == null || latestStart == null) {
+            return false;
+        }
+        return hasMovedMaterially(activeRequestStart, latestStart)
+                && accuracyMeters(latestStart) <= GPS_REFRESH_ACCURACY_METERS;
     }
 
     public static float distanceMeters(
@@ -62,5 +89,10 @@ final class StartupRouteRefreshPolicy {
 
     private static float accuracyMeters(@NonNull NavigationLocation location) {
         return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    private static boolean isStartupRouteRefreshReason(@NonNull NavigationRouteRecalculationReason reason) {
+        return reason == NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
+                || reason == NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH;
     }
 }

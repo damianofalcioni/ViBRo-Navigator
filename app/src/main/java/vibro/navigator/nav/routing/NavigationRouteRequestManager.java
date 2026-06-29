@@ -294,14 +294,13 @@ public final class NavigationRouteRequestManager {
             @Nullable NavigationLocation latestStart,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
-        if (force) {
-            return true;
-        }
-        if (reason != NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
-                || activeRequestReason != NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE) {
-            return true;
-        }
-        return StartupRouteRefreshPolicy.shouldRefresh(activeRequestStartLocation, latestStart);
+        return StartupRouteRefreshPolicy.shouldQueuePending(
+                force,
+                activeRequestReason,
+                reason,
+                activeRequestStartLocation,
+                latestStart
+        );
     }
 
     private boolean isWithinRerouteThrottle(long nowMs) {

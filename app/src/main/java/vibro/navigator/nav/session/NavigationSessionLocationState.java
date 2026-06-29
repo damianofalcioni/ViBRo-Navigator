@@ -4,6 +4,7 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.location.LiveLocationCoordinator;
 import vibro.navigator.nav.location.NavigationLocationMotionModel;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -45,6 +46,15 @@ public final class NavigationSessionLocationState {
 
     @NonNull
     public Update onRawLocationChanged(@NonNull NavigationLocation rawLocation, long nowMs) {
+        return onRawLocationChanged(rawLocation, nowMs, true);
+    }
+
+    @NonNull
+    public Update onRawLocationChanged(
+            @NonNull NavigationLocation rawLocation,
+            long nowMs,
+            boolean allowStartupFilterReset
+    ) {
         liveLocationCoordinator.remember(rawLocation);
         NavigationLocation selected = liveLocationCoordinator.selectBestLiveLocation(nowMs);
         if (selected == null) {
@@ -67,6 +77,11 @@ public final class NavigationSessionLocationState {
             AppLogger.i(TAG, "Reacquiring NavigationLocation after long accepted-fix gap raw="
                     + formatLocation(selected)
                     + " gapMs=" + reacquisitionTracker.gapMs(nowMs));
+        } else if (shouldResetStartupFilter(allowStartupFilterReset, selected, nowMs)) {
+            kalman.reset();
+            motionModel.reset();
+            AppLogger.i(TAG, "Resetting startup NavigationLocation filter after route-grade fix raw="
+                    + formatLocation(selected));
         }
         NavigationLocation filtered = kalman.update(selected);
         if (filtered == null) {
@@ -132,6 +147,20 @@ public final class NavigationSessionLocationState {
 
     public float accuracyMeters(@NonNull NavigationLocation location) {
         return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+    }
+
+    private boolean shouldResetStartupFilter(
+            boolean allowStartupFilterReset,
+            @NonNull NavigationLocation selected,
+            long nowMs
+    ) {
+        if (!allowStartupFilterReset) {
+            return false;
+        }
+        NavigationLocation lastFiltered = motionModel.getLastFilteredLocation();
+        return lastFiltered != null
+                && !NavigationStartupLocationSelector.isUsableForRouteStart(lastFiltered, nowMs)
+                && NavigationStartupLocationSelector.isUsableForRouteStart(selected, nowMs);
     }
 
     public static final class Update {
