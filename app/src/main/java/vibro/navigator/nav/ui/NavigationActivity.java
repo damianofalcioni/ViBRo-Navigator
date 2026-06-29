@@ -348,13 +348,16 @@ public class NavigationActivity extends Activity {
         }
 
         @Override
-        public void showBatteryOptimizationDialog(@NonNull Runnable onCancel) {
+        public void showBatteryOptimizationDialog(@NonNull Runnable onContinue) {
             new AlertDialog.Builder(NavigationActivity.this)
                     .setTitle(R.string.msg_permission_required)
                     .setMessage(R.string.msg_battery_opt_rationale)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openBatteryOptimizationSettings())
-                    .setNegativeButton(android.R.string.cancel, (d, w) -> onCancel.run())
-                    .setOnCancelListener(d -> onCancel.run())
+                    .setPositiveButton(
+                            R.string.action_open_settings,
+                            (d, w) -> openBatteryOptimizationSettings(onContinue)
+                    )
+                    .setNegativeButton(android.R.string.cancel, (d, w) -> onContinue.run())
+                    .setOnCancelListener(d -> onContinue.run())
                     .show();
         }
 
@@ -391,9 +394,21 @@ public class NavigationActivity extends Activity {
             launchSettingsIntent(settingsIntent);
         }
 
-        private void openBatteryOptimizationSettings() {
-            Intent settingsIntent = AndroidNavigationPreflight.newBatteryOptimizationIntent(NavigationActivity.this);
-            launchSettingsIntent(settingsIntent);
+        private void openBatteryOptimizationSettings(@NonNull Runnable onContinue) {
+            Intent settingsIntent = AndroidNavigationPreflight.newBatteryOptimizationRequestIntent(
+                    NavigationActivity.this
+            );
+            if (AndroidNavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
+                startupCoordinator.onSettingsOpened();
+                onContinue.run();
+                return;
+            }
+            Toast.makeText(
+                    NavigationActivity.this,
+                    R.string.msg_open_settings_failed,
+                    Toast.LENGTH_SHORT
+            ).show();
+            onContinue.run();
         }
 
         private void launchSettingsIntent(@NonNull Intent settingsIntent) {

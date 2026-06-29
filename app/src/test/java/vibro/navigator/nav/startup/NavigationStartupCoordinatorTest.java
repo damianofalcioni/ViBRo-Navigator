@@ -164,13 +164,12 @@ public class NavigationStartupCoordinatorTest {
         coordinator.ensureReadyThenStart();
 
         assertEquals(vibro.navigator.R.string.msg_enable_notifications, host.settingsDialogMessageResId.intValue());
-        assertFalse(host.batteryOptimizationDialogShown);
         assertNull(host.startedRequest);
         assertTrue(coordinator.isAutoStartNavigation());
     }
 
     @Test
-    public void ensureReadyThenStart_showsBatteryOptimizationDialogAndDoesNotStart() {
+    public void ensureReadyThenStart_showsBatteryOptimizationPromptAndDoesNotStartImmediately() {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
                 host,
@@ -187,9 +186,58 @@ public class NavigationStartupCoordinatorTest {
         coordinator.ensureReadyThenStart();
 
         assertTrue(host.batteryOptimizationDialogShown);
-        assertNotNull(host.batteryOptimizationCancelAction);
+        assertNotNull(host.batteryOptimizationContinueAction);
         assertNull(host.startedRequest);
         assertTrue(coordinator.isAutoStartNavigation());
+    }
+
+    @Test
+    public void batteryOptimizationPromptCancelContinuesNavigationStartup() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                () -> NavigationPreflight.Status.create(
+                        Collections.emptyList(),
+                        false,
+                        true,
+                        true,
+                        true
+                )
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+
+        host.batteryOptimizationContinueAction.run();
+
+        assertNotNull(host.startedRequest);
+        assertFalse(coordinator.isAutoStartNavigation());
+    }
+
+    @Test
+    public void onResumeAfterBatteryOptimizationSettingsContinuesWhenExemptionRemainsMissing() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                () -> NavigationPreflight.Status.create(
+                        Collections.emptyList(),
+                        false,
+                        true,
+                        true,
+                        true
+                )
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+        assertNull(host.startedRequest);
+
+        coordinator.onSettingsOpened();
+        coordinator.onPause();
+        coordinator.onResume();
+
+        assertNotNull(host.startedRequest);
+        assertFalse(coordinator.isAutoStartNavigation());
     }
 
     @Test
@@ -318,7 +366,7 @@ public class NavigationStartupCoordinatorTest {
         private NavigationStartupCoordinator.SettingsTarget settingsTarget;
         private Runnable settingsDialogCancelAction;
         private boolean batteryOptimizationDialogShown;
-        private Runnable batteryOptimizationCancelAction;
+        private Runnable batteryOptimizationContinueAction;
         private NavigationRequest startedRequest;
         private boolean startupCancelled;
 
@@ -358,9 +406,9 @@ public class NavigationStartupCoordinatorTest {
         }
 
         @Override
-        public void showBatteryOptimizationDialog(@NonNull Runnable onCancel) {
+        public void showBatteryOptimizationDialog(@NonNull Runnable onContinue) {
             batteryOptimizationDialogShown = true;
-            batteryOptimizationCancelAction = onCancel;
+            batteryOptimizationContinueAction = onContinue;
         }
 
         @Override

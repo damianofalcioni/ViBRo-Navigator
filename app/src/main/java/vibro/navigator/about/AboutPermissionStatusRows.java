@@ -63,7 +63,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionBatteryMark,
                 R.id.aboutPermissionBatteryLabel,
                 R.id.aboutPermissionBatteryStatus,
-                AndroidNavigationPreflight::newBatteryOptimizationIntent
+                AboutPermissionStatusRows::newBatteryOptimizationIntent
         );
         surroundingStreetStorageRow = new PermissionRow(
                 activity,
@@ -80,8 +80,25 @@ final class AboutPermissionStatusRows {
         locationPermissionRow.render(status.hasLocationPermission());
         locationServicesRow.render(status.locationEnabled);
         notificationsRow.render(status.hasNotificationAccess());
-        batteryOptimizationRow.render(!status.needsBatteryOptimizationExemption);
+        renderBatteryOptimization(status);
         renderSurroundingStreetStorage();
+    }
+
+    private void renderBatteryOptimization(@NonNull NavigationPreflight.Status status) {
+        if (status.needsBatteryOptimizationExemption) {
+            batteryOptimizationRow.renderWarningKo();
+            return;
+        }
+        batteryOptimizationRow.render(true);
+    }
+
+    @NonNull
+    private static Intent newBatteryOptimizationIntent(@NonNull Activity activity) {
+        NavigationPreflight.Status status = AndroidNavigationPreflight.inspect(activity);
+        if (status.needsBatteryOptimizationExemption) {
+            return AndroidNavigationPreflight.newBatteryOptimizationRequestIntent(activity);
+        }
+        return AndroidNavigationPreflight.newBatteryOptimizationSettingsIntent(activity);
     }
 
     private void renderSurroundingStreetStorage() {
@@ -136,6 +153,18 @@ final class AboutPermissionStatusRows {
                     ? R.drawable.bg_permission_status_ok
                     : R.drawable.bg_permission_status_error;
 
+            renderStatus(statusResId, colorResId, markerResId);
+        }
+
+        void renderWarningKo() {
+            renderStatus(
+                    R.string.permission_status_needs_attention,
+                    R.color.warning,
+                    R.drawable.bg_permission_status_warning
+            );
+        }
+
+        private void renderStatus(int statusResId, int colorResId, int markerResId) {
             markerView.setBackgroundResource(markerResId);
             statusView.setText(statusResId);
             statusView.setTextColor(ContextCompat.getColor(activity, colorResId));

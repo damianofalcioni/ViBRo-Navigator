@@ -21,6 +21,7 @@ Core product constraints:
 - Check and request all required permissions before starting navigation, when they are needed
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
 - If a startup settings dialog is dismissed after the required setting was changed elsewhere, navigation startup must re-check preflight and continue; if the blocker remains unresolved, startup must abort cleanly instead of leaving the navigation screen waiting
+- Battery optimization exemption is recommended for reliable background navigation. When absent, navigation startup must show the user an advisory prompt to open the exemption request, but opening, cancelling, or dismissing that prompt must continue navigation startup instead of blocking it.
 - Provide a README describing ViBRo Navigator as a lightweight, battery-efficient, offline vibe-coded GPS navigation app based on BRouter, that vibrates directions
 - Provide a distinctive app logo suitable for use as the app icon
 - Treat map-free use as a primary product mode: navigation guidance must be trustworthy enough that a user who does not see the map can rely on the next direction without visual confirmation
@@ -680,14 +681,14 @@ The navigation UI must show the following in large text:
   - rotation vector heading sensor
   - geomagnetic rotation vector heading sensor
   - deprecated orientation sensor, used by navigation only as a calibration cross-check when available
-- Before the sensor-status list, the Diagnostic section must show a Required access block for the navigation preflight requirements:
+- Before the sensor-status list, the Diagnostic section must show a Required access block for navigation access status:
   - location permission
   - device location services
   - app notifications
   - battery optimization exemption
 - When Show surrounding streets in compass is enabled and legacy external-storage permission is relevant on the current Android version, the Required access block must also show a BRouter street storage row with OK/KO status; when the setting is disabled or the permission is not relevant, that row must be hidden
-- Each Required access row must show a green OK or red KO mark and a short status label
-- Tapping a Required access row must open the most specific relevant Android settings page available, falling back to app details when needed in the same OEM-compatible style as navigation startup settings redirects
+- Each Required access row must show a green OK or KO mark and a short status label. Missing hard startup requirements must show red KO. Missing battery optimization exemption must show orange KO and must not block navigation startup.
+- Tapping a Required access row must open the most specific relevant Android settings page available, falling back to app details when needed in the same OEM-compatible style as navigation startup settings redirects. The battery optimization row must request the app-specific exemption when it is KO, and must open the generic battery optimization settings page when it is already OK.
 - The diagnostics block must refresh automatically every 1 second while the about page is visible
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available
@@ -727,7 +728,7 @@ The navigation UI must show the following in large text:
 - Translation-friendly text resource usage
 - Orientation-safe layouts
 - Robust permission handling before navigation starts
-- Robust OEM-compatible redirects for required system settings such as battery-optimization exemptions
+- Robust OEM-compatible redirects for required system settings and battery-optimization exemption requests
 - Compatibility with all supported Android versions for intent parsing and deep-link handling
 - Robustness for map-free guidance: the product should favor conservative, high-confidence navigation prompts over aggressive but error-prone updates
 

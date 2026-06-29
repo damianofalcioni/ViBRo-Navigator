@@ -34,7 +34,7 @@ public final class NavigationStartupCoordinator {
                 @NonNull Runnable onCancel
         );
 
-        void showBatteryOptimizationDialog(@NonNull Runnable onCancel);
+        void showBatteryOptimizationDialog(@NonNull Runnable onContinue);
 
         void startNavigationService(@NonNull NavigationRequest request);
 
@@ -56,11 +56,11 @@ public final class NavigationStartupCoordinator {
     private boolean autoStartNavigation;
     private boolean settingsLaunchInProgress;
     private boolean awaitingSettingsReturn;
+    private boolean batteryOptimizationPromptShown;
 
     private enum StartupBlocker {
         LOCATION,
-        NOTIFICATIONS,
-        BATTERY_OPTIMIZATION
+        NOTIFICATIONS
     }
 
     public NavigationStartupCoordinator(@NonNull Host host, @NonNull PreflightInspector preflightInspector) {
@@ -69,6 +69,9 @@ public final class NavigationStartupCoordinator {
     }
 
     public void setAutoStartNavigation(boolean autoStartNavigation) {
+        if (autoStartNavigation && !this.autoStartNavigation) {
+            batteryOptimizationPromptShown = false;
+        }
         this.autoStartNavigation = autoStartNavigation;
     }
 
@@ -110,15 +113,29 @@ public final class NavigationStartupCoordinator {
         }
 
         if (status.needsBatteryOptimizationExemption) {
-            AppLogger.i(TAG, "Prompting for battery optimization exemption");
-            host.showBatteryOptimizationDialog(
-                    () -> onStartupBlockerCancelled(StartupBlocker.BATTERY_OPTIMIZATION)
-            );
-            return;
+            if (!batteryOptimizationPromptShown) {
+                batteryOptimizationPromptShown = true;
+                AppLogger.i(TAG, "Prompting for battery optimization exemption");
+                host.showBatteryOptimizationDialog(this::continueAfterBatteryOptimizationPrompt);
+                return;
+            }
+            AppLogger.i(TAG, "Battery optimization exemption still missing; continuing navigation startup");
         } else {
             AppLogger.i(TAG, "Battery optimization exemption already granted");
         }
 
+        startNavigation();
+    }
+
+    private void continueAfterBatteryOptimizationPrompt() {
+        if (!autoStartNavigation) {
+            return;
+        }
+        AppLogger.i(TAG, "Continuing startup after battery optimization prompt");
+        startNavigation();
+    }
+
+    private void startNavigation() {
         NavigationRequest request = host.getNavigationRequest();
         AppLogger.i(TAG, "Environment checks passed, starting navigation service " + request.describe());
         host.startNavigationService(request);
@@ -181,8 +198,6 @@ public final class NavigationStartupCoordinator {
                 return !status.locationEnabled;
             case NOTIFICATIONS:
                 return !status.notificationsEnabled;
-            case BATTERY_OPTIMIZATION:
-                return status.needsBatteryOptimizationExemption;
             default:
                 return false;
         }

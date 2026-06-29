@@ -53,6 +53,10 @@ tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ["-Xlint:deprecation"]
 }
 
+tasks.withType(Test).configureEach {
+    maxHeapSize = "1536m"
+}
+
 android {
     namespace = "vibro.navigator"
     compileSdk = 37

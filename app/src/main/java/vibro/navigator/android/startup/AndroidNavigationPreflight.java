@@ -65,7 +65,16 @@ public final class AndroidNavigationPreflight {
     }
 
     @NonNull
-    public static Intent newBatteryOptimizationIntent(@NonNull Activity activity) {
+    public static Intent newBatteryOptimizationRequestIntent(@NonNull Activity activity) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return new Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS)
+                    .setData(Uri.fromParts("package", activity.getPackageName(), null));
+        }
+        return newAppDetailsSettingsIntent(activity);
+    }
+
+    @NonNull
+    public static Intent newBatteryOptimizationSettingsIntent(@NonNull Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             return new Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
         }

@@ -2,6 +2,7 @@ package vibro.navigator.nav.startup;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -77,6 +78,26 @@ public class NavigationSettingsLauncherTest {
         assertEquals(activity.getPackageName(), intent.getStringExtra(Settings.EXTRA_APP_PACKAGE));
         assertFalse(intent.hasExtra("app_package"));
         assertFalse(intent.hasExtra("app_uid"));
+    }
+
+    @Test
+    public void newBatteryOptimizationRequestIntent_requestsPackageSpecificExemption() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        Intent intent = AndroidNavigationPreflight.newBatteryOptimizationRequestIntent(activity);
+
+        assertEquals(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, intent.getAction());
+        assertEquals("package:" + activity.getPackageName(), String.valueOf(intent.getData()));
+    }
+
+    @Test
+    public void newBatteryOptimizationSettingsIntent_opensGenericOptimizationSettings() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        Intent intent = AndroidNavigationPreflight.newBatteryOptimizationSettingsIntent(activity);
+
+        assertEquals(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS, intent.getAction());
+        assertNull(intent.getData());
     }
 
     private static void registerResolvableIntent(Activity activity, Intent intent) {
