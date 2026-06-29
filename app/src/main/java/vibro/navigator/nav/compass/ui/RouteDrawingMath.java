@@ -49,13 +49,91 @@ final class RouteDrawingMath {
         return Math.hypot(x, y) <= radiusMeters;
     }
 
-    static float clampRouteCoordinate(float coordinateMeters, float drawBoundsMeters) {
-        if (!Float.isFinite(coordinateMeters)) {
-            return 0f;
+    static boolean clipSegmentToBounds(
+            float startX,
+            float startY,
+            float endX,
+            float endY,
+            float drawBoundsMeters,
+            ClippedSegment out
+    ) {
+        if (!hasFiniteSegmentEndpoints(startX, startY, endX, endY)) {
+            return false;
         }
         if (!Float.isFinite(drawBoundsMeters) || drawBoundsMeters <= 0f) {
-            return coordinateMeters;
+            out.set(startX, startY, endX, endY);
+            return true;
         }
-        return Math.max(-drawBoundsMeters, Math.min(drawBoundsMeters, coordinateMeters));
+        SegmentClip clip = new SegmentClip(startX, startY, endX, endY, drawBoundsMeters);
+        if (!clip.apply()) {
+            return false;
+        }
+        out.set(
+                startX + clip.dx * clip.startFraction,
+                startY + clip.dy * clip.startFraction,
+                startX + clip.dx * clip.endFraction,
+                startY + clip.dy * clip.endFraction
+        );
+        return true;
+    }
+
+    static final class ClippedSegment {
+        float startX;
+        float startY;
+        float endX;
+        float endY;
+
+        void set(float startX, float startY, float endX, float endY) {
+            this.startX = startX;
+            this.startY = startY;
+            this.endX = endX;
+            this.endY = endY;
+        }
+    }
+
+    private static final class SegmentClip {
+        private final float startX;
+        private final float startY;
+        private final float bounds;
+        private final float dx;
+        private final float dy;
+        private float startFraction;
+        private float endFraction;
+
+        SegmentClip(float startX, float startY, float endX, float endY, float bounds) {
+            this.startX = startX;
+            this.startY = startY;
+            this.bounds = bounds;
+            dx = endX - startX;
+            dy = endY - startY;
+            startFraction = 0f;
+            endFraction = 1f;
+        }
+
+        boolean apply() {
+            return clip(-dx, startX + bounds)
+                    && clip(dx, bounds - startX)
+                    && clip(-dy, startY + bounds)
+                    && clip(dy, bounds - startY);
+        }
+
+        private boolean clip(float direction, float distanceToEdge) {
+            if (direction == 0f) {
+                return distanceToEdge >= 0f;
+            }
+            float fraction = distanceToEdge / direction;
+            if (direction < 0f) {
+                if (fraction > endFraction) {
+                    return false;
+                }
+                startFraction = Math.max(startFraction, fraction);
+                return true;
+            }
+            if (fraction < startFraction) {
+                return false;
+            }
+            endFraction = Math.min(endFraction, fraction);
+            return true;
+        }
     }
 }

@@ -11,6 +11,8 @@ final class NavigationRoutePathRenderer {
     private final Path routePath = new Path();
     private final PlotPoint routeSegmentStartPoint = new PlotPoint();
     private final PlotPoint routeSegmentEndPoint = new PlotPoint();
+    private final PlotPoint previousPathEndPoint = new PlotPoint();
+    private final RouteDrawingMath.ClippedSegment clippedSegment = new RouteDrawingMath.ClippedSegment();
 
     void drawProjectedRouteSegment(
             @NonNull Canvas canvas,
@@ -38,24 +40,44 @@ final class NavigationRoutePathRenderer {
                 havePrevious = true;
                 continue;
             }
-            if (RouteDrawingMath.isRouteSegmentNearVisibleArea(
-                    routeSegmentStartPoint.x,
-                    routeSegmentStartPoint.y,
-                    routeSegmentEndPoint.x,
-                    routeSegmentEndPoint.y,
+            boolean appended = appendVisibleSegmentIfNearVisibleArea(
+                    cx,
+                    cy,
+                    scale,
+                    drawBoundsMeters,
                     visibleRadiusMeters,
-                    drawPaddingMeters
-            )) {
-                activeSubpath = appendVisibleSegment(cx, cy, scale, drawBoundsMeters, activeSubpath);
-                hasVisibleSegment = true;
-            } else {
-                activeSubpath = false;
-            }
+                    drawPaddingMeters,
+                    activeSubpath
+            );
+            activeSubpath = appended;
+            hasVisibleSegment = hasVisibleSegment || appended;
             routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
         }
         if (hasVisibleSegment) {
             canvas.drawPath(routePath, strokePaint);
         }
+    }
+
+    private boolean appendVisibleSegmentIfNearVisibleArea(
+            float cx,
+            float cy,
+            float scale,
+            float drawBoundsMeters,
+            float visibleRadiusMeters,
+            float drawPaddingMeters,
+            boolean activeSubpath
+    ) {
+        if (!RouteDrawingMath.isRouteSegmentNearVisibleArea(
+                routeSegmentStartPoint.x,
+                routeSegmentStartPoint.y,
+                routeSegmentEndPoint.x,
+                routeSegmentEndPoint.y,
+                visibleRadiusMeters,
+                drawPaddingMeters
+        )) {
+            return false;
+        }
+        return appendVisibleSegment(cx, cy, scale, drawBoundsMeters, activeSubpath);
     }
 
     private boolean appendVisibleSegment(
@@ -65,17 +87,32 @@ final class NavigationRoutePathRenderer {
             float drawBoundsMeters,
             boolean activeSubpath
     ) {
-        float startX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.x, drawBoundsMeters) * scale;
-        float startY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentStartPoint.y, drawBoundsMeters) * scale;
-        float endX = cx + RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.x, drawBoundsMeters) * scale;
-        float endY = cy - RouteDrawingMath.clampRouteCoordinate(routeSegmentEndPoint.y, drawBoundsMeters) * scale;
-        if (!activeSubpath) {
+        if (!RouteDrawingMath.clipSegmentToBounds(
+                routeSegmentStartPoint.x,
+                routeSegmentStartPoint.y,
+                routeSegmentEndPoint.x,
+                routeSegmentEndPoint.y,
+                drawBoundsMeters,
+                clippedSegment
+        )) {
+            return false;
+        }
+
+        float startX = cx + clippedSegment.startX * scale;
+        float startY = cy - clippedSegment.startY * scale;
+        float endX = cx + clippedSegment.endX * scale;
+        float endY = cy - clippedSegment.endY * scale;
+        if (!activeSubpath || !samePoint(startX, startY, previousPathEndPoint.x, previousPathEndPoint.y)) {
             routePath.moveTo(startX, startY);
-        } else {
-            routePath.lineTo(startX, startY);
         }
         routePath.lineTo(endX, endY);
+        previousPathEndPoint.set(endX, endY);
         return true;
+    }
+
+    private boolean samePoint(float firstX, float firstY, float secondX, float secondY) {
+        return Math.abs(firstX - secondX) <= 0.01f
+                && Math.abs(firstY - secondY) <= 0.01f;
     }
 
     static final class PlotPoint {

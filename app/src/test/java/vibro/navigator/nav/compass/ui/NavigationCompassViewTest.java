@@ -222,13 +222,6 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void routeCoordinateClampLimitsOffscreenCanvasPathCoordinates() {
-        assertEquals(114f, RouteDrawingMath.clampRouteCoordinate(1_000f, 114f), 0.01f);
-        assertEquals(-114f, RouteDrawingMath.clampRouteCoordinate(-1_000f, 114f), 0.01f);
-        assertEquals(40f, RouteDrawingMath.clampRouteCoordinate(40f, 114f), 0.01f);
-    }
-
-    @Test
     public void pausedLayerVisibilityFollowsNavigationPausedState() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassView compassView = new NavigationCompassView(activity);
