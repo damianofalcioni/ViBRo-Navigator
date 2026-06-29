@@ -35,6 +35,9 @@
 
 * **Straight-line guidance without BRouter**
   The `Straight-line mode` keeps compass and arrival guidance available even when BRouter is not installed.
+
+* **Round trip mode**
+  Plan circular BRouter routes from your current location using a target distance and direction.
   
 * **Minimal & dependency-light**
   Built in pure Java with minimal external dependencies. APK size is ~400Kb for the F-Droid version and ~900Kb for the GPlay version !!
