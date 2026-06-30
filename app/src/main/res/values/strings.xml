@@ -314,6 +314,7 @@
     <string name="label_imperial_units_enabled">Use imperial units (ft/mi/mph)</string>
     <string name="label_light_theme_enabled">Light Theme</string>
     <string name="label_compass_surrounding_streets_enabled">Show surrounding streets in compass</string>
+    <string name="label_navigation_notifications_enabled">Navigation notifications</string>
     <string name="label_android_auto_integration_enabled">Android Auto integration</string>
     <string name="label_poi_categories">POI categories filter</string>
     <string name="hint_poi_category_name">POI Category Name</string>

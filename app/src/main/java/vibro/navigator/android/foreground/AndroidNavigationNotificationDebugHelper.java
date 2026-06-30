@@ -34,19 +34,19 @@ public final class AndroidNavigationNotificationDebugHelper {
         RIGHT
     }
 
-    public static void postLeftSymbolTestNotification(@NonNull Context context) {
-        postSymbolTestNotification(context, SymbolTestGroup.LEFT);
+    public static boolean postLeftSymbolTestNotification(@NonNull Context context) {
+        return postSymbolTestNotification(context, SymbolTestGroup.LEFT);
     }
 
-    public static void postOtherSymbolTestNotification(@NonNull Context context) {
-        postSymbolTestNotification(context, SymbolTestGroup.OTHER);
+    public static boolean postOtherSymbolTestNotification(@NonNull Context context) {
+        return postSymbolTestNotification(context, SymbolTestGroup.OTHER);
     }
 
-    public static void postRightSymbolTestNotification(@NonNull Context context) {
-        postSymbolTestNotification(context, SymbolTestGroup.RIGHT);
+    public static boolean postRightSymbolTestNotification(@NonNull Context context) {
+        return postSymbolTestNotification(context, SymbolTestGroup.RIGHT);
     }
 
-    public static void postSymbolTestNotification(
+    public static boolean postSymbolTestNotification(
             @NonNull Context context,
             @NonNull SymbolTestGroup group
     ) {
@@ -82,12 +82,13 @@ public final class AndroidNavigationNotificationDebugHelper {
                 (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         if (notificationManager == null) {
             AppLogger.w(TAG, "NotificationManager unavailable, cannot send symbol test notification");
-            return;
+            return false;
         }
         notificationManager.notify(notificationTag, notificationId, builder.build());
         AppLogger.i(TAG, "Sent symbol test notification group=" + group
                 + " tag=" + notificationTag
                 + " summary=" + summary);
+        return true;
     }
 
     @NonNull

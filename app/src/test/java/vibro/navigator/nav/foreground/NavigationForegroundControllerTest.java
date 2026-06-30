@@ -27,7 +27,9 @@ import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
 import vibro.navigator.android.foreground.AndroidNavigationForegroundController;
+import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.settings.AppNotificationSettings;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -113,6 +115,7 @@ public class NavigationForegroundControllerTest {
     public void notificationsUseExpectedChannels() {
         ServiceController<TestService> serviceController = Robolectric.buildService(TestService.class).create();
         TestService service = serviceController.get();
+        AppNotificationSettings.setNavigationNotificationsEnabled(service, true);
         NotificationManager notificationManager = service.getSystemService(NotificationManager.class);
         assertNotNull(notificationManager);
 
@@ -153,6 +156,28 @@ public class NavigationForegroundControllerTest {
                 lastPostedNotification(notificationManager).getChannelId()
         );
 
+        serviceController.destroy();
+    }
+
+    @Test
+    public void disabledNavigationNotificationsSuppressTransientAlerts() {
+        ServiceController<TestService> serviceController = Robolectric.buildService(TestService.class).create();
+        TestService service = serviceController.get();
+        AppNotificationSettings.setNavigationNotificationsEnabled(service, false);
+        NotificationManager notificationManager = service.getSystemService(NotificationManager.class);
+        assertNotNull(notificationManager);
+        notificationManager.cancelAll();
+
+        NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
+        controller.ensureChannels();
+        controller.sendImminentTurnNotification(new VoiceHint(0, 2, 0, 0.0, 0), 50.0, 5.0);
+        controller.sendStationaryOrientationNotification(new StationaryOrientationAdvisor.Decision(45.0));
+        controller.sendOffRouteNotification(NavigationRerouteNotice.fromDecision(
+                new RouteDeviationPolicy().evaluate(40.0, 5.0, null, 90.0)
+        ));
+        controller.sendWrongDirectionNotification(new NavigationWrongDirectionNotice(90.0, 270.0, 180.0));
+
+        assertEquals(0, notificationManager.getActiveNotifications().length);
         serviceController.destroy();
     }
 

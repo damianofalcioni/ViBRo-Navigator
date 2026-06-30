@@ -676,6 +676,7 @@ The navigation UI must show the following in large text:
 - The first entry in each newly created log file must report Android version/API level plus relevant app build, device, locale, screen, and log-file context before other app startup or setting-change logs
 - When logging is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
+- The about page Settings section must show a Navigation notifications switch that enables or disables transient live-navigation alert notifications; the permanent foreground navigation notification and diagnostic direction test notifications must remain enabled
 - The about page Diagnostic section must currently list the app's used live inputs:
   - GPS provider
   - network provider

@@ -33,6 +33,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.voice.NavigationTextToSpeechSettingsLauncher;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 import vibro.navigator.settings.AppCompassSettings;
+import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
 
@@ -65,6 +66,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppSettings.setFusedLocationEnabled(context, true);
         AppSettings.setImperialUnitsEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, false);
+        AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
         AppThemeSettings.setLightThemeEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, true);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);
@@ -492,6 +494,7 @@ public class AboutLoggingSettingsRobolectricTest {
         Button symbolTestOtherButton = activity.findViewById(R.id.aboutSymbolTestOtherButton);
         Button symbolTestRightButton = activity.findViewById(R.id.aboutSymbolTestRightButton);
         NotificationManager notificationManager = activity.getSystemService(NotificationManager.class);
+        AppNotificationSettings.setNavigationNotificationsEnabled(activity, false);
         notificationManager.cancelAll();
 
         assertEquals(View.VISIBLE, symbolTestLeftButton.getVisibility());

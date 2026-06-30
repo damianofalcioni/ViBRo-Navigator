@@ -18,6 +18,7 @@ import android.content.Context;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
+import vibro.navigator.settings.AppNotificationSettings;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -114,6 +115,23 @@ public class NavigationNotificationDebugHelperTest {
         );
     }
 
+    @Test
+    public void postSymbolTestNotificationIgnoresNavigationNotificationsSetting() {
+        Context context = ApplicationProvider.getApplicationContext();
+        AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
+        NotificationManager notificationManager = context.getSystemService(NotificationManager.class);
+        assertNotNull(notificationManager);
+        notificationManager.cancelAll();
+
+        boolean sent = AndroidNavigationNotificationDebugHelper.postSymbolTestNotification(
+                context,
+                SymbolTestGroup.OTHER
+        );
+
+        assertEquals(1, notificationManager.getActiveNotifications().length);
+        assertTrue(sent);
+    }
+
     private static void assertPostedGroup(
             SymbolTestGroup group,
             String expectedChannelId,
@@ -123,6 +141,10 @@ public class NavigationNotificationDebugHelperTest {
         NotificationManager notificationManager = ApplicationProvider.getApplicationContext()
                 .getSystemService(NotificationManager.class);
         assertNotNull(notificationManager);
+        AppNotificationSettings.setNavigationNotificationsEnabled(
+                ApplicationProvider.getApplicationContext(),
+                true
+        );
         notificationManager.cancelAll();
 
         AndroidNavigationNotificationDebugHelper.postSymbolTestNotification(

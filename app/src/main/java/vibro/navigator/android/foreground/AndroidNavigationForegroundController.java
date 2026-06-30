@@ -30,6 +30,7 @@ import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.ui.NavigationActivity;
+import vibro.navigator.settings.AppNotificationSettings;
 
 public final class AndroidNavigationForegroundController implements NavigationForegroundController {
 
@@ -86,6 +87,9 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public void sendImminentTurnNotification(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
+        if (!canSendNavigationNotification()) {
+            return;
+        }
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
         String channelId = directionInfo.kind == DirectionKind.LEFT
                 ? NavigationService.CHANNEL_ID_TURN_LEFT
@@ -97,6 +101,9 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public void sendStationaryOrientationNotification(@NonNull StationaryOrientationAdvisor.Decision decision) {
+        if (!canSendNavigationNotification()) {
+            return;
+        }
         String channelId = decision.turnRight()
                 ? NavigationService.CHANNEL_ID_TURN_RIGHT
                 : NavigationService.CHANNEL_ID_TURN_LEFT;
@@ -127,6 +134,9 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public void sendOffRouteNotification(@NonNull NavigationRerouteNotice rerouteNotice) {
+        if (!canSendNavigationNotification()) {
+            return;
+        }
         String title = service.getString(R.string.notification_off_route_title);
         String message = NavigationTextFormatter.formatOffRouteNotification(service, rerouteNotice);
         sendAlertNotification(title, message);
@@ -135,6 +145,9 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public void sendWrongDirectionNotification(@NonNull NavigationWrongDirectionNotice wrongDirectionNotice) {
+        if (!canSendNavigationNotification()) {
+            return;
+        }
         String title = service.getString(R.string.notification_wrong_direction_title);
         String message = NavigationTextFormatter.formatWrongDirectionNotification(service, wrongDirectionNotice);
         sendAlertNotification(title, message);
@@ -200,6 +213,14 @@ public final class AndroidNavigationForegroundController implements NavigationFo
                 .setDeleteIntent(stopNavigationPendingIntent)
                 .setContentIntent(openNavigationPendingIntent)
                 .build();
+    }
+
+    private boolean canSendNavigationNotification() {
+        boolean enabled = AppNotificationSettings.areNavigationNotificationsEnabled(service);
+        if (!enabled) {
+            AppLogger.d(TAG, "Navigation alert notification suppressed by setting");
+        }
+        return enabled;
     }
 
     private void sendTurnNotification(

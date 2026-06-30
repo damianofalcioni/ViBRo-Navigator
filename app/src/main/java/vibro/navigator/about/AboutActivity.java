@@ -39,6 +39,7 @@ public class AboutActivity extends Activity {
         Switch imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
         Switch lightThemeSwitch = findViewById(R.id.aboutLightThemeSwitch);
         Switch surroundingStreetsSwitch = findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
+        Switch navigationNotificationsSwitch = findViewById(R.id.aboutNavigationNotificationsSwitch);
         Switch poiCategoriesSwitch = findViewById(R.id.aboutPoiCategoriesSwitch);
         View poiCategoriesButton = findViewById(R.id.aboutPoiCategoriesButton);
         View maneuverVoiceSettingsButton = findViewById(R.id.aboutManeuverVoiceSettingsButton);
@@ -57,6 +58,7 @@ public class AboutActivity extends Activity {
                 imperialUnitsSwitch,
                 lightThemeSwitch,
                 surroundingStreetsSwitch,
+                navigationNotificationsSwitch,
                 this::scheduleDiagnosticSectionRender
         );
         settingsSwitches.configure();
