@@ -673,6 +673,7 @@ The navigation UI must show the following in large text:
 - When Log enabled is switched on during an app session, the app must create a fresh log file for the remaining logs in that session
 - A single log file must contain all logs written from the app session's log-file creation until termination or until logging is switched off
 - Log files must use the `vibro-navigator-log-yyyymmddhhmmss.txt` naming pattern, with a collision suffix when needed so app sessions opened close together do not overwrite each other
+- The first entry in each newly created log file must report Android version/API level plus relevant app build, device, locale, screen, and log-file context before other app startup or setting-change logs
 - When logging is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
 - The about page Diagnostic section must currently list the app's used live inputs:

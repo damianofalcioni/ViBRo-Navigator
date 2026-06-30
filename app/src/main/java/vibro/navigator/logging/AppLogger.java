@@ -33,6 +33,7 @@ public final class AppLogger {
             logFile = null;
             if (loggingEnabled) {
                 ensureLogFileLocked(appContext, true);
+                writeSessionInfoLocked(appContext);
             }
         }
     }
@@ -67,6 +68,7 @@ public final class AppLogger {
             loggingEnabled = enabled;
             if (loggingEnabled) {
                 ensureLogFileLocked(appContext, true);
+                writeSessionInfoLocked(appContext);
             } else {
                 logFile = null;
             }
@@ -192,6 +194,16 @@ public final class AppLogger {
 
     private static void ensureLogFileLocked(@NonNull Context context, boolean forceRefresh) {
         logFile = AppLogFiles.ensureLogFile(context, logFile, forceRefresh);
+    }
+
+    private static void writeSessionInfoLocked(@NonNull Context context) {
+        if (logFile != null) {
+            AppLogFiles.appendBlock(logFile, buildLogPrefix(
+                    "INFO",
+                    TAG,
+                    AppLogSessionInfo.format(context, logFile)
+            ));
+        }
     }
 
     private static boolean readLogEnabled(@NonNull Context context) {
