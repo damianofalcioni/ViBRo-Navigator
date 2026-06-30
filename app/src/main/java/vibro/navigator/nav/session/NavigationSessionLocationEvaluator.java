@@ -10,6 +10,7 @@ import java.util.Collections;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
@@ -74,10 +75,28 @@ final class NavigationSessionLocationEvaluator {
             @NonNull NavigationLocation rawLocation,
             long nowMs
     ) {
+        return onRawLocationChanged(
+                textResources,
+                currentRequest,
+                rawLocation,
+                nowMs,
+                NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS
+        );
+    }
+
+    @NonNull
+    NavigationLocationUpdateResult onRawLocationChanged(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRequest currentRequest,
+            @NonNull NavigationLocation rawLocation,
+            long nowMs,
+            long expectedUpdateIntervalMs
+    ) {
         NavigationSessionLocationState.Update update = locationState.onRawLocationChanged(
                 rawLocation,
                 nowMs,
-                shouldAllowStartupFilterReset(currentRequest)
+                shouldAllowStartupFilterReset(currentRequest),
+                expectedUpdateIntervalMs
         );
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
@@ -100,7 +119,7 @@ final class NavigationSessionLocationEvaluator {
         }
 
         if (currentRequest.isStraightLine()) {
-            long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs);
+            long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs, expectedUpdateIntervalMs);
             NavigationRouteEvaluation evaluation = straightLineState.evaluateLocation(
                     currentRequest,
                     filtered,
@@ -127,7 +146,7 @@ final class NavigationSessionLocationEvaluator {
             );
         }
 
-        long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs);
+        long fastChecksUntilMs = warmupController.fastChecksUntilMsForEvaluation(nowMs, expectedUpdateIntervalMs);
         NavigationRouteEvaluation evaluation = routeState.evaluateLocation(
                 filtered,
                 locationState.speedMps(filtered),

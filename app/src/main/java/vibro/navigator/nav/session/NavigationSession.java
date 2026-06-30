@@ -139,6 +139,22 @@ public final class NavigationSession {
     }
 
     @NonNull
+    public NavigationLocationUpdateResult onRawLocationChanged(
+            @NonNull Context context,
+            @NonNull NavigationLocation location,
+            long nowMs,
+            long expectedUpdateIntervalMs
+    ) {
+        return ResourceAdapter.onRawLocationChanged(
+                this,
+                new AndroidNavigationTextResources(context),
+                location,
+                nowMs,
+                expectedUpdateIntervalMs
+        );
+    }
+
+    @NonNull
     public List<NogoPoint> addBlockedPointsAhead(long nowMs) {
         return components.routeState.addBlockedPointsAhead(
                 components.locationState.getLastFilteredLocation(),
@@ -290,11 +306,29 @@ public final class NavigationSession {
                 @NonNull NavigationLocation location,
                 long nowMs
         ) {
+            return onRawLocationChanged(
+                    session,
+                    textResources,
+                    location,
+                    nowMs,
+                    vibro.navigator.nav.location.NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS
+            );
+        }
+
+        @NonNull
+        public static NavigationLocationUpdateResult onRawLocationChanged(
+                @NonNull NavigationSession session,
+                @NonNull NavigationTextResources textResources,
+                @NonNull NavigationLocation location,
+                long nowMs,
+                long expectedUpdateIntervalMs
+        ) {
             return session.components.locationEvaluator.onRawLocationChanged(
                     textResources,
                     session.currentRequest,
                     location,
-                    nowMs
+                    nowMs,
+                    expectedUpdateIntervalMs
             );
         }
 

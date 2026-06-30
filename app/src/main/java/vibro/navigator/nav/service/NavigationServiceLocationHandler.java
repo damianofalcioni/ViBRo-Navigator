@@ -117,8 +117,15 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             AppLogger.d(TAG, "Ignoring location update while navigation is paused");
             return;
         }
+        long expectedUpdateIntervalMs = controllers.locationController
+                .getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         NavigationLocationUpdateResult result =
-                navigationSession.onRawLocationChanged(context, location, elapsedRealtimeClock.elapsedRealtimeMs());
+                navigationSession.onRawLocationChanged(
+                        context,
+                        location,
+                        elapsedRealtimeClock.elapsedRealtimeMs(),
+                        expectedUpdateIntervalMs
+                );
         if (result.isDropped()) {
             return;
         }

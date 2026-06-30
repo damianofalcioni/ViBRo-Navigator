@@ -183,6 +183,51 @@ public class NavigationSessionTest {
     }
 
     @Test
+    public void onRawLocationChanged_keepsDynamicBucketAfterExpectedLongInterval() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        ));
+        long nowMs = 1_000L;
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+
+        ResourceAdapter.onRawLocationChanged(session, context, locationWithSpeed(0.0, 0.0, nowMs, 2f), nowMs);
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
+        assertNotNull(snapshot);
+        ResourceAdapter.applyRouteResult(session, context, snapshot, routeWithoutHints(), nowMs);
+        NavigationLocationUpdateResult result = null;
+        long sampleTimeMs = nowMs;
+        for (int i = 1; i <= 6; i++) {
+            sampleTimeMs = nowMs + i * 3_000L;
+            result = ResourceAdapter.onRawLocationChanged(
+                    session,
+                    context,
+                    locationWithSpeed(0.0, i * 0.00001, sampleTimeMs, 2f),
+                    sampleTimeMs
+            );
+        }
+        assertNotNull(result);
+        long dynamicIntervalMs = result.getSuggestedUpdateIntervalMs();
+        assertTrue(dynamicIntervalMs > 3_000L);
+
+        long expectedLongIntervalTimeMs = sampleTimeMs + dynamicIntervalMs;
+        NavigationLocationUpdateResult longIntervalResult = ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.00007, expectedLongIntervalTimeMs, 2f),
+                expectedLongIntervalTimeMs,
+                dynamicIntervalMs
+        );
+
+        assertFalse(longIntervalResult.isDropped());
+        assertEquals(dynamicIntervalMs, longIntervalResult.getSuggestedUpdateIntervalMs());
+    }
+
+    @Test
     public void straightLineModeKeepsGuidanceDirectWithoutRouteRequestOrManeuverEvents() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();

@@ -1,9 +1,12 @@
 package vibro.navigator.nav.session;
 
+import vibro.navigator.nav.location.NavigationLocationController;
+
 public final class NavigationWarmupController {
 
     private static final long MAX_FAST_POLLING_MS = 60_000L;
     private static final long LONG_LOCATION_UPDATE_GAP_MS = 15_000L;
+    private static final long EXPECTED_UPDATE_INTERVAL_GRACE_MS = 10_000L;
     private static final long STABLE_SAMPLE_SPACING_MS = 3_000L;
     private static final int STABLE_ON_ROUTE_UPDATES_TO_EXIT = 5;
     private static final float STABLE_ACCURACY_METERS = 25f;
@@ -31,7 +34,11 @@ public final class NavigationWarmupController {
     }
 
     public long fastChecksUntilMsForEvaluation(long nowMs) {
-        if (shouldResumeFastPollingAfterGap(nowMs)) {
+        return fastChecksUntilMsForEvaluation(nowMs, NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS);
+    }
+
+    public long fastChecksUntilMsForEvaluation(long nowMs, long expectedUpdateIntervalMs) {
+        if (shouldResumeFastPollingAfterGap(nowMs, expectedUpdateIntervalMs)) {
             fastChecksUntilMs = nowMs + MAX_FAST_POLLING_MS;
             stableOnRouteUpdateCount = 0;
         }
@@ -64,10 +71,13 @@ public final class NavigationWarmupController {
                 && accuracyMeters <= STABLE_ACCURACY_METERS;
     }
 
-    private boolean shouldResumeFastPollingAfterGap(long nowMs) {
-        return lastEvaluationMs > 0L
-                && nowMs - lastEvaluationMs >= LONG_LOCATION_UPDATE_GAP_MS
-                && nowMs > fastChecksUntilMs;
+    private boolean shouldResumeFastPollingAfterGap(long nowMs, long expectedUpdateIntervalMs) {
+        if (lastEvaluationMs <= 0L || nowMs <= fastChecksUntilMs) {
+            return false;
+        }
+        long gapMs = nowMs - lastEvaluationMs;
+        long expectedGapMs = Math.max(0L, expectedUpdateIntervalMs) + EXPECTED_UPDATE_INTERVAL_GRACE_MS;
+        return gapMs >= LONG_LOCATION_UPDATE_GAP_MS && gapMs > expectedGapMs;
     }
 
     private boolean isTooSoonAfterCountedStableUpdate(long nowMs) {

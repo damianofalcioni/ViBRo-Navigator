@@ -266,6 +266,22 @@ public class NavigationSessionLocationStateTest {
         assertFalse(accepted.isReacquiringAfterLongGap());
     }
 
+    @Test
+    public void onRawLocationChanged_doesNotReacquireAfterExpectedLongInterval() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        long baseTimeMs = System.currentTimeMillis() - 61_000L;
+
+        state.onRawLocationChanged(location(baseTimeMs, 48.2082000, 16.3738000, 1.0f), 1_000L);
+        NavigationSessionLocationState.Update accepted = state.onRawLocationChanged(
+                location(System.currentTimeMillis(), 48.2082600, 16.3738000, 1.0f),
+                61_000L,
+                true,
+                60_000L
+        );
+
+        assertFalse(accepted.isReacquiringAfterLongGap());
+    }
+
     private static NavigationLocation location(long timeMs, double lat, double lon, float speedMps) {
         NavigationLocation location = new NavigationLocation(NavigationLocationProviders.GPS_PROVIDER);
         location.setLatitude(lat);

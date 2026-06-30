@@ -102,6 +102,20 @@ public class NavigationWarmupControllerTest {
     }
 
     @Test
+    public void fastChecksUntilMsForEvaluation_keepsDynamicIntervalAfterExpectedLongGap() {
+        NavigationWarmupController controller = new NavigationWarmupController();
+        controller.reset(1_000L);
+
+        for (int i = 0; i < 5; i++) {
+            controller.recordEvaluation(true, 10f, 2_000L + i * 3_000L);
+        }
+
+        long fastChecksUntilMs = controller.fastChecksUntilMsForEvaluation(78_000L, 60_000L);
+
+        assertTrue(fastChecksUntilMs < 78_000L);
+    }
+
+    @Test
     public void fastChecksUntilMsForEvaluation_keepsDynamicIntervalAfterShortEvaluationGap() {
         NavigationWarmupController controller = new NavigationWarmupController();
         controller.reset(1_000L);

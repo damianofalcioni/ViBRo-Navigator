@@ -2,6 +2,7 @@ package vibro.navigator.nav.session;
 
 
 import vibro.navigator.nav.location.LiveLocationCoordinator;
+import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.location.NavigationLocationMotionModel;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
@@ -55,6 +56,21 @@ public final class NavigationSessionLocationState {
             long nowMs,
             boolean allowStartupFilterReset
     ) {
+        return onRawLocationChanged(
+                rawLocation,
+                nowMs,
+                allowStartupFilterReset,
+                NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS
+        );
+    }
+
+    @NonNull
+    public Update onRawLocationChanged(
+            @NonNull NavigationLocation rawLocation,
+            long nowMs,
+            boolean allowStartupFilterReset,
+            long expectedUpdateIntervalMs
+    ) {
         liveLocationCoordinator.remember(rawLocation);
         NavigationLocation selected = liveLocationCoordinator.selectBestLiveLocation(nowMs);
         if (selected == null) {
@@ -70,7 +86,7 @@ public final class NavigationSessionLocationState {
         }
         liveLocationCoordinator.markDispatched(selected);
 
-        boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs);
+        boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs, expectedUpdateIntervalMs);
         if (reacquiringAfterLongGap) {
             kalman.reset();
             motionModel.reset();
