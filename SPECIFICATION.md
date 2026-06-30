@@ -240,12 +240,13 @@ The implementation must use BRouter integration compatible with these references
 
 - When surrounding-street display is enabled, the app must read nearby street geometry only from BRouter's already downloaded local `segments4` `.rd5` files
 - Surrounding-street display must not download additional maps and must not add an external map-rendering or map-parsing library
-- The surrounding-street compass overlay must be shown for moving-scale compass viewports with a valid positive radius, including high-speed expanded radii, but not for the full-route overview; drawing should remain clipped to the current compass viewport, while extraction should use a bounded in-memory session cache of local spatial chunks selected from the current position and route-ahead corridor
+- The surrounding-street compass overlay must be shown for moving-scale compass viewports with a valid positive radius, including high-speed expanded radii, but not for the full-route overview; drawing should remain clipped to the current compass viewport, while extraction should use a bounded in-memory session cache of local spatial chunks selected from a cache area around the current viewport and a lateral route-ahead corridor, both wider than the visible compass radius
 - Surrounding streets in the compass must use the same active color as an enabled settings switch, rather than the compass orange accent color
 - `segments4` discovery must use the same version-agnostic storage probing strategy as external `profiles2` discovery, including primary and removable storage and both `Android/media/.../brouter/segments4` and legacy `Android/data/.../brouter/segments4` layouts
 - On Android versions where BRouter's legacy external `Android/data/.../segments4` files are readable only with runtime external-storage access, enabling surrounding-street display must request that storage access before persisting the setting
+- If surrounding-street display is already enabled but legacy external-storage access is missing when navigation starts, startup must request that access before launching navigation; if denied, navigation must continue without the street overlay and leave the setting disabled
 - Missing, inaccessible, corrupt, unsupported, or out-of-area BRouter segment files must fail quietly by omitting the surrounding-street overlay rather than blocking navigation or route guidance
-- BRouter segment reading for compass context must stay bounded to the current surrounding area and a fixed maximum number of drawable street segments
+- BRouter segment reading for compass context must stay bounded to the current surrounding area, route-ahead corridor, session cache caps, and a fixed maximum number of drawable street segments
 
 #### 4.3.4 GeoJSON output
 

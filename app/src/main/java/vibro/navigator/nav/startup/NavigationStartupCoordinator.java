@@ -5,6 +5,9 @@ import vibro.navigator.nav.model.NavigationRequest;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
 
@@ -220,10 +223,36 @@ public final class NavigationStartupCoordinator {
             @NonNull Host host,
             @NonNull NavigationPreflight.Status status
     ) {
-        String message = host.getString(R.string.msg_permission_location_rationale);
-        if (status.missingPermissions.contains(NavigationPreflight.PERMISSION_POST_NOTIFICATIONS)) {
-            message = message + "\n\n" + host.getString(R.string.msg_permission_notifications_rationale);
+        List<String> messages = new ArrayList<>();
+        if (isMissingLocationPermission(status)) {
+            messages.add(host.getString(R.string.msg_permission_location_rationale));
         }
-        return message;
+        if (status.missingPermissions.contains(NavigationPreflight.PERMISSION_POST_NOTIFICATIONS)) {
+            messages.add(host.getString(R.string.msg_permission_notifications_rationale));
+        }
+        if (status.missingPermissions.contains(NavigationPreflight.PERMISSION_READ_EXTERNAL_STORAGE)) {
+            messages.add(host.getString(R.string.msg_compass_surrounding_streets_storage_permission_required));
+        }
+        if (messages.isEmpty()) {
+            return host.getString(R.string.msg_permission_location_rationale);
+        }
+        return joinMessages(messages);
+    }
+
+    private static boolean isMissingLocationPermission(@NonNull NavigationPreflight.Status status) {
+        return status.missingPermissions.contains(NavigationPreflight.PERMISSION_FINE_LOCATION)
+                || status.missingPermissions.contains(NavigationPreflight.PERMISSION_COARSE_LOCATION);
+    }
+
+    @NonNull
+    private static String joinMessages(@NonNull List<String> messages) {
+        StringBuilder out = new StringBuilder();
+        for (String message : messages) {
+            if (out.length() > 0) {
+                out.append("\n\n");
+            }
+            out.append(message);
+        }
+        return out.toString();
     }
 }

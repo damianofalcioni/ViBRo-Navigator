@@ -11,6 +11,7 @@ public final class NavigationPreflight {
     public static final String PERMISSION_FINE_LOCATION = "android.permission.ACCESS_FINE_LOCATION";
     public static final String PERMISSION_COARSE_LOCATION = "android.permission.ACCESS_COARSE_LOCATION";
     public static final String PERMISSION_POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS";
+    public static final String PERMISSION_READ_EXTERNAL_STORAGE = "android.permission.READ_EXTERNAL_STORAGE";
 
     public static final class Status {
         @NonNull

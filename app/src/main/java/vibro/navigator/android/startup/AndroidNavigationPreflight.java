@@ -21,7 +21,9 @@ import java.util.List;
 
 import vibro.navigator.android.location.AndroidLocationDiagnostics;
 import vibro.navigator.android.location.AndroidLocationPermissions;
+import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.nav.startup.NavigationPreflight;
+import vibro.navigator.settings.AppCompassSettings;
 
 public final class AndroidNavigationPreflight {
 
@@ -95,6 +97,10 @@ public final class AndroidNavigationPreflight {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
                 && !hasPermission(activity, Manifest.permission.POST_NOTIFICATIONS)) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        if (AppCompassSettings.isSurroundingStreetsEnabled(activity)
+                && AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity)) {
+            permissions.add(NavigationPreflight.PERMISSION_READ_EXTERNAL_STORAGE);
         }
         return permissions;
     }

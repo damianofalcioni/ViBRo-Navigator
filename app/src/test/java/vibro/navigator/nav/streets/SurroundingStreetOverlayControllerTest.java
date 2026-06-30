@@ -63,14 +63,15 @@ public class SurroundingStreetOverlayControllerTest {
         controller.onCompassViewport(compassState());
         assertStateEmitted();
 
-        assertEquals(1, repository.calls);
-        assertEquals(1, controller.currentOverlay().segments.size());
+        int initialCalls = repository.calls;
+        assertTrue(initialCalls > 1);
+        assertEquals(initialCalls, controller.currentOverlay().segments.size());
 
         clock.nowMs = 10_000L;
         controller.onAcceptedLocation(location(48.2083d, 16.3739d));
 
-        assertEquals(1, repository.calls);
-        assertEquals(1, controller.currentOverlay().segments.size());
+        assertEquals(initialCalls, repository.calls);
+        assertEquals(initialCalls, controller.currentOverlay().segments.size());
     }
 
     @Test

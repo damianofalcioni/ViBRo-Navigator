@@ -16,9 +16,9 @@ import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 
 final class SurroundingStreetOverlayCache {
-    private static final int MAX_CHUNKS = 120;
-    private static final int MAX_CACHED_SEGMENTS = 20_000;
-    private static final int MAX_CACHED_POINTS = 80_000;
+    private static final int MAX_CHUNKS = 240;
+    private static final int MAX_CACHED_SEGMENTS = 40_000;
+    private static final int MAX_CACHED_POINTS = 160_000;
     private static final double FINGERPRINT_SCALE = 1_000_000.0d;
     private static final String KEY_SEPARATOR = ":";
 

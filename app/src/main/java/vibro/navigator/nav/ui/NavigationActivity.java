@@ -282,6 +282,13 @@ public class NavigationActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
+        if (NavigationActivityPermissionResultHandler.disableSurroundingStreetsWhenStorageDenied(
+                this,
+                permissions,
+                grantResults
+        )) {
+            showShortToast(R.string.msg_compass_surrounding_streets_storage_permission_required);
+        }
         startupCoordinator.onRequestPermissionsResult(requestCode);
     }
 

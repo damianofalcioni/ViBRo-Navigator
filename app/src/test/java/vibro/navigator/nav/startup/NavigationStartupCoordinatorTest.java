@@ -57,6 +57,38 @@ public class NavigationStartupCoordinatorTest {
     }
 
     @Test
+    public void ensureReadyThenStart_usesStreetStorageRationaleWhenOnlyLegacyStorageIsMissing() {
+        TestHost host = new TestHost();
+        NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(
+                host,
+                () -> NavigationPreflight.Status.create(
+                        Collections.singletonList(NavigationPreflight.PERMISSION_READ_EXTERNAL_STORAGE),
+                        true,
+                        true,
+                        true,
+                        false
+                )
+        );
+
+        coordinator.setAutoStartNavigation(true);
+        coordinator.ensureReadyThenStart();
+
+        assertEquals(
+                "message:" + vibro.navigator.R.string.msg_compass_surrounding_streets_storage_permission_required,
+                host.permissionRationaleMessage
+        );
+        assertNull(host.requestedPermissions);
+
+        host.permissionRationaleAction.run();
+
+        assertArrayEquals(
+                new String[]{NavigationPreflight.PERMISSION_READ_EXTERNAL_STORAGE},
+                host.requestedPermissions
+        );
+        assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS, host.requestPermissionsCode);
+    }
+
+    @Test
     public void ensureReadyThenStart_showsLocationSettingsAndDoesNotStart() {
         TestHost host = new TestHost();
         NavigationStartupCoordinator coordinator = new NavigationStartupCoordinator(

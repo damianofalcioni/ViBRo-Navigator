@@ -18,6 +18,11 @@ final class SurroundingStreetChunkKey {
     }
 
     @NonNull
+    static SurroundingStreetChunkKey fromIndexes(int latIndex, int lonIndex) {
+        return new SurroundingStreetChunkKey(latIndex, lonIndex);
+    }
+
+    @NonNull
     static SurroundingStreetChunkKey from(@NonNull LatLon point) {
         return from(point.lat, point.lon);
     }
@@ -41,6 +46,14 @@ final class SurroundingStreetChunkKey {
     double distanceMetersTo(@NonNull LatLon point) {
         LatLon center = center();
         return GeoMath.distanceMeters(center.lat, center.lon, point.lat, point.lon);
+    }
+
+    int latIndex() {
+        return latIndex;
+    }
+
+    int lonIndex() {
+        return lonIndex;
     }
 
     @Override

@@ -15,13 +15,16 @@ import vibro.navigator.nav.location.NavigationLocation;
 
 final class SurroundingStreetChunkPlanner {
     private static final double ROUTE_SAMPLE_STEP_METERS = 420.0d;
+    private static final float CACHE_RADIUS_MULTIPLIER = 2f;
     private static final float PREFETCH_VISIBLE_RADIUS_MULTIPLIER = 10f;
     private static final float MAX_PREFETCH_DISTANCE_METERS = 20_000f;
-    private static final int MAX_DISPLAY_CHUNKS = 32;
-    private static final int MAX_PREFETCH_CHUNKS = 64;
+    private static final int MAX_DISPLAY_CHUNKS = 64;
+    private static final int MAX_PREFETCH_CHUNKS = 128;
 
     @NonNull
     private final SurroundingStreetViewportPolicy viewportPolicy = new SurroundingStreetViewportPolicy();
+    @NonNull
+    private final SurroundingStreetAreaChunkSelector areaSelector = new SurroundingStreetAreaChunkSelector();
 
     boolean shouldShow(@Nullable NavCompassState compassState) {
         return viewportPolicy.shouldShow(compassState);
@@ -48,7 +51,7 @@ final class SurroundingStreetChunkPlanner {
     ) {
         Set<SurroundingStreetChunkKey> keys = new LinkedHashSet<>();
         keys.add(SurroundingStreetChunkKey.from(current));
-        addRouteKeys(compassState, current, compassState.radiusState.visibleRadiusMeters, keys, MAX_DISPLAY_CHUNKS);
+        areaSelector.addAreaKeys(current, cacheRadiusMeters(compassState), keys, MAX_DISPLAY_CHUNKS);
         return new ArrayList<>(keys);
     }
 
@@ -59,7 +62,15 @@ final class SurroundingStreetChunkPlanner {
     ) {
         Set<SurroundingStreetChunkKey> keys = new LinkedHashSet<>();
         keys.add(SurroundingStreetChunkKey.from(current));
-        addRouteKeys(compassState, current, prefetchDistanceMeters(compassState), keys, MAX_PREFETCH_CHUNKS);
+        areaSelector.addAreaKeys(current, cacheRadiusMeters(compassState), keys, MAX_PREFETCH_CHUNKS);
+        addRouteKeys(
+                compassState,
+                current,
+                prefetchDistanceMeters(compassState),
+                cacheRadiusMeters(compassState),
+                keys,
+                MAX_PREFETCH_CHUNKS
+        );
         return new ArrayList<>(keys);
     }
 
@@ -67,19 +78,21 @@ final class SurroundingStreetChunkPlanner {
             @NonNull NavCompassState compassState,
             @NonNull LatLon current,
             double horizonMeters,
+            float cacheRadiusMeters,
             @NonNull Set<SurroundingStreetChunkKey> keys,
             int maxKeys
     ) {
         if (!compassState.hasRouteGeometry() || horizonMeters <= 0.0d) {
             return;
         }
-        addRouteSegments(compassState, current, horizonMeters, keys, maxKeys);
+        addRouteSegments(compassState, current, horizonMeters, cacheRadiusMeters, keys, maxKeys);
     }
 
     private void addRouteSegments(
             @NonNull NavCompassState compassState,
             @NonNull LatLon current,
             double horizonMeters,
+            float cacheRadiusMeters,
             @NonNull Set<SurroundingStreetChunkKey> keys,
             int maxKeys
     ) {
@@ -91,7 +104,7 @@ final class SurroundingStreetChunkPlanner {
             if (point == null) {
                 continue;
             }
-            remainingMeters -= addSegmentKeys(previous, point, remainingMeters, keys, maxKeys);
+            remainingMeters -= addSegmentKeys(previous, point, remainingMeters, cacheRadiusMeters, keys, maxKeys);
             previous = point;
             if (keys.size() >= maxKeys) {
                 return;
@@ -103,16 +116,17 @@ final class SurroundingStreetChunkPlanner {
             @NonNull LatLon start,
             @NonNull LatLon end,
             double remainingMeters,
+            float cacheRadiusMeters,
             @NonNull Set<SurroundingStreetChunkKey> keys,
             int maxKeys
     ) {
         double segmentMeters = GeoMath.distanceMeters(start.lat, start.lon, end.lat, end.lon);
         if (segmentMeters <= 0.0d) {
-            keys.add(SurroundingStreetChunkKey.from(end));
+            areaSelector.addAreaKeys(end, cacheRadiusMeters, keys, maxKeys);
             return 0.0d;
         }
         double usedMeters = Math.min(segmentMeters, remainingMeters);
-        addInterpolatedSegmentKeys(start, end, segmentMeters, usedMeters, keys, maxKeys);
+        addInterpolatedSegmentKeys(start, end, segmentMeters, usedMeters, cacheRadiusMeters, keys, maxKeys);
         return usedMeters;
     }
 
@@ -121,14 +135,27 @@ final class SurroundingStreetChunkPlanner {
             @NonNull LatLon end,
             double segmentMeters,
             double usedMeters,
+            float cacheRadiusMeters,
             @NonNull Set<SurroundingStreetChunkKey> keys,
             int maxKeys
     ) {
         int steps = Math.max(1, (int) Math.ceil(usedMeters / ROUTE_SAMPLE_STEP_METERS));
         for (int step = 1; step <= steps && keys.size() < maxKeys; step++) {
             double distanceMeters = Math.min(usedMeters, step * ROUTE_SAMPLE_STEP_METERS);
-            keys.add(SurroundingStreetChunkKey.from(interpolate(start, end, distanceMeters / segmentMeters)));
+            areaSelector.addAreaKeys(
+                    interpolate(start, end, distanceMeters / segmentMeters),
+                    cacheRadiusMeters,
+                    keys,
+                    maxKeys
+            );
         }
+    }
+
+    private float cacheRadiusMeters(@NonNull NavCompassState compassState) {
+        float visibleRadiusMeters = compassState.radiusState.visibleRadiusMeters;
+        return Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
+                ? visibleRadiusMeters * CACHE_RADIUS_MULTIPLIER
+                : visibleRadiusMeters;
     }
 
     private float prefetchDistanceMeters(@NonNull NavCompassState compassState) {
