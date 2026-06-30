@@ -23,15 +23,26 @@ final class SurroundingStreetOverlayCache {
     private static final String KEY_SEPARATOR = ":";
 
     @NonNull
+    private final SurroundingStreetTypeFilter typeFilter = new SurroundingStreetTypeFilter();
+    @NonNull
+    private final SurroundingStreetSpeedBucketResolver speedBucketResolver =
+            new SurroundingStreetSpeedBucketResolver();
+    @NonNull
     private final LinkedHashMap<SurroundingStreetChunkKey, Entry> entries =
             new LinkedHashMap<>(16, 0.75f, true);
     private int cachedSegments;
     private int cachedPoints;
+    private SurroundingStreetSpeedBucket activeSpeedBucket;
 
     void clear() {
         entries.clear();
         cachedSegments = 0;
         cachedPoints = 0;
+        resetSpeedBucket();
+    }
+
+    void resetSpeedBucket() {
+        activeSpeedBucket = null;
     }
 
     boolean contains(@NonNull SurroundingStreetChunkKey key) {
@@ -69,10 +80,29 @@ final class SurroundingStreetOverlayCache {
             @NonNull Collection<SurroundingStreetChunkKey> keys,
             int maxSegments
     ) {
+        return overlayFor(keys, maxSegments, SurroundingStreetSpeedBucket.LOW);
+    }
+
+    @NonNull
+    CompassStreetOverlay overlayFor(
+            @NonNull Collection<SurroundingStreetChunkKey> keys,
+            int maxSegments,
+            float referenceSpeedMps
+    ) {
+        activeSpeedBucket = speedBucketResolver.resolve(referenceSpeedMps, activeSpeedBucket);
+        return overlayFor(keys, maxSegments, activeSpeedBucket);
+    }
+
+    @NonNull
+    CompassStreetOverlay overlayFor(
+            @NonNull Collection<SurroundingStreetChunkKey> keys,
+            int maxSegments,
+            @NonNull SurroundingStreetSpeedBucket speedBucket
+    ) {
         List<CompassStreetSegment> segments = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (SurroundingStreetChunkKey key : keys) {
-            addSegments(entries.get(key), segments, seen, maxSegments);
+            addSegments(entries.get(key), segments, seen, maxSegments, speedBucket);
             if (segments.size() >= maxSegments) {
                 break;
             }
@@ -84,12 +114,16 @@ final class SurroundingStreetOverlayCache {
             @Nullable Entry entry,
             @NonNull List<CompassStreetSegment> segments,
             @NonNull Set<String> seen,
-            int maxSegments
+            int maxSegments,
+            @NonNull SurroundingStreetSpeedBucket speedBucket
     ) {
         if (entry == null || entry.overlay.isEmpty()) {
             return;
         }
         for (CompassStreetSegment segment : entry.overlay.segments) {
+            if (!typeFilter.isVisible(segment, speedBucket)) {
+                continue;
+            }
             if (seen.add(fingerprint(segment))) {
                 segments.add(segment);
             }

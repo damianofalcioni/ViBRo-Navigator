@@ -125,7 +125,11 @@ public final class SurroundingStreetOverlayController {
             return;
         }
         activeSelection = chunkPlanner.select(lastCompassState, lastAcceptedLocation);
-        overlay = overlayCache.overlayFor(activeSelection.displayKeys, MAX_DISPLAY_STREET_SEGMENTS);
+        overlay = overlayCache.overlayFor(
+                activeSelection.displayKeys,
+                MAX_DISPLAY_STREET_SEGMENTS,
+                lastCompassState.displayMode.referenceSpeedMps
+        );
     }
 
     private void requestOverlayIfNeeded() {
@@ -221,5 +225,6 @@ public final class SurroundingStreetOverlayController {
         viewportActive = false;
         activeSelection = SurroundingStreetChunkSelection.EMPTY;
         overlay = CompassStreetOverlay.EMPTY;
+        overlayCache.resetSpeedBucket();
     }
 }

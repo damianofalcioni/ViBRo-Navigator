@@ -3,6 +3,8 @@ package vibro.navigator.brouter;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Arrays;
+
 // Adapted from BRouter btools.codec.TagValueCoder (MIT) for rd5 dictionary traversal.
 final class Rd5TagValueCoder {
     @Nullable
@@ -52,8 +54,7 @@ final class Rd5TagValueCoder {
             tagWriter.encodeVarBits(delta);
             tagWriter.encodeVarBits(context.decodeVarBits());
         }
-        tagWriter.closeAndGetEncodedLength();
-        return new TagValue();
+        return new TagValue(tagBuffer, tagWriter.closeAndGetEncodedLength());
     }
 
     private static final class TreeNode {
@@ -64,5 +65,16 @@ final class Rd5TagValueCoder {
     }
 
     static final class TagValue {
+        @NonNull
+        private final byte[] data;
+
+        TagValue(@NonNull byte[] source, int length) {
+            data = Arrays.copyOf(source, length);
+        }
+
+        @NonNull
+        byte[] data() {
+            return data;
+        }
     }
 }

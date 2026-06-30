@@ -25,6 +25,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.compass.CompassStreetType;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
@@ -75,6 +76,23 @@ public class SurroundingStreetOverlayControllerTest {
     }
 
     @Test
+    public void speedBucketChangeFiltersCachedOverlayWithoutReloadingChunks() throws InterruptedException {
+        repository.streetType = CompassStreetType.FOOTWAY;
+
+        controller.onAcceptedLocation(location(48.2082d, 16.3738d));
+        controller.onCompassViewport(compassStateForSpeedKmh(20f));
+        assertStateEmitted();
+
+        int initialCalls = repository.calls;
+        assertEquals(initialCalls, controller.currentOverlay().segments.size());
+
+        controller.onCompassViewport(compassStateForSpeedKmh(90f));
+
+        assertEquals(initialCalls, repository.calls);
+        assertTrue(controller.currentOverlay().isEmpty());
+    }
+
+    @Test
     public void routeAheadPrefetchStartsAfterVisibleChunkLoad() throws InterruptedException {
         stateLatch = new CountDownLatch(2);
 
@@ -93,10 +111,18 @@ public class SurroundingStreetOverlayControllerTest {
     }
 
     private static NavCompassState compassState() {
+        return compassState(1f);
+    }
+
+    private static NavCompassState compassStateForSpeedKmh(float speedKmh) {
+        return compassState(speedKmh / 3.6f);
+    }
+
+    private static NavCompassState compassState(float referenceSpeedMps) {
         return NavCompassState.fromProjectedPoints(
                 0f,
                 null,
-                1f,
+                referenceSpeedMps,
                 120f,
                 5f,
                 true,
@@ -164,6 +190,7 @@ public class SurroundingStreetOverlayControllerTest {
 
     private static final class CountingRepository implements SurroundingStreetRepository {
         private int calls;
+        private CompassStreetType streetType = CompassStreetType.OTHER;
 
         @NonNull
         @Override
@@ -178,7 +205,7 @@ public class SurroundingStreetOverlayControllerTest {
             return new CompassStreetOverlay(Collections.singletonList(new CompassStreetSegment(Arrays.asList(
                     new LatLon(latitude, longitude),
                     new LatLon(latitude + 0.0001d, longitude)
-            ))));
+            ), streetType)));
         }
     }
 }

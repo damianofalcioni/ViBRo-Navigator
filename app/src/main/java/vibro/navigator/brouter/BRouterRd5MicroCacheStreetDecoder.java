@@ -8,6 +8,7 @@ import java.util.List;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.compass.CompassStreetType;
 
 // Adapted from BRouter btools.codec.MicroCache2 (MIT), emitting only forward geometry lines.
 final class BRouterRd5MicroCacheStreetDecoder {
@@ -142,8 +143,12 @@ final class BRouterRd5MicroCacheStreetDecoder {
             remainingLon = externalLonDiff.decodeSignedValue();
             remainingLat = externalLatDiff.decodeSignedValue();
         }
-        wayTagCoder.decodeTagValueSet();
+        CompassStreetType streetType = BRouterRd5HighwayTags.streetType(wayTagCoder.decodeTagValueSet());
         if (reverse) {
+            return;
+        }
+        if (streetType == null) {
+            skipForwardGeometry(context, transferEleDiff, remainingLon, remainingLat);
             return;
         }
         int targetLon = sourceLon + remainingLon;
@@ -159,7 +164,27 @@ final class BRouterRd5MicroCacheStreetDecoder {
                 remainingLat
         );
         if (points.size() >= 2 && bounds.intersects(points)) {
-            out.add(new CompassStreetSegment(points));
+            out.add(new CompassStreetSegment(points, streetType));
+        }
+    }
+
+    private void skipForwardGeometry(
+            @NonNull Rd5StatCoderContext context,
+            @NonNull Rd5NoisyDiffCoder transferEleDiff,
+            int remainingLon,
+            int remainingLat
+    ) {
+        int transferCount = context.decodeVarBits();
+        int divisorCount = transferCount + 1;
+        int lonRemaining = remainingLon;
+        int latRemaining = remainingLat;
+        for (int transferIndex = 0; transferIndex < transferCount; transferIndex++) {
+            int dlon = context.decodePredictedValue(lonRemaining / divisorCount);
+            int dlat = context.decodePredictedValue(latRemaining / divisorCount);
+            lonRemaining -= dlon;
+            latRemaining -= dlat;
+            divisorCount--;
+            transferEleDiff.decodeSignedValue();
         }
     }
 
