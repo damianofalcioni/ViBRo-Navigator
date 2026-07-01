@@ -520,6 +520,7 @@ The navigation UI must show the following in large text:
 
 - The navigation UI must show a single GPS status line formatted as `<speed> ↑<elev> <bearing> • <accuracy> <bearing-accuracy> • (<sat>) #<fix-count> • <countdown>`
 - That line must show the current speed, current elevation, current horizontal accuracy, GPS bearing, GPS bearing accuracy, the current number of GNSS satellites used in the fix, and the total number of accepted location fixes acquired during the current navigation session, in that exact order
+- GNSS satellite-status callback tracking may be suspended while the phone navigation UI is not visible or the screen is non-interactive; normal navigation location updates must continue, and the last known satellite count should be retained until satellite-status tracking resumes
 - The displayed speed must suppress raw provider speed when recent filtered fixes show only stationary jitter
 - The current horizontal accuracy and GPS bearing-accuracy values in that line must be emphasized in orange when they are available
 - That GPS status line must stay on a single line and should reduce its text size as needed instead of wrapping onto a second line

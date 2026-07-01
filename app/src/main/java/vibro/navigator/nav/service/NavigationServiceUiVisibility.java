@@ -7,28 +7,36 @@ import androidx.annotation.NonNull;
 
 public final class NavigationServiceUiVisibility implements NavigationOrientationController.CompassUiState {
 
+    public interface DisplayActivityListener {
+        void onDisplayActivityChanged(boolean active);
+    }
+
     private final NavigationSession navigationSession;
     private final NavigationStateBroadcaster stateBroadcaster;
     private final Runnable stateRefresh;
     private final Runnable compassStreetViewportClearer;
+    private final DisplayActivityListener displayActivityListener;
     private boolean navigationUiVisible;
     private boolean screenInteractive = true;
+    private boolean displayActive;
 
     public NavigationServiceUiVisibility(
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationStateBroadcaster stateBroadcaster,
             @NonNull Runnable stateRefresh,
-            @NonNull Runnable compassStreetViewportClearer
+            @NonNull Runnable compassStreetViewportClearer,
+            @NonNull DisplayActivityListener displayActivityListener
     ) {
         this.navigationSession = navigationSession;
         this.stateBroadcaster = stateBroadcaster;
         this.stateRefresh = stateRefresh;
         this.compassStreetViewportClearer = compassStreetViewportClearer;
+        this.displayActivityListener = displayActivityListener;
     }
 
     public void setScreenInteractive(boolean interactive) {
         screenInteractive = interactive;
-        clearCompassStreetViewportIfInactive();
+        onDisplayInputsChanged();
     }
 
     public boolean isScreenInteractive() {
@@ -40,7 +48,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
             return;
         }
         navigationUiVisible = visible;
-        clearCompassStreetViewportIfInactive();
+        onDisplayInputsChanged();
         if (visible && screenInteractive) {
             stateRefresh.run();
         }
@@ -51,10 +59,14 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
             return;
         }
         screenInteractive = interactive;
-        clearCompassStreetViewportIfInactive();
+        onDisplayInputsChanged();
         if (interactive && navigationUiVisible && stateBroadcaster.size() > 0) {
             stateRefresh.run();
         }
+    }
+
+    public void onStateListenersChanged() {
+        onDisplayInputsChanged();
     }
 
     @Override
@@ -86,9 +98,23 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
         stateRefresh.run();
     }
 
+    private void onDisplayInputsChanged() {
+        clearCompassStreetViewportIfInactive();
+        notifyDisplayActivityIfChanged();
+    }
+
     private void clearCompassStreetViewportIfInactive() {
         if (!canUseCompassStreetViewport()) {
             compassStreetViewportClearer.run();
         }
+    }
+
+    private void notifyDisplayActivityIfChanged() {
+        boolean active = canDispatchStateToUi();
+        if (displayActive == active) {
+            return;
+        }
+        displayActive = active;
+        displayActivityListener.onDisplayActivityChanged(active);
     }
 }

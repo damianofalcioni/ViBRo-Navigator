@@ -15,19 +15,29 @@ public class NavigationServiceUiVisibilityTest {
         NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
         CountingRunnable stateRefresh = new CountingRunnable();
         CountingRunnable viewportClearer = new CountingRunnable();
-        NavigationServiceUiVisibility visibility = visibility(broadcaster, stateRefresh, viewportClearer);
+        DisplayActivityRecorder displayActivity = new DisplayActivityRecorder();
+        NavigationServiceUiVisibility visibility = visibility(
+                broadcaster,
+                stateRefresh,
+                viewportClearer,
+                displayActivity
+        );
         broadcaster.register(state -> {
         });
+        visibility.onStateListenersChanged();
         visibility.setNavigationUiVisible(true);
 
         assertTrue(visibility.canUseCompassStreetViewport());
         assertTrue(visibility.canDispatchStateToUi());
+        assertTrue(displayActivity.active);
 
+        int priorViewportClears = viewportClearer.calls;
         visibility.onScreenInteractiveChanged(false);
 
-        assertEquals(1, viewportClearer.calls);
+        assertEquals(priorViewportClears + 1, viewportClearer.calls);
         assertFalse(visibility.canUseCompassStreetViewport());
         assertFalse(visibility.canDispatchStateToUi());
+        assertFalse(displayActivity.active);
     }
 
     @Test
@@ -35,16 +45,25 @@ public class NavigationServiceUiVisibilityTest {
         NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
         CountingRunnable stateRefresh = new CountingRunnable();
         CountingRunnable viewportClearer = new CountingRunnable();
-        NavigationServiceUiVisibility visibility = visibility(broadcaster, stateRefresh, viewportClearer);
+        DisplayActivityRecorder displayActivity = new DisplayActivityRecorder();
+        NavigationServiceUiVisibility visibility = visibility(
+                broadcaster,
+                stateRefresh,
+                viewportClearer,
+                displayActivity
+        );
         broadcaster.register(state -> {
         });
+        visibility.onStateListenersChanged();
         visibility.setNavigationUiVisible(true);
 
+        int priorViewportClears = viewportClearer.calls;
         visibility.setNavigationUiVisible(false);
 
-        assertEquals(1, viewportClearer.calls);
+        assertEquals(priorViewportClears + 1, viewportClearer.calls);
         assertFalse(visibility.canUseCompassStreetViewport());
         assertFalse(visibility.canDispatchStateToUi());
+        assertFalse(displayActivity.active);
     }
 
     @Test
@@ -62,16 +81,46 @@ public class NavigationServiceUiVisibilityTest {
         assertEquals(1, viewportClearer.calls);
     }
 
+    @Test
+    public void listenerRegistrationActivatesVisibleInteractiveDisplay() {
+        NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
+        DisplayActivityRecorder displayActivity = new DisplayActivityRecorder();
+        NavigationServiceUiVisibility visibility = visibility(
+                broadcaster,
+                new CountingRunnable(),
+                new CountingRunnable(),
+                displayActivity
+        );
+
+        visibility.setNavigationUiVisible(true);
+        broadcaster.register(state -> {
+        });
+        visibility.onStateListenersChanged();
+
+        assertTrue(displayActivity.active);
+        assertEquals(1, displayActivity.calls);
+    }
+
     private static NavigationServiceUiVisibility visibility(
             NavigationStateBroadcaster broadcaster,
             CountingRunnable stateRefresh,
             CountingRunnable viewportClearer
     ) {
+        return visibility(broadcaster, stateRefresh, viewportClearer, new DisplayActivityRecorder());
+    }
+
+    private static NavigationServiceUiVisibility visibility(
+            NavigationStateBroadcaster broadcaster,
+            CountingRunnable stateRefresh,
+            CountingRunnable viewportClearer,
+            DisplayActivityRecorder displayActivity
+    ) {
         return new NavigationServiceUiVisibility(
                 new NavigationSession(),
                 broadcaster,
                 stateRefresh,
-                viewportClearer
+                viewportClearer,
+                displayActivity
         );
     }
 
@@ -80,6 +129,17 @@ public class NavigationServiceUiVisibilityTest {
 
         @Override
         public void run() {
+            calls++;
+        }
+    }
+
+    private static final class DisplayActivityRecorder implements NavigationServiceUiVisibility.DisplayActivityListener {
+        private boolean active;
+        private int calls;
+
+        @Override
+        public void onDisplayActivityChanged(boolean active) {
+            this.active = active;
             calls++;
         }
     }

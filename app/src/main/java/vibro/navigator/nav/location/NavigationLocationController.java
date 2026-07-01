@@ -136,6 +136,10 @@ public final class NavigationLocationController {
         refreshNextEvaluationDeadline(lastRequestedLocationMinTimeMs);
     }
 
+    public void setGnssStatusTrackingAllowed(boolean allowed) {
+        gnssStatusTracker.setTrackingAllowed(allowed);
+    }
+
     @Nullable
     public Integer getFixedSatelliteCount() {
         return gnssStatusTracker.getFixedSatelliteCount();

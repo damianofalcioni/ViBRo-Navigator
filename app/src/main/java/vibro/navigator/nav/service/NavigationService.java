@@ -51,7 +51,8 @@ public class NavigationService extends Service {
                     navigationSession,
                     stateBroadcaster,
                     this::emitState,
-                    this::clearCompassStreetViewport
+                    this::clearCompassStreetViewport,
+                    this::setGnssStatusDisplayActive
             );
     private final NavigationServiceRouteRecalculator routeRecalculator =
             new NavigationServiceRouteRecalculator(
@@ -127,6 +128,7 @@ public class NavigationService extends Service {
                 this::emitState,
                 pending -> routeRecalculator.request(pending)
         );
+        setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         AppLogger.i(TAG, "Service created");
     }
 
@@ -165,6 +167,7 @@ public class NavigationService extends Service {
             return;
         }
 
+        setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         runtime().requestLocationUpdates(STARTUP_LOCATION_UPDATE_INTERVAL_MS);
         requestCurrentLocationSeedsIfScreenInteractive();
         runtime().startOrientation();
@@ -188,6 +191,7 @@ public class NavigationService extends Service {
         if (!navigationSession.resume()) {
             return;
         }
+        setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         runtime().requestLocationUpdates(
                 runtime().lastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
@@ -213,7 +217,14 @@ public class NavigationService extends Service {
         runtime().stopTrackingAndOrientation();
         runtime().stopManeuverSpeech();
         stateBroadcaster.clear();
+        uiVisibility.onStateListenersChanged();
         runtime().stopForegroundService();
+    }
+
+    private void setGnssStatusDisplayActive(boolean active) {
+        if (runtime != null) {
+            runtime.setGnssStatusTrackingAllowed(active);
+        }
     }
 
     private void clearCompassStreetViewport() {

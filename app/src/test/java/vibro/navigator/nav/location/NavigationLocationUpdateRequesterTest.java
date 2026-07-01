@@ -174,6 +174,10 @@ public class NavigationLocationUpdateRequesterTest {
         }
 
         @Override
+        public void setTrackingAllowed(boolean allowed) {
+        }
+
+        @Override
         public void reset() {
         }
     }

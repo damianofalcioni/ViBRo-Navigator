@@ -193,6 +193,43 @@ public class NavigationLocationControllerTest {
     }
 
     @Test
+    public void setGnssStatusTrackingAllowed_doesNotStopLocationUpdatesOrClearSatelliteCount() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        FakeGnssTracker gnssTracker = new FakeGnssTracker();
+        NavigationLocationController controller =
+                controller(provider, new FakeFusedLocationUpdateClient(), gnssTracker, clock);
+
+        controller.requestLocationUpdates(10_000L);
+        gnssTracker.fixedSatelliteCount = 8;
+
+        controller.setGnssStatusTrackingAllowed(false);
+
+        assertEquals(Collections.singletonList(GPS_PROVIDER), provider.requestedProviders);
+        assertEquals(Integer.valueOf(8), controller.getFixedSatelliteCount());
+        assertFalse(gnssTracker.trackingAllowed);
+    }
+
+    @Test
+    public void setGnssStatusTrackingAllowed_reenablesTrackerAfterUiReturns() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeGnssTracker gnssTracker = new FakeGnssTracker();
+        NavigationLocationController controller = controller(
+                new FakeLocationProvider(GPS_PROVIDER),
+                new FakeFusedLocationUpdateClient(),
+                gnssTracker,
+                clock
+        );
+
+        controller.setGnssStatusTrackingAllowed(false);
+        controller.requestLocationUpdates(10_000L);
+        controller.setGnssStatusTrackingAllowed(true);
+
+        assertTrue(gnssTracker.trackingAllowed);
+        assertEquals(Collections.singletonList(GPS_PROVIDER), gnssTracker.requestedProviders);
+    }
+
+    @Test
     public void onProviderEnabled_skipsOneShotSeedWhenNotAllowed() {
         MutableClock clock = new MutableClock(5_000L);
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
@@ -239,9 +276,19 @@ public class NavigationLocationControllerTest {
             @NonNull FakeFusedLocationUpdateClient fused,
             @NonNull MutableClock clock
     ) {
+        return controller(provider, fused, new FakeGnssTracker(), clock);
+    }
+
+    @NonNull
+    private static NavigationLocationController controller(
+            @NonNull FakeLocationProvider provider,
+            @NonNull FakeFusedLocationUpdateClient fused,
+            @NonNull FakeGnssTracker gnssTracker,
+            @NonNull MutableClock clock
+    ) {
         return new NavigationLocationController(
                 provider,
-                new FakeGnssTracker(),
+                gnssTracker,
                 fused,
                 () -> false,
                 clock
@@ -359,17 +406,31 @@ public class NavigationLocationControllerTest {
 
     private static final class FakeGnssTracker implements NavigationGnssTracker {
         @Nullable
+        private Integer fixedSatelliteCount;
+        @NonNull
+        private List<String> requestedProviders = Collections.emptyList();
+        private boolean trackingAllowed = true;
+
+        @Nullable
         @Override
         public Integer getFixedSatelliteCount() {
-            return null;
+            return fixedSatelliteCount;
         }
 
         @Override
         public void updateForRequestedProviders(@NonNull List<String> requestedProviders) {
+            this.requestedProviders = new ArrayList<>(requestedProviders);
+        }
+
+        @Override
+        public void setTrackingAllowed(boolean allowed) {
+            trackingAllowed = allowed;
         }
 
         @Override
         public void reset() {
+            fixedSatelliteCount = null;
+            requestedProviders = Collections.emptyList();
         }
     }
 

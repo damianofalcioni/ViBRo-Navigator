@@ -26,6 +26,8 @@ public final class AndroidGnssStatusTracker implements NavigationGnssTracker {
     private GnssStatus.Callback gnssStatusCallback;
     @Nullable
     private Integer fixedSatelliteCount;
+    private boolean gpsProviderRequested;
+    private boolean trackingAllowed = true;
 
     public AndroidGnssStatusTracker(@Nullable LocationManager locationManager) {
         this.locationManager = locationManager;
@@ -39,15 +41,22 @@ public final class AndroidGnssStatusTracker implements NavigationGnssTracker {
 
     @Override
     public void updateForRequestedProviders(@NonNull List<String> requestedProviders) {
-        if (shouldTrackGnssStatus(requestedProviders)) {
-            start();
-        } else {
-            reset();
+        gpsProviderRequested = shouldTrackGnssStatus(requestedProviders);
+        updateTrackingForCurrentState();
+    }
+
+    @Override
+    public void setTrackingAllowed(boolean allowed) {
+        if (trackingAllowed == allowed) {
+            return;
         }
+        trackingAllowed = allowed;
+        updateTrackingForCurrentState();
     }
 
     @Override
     public void reset() {
+        gpsProviderRequested = false;
         stop();
     }
 
@@ -64,6 +73,18 @@ public final class AndroidGnssStatusTracker implements NavigationGnssTracker {
 
     void stop() {
         fixedSatelliteCount = null;
+        stopTracking();
+    }
+
+    private void updateTrackingForCurrentState() {
+        if (!gpsProviderRequested) {
+            stop();
+            return;
+        }
+        if (trackingAllowed) {
+            start();
+            return;
+        }
         stopTracking();
     }
 

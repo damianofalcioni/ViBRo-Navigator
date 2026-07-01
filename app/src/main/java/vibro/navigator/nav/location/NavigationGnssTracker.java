@@ -11,5 +11,7 @@ public interface NavigationGnssTracker {
 
     void updateForRequestedProviders(@NonNull List<String> requestedProviders);
 
+    void setTrackingAllowed(boolean allowed);
+
     void reset();
 }

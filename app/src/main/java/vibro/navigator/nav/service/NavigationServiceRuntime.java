@@ -83,6 +83,10 @@ final class NavigationServiceRuntime {
         tracking.locationController.requestCurrentLocationSeeds();
     }
 
+    void setGnssStatusTrackingAllowed(boolean allowed) {
+        tracking.locationController.setGnssStatusTrackingAllowed(allowed);
+    }
+
     void startOrientation() {
         tracking.orientationController.start();
     }
