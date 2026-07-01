@@ -85,6 +85,9 @@
 
 * **3 easy-to-recognize vibration patterns for turn notification categories**  
   Right turns, left turns, and other instructions can be quickly identified, even with the phone in your pocket.
+  
+* **Initial turn orientation**  
+  At the start of the route, a notification tells you how much to turn to face the route direction.
 
 ---
 
