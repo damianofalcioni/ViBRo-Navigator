@@ -93,13 +93,14 @@
 
 ## 🧭 How It Works
 
-1. Select a **routing profile** from BRouter, or `Straight Line - No BRouter` for direct compass guidance.
-2. Enter a **destination** (or pick from history/map).
-3. Optionally add **intermediate stops**.
-4. Start navigation:
+1. Select a working mode between Route, Round Trip, and Straight Line.
+2. Select a **routing profile** from BRouter (not available in Straight Line mode).
+3. Enter a **destination** or pick from history/map (not available in Round Trip mode).
+4. Optionally add **intermediate stops** (not available in Round Trip mode).
+5. Start navigation:
 
-   * With a BRouter profile, the app calculates the route via BRouter.
-   * With the straight-line profile, the compass points to the next stop or destination and arrival distance/ETA use straight-line legs.
+   * In Route and Round Trip mode, the app calculates the route via BRouter.
+   * In Straight Line mode, the compass points to the next stop or destination and arrival distance/ETA use straight-line legs.
    * Guidance is delivered through:
 
      * Vibrations
