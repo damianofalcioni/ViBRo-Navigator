@@ -134,6 +134,7 @@ public final class NavigationSessionRouteDisplayState {
                         compassMemory.lastReliableMovingVisibleRadiusMeters(),
                         compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
                 )
+                .speedBucketMemory(compassMemory.lastReliableMovingSpeedBucket())
                 .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
                 .routeStartApproachTarget(routeStartApproachTarget)
                 .orientationCue(orientationCue)

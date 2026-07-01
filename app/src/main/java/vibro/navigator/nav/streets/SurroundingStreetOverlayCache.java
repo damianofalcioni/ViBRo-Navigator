@@ -14,6 +14,8 @@ import java.util.Set;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
+import vibro.navigator.nav.policy.NavigationSpeedBucketResolver;
 
 final class SurroundingStreetOverlayCache {
     private static final int MAX_CHUNKS = 240;
@@ -25,14 +27,14 @@ final class SurroundingStreetOverlayCache {
     @NonNull
     private final SurroundingStreetTypeFilter typeFilter = new SurroundingStreetTypeFilter();
     @NonNull
-    private final SurroundingStreetSpeedBucketResolver speedBucketResolver =
-            new SurroundingStreetSpeedBucketResolver();
+    private final NavigationSpeedBucketResolver speedBucketResolver =
+            new NavigationSpeedBucketResolver();
     @NonNull
     private final LinkedHashMap<SurroundingStreetChunkKey, Entry> entries =
             new LinkedHashMap<>(16, 0.75f, true);
     private int cachedSegments;
     private int cachedPoints;
-    private SurroundingStreetSpeedBucket activeSpeedBucket;
+    private NavigationSpeedBucket activeSpeedBucket;
 
     void clear() {
         entries.clear();
@@ -80,7 +82,7 @@ final class SurroundingStreetOverlayCache {
             @NonNull Collection<SurroundingStreetChunkKey> keys,
             int maxSegments
     ) {
-        return overlayFor(keys, maxSegments, SurroundingStreetSpeedBucket.LOW);
+        return overlayFor(keys, maxSegments, NavigationSpeedBucket.LOW);
     }
 
     @NonNull
@@ -97,7 +99,7 @@ final class SurroundingStreetOverlayCache {
     CompassStreetOverlay overlayFor(
             @NonNull Collection<SurroundingStreetChunkKey> keys,
             int maxSegments,
-            @NonNull SurroundingStreetSpeedBucket speedBucket
+            @NonNull NavigationSpeedBucket speedBucket
     ) {
         List<CompassStreetSegment> segments = new ArrayList<>();
         Set<String> seen = new HashSet<>();
@@ -115,7 +117,7 @@ final class SurroundingStreetOverlayCache {
             @NonNull List<CompassStreetSegment> segments,
             @NonNull Set<String> seen,
             int maxSegments,
-            @NonNull SurroundingStreetSpeedBucket speedBucket
+            @NonNull NavigationSpeedBucket speedBucket
     ) {
         if (entry == null || entry.overlay.isEmpty()) {
             return;

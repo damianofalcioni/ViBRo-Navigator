@@ -13,6 +13,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.compass.CompassStreetType;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 
 public class SurroundingStreetOverlayCacheTest {
     private final SurroundingStreetOverlayCache cache = new SurroundingStreetOverlayCache();
@@ -71,17 +72,17 @@ public class SurroundingStreetOverlayCacheTest {
         assertEquals(7, cache.overlayFor(
                 Collections.singletonList(first),
                 10,
-                SurroundingStreetSpeedBucket.LOW
+                NavigationSpeedBucket.LOW
         ).segments.size());
         assertTypes(
-                cache.overlayFor(Collections.singletonList(first), 10, SurroundingStreetSpeedBucket.MEDIUM),
+                cache.overlayFor(Collections.singletonList(first), 10, NavigationSpeedBucket.MEDIUM),
                 CompassStreetType.TERTIARY,
                 CompassStreetType.SECONDARY,
                 CompassStreetType.MOTORWAY,
                 CompassStreetType.RACEWAY
         );
         assertTypes(
-                cache.overlayFor(Collections.singletonList(first), 10, SurroundingStreetSpeedBucket.HIGH),
+                cache.overlayFor(Collections.singletonList(first), 10, NavigationSpeedBucket.HIGH),
                 CompassStreetType.SECONDARY,
                 CompassStreetType.MOTORWAY,
                 CompassStreetType.RACEWAY

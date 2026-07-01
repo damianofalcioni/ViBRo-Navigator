@@ -136,7 +136,7 @@ public class SurroundingStreetChunkPlannerTest {
 
     private static NavCompassState compassState(
             float visibleRadiusMeters,
-            float sixtySecondVisibleRadiusMeters,
+            float movingScaleVisibleRadiusMeters,
             int passedRouteSamplePointCount
     ) {
         return NavCompassState.fromRouteGeometry(
@@ -147,7 +147,7 @@ public class SurroundingStreetChunkPlannerTest {
                 1f,
                 visibleRadiusMeters,
                 10_000f,
-                sixtySecondVisibleRadiusMeters,
+                movingScaleVisibleRadiusMeters,
                 5f,
                 true,
                 0f,

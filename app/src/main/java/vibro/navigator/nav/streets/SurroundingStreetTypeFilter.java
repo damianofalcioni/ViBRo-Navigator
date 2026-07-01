@@ -7,6 +7,7 @@ import java.util.Set;
 
 import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.compass.CompassStreetType;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 
 final class SurroundingStreetTypeFilter {
     @NonNull
@@ -49,13 +50,13 @@ final class SurroundingStreetTypeFilter {
 
     boolean isVisible(
             @NonNull CompassStreetSegment segment,
-            @NonNull SurroundingStreetSpeedBucket bucket
+            @NonNull NavigationSpeedBucket bucket
     ) {
         return visibleTypes(bucket).contains(segment.type);
     }
 
     @NonNull
-    private static Set<CompassStreetType> visibleTypes(@NonNull SurroundingStreetSpeedBucket bucket) {
+    private static Set<CompassStreetType> visibleTypes(@NonNull NavigationSpeedBucket bucket) {
         switch (bucket) {
             case LOW:
                 return LOW_SPEED_TYPES;

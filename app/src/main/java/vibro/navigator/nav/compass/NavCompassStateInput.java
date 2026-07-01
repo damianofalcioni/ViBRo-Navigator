@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -30,6 +31,8 @@ public final class NavCompassStateInput {
     public final Float previousVisibleRadiusMeters;
     @Nullable
     public final Float previousReliableMovingVisibleRadiusMeters;
+    @Nullable
+    public final NavigationSpeedBucket previousMovingSpeedBucket;
     public final long radiusUpdateDeltaMs;
     @Nullable
     public final CompassRouteGeometry routeGeometry;
@@ -54,6 +57,7 @@ public final class NavCompassStateInput {
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
         previousVisibleRadiusMeters = builder.previousVisibleRadiusMeters;
         previousReliableMovingVisibleRadiusMeters = builder.previousReliableMovingVisibleRadiusMeters;
+        previousMovingSpeedBucket = builder.previousMovingSpeedBucket;
         radiusUpdateDeltaMs = builder.radiusUpdateDeltaMs;
         routeGeometry = builder.routeGeometry;
         radiusTransition = builder.radiusTransition;
@@ -91,6 +95,8 @@ public final class NavCompassStateInput {
         private Float previousVisibleRadiusMeters;
         @Nullable
         private Float previousReliableMovingVisibleRadiusMeters;
+        @Nullable
+        private NavigationSpeedBucket previousMovingSpeedBucket;
         private long radiusUpdateDeltaMs;
         @Nullable
         private CompassRouteGeometry routeGeometry;
@@ -150,6 +156,12 @@ public final class NavCompassStateInput {
             this.previousVisibleRadiusMeters = previousVisibleRadiusMeters;
             this.previousReliableMovingVisibleRadiusMeters = previousReliableMovingVisibleRadiusMeters;
             this.radiusUpdateDeltaMs = radiusUpdateDeltaMs;
+            return this;
+        }
+
+        @NonNull
+        public Builder speedBucketMemory(@Nullable NavigationSpeedBucket previousMovingSpeedBucket) {
+            this.previousMovingSpeedBucket = previousMovingSpeedBucket;
             return this;
         }
 

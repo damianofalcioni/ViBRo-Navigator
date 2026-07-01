@@ -18,16 +18,16 @@ import vibro.navigator.geo.LatLon;
 public class NavigationCompassModeControllerTest {
 
     @Test
-    public void tapWhileStationarySmoothlyTogglesBetweenFullRouteAndSixtySecondView() {
+    public void tapWhileStationarySmoothlyTogglesBetweenFullRouteAndMovingScaleView() {
         NavigationCompassModeController controller = newController();
         NavCompassState automaticState = stationaryState();
 
         NavCompassState initialState = controller.resolve(automaticState, 1_000L);
         controller.onCompassTapped(automaticState, 1_000L);
-        NavCompassState immediateSixtySecondState = controller.resolve(automaticState, 1_000L);
-        NavCompassState midSixtySecondState = controller.resolve(automaticState, 2_000L);
+        NavCompassState immediateMovingScaleState = controller.resolve(automaticState, 1_000L);
+        NavCompassState midMovingScaleState = controller.resolve(automaticState, 2_000L);
         controller.resolve(automaticState, 7_000L);
-        NavCompassState settledSixtySecondState = controller.resolve(automaticState, 12_000L);
+        NavCompassState settledMovingScaleState = controller.resolve(automaticState, 12_000L);
         controller.onCompassTapped(automaticState, 12_000L);
         NavCompassState immediateRestoredState = controller.resolve(automaticState, 12_000L);
         NavCompassState midRestoredState = controller.resolve(automaticState, 13_000L);
@@ -36,16 +36,16 @@ public class NavigationCompassModeControllerTest {
 
         assertFalse(initialState.displayMode.movingScaleActive);
         assertEquals(2_000f, initialState.radiusState.visibleRadiusMeters, 0.01f);
-        assertTrue(immediateSixtySecondState.displayMode.movingScaleActive);
-        assertEquals(2_000f, immediateSixtySecondState.radiusState.visibleRadiusMeters, 0.01f);
-        assertTrue(midSixtySecondState.displayMode.movingScaleActive);
+        assertTrue(immediateMovingScaleState.displayMode.movingScaleActive);
+        assertEquals(2_000f, immediateMovingScaleState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(midMovingScaleState.displayMode.movingScaleActive);
         assertEquals(
                 NavCompassStateFactory.smoothVisibleRadiusMeters(300f, 2_000f, 1_000L),
-                midSixtySecondState.radiusState.visibleRadiusMeters,
+                midMovingScaleState.radiusState.visibleRadiusMeters,
                 0.01f
         );
-        assertTrue(settledSixtySecondState.displayMode.movingScaleActive);
-        assertEquals(300f, settledSixtySecondState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(settledMovingScaleState.displayMode.movingScaleActive);
+        assertEquals(300f, settledMovingScaleState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(immediateRestoredState.displayMode.movingScaleActive);
         assertEquals(300f, immediateRestoredState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(midRestoredState.displayMode.movingScaleActive);
@@ -59,7 +59,7 @@ public class NavigationCompassModeControllerTest {
     }
 
     @Test
-    public void tapWhileMovingShowsFullRouteTemporarilyThenSmoothlyRestoresSixtySecondView() {
+    public void tapWhileMovingShowsFullRouteTemporarilyThenSmoothlyRestoresMovingScaleView() {
         NavigationCompassModeController controller = newController();
         NavCompassState automaticState = movingState();
 
@@ -105,7 +105,7 @@ public class NavigationCompassModeControllerTest {
     }
 
     @Test
-    public void manualStationarySixtySecondOverrideClearsOnceAutomaticMovingViewMatchesIt() {
+    public void manualStationaryMovingScaleOverrideClearsOnceAutomaticMovingViewMatchesIt() {
         NavigationCompassModeController controller = newController();
 
         controller.onCompassTapped(stationaryState(), 1_000L);
@@ -128,11 +128,11 @@ public class NavigationCompassModeControllerTest {
     }
 
     private static NavCompassState compassState(
-            boolean sixtySecondView,
+            boolean movingScaleView,
             float fullRouteRadiusMeters,
-            float sixtySecondRadiusMeters,
+            float movingScaleRadiusMeters,
             float fullRouteReferenceSpeedMps,
-            float sixtySecondReferenceSpeedMps
+            float movingScaleReferenceSpeedMps
     ) {
         CompassRouteGeometry routeGeometry = new CompassRouteGeometry(
                 Arrays.asList(
@@ -141,19 +141,19 @@ public class NavigationCompassModeControllerTest {
                 ),
                 Collections.emptyList()
         );
-        float visibleRadiusMeters = sixtySecondView ? sixtySecondRadiusMeters : fullRouteRadiusMeters;
-        float referenceSpeedMps = sixtySecondView ? sixtySecondReferenceSpeedMps : fullRouteReferenceSpeedMps;
+        float visibleRadiusMeters = movingScaleView ? movingScaleRadiusMeters : fullRouteRadiusMeters;
+        float referenceSpeedMps = movingScaleView ? movingScaleReferenceSpeedMps : fullRouteReferenceSpeedMps;
         return NavCompassState.fromRouteGeometry(
                 90f,
                 8f,
                 referenceSpeedMps,
                 fullRouteReferenceSpeedMps,
-                sixtySecondReferenceSpeedMps,
+                movingScaleReferenceSpeedMps,
                 visibleRadiusMeters,
                 fullRouteRadiusMeters,
-                sixtySecondRadiusMeters,
+                movingScaleRadiusMeters,
                 5f,
-                sixtySecondView,
+                movingScaleView,
                 13f,
                 routeGeometry,
                 0.0,
@@ -162,7 +162,7 @@ public class NavigationCompassModeControllerTest {
                 0f,
                 1_500f,
                 5f,
-                !sixtySecondView
+                !movingScaleView
         );
     }
 }

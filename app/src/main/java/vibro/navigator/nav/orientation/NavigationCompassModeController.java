@@ -17,7 +17,7 @@ public final class NavigationCompassModeController {
     private static final float TARGET_TOLERANCE_METERS = 0.5f;
 
     @Nullable
-    private Boolean overrideSixtySecondView;
+    private Boolean overrideMovingScaleView;
     private long overrideExpiryElapsedMs = NO_EXPIRY;
     private boolean radiusTransitionActive;
     @Nullable
@@ -38,16 +38,16 @@ public final class NavigationCompassModeController {
         if (automaticState == null) {
             return;
         }
-        boolean automaticSixtySecondView = automaticState.displayMode.movingScaleActive;
-        boolean displayedSixtySecondView = resolveDisplayedMode(automaticSixtySecondView, nowElapsedMs);
-        boolean targetSixtySecondView = !displayedSixtySecondView;
+        boolean automaticMovingScaleView = automaticState.displayMode.movingScaleActive;
+        boolean displayedMovingScaleView = resolveDisplayedMode(automaticMovingScaleView, nowElapsedMs);
+        boolean targetMovingScaleView = !displayedMovingScaleView;
         startRadiusTransition(nowElapsedMs);
-        if (targetSixtySecondView == automaticSixtySecondView) {
+        if (targetMovingScaleView == automaticMovingScaleView) {
             clearOverride();
             return;
         }
-        overrideSixtySecondView = targetSixtySecondView;
-        overrideExpiryElapsedMs = automaticSixtySecondView && !targetSixtySecondView
+        overrideMovingScaleView = targetMovingScaleView;
+        overrideExpiryElapsedMs = automaticMovingScaleView && !targetMovingScaleView
                 ? nowElapsedMs + MOVING_FULL_ROUTE_RESTORE_DELAY_MS
                 : NO_EXPIRY;
     }
@@ -63,11 +63,11 @@ public final class NavigationCompassModeController {
             clear();
             return null;
         }
-        boolean automaticSixtySecondView = automaticState.displayMode.movingScaleActive;
-        Boolean displayedSixtySecondView = resolveOverrideMode(automaticSixtySecondView, nowElapsedMs);
-        NavCompassState targetState = displayedSixtySecondView == null
+        boolean automaticMovingScaleView = automaticState.displayMode.movingScaleActive;
+        Boolean displayedMovingScaleView = resolveOverrideMode(automaticMovingScaleView, nowElapsedMs);
+        NavCompassState targetState = displayedMovingScaleView == null
                 ? automaticState
-                : automaticState.withDisplayMode(displayedSixtySecondView);
+                : automaticState.withDisplayMode(displayedMovingScaleView);
         return resolveTransitionedState(automaticState, targetState, nowElapsedMs);
     }
 
@@ -75,14 +75,14 @@ public final class NavigationCompassModeController {
         return radiusTransitionActive;
     }
 
-    private boolean resolveDisplayedMode(boolean automaticSixtySecondView, long nowElapsedMs) {
-        Boolean overrideMode = resolveOverrideMode(automaticSixtySecondView, nowElapsedMs);
-        return overrideMode != null ? overrideMode : automaticSixtySecondView;
+    private boolean resolveDisplayedMode(boolean automaticMovingScaleView, long nowElapsedMs) {
+        Boolean overrideMode = resolveOverrideMode(automaticMovingScaleView, nowElapsedMs);
+        return overrideMode != null ? overrideMode : automaticMovingScaleView;
     }
 
     @Nullable
-    private Boolean resolveOverrideMode(boolean automaticSixtySecondView, long nowElapsedMs) {
-        if (overrideSixtySecondView == null) {
+    private Boolean resolveOverrideMode(boolean automaticMovingScaleView, long nowElapsedMs) {
+        if (overrideMovingScaleView == null) {
             return null;
         }
         if (overrideExpiryElapsedMs != NO_EXPIRY && nowElapsedMs >= overrideExpiryElapsedMs) {
@@ -90,11 +90,11 @@ public final class NavigationCompassModeController {
             startRadiusTransition(nowElapsedMs);
             return null;
         }
-        if (overrideSixtySecondView == automaticSixtySecondView) {
+        if (overrideMovingScaleView == automaticMovingScaleView) {
             clearOverride();
             return null;
         }
-        return overrideSixtySecondView;
+        return overrideMovingScaleView;
     }
 
     @NonNull
@@ -156,7 +156,7 @@ public final class NavigationCompassModeController {
     }
 
     private void clearOverride() {
-        overrideSixtySecondView = null;
+        overrideMovingScaleView = null;
         overrideExpiryElapsedMs = NO_EXPIRY;
     }
 }

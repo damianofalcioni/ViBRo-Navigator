@@ -1,9 +1,9 @@
-package vibro.navigator.nav.streets;
+package vibro.navigator.nav.policy;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-final class SurroundingStreetSpeedBucketResolver {
+public final class NavigationSpeedBucketResolver {
     private static final float KMH_PER_MPS = 3.6f;
     private static final float LOW_TO_MEDIUM_KMH = 43f;
     private static final float MEDIUM_TO_LOW_KMH = 36f;
@@ -13,9 +13,9 @@ final class SurroundingStreetSpeedBucketResolver {
     private static final float MEDIUM_HIGH_BOUNDARY_KMH = 80f;
 
     @NonNull
-    SurroundingStreetSpeedBucket resolve(
+    public NavigationSpeedBucket resolve(
             float speedMps,
-            @Nullable SurroundingStreetSpeedBucket currentBucket
+            @Nullable NavigationSpeedBucket currentBucket
     ) {
         float speedKmh = speedKmh(speedMps);
         if (currentBucket == null) {
@@ -38,42 +38,42 @@ final class SurroundingStreetSpeedBucketResolver {
     }
 
     @NonNull
-    private static SurroundingStreetSpeedBucket resolveInitial(float speedKmh) {
+    private static NavigationSpeedBucket resolveInitial(float speedKmh) {
         if (speedKmh >= MEDIUM_HIGH_BOUNDARY_KMH) {
-            return SurroundingStreetSpeedBucket.HIGH;
+            return NavigationSpeedBucket.HIGH;
         }
         return speedKmh >= LOW_MEDIUM_BOUNDARY_KMH
-                ? SurroundingStreetSpeedBucket.MEDIUM
-                : SurroundingStreetSpeedBucket.LOW;
+                ? NavigationSpeedBucket.MEDIUM
+                : NavigationSpeedBucket.LOW;
     }
 
     @NonNull
-    private static SurroundingStreetSpeedBucket resolveFromLow(float speedKmh) {
+    private static NavigationSpeedBucket resolveFromLow(float speedKmh) {
         if (speedKmh >= MEDIUM_TO_HIGH_KMH) {
-            return SurroundingStreetSpeedBucket.HIGH;
+            return NavigationSpeedBucket.HIGH;
         }
         return speedKmh >= LOW_TO_MEDIUM_KMH
-                ? SurroundingStreetSpeedBucket.MEDIUM
-                : SurroundingStreetSpeedBucket.LOW;
+                ? NavigationSpeedBucket.MEDIUM
+                : NavigationSpeedBucket.LOW;
     }
 
     @NonNull
-    private static SurroundingStreetSpeedBucket resolveFromMedium(float speedKmh) {
+    private static NavigationSpeedBucket resolveFromMedium(float speedKmh) {
         if (speedKmh < MEDIUM_TO_LOW_KMH) {
-            return SurroundingStreetSpeedBucket.LOW;
+            return NavigationSpeedBucket.LOW;
         }
         return speedKmh >= MEDIUM_TO_HIGH_KMH
-                ? SurroundingStreetSpeedBucket.HIGH
-                : SurroundingStreetSpeedBucket.MEDIUM;
+                ? NavigationSpeedBucket.HIGH
+                : NavigationSpeedBucket.MEDIUM;
     }
 
     @NonNull
-    private static SurroundingStreetSpeedBucket resolveFromHigh(float speedKmh) {
+    private static NavigationSpeedBucket resolveFromHigh(float speedKmh) {
         if (speedKmh < MEDIUM_TO_LOW_KMH) {
-            return SurroundingStreetSpeedBucket.LOW;
+            return NavigationSpeedBucket.LOW;
         }
         return speedKmh < HIGH_TO_MEDIUM_KMH
-                ? SurroundingStreetSpeedBucket.MEDIUM
-                : SurroundingStreetSpeedBucket.HIGH;
+                ? NavigationSpeedBucket.MEDIUM
+                : NavigationSpeedBucket.HIGH;
     }
 }

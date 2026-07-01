@@ -10,6 +10,7 @@ import java.util.List;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -31,6 +32,41 @@ public final class StraightLineNavCompassStateFactory {
             @Nullable Float headingAccuracyDegrees,
             long nowMs
     ) {
+        return buildTargetCompassState(
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                target,
+                remainingTargetsAfterNext,
+                intermediateMarkers,
+                headingDegrees,
+                headingAccuracyDegrees,
+                null,
+                null,
+                null,
+                0L,
+                nowMs
+        );
+    }
+
+    @Nullable
+    public static NavCompassState buildTargetCompassState(
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            @NonNull LatLon target,
+            @NonNull List<LatLon> remainingTargetsAfterNext,
+            @NonNull List<LatLon> intermediateMarkers,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingVisibleRadiusMeters,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
+            long radiusUpdateDeltaMs,
+            long nowMs
+    ) {
         List<LatLon> track = buildTrack(currentLocation, target, remainingTargetsAfterNext);
         GeoJsonRoute route = new GeoJsonRoute(track, Collections.emptyList(), 0.0, 0.0);
         PolylineIndex index = new PolylineIndex(track);
@@ -45,9 +81,10 @@ public final class StraightLineNavCompassStateFactory {
                 (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(compassAccuracyMeters),
                 headingDegrees,
                 headingAccuracyDegrees,
-                null,
-                null,
-                0L,
+                previousVisibleRadiusMeters,
+                previousReliableMovingVisibleRadiusMeters,
+                previousMovingSpeedBucket,
+                radiusUpdateDeltaMs,
                 buildGeometry(track, index, intermediateMarkers),
                 null,
                 orientationCue(currentLocation, target),

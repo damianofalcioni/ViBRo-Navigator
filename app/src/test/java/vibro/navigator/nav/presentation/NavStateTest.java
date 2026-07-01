@@ -19,6 +19,7 @@ import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavTarget;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
@@ -483,10 +484,12 @@ public class NavStateTest {
         assertTrue(state.routeStatus.compassState.routePoints.size() >= 2);
         assertTrue(state.routeStatus.compassState.radiusState.visibleRadiusMeters >= 90f);
         assertEquals(
-                state.routeStatus.compassState.radiusState.visibleRadiusMeters / 60f,
+                state.routeStatus.compassState.radiusState.visibleRadiusMeters / 30f,
                 state.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
         );
+        assertEquals(30f, state.routeStatus.compassState.displayMode.movingScaleHorizonSeconds, 0.01f);
+        assertEquals(NavigationSpeedBucket.LOW, state.routeStatus.compassState.displayMode.movingScaleSpeedBucket);
         assertTrue(state.routeStatus.compassState.displayMode.movingScaleActive);
         assertEquals(13f, state.routeStatus.compassState.radiusState.routeThresholdMeters, 0.01f);
         assertTrue(state.routeStatus.compassState.passedRoutePoints.size() >= 1);
@@ -660,7 +663,7 @@ public class NavStateTest {
     }
 
     @Test
-    public void from_whenMovingUsesSmoothedSixtySecondRadiusWithoutUpperCap() {
+    public void from_whenMovingUsesSmoothedMovingScaleRadiusWithoutUpperCap() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -724,9 +727,14 @@ public class NavStateTest {
         assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters < stationaryState.routeStatus.compassState.radiusState.visibleRadiusMeters);
         assertFalse(movingState.routeStatus.compassState.progressLabels.destinationWithinRadius);
         assertEquals(
-                movingState.routeStatus.compassState.radiusState.visibleRadiusMeters / 60f,
+                movingState.routeStatus.compassState.radiusState.visibleRadiusMeters / 45f,
                 movingState.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
+        );
+        assertEquals(45f, movingState.routeStatus.compassState.displayMode.movingScaleHorizonSeconds, 0.01f);
+        assertEquals(
+                NavigationSpeedBucket.MEDIUM,
+                movingState.routeStatus.compassState.displayMode.movingScaleSpeedBucket
         );
     }
 
@@ -814,7 +822,8 @@ public class NavStateTest {
 
         assertNotNull(state.routeStatus.compassState);
         assertEquals(240f, state.routeStatus.compassState.radiusState.visibleRadiusMeters, 0.01f);
-        assertEquals(4.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
+        assertEquals(8.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
+        assertEquals(NavigationSpeedBucket.LOW, state.routeStatus.compassState.displayMode.movingScaleSpeedBucket);
     }
 
     @Test

@@ -12,6 +12,7 @@ import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -30,6 +31,8 @@ final class CompassDisplayMemory {
     @Nullable
     private Float lastReliableMovingVisibleRadiusMeters;
     @Nullable
+    private NavigationSpeedBucket lastReliableMovingSpeedBucket;
+    @Nullable
     private CompassOrientationCue activeTurnManeuverCue;
     @Nullable
     private Integer activeTurnManeuverDegrees;
@@ -44,6 +47,7 @@ final class CompassDisplayMemory {
         routeGeometry = null;
         lastVisibleRadiusMeters = null;
         lastReliableMovingVisibleRadiusMeters = null;
+        lastReliableMovingSpeedBucket = null;
         clearTurnManeuverCue();
         lastSmoothedAccuracyMeters = Float.NaN;
         lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
@@ -124,6 +128,8 @@ final class CompassDisplayMemory {
         if (lastFiltered != null
                 && NavCompassStateFactory.hasReliableMovingSpeed(lastFiltered, speedMps, likelyStationary)) {
             lastReliableMovingVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
+            lastReliableMovingSpeedBucket =
+                    state.routeStatus.compassState.displayMode.movingScaleSpeedBucket;
         }
     }
 
@@ -145,6 +151,11 @@ final class CompassDisplayMemory {
     @Nullable
     Float lastReliableMovingVisibleRadiusMeters() {
         return lastReliableMovingVisibleRadiusMeters;
+    }
+
+    @Nullable
+    NavigationSpeedBucket lastReliableMovingSpeedBucket() {
+        return lastReliableMovingSpeedBucket;
     }
 
     private boolean isActiveTurnManeuverCue(

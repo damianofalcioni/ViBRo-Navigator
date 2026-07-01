@@ -1,12 +1,12 @@
 package vibro.navigator.nav.compass;
 
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 public final class CompassRadiusResolver {
-    private static final float MOVING_LOOKAHEAD_SECONDS = 60f;
     private static final float MIN_VISIBLE_RADIUS_METERS = 90f;
     private static final long SMOOTHING_TIME_CONSTANT_MS = 450L;
 
@@ -25,15 +25,49 @@ public final class CompassRadiusResolver {
             @Nullable CompassRadiusTransition transition,
             long nowMs
     ) {
+        return resolve(
+                furthestDistanceMeters,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                null,
+                previousVisibleRadiusMeters,
+                previousReliableMovingRadiusMeters,
+                updateDeltaMs,
+                transition,
+                nowMs
+        );
+    }
+
+    @NonNull
+    public static State resolve(
+            double furthestDistanceMeters,
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingRadiusMeters,
+            long updateDeltaMs,
+            @Nullable CompassRadiusTransition transition,
+            long nowMs
+    ) {
         float fullRouteVisibleRadiusMeters = (float) Math.max(
                 MIN_VISIBLE_RADIUS_METERS,
                 furthestDistanceMeters * 1.15
         );
         boolean reliableMovingSpeed = hasReliableMovingSpeed(currentLocation, speedMps, likelyStationary);
         boolean reusableMovingRadius = isReusableMovingRadius(previousReliableMovingRadiusMeters);
+        CompassMovingScalePolicy.State movingScale = CompassMovingScalePolicy.resolve(
+                speedMps,
+                previousMovingSpeedBucket,
+                reliableMovingSpeed,
+                reusableMovingRadius
+        );
         float targetVisibleRadiusMeters = resolveTargetVisibleRadiusMeters(
                 fullRouteVisibleRadiusMeters,
                 speedMps,
+                movingScale.horizonSeconds,
                 likelyStationary,
                 reliableMovingSpeed,
                 previousReliableMovingRadiusMeters,
@@ -55,12 +89,15 @@ public final class CompassRadiusResolver {
         return new State(
                 fullRouteVisibleRadiusMeters,
                 visibleRadiusMeters,
-                resolveSixtySecondVisibleRadiusMeters(
+                resolveMovingScaleVisibleRadiusMeters(
                         fullRouteVisibleRadiusMeters,
                         speedMps,
+                        movingScale.horizonSeconds,
                         previousReliableMovingRadiusMeters,
                         reusableMovingRadius
                 ),
+                movingScale.horizonSeconds,
+                movingScale.speedBucket,
                 !likelyStationary && (reliableMovingSpeed || reusableMovingRadius)
         );
     }
@@ -98,10 +135,23 @@ public final class CompassRadiusResolver {
     }
 
     public static float movingLegendReferenceSpeedMps(float visibleRadiusMeters, float fallbackRadiusMeters) {
-        float safeRadiusMeters = Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
-                ? visibleRadiusMeters
-                : fallbackRadiusMeters;
-        return Math.max(1f, safeRadiusMeters / MOVING_LOOKAHEAD_SECONDS);
+        return movingLegendReferenceSpeedMps(
+                visibleRadiusMeters,
+                CompassMovingScaleHorizon.secondsFor(CompassMovingScaleHorizon.DEFAULT_SPEED_BUCKET),
+                fallbackRadiusMeters
+        );
+    }
+
+    public static float movingLegendReferenceSpeedMps(
+            float visibleRadiusMeters,
+            float movingScaleHorizonSeconds,
+            float fallbackRadiusMeters
+    ) {
+        return CompassMovingScalePolicy.referenceSpeedMps(
+                visibleRadiusMeters,
+                movingScaleHorizonSeconds,
+                fallbackRadiusMeters
+        );
     }
 
     private static boolean isReusableMovingRadius(@Nullable Float radiusMeters) {
@@ -111,6 +161,7 @@ public final class CompassRadiusResolver {
     private static float resolveTargetVisibleRadiusMeters(
             float fullRouteVisibleRadiusMeters,
             float speedMps,
+            float movingScaleHorizonSeconds,
             boolean likelyStationary,
             boolean reliableMovingSpeed,
             @Nullable Float previousReliableMovingRadiusMeters,
@@ -120,7 +171,14 @@ public final class CompassRadiusResolver {
             return fullRouteVisibleRadiusMeters;
         }
         if (reliableMovingSpeed) {
-            return Math.min(fullRouteVisibleRadiusMeters, movingVisibleRadiusMeters(speedMps));
+            return Math.min(
+                    fullRouteVisibleRadiusMeters,
+                    CompassMovingScalePolicy.visibleRadiusMeters(
+                            speedMps,
+                            movingScaleHorizonSeconds,
+                            MIN_VISIBLE_RADIUS_METERS
+                    )
+            );
         }
         if (reusableMovingRadius) {
             return Math.min(fullRouteVisibleRadiusMeters, previousReliableMovingRadiusMeters);
@@ -128,15 +186,20 @@ public final class CompassRadiusResolver {
         return fullRouteVisibleRadiusMeters;
     }
 
-    private static float resolveSixtySecondVisibleRadiusMeters(
+    private static float resolveMovingScaleVisibleRadiusMeters(
             float fullRouteVisibleRadiusMeters,
             float speedMps,
+            float movingScaleHorizonSeconds,
             @Nullable Float previousReliableMovingRadiusMeters,
             boolean reusableMovingRadius
     ) {
         float movingRadiusMeters = reusableMovingRadius
                 ? previousReliableMovingRadiusMeters
-                : movingVisibleRadiusMeters(speedMps);
+                : CompassMovingScalePolicy.visibleRadiusMeters(
+                        speedMps,
+                        movingScaleHorizonSeconds,
+                        MIN_VISIBLE_RADIUS_METERS
+                );
         return Math.min(fullRouteVisibleRadiusMeters, movingRadiusMeters);
     }
 
@@ -187,27 +250,28 @@ public final class CompassRadiusResolver {
         );
     }
 
-    private static float movingVisibleRadiusMeters(float speedMps) {
-        float safeSpeedMps = Float.isFinite(speedMps) && speedMps > 0f ? speedMps : 0f;
-        float targetRadiusMeters = safeSpeedMps * MOVING_LOOKAHEAD_SECONDS;
-        return Math.max(MIN_VISIBLE_RADIUS_METERS, targetRadiusMeters);
-    }
-
     public static final class State {
         public final float fullRouteVisibleRadiusMeters;
         public final float visibleRadiusMeters;
-        public final float sixtySecondVisibleRadiusMeters;
+        public final float movingScaleVisibleRadiusMeters;
+        public final float movingScaleHorizonSeconds;
+        @NonNull
+        public final NavigationSpeedBucket movingScaleSpeedBucket;
         public final boolean usingMovingScale;
 
         public State(
                 float fullRouteVisibleRadiusMeters,
                 float visibleRadiusMeters,
-                float sixtySecondVisibleRadiusMeters,
+                float movingScaleVisibleRadiusMeters,
+                float movingScaleHorizonSeconds,
+                @NonNull NavigationSpeedBucket movingScaleSpeedBucket,
                 boolean usingMovingScale
         ) {
             this.fullRouteVisibleRadiusMeters = fullRouteVisibleRadiusMeters;
             this.visibleRadiusMeters = visibleRadiusMeters;
-            this.sixtySecondVisibleRadiusMeters = sixtySecondVisibleRadiusMeters;
+            this.movingScaleVisibleRadiusMeters = movingScaleVisibleRadiusMeters;
+            this.movingScaleHorizonSeconds = movingScaleHorizonSeconds;
+            this.movingScaleSpeedBucket = movingScaleSpeedBucket;
             this.usingMovingScale = usingMovingScale;
         }
     }

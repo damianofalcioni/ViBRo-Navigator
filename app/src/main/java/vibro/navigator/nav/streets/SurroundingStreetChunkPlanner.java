@@ -160,7 +160,7 @@ final class SurroundingStreetChunkPlanner {
     }
 
     private float prefetchDistanceMeters(@NonNull NavCompassState compassState) {
-        float visibleRadiusMeters = compassState.radiusState.sixtySecondVisibleRadiusMeters;
+        float visibleRadiusMeters = compassState.radiusState.movingScaleVisibleRadiusMeters;
         if (!isPositiveFinite(visibleRadiusMeters)) {
             visibleRadiusMeters = compassState.radiusState.visibleRadiusMeters;
         }

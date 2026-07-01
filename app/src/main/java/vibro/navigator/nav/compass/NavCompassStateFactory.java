@@ -13,6 +13,7 @@ import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -117,12 +118,14 @@ public final class NavCompassStateFactory {
                 input.headingAccuracyDegrees,
                 input.previousVisibleRadiusMeters,
                 input.previousReliableMovingVisibleRadiusMeters,
+                input.previousMovingSpeedBucket,
                 input.radiusUpdateDeltaMs,
                 input.routeGeometry,
                 input.radiusTransition,
                 input.orientationCue,
                 input.routeStartApproachTarget,
-                input.nowMs
+                input.nowMs,
+                false
         );
     }
 
@@ -200,6 +203,7 @@ public final class NavCompassStateFactory {
                 headingAccuracyDegrees,
                 previousCompassVisibleRadiusMeters,
                 previousReliableMovingCompassVisibleRadiusMeters,
+                null,
                 compassRadiusUpdateDeltaMs,
                 compassRouteGeometry,
                 compassRadiusTransition,
@@ -224,6 +228,7 @@ public final class NavCompassStateFactory {
             @Nullable Float headingAccuracyDegrees,
             @Nullable Float previousCompassVisibleRadiusMeters,
             @Nullable Float previousReliableMovingCompassVisibleRadiusMeters,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
             long compassRadiusUpdateDeltaMs,
             @Nullable CompassRouteGeometry compassRouteGeometry,
             @Nullable CompassRadiusTransition compassRadiusTransition,
@@ -268,6 +273,7 @@ public final class NavCompassStateFactory {
                 currentLocation,
                 speedMps,
                 likelyStationary,
+                previousMovingSpeedBucket,
                 previousCompassVisibleRadiusMeters,
                 previousReliableMovingCompassVisibleRadiusMeters,
                 compassRadiusUpdateDeltaMs,
@@ -275,11 +281,17 @@ public final class NavCompassStateFactory {
                 nowMs
         );
         float fullRouteReferenceSpeedMps = sanitizeReferenceSpeedMps(speedMps);
-        float sixtySecondReferenceSpeedMps = CompassRadiusResolver.movingLegendReferenceSpeedMps(
-                radiusState.sixtySecondVisibleRadiusMeters
+        float movingScaleReferenceSpeedMps = CompassRadiusResolver.movingLegendReferenceSpeedMps(
+                radiusState.movingScaleVisibleRadiusMeters,
+                radiusState.movingScaleHorizonSeconds,
+                0f
         );
         float referenceSpeedMps = radiusState.usingMovingScale
-                ? CompassRadiusResolver.movingLegendReferenceSpeedMps(radiusState.visibleRadiusMeters)
+                ? CompassRadiusResolver.movingLegendReferenceSpeedMps(
+                        radiusState.visibleRadiusMeters,
+                        radiusState.movingScaleHorizonSeconds,
+                        0f
+                )
                 : fullRouteReferenceSpeedMps;
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return NavCompassState.fromRouteGeometry(new NavCompassRouteGeometryInput(
@@ -288,14 +300,16 @@ public final class NavCompassStateFactory {
                         sanitizeHeadingAccuracyDegrees(headingAccuracyDegrees),
                         referenceSpeedMps,
                         fullRouteReferenceSpeedMps,
-                        sixtySecondReferenceSpeedMps,
+                        movingScaleReferenceSpeedMps,
+                        radiusState.movingScaleHorizonSeconds,
+                        radiusState.movingScaleSpeedBucket,
                         radiusState.usingMovingScale,
                         straightLineMode
                 ),
                 new CompassRadiusMetrics(
                         radiusState.visibleRadiusMeters,
                         radiusState.fullRouteVisibleRadiusMeters,
-                        radiusState.sixtySecondVisibleRadiusMeters,
+                        radiusState.movingScaleVisibleRadiusMeters,
                         sanitizedCompassAccuracyMeters,
                         routeThresholdMeters
                 ),

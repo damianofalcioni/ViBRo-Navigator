@@ -458,25 +458,30 @@ The navigation UI must show the following in large text:
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The inner circles must remain stable visual distance references for the route
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
-- When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking radius representing about 60 seconds of travel
+- When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking moving-scale radius based on the same low, medium, and high speed buckets with hysteresis used by surrounding-street filtering
+- Low-speed moving-scale compass zoom must show about 30 seconds of travel, with the inner distance rings representing about 10 seconds each
+- Medium-speed moving-scale compass zoom must show about 45 seconds of travel, with the inner distance rings representing about 15 seconds each
+- High-speed moving-scale compass zoom must show about 60 seconds of travel, with the inner distance rings representing about 20 seconds each
+- Moving-scale speed buckets must use nominal boundaries of 0-40 km/h, 40-80 km/h, and 80+ km/h, with the same hysteresis as surrounding-street filtering: low changes to medium at 43 km/h, medium changes to low below 36 km/h, medium changes to high at 84 km/h, and high changes to medium below 72 km/h
 - The moving compass zoom must use the same resolved trustworthy speed as the GPS status line, so raw native speed alone must not zoom the compass when stationary or noisy movement checks suppress the displayed speed
-- A single tap on the compass route view must toggle the currently displayed zoom mode between the stationary full-route overview and the moving 60-second view
-- Tap-driven zoom changes must use the same smooth radius transition used when the compass switches from stationary overview to moving 60-second view
-- That moving 60-second radius must not be capped to a smaller fixed maximum such as 600 meters
+- A single tap on the compass route view must toggle the currently displayed zoom mode between the stationary full-route overview and the adaptive moving-scale view
+- Tap-driven zoom changes must use the same smooth radius transition used when the compass switches from stationary overview to the moving-scale view
+- The moving-scale radius must not be capped to a smaller fixed maximum such as 600 meters
 - When the user is moving but the current native speed reading is not yet reliable, the compass should prefer reusing the last reliable moving zoom radius if one exists instead of jumping back and forth between zoom modes
 - When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
 - When the user stops and the compass expands back to the full-route overview, the last reliable moving zoom radius should be preserved so it can be restored when movement resumes before speed confidence has recovered
 - Automatic compass zoom/radius policy is a navigation-state responsibility and must remain separate from compass drawing and activity/service lifecycle wiring
-- That tap-driven zoom toggle must be only a UI override layered on top of the existing automatic behavior, so stationary navigation still defaults to the full-route overview and moving navigation still defaults to the 60-second view whenever no temporary override is active
-- If the user taps the compass while moving and the currently displayed 60-second view is active, the compass must switch to the full-route overview temporarily and then automatically restore the moving 60-second view after about 5 seconds
+- That tap-driven zoom toggle must be only a UI override layered on top of the existing automatic behavior, so stationary navigation still defaults to the full-route overview and moving navigation still defaults to the moving-scale view whenever no temporary override is active
+- If the user taps the compass while moving and the currently displayed moving-scale view is active, the compass must switch to the full-route overview temporarily and then automatically restore the moving-scale view after about 5 seconds
 - The compass route geometry and hint-marker geometry should be sampled once per active route and reused across UI updates instead of rebuilding full projected route lists on every heading or location refresh
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
-- In the moving 60-second view, including after a tap from the full-route overview, the red route centerline and wider threshold overlay must remain continuously visible for the route portion crossing the compass instead of flickering or disappearing while off-screen route geometry is clipped
+- In the moving-scale view, including after a tap from the full-route overview, the red route centerline and wider threshold overlay must remain continuously visible for the route portion crossing the compass instead of flickering or disappearing while off-screen route geometry is clipped
+- Compass distance and time labels must continue to update live during smooth zoom transitions, preserving the existing animated label behavior while using the target moving-scale bucket horizon
 - When enabled in settings, the compass must draw surrounding BRouter street geometry as stroke-only context lines using the app's compass accent/switch-setting color, behind the active route and without street labels, symbols, fills, or map-tile backgrounds
 - Surrounding-street extraction must run off the UI thread, reuse cached segment-file lookups, avoid per-frame decoding, skip work while a previous extraction is still running, and refresh only after a meaningful time or distance change around the current position
 - Surrounding-street context is supplemental only: it must not change route matching, reroute decisions, turn notifications, straight-line guidance, destination arrival, GPX export, or BRouter route requests
 - Transitions between stationary overview and moving zoom should be smoothed instead of snapping abruptly, except that restoring a previously saved reliable moving zoom radius after a stationary pause may return directly to that saved scale to avoid intermediate zoom thrash
-- Transitions between the full-route overview and the moving 60-second view should use the same fast timing in both directions, reaching the target scale in about 1 second regardless of the total route length or overview radius delta
+- Transitions between the full-route overview and the moving-scale view should use the same fast timing in both directions, reaching the target scale in about 1 second regardless of the total route length or overview radius delta
 - The current-position marker should be shown as a small center dot
 - A transparent orange filled circle centered on the current-position dot must visualize the current GPS accuracy radius at the compass scale, using the same orange as the accent ticks on the outer compass ring
 - A semi-transparent fixed vertical guide line must run from the center dot to the top border of the compass and end with an open arrowhead whose tip aligns with the guide line

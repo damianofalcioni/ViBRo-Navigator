@@ -1,6 +1,9 @@
 package vibro.navigator.nav.compass;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+import vibro.navigator.nav.policy.NavigationSpeedBucket;
 
 public final class CompassDisplayMode {
     public final float headingDegrees;
@@ -8,7 +11,10 @@ public final class CompassDisplayMode {
     public final Float headingAccuracyDegrees;
     public final float referenceSpeedMps;
     public final float fullRouteReferenceSpeedMps;
-    public final float sixtySecondReferenceSpeedMps;
+    public final float movingScaleReferenceSpeedMps;
+    public final float movingScaleHorizonSeconds;
+    @NonNull
+    public final NavigationSpeedBucket movingScaleSpeedBucket;
     public final boolean movingScaleActive;
     public final boolean straightLineMode;
 
@@ -17,7 +23,7 @@ public final class CompassDisplayMode {
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,
             float fullRouteReferenceSpeedMps,
-            float sixtySecondReferenceSpeedMps,
+            float movingScaleReferenceSpeedMps,
             boolean movingScaleActive
     ) {
         this(
@@ -25,7 +31,9 @@ public final class CompassDisplayMode {
                 headingAccuracyDegrees,
                 referenceSpeedMps,
                 fullRouteReferenceSpeedMps,
-                sixtySecondReferenceSpeedMps,
+                movingScaleReferenceSpeedMps,
+                CompassMovingScaleHorizon.secondsFor(CompassMovingScaleHorizon.DEFAULT_SPEED_BUCKET),
+                CompassMovingScaleHorizon.DEFAULT_SPEED_BUCKET,
                 movingScaleActive,
                 false
         );
@@ -36,7 +44,9 @@ public final class CompassDisplayMode {
             @Nullable Float headingAccuracyDegrees,
             float referenceSpeedMps,
             float fullRouteReferenceSpeedMps,
-            float sixtySecondReferenceSpeedMps,
+            float movingScaleReferenceSpeedMps,
+            float movingScaleHorizonSeconds,
+            @NonNull NavigationSpeedBucket movingScaleSpeedBucket,
             boolean movingScaleActive,
             boolean straightLineMode
     ) {
@@ -44,7 +54,9 @@ public final class CompassDisplayMode {
         this.headingAccuracyDegrees = headingAccuracyDegrees;
         this.referenceSpeedMps = referenceSpeedMps;
         this.fullRouteReferenceSpeedMps = fullRouteReferenceSpeedMps;
-        this.sixtySecondReferenceSpeedMps = sixtySecondReferenceSpeedMps;
+        this.movingScaleReferenceSpeedMps = movingScaleReferenceSpeedMps;
+        this.movingScaleHorizonSeconds = movingScaleHorizonSeconds;
+        this.movingScaleSpeedBucket = movingScaleSpeedBucket;
         this.movingScaleActive = movingScaleActive;
         this.straightLineMode = straightLineMode;
     }

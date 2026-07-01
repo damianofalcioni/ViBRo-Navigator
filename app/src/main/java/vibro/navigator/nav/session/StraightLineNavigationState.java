@@ -34,6 +34,7 @@ final class StraightLineNavigationState {
     private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
     private final StraightLineWrongDirectionDetector wrongDirectionDetector =
             new StraightLineWrongDirectionDetector();
+    private final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
 
     private int nextStopIndex;
     private boolean destinationReached;
@@ -42,12 +43,14 @@ final class StraightLineNavigationState {
         nextStopIndex = 0;
         destinationReached = false;
         wrongDirectionDetector.reset();
+        compassMemory.reset();
     }
 
     void onRequestStarted(@NonNull NavigationRequest request) {
         nextStopIndex = 0;
         destinationReached = request.destination == null;
         wrongDirectionDetector.reset();
+        compassMemory.reset();
     }
 
     @NonNull
@@ -129,7 +132,7 @@ final class StraightLineNavigationState {
         }
 
         NavCompassState compassState = buildCompassState(request, snapshot);
-        return new NavState(
+        NavState state = new NavState(
                 new NavRouteStatus(
                         StraightLineNavigationGuidanceText.buildStatus(
                                 request,
@@ -157,6 +160,14 @@ final class StraightLineNavigationState {
                 new NavGpsStatus(gpsStatusLine, snapshot.nextEvaluationDeadlineElapsedMs),
                 new NavPauseStatus(false)
         );
+        compassMemory.rememberCompassState(
+                state,
+                snapshot.nowMs,
+                snapshot.lastFiltered,
+                snapshot.displaySpeedMps,
+                snapshot.likelyStationary
+        );
+        return state;
     }
 
     @NonNull
@@ -237,6 +248,10 @@ final class StraightLineNavigationState {
                 request.stops,
                 snapshot.headingDegrees,
                 snapshot.headingAccuracyDegrees,
+                compassMemory.lastVisibleRadiusMeters(),
+                compassMemory.lastReliableMovingVisibleRadiusMeters(),
+                compassMemory.lastReliableMovingSpeedBucket(),
+                compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs),
                 snapshot.nowMs
         );
     }
