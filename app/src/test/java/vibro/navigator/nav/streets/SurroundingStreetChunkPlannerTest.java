@@ -117,6 +117,23 @@ public class SurroundingStreetChunkPlannerTest {
         assertTrue(selection.prefetchKeys.size() > selection.displayKeys.size());
     }
 
+    @Test
+    public void select_capsLongRouteTransitionRadiusBeforeChunkEnumeration() {
+        SurroundingStreetChunkSelection boundedSelection = planner.select(
+                compassState(2_500f, 90f, 1),
+                location(44.5068d, 11.3416d)
+        );
+        SurroundingStreetChunkSelection transitionSelection = planner.select(
+                compassState(284_000f, 90f, 1),
+                location(44.5068d, 11.3416d)
+        );
+
+        assertEquals(boundedSelection.displayKeys, transitionSelection.displayKeys);
+        assertEquals(boundedSelection.prefetchKeys, transitionSelection.prefetchKeys);
+        assertTrue(transitionSelection.displayKeys.size() <= 64);
+        assertTrue(transitionSelection.prefetchKeys.size() <= 128);
+    }
+
     private static NavCompassState compassState(
             float visibleRadiusMeters,
             float sixtySecondVisibleRadiusMeters,

@@ -16,6 +16,7 @@ import vibro.navigator.nav.location.NavigationLocation;
 final class SurroundingStreetChunkPlanner {
     private static final double ROUTE_SAMPLE_STEP_METERS = 420.0d;
     private static final float CACHE_RADIUS_MULTIPLIER = 2f;
+    private static final float MAX_EXTRACTION_VISIBLE_RADIUS_METERS = 2_500f;
     private static final float PREFETCH_VISIBLE_RADIUS_MULTIPLIER = 10f;
     private static final float MAX_PREFETCH_DISTANCE_METERS = 20_000f;
     private static final int MAX_DISPLAY_CHUNKS = 64;
@@ -153,17 +154,21 @@ final class SurroundingStreetChunkPlanner {
 
     private float cacheRadiusMeters(@NonNull NavCompassState compassState) {
         float visibleRadiusMeters = compassState.radiusState.visibleRadiusMeters;
-        return Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
-                ? visibleRadiusMeters * CACHE_RADIUS_MULTIPLIER
+        return isPositiveFinite(visibleRadiusMeters)
+                ? Math.min(visibleRadiusMeters, MAX_EXTRACTION_VISIBLE_RADIUS_METERS) * CACHE_RADIUS_MULTIPLIER
                 : visibleRadiusMeters;
     }
 
     private float prefetchDistanceMeters(@NonNull NavCompassState compassState) {
         float visibleRadiusMeters = compassState.radiusState.sixtySecondVisibleRadiusMeters;
-        if (!Float.isFinite(visibleRadiusMeters) || visibleRadiusMeters <= 0f) {
+        if (!isPositiveFinite(visibleRadiusMeters)) {
             visibleRadiusMeters = compassState.radiusState.visibleRadiusMeters;
         }
         return Math.min(MAX_PREFETCH_DISTANCE_METERS, visibleRadiusMeters * PREFETCH_VISIBLE_RADIUS_MULTIPLIER);
+    }
+
+    private static boolean isPositiveFinite(float value) {
+        return Float.isFinite(value) && value > 0f;
     }
 
     private static int routeStartIndex(@NonNull NavCompassState compassState) {

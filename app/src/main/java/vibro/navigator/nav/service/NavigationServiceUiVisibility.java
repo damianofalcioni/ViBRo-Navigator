@@ -10,21 +10,25 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     private final NavigationSession navigationSession;
     private final NavigationStateBroadcaster stateBroadcaster;
     private final Runnable stateRefresh;
+    private final Runnable compassStreetViewportClearer;
     private boolean navigationUiVisible;
     private boolean screenInteractive = true;
 
     public NavigationServiceUiVisibility(
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationStateBroadcaster stateBroadcaster,
-            @NonNull Runnable stateRefresh
+            @NonNull Runnable stateRefresh,
+            @NonNull Runnable compassStreetViewportClearer
     ) {
         this.navigationSession = navigationSession;
         this.stateBroadcaster = stateBroadcaster;
         this.stateRefresh = stateRefresh;
+        this.compassStreetViewportClearer = compassStreetViewportClearer;
     }
 
     public void setScreenInteractive(boolean interactive) {
         screenInteractive = interactive;
+        clearCompassStreetViewportIfInactive();
     }
 
     public boolean isScreenInteractive() {
@@ -36,6 +40,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
             return;
         }
         navigationUiVisible = visible;
+        clearCompassStreetViewportIfInactive();
         if (visible && screenInteractive) {
             stateRefresh.run();
         }
@@ -46,6 +51,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
             return;
         }
         screenInteractive = interactive;
+        clearCompassStreetViewportIfInactive();
         if (interactive && navigationUiVisible && stateBroadcaster.size() > 0) {
             stateRefresh.run();
         }
@@ -65,8 +71,24 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
         return stateBroadcaster.size() > 0;
     }
 
+    boolean canUseCompassStreetViewport() {
+        return canDispatchStateToUi();
+    }
+
+    boolean canDispatchStateToUi() {
+        return navigationUiVisible
+                && screenInteractive
+                && stateBroadcaster.size() > 0;
+    }
+
     @Override
     public void requestStateRefresh() {
         stateRefresh.run();
+    }
+
+    private void clearCompassStreetViewportIfInactive() {
+        if (!canUseCompassStreetViewport()) {
+            compassStreetViewportClearer.run();
+        }
     }
 }

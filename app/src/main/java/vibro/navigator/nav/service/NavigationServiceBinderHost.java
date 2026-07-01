@@ -73,6 +73,9 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Override
     public void unregisterListener(@NonNull NavigationService.Listener listener) {
         stateBroadcaster.unregister(listener);
+        if (!uiVisibility.canUseCompassStreetViewport()) {
+            compassStreetViewportSink.set(null);
+        }
     }
 
     @Override
@@ -97,7 +100,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
 
     @Override
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
-        compassStreetViewportSink.set(compassState);
+        compassStreetViewportSink.set(uiVisibility.canUseCompassStreetViewport() ? compassState : null);
     }
 
     @Override

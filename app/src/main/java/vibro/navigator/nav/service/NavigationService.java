@@ -47,7 +47,12 @@ public class NavigationService extends Service {
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private final NavigationServiceTurnEvents turnEvents = new NavigationServiceTurnEvents(navigationSession);
     private final NavigationServiceUiVisibility uiVisibility =
-            new NavigationServiceUiVisibility(navigationSession, stateBroadcaster, this::emitState);
+            new NavigationServiceUiVisibility(
+                    navigationSession,
+                    stateBroadcaster,
+                    this::emitState,
+                    this::clearCompassStreetViewport
+            );
     private final NavigationServiceRouteRecalculator routeRecalculator =
             new NavigationServiceRouteRecalculator(
                     navigationSession,
@@ -211,7 +216,16 @@ public class NavigationService extends Service {
         runtime().stopForegroundService();
     }
 
+    private void clearCompassStreetViewport() {
+        if (runtime != null) {
+            runtime.onCompassStreetViewport(null);
+        }
+    }
+
     private void emitState() {
+        if (!uiVisibility.canDispatchStateToUi()) {
+            return;
+        }
         NavState s = navigationSession.buildState(
                 this,
                 runtime().nextEvaluationDeadlineElapsedMs(),
