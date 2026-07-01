@@ -287,11 +287,7 @@ public final class NavCompassStateFactory {
                 0f
         );
         float referenceSpeedMps = radiusState.usingMovingScale
-                ? CompassRadiusResolver.movingLegendReferenceSpeedMps(
-                        radiusState.visibleRadiusMeters,
-                        radiusState.movingScaleHorizonSeconds,
-                        0f
-                )
+                ? movingScaleReferenceSpeedMps
                 : fullRouteReferenceSpeedMps;
         float resolvedHeading = normalizeHeading(headingDegrees == null ? 0.0 : headingDegrees);
         return NavCompassState.fromRouteGeometry(new NavCompassRouteGeometryInput(

@@ -484,7 +484,7 @@ public class NavStateTest {
         assertTrue(state.routeStatus.compassState.routePoints.size() >= 2);
         assertTrue(state.routeStatus.compassState.radiusState.visibleRadiusMeters >= 90f);
         assertEquals(
-                state.routeStatus.compassState.radiusState.visibleRadiusMeters / 30f,
+                state.routeStatus.compassState.radiusState.movingScaleVisibleRadiusMeters / 30f,
                 state.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
         );
@@ -724,10 +724,12 @@ public class NavStateTest {
 
         assertNotNull(movingState.routeStatus.compassState);
         assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters > 600f);
+        assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters
+                > movingState.routeStatus.compassState.radiusState.movingScaleVisibleRadiusMeters);
         assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters < stationaryState.routeStatus.compassState.radiusState.visibleRadiusMeters);
         assertFalse(movingState.routeStatus.compassState.progressLabels.destinationWithinRadius);
         assertEquals(
-                movingState.routeStatus.compassState.radiusState.visibleRadiusMeters / 45f,
+                movingState.routeStatus.compassState.radiusState.movingScaleVisibleRadiusMeters / 45f,
                 movingState.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
         );

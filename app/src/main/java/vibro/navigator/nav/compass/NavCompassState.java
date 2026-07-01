@@ -331,10 +331,7 @@ public final class NavCompassState {
             return this;
         }
         float targetReferenceSpeedMps = movingScaleView
-                ? resolveMovingLegendReferenceSpeedMps(
-                        targetVisibleRadiusMeters,
-                        displayMode.movingScaleHorizonSeconds
-                )
+                ? displayMode.movingScaleReferenceSpeedMps
                 : displayMode.fullRouteReferenceSpeedMps;
         boolean targetDestinationWithinRadius = Math.hypot(
                 progressLabels.destinationEastMeters,
@@ -442,17 +439,6 @@ public final class NavCompassState {
         return Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
                 ? visibleRadiusMeters
                 : fallbackVisibleRadiusMeters;
-    }
-
-    private static float resolveMovingLegendReferenceSpeedMps(
-            float visibleRadiusMeters,
-            float movingScaleHorizonSeconds
-    ) {
-        return CompassRadiusResolver.movingLegendReferenceSpeedMps(
-                visibleRadiusMeters,
-                movingScaleHorizonSeconds,
-                0f
-        );
     }
 
     public boolean hasRouteGeometry() {

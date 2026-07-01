@@ -77,9 +77,11 @@ public class NavigationCompassModeControllerTest {
         assertTrue(beforeExpiryState.radiusState.visibleRadiusMeters > 1_900f);
         assertTrue(restoreStartState.displayMode.movingScaleActive);
         assertTrue(restoreStartState.radiusState.visibleRadiusMeters > 1_900f);
+        assertEquals(5f, restoreStartState.displayMode.referenceSpeedMps, 0.01f);
         assertTrue(restoringState.displayMode.movingScaleActive);
         assertTrue(restoringState.radiusState.visibleRadiusMeters > 300f);
         assertTrue(restoringState.radiusState.visibleRadiusMeters < restoreStartState.radiusState.visibleRadiusMeters);
+        assertEquals(5f, restoringState.displayMode.referenceSpeedMps, 0.01f);
         assertTrue(restoredState.displayMode.movingScaleActive);
         assertEquals(300f, restoredState.radiusState.visibleRadiusMeters, 0.01f);
     }
@@ -100,6 +102,7 @@ public class NavigationCompassModeControllerTest {
         assertTrue(temporaryFullRouteState.radiusState.visibleRadiusMeters > 300f);
         assertTrue(restoreStartState.displayMode.movingScaleActive);
         assertEquals(temporaryFullRouteState.radiusState.visibleRadiusMeters, restoreStartState.radiusState.visibleRadiusMeters, 0.01f);
+        assertEquals(5f, restoreStartState.displayMode.referenceSpeedMps, 0.01f);
         assertTrue(restoredState.displayMode.movingScaleActive);
         assertEquals(300f, restoredState.radiusState.visibleRadiusMeters, 0.01f);
     }
