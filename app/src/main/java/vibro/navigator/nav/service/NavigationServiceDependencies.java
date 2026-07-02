@@ -54,7 +54,9 @@ final class NavigationServiceDependencies {
                 turnEvents,
                 () -> {
                     long nowMs = AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs();
-                    tracking.locationController.requestLocationUpdates(
+                    NavigationLocationUpdateRequestPolicy.requestLocationUpdates(
+                            service,
+                            tracking.locationController,
                             NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS
                     );
                     return nowMs;

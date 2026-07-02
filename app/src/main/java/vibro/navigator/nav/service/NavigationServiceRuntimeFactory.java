@@ -32,6 +32,7 @@ final class NavigationServiceRuntimeFactory {
         );
         uiVisibility.setScreenInteractive(dependencies.foreground.screenInteractive);
         return new NavigationServiceRuntime(
+                service,
                 dependencies,
                 NavigationServiceStreetOverlay.create(service, uiScheduler, stateEmitter)
         );

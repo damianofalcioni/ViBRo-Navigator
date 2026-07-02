@@ -180,6 +180,18 @@ public class NavigationLocationControllerTest {
     }
 
     @Test
+    public void requestFastLocationUpdates_usesOneSecondFixInterval() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.requestFastLocationUpdates();
+
+        assertEquals(NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS, provider.requestedMinTimeMs);
+        assertEquals(6_000L, controller.getNextEvaluationDeadlineElapsedMs());
+    }
+
+    @Test
     public void cancelCurrentLocationSeeds_cancelsLegacyAndFusedSeeds() {
         MutableClock clock = new MutableClock(5_000L);
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
@@ -239,6 +251,17 @@ public class NavigationLocationControllerTest {
 
         assertEquals(Collections.singletonList(GPS_PROVIDER), provider.requestedProviders);
         assertEquals(0, provider.requestSeedForEnabledProviderCount);
+    }
+
+    @Test
+    public void onProviderEnabledFast_usesOneSecondFixInterval() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.onProviderEnabledFast(GPS_PROVIDER, false);
+
+        assertEquals(NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS, provider.requestedMinTimeMs);
     }
 
     @Test

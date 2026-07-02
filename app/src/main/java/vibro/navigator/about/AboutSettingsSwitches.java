@@ -13,6 +13,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppCompassSettings;
+import vibro.navigator.settings.AppLocationSettings;
 import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
@@ -26,6 +27,8 @@ final class AboutSettingsSwitches {
     private final Switch logEnabledSwitch;
     @NonNull
     private final Switch fusedLocationSwitch;
+    @NonNull
+    private final Switch dynamicGpsFixIntervalSwitch;
     @NonNull
     private final Switch imperialUnitsSwitch;
     @NonNull
@@ -41,6 +44,7 @@ final class AboutSettingsSwitches {
 
     private AboutDeferredBooleanSetting logEnabledSetting;
     private AboutDeferredBooleanSetting fusedLocationSetting;
+    private AboutDeferredBooleanSetting dynamicGpsFixIntervalSetting;
     private AboutDeferredBooleanSetting imperialUnitsSetting;
     private AboutDeferredBooleanSetting lightThemeSetting;
     private AboutDeferredBooleanSetting surroundingStreetsSetting;
@@ -50,6 +54,7 @@ final class AboutSettingsSwitches {
             @NonNull Activity activity,
             @NonNull Switch logEnabledSwitch,
             @NonNull Switch fusedLocationSwitch,
+            @NonNull Switch dynamicGpsFixIntervalSwitch,
             @NonNull Switch imperialUnitsSwitch,
             @NonNull Switch lightThemeSwitch,
             @NonNull Switch surroundingStreetsSwitch,
@@ -59,6 +64,7 @@ final class AboutSettingsSwitches {
         this.activity = activity;
         this.logEnabledSwitch = logEnabledSwitch;
         this.fusedLocationSwitch = fusedLocationSwitch;
+        this.dynamicGpsFixIntervalSwitch = dynamicGpsFixIntervalSwitch;
         this.imperialUnitsSwitch = imperialUnitsSwitch;
         this.lightThemeSwitch = lightThemeSwitch;
         this.surroundingStreetsSwitch = surroundingStreetsSwitch;
@@ -69,6 +75,7 @@ final class AboutSettingsSwitches {
     void configure() {
         configureLogEnabledSwitch();
         configureFusedLocationSwitch();
+        configureDynamicGpsFixIntervalSwitch();
         configureImperialUnitsSwitch();
         configureLightThemeSwitch();
         configureSurroundingStreetsSwitch();
@@ -80,6 +87,10 @@ final class AboutSettingsSwitches {
         fusedLocationSetting.render(
                 fusedLocationSwitch,
                 DistributionServices.supportsFusedLocation() && AppSettings.isFusedLocationEnabled(activity)
+        );
+        dynamicGpsFixIntervalSetting.render(
+                dynamicGpsFixIntervalSwitch,
+                AppLocationSettings.isDynamicGpsFixIntervalEnabled(activity)
         );
         imperialUnitsSetting.render(imperialUnitsSwitch, AppSettings.isImperialUnitsEnabled(activity));
         lightThemeSetting.render(lightThemeSwitch, AppThemeSettings.isLightThemeEnabled(activity));
@@ -96,6 +107,7 @@ final class AboutSettingsSwitches {
     void flush() {
         logEnabledSetting.flush();
         fusedLocationSetting.flush();
+        dynamicGpsFixIntervalSetting.flush();
         imperialUnitsSetting.flush();
         lightThemeSetting.flush(false);
         surroundingStreetsSetting.flush(false);
@@ -148,6 +160,20 @@ final class AboutSettingsSwitches {
             }
             fusedLocationSetting.set(isChecked);
         });
+    }
+
+    private void configureDynamicGpsFixIntervalSwitch() {
+        dynamicGpsFixIntervalSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppLocationSettings.setDynamicGpsFixIntervalEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        dynamicGpsFixIntervalSetting.render(
+                dynamicGpsFixIntervalSwitch,
+                AppLocationSettings.isDynamicGpsFixIntervalEnabled(activity)
+        );
+        dynamicGpsFixIntervalSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                dynamicGpsFixIntervalSetting.set(isChecked));
     }
 
     private void configureImperialUnitsSwitch() {

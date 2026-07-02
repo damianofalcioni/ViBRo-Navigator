@@ -311,6 +311,7 @@
     <string name="about_settings_title">Settings</string>
     <string name="label_log_enabled">Log enabled</string>
     <string name="label_fused_location_enabled">Use Google Fused Location</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Use dynamic GPS fix interval</string>
     <string name="label_imperial_units_enabled">Use imperial units (ft/mi/mph)</string>
     <string name="label_light_theme_enabled">Light Theme</string>
     <string name="label_compass_surrounding_streets_enabled">Show surrounding streets in compass</string>

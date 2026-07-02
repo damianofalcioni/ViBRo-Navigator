@@ -163,6 +163,16 @@
             android:textSize="16sp" />
 
         <Switch
+            android:id="@+id/aboutDynamicGpsFixIntervalSwitch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/label_dynamic_gps_fix_interval_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <Switch
             android:id="@+id/aboutImperialUnitsSwitch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

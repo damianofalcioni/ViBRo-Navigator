@@ -70,6 +70,10 @@ public final class NavigationLocationController {
     }
 
     public void requestStartupLocationUpdates() {
+        requestFastLocationUpdates();
+    }
+
+    public void requestFastLocationUpdates() {
         requestLocationUpdates(STARTUP_UPDATE_INTERVAL_MS, STARTUP_UPDATE_INTERVAL_MS);
     }
 
@@ -115,7 +119,16 @@ public final class NavigationLocationController {
             long fallbackMinTimeMs,
             boolean requestCurrentLocationSeed
     ) {
-        requestLocationUpdates(fallbackMinTimeMs);
+        requestLocationUpdates(fallbackMinTimeMs, DEFAULT_UPDATE_INTERVAL_MS);
+        requestSeedForEnabledProvider(provider, requestCurrentLocationSeed);
+    }
+
+    public void onProviderEnabledFast(@NonNull String provider, boolean requestCurrentLocationSeed) {
+        requestFastLocationUpdates();
+        requestSeedForEnabledProvider(provider, requestCurrentLocationSeed);
+    }
+
+    private void requestSeedForEnabledProvider(@NonNull String provider, boolean requestCurrentLocationSeed) {
         if (requestCurrentLocationSeed) {
             providerAccess.requestSeedForEnabledProvider(provider);
         }

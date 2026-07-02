@@ -279,8 +279,9 @@ The app must monitor user position:
 - During that post-maneuver ramp, an accepted provider callback that arrives before the current ramp bucket has elapsed must keep the current bucket instead of advancing to the next bucket early
 - The post-warmup dynamic interval must be snapped to a small fixed bucket set instead of continuously varying on every update
 - The bucket set must currently be `3s`, `5s`, `8s`, `12s`, `20s`, `30s`, and `60s`
-- The dynamic interval must never be lower than 3 seconds
+- When the dynamic GPS fix interval setting is enabled, the dynamic interval must never be lower than 3 seconds
 - The dynamic interval must never exceed 60 seconds
+- When the dynamic GPS fix interval setting is disabled, active navigation must request ongoing location fixes every 1 second instead of using the dynamic interval buckets
 - Re-requesting location updates must reuse the active listener registration when the requested interval bucket and enabled provider set are unchanged, so the app does not continuously tear down and rebuild subscriptions
 - One-shot current-location fix acquisition must be skipped while the screen is off; screen-off navigation should rely on the foreground service's ongoing location updates instead
 - The Google Play flavor may use Google fused location when Google Play Services is available and the user has enabled the fused-location setting
@@ -678,6 +679,7 @@ The navigation UI must show the following in large text:
 - The Use fused location switch must be enabled only in builds that support Google fused location
 - In the F-Droid flavor, the Use fused location switch must be disabled and must not enable Google functionality
 - In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available
+- The about page Settings section must show a Dynamic GPS fix interval switch that is enabled by default; disabling it must force active navigation location fix requests to 1-second intervals instead of the dynamic buckets
 - The app must write its log file only when the Log enabled setting is switched on
 - The Log enabled setting must persist across app launches
 - When Log enabled is already on at app startup, the app must create a fresh log file for that app session before startup logging begins

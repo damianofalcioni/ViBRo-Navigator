@@ -169,15 +169,15 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         }
     }
 
-    private static void requestSuggestedLocationUpdates(
+    private void requestSuggestedLocationUpdates(
             long suggestedUpdateIntervalMs,
             @NonNull NavigationLocationController locationController
     ) {
-        if (suggestedUpdateIntervalMs == NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS) {
-            locationController.requestStartupLocationUpdates();
-            return;
-        }
-        locationController.requestLocationUpdates(suggestedUpdateIntervalMs);
+        NavigationLocationUpdateRequestPolicy.requestLocationUpdates(
+                context,
+                locationController,
+                suggestedUpdateIntervalMs
+        );
     }
 
     @NonNull
@@ -199,9 +199,10 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         AppLogger.i(TAG, "Location provider enabled provider=" + provider);
-        controller.onProviderEnabled(
+        NavigationLocationUpdateRequestPolicy.requestProviderEnabledUpdates(
+                context,
+                controller,
                 provider,
-                DEFAULT_LOCATION_UPDATE_INTERVAL_MS,
                 currentLocationSeedPolicy.isCurrentLocationSeedAllowed()
         );
         stateEmitter.run();
@@ -219,7 +220,9 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         }
         AppLogger.w(TAG, "Location provider disabled provider=" + provider);
         navigationSession.onProviderDisabled(provider);
-        controller.requestLocationUpdates(
+        NavigationLocationUpdateRequestPolicy.requestLocationUpdates(
+                context,
+                controller,
                 controller.getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
         stateEmitter.run();

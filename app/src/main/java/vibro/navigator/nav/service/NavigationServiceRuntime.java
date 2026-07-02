@@ -1,5 +1,7 @@
 package vibro.navigator.nav.service;
 
+import android.content.Context;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -9,12 +11,13 @@ import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
-import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
 final class NavigationServiceRuntime {
+    @NonNull
+    private final Context context;
     @NonNull
     private final NavigationForegroundController foregroundController;
     @NonNull
@@ -27,9 +30,11 @@ final class NavigationServiceRuntime {
     private final NavigationServiceStreetOverlay streetOverlay;
 
     NavigationServiceRuntime(
+            @NonNull Context context,
             @NonNull NavigationServiceDependencies dependencies,
             @NonNull NavigationServiceStreetOverlay streetOverlay
     ) {
+        this.context = context;
         foregroundController = dependencies.foreground.controller;
         screenInteractivityMonitor = dependencies.foreground.screenInteractivityMonitor;
         tracking = dependencies.tracking;
@@ -72,11 +77,11 @@ final class NavigationServiceRuntime {
     }
 
     void requestLocationUpdates(long intervalMs) {
-        if (intervalMs == NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS) {
-            tracking.locationController.requestStartupLocationUpdates();
-            return;
-        }
-        tracking.locationController.requestLocationUpdates(intervalMs);
+        NavigationLocationUpdateRequestPolicy.requestLocationUpdates(
+                context,
+                tracking.locationController,
+                intervalMs
+        );
     }
 
     void requestCurrentLocationSeeds() {

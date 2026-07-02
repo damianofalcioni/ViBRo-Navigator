@@ -78,6 +78,7 @@ public class AppDataBackupTest {
         Poi originalPoi = new Poi("Coffee", 48.2082d, 16.3738d);
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);
+        AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
@@ -126,6 +127,7 @@ public class AppDataBackupTest {
         assertEquals(originalPoi.lat, restoredPois.get(0).lat, 0.0d);
         assertEquals(originalPoi.lon, restoredPois.get(0).lon, 0.0d);
         assertFalse(AppSettings.isFusedLocationEnabled(context));
+        assertFalse(AppLocationSettings.isDynamicGpsFixIntervalEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
         assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(context));
@@ -151,6 +153,7 @@ public class AppDataBackupTest {
     @Test
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.STRAIGHT_LINE);
@@ -184,6 +187,7 @@ public class AppDataBackupTest {
         assertEquals(1, root.getInt("schemaVersion"));
         assertEquals(BACKUP_TYPE_BOOLEAN, imperialUnits.getString(BACKUP_TYPE));
         assertTrue(imperialUnits.getBoolean(BACKUP_VALUE));
+        assertBooleanPreference(appSettings, "dynamic_gps_fix_interval_enabled", false);
         assertEquals(BACKUP_TYPE_BOOLEAN, compassSurroundingStreets.getString(BACKUP_TYPE));
         assertTrue(compassSurroundingStreets.getBoolean(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, navigationNotifications.getString(BACKUP_TYPE));
@@ -300,6 +304,16 @@ public class AppDataBackupTest {
         }
 
         throw new AssertionError("Expected invalid backup to be rejected");
+    }
+
+    private static void assertBooleanPreference(
+            JSONObject preferences,
+            String key,
+            boolean expectedValue
+    ) throws JSONException {
+        JSONObject preference = preferences.getJSONObject(key);
+        assertEquals(BACKUP_TYPE_BOOLEAN, preference.getString(BACKUP_TYPE));
+        assertEquals(expectedValue, preference.getBoolean(BACKUP_VALUE));
     }
 
     private static final class OneShotFailingCommitContext extends ContextWrapper {
