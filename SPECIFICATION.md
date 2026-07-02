@@ -457,6 +457,7 @@ The navigation UI must show the following in large text:
 - When the deprecated orientation sensor is available, navigation may register it only as a calibration cross-check. A fresh medium, low, or unreliable deprecated-orientation accuracy status should conservatively downgrade the displayed live heading-sensor accuracy, but its azimuth must not replace the rotation-vector or geomagnetic-rotation-vector heading.
 - Live heading-sensor-driven compass rotation is only required while the navigation UI is visible and the screen is interactive
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
+- The compass outer status/calibration layer should stay slim so route and surrounding-street drawing remain dominant, with cardinal labels sized to fit inside that layer
 - The inner circles must remain stable visual distance references for the route
 - When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
 - When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking moving-scale radius based on the same low, medium, and high speed buckets with hysteresis used by surrounding-street filtering

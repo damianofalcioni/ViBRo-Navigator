@@ -21,18 +21,20 @@ public final class NavigationCompassView extends View {
 
     private static final int DEFAULT_SIZE_DP = 280;
     private static final int OUTER_TICK_COUNT = 24;
-    private static final float[] DISTANCE_RING_SCALES = new float[]{0.82f, 0.55f, 0.28f};
+    private static final float OUTER_DISTANCE_RING_SCALE = 0.91f;
+    private static final float[] DISTANCE_RING_SCALES = new float[]{OUTER_DISTANCE_RING_SCALE, 0.61f, 0.30f};
     private static final float CENTER_MARKER_DOT_RADIUS_SCALE = 0.02f;
     private static final float HEADING_GUIDE_TOP_SCALE = 0.94f;
     private static final float HEADING_GUIDE_ARROW_WIDTH_DP = 12f;
     private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = 10f;
     private static final float HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES = 5f;
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
-    private static final float OUTER_COMPASS_LAYER_INNER_SCALE = 0.88f;
-    private static final float OUTER_COMPASS_LAYER_OUTER_SCALE = 0.94f;
-    private static final float OUTER_COMPASS_LAYER_RADIUS_SCALE = 0.91f;
-    private static final float OUTER_DISTANCE_RING_SCALE = DISTANCE_RING_SCALES[0];
+    static final float OUTER_COMPASS_LAYER_INNER_SCALE = OUTER_DISTANCE_RING_SCALE;
+    private static final float OUTER_COMPASS_LAYER_OUTER_SCALE = 0.97f;
+    private static final float OUTER_COMPASS_LAYER_RADIUS_SCALE = (OUTER_COMPASS_LAYER_INNER_SCALE + 1f) / 2f;
+    private static final float OUTER_COMPASS_TICK_LENGTH_SCALE = 0.018f;
     static final float OUTER_COMPASS_LAYER_STROKE_SCALE = 1f - OUTER_DISTANCE_RING_SCALE;
+    static final float CARDINAL_TEXT_SIZE_SCALE = 0.09f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
 
@@ -262,7 +264,7 @@ public final class NavigationCompassView extends View {
             if (i % 6 == 0) {
                 continue;
             }
-            float inner = outer - radius * 0.026f;
+            float inner = outer - radius * OUTER_COMPASS_TICK_LENGTH_SCALE;
             Paint paint = accented ? accentTickPaint : minorTickPaint;
             canvas.drawLine(
                     cx + inner * cos,
@@ -286,7 +288,7 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawCardinal(@NonNull Canvas canvas, float x, float y, @NonNull String label, float radius) {
-        cardinalPaint.setTextSize(radius * 0.14f);
+        cardinalPaint.setTextSize(radius * CARDINAL_TEXT_SIZE_SCALE);
         Paint.FontMetrics fontMetrics = cardinalPaint.getFontMetrics();
         float baseline = y - (fontMetrics.ascent + fontMetrics.descent) / 2f;
         canvas.drawText(label, x, baseline, cardinalPaint);

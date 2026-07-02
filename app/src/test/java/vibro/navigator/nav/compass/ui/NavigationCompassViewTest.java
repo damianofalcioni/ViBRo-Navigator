@@ -262,15 +262,17 @@ public class NavigationCompassViewTest {
     }
 
     @Test
-    public void pausedAndCalibrationLayersUseOuterCompassGeometry() throws Exception {
+    public void pausedAndCalibrationLayersUseSlimOuterCompassGeometry() throws Exception {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassView compassView = new NavigationCompassView(activity);
         Field pausedRingPaintField = NavigationCompassView.class.getDeclaredField("pausedRingPaint");
         pausedRingPaintField.setAccessible(true);
         Paint pausedRingPaint = (Paint) pausedRingPaintField.get(compassView);
 
-        assertEquals(91f, compassView.outerCompassLayerRadius(100f), 0.01f);
-        assertEquals(0.18f, NavigationCompassView.OUTER_COMPASS_LAYER_STROKE_SCALE, 0.01f);
+        assertEquals(95.5f, compassView.outerCompassLayerRadius(100f), 0.01f);
+        assertEquals(0.91f, NavigationCompassView.OUTER_COMPASS_LAYER_INNER_SCALE, 0.01f);
+        assertEquals(0.09f, NavigationCompassView.CARDINAL_TEXT_SIZE_SCALE, 0.01f);
+        assertEquals(0.09f, NavigationCompassView.OUTER_COMPASS_LAYER_STROKE_SCALE, 0.01f);
         assertEquals(NavigationCompassCalibrationRing.BACKGROUND_ALPHA, pausedRingPaint.getAlpha());
     }
 
