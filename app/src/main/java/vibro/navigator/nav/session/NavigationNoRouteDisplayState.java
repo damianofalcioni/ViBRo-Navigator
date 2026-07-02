@@ -3,7 +3,6 @@ package vibro.navigator.nav.session;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.routing.NavigationRouteFailureFormatter;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
@@ -14,32 +13,29 @@ final class NavigationNoRouteDisplayState {
     }
 
     @NonNull
-    static NavState build(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @NonNull String gpsStatusLine
-    ) {
+    static NavState build(@NonNull NavigationDisplaySnapshot snapshot) {
         if (snapshot.lastRouteFailure != null) {
-            return NavStateComposer.withGpsStatus(NavStateResourceComposer.routeUnavailable(
+            return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(NavStateResourceComposer.routeUnavailable(
                     snapshot.textResources,
                     NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, false),
                     snapshot.nextEvaluationDeadlineElapsedMs
-            ), gpsStatusLine);
+            ), snapshot);
         }
         if (!isRouteStartAccuracyUsable(snapshot.accuracyMeters)) {
-            return NavStateComposer.withGpsStatus(
+            return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
                     NavStateResourceComposer.waitingForLocation(
                             snapshot.textResources,
                             snapshot.nextEvaluationDeadlineElapsedMs
                     ),
-                    gpsStatusLine
+                    snapshot
             );
         }
-        return NavStateComposer.withGpsStatus(
+        return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
                 NavStateResourceComposer.calculatingRoute(
                         snapshot.textResources,
                         snapshot.nextEvaluationDeadlineElapsedMs
                 ),
-                gpsStatusLine
+                snapshot
         );
     }
 

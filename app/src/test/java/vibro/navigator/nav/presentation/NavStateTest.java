@@ -866,7 +866,10 @@ public class NavStateTest {
                 context
         );
 
-        assertEquals("16 km/h ↑245 m 182° • ±5 m 9° • (7) #0", state.gpsStatus.statusLine);
+        assertEquals("16 km/h ↑245 m • ±5 m • (7)", state.gpsStatus.statusLine);
+        assertEquals("#0", state.gpsStatus.telemetry.acquiredFixCountText);
+        assertEquals("182°", state.gpsStatus.telemetry.bearingText);
+        assertEquals("9°", state.gpsStatus.telemetry.bearingAccuracyText);
     }
 
     @Test

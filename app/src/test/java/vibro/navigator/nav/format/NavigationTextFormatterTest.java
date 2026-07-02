@@ -7,6 +7,7 @@ import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
@@ -57,7 +58,55 @@ public class NavigationTextFormatterTest {
                 METRIC
         );
 
-        assertEquals("0 km/h ↑-- -- • -- -- • (--) #1", line);
+        assertEquals("0 km/h ↑-- • -- • (--)", line);
+    }
+
+    @Test
+    public void buildGpsStatusTelemetry_keepsDetailedBearingAndFixCountOffCompactLine() {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(48.2082);
+        location.setLongitude(16.3738);
+        location.setAltitude(245.4);
+        location.setBearing(182.2f);
+        location.setBearingAccuracyDegrees(9.4f);
+
+        String details = NavigationGpsTelemetryFormatter.formatDetails(
+                METRIC,
+                NavigationGpsTelemetryFormatter.format(
+                        METRIC,
+                        4.5f,
+                        location,
+                        5.2f,
+                        7,
+                        3
+                ),
+                "8 s"
+        );
+
+        assertEquals(
+                "Speed: 16 km/h\nAltitude: 245 m\nAccuracy: ±5 m\nSatellites: 7\n"
+                        + "Interval: 8 s\nGPS fixes: #3\nGPS bearing: 182°\nBearing accuracy: 9°",
+                details
+        );
+    }
+
+    @Test
+    public void buildGpsStatusTelemetry_formatsAccuracyInMetersForImperialGpsLine() {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(48.2082);
+        location.setLongitude(16.3738);
+        location.setAltitude(245.4);
+
+        String line = NavCompassStateFactory.buildGpsStatusLine(
+                4.5f,
+                location,
+                5f,
+                null,
+                1,
+                IMPERIAL
+        );
+
+        assertEquals("10 mph ↑805 ft • ±5 m • (--)", line);
     }
 
     @Test

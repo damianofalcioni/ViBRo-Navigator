@@ -88,6 +88,14 @@ public final class NavigationMeasurementFormatter {
         return resources.getString(R.string.format_nav_accuracy_value, accuracyMeters);
     }
 
+    @NonNull
+    public static String formatAccuracyMeters(@NonNull NavigationTextResources resources, float accuracyMeters) {
+        if (!isDisplayableAccuracyMeters(accuracyMeters)) {
+            return resources.getString(R.string.nav_status_unavailable);
+        }
+        return resources.getString(R.string.format_nav_accuracy_value, accuracyMeters);
+    }
+
     public static boolean isDisplayableAccuracyMeters(float accuracyMeters) {
         return Float.isFinite(accuracyMeters)
                 && accuracyMeters > 0f

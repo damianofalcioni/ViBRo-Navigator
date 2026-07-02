@@ -524,11 +524,14 @@ The navigation UI must show the following in large text:
 
 #### 4.5.3.1 GPS status line
 
-- The navigation UI must show a single GPS status line formatted as `<speed> ↑<elev> <bearing> • <accuracy> <bearing-accuracy> • (<sat>) #<fix-count> • <countdown>`
-- That line must show the current speed, current elevation, current horizontal accuracy, GPS bearing, GPS bearing accuracy, the current number of GNSS satellites used in the fix, and the total number of accepted location fixes acquired during the current navigation session, in that exact order
+- The navigation UI must show a single compact GPS status line formatted as `<speed> ↑<elev> • <accuracy-meters> • (<sat>) • <countdown>`
+- That compact line must show only the current speed, current elevation, current horizontal accuracy in meters, the current number of GNSS satellites used in the fix, and the countdown until the next scheduled navigation position evaluation
+- The compact GPS status line text must be sized like the secondary upcoming-direction line, and its accuracy value must be orange
+- When route speed-limit data is available and the current displayed speed is above that limit, the speed value in the compact GPS status line must be bold
+- Tapping the compact GPS status line must show a live GPS details UI with the compact-line fields plus the accepted GPS fix count, GPS bearing, and GPS bearing accuracy
+- The phone GPS details UI should use a compact centered dialog panel with larger readable details text instead of a wide default alert layout
 - GNSS satellite-status callback tracking may be suspended while the phone navigation UI is not visible or the screen is non-interactive; normal navigation location updates must continue, and the last known satellite count should be retained until satellite-status tracking resumes
 - The displayed speed must suppress raw provider speed when recent filtered fixes show only stationary jitter
-- The current horizontal accuracy and GPS bearing-accuracy values in that line must be emphasized in orange when they are available
 - That GPS status line must stay on a single line and should reduce its text size as needed instead of wrapping onto a second line
 - When any of those values is unavailable, the UI must show `--` in that field instead of omitting it
 - The `<countdown>` field shows the time remaining until the next scheduled navigation position evaluation based on the current active update interval; it is a scheduling countdown and must not be interpreted as a guarantee that Android or fused location cannot deliver an earlier usable fix
@@ -613,6 +616,7 @@ The navigation UI must show the following in large text:
 - Android Auto must not try to launch or render the phone `NavigationActivity` directly on the car display. Android Auto hosts a driver-optimized template surface, not arbitrary phone `Activity` layouts.
 - The active Android Auto screen must use an Android for Cars navigation surface to draw a landscape-style navigation view: navigation text and the three-button action row on the left, and the compass route view on the right.
 - The Android Auto surface must mirror the same active navigation state shown by the phone landscape navigation layout, including at least the GPS status, next direction, second direction when available, destination/progress/status text, blocked-road, stop navigation, pause/resume, and the compass route view.
+- The Android Auto GPS status line must use the same compact fields, speed-over-limit emphasis, and tap-to-show live details behavior as the phone navigation layout.
 - The Android Auto compass should reuse the existing `NavigationCompassView` rendering path so compass route geometry, radius behavior, paused-state chrome, orientation cues, and destination/intermediate markers stay consistent with the phone navigation screen.
 - Android Auto should expose the blocked-road, stop, and pause/resume controls both through the drawn surface layout and through the Android for Cars template action strip when required by the host template.
 - Tapping the compass area on the Android Auto surface should preserve the same temporary compass zoom toggle behavior as tapping the phone compass.

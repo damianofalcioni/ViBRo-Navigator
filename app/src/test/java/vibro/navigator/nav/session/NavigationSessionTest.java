@@ -140,7 +140,8 @@ public class NavigationSessionTest {
                 null
         );
 
-        assertTrue(state.gpsStatus.statusLine.contains("(7) #2"));
+        assertTrue(state.gpsStatus.statusLine.contains("(7)"));
+        assertEquals("#2", state.gpsStatus.telemetry.acquiredFixCountText);
     }
 
     @Test

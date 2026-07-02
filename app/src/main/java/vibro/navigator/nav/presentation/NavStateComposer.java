@@ -15,7 +15,9 @@ import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavStateTextFactory;
+import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
 import vibro.navigator.nav.model.NavGpsStatus;
+import vibro.navigator.nav.model.NavGpsTelemetry;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavProgressStatus;
@@ -117,13 +119,13 @@ public final class NavStateComposer {
                 input.targets,
                 input.textResources
         );
-        String gpsStatus = NavStateResourceComposer.buildGpsStatusLine(
+        NavGpsTelemetry gpsTelemetry = NavigationGpsTelemetryFormatter.format(
+                input.textResources,
                 input.motion.speedMps,
                 input.currentLocation,
                 input.motion.accuracyMeters,
                 input.gps.fixedSatelliteCount,
-                input.gps.acquiredFixCount,
-                input.textResources
+                input.gps.acquiredFixCount
         );
         NavCompassState compassState = input.compassInput == null
                 ? null
@@ -133,12 +135,13 @@ public final class NavStateComposer {
                 afterNext,
                 destination,
                 stopProgress,
-                gpsStatus,
+                gpsTelemetry.compactLine,
                 input.timing.nextEvaluationDeadlineElapsedMs,
                 "",
                 compassState,
                 input.route.speedLimitAt(input.routeProgress.alongTrackMeters),
-                false
+                false,
+                gpsTelemetry
         );
     }
 
@@ -162,6 +165,15 @@ public final class NavStateComposer {
         return new NavState(
                 base.routeStatus,
                 base.gpsStatus.withStatusLine(gpsStatusLine),
+                base.pauseStatus
+        );
+    }
+
+    @NonNull
+    public static NavState withGpsStatus(@NonNull NavState base, @NonNull NavGpsStatus gpsStatus) {
+        return new NavState(
+                base.routeStatus,
+                gpsStatus,
                 base.pauseStatus
         );
     }
@@ -254,6 +266,34 @@ public final class NavStateComposer {
     }
 
     @NonNull
+    static NavState create(
+            @NonNull String nextLine,
+            @NonNull String afterNextLine,
+            @NonNull String destinationLine,
+            @NonNull String stopProgressBlock,
+            @NonNull String gpsStatusLine,
+            long nextEvaluationDeadlineElapsedMs,
+            @NonNull String detailBlock,
+            @Nullable NavCompassState compassState,
+            boolean paused,
+            @NonNull NavGpsTelemetry gpsTelemetry
+    ) {
+        return create(
+                nextLine,
+                afterNextLine,
+                destinationLine,
+                stopProgressBlock,
+                gpsStatusLine,
+                nextEvaluationDeadlineElapsedMs,
+                detailBlock,
+                compassState,
+                null,
+                paused,
+                gpsTelemetry
+        );
+    }
+
+    @NonNull
     private static NavState create(
             @NonNull String nextLine,
             @NonNull String afterNextLine,
@@ -266,6 +306,35 @@ public final class NavStateComposer {
             @Nullable RouteSpeedLimit speedLimit,
             boolean paused
     ) {
+        return create(
+                nextLine,
+                afterNextLine,
+                destinationLine,
+                stopProgressBlock,
+                gpsStatusLine,
+                nextEvaluationDeadlineElapsedMs,
+                detailBlock,
+                compassState,
+                speedLimit,
+                paused,
+                NavGpsTelemetry.unavailable(gpsStatusLine)
+        );
+    }
+
+    @NonNull
+    private static NavState create(
+            @NonNull String nextLine,
+            @NonNull String afterNextLine,
+            @NonNull String destinationLine,
+            @NonNull String stopProgressBlock,
+            @NonNull String gpsStatusLine,
+            long nextEvaluationDeadlineElapsedMs,
+            @NonNull String detailBlock,
+            @Nullable NavCompassState compassState,
+            @Nullable RouteSpeedLimit speedLimit,
+            boolean paused,
+            @NonNull NavGpsTelemetry gpsTelemetry
+    ) {
         return new NavState(
                 new NavRouteStatus(
                         new NavGuidanceStatus(nextLine, afterNextLine),
@@ -273,7 +342,7 @@ public final class NavStateComposer {
                         compassState,
                         speedLimit
                 ),
-                new NavGpsStatus(gpsStatusLine, nextEvaluationDeadlineElapsedMs),
+                new NavGpsStatus(gpsStatusLine, nextEvaluationDeadlineElapsedMs, gpsTelemetry),
                 new NavPauseStatus(paused)
         );
     }

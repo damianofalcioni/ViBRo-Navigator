@@ -82,26 +82,25 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationRouteProgressTracker progressTracker,
             boolean showNextManeuverCue
     ) {
-        String gpsStatusLine = buildGpsStatusLine(snapshot);
         if (snapshot.lastFiltered == null) {
-            return buildStateWithoutLocation(snapshot, gpsStatusLine);
+            return buildStateWithoutLocation(snapshot);
         }
 
         if (snapshot.routeCalculationInProgress) {
-            return buildCalculatingState(snapshot, gpsStatusLine);
+            return buildCalculatingState(snapshot);
         }
 
         GeoJsonRoute route = geometryState.route();
         PolylineIndex polylineIndex = geometryState.polylineIndex();
         if (route == null || polylineIndex == null) {
-            return buildStateWithoutRoute(snapshot, gpsStatusLine);
+            return buildStateWithoutRoute(snapshot);
         }
 
         PolylineIndex.Match match = geometryState.match(snapshot.lastFiltered, snapshot.accuracyMeters);
         if (match == null) {
-            return NavStateComposer.withGpsStatus(
+            return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
                     NavStateResourceComposer.waiting(snapshot.textResources),
-                    gpsStatusLine
+                    snapshot
             );
         }
 
@@ -182,53 +181,34 @@ public final class NavigationSessionRouteDisplayState {
     }
 
     @NonNull
-    private String buildGpsStatusLine(@NonNull NavigationDisplaySnapshot snapshot) {
-        if (snapshot.lastFiltered == null) {
-            return NavStateResourceComposer.buildGpsStatusLine(
-                    Float.NaN,
-                    null,
-                    Float.NaN,
-                    snapshot.fixedSatelliteCount,
-                    snapshot.acquiredFixCount,
-                snapshot.textResources
-            );
-        }
-        return NavStateResourceComposer.buildGpsStatusLine(
-                snapshot.displaySpeedMps,
-                snapshot.lastFiltered,
-                snapshot.accuracyMeters,
-                snapshot.fixedSatelliteCount,
-                snapshot.acquiredFixCount,
-                snapshot.textResources
-        );
-    }
-
-    @NonNull
     private NavState buildStateWithoutLocation(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @NonNull String gpsStatusLine
+            @NonNull NavigationDisplaySnapshot snapshot
     ) {
         if (snapshot.lastRouteFailure != null) {
-            return NavStateComposer.withGpsStatus(NavStateResourceComposer.routeUnavailable(
-                    snapshot.textResources,
-                    NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, false),
-                    snapshot.nextEvaluationDeadlineElapsedMs
-            ), gpsStatusLine);
+            return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
+                    NavStateResourceComposer.routeUnavailable(
+                            snapshot.textResources,
+                            NavigationRouteFailureFormatter.format(
+                                    snapshot.textResources,
+                                    snapshot.lastRouteFailure,
+                                    false
+                            ),
+                            snapshot.nextEvaluationDeadlineElapsedMs
+                    ),
+                    snapshot
+            );
         }
-        return NavStateComposer.withGpsStatus(
+        return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
                 NavStateResourceComposer.waitingForLocation(
                         snapshot.textResources,
                         snapshot.nextEvaluationDeadlineElapsedMs
                 ),
-                gpsStatusLine
+                snapshot
         );
     }
 
     @NonNull
-    private NavState buildCalculatingState(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @NonNull String gpsStatusLine
-    ) {
+    private NavState buildCalculatingState(@NonNull NavigationDisplaySnapshot snapshot) {
         NavState calculatingState = NavStateResourceComposer.calculatingRoute(
                 snapshot.textResources,
                 snapshot.nextEvaluationDeadlineElapsedMs
@@ -236,15 +216,12 @@ public final class NavigationSessionRouteDisplayState {
         if (snapshot.routeCalculationNotice != null && !snapshot.routeCalculationNotice.trim().isEmpty()) {
             calculatingState = NavStateComposer.withNotice(calculatingState, snapshot.routeCalculationNotice);
         }
-        return NavStateComposer.withGpsStatus(calculatingState, gpsStatusLine);
+        return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(calculatingState, snapshot);
     }
 
     @NonNull
-    private NavState buildStateWithoutRoute(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @NonNull String gpsStatusLine
-    ) {
-        return NavigationNoRouteDisplayState.build(snapshot, gpsStatusLine);
+    private NavState buildStateWithoutRoute(@NonNull NavigationDisplaySnapshot snapshot) {
+        return NavigationNoRouteDisplayState.build(snapshot);
     }
 
     @NonNull

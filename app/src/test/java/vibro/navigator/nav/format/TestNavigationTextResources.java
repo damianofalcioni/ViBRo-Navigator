@@ -110,7 +110,10 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_nav_bearing_accuracy_value, "%1$.0f°");
         strings.put(R.string.format_nav_satellite_count_value, "%1$d");
         strings.put(R.string.format_nav_fix_count_value, "#%1$d");
-        strings.put(R.string.format_nav_gps_status, "%1$s ↑%2$s %3$s • %4$s %5$s • (%6$s) %7$s");
+        strings.put(R.string.format_nav_gps_status, "%1$s ↑%2$s • %3$s • (%4$s)");
+        strings.put(R.string.format_nav_gps_details,
+                "Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nSatellites: %4$s\nInterval: %5$s\n"
+                        + "GPS fixes: %6$s\nGPS bearing: %7$s\nBearing accuracy: %8$s");
     }
 
     private static void addNavigationStatusStrings(@NonNull Map<Integer, String> strings) {

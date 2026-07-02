@@ -49,16 +49,16 @@ public final class NavigationGpsTextFormatter {
             @Nullable Integer fixedSatelliteCount,
             @Nullable Integer acquiredFixCount
     ) {
-        return resources.getString(
-                R.string.format_nav_gps_status,
-                formatSpeed(resources, speedMps),
-                formatElevation(resources, elevationMeters),
-                formatGpsBearing(resources, bearingDegrees),
-                formatAccuracy(resources, accuracyMeters),
-                formatGpsBearingAccuracy(resources, bearingAccuracyDegrees),
-                formatFixedSatelliteCount(resources, fixedSatelliteCount),
-                formatAcquiredFixCount(resources, acquiredFixCount)
-        );
+        return NavigationGpsTelemetryFormatter.format(
+                resources,
+                speedMps,
+                elevationMeters,
+                accuracyMeters,
+                bearingDegrees,
+                bearingAccuracyDegrees,
+                fixedSatelliteCount,
+                acquiredFixCount
+        ).compactLine;
     }
 
     @NonNull

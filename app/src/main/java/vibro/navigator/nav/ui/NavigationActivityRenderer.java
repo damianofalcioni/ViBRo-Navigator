@@ -14,10 +14,12 @@ import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.RouteSpeedLimit;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import android.app.Activity;
+import android.graphics.Typeface;
 import android.graphics.PorterDuff;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.ImageButton;
@@ -27,9 +29,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.TextViewCompat;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
@@ -50,12 +49,9 @@ final class NavigationActivityRenderer {
     private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
     private static final float BUTTON_ENABLED_ALPHA = 1f;
     private static final float BLOCKED_ROAD_DISABLED_ALPHA = 0.45f;
-    private static final Pattern GPS_ACCURACY_HIGHLIGHT_PATTERN =
-            Pattern.compile("• ([^ ]+ [^ ]+) ([^•]+) •");
 
     private final Activity activity;
     private final TaskScheduler uiScheduler;
-    private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final NavigationCompassModeController compassModeController;
     private final TextView next;
     private final TextView afterNext;
@@ -67,6 +63,7 @@ final class NavigationActivityRenderer {
     private final ImageButton export;
     private final ImageButton pauseResume;
     private final ImageButton stop;
+    private final NavigationGpsDetailsDialog gpsDetailsDialog;
     private final Runnable compassTransitionTicker = this::renderCompassState;
 
     @Nullable
@@ -82,7 +79,6 @@ final class NavigationActivityRenderer {
     ) {
         this.activity = activity;
         this.uiScheduler = uiScheduler;
-        this.elapsedRealtimeClock = elapsedRealtimeClock;
         compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         next = activity.findViewById(R.id.nextDirectionText);
         afterNext = activity.findViewById(R.id.afterNextDirectionText);
@@ -94,6 +90,7 @@ final class NavigationActivityRenderer {
         export = activity.findViewById(R.id.exportRouteButton);
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
         stop = activity.findViewById(R.id.stopNavButton);
+        gpsDetailsDialog = new NavigationGpsDetailsDialog(activity, elapsedRealtimeClock);
         configureTextScaling();
     }
 
@@ -106,6 +103,9 @@ final class NavigationActivityRenderer {
         export.setOnClickListener(v -> controls.onExportRoute());
         stop.setOnClickListener(v -> controls.onStopNavigation());
         pauseResume.setOnClickListener(v -> controls.onTogglePaused());
+        gpsStatus.setClickable(true);
+        gpsStatus.setFocusable(true);
+        gpsStatus.setOnClickListener(v -> gpsDetailsDialog.show(currentState));
     }
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
@@ -152,25 +152,25 @@ final class NavigationActivityRenderer {
                     activity.getString(R.string.nav_status_unavailable)
             );
             gpsStatus.setText(statusText);
+            gpsDetailsDialog.update(currentState);
             return;
         }
-        String nextEvaluationValue = activity.getString(R.string.nav_status_unavailable);
-        long nextEvaluationDeadlineElapsedMs = currentState.gpsStatus.nextEvaluationDeadlineElapsedMs;
-        long remainingMs = Math.max(0L, nextEvaluationDeadlineElapsedMs - elapsedRealtimeClock.elapsedRealtimeMs());
-        if (nextEvaluationDeadlineElapsedMs != NavState.NO_DEADLINE && remainingMs > 0L) {
-            long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
-            nextEvaluationValue = activity.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
-        }
+        String nextEvaluationValue = gpsDetailsDialog.nextEvaluationValue(currentState);
         statusText = activity.getString(
                 R.string.format_nav_gps_status_with_countdown,
                 currentState.gpsStatus.statusLine,
                 nextEvaluationValue
         );
-        gpsStatus.setText(styleGpsStatus(statusText));
+        gpsStatus.setText(styleGpsStatus(statusText, currentState));
+        gpsDetailsDialog.update(currentState);
     }
 
     void cancelPendingCompassTransition() {
         uiScheduler.removeCallbacks(compassTransitionTicker);
+    }
+
+    void dismissGpsDetailsDialog() {
+        gpsDetailsDialog.dismiss();
     }
 
     private void configureTextScaling() {
@@ -191,8 +191,8 @@ final class NavigationActivityRenderer {
         gpsStatus.setMaxLines(1);
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 gpsStatus,
-                8,
-                16,
+                10,
+                18,
                 1,
                 TypedValue.COMPLEX_UNIT_SP
         );
@@ -234,31 +234,64 @@ final class NavigationActivityRenderer {
     }
 
     @NonNull
-    private CharSequence styleGpsStatus(@NonNull String statusText) {
+    private CharSequence styleGpsStatus(@NonNull String statusText, @Nullable NavState state) {
         SpannableString styledText = new SpannableString(statusText);
-        Matcher matcher = GPS_ACCURACY_HIGHLIGHT_PATTERN.matcher(statusText);
-        if (!matcher.find()) {
+        if (state == null) {
             return styledText;
         }
-        String unavailable = activity.getString(R.string.nav_status_unavailable);
-        int accentColor = ContextCompat.getColor(activity, R.color.compass_accent);
-        if (!unavailable.equals(matcher.group(1).trim())) {
-            styledText.setSpan(
-                    new ForegroundColorSpan(accentColor),
-                    matcher.start(1),
-                    matcher.end(1),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
+        styleAccuracy(styledText, statusText, state);
+        if (!NavigationSpeedLimitFormatter.isOverLimit(
+                state.gpsStatus.telemetry.speedMps,
+                state.routeStatus.speedLimit
+        )) {
+            return styledText;
         }
-        if (!unavailable.equals(matcher.group(2).trim())) {
-            styledText.setSpan(
-                    new ForegroundColorSpan(accentColor),
-                    matcher.start(2),
-                    matcher.end(2),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
+        int speedStart = statusText.indexOf(state.gpsStatus.telemetry.speedText);
+        if (speedStart < 0) {
+            return styledText;
         }
+        int speedEnd = speedStart + state.gpsStatus.telemetry.speedText.length();
+        styledText.setSpan(
+                new StyleSpan(Typeface.BOLD),
+                speedStart,
+                speedEnd,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        );
         return styledText;
+    }
+
+    private void styleAccuracy(
+            @NonNull SpannableString styledText,
+            @NonNull String statusText,
+            @NonNull NavState state
+    ) {
+        int accuracyStart = accuracyStart(statusText, state);
+        if (accuracyStart < 0) {
+            return;
+        }
+        int accuracyEnd = accuracyStart + state.gpsStatus.telemetry.accuracyText.length();
+        styledText.setSpan(
+                new ForegroundColorSpan(ContextCompat.getColor(activity, R.color.compass_accent)),
+                accuracyStart,
+                accuracyEnd,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+        );
+    }
+
+    private int accuracyStart(@NonNull String statusText, @NonNull NavState state) {
+        int compactStart = statusText.indexOf(state.gpsStatus.statusLine);
+        if (compactStart < 0) {
+            return -1;
+        }
+        int elevationStart = state.gpsStatus.statusLine.indexOf(state.gpsStatus.telemetry.elevationText);
+        if (elevationStart < 0) {
+            return -1;
+        }
+        int accuracyStart = state.gpsStatus.statusLine.indexOf(
+                state.gpsStatus.telemetry.accuracyText,
+                elevationStart + state.gpsStatus.telemetry.elevationText.length()
+        );
+        return accuracyStart < 0 ? -1 : compactStart + accuracyStart;
     }
 
     private void logRenderedStateIfChanged(@NonNull NavState state) {

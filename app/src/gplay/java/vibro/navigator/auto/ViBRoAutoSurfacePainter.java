@@ -51,7 +51,7 @@ final class ViBRoAutoSurfacePainter {
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
         if (textColumnPainter.handleClick(x, y, state)) {
-            return false;
+            return true;
         }
         return compassPainter.handleClick(x, y, state);
     }

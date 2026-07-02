@@ -11,7 +11,6 @@ import vibro.navigator.R;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
@@ -19,13 +18,13 @@ import vibro.navigator.nav.guidance.NavigationUpdateScheduler;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.StraightLineWrongDirectionDetector;
 import vibro.navigator.nav.location.NavigationLocation;
-import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavProgressStatus;
 import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 final class StraightLineNavigationState {
@@ -126,9 +125,8 @@ final class StraightLineNavigationState {
 
     @NonNull
     NavState buildState(@NonNull NavigationRequest request, @NonNull NavigationDisplaySnapshot snapshot) {
-        String gpsStatusLine = buildGpsStatusLine(snapshot);
         if (snapshot.lastFiltered == null) {
-            return buildWaitingForLocationState(snapshot, gpsStatusLine);
+            return buildWaitingForLocationState(snapshot);
         }
 
         NavCompassState compassState = buildCompassState(request, snapshot);
@@ -157,7 +155,15 @@ final class StraightLineNavigationState {
                         ),
                         compassState
                 ),
-                new NavGpsStatus(gpsStatusLine, snapshot.nextEvaluationDeadlineElapsedMs),
+                NavStateResourceComposer.buildGpsStatus(
+                        snapshot.displaySpeedMps,
+                        snapshot.lastFiltered,
+                        snapshot.accuracyMeters,
+                        snapshot.fixedSatelliteCount,
+                        snapshot.acquiredFixCount,
+                        snapshot.nextEvaluationDeadlineElapsedMs,
+                        snapshot.textResources
+                ),
                 new NavPauseStatus(false)
         );
         compassMemory.rememberCompassState(
@@ -283,21 +289,8 @@ final class StraightLineNavigationState {
     }
 
     @NonNull
-    private static String buildGpsStatusLine(@NonNull NavigationDisplaySnapshot snapshot) {
-        return NavCompassStateFactory.buildGpsStatusLine(
-                snapshot.displaySpeedMps,
-                snapshot.lastFiltered,
-                snapshot.accuracyMeters,
-                snapshot.fixedSatelliteCount,
-                snapshot.acquiredFixCount,
-                snapshot.textResources
-        );
-    }
-
-    @NonNull
     private static NavState buildWaitingForLocationState(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @NonNull String gpsStatusLine
+            @NonNull NavigationDisplaySnapshot snapshot
     ) {
         return new NavState(
                 new NavRouteStatus(
@@ -312,7 +305,15 @@ final class StraightLineNavigationState {
                         ),
                         null
                 ),
-                new NavGpsStatus(gpsStatusLine, snapshot.nextEvaluationDeadlineElapsedMs),
+                NavStateResourceComposer.buildGpsStatus(
+                        snapshot.displaySpeedMps,
+                        snapshot.lastFiltered,
+                        snapshot.accuracyMeters,
+                        snapshot.fixedSatelliteCount,
+                        snapshot.acquiredFixCount,
+                        snapshot.nextEvaluationDeadlineElapsedMs,
+                        snapshot.textResources
+                ),
                 new NavPauseStatus(false)
         );
     }

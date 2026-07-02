@@ -221,6 +221,7 @@ public class NavigationActivity extends Activity {
         AppLogger.i(TAG, "onStop bound=" + bound);
         uiScheduler.removeCallbacks(countdownTicker);
         renderer.cancelPendingCompassTransition();
+        renderer.dismissGpsDetailsDialog();
         if (bound) {
             try {
                 if (navBinder != null) {

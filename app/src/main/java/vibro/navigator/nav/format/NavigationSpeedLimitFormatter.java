@@ -3,6 +3,7 @@ package vibro.navigator.nav.format;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.route.RouteSpeedLimit;
@@ -25,6 +26,12 @@ public final class NavigationSpeedLimitFormatter {
                 R.string.format_speed_limit_content_description,
                 formatWithUnit(context, speedLimit)
         );
+    }
+
+    public static boolean isOverLimit(float speedMps, @Nullable RouteSpeedLimit speedLimit) {
+        return speedLimit != null
+                && Float.isFinite(speedMps)
+                && speedMps > speedLimit.metersPerSecond();
     }
 
     @NonNull

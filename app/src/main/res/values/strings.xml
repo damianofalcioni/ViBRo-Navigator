@@ -276,8 +276,10 @@
     <string name="format_speed_limit_content_description">Speed limit %1$s</string>
     <string name="format_speed_limit_kmh">%1$d km/h</string>
     <string name="format_speed_limit_mph">%1$d mph</string>
-    <string name="format_nav_gps_status">%1$s ↑%2$s %3$s • %4$s %5$s • (%6$s) %7$s</string>
+    <string name="format_nav_gps_status">%1$s ↑%2$s • %3$s • (%4$s)</string>
     <string name="format_nav_gps_status_with_countdown">%1$s • %2$s</string>
+    <string name="title_nav_gps_details">GPS details</string>
+    <string name="format_nav_gps_details">Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nSatellites: %4$s\nInterval: %5$s\nGPS fixes: %6$s\nGPS bearing: %7$s\nBearing accuracy: %8$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>
     <string name="format_turn_speech">%1$s, %2$s</string>
     <plurals name="format_time_speech_seconds">
