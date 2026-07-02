@@ -12,12 +12,18 @@ import vibro.navigator.settings.AppAndroidAutoSettings;
 
 final class AboutAndroidAutoSettings {
     private final Activity activity;
+    private final View rowView;
     private final Switch enabledSwitch;
     private final AboutDeferredBooleanSetting enabledSetting;
     private boolean rendering;
 
-    AboutAndroidAutoSettings(@NonNull Activity activity, @NonNull Switch enabledSwitch) {
+    AboutAndroidAutoSettings(
+            @NonNull Activity activity,
+            @NonNull View rowView,
+            @NonNull Switch enabledSwitch
+    ) {
         this.activity = activity;
+        this.rowView = rowView;
         this.enabledSwitch = enabledSwitch;
         enabledSetting = new AboutDeferredBooleanSetting(
                 AndroidTaskScheduler.main(),
@@ -45,6 +51,7 @@ final class AboutAndroidAutoSettings {
         boolean supported = DistributionServices.supportsAndroidAutoIntegration();
         boolean enabled = supported && AppAndroidAutoSettings.isIntegrationEnabled(activity);
         rendering = true;
+        rowView.setVisibility(supported ? View.VISIBLE : View.GONE);
         enabledSwitch.setVisibility(supported ? View.VISIBLE : View.GONE);
         enabledSwitch.setEnabled(supported);
         enabledSetting.render(enabledSwitch, enabled);

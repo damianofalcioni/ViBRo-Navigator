@@ -655,6 +655,7 @@ The navigation UI must show the following in large text:
 
 #### 5.1 Logging and diagnostics
 
+- Each entry in the about page Settings section must include a right-side info button that opens a short UI explanation of that setting or settings action
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units (ft/mi/mph) switch for distance, speed, elevation, and accuracy display values

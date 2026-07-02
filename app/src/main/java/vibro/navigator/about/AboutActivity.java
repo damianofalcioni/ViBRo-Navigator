@@ -48,6 +48,7 @@ public class AboutActivity extends Activity {
         View googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
         View googlePoiApiKeyButton = findViewById(R.id.aboutGooglePoiApiKeyButton);
         Switch googlePoiSearchSwitch = findViewById(R.id.aboutGooglePoiSearchSwitch);
+        View androidAutoRow = findViewById(R.id.aboutAndroidAutoRow);
         Switch androidAutoSwitch = findViewById(R.id.aboutAndroidAutoSwitch);
         View exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         View importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
@@ -78,7 +79,7 @@ public class AboutActivity extends Activity {
                 googlePoiSearchSwitch
         );
         googlePoiApiKeySettings.configure();
-        androidAutoSettings = new AboutAndroidAutoSettings(this, androidAutoSwitch);
+        androidAutoSettings = new AboutAndroidAutoSettings(this, androidAutoRow, androidAutoSwitch);
         androidAutoSettings.configure();
         databaseBackupActions = new AboutDatabaseBackupActions(
                 this,
@@ -86,6 +87,7 @@ public class AboutActivity extends Activity {
                 this::renderAfterDatabaseImport
         );
         databaseBackupActions.configure(exportDatabaseButton, importDatabaseButton);
+        new AboutSettingInfoButtons(this).configure();
         AboutProjectLinks.configure(this);
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));

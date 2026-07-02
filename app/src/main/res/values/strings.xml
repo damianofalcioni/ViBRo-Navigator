@@ -43,6 +43,7 @@
     <string name="action_import_database">Import database</string>
     <string name="action_export_route">Export GPX</string>
     <string name="action_profile_info">Profile info</string>
+    <string name="action_setting_info">Setting info</string>
     <string name="action_profile_settings">Profile settings</string>
     <string name="action_reset_defaults">Reset defaults</string>
 
@@ -329,6 +330,20 @@
     <string name="label_maneuver_voice_gender_male">Male</string>
     <string name="label_google_poi_api_key">Google Maps API key</string>
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
+    <string name="format_about_setting_info_content_description">Show help for %1$s</string>
+    <string name="about_setting_log_info">Keeps a log that can help diagnose problems. Leave this off unless you need to share details for support.</string>
+    <string name="about_setting_fused_location_info">Uses Google location when available. This can improve location updates on some phones.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Saves battery by checking your location less often but still in a reliable way. Turn it off for continuous location updates.</string>
+    <string name="about_setting_imperial_units_info">Shows distances and speeds in feet, miles, and mph instead of meters and km/h.</string>
+    <string name="about_setting_light_theme_info">Switches the app from the default dark look to a light look.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Shows nearby streets in the compass when local map data is available.</string>
+    <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
+    <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto.</string>
+    <string name="about_setting_poi_categories_info">Chooses which places can appear on the map picker, such as fuel, parking, or toilets.</string>
+    <string name="about_setting_maneuver_voice_info">Reads upcoming direction prompts aloud using an Android voice.</string>
+    <string name="about_setting_google_poi_api_key_info">Lets destination search use Google Maps when you provide a valid key.</string>
+    <string name="about_setting_export_database_info">Saves your app data, including history, saved routes, settings, and profile choices, to a backup file.</string>
+    <string name="about_setting_import_database_info">Restores your app data from a backup file created by this app.</string>
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>
     <string name="msg_google_poi_api_key_cleared">Google Maps API key cleared.</string>
     <string name="msg_google_poi_api_key_required">Add a Google Maps API key before enabling Google search.</string>
