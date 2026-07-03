@@ -118,6 +118,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 - The user must be able to select a result from the dropdown
 - Selecting a result must bind the destination to the coordinates of that POI
 - Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again
+- When a saved history POI is currently selected and the user clicks its text field again, the dropdown must reopen as a single saved-history row for that POI with its edit and delete controls; losing focus must dismiss that dropdown. Deleting that selected-history row must remove the POI from history and clear the text field and selected POI.
 - Selecting a destination or intermediate stop must clear focus from POI text inputs and hide the soft keyboard, including when Android tries to restore focus to another POI input after the selection popup closes
 - After a portrait/landscape layout change or other activity recreation, restoring a previously selected destination or stop must keep that resolved selection and must not reopen suggestions unless the user edits the restored text
 

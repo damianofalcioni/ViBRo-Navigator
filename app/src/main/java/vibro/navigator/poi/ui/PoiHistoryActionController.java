@@ -45,12 +45,6 @@ final class PoiHistoryActionController {
         this.selectionUpdater = selectionUpdater;
     }
 
-    void deleteHistoryItem(@NonNull PoiSuggestion suggestion) {
-        AppLogger.i(logTag, "Deleting history item=" + suggestion.poi.displayLabel());
-        history.remove(suggestion.poi);
-        historyPresenter.run();
-    }
-
     void promptRenameHistoryItem(@NonNull PoiSuggestion suggestion) {
         Context context = anchorEditText.getContext();
         Poi poi = suggestion.poi;

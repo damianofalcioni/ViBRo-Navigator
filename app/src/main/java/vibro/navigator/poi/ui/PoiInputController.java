@@ -34,6 +34,7 @@ public final class PoiInputController {
     private final PoiSuggestionAdapter adapter;
     private final PoiSuggestionPopupController popupController;
     private final PoiHistoryActionController historyActions;
+    private final PoiSelectedHistorySuggestionController selectedHistorySuggestions;
 
     private final TaskScheduler mainThreadScheduler = AndroidTaskScheduler.main();
     private final String logTag;
@@ -72,6 +73,13 @@ public final class PoiInputController {
                 logTag,
                 this::selectPoi
         );
+        selectedHistorySuggestions = new PoiSelectedHistorySuggestionController(
+                editText,
+                history,
+                adapter,
+                popupController,
+                logTag
+        );
         searchController = createSearchController(searchClient);
         attachInputHandlers();
     }
@@ -91,7 +99,7 @@ public final class PoiInputController {
 
             @Override
             public void onDeleteClicked(@NonNull PoiSuggestion suggestion) {
-                historyActions.deleteHistoryItem(suggestion);
+                deleteHistorySuggestion(suggestion);
             }
         });
     }
@@ -133,7 +141,7 @@ public final class PoiInputController {
         editText.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) {
                 AppLogger.d(logTag, "Input focused text=" + getRawText().trim());
-                maybeShowHistory();
+                maybeShowEmptyHistory();
             } else {
                 AppLogger.d(logTag, "Input lost focus");
                 popupController.dismiss();
@@ -141,7 +149,7 @@ public final class PoiInputController {
         });
         editText.setOnClickListener(v -> {
             AppLogger.d(logTag, "Input clicked");
-            maybeShowHistory();
+            maybeShowSelectedOrEmptyHistory();
         });
 
         editText.addTextChangedListener(new TextWatcher() {
@@ -264,7 +272,11 @@ public final class PoiInputController {
         }
     }
 
-    private void maybeShowHistory() {
+    private void maybeShowSelectedOrEmptyHistory() {
+        selectedHistorySuggestions.showOrElse(selectedPoi, getRawText(), this::maybeShowEmptyHistory);
+    }
+
+    private void maybeShowEmptyHistory() {
         if (!getRawText().trim().isEmpty()) {
             return;
         }
@@ -304,9 +316,31 @@ public final class PoiInputController {
         }
     }
 
+    private void deleteHistorySuggestion(@NonNull PoiSuggestion suggestion) {
+        selectedHistorySuggestions.delete(
+                selectedPoi,
+                getRawText(),
+                suggestion,
+                this::clearSelectedPoiTextAfterDelete,
+                this::showHistory
+        );
+    }
+
+    private void clearSelectedPoiTextAfterDelete() {
+        AppLogger.d(logTag, "Clearing text after selected history item deletion");
+        selectedPoi = null;
+        programmaticChange = true;
+        editText.setText("");
+        editText.setSelection(0);
+    }
+
     private void selectPoi(@NonNull Poi poi) {
         AppLogger.i(logTag, "Selected POI=" + poi.displayLabel());
         setPoi(poi);
+    }
+
+    void deleteSuggestionForTesting(int position) {
+        deleteHistorySuggestion((PoiSuggestion) adapter.getItem(position));
     }
 
     int getSuggestionCountForTesting() {

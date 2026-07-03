@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @RunWith(RobolectricTestRunner.class)
 public class PoiInputControllerTest {
     private static final String COFFEE_SPOT = "Coffee Spot";
+    private static final String SAVED_DESTINATION = "Saved destination";
 
     private Context context;
 
@@ -51,7 +52,7 @@ public class PoiInputControllerTest {
             searchCalls.incrementAndGet();
             return Collections.emptyList();
         };
-        Poi selected = new Poi("Saved destination", 48.2082d, 16.3738d);
+        Poi selected = new Poi(SAVED_DESTINATION, 48.2082d, 16.3738d);
         Poi[] listenerSelection = new Poi[1];
         PoiInputController controller = new PoiInputController(
                 context,
@@ -65,14 +66,14 @@ public class PoiInputControllerTest {
         shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
 
         assertEquals(0, searchCalls.get());
-        assertEquals("Saved destination", controller.getRawText());
+        assertEquals(SAVED_DESTINATION, controller.getRawText());
         assertSame(selected, controller.getSelectedPoi());
         assertSame(selected, listenerSelection[0]);
     }
 
     @Test
     public void setPoi_clearsInputFocusAfterSelection() {
-        Poi selected = new Poi("Saved destination", 48.2082d, 16.3738d);
+        Poi selected = new Poi(SAVED_DESTINATION, 48.2082d, 16.3738d);
         PoiInputController controller = new PoiInputController(
                 context,
                 new EditText(context),
@@ -86,6 +87,73 @@ public class PoiInputControllerTest {
         controller.setPoi(selected);
 
         assertFalse(controller.getEditText().hasFocus());
+    }
+
+    @Test
+    public void clickingSelectedSavedPoi_showsOnlyThatHistoryEntry() {
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        historyStore.addOrPromote(new Poi("Other destination", 45.4642d, 9.19d));
+        Poi selected = new Poi(SAVED_DESTINATION, 48.2082d, 16.3738d);
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                historyStore,
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+
+        controller.setPoi(selected);
+        controller.getEditText().requestFocus();
+        controller.getEditText().performClick();
+
+        assertEquals(1, controller.getSuggestionCountForTesting());
+        assertEquals(SAVED_DESTINATION, controller.getSuggestionLabelForTesting(0));
+    }
+
+    @Test
+    public void deletingSelectedSavedPoi_clearsTextAndSelection() {
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        Poi selected = new Poi(SAVED_DESTINATION, 48.2082d, 16.3738d);
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                historyStore,
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+
+        controller.setPoi(selected);
+        controller.getEditText().requestFocus();
+        controller.getEditText().performClick();
+        controller.deleteSuggestionForTesting(0);
+
+        assertEquals("", controller.getRawText());
+        assertEquals(null, controller.getSelectedPoi());
+        assertTrue(historyStore.list().isEmpty());
+        assertEquals(0, controller.getSuggestionCountForTesting());
+    }
+
+    @Test
+    public void deletingTypedHistoryMatch_keepsTypedText() {
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        historyStore.addOrPromote(new Poi(COFFEE_SPOT, 48.2082d, 16.3738d));
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                historyStore,
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+
+        controller.getEditText().setText("coffee");
+        controller.deleteSuggestionForTesting(0);
+
+        assertEquals("coffee", controller.getRawText());
+        assertEquals(null, controller.getSelectedPoi());
+        assertTrue(historyStore.list().isEmpty());
     }
 
     @Test
