@@ -15,6 +15,7 @@ import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -221,12 +222,16 @@ final class MainActivityStopController {
         return stopControllers.indexOf(controller);
     }
 
-    void setStopPoi(int index, @NonNull Poi poi) {
+    void setStopPoi(
+            int index,
+            @NonNull Poi poi,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
+    ) {
         if (index < 0 || index >= stopControllers.size()) {
             AppLogger.w(TAG, "Ignoring stop selection for invalid index=" + index);
             return;
         }
-        stopControllers.get(index).setPoi(poi);
+        reverseGeocodeController.setPoiAndResolveAddress(stopControllers.get(index), poi);
     }
 
     private void removeStopRow(@NonNull View row, @NonNull PoiInputController controller) {

@@ -13,6 +13,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
 
 final class MainActivityMapPickerCoordinator {
@@ -27,17 +28,34 @@ final class MainActivityMapPickerCoordinator {
 
     private final Activity activity;
     private final TaskScheduler scheduler;
+    private final PoiReverseGeocodeController reverseGeocodeController;
 
     MainActivityMapPickerCoordinator(@NonNull MainActivity activity) {
-        this(activity, AndroidTaskScheduler.main());
+        this(activity, PoiReverseGeocodeController.createDefault(activity));
+    }
+
+    MainActivityMapPickerCoordinator(
+            @NonNull MainActivity activity,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
+    ) {
+        this(activity, AndroidTaskScheduler.main(), reverseGeocodeController);
     }
 
     MainActivityMapPickerCoordinator(
             @NonNull Activity activity,
             @NonNull TaskScheduler scheduler
     ) {
+        this(activity, scheduler, PoiReverseGeocodeController.disabled());
+    }
+
+    MainActivityMapPickerCoordinator(
+            @NonNull Activity activity,
+            @NonNull TaskScheduler scheduler,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
+    ) {
         this.activity = activity;
         this.scheduler = scheduler;
+        this.reverseGeocodeController = reverseGeocodeController;
     }
 
     void openDestinationMapPicker(@NonNull PoiInputController destinationController) {
@@ -146,7 +164,7 @@ final class MainActivityMapPickerCoordinator {
             AppLogger.w(TAG, "Destination map picker returned without POI");
             return;
         }
-        destinationController.setPoi(poi);
+        reverseGeocodeController.setPoiAndResolveAddress(destinationController, poi);
         AppLogger.i(TAG, "Destination selected from map=" + poi.displayLabel());
     }
 
@@ -164,7 +182,7 @@ final class MainActivityMapPickerCoordinator {
             AppLogger.w(TAG, "Stop map picker returned without POI index=" + stopIndex);
             return;
         }
-        stopController.setStopPoi(stopIndex, poi);
+        stopController.setStopPoi(stopIndex, poi, reverseGeocodeController);
         AppLogger.i(TAG, "Stop selected from map index=" + stopIndex + " poi=" + poi.displayLabel());
     }
 

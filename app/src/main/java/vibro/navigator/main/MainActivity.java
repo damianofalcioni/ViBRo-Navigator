@@ -12,6 +12,7 @@ import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.android.display.AndroidDisplayRotationProvider;
 import vibro.navigator.android.sensor.AndroidGeomagneticOrientationMonitor;
@@ -31,6 +32,7 @@ public class MainActivity extends Activity {
     private MainActivityProfileCoordinator profileCoordinator;
     private MainActivityStopController stopController;
     private MainActivityMapPickerCoordinator mapPickerCoordinator;
+    private PoiReverseGeocodeController reverseGeocodeController;
     private MainActivityRouteModeController routeModeController;
     private MainActivityRoundTripDirectionController roundTripDirectionController;
     private boolean appliedLightTheme;
@@ -42,7 +44,8 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " intent=" + MainActivityIntentHandler.describeIntent(getIntent()));
-        mapPickerCoordinator = new MainActivityMapPickerCoordinator(this);
+        reverseGeocodeController = PoiReverseGeocodeController.createDefault(this);
+        mapPickerCoordinator = new MainActivityMapPickerCoordinator(this, reverseGeocodeController);
         MainActivityControls controls = MainActivityControls.bind(this);
 
         MainActivityAboutLauncher.configure(this, controls.aboutButton);
@@ -124,7 +127,12 @@ public class MainActivity extends Activity {
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
             return;
         }
-        MainActivityIntentHandler.handleIncomingIntent(this, getIntent(), destinationController);
+        MainActivityIntentHandler.handleIncomingIntent(
+                this,
+                getIntent(),
+                destinationController,
+                reverseGeocodeController
+        );
     }
 
     @Override
@@ -138,7 +146,12 @@ public class MainActivity extends Activity {
         if (routeModeController != null) {
             routeModeController.showRouteMode();
         }
-        MainActivityIntentHandler.handleIncomingIntent(this, intent, destinationController);
+        MainActivityIntentHandler.handleIncomingIntent(
+                this,
+                intent,
+                destinationController,
+                reverseGeocodeController
+        );
     }
 
     @Override
@@ -200,6 +213,9 @@ public class MainActivity extends Activity {
         }
         if (stopController != null) {
             stopController.dispose();
+        }
+        if (reverseGeocodeController != null) {
+            reverseGeocodeController.dispose();
         }
         if (roundTripDirectionController != null) {
             roundTripDirectionController.dispose();

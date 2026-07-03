@@ -188,6 +188,51 @@ public class PoiInputControllerTest {
     }
 
     @Test
+    public void replaceSelectedPoiNameIfSameCoordinates_keepsCoordinatesAndUpdatesHistory() {
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                historyStore,
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        Poi selected = new Poi("48.208200, 16.373800", 48.2082d, 16.3738d);
+
+        controller.setPoi(selected);
+        boolean applied = controller.replaceSelectedPoiNameIfSameCoordinates(selected, "Stephansplatz, Vienna");
+
+        assertTrue(applied);
+        assertEquals("Stephansplatz, Vienna", controller.getRawText());
+        assertEquals(48.2082d, controller.getSelectedPoi().lat, 0.0d);
+        assertEquals(16.3738d, controller.getSelectedPoi().lon, 0.0d);
+        assertEquals("Stephansplatz, Vienna", historyStore.list().get(0).name);
+    }
+
+    @Test
+    public void replaceSelectedPoiNameIfSameCoordinates_rejectsStaleCoordinates() {
+        PoiInputController controller = new PoiInputController(
+                context,
+                new EditText(context),
+                new PoiHistoryStore(context),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        Poi original = new Poi("48.208200, 16.373800", 48.2082d, 16.3738d);
+        Poi newer = new Poi("45.464200, 9.190000", 45.4642d, 9.19d);
+
+        controller.setPoi(newer);
+        boolean applied = controller.replaceSelectedPoiNameIfSameCoordinates(original, "Stale address");
+
+        assertFalse(applied);
+        assertEquals("45.464200, 9.190000", controller.getRawText());
+        assertEquals(45.4642d, controller.getSelectedPoi().lat, 0.0d);
+        assertEquals(9.19d, controller.getSelectedPoi().lon, 0.0d);
+    }
+
+    @Test
     public void restoreText_doesNotTriggerSearchSuggestions() {
         AtomicInteger searchCalls = new AtomicInteger();
         PoiSearchClient searchClient = (query, limit) -> {

@@ -1,6 +1,7 @@
 package vibro.navigator.poi.search;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 
@@ -20,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public final class GoogleGeocodeClient implements PoiSearchClient {
+public final class GoogleGeocodeClient implements PoiSearchClient, PoiReverseGeocodingClient {
 
     private static final String TAG = "GoogleGeocode";
     private static final String VALIDATION_QUERY = "Vienna, Austria";
@@ -74,6 +75,36 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
         }
     }
 
+    @Nullable
+    @Override
+    public String reverseGeocode(double lat, double lon) throws IOException {
+        AppLogger.i(TAG, "Reverse geocoding lat=" + lat + " lon=" + lon);
+        HttpURLConnection conn = openConnection(buildReverseGeocodeUrl(lat, lon, apiKey));
+        try {
+            int code = conn.getResponseCode();
+            AppLogger.i(TAG, "HTTP response code=" + code);
+            if (!isSuccessfulHttpStatus(code)) {
+                throw new IOException("Google Geocode returned HTTP " + code);
+            }
+            InputStream response = conn.getInputStream();
+            if (response == null) {
+                AppLogger.w(TAG, "No response stream available for reverse geocoding");
+                return null;
+            }
+            String address;
+            try (InputStream is = response) {
+                address = GoogleGeocodeResponseParser.parseFirstFormattedAddress(readAll(is));
+            }
+            AppLogger.i(TAG, "Reverse geocoding completed hasAddress=" + (address != null));
+            return address;
+        } catch (Exception e) {
+            AppLogger.e(TAG, "Reverse geocoding failed lat=" + lat + " lon=" + lon, e);
+            throw new IOException(e);
+        } finally {
+            conn.disconnect();
+        }
+    }
+
     @NonNull
     private static GooglePoiApiKeyValidationResult validateApiKeyWithService(@NonNull String apiKey)
             throws IOException, JSONException {
@@ -97,11 +128,23 @@ public final class GoogleGeocodeClient implements PoiSearchClient {
 
     @NonNull
     private static String buildSearchUrl(@NonNull String query, @NonNull String apiKey) throws IOException {
-        String q = URLEncoder.encode(query, "UTF-8");
+        String encoding = StandardCharsets.UTF_8.name();
+        String q = URLEncoder.encode(query, encoding);
         return String.format(Locale.US,
                 "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s",
                 q,
-                URLEncoder.encode(apiKey, "UTF-8")
+                URLEncoder.encode(apiKey, encoding)
+        );
+    }
+
+    @NonNull
+    private static String buildReverseGeocodeUrl(double lat, double lon, @NonNull String apiKey) throws IOException {
+        String encoding = StandardCharsets.UTF_8.name();
+        String latLng = String.format(Locale.US, "%.8f,%.8f", lat, lon);
+        return String.format(Locale.US,
+                "https://maps.googleapis.com/maps/api/geocode/json?latlng=%s&key=%s",
+                URLEncoder.encode(latLng, encoding),
+                URLEncoder.encode(apiKey, encoding)
         );
     }
 

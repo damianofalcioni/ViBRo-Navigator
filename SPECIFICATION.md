@@ -132,6 +132,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 - If the destination field already resolves to coordinates, the picker must open centered on that destination and must apply a predefined zoom level
 - If the destination field does not yet resolve to coordinates, the picker must open centered on the current device location when available, and otherwise fall back gracefully
 - The picker must let the user select a point directly from the map and return that point as the destination
+- When a map-selected destination or stop is returned as raw coordinates, the main input field should show the coordinates immediately, then replace the visible display label with a reverse-geocoded address when an internet lookup succeeds. The selected internal latitude/longitude must remain the original coordinates returned by the picker.
 - The picker must support icon-only controls for confirm, cancel, current location, zoom in, and zoom out
 - The picker must support an icon-only POI category control overlaid on the map. Opening the control must show POI categories dynamically discovered from OpenStreetMap/Overpass tags in the current map view, sorted alphabetically, with each row showing the number of discovered items such as `Fuel (15)`. Category rows must be text-only, support a single active category, highlight the active category, and toggle that category off when tapped again. Category discovery should be initiated by opening the POI control rather than by initial map load. Returned POIs must be drawn with one shared POI pin style, and POI names must appear automatically when the map is zoomed in enough.
 - When the POI category filter setting is enabled, opening the POI category control must show only the configured and enabled category names and must query Overpass only for selectors derived from those configured names instead of running broad category discovery.
@@ -677,7 +678,7 @@ The navigation UI must show the following in large text:
 - The Speech directions voice spinner dropdown should visually highlight the currently selected voice option
 - The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
 - The Speech directions settings dialog must show bordered controls for the voice preview play button and the Android Text-to-speech settings button
-- The Google Play flavor must let the user save an optional Google Maps API key for POI search and enable or disable Google search; the app must validate a non-empty key through Google Maps Geocoding before marking it valid, and when Google search is enabled with a valid key, POI search must use Google Maps Geocoding instead of OpenStreetMap Nominatim
+- The Google Play flavor must let the user save an optional Google Maps API key for POI search and enable or disable Google search; the app must validate a non-empty key through Google Maps Geocoding before marking it valid, and when Google search is enabled with a valid key, POI search and coordinate reverse geocoding must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting
 - The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, saved routes, app settings, logging preference, BRouter profile selections, and BRouter profile parameter overrides
 - The about page Settings section must show an Import database button that lets the user select a JSON backup and restore those same app-managed stored data stores
@@ -724,6 +725,7 @@ The navigation UI must show the following in large text:
 
 - The app must support opening or sharing map coordinates or addresses into the app
 - Shared/opened coordinates or addresses must be set as the destination
+- Shared/opened coordinates must show the coordinates immediately, then replace the visible destination label with a reverse-geocoded address when an internet lookup succeeds. The stored destination coordinates must remain the original incoming coordinates.
 - Incoming locations that resolve to valid coordinates must be saved into the same destination history list used by manual POI selection
 - The app must register as a target for at least these incoming Android formats:
   - `geo:` map intents

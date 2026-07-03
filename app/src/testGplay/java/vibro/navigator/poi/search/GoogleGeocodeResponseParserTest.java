@@ -54,6 +54,23 @@ public class GoogleGeocodeResponseParserTest {
     }
 
     @Test
+    public void parseFirstFormattedAddress_returnsFirstAddress() throws Exception {
+        String body = "{"
+                + "\"results\":["
+                + "{\"formatted_address\":\"Stephansplatz, Vienna\"},"
+                + "{\"formatted_address\":\"Vienna, Austria\"}"
+                + "]"
+                + "}";
+
+        assertEquals("Stephansplatz, Vienna", GoogleGeocodeResponseParser.parseFirstFormattedAddress(body));
+    }
+
+    @Test
+    public void parseFirstFormattedAddress_returnsNullWhenResultsMissing() throws Exception {
+        assertEquals(null, GoogleGeocodeResponseParser.parseFirstFormattedAddress("{\"status\":\"ZERO_RESULTS\"}"));
+    }
+
+    @Test
     public void statusHelpersRecognizeValidationStatuses() throws Exception {
         assertTrue(GoogleGeocodeResponseParser.isOkStatus("{\"status\":\"OK\"}"));
         assertTrue(GoogleGeocodeResponseParser.isRequestDeniedStatus("{\"status\":\"REQUEST_DENIED\"}"));

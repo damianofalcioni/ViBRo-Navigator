@@ -1,6 +1,7 @@
 package vibro.navigator.poi.search;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +49,21 @@ final class GoogleGeocodeResponseParser {
 
     static boolean isRequestDeniedStatus(@NonNull String body) throws JSONException {
         return STATUS_REQUEST_DENIED.equals(parseStatus(body));
+    }
+
+    @Nullable
+    static String parseFirstFormattedAddress(@NonNull String body) throws JSONException {
+        JSONObject root = new JSONObject(body);
+        JSONArray results = root.optJSONArray("results");
+        if (results == null || results.length() == 0) {
+            return null;
+        }
+        JSONObject firstResult = results.optJSONObject(0);
+        if (firstResult == null) {
+            return null;
+        }
+        String address = firstResult.optString("formatted_address", "").trim();
+        return address.isEmpty() ? null : address;
     }
 
     private static Poi parseResult(JSONObject result) {

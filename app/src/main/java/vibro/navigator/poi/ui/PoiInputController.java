@@ -13,6 +13,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiCoordinateLabel;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.logging.AppLogger;
@@ -41,6 +42,7 @@ public final class PoiInputController {
     private Poi selectedPoi;
     private boolean programmaticChange;
     private boolean suppressNextSearch;
+    private boolean disposed;
 
     public PoiInputController(
             @NonNull Context context,
@@ -173,6 +175,7 @@ public final class PoiInputController {
 
     public void dispose() {
         AppLogger.i(logTag, "Disposing controller");
+        disposed = true;
         searchController.cancelPendingSearch();
         searchController.cancelInFlightSearch();
         popupController.dismiss();
@@ -218,6 +221,30 @@ public final class PoiInputController {
         editText.setText(label);
         editText.setSelection(label.length());
         popupController.dismiss();
+    }
+
+    public boolean replaceSelectedPoiNameIfSameCoordinates(
+            @NonNull Poi expectedPoi,
+            @NonNull String name
+    ) {
+        if (disposed
+                || selectedPoi == null
+                || !selectedPoi.stableKey().equals(expectedPoi.stableKey())
+                || !PoiCoordinateLabel.isCoordinateLabel(selectedPoi)) {
+            return false;
+        }
+        Poi renamedPoi = new Poi(name, expectedPoi.lat, expectedPoi.lon);
+        String label = renamedPoi.displayLabel();
+        AppLogger.d(logTag, "Replacing selected POI label=" + label);
+        suppressNextSearch = true;
+        programmaticChange = true;
+        selectedPoi = renamedPoi;
+        editText.setText(label);
+        editText.setSelection(label.length());
+        popupController.dismiss();
+        history.addOrPromote(renamedPoi);
+        listener.onPoiSelected(renamedPoi);
+        return true;
     }
 
     @NonNull

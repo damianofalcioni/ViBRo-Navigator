@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public final class OsmNominatimClient implements PoiSearchClient {
+public final class OsmNominatimClient implements PoiSearchClient, PoiReverseGeocodingClient {
 
     private static final String TAG = "OsmNominatim";
 
@@ -45,9 +45,32 @@ public final class OsmNominatimClient implements PoiSearchClient {
         }
     }
 
+    @Nullable
+    @Override
+    public String reverseGeocode(double lat, double lon) throws IOException {
+        AppLogger.i(TAG, "Reverse geocoding lat=" + lat + " lon=" + lon);
+        HttpURLConnection conn = openConnection(buildReverseGeocodeUrl(lat, lon));
+        try {
+            String body = readResponseBody(conn, lat + "," + lon);
+            String address = body.isEmpty() ? null : parseReverseDisplayName(body);
+            AppLogger.i(TAG, "Reverse geocoding completed hasAddress=" + (address != null));
+            return address;
+        } catch (Exception e) {
+            AppLogger.e(TAG, "Reverse geocoding failed lat=" + lat + " lon=" + lon, e);
+            throw new IOException(e);
+        } finally {
+            conn.disconnect();
+        }
+    }
+
     @NonNull
     private static HttpURLConnection openConnection(@NonNull String query, int limit) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(buildSearchUrl(query, limit)).openConnection();
+        return openConnection(buildSearchUrl(query, limit));
+    }
+
+    @NonNull
+    private static HttpURLConnection openConnection(@NonNull String url) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
         conn.setConnectTimeout(8000);
         conn.setReadTimeout(8000);
         conn.setRequestProperty("User-Agent", "VibeNavigator");
@@ -61,6 +84,15 @@ public final class OsmNominatimClient implements PoiSearchClient {
         return String.format(Locale.US,
                 "https://nominatim.openstreetmap.org/search?q=%s&format=jsonv2&addressdetails=0&limit=%d",
                 q, Math.max(1, Math.min(20, limit))
+        );
+    }
+
+    @NonNull
+    private static String buildReverseGeocodeUrl(double lat, double lon) {
+        return String.format(Locale.US,
+                "https://nominatim.openstreetmap.org/reverse?lat=%.8f&lon=%.8f&format=jsonv2&addressdetails=0",
+                lat,
+                lon
         );
     }
 
@@ -112,6 +144,13 @@ public final class OsmNominatimClient implements PoiSearchClient {
         } catch (NumberFormatException ignored) {
             return null;
         }
+    }
+
+    @Nullable
+    static String parseReverseDisplayName(@NonNull String body) throws JSONException {
+        JSONObject root = new JSONObject(body);
+        String displayName = root.optString("display_name", "").trim();
+        return displayName.isEmpty() ? null : displayName;
     }
 
     @NonNull

@@ -90,7 +90,10 @@ public final class PoiHistoryStore {
             if (unique.size() >= MAX_ITEMS) {
                 break;
             }
-            unique.put(p.stableKey(), p);
+            String key = p.stableKey();
+            if (!unique.containsKey(key)) {
+                unique.put(key, p);
+            }
         }
         save(unique.values());
     }

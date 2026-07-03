@@ -17,6 +17,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
 
 final class MainActivityIntentHandler {
@@ -50,6 +51,20 @@ final class MainActivityIntentHandler {
             @Nullable Intent intent,
             @NonNull PoiInputController destinationController
     ) {
+        handleIncomingIntent(
+                context,
+                intent,
+                destinationController,
+                PoiReverseGeocodeController.disabled()
+        );
+    }
+
+    static void handleIncomingIntent(
+            @NonNull Context context,
+            @Nullable Intent intent,
+            @NonNull PoiInputController destinationController,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
+    ) {
         if (intent == null) {
             AppLogger.d(TAG, "handleIncomingIntent ignored null intent");
             return;
@@ -69,7 +84,7 @@ final class MainActivityIntentHandler {
         String trimmedQuery = query.trim();
         Poi parsedPoi = CoordinateParser.tryParse(trimmedQuery, trimmedQuery);
         if (parsedPoi != null) {
-            destinationController.setPoi(parsedPoi);
+            reverseGeocodeController.setPoiAndResolveAddress(destinationController, parsedPoi);
             AppLogger.i(TAG, "Applied incoming destination POI=" + parsedPoi.displayLabel()
                     + " (" + parsedPoi.lat + "," + parsedPoi.lon + ")");
         } else {

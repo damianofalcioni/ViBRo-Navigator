@@ -310,7 +310,7 @@
     <string name="about_privacy_policy_link"><u>Privacy Policy</u></string>
     <string name="about_terms_of_service_link"><u>Terms of Service</u></string>
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>
-    <string name="about_credits">Credits: BRouter for routing. POI search uses OpenStreetMap Nominatim; map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
+    <string name="about_credits">Credits: BRouter for routing. POI search and coordinate reverse geocoding use OpenStreetMap Nominatim; map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
     <string name="about_settings_title">Settings</string>
     <string name="label_log_enabled">Logs</string>
     <string name="label_fused_location_enabled">Google Fused Location</string>

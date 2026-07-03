@@ -33,6 +33,7 @@ import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.distribution.GooglePoiApiKeyValidationResult;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.search.GoogleGeocodeClient;
+import vibro.navigator.poi.search.PoiReverseGeocodingClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.settings.AppSettings;
 
@@ -199,6 +200,15 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
         AppSettings.setValidatedGooglePoiApiKey(context, USER_GOOGLE_POI_API_KEY);
 
         PoiSearchClient client = DistributionServices.createGooglePoiSearchClient(context);
+
+        assertTrue(client instanceof GoogleGeocodeClient);
+    }
+
+    @Test
+    public void userGooglePoiApiKeyCreatesGoogleReverseGeocodingClient() {
+        AppSettings.setValidatedGooglePoiApiKey(context, USER_GOOGLE_POI_API_KEY);
+
+        PoiReverseGeocodingClient client = DistributionServices.createGooglePoiReverseGeocodingClient(context);
 
         assertTrue(client instanceof GoogleGeocodeClient);
     }

@@ -65,6 +65,20 @@ public class PoiHistoryStoreTest {
     }
 
     @Test
+    public void addOrPromote_sameCoordinatesKeepsNewDisplayName() {
+        PoiHistoryStore store = new PoiHistoryStore(context);
+        store.addOrPromote(new Poi("48.208200, 16.373800", 48.2082d, 16.3738d));
+
+        store.addOrPromote(new Poi("Stephansplatz, Vienna", 48.2082d, 16.3738d));
+
+        List<Poi> items = store.list();
+        assertEquals(1, items.size());
+        assertEquals("Stephansplatz, Vienna", items.get(0).name);
+        assertEquals(48.2082d, items.get(0).lat, 0.0d);
+        assertEquals(16.3738d, items.get(0).lon, 0.0d);
+    }
+
+    @Test
     public void search_returnsCaseInsensitiveMatchesInHistoryOrder() {
         PoiHistoryStore store = new PoiHistoryStore(context);
         store.addOrPromote(new Poi("Museum Quarter", 48.2030d, 16.3580d));

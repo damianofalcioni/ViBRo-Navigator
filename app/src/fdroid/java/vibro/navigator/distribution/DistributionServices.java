@@ -9,6 +9,7 @@ import vibro.navigator.android.location.NoOpFusedLocationClient;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
+import vibro.navigator.poi.search.PoiReverseGeocodingClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 
 public final class DistributionServices {
@@ -54,6 +55,11 @@ public final class DistributionServices {
 
     @Nullable
     public static PoiSearchClient createGooglePoiSearchClient(@NonNull Context context) {
+        return null;
+    }
+
+    @Nullable
+    public static PoiReverseGeocodingClient createGooglePoiReverseGeocodingClient(@NonNull Context context) {
         return null;
     }
 }

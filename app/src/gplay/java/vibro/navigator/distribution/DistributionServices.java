@@ -13,6 +13,7 @@ import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
 import vibro.navigator.poi.search.GoogleGeocodeClient;
+import vibro.navigator.poi.search.PoiReverseGeocodingClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.settings.AppSettings;
 
@@ -68,6 +69,16 @@ public final class DistributionServices {
 
     @Nullable
     public static PoiSearchClient createGooglePoiSearchClient(@NonNull Context context) {
+        return createGoogleGeocodeClient(context);
+    }
+
+    @Nullable
+    public static PoiReverseGeocodingClient createGooglePoiReverseGeocodingClient(@NonNull Context context) {
+        return createGoogleGeocodeClient(context);
+    }
+
+    @Nullable
+    private static GoogleGeocodeClient createGoogleGeocodeClient(@NonNull Context context) {
         if (!AppSettings.isGooglePoiSearchEnabled(context)) {
             return null;
         }
