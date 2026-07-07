@@ -281,7 +281,8 @@
     <string name="format_nav_gps_status">%1$s ↑%2$s • %3$s • (%4$s)</string>
     <string name="format_nav_gps_status_with_countdown">%1$s • %2$s</string>
     <string name="title_nav_gps_details">GPS details</string>
-    <string name="format_nav_gps_details">Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nSatellites: %4$s\nInterval: %5$s\nGPS fixes: %6$s\nGPS bearing: %7$s\nBearing accuracy: %8$s</string>
+    <string name="format_nav_gps_obtained_time_value">%1$tH:%1$tM:%1$tS</string>
+    <string name="format_nav_gps_details">Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nGPS time: %4$s\nSatellites: %5$s\nInterval: %6$s\nGPS fixes: %7$s\nGPS bearing: %8$s\nBearing accuracy: %9$s</string>
     <string name="title_nav_trip_stats">Trip stats</string>
     <string name="format_nav_trip_stats_details">Elapsed: %1$s\nDistance: %2$s\nMoving time: %3$s\nStationary time: %4$s\nAverage speed: %5$s\nMoving average: %6$s\nMax speed: %7$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>

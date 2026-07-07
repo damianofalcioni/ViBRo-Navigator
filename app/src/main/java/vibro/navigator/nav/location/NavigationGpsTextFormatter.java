@@ -5,6 +5,8 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Date;
+
 import vibro.navigator.R;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationMeasurementFormatter;
@@ -136,6 +138,17 @@ public final class NavigationGpsTextFormatter {
             return resources.getString(R.string.nav_status_unavailable);
         }
         return resources.getString(R.string.format_nav_fix_count_value, acquiredFixCount);
+    }
+
+    @NonNull
+    public static String formatObtainedTime(
+            @NonNull NavigationTextResources resources,
+            @Nullable Long obtainedTimeMs
+    ) {
+        if (obtainedTimeMs == null || obtainedTimeMs <= 0L) {
+            return resources.getString(R.string.nav_status_unavailable);
+        }
+        return resources.getString(R.string.format_nav_gps_obtained_time_value, new Date(obtainedTimeMs));
     }
 
     @NonNull

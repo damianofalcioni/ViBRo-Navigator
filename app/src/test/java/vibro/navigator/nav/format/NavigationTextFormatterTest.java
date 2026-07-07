@@ -3,6 +3,8 @@ package vibro.navigator.nav.format;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.TimeZone;
+
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
@@ -62,32 +64,40 @@ public class NavigationTextFormatterTest {
     }
 
     @Test
-    public void buildGpsStatusTelemetry_keepsDetailedBearingAndFixCountOffCompactLine() {
-        NavigationLocation location = new NavigationLocation("gps");
-        location.setLatitude(48.2082);
-        location.setLongitude(16.3738);
-        location.setAltitude(245.4);
-        location.setBearing(182.2f);
-        location.setBearingAccuracyDegrees(9.4f);
+    public void buildGpsStatusTelemetry_keepsDetailedFixDataOffCompactLine() {
+        TimeZone previousTimeZone = TimeZone.getDefault();
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        try {
+            NavigationLocation location = new NavigationLocation("gps");
+            location.setLatitude(48.2082);
+            location.setLongitude(16.3738);
+            location.setTime(1_234L);
+            location.setAltitude(245.4);
+            location.setBearing(182.2f);
+            location.setBearingAccuracyDegrees(9.4f);
 
-        String details = NavigationGpsTelemetryFormatter.formatDetails(
-                METRIC,
-                NavigationGpsTelemetryFormatter.format(
-                        METRIC,
-                        4.5f,
-                        location,
-                        5.2f,
-                        7,
-                        3
-                ),
-                "8 s"
-        );
+            String details = NavigationGpsTelemetryFormatter.formatDetails(
+                    METRIC,
+                    NavigationGpsTelemetryFormatter.format(
+                            METRIC,
+                            4.5f,
+                            location,
+                            5.2f,
+                            7,
+                            3
+                    ),
+                    "8 s"
+            );
 
-        assertEquals(
-                "Speed: 16 km/h\nAltitude: 245 m\nAccuracy: ±5 m\nSatellites: 7\n"
-                        + "Interval: 8 s\nGPS fixes: #3\nGPS bearing: 182°\nBearing accuracy: 9°",
-                details
-        );
+            assertEquals(
+                    "Speed: 16 km/h\nAltitude: 245 m\nAccuracy: ±5 m\nGPS obtained: 00:00:01\n"
+                            + "Satellites: 7\nInterval: 8 s\nGPS fixes: #3\nGPS bearing: 182°\n"
+                            + "Bearing accuracy: 9°",
+                    details
+            );
+        } finally {
+            TimeZone.setDefault(previousTimeZone);
+        }
     }
 
     @Test

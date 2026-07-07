@@ -534,7 +534,7 @@ The navigation UI must show the following in large text:
 - That compact line must show only the current speed, current elevation, current horizontal accuracy in meters, the current number of GNSS satellites used in the fix, and the countdown until the next scheduled navigation position evaluation
 - The compact GPS status line text must be sized like the secondary upcoming-direction line, and its accuracy value must be orange
 - When route speed-limit data is available and the current displayed speed is above that limit, the speed value in the compact GPS status line must be bold
-- Tapping the compact GPS status line must show a live GPS details UI with the compact-line fields plus the accepted GPS fix count, GPS bearing, and GPS bearing accuracy
+- Tapping the compact GPS status line must show a live GPS details UI with the compact-line fields plus the GPS obtained time, accepted GPS fix count, GPS bearing, and GPS bearing accuracy
 - The phone GPS details UI should use a compact centered dialog panel with larger readable details text instead of a wide default alert layout
 - GNSS satellite-status callback tracking may be suspended while the phone navigation UI is not visible or the screen is non-interactive; normal navigation location updates must continue, and the last known satellite count should be retained until satellite-status tracking resumes
 - The displayed speed must suppress raw provider speed when recent filtered fixes show only stationary jitter

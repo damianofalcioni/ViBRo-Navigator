@@ -20,6 +20,8 @@ public final class NavGpsTelemetry {
     public final String fixedSatelliteCountText;
     @NonNull
     public final String acquiredFixCountText;
+    @NonNull
+    public final String obtainedTimeText;
 
     public NavGpsTelemetry(
             float speedMps,
@@ -30,7 +32,8 @@ public final class NavGpsTelemetry {
             @NonNull String bearingText,
             @NonNull String bearingAccuracyText,
             @NonNull String fixedSatelliteCountText,
-            @NonNull String acquiredFixCountText
+            @NonNull String acquiredFixCountText,
+            @NonNull String obtainedTimeText
     ) {
         this.speedMps = speedMps;
         this.compactLine = compactLine;
@@ -41,12 +44,14 @@ public final class NavGpsTelemetry {
         this.bearingAccuracyText = bearingAccuracyText;
         this.fixedSatelliteCountText = fixedSatelliteCountText;
         this.acquiredFixCountText = acquiredFixCountText;
+        this.obtainedTimeText = obtainedTimeText;
     }
 
     @NonNull
     public static NavGpsTelemetry unavailable(@NonNull String unavailableText) {
         return new NavGpsTelemetry(
                 Float.NaN,
+                unavailableText,
                 unavailableText,
                 unavailableText,
                 unavailableText,
@@ -69,7 +74,24 @@ public final class NavGpsTelemetry {
                 bearingText,
                 bearingAccuracyText,
                 fixedSatelliteCountText,
-                acquiredFixCountText
+                acquiredFixCountText,
+                obtainedTimeText
+        );
+    }
+
+    @NonNull
+    public NavGpsTelemetry withObtainedTimeText(@NonNull String obtainedTimeText) {
+        return new NavGpsTelemetry(
+                speedMps,
+                compactLine,
+                speedText,
+                elevationText,
+                accuracyText,
+                bearingText,
+                bearingAccuracyText,
+                fixedSatelliteCountText,
+                acquiredFixCountText,
+                obtainedTimeText
         );
     }
 }

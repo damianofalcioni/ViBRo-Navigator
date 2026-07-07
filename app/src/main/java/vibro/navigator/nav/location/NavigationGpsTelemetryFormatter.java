@@ -24,7 +24,7 @@ public final class NavigationGpsTelemetryFormatter {
             @Nullable Integer fixedSatelliteCount,
             @Nullable Integer acquiredFixCount
     ) {
-        return format(
+        NavGpsTelemetry telemetry = format(
                 resources,
                 speedMps,
                 elevationMeters(currentLocation),
@@ -34,6 +34,10 @@ public final class NavigationGpsTelemetryFormatter {
                 fixedSatelliteCount,
                 acquiredFixCount
         );
+        return telemetry.withObtainedTimeText(NavigationGpsTextFormatter.formatObtainedTime(
+                resources,
+                obtainedTimeMs(currentLocation)
+        ));
     }
 
     @NonNull
@@ -55,6 +59,7 @@ public final class NavigationGpsTelemetryFormatter {
                 NavigationGpsTextFormatter.formatGpsBearingAccuracy(resources, bearingAccuracyDegrees);
         String satelliteText = NavigationGpsTextFormatter.formatFixedSatelliteCount(resources, fixedSatelliteCount);
         String fixCountText = NavigationGpsTextFormatter.formatAcquiredFixCount(resources, acquiredFixCount);
+        String obtainedTimeText = NavigationGpsTextFormatter.formatObtainedTime(resources, null);
         String compactLine = resources.getString(
                 R.string.format_nav_gps_status,
                 speedText,
@@ -71,7 +76,8 @@ public final class NavigationGpsTelemetryFormatter {
                 bearingText,
                 bearingAccuracyText,
                 satelliteText,
-                fixCountText
+                fixCountText,
+                obtainedTimeText
         );
     }
 
@@ -109,6 +115,7 @@ public final class NavigationGpsTelemetryFormatter {
                 telemetry.speedText,
                 telemetry.elevationText,
                 telemetry.accuracyText,
+                telemetry.obtainedTimeText,
                 telemetry.fixedSatelliteCountText,
                 intervalText,
                 telemetry.acquiredFixCountText,
@@ -128,6 +135,7 @@ public final class NavigationGpsTelemetryFormatter {
                 telemetry.speedText,
                 telemetry.elevationText,
                 telemetry.accuracyText,
+                telemetry.obtainedTimeText,
                 telemetry.fixedSatelliteCountText,
                 intervalText,
                 telemetry.acquiredFixCountText,
@@ -155,5 +163,10 @@ public final class NavigationGpsTelemetryFormatter {
         return currentLocation != null && currentLocation.hasBearingAccuracy()
                 ? currentLocation.getBearingAccuracyDegrees()
                 : null;
+    }
+
+    @Nullable
+    private static Long obtainedTimeMs(@Nullable NavigationLocation currentLocation) {
+        return currentLocation == null ? null : currentLocation.getTime();
     }
 }

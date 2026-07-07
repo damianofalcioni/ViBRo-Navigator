@@ -113,9 +113,10 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_nav_satellite_count_value, "%1$d");
         strings.put(R.string.format_nav_fix_count_value, "#%1$d");
         strings.put(R.string.format_nav_gps_status, "%1$s ↑%2$s • %3$s • (%4$s)");
+        strings.put(R.string.format_nav_gps_obtained_time_value, "%1$tH:%1$tM:%1$tS");
         strings.put(R.string.format_nav_gps_details,
-                "Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nSatellites: %4$s\nInterval: %5$s\n"
-                        + "GPS fixes: %6$s\nGPS bearing: %7$s\nBearing accuracy: %8$s");
+                "Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nGPS obtained: %4$s\nSatellites: %5$s\n"
+                        + "Interval: %6$s\nGPS fixes: %7$s\nGPS bearing: %8$s\nBearing accuracy: %9$s");
         strings.put(R.string.format_nav_trip_stats_details,
                 "Elapsed: %1$s\nDistance: %2$s\nMoving time: %3$s\nStationary time: %4$s\n"
                         + "Average speed: %5$s\nMoving average: %6$s\nMax speed: %7$s");
