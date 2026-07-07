@@ -64,6 +64,7 @@ final class NavigationActivityRenderer {
     private final ImageButton pauseResume;
     private final ImageButton stop;
     private final NavigationGpsDetailsDialog gpsDetailsDialog;
+    private final NavigationTripStatsDialog tripStatsDialog;
     private final Runnable compassTransitionTicker = this::renderCompassState;
 
     @Nullable
@@ -91,6 +92,7 @@ final class NavigationActivityRenderer {
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
         stop = activity.findViewById(R.id.stopNavButton);
         gpsDetailsDialog = new NavigationGpsDetailsDialog(activity, elapsedRealtimeClock);
+        tripStatsDialog = new NavigationTripStatsDialog(activity, elapsedRealtimeClock);
         configureTextScaling();
     }
 
@@ -106,6 +108,9 @@ final class NavigationActivityRenderer {
         gpsStatus.setClickable(true);
         gpsStatus.setFocusable(true);
         gpsStatus.setOnClickListener(v -> gpsDetailsDialog.show(currentState));
+        destination.setClickable(true);
+        destination.setFocusable(true);
+        destination.setOnClickListener(v -> tripStatsDialog.show(currentState));
     }
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
@@ -123,7 +128,7 @@ final class NavigationActivityRenderer {
         pauseResume.setContentDescription(activity.getString(
                 state.pauseStatus.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
         ));
-        renderGpsStatus();
+        renderLiveDetails();
         logRenderedStateIfChanged(state);
     }
 
@@ -143,7 +148,12 @@ final class NavigationActivityRenderer {
         );
     }
 
-    void renderGpsStatus() {
+    void renderLiveDetails() {
+        renderGpsStatus();
+        tripStatsDialog.update(currentState);
+    }
+
+    private void renderGpsStatus() {
         String statusText;
         if (currentState == null) {
             statusText = activity.getString(
@@ -169,8 +179,9 @@ final class NavigationActivityRenderer {
         uiScheduler.removeCallbacks(compassTransitionTicker);
     }
 
-    void dismissGpsDetailsDialog() {
+    void dismissDetailsDialogs() {
         gpsDetailsDialog.dismiss();
+        tripStatsDialog.dismiss();
     }
 
     private void configureTextScaling() {

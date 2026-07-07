@@ -100,6 +100,8 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_bearing_degrees, "%1$.0f°");
         strings.put(R.string.format_time_s, "%1$d s");
         strings.put(R.string.format_time_min, "%1$d min");
+        strings.put(R.string.format_duration_min_s, "%1$d min %2$02d s");
+        strings.put(R.string.format_duration_h_min, "%1$d h %2$02d min");
         strings.put(R.string.format_nav_speed_value, "%1$.0f km/h");
         strings.put(R.string.format_nav_speed_mph_value, "%1$.0f mph");
         strings.put(R.string.format_nav_elevation_value, "%1$.0f m");
@@ -114,6 +116,9 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_nav_gps_details,
                 "Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nSatellites: %4$s\nInterval: %5$s\n"
                         + "GPS fixes: %6$s\nGPS bearing: %7$s\nBearing accuracy: %8$s");
+        strings.put(R.string.format_nav_trip_stats_details,
+                "Elapsed: %1$s\nDistance: %2$s\nMoving time: %3$s\nStationary time: %4$s\n"
+                        + "Average speed: %5$s\nMoving average: %6$s\nMax speed: %7$s");
     }
 
     private static void addNavigationStatusStrings(@NonNull Map<Integer, String> strings) {

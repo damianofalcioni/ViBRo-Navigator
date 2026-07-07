@@ -23,6 +23,7 @@ import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavProgressStatus;
 import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavTripStatus;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.RouteSpeedLimit;
@@ -156,7 +157,8 @@ public final class NavStateComposer {
         return new NavState(
                 base.routeStatus.withProgress(base.routeStatus.progress.withDetailBlock(detail)),
                 base.gpsStatus,
-                base.pauseStatus
+                base.pauseStatus,
+                base.tripStatus
         );
     }
 
@@ -165,7 +167,8 @@ public final class NavStateComposer {
         return new NavState(
                 base.routeStatus,
                 base.gpsStatus.withStatusLine(gpsStatusLine),
-                base.pauseStatus
+                base.pauseStatus,
+                base.tripStatus
         );
     }
 
@@ -174,7 +177,18 @@ public final class NavStateComposer {
         return new NavState(
                 base.routeStatus,
                 gpsStatus,
-                base.pauseStatus
+                base.pauseStatus,
+                base.tripStatus
+        );
+    }
+
+    @NonNull
+    public static NavState withTripStatus(@NonNull NavState base, @NonNull NavTripStatus tripStatus) {
+        return new NavState(
+                base.routeStatus,
+                base.gpsStatus,
+                base.pauseStatus,
+                tripStatus
         );
     }
 
@@ -193,7 +207,8 @@ public final class NavStateComposer {
                         base.routeStatus.blockedRoadActionAvailable
                 ),
                 base.gpsStatus,
-                base.pauseStatus
+                base.pauseStatus,
+                base.tripStatus
         );
     }
 
@@ -208,7 +223,8 @@ public final class NavStateComposer {
                         available
                 ),
                 base.gpsStatus,
-                base.pauseStatus
+                base.pauseStatus,
+                base.tripStatus
         );
     }
 
@@ -230,7 +246,8 @@ public final class NavStateComposer {
                         base.routeStatus.blockedRoadActionAvailable
                 ),
                 base.gpsStatus,
-                base.pauseStatus
+                base.pauseStatus,
+                base.tripStatus
         );
     }
 

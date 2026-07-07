@@ -29,6 +29,8 @@ final class NavigationSessionLocationEvaluator {
     private final NavigationWarmupController warmupController;
     @NonNull
     private final NavigationRouteRequestManager routeRequestManager;
+    @NonNull
+    private final NavigationTripStatsTracker tripStatsTracker;
     private int acquiredFixCount;
 
     NavigationSessionLocationEvaluator(
@@ -36,13 +38,15 @@ final class NavigationSessionLocationEvaluator {
             @NonNull NavigationSessionRouteState routeState,
             @NonNull StraightLineNavigationState straightLineState,
             @NonNull NavigationWarmupController warmupController,
-            @NonNull NavigationRouteRequestManager routeRequestManager
+            @NonNull NavigationRouteRequestManager routeRequestManager,
+            @NonNull NavigationTripStatsTracker tripStatsTracker
     ) {
         this.locationState = locationState;
         this.routeState = routeState;
         this.straightLineState = straightLineState;
         this.warmupController = warmupController;
         this.routeRequestManager = routeRequestManager;
+        this.tripStatsTracker = tripStatsTracker;
     }
 
     void reset() {
@@ -104,6 +108,13 @@ final class NavigationSessionLocationEvaluator {
         acquiredFixCount++;
 
         NavigationLocation filtered = update.getFilteredLocation();
+        tripStatsTracker.recordAcceptedLocation(
+                filtered,
+                nowMs,
+                locationState.displaySpeedMps(filtered),
+                locationState.isLikelyStationary(),
+                update.isReacquiringAfterLongGap()
+        );
         routeRequestManager.clearRouteFailure();
         if (!currentRequest.isComplete()) {
             routeRequestManager.markInvalidRequest(textResources);

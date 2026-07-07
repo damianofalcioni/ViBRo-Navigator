@@ -58,7 +58,7 @@ public class NavigationActivity extends Activity {
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
-            renderer.renderGpsStatus();
+            renderer.renderLiveDetails();
             uiScheduler.postDelayed(this, 1000L);
         }
     };
@@ -221,7 +221,7 @@ public class NavigationActivity extends Activity {
         AppLogger.i(TAG, "onStop bound=" + bound);
         uiScheduler.removeCallbacks(countdownTicker);
         renderer.cancelPendingCompassTransition();
-        renderer.dismissGpsDetailsDialog();
+        renderer.dismissDetailsDialogs();
         if (bound) {
             try {
                 if (navBinder != null) {

@@ -295,6 +295,7 @@ public final class NavigationSession {
             if (session.currentRequest.isStraightLine()) {
                 session.components.straightLineState.onRequestStarted(session.currentRequest);
             }
+            session.components.tripStatsTracker.start(nowMs);
             session.started = true;
             return true;
         }

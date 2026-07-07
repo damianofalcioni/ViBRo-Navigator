@@ -125,7 +125,8 @@ public final class NavStateResourceComposer {
         return new NavState(
                 base.routeStatus.withProgress(base.routeStatus.progress.withDetailBlock(detail)),
                 base.gpsStatus,
-                new NavPauseStatus(paused)
+                new NavPauseStatus(paused),
+                base.tripStatus
         );
     }
 

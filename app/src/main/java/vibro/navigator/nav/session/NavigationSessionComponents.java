@@ -18,13 +18,16 @@ final class NavigationSessionComponents {
     @NonNull
     final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
     @NonNull
+    final NavigationTripStatsTracker tripStatsTracker = new NavigationTripStatsTracker();
+    @NonNull
     final NavigationSessionLocationEvaluator locationEvaluator =
             new NavigationSessionLocationEvaluator(
                     locationState,
                     routeState,
                     straightLineState,
                     warmupController,
-                    routeRequestManager
+                    routeRequestManager,
+                    tripStatsTracker
             );
     @NonNull
     final NavigationSessionStateBuilder stateBuilder =
@@ -33,7 +36,8 @@ final class NavigationSessionComponents {
                     headingResolver,
                     routeState,
                     straightLineState,
-                    routeRequestManager
+                    routeRequestManager,
+                    tripStatsTracker
             );
 
     void reset(long nowMs) {
@@ -43,5 +47,6 @@ final class NavigationSessionComponents {
         straightLineState.reset();
         warmupController.reset(nowMs);
         routeRequestManager.reset();
+        tripStatsTracker.reset();
     }
 }

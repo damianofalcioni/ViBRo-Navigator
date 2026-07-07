@@ -26,19 +26,23 @@ final class NavigationSessionStateBuilder {
     private final StraightLineNavigationState straightLineState;
     @NonNull
     private final NavigationRouteRequestManager routeRequestManager;
+    @NonNull
+    private final NavigationTripStatsTracker tripStatsTracker;
 
     NavigationSessionStateBuilder(
             @NonNull NavigationSessionLocationState locationState,
             @NonNull NavigationSessionHeadingResolver headingResolver,
             @NonNull NavigationSessionRouteState routeState,
             @NonNull StraightLineNavigationState straightLineState,
-            @NonNull NavigationRouteRequestManager routeRequestManager
+            @NonNull NavigationRouteRequestManager routeRequestManager,
+            @NonNull NavigationTripStatsTracker tripStatsTracker
     ) {
         this.locationState = locationState;
         this.headingResolver = headingResolver;
         this.routeState = routeState;
         this.straightLineState = straightLineState;
         this.routeRequestManager = routeRequestManager;
+        this.tripStatsTracker = tripStatsTracker;
     }
 
     @NonNull
@@ -107,16 +111,20 @@ final class NavigationSessionStateBuilder {
                 )
                 .build();
         if (currentRequest.isStraightLine()) {
-            return NavStateResourceComposer.withPauseState(
+            NavState baseState = NavStateResourceComposer.withPauseState(
                     textResources,
                     straightLineState.buildState(currentRequest, snapshot),
                     paused
             );
+            return NavStateComposer.withTripStatus(baseState, tripStatsTracker.snapshot());
         }
         NavState baseState = routeState.advanceDisplayState(snapshot, currentRequest.isRoundTrip());
         if (currentRequest.isRoundTrip()) {
             baseState = NavStateComposer.withBlockedRoadActionAvailable(baseState, false);
         }
-        return NavStateResourceComposer.withPauseState(textResources, baseState, paused);
+        return NavStateComposer.withTripStatus(
+                NavStateResourceComposer.withPauseState(textResources, baseState, paused),
+                tripStatsTracker.snapshot()
+        );
     }
 }

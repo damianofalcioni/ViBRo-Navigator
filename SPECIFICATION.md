@@ -518,6 +518,7 @@ The navigation UI must show the following in large text:
 
 - Below the compass, the UI must use a single shared status text block instead of separate destination-progress and secondary-detail text areas
 - When no higher-priority notice is active, that shared status block must show the final destination progress and, if an intermediate stop is still ahead, the next intermediate-stop progress in the same text area
+- Tapping the shared status block must show a live trip-stats UI styled like the GPS details UI, without duplicating GPS quality fields. It must include elapsed time, travelled distance, moving time, stationary time, average speed, moving average speed, and max speed for the active navigation session.
 - The destination progress portion should use the same segment-aware hybrid estimator as maneuver timing: trustworthy smoothed live speed only for the remaining current-segment portion, plus BRouter-derived time for later segments
 - The next intermediate-stop portion should use the same segment-aware hybrid estimator as maneuver timing and destination progress
 - When the current next intermediate stop is passed, the shared status block must switch to the following intermediate stop if one remains

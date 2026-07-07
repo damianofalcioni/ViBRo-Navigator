@@ -1,9 +1,6 @@
 package vibro.navigator.nav.model;
 
-import vibro.navigator.nav.compass.NavCompassState;
-
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 public final class NavState {
     public static final long NO_DEADLINE = -1L;
@@ -14,15 +11,27 @@ public final class NavState {
     public final NavGpsStatus gpsStatus;
     @NonNull
     public final NavPauseStatus pauseStatus;
+    @NonNull
+    public final NavTripStatus tripStatus;
 
     public NavState(
             @NonNull NavRouteStatus routeStatus,
             @NonNull NavGpsStatus gpsStatus,
             @NonNull NavPauseStatus pauseStatus
     ) {
+        this(routeStatus, gpsStatus, pauseStatus, NavTripStatus.unavailable());
+    }
+
+    public NavState(
+            @NonNull NavRouteStatus routeStatus,
+            @NonNull NavGpsStatus gpsStatus,
+            @NonNull NavPauseStatus pauseStatus,
+            @NonNull NavTripStatus tripStatus
+    ) {
         this.routeStatus = routeStatus;
         this.gpsStatus = gpsStatus;
         this.pauseStatus = pauseStatus;
+        this.tripStatus = tripStatus;
     }
 
     @NonNull
