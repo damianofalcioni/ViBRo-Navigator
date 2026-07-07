@@ -41,6 +41,10 @@ public final class NavigationOrientationController {
 
     private long lastCompassUiUpdateElapsedRealtimeMs;
     private boolean monitoringActive;
+    @Nullable
+    private NavigationSession latestNavigationSession;
+    @Nullable
+    private NavigationForegroundController latestForegroundController;
 
     public NavigationOrientationController(
             @NonNull HeadingMonitorFactory headingMonitorFactory,
@@ -58,6 +62,8 @@ public final class NavigationOrientationController {
 
     public void start() {
         stationaryOrientationNotifier.reset();
+        latestNavigationSession = null;
+        latestForegroundController = null;
         if (monitoringActive) {
             return;
         }
@@ -70,6 +76,8 @@ public final class NavigationOrientationController {
 
     public void stop() {
         stationaryOrientationNotifier.reset();
+        latestNavigationSession = null;
+        latestForegroundController = null;
         lastCompassUiUpdateElapsedRealtimeMs = 0L;
         if (!monitoringActive) {
             return;
@@ -82,9 +90,27 @@ public final class NavigationOrientationController {
             @NonNull NavigationSession navigationSession,
             @Nullable NavigationForegroundController foregroundController
     ) {
+        latestNavigationSession = navigationSession;
+        latestForegroundController = foregroundController;
         if (foregroundController == null) {
             return;
         }
+        evaluateStationaryOrientation(navigationSession, foregroundController);
+    }
+
+    private void evaluateLatestStationaryOrientation() {
+        NavigationSession navigationSession = latestNavigationSession;
+        NavigationForegroundController foregroundController = latestForegroundController;
+        if (navigationSession == null || foregroundController == null) {
+            return;
+        }
+        evaluateStationaryOrientation(navigationSession, foregroundController);
+    }
+
+    private void evaluateStationaryOrientation(
+            @NonNull NavigationSession navigationSession,
+            @NonNull NavigationForegroundController foregroundController
+    ) {
         stationaryOrientationNotifier.maybeNotify(
                 navigationSession.hasActiveRoute(),
                 navigationSession.isRouteCalculationInProgress(),
@@ -137,6 +163,7 @@ public final class NavigationOrientationController {
     }
 
     private void onGeomagneticSampleUpdated() {
+        evaluateLatestStationaryOrientation();
         if (!compassUiState.shouldDispatchCompassUi() || !compassUiState.hasStateListeners()) {
             return;
         }
