@@ -21,8 +21,8 @@ final class NavigationCompassOrientationCueRenderer {
     private static final float ARC_RADIUS_OFFSET_DP = 2f;
     private static final float ARC_STROKE_WIDTH_DP = 1.1f;
     private static final float MARKER_BORDER_WIDTH_DP = 1.2f;
-    private static final float MARKER_WIDTH_DP = 14f;
-    private static final float MARKER_HEIGHT_DP = 8f;
+    static final float MARKER_WIDTH_DP = 14f;
+    static final float MARKER_HEIGHT_DP = 8f;
 
     private final Paint cuePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint markerBorderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);

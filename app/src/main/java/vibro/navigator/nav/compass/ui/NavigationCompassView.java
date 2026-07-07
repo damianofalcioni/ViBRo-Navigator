@@ -24,14 +24,14 @@ public final class NavigationCompassView extends View {
     private static final float OUTER_DISTANCE_RING_SCALE = 0.91f;
     private static final float[] DISTANCE_RING_SCALES = new float[]{OUTER_DISTANCE_RING_SCALE, 0.61f, 0.30f};
     private static final float CENTER_MARKER_DOT_RADIUS_SCALE = 0.02f;
-    private static final float HEADING_GUIDE_TOP_SCALE = 0.94f;
-    private static final float HEADING_GUIDE_ARROW_WIDTH_DP = 12f;
-    private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = 10f;
+    private static final float HEADING_GUIDE_ARROW_WIDTH_DP = NavigationCompassOrientationCueRenderer.MARKER_WIDTH_DP;
+    private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = NavigationCompassOrientationCueRenderer.MARKER_HEIGHT_DP;
     private static final float HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES = 5f;
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
     static final float OUTER_COMPASS_LAYER_INNER_SCALE = OUTER_DISTANCE_RING_SCALE;
     private static final float OUTER_COMPASS_LAYER_OUTER_SCALE = 0.97f;
     private static final float OUTER_COMPASS_LAYER_RADIUS_SCALE = (OUTER_COMPASS_LAYER_INNER_SCALE + 1f) / 2f;
+    static final float HEADING_GUIDE_ARROW_TIP_SCALE = 1f;
     private static final float OUTER_COMPASS_TICK_LENGTH_SCALE = 0.018f;
     static final float OUTER_COMPASS_LAYER_STROKE_SCALE = 1f - OUTER_DISTANCE_RING_SCALE;
     static final float CARDINAL_TEXT_SIZE_SCALE = 0.09f;
@@ -229,12 +229,12 @@ public final class NavigationCompassView extends View {
         );
         canvas.restoreToCount(saveCount);
 
+        orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, radius, headingDegrees);
         drawHeadingGuide(canvas, cx, cy, radius);
         drawHeadingAccuracyGuides(canvas, cx, cy, radius);
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
-        orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, radius, headingDegrees);
     }
 
     private void drawPausedRing(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -295,9 +295,13 @@ public final class NavigationCompassView extends View {
     }
 
     private void drawHeadingGuide(@NonNull Canvas canvas, float cx, float cy, float radius) {
-        float arrowTipY = cy - radius * HEADING_GUIDE_TOP_SCALE;
+        float arrowTipY = cy - radius * HEADING_GUIDE_ARROW_TIP_SCALE;
         float arrowHalfWidth = dp(HEADING_GUIDE_ARROW_WIDTH_DP) / 2f;
-        float arrowBaseY = arrowTipY + dp(HEADING_GUIDE_ARROW_HEIGHT_DP);
+        float arrowBaseRadius = Math.max(
+                radius * OUTER_COMPASS_LAYER_INNER_SCALE,
+                radius - dp(HEADING_GUIDE_ARROW_HEIGHT_DP)
+        );
+        float arrowBaseY = cy - arrowBaseRadius;
 
         canvas.drawLine(cx, cy, cx, arrowTipY, headingGuidePaint);
         canvas.drawLine(cx, arrowTipY, cx - arrowHalfWidth, arrowBaseY, headingGuidePaint);
