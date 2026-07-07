@@ -82,6 +82,7 @@ public final class NavigationSession {
                 components.routeState,
                 components.straightLineState,
                 components.locationState.getLastFilteredLocation(),
+                components.acceptedFixHistory.snapshot(),
                 currentRequest
         );
     }

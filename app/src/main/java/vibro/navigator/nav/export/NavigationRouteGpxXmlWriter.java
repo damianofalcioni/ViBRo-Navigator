@@ -2,6 +2,7 @@ package vibro.navigator.nav.export;
 
 import androidx.annotation.NonNull;
 
+import java.util.List;
 import java.util.Locale;
 
 import vibro.navigator.geo.LatLon;
@@ -11,6 +12,7 @@ final class NavigationRouteGpxXmlWriter {
     static final String TAG_NAME = "name";
     static final String TAG_DESC = "desc";
     static final String TAG_TYPE = "type";
+    static final String TAG_TIME = "time";
     static final String LINE_END = "\n";
 
     private static final String GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
@@ -46,7 +48,7 @@ final class NavigationRouteGpxXmlWriter {
     ) {
         out.append("  <rte>").append(LINE_END);
         appendSimpleElement(out, 2, TAG_NAME, routeName);
-        appendPointList(out, route, "rtept", 2);
+        appendPointList(out, route.track, "rtept", 2);
         out.append("  </rte>").append(LINE_END);
     }
 
@@ -58,8 +60,26 @@ final class NavigationRouteGpxXmlWriter {
         out.append("  <trk>").append(LINE_END);
         appendSimpleElement(out, 2, TAG_NAME, routeName);
         out.append("    <trkseg>").append(LINE_END);
-        appendPointList(out, route, "trkpt", 3);
+        appendPointList(out, route.track, "trkpt", 3);
         out.append("    </trkseg>").append(LINE_END);
+        out.append("  </trk>").append(LINE_END);
+    }
+
+    static void appendTrackSegments(
+            @NonNull StringBuilder out,
+            @NonNull String trackName,
+            @NonNull List<List<LatLon>> segments
+    ) {
+        if (segments.isEmpty()) {
+            return;
+        }
+        out.append("  <trk>").append(LINE_END);
+        appendSimpleElement(out, 2, TAG_NAME, trackName);
+        for (List<LatLon> segment : segments) {
+            out.append("    <trkseg>").append(LINE_END);
+            appendPointList(out, segment, "trkpt", 3);
+            out.append("    </trkseg>").append(LINE_END);
+        }
         out.append("  </trk>").append(LINE_END);
     }
 
@@ -98,11 +118,11 @@ final class NavigationRouteGpxXmlWriter {
 
     private static void appendPointList(
             @NonNull StringBuilder out,
-            @NonNull GeoJsonRoute route,
+            @NonNull List<LatLon> points,
             @NonNull String tag,
             int indentLevel
     ) {
-        for (LatLon point : route.track) {
+        for (LatLon point : points) {
             appendPointStart(out, indentLevel, tag, point);
             out.append(" />").append(LINE_END);
         }

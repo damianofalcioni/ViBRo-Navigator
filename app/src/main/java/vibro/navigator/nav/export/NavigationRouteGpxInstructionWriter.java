@@ -24,16 +24,35 @@ final class NavigationRouteGpxInstructionWriter {
             @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route
     ) {
+        appendWaypoints(out, textResources, route, Integer.MAX_VALUE, true);
+    }
+
+    static void appendPassedWaypoints(
+            @NonNull StringBuilder out,
+            @NonNull NavigationTextResources textResources,
+            @NonNull GeoJsonRoute route,
+            int maxPassedTrackIndex
+    ) {
+        appendWaypoints(out, textResources, route, maxPassedTrackIndex, false);
+    }
+
+    private static void appendWaypoints(
+            @NonNull StringBuilder out,
+            @NonNull NavigationTextResources textResources,
+            @NonNull GeoJsonRoute route,
+            int maxTrackIndex,
+            boolean includeSyntheticArrival
+    ) {
         if (route.track.isEmpty()) {
             return;
         }
         for (int i = 0; i < route.voiceHints.size(); i++) {
             VoiceHint hint = route.voiceHints.get(i);
-            if (isValidTrackIndex(route, hint.indexInTrack)) {
+            if (isValidTrackIndex(route, hint.indexInTrack) && hint.indexInTrack <= maxTrackIndex) {
                 appendWaypoint(out, textResources, route, hint, i);
             }
         }
-        if (!hasArrivalHint(route)) {
+        if (includeSyntheticArrival && !hasArrivalHint(route)) {
             VoiceHint arrival = new VoiceHint(route.track.size() - 1, ARRIVAL_COMMAND, 0, 0.0, 0);
             appendWaypoint(out, textResources, route, arrival, route.voiceHints.size());
         }

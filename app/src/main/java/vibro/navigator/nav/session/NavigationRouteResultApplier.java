@@ -8,8 +8,6 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
-import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
@@ -26,10 +24,6 @@ final class NavigationRouteResultApplier {
     @NonNull
     private final NavigationSessionRouteDisplayState displayState;
     @NonNull
-    private final NavigationRouteDeviationHandler deviationHandler;
-    @NonNull
-    private final NavigationRouteProgressTracker progressTracker;
-    @NonNull
     private final NavigationTurnState turnState;
     @NonNull
     private final NavigationArrivalDetector arrivalDetector;
@@ -37,25 +31,25 @@ final class NavigationRouteResultApplier {
     private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
     @NonNull
     private final RouteStartApproachState routeStartApproachState;
+    @NonNull
+    private final NavigationRouteTravelHistory travelHistory;
 
     NavigationRouteResultApplier(
             @NonNull NavigationRouteGeometryState geometryState,
             @NonNull NavigationSessionRouteDisplayState displayState,
-            @NonNull NavigationRouteDeviationHandler deviationHandler,
-            @NonNull NavigationRouteProgressTracker progressTracker,
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationArrivalDetector arrivalDetector,
             @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
-            @NonNull RouteStartApproachState routeStartApproachState
+            @NonNull RouteStartApproachState routeStartApproachState,
+            @NonNull NavigationRouteTravelHistory travelHistory
     ) {
         this.geometryState = geometryState;
         this.displayState = displayState;
-        this.deviationHandler = deviationHandler;
-        this.progressTracker = progressTracker;
         this.turnState = turnState;
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
         this.routeStartApproachState = routeStartApproachState;
+        this.travelHistory = travelHistory;
     }
 
     @NonNull
@@ -75,17 +69,17 @@ final class NavigationRouteResultApplier {
         logRouteStartApproachIfNeeded(approachPlan);
         PolylineIndex.Match previousRouteMatch = previousRouteMatch(input.lastFiltered, accuracyMeters);
         geometryState.loadRoute(route, input.snapshot.isRoundTrip());
+        PolylineIndex polylineIndex = requireActivePolylineIndex();
+        travelHistory.onRouteApplied(route, polylineIndex, previousRouteMatch);
         displayState.onRouteApplied(
                 input.textResources,
                 route,
-                geometryState.polylineIndex(),
+                polylineIndex,
                 input.snapshot.intermediates,
                 routeStartApproachState.target(),
                 previousRouteMatch
         );
-        intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, geometryState.polylineIndex());
-        deviationHandler.clearDeviationEvidence();
-        progressTracker.reset();
+        intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, polylineIndex);
         float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;
 
         List<NavigationTurnEvent> turnEvents = buildRouteAppliedTurnEvents(
@@ -101,6 +95,15 @@ final class NavigationRouteResultApplier {
                 + " voiceHints=" + route.voiceHints.size()
                 + " lengthMeters=" + route.trackLengthMeters);
         return turnEvents;
+    }
+
+    @NonNull
+    private PolylineIndex requireActivePolylineIndex() {
+        PolylineIndex polylineIndex = geometryState.polylineIndex();
+        if (polylineIndex == null) {
+            throw new IllegalStateException("Route polyline index is unavailable after loading a route");
+        }
+        return polylineIndex;
     }
 
     private void logRouteStartApproachIfNeeded(@NonNull RouteStartApproach.Plan approachPlan) {

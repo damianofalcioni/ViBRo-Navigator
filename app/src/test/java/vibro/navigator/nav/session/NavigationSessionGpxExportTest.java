@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 import vibro.navigator.geo.LatLon;
@@ -22,6 +23,9 @@ import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationSessionGpxExportTest {
@@ -32,6 +36,8 @@ public class NavigationSessionGpxExportTest {
     private static final String TYPE_DESTINATION = "vibro.navigator.destination";
     private static final String TYPE_STOP = "vibro.navigator.stop";
     private static final String TYPE_TURN = "vibro.navigator.turn";
+    private static final String TYPE_GPS_FIX = "vibro.navigator.gps-fix";
+    private static final String FIRST_GPS_FIX_TIME = "<time>1970-01-01T00:00:01.000Z</time>";
 
     @Test
     public void buildCurrentRouteGpx_exportsStraightLinePointsAndStraightRouteOnly() {
@@ -61,10 +67,69 @@ public class NavigationSessionGpxExportTest {
         assertNotNull(gpx);
         assertEquals(3, countOccurrences(gpx, GPX_ROUTE_POINT));
         assertEquals(3, countOccurrences(gpx, GPX_TRACK_POINT));
-        assertEquals(2, countOccurrences(gpx, GPX_WAYPOINT));
+        assertEquals(3, countOccurrences(gpx, GPX_WAYPOINT));
         assertTrue(gpx.contains(TYPE_STOP));
         assertTrue(gpx.contains(TYPE_DESTINATION));
+        assertTrue(gpx.contains(TYPE_GPS_FIX));
+        assertTrue(gpx.contains(FIRST_GPS_FIX_TIME));
         assertFalse(gpx.contains(TYPE_TURN));
+    }
+
+    @Test
+    public void buildCurrentRouteGpx_exportsPassedRouteHistoryAndAcceptedFixes() {
+        Context androidContext = ApplicationProvider.getApplicationContext();
+        NavigationTextResources textResources = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                "trekking",
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        ));
+
+        assertTrue(NavigationSession.ResourceAdapter.start(session, textResources, 1_000L));
+        NavigationSession.ResourceAdapter.onRawLocationChanged(
+                session,
+                textResources,
+                locationWithSpeed(0.0, 0.0, 1_000L, 2f),
+                1_000L
+        );
+        NavigationRouteRequestSnapshot firstSnapshot = session.prepareRouteRequest(true, 1_000L);
+        assertNotNull(firstSnapshot);
+        NavigationSession.ResourceAdapter.applyRouteResult(
+                session,
+                textResources,
+                firstSnapshot,
+                route(new VoiceHint(0, 2, 0, 40.0, -90), 0.0, 0.0, 0.001, 0.002),
+                1_000L
+        );
+        NavigationSession.ResourceAdapter.onRawLocationChanged(
+                session,
+                textResources,
+                locationWithSpeed(0.0, 0.002, 2_000L, 2f),
+                2_000L
+        );
+        NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, 3_000L);
+        assertNotNull(secondSnapshot);
+        NavigationSession.ResourceAdapter.applyRouteResult(
+                session,
+                textResources,
+                secondSnapshot,
+                route(new VoiceHint(1, 5, 0, 30.0, 90), 0.0, 0.002, 0.0025, 0.003),
+                3_000L
+        );
+
+        String gpx = session.buildCurrentRouteGpx(androidContext);
+
+        assertNotNull(gpx);
+        assertEquals(2, countOccurrences(gpx, "<trkseg>"));
+        assertTrue(countOccurrences(gpx, GPX_TRACK_POINT) >= 5);
+        assertEquals(5, countOccurrences(gpx, GPX_WAYPOINT));
+        assertTrue(gpx.contains("Passed route"));
+        assertTrue(gpx.contains("Turn left"));
+        assertTrue(gpx.contains("Turn right"));
+        assertTrue(gpx.contains(TYPE_GPS_FIX));
+        assertTrue(gpx.contains(FIRST_GPS_FIX_TIME));
     }
 
     @NonNull
@@ -81,6 +146,26 @@ public class NavigationSessionGpxExportTest {
         location.setAccuracy(5f);
         location.setSpeed(speedMetersPerSecond);
         return location;
+    }
+
+    @NonNull
+    private static GeoJsonRoute route(
+            @NonNull VoiceHint hint,
+            double startLat,
+            double startLon,
+            double middleLon,
+            double endLon
+    ) {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(startLat, startLon),
+                        new LatLon(startLat, middleLon),
+                        new LatLon(startLat, endLon)
+                ),
+                Collections.singletonList(hint),
+                60.0,
+                333.0
+        );
     }
 
     private static int countOccurrences(@NonNull String value, @NonNull String pattern) {

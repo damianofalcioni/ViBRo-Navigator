@@ -120,6 +120,8 @@
     <string name="msg_route_export_no_app">No app can open GPX routes.</string>
     <string name="msg_open_url_failed">Could not open link on this device.</string>
     <string name="label_exported_route_gpx">ViBRo route GPX</string>
+    <string name="gpx_passed_route_track_name">Passed route</string>
+    <string name="format_gpx_gps_fix_name">GPS fix %1$d</string>
     <string name="label_vehicle_profile_custom">Custom</string>
     <string name="label_vehicle_profile_custom_with_name">Custom (%1$s)</string>
     <string name="title_profile_parameters">Profile settings: %1$s</string>

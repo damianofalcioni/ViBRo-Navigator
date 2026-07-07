@@ -112,6 +112,8 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_nav_bearing_accuracy_value, "%1$.0f°");
         strings.put(R.string.format_nav_satellite_count_value, "%1$d");
         strings.put(R.string.format_nav_fix_count_value, "#%1$d");
+        strings.put(R.string.gpx_passed_route_track_name, "Passed route");
+        strings.put(R.string.format_gpx_gps_fix_name, "GPS fix %1$d");
         strings.put(R.string.format_nav_gps_status, "%1$s ↑%2$s • %3$s • (%4$s)");
         strings.put(R.string.format_nav_gps_obtained_time_value, "%1$tH:%1$tM:%1$tS");
         strings.put(R.string.format_nav_gps_details,

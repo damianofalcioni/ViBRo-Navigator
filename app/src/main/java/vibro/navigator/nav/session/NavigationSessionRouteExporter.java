@@ -7,9 +7,13 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
+import vibro.navigator.nav.export.NavigationRouteGpxExportHistory;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
+
+import java.util.Collections;
+import java.util.List;
 
 final class NavigationSessionRouteExporter {
     private NavigationSessionRouteExporter() {
@@ -21,18 +25,20 @@ final class NavigationSessionRouteExporter {
             @NonNull NavigationSessionRouteState routeState,
             @NonNull StraightLineNavigationState straightLineState,
             @Nullable NavigationLocation currentLocation,
+            @NonNull List<NavigationLocation> acceptedFixes,
             @NonNull NavigationRequest request
     ) {
         if (request.isStraightLine()) {
-            return exportStraightLine(context, straightLineState, currentLocation, request);
+            return exportStraightLine(context, straightLineState, currentLocation, acceptedFixes, request);
         }
-        return exportRoute(context, routeState, request);
+        return exportRoute(context, routeState, acceptedFixes, request);
     }
 
     @Nullable
     private static String exportRoute(
             @NonNull Context context,
             @NonNull NavigationSessionRouteState routeState,
+            @NonNull List<NavigationLocation> acceptedFixes,
             @NonNull NavigationRequest request
     ) {
         GeoJsonRoute route = routeState.currentRoute();
@@ -42,7 +48,8 @@ final class NavigationSessionRouteExporter {
         return NavigationRouteGpxExporter.export(
                 new AndroidNavigationTextResources(context),
                 route,
-                routeState.remainingIntermediateStops(request.stops)
+                routeState.remainingIntermediateStops(request.stops),
+                new NavigationRouteGpxExportHistory(routeState.passedRoutesForExport(), acceptedFixes)
         );
     }
 
@@ -51,6 +58,7 @@ final class NavigationSessionRouteExporter {
             @NonNull Context context,
             @NonNull StraightLineNavigationState straightLineState,
             @Nullable NavigationLocation currentLocation,
+            @NonNull List<NavigationLocation> acceptedFixes,
             @NonNull NavigationRequest request
     ) {
         if (request.destination == null) {
@@ -64,7 +72,8 @@ final class NavigationSessionRouteExporter {
                 new AndroidNavigationTextResources(context),
                 route,
                 request.stops,
-                request.destination
+                request.destination,
+                new NavigationRouteGpxExportHistory(Collections.emptyList(), acceptedFixes)
         );
     }
 }

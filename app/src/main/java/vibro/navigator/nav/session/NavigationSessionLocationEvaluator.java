@@ -31,6 +31,8 @@ final class NavigationSessionLocationEvaluator {
     private final NavigationRouteRequestManager routeRequestManager;
     @NonNull
     private final NavigationTripStatsTracker tripStatsTracker;
+    @NonNull
+    private final NavigationAcceptedFixHistory acceptedFixHistory;
     private int acquiredFixCount;
 
     NavigationSessionLocationEvaluator(
@@ -39,7 +41,8 @@ final class NavigationSessionLocationEvaluator {
             @NonNull StraightLineNavigationState straightLineState,
             @NonNull NavigationWarmupController warmupController,
             @NonNull NavigationRouteRequestManager routeRequestManager,
-            @NonNull NavigationTripStatsTracker tripStatsTracker
+            @NonNull NavigationTripStatsTracker tripStatsTracker,
+            @NonNull NavigationAcceptedFixHistory acceptedFixHistory
     ) {
         this.locationState = locationState;
         this.routeState = routeState;
@@ -47,6 +50,7 @@ final class NavigationSessionLocationEvaluator {
         this.warmupController = warmupController;
         this.routeRequestManager = routeRequestManager;
         this.tripStatsTracker = tripStatsTracker;
+        this.acceptedFixHistory = acceptedFixHistory;
     }
 
     void reset() {
@@ -108,6 +112,7 @@ final class NavigationSessionLocationEvaluator {
         acquiredFixCount++;
 
         NavigationLocation filtered = update.getFilteredLocation();
+        acceptedFixHistory.record(filtered);
         tripStatsTracker.recordAcceptedLocation(
                 filtered,
                 nowMs,

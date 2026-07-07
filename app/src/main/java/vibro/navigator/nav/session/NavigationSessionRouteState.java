@@ -13,6 +13,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.export.NavigationRouteGpxExportHistory;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
@@ -29,6 +30,11 @@ public final class NavigationSessionRouteState {
 
     public boolean hasActiveRoute() {
         return components.geometryState.hasActiveRoute();
+    }
+
+    @NonNull
+    public List<NavigationRouteGpxExportHistory.PassedRoute> passedRoutesForExport() {
+        return components.travelHistory.passedRoutesSnapshot();
     }
 
     @Nullable
@@ -191,6 +197,8 @@ public final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
+        components.deviationHandler.clearDeviationEvidence();
+        components.progressTracker.reset();
         return components.routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
                 textResources,
                 snapshot,

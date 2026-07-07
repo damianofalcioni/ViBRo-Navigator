@@ -20,6 +20,8 @@ final class NavigationSessionComponents {
     @NonNull
     final NavigationTripStatsTracker tripStatsTracker = new NavigationTripStatsTracker();
     @NonNull
+    final NavigationAcceptedFixHistory acceptedFixHistory = new NavigationAcceptedFixHistory();
+    @NonNull
     final NavigationSessionLocationEvaluator locationEvaluator =
             new NavigationSessionLocationEvaluator(
                     locationState,
@@ -27,7 +29,8 @@ final class NavigationSessionComponents {
                     straightLineState,
                     warmupController,
                     routeRequestManager,
-                    tripStatsTracker
+                    tripStatsTracker,
+                    acceptedFixHistory
             );
     @NonNull
     final NavigationSessionStateBuilder stateBuilder =
@@ -48,5 +51,6 @@ final class NavigationSessionComponents {
         warmupController.reset(nowMs);
         routeRequestManager.reset();
         tripStatsTracker.reset();
+        acceptedFixHistory.reset();
     }
 }
