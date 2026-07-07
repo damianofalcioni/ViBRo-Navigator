@@ -21,6 +21,7 @@ import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -108,6 +109,74 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertFalse(navState.routeStatus.guidance.nextLine.isEmpty());
         assertTrue(navState.routeStatus.progress.destinationLine.contains(context.getString(R.string.nav_destination_label)));
         assertTrue(navState.routeStatus.progress.stopProgressBlock.isEmpty());
+    }
+
+    @Test
+    public void applyRouteResult_keepsPassedCompassSegmentsAcrossSubsequentRecalculations() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+
+        state.applyRouteResult(
+                context,
+                snapshotForRoute(new LatLon(0.0, 0.0), new LatLon(0.0, 0.004)),
+                routeFrom(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+        state.applyRouteResult(
+                context,
+                snapshotForRoute(new LatLon(0.0, 0.0015), new LatLon(0.0, 0.004)),
+                routeFrom(
+                        new LatLon(0.0, 0.0015),
+                        new LatLon(0.0, 0.0025),
+                        new LatLon(0.0, 0.004)
+                ),
+                location(0.0, 0.0015, 2_000L),
+                5f,
+                1_500L
+        );
+        state.applyRouteResult(
+                context,
+                snapshotForRoute(new LatLon(0.0, 0.0025), new LatLon(0.0, 0.004)),
+                routeFrom(
+                        new LatLon(0.0, 0.0025),
+                        new LatLon(0.0, 0.003),
+                        new LatLon(0.0, 0.004)
+                ),
+                location(0.0, 0.0025, 3_000L),
+                5f,
+                2_500L
+        );
+
+        NavState navState = state.buildState(
+                context,
+                location(0.0, 0.0025, 3_000L),
+                0f,
+                true,
+                5f,
+                null,
+                0.0,
+                null,
+                NavState.NO_DEADLINE,
+                3_000L,
+                false,
+                null,
+                null
+        );
+
+        assertNotNull(navState.routeStatus.compassState);
+        CompassRouteGeometry geometry = navState.routeStatus.compassState.routeGeometry();
+        assertNotNull(geometry);
+        assertEquals(2, geometry.archivedPassedRouteSegments().segmentCount());
+        assertTrue(geometry.archivedPassedRouteSegments().samplePointCount(0) >= 2);
+        assertTrue(geometry.archivedPassedRouteSegments().samplePointCount(1) >= 2);
+        assertTrue(navState.routeStatus.compassState.passedRoutePoints.size()
+                > navState.routeStatus.compassState.passedRouteSamplePointCount());
     }
 
     @Test
@@ -831,6 +900,33 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 null,
                 Collections.emptyList(),
                 15_000
+        );
+    }
+
+    @NonNull
+    private static NavigationRouteRequestSnapshot snapshotForRoute(
+            @NonNull LatLon start,
+            @NonNull LatLon destination
+    ) {
+        return new NavigationRouteRequestSnapshot(
+                1,
+                1,
+                start,
+                Collections.emptyList(),
+                destination,
+                TREKKING_PROFILE,
+                null,
+                Collections.emptyList()
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute routeFrom(@NonNull LatLon... points) {
+        return new GeoJsonRoute(
+                Arrays.asList(points),
+                Collections.emptyList(),
+                180.0,
+                333.0
         );
     }
 

@@ -28,6 +28,8 @@ public final class CompassRouteGeometry {
     private final List<LatLon> hintSamplePoints;
     @NonNull
     private final List<LatLon> intermediateSamplePoints;
+    @NonNull
+    private final CompassPassedRouteSegments archivedPassedRouteSegments;
 
     public CompassRouteGeometry(
             @NonNull List<SamplePoint> routeSamplePoints,
@@ -41,9 +43,19 @@ public final class CompassRouteGeometry {
             @NonNull List<LatLon> hintSamplePoints,
             @NonNull List<LatLon> intermediateSamplePoints
     ) {
+        this(routeSamplePoints, hintSamplePoints, intermediateSamplePoints, Collections.emptyList());
+    }
+
+    public CompassRouteGeometry(
+            @NonNull List<SamplePoint> routeSamplePoints,
+            @NonNull List<LatLon> hintSamplePoints,
+            @NonNull List<LatLon> intermediateSamplePoints,
+            @NonNull List<List<LatLon>> archivedPassedRouteSegments
+    ) {
         this.routeSamplePoints = immutableCopy(routeSamplePoints);
         this.hintSamplePoints = immutableCopy(hintSamplePoints);
         this.intermediateSamplePoints = immutableCopy(intermediateSamplePoints);
+        this.archivedPassedRouteSegments = new CompassPassedRouteSegments(archivedPassedRouteSegments);
     }
 
     public int routeSamplePointCount() {
@@ -82,6 +94,11 @@ public final class CompassRouteGeometry {
         return intermediateSamplePoints.get(index);
     }
 
+    @NonNull
+    public CompassPassedRouteSegments archivedPassedRouteSegments() {
+        return archivedPassedRouteSegments;
+    }
+
     public int passedRoutePointCount(double alongTrackMeters) {
         if (routeSamplePoints.isEmpty()) {
             return 0;
@@ -95,6 +112,19 @@ public final class CompassRouteGeometry {
             }
         }
         return Math.max(1, passedPointCount);
+    }
+
+    @NonNull
+    public List<LatLon> copyRouteSamplePointsUntil(int samplePointCount) {
+        int safeCount = Math.max(0, Math.min(samplePointCount, routeSamplePoints.size()));
+        if (safeCount == 0) {
+            return Collections.emptyList();
+        }
+        List<LatLon> points = new ArrayList<>(safeCount);
+        for (int i = 0; i < safeCount; i++) {
+            points.add(routeSamplePoints.get(i).point);
+        }
+        return points;
     }
 
     @NonNull

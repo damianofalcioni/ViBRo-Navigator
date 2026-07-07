@@ -107,6 +107,38 @@ public class CompassRouteGeometryFactoryTest {
     }
 
     @Test
+    public void build_keepsArchivedPassedRouteSegmentsForCompassRendering() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.emptyList(),
+                30.0,
+                111.0
+        );
+        List<LatLon> archivedSegment = new ArrayList<>();
+        archivedSegment.add(new LatLon(0.0, -0.002));
+        archivedSegment.add(new LatLon(0.0, -0.001));
+        List<List<LatLon>> archivedSegments = new ArrayList<>();
+        archivedSegments.add(archivedSegment);
+
+        CompassRouteGeometry geometry = CompassRouteGeometryFactory.build(
+                route,
+                new PolylineIndex(route.track),
+                Collections.emptyList(),
+                archivedSegments
+        );
+        archivedSegment.clear();
+        archivedSegments.clear();
+
+        assertEquals(1, geometry.archivedPassedRouteSegments().segmentCount());
+        assertEquals(2, geometry.archivedPassedRouteSegments().samplePointCount(0));
+        assertNotNull(geometry.archivedPassedRouteSegments().samplePointAt(0, 0));
+        assertNotNull(geometry.archivedPassedRouteSegments().samplePointAt(0, 1));
+    }
+
+    @Test
     public void geometry_defensivelyCopiesSampleLists() {
         List<CompassRouteGeometry.SamplePoint> routeSamples = new ArrayList<>();
         routeSamples.add(new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.0), 0.0));

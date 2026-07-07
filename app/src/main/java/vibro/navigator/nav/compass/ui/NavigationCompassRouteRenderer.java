@@ -2,6 +2,7 @@ package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.R;
+import vibro.navigator.nav.compass.CompassPassedRouteSegments;
 import vibro.navigator.nav.compass.CompassRoutePoint;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
@@ -186,6 +187,7 @@ final class NavigationCompassRouteRenderer {
                     state.remainingRouteStartSamplePointIndex(),
                     state.routeSamplePointCount()
             );
+            drawArchivedPassedRouteSegments(canvas, state, cx, cy, scale, headingDegrees);
             drawRouteGeometrySegment(
                     canvas,
                     state,
@@ -213,6 +215,53 @@ final class NavigationCompassRouteRenderer {
         drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.passedRoutePoints, passedRoutePaint);
         drawRouteThresholdSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints);
         drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints, routePaint);
+    }
+
+    private void drawArchivedPassedRouteSegments(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees
+    ) {
+        CompassPassedRouteSegments archivedSegments = state.archivedPassedRouteSegments();
+        for (int segmentIndex = 0; segmentIndex < archivedSegments.segmentCount(); segmentIndex++) {
+            drawArchivedPassedRouteSegment(
+                    canvas,
+                    state,
+                    archivedSegments,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    segmentIndex
+            );
+        }
+    }
+
+    private void drawArchivedPassedRouteSegment(
+            @NonNull Canvas canvas,
+            @NonNull NavCompassState state,
+            @NonNull CompassPassedRouteSegments archivedSegments,
+            float cx,
+            float cy,
+            float scale,
+            float headingDegrees,
+            int segmentIndex
+    ) {
+        int pointCount = archivedSegments.samplePointCount(segmentIndex);
+        if (pointCount < 2) {
+            return;
+        }
+        drawProjectedRouteSegment(canvas, state, cx, cy, scale, 0, pointCount, passedRoutePaint, (i, out) -> {
+            LatLon point = archivedSegments.samplePointAt(segmentIndex, i);
+            if (point == null) {
+                return false;
+            }
+            NavigationCompassRouteProjector.projectRoutePoint(state, point, headingDegrees, out);
+            return true;
+        });
     }
 
     private void drawStraightLineRoute(

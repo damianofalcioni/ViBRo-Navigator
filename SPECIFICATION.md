@@ -508,8 +508,8 @@ The navigation UI must show the following in large text:
 - That wider threshold overlay must visualize the current off-track threshold derived from recent smoothed location accuracy, so it acts as the allowed route corridor rather than a purely decorative fixed-width line
 - That threshold overlay width should reflect the full threshold span around the route centerline excluding the GPS accuracy radius, not only a one-sided offset. This way, when the orange accuracy circle overlaps the red corridor, the user is still on track; when they no longer overlap, the user is off track
 - In the stationary full-route overview, the red route centerline itself must keep a fixed visual stroke width instead of scaling to the off-track threshold, even though the threshold overlay remains visible
-- The already passed part of the currently active route must be shown as the same red with about 50 percent transparency
-- When a reroute is applied, the passed-route overlay must be rebuilt from the new active route geometry and must not retain passed geometry from the previous route
+- The already passed part of the route must be shown as the same red with about 50 percent transparency, including passed segments archived from earlier active routes after recalculation
+- When a reroute is applied, the compass passed-route overlay must retain already passed segments from the previous active route and append only the newly passed segment from each subsequent active route, without duplicating earlier archives or drawing artificial connector lines across recalculation gaps
 - The destination endpoint must be shown as a slightly larger opaque white point without a finish-line icon or enclosing badge
 - The destination endpoint must only be shown when it falls within the currently visible compass radius; if it lies outside the visible radius, it should not be clamped back onto the compass edge as a detached marker
 - Each remaining intermediate stop must be shown on the compass route with the same opaque white point radius as the destination endpoint and the same transparent destination-reached radius overlay

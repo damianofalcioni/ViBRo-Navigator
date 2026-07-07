@@ -32,10 +32,21 @@ public final class CompassRouteGeometryFactory {
             @NonNull PolylineIndex index,
             @NonNull List<LatLon> intermediateStops
     ) {
+        return build(route, index, intermediateStops, Collections.emptyList());
+    }
+
+    @NonNull
+    public static CompassRouteGeometry build(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            @NonNull List<LatLon> intermediateStops,
+            @NonNull List<List<LatLon>> archivedPassedRouteSegments
+    ) {
         return new CompassRouteGeometry(
                 buildRouteSamplePoints(route, index),
                 buildHintSamplePoints(route, index),
-                buildIntermediateSamplePoints(index, intermediateStops)
+                buildIntermediateSamplePoints(index, intermediateStops),
+                archivedPassedRouteSegments
         );
     }
 

@@ -13,6 +13,7 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
+import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.logging.AppLogger;
@@ -72,13 +73,15 @@ final class NavigationRouteResultApplier {
                 !input.snapshot.isRoundTrip()
         );
         logRouteStartApproachIfNeeded(approachPlan);
+        PolylineIndex.Match previousRouteMatch = previousRouteMatch(input.lastFiltered, accuracyMeters);
         geometryState.loadRoute(route, input.snapshot.isRoundTrip());
         displayState.onRouteApplied(
                 input.textResources,
                 route,
                 geometryState.polylineIndex(),
                 input.snapshot.intermediates,
-                routeStartApproachState.target()
+                routeStartApproachState.target(),
+                previousRouteMatch
         );
         intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, geometryState.polylineIndex());
         deviationHandler.clearDeviationEvidence();
@@ -107,6 +110,17 @@ final class NavigationRouteResultApplier {
         AppLogger.i(TAG, "Holding route-start approach target distance="
                 + approachPlan.distanceMeters
                 + " threshold=" + approachPlan.thresholdMeters);
+    }
+
+    @Nullable
+    private PolylineIndex.Match previousRouteMatch(
+            @Nullable NavigationLocation lastFiltered,
+            float accuracyMeters
+    ) {
+        if (lastFiltered == null || geometryState.isRouteUnavailable()) {
+            return null;
+        }
+        return geometryState.match(lastFiltered, accuracyMeters);
     }
 
     @NonNull

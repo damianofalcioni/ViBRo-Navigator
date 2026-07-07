@@ -264,13 +264,11 @@ public final class NavCompassState {
         this.remainingRouteStartSamplePointIndex = input.routeGeometry.routeSamplePointCount() == 0
                 ? 0
                 : Math.max(0, this.passedRouteSamplePointCount - 1);
-        this.passedRoutePoints = new ProjectedCompassRoutePointList(
+        this.passedRoutePoints = new ProjectedCompassPassedRoutePointList(
                 input.routeGeometry,
                 this.currentLatitude,
                 this.currentLongitude,
-                0,
-                this.passedRouteSamplePointCount,
-                false
+                this.passedRouteSamplePointCount
         );
         this.routePoints = new ProjectedCompassRoutePointList(
                 input.routeGeometry,
@@ -455,6 +453,13 @@ public final class NavCompassState {
 
     public int remainingRouteStartSamplePointIndex() {
         return routeGeometry == null ? 0 : remainingRouteStartSamplePointIndex;
+    }
+
+    @NonNull
+    public CompassPassedRouteSegments archivedPassedRouteSegments() {
+        return routeGeometry == null
+                ? CompassPassedRouteSegments.EMPTY
+                : routeGeometry.archivedPassedRouteSegments();
     }
 
     @Nullable

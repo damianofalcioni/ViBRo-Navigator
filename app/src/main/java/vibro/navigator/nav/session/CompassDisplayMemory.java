@@ -10,10 +10,10 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.CompassRadiusTransition;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.compass.CompassRouteGeometryFactory;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.policy.NavigationSpeedBucket;
-import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 
@@ -42,9 +42,14 @@ final class CompassDisplayMemory {
     private long lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
     private final CompassRadiusTransition radiusTransition = new CompassRadiusTransition(1_000L);
+    @NonNull
+    private final CompassPassedRouteArchive passedRouteArchive = new CompassPassedRouteArchive();
+    private int lastActivePassedRouteSamplePointCount;
 
     void reset() {
         routeGeometry = null;
+        passedRouteArchive.reset();
+        lastActivePassedRouteSamplePointCount = 0;
         lastVisibleRadiusMeters = null;
         lastReliableMovingVisibleRadiusMeters = null;
         lastReliableMovingSpeedBucket = null;
@@ -57,9 +62,21 @@ final class CompassDisplayMemory {
     void onRouteApplied(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops
+            @NonNull List<LatLon> intermediateStops,
+            @Nullable PolylineIndex.Match previousRouteMatch
     ) {
-        routeGeometry = NavStateComposer.buildCompassRouteGeometry(route, polylineIndex, intermediateStops);
+        passedRouteArchive.archive(
+                routeGeometry,
+                previousRouteMatch,
+                lastActivePassedRouteSamplePointCount
+        );
+        routeGeometry = CompassRouteGeometryFactory.build(
+                route,
+                polylineIndex,
+                intermediateStops,
+                passedRouteArchive.segments()
+        );
+        lastActivePassedRouteSamplePointCount = 0;
         lastVisibleRadiusMeters = null;
         clearTurnManeuverCue();
         lastSmoothedAccuracyMeters = Float.NaN;
@@ -124,6 +141,8 @@ final class CompassDisplayMemory {
             return;
         }
         lastVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
+        lastActivePassedRouteSamplePointCount =
+                state.routeStatus.compassState.passedRouteSamplePointCount();
         lastRadiusUpdateTimeMs = nowMs;
         if (lastFiltered != null
                 && NavCompassStateFactory.hasReliableMovingSpeed(lastFiltered, speedMps, likelyStationary)) {

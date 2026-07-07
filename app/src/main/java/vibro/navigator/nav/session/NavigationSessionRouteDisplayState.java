@@ -55,7 +55,18 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull List<LatLon> intermediateStops,
             @Nullable LatLon routeStartApproachTarget
     ) {
-        compassMemory.onRouteApplied(route, polylineIndex, intermediateStops);
+        onRouteApplied(textResources, route, polylineIndex, intermediateStops, routeStartApproachTarget, null);
+    }
+
+    public void onRouteApplied(
+            @NonNull NavigationTextResources textResources,
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<LatLon> intermediateStops,
+            @Nullable LatLon routeStartApproachTarget,
+            @Nullable PolylineIndex.Match previousRouteMatch
+    ) {
+        compassMemory.onRouteApplied(route, polylineIndex, intermediateStops, previousRouteMatch);
         this.routeStartApproachTarget = copy(routeStartApproachTarget);
         targets = buildTargets(textResources, intermediateStops, route.track.size(), polylineIndex);
     }

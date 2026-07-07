@@ -261,7 +261,7 @@ public final class NavCompassStateFactory {
                 routeThresholdMeters
         );
         double furthestDistanceMeters = Math.max(
-                resolveFurthestRouteSampleDistanceMeters(routeGeometry, currentLat, currentLon),
+                CompassRouteDistanceResolver.furthestSampleDistanceMeters(routeGeometry, currentLat, currentLon),
                 destinationDistanceMeters
         );
         furthestDistanceMeters = CompassRouteStartApproachProjectionFactory.extendFurthestDistance(
@@ -342,24 +342,6 @@ public final class NavCompassStateFactory {
                 previousVisibleRadiusMeters,
                 compassRadiusUpdateDeltaMs
         );
-    }
-
-    private static double resolveFurthestRouteSampleDistanceMeters(
-            @NonNull CompassRouteGeometry routeGeometry,
-            double currentLat,
-            double currentLon
-    ) {
-        double furthestDistanceMeters = 0.0;
-        for (int i = 0; i < routeGeometry.routeSamplePointCount(); i++) {
-            LatLon point = routeGeometry.routeSamplePointAt(i);
-            if (point == null) {
-                continue;
-            }
-            double eastMeters = GeoMath.eastMeters(currentLat, currentLon, point.lat, point.lon);
-            double northMeters = GeoMath.northMeters(currentLat, point.lat);
-            furthestDistanceMeters = Math.max(furthestDistanceMeters, Math.hypot(eastMeters, northMeters));
-        }
-        return furthestDistanceMeters;
     }
 
     private static float sanitizeAccuracyMeters(float accuracyMeters) {
