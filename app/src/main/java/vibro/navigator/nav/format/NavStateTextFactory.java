@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
@@ -18,7 +19,47 @@ import java.util.Collections;
 import java.util.List;
 
 public final class NavStateTextFactory {
+    private static final int VISIBLE_DIRECTION_LINE_COUNT = 2;
+
     private NavStateTextFactory() {
+    }
+
+    @NonNull
+    public static NavGuidanceStatus buildGuidanceStatus(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            double alongTrackMeters,
+            int hintIdx,
+            int currentSegmentIndex,
+            float speedMps,
+            float accuracyMeters,
+            boolean destinationReached,
+            int intermediateDestinationReachedTrackIndex,
+            @NonNull List<NavTarget> targets,
+            @NonNull NavigationTextResources textResources
+    ) {
+        if (route.track.isEmpty()) {
+            return new NavGuidanceStatus("", "");
+        }
+        if (destinationReached) {
+            return guidanceStatus(buildDestinationReachedDirectionLines(route, textResources));
+        }
+        List<NavUpcomingHint> upcomingHints = NavUpcomingHintCollector.collect(
+                route,
+                index,
+                alongTrackMeters,
+                hintIdx,
+                currentSegmentIndex,
+                speedMps,
+                accuracyMeters,
+                targets,
+                intermediateDestinationReachedTrackIndex,
+                VISIBLE_DIRECTION_LINE_COUNT
+        );
+        List<String> visibleLines = formatDirectionLines(route, index, upcomingHints, textResources);
+        String next = visibleLines.isEmpty() ? "" : visibleLines.get(0);
+        String afterNext = visibleLines.size() > 1 ? visibleLines.get(1) : "";
+        return new NavGuidanceStatus(next, afterNext);
     }
 
     @NonNull
@@ -35,14 +76,7 @@ public final class NavStateTextFactory {
             @NonNull List<NavTarget> targets,
             @NonNull NavigationTextResources textResources
     ) {
-        if (route.track.isEmpty()) {
-            return new ArrayList<>();
-        }
-        if (destinationReached) {
-            return buildDestinationReachedDirectionLines(route, textResources);
-        }
-
-        List<NavUpcomingHint> upcomingHints = NavUpcomingHintCollector.collect(
+        return displayedLines(buildGuidanceStatus(
                 route,
                 index,
                 alongTrackMeters,
@@ -50,11 +84,30 @@ public final class NavStateTextFactory {
                 currentSegmentIndex,
                 speedMps,
                 accuracyMeters,
-                targets,
+                destinationReached,
                 intermediateDestinationReachedTrackIndex,
-                2
-        );
-        return formatDirectionLines(route, index, upcomingHints, textResources);
+                targets,
+                textResources
+        ));
+    }
+
+    @NonNull
+    private static NavGuidanceStatus guidanceStatus(@NonNull List<String> lines) {
+        String next = lines.isEmpty() ? "" : lines.get(0);
+        String afterNext = lines.size() > 1 ? lines.get(1) : "";
+        return new NavGuidanceStatus(next, afterNext);
+    }
+
+    @NonNull
+    private static List<String> displayedLines(@NonNull NavGuidanceStatus status) {
+        List<String> lines = new ArrayList<>(VISIBLE_DIRECTION_LINE_COUNT);
+        if (!status.nextLine.isEmpty()) {
+            lines.add(status.nextLine);
+        }
+        if (!status.afterNextLine.isEmpty()) {
+            lines.add(status.afterNextLine);
+        }
+        return lines;
     }
 
     @NonNull

@@ -10,8 +10,6 @@ import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
-import vibro.navigator.nav.route.RouteSpeedLimit;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import android.app.Activity;
 import android.graphics.Typeface;
@@ -53,6 +51,7 @@ final class NavigationActivityRenderer {
     private final Activity activity;
     private final TaskScheduler uiScheduler;
     private final NavigationCompassModeController compassModeController;
+    private final View directionsBlock;
     private final TextView next;
     private final TextView afterNext;
     private final TextView destination;
@@ -63,8 +62,7 @@ final class NavigationActivityRenderer {
     private final ImageButton export;
     private final ImageButton pauseResume;
     private final ImageButton stop;
-    private final NavigationGpsDetailsDialog gpsDetailsDialog;
-    private final NavigationTripStatsDialog tripStatsDialog;
+    private final NavigationDetailsDialogs detailsDialogs;
     private final Runnable compassTransitionTicker = this::renderCompassState;
 
     @Nullable
@@ -81,6 +79,7 @@ final class NavigationActivityRenderer {
         this.activity = activity;
         this.uiScheduler = uiScheduler;
         compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
+        directionsBlock = activity.findViewById(R.id.turnInstructionRow);
         next = activity.findViewById(R.id.nextDirectionText);
         afterNext = activity.findViewById(R.id.afterNextDirectionText);
         destination = activity.findViewById(R.id.destinationText);
@@ -91,8 +90,7 @@ final class NavigationActivityRenderer {
         export = activity.findViewById(R.id.exportRouteButton);
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
         stop = activity.findViewById(R.id.stopNavButton);
-        gpsDetailsDialog = new NavigationGpsDetailsDialog(activity, elapsedRealtimeClock);
-        tripStatsDialog = new NavigationTripStatsDialog(activity, elapsedRealtimeClock);
+        detailsDialogs = new NavigationDetailsDialogs(activity, elapsedRealtimeClock);
         configureTextScaling();
     }
 
@@ -107,10 +105,20 @@ final class NavigationActivityRenderer {
         pauseResume.setOnClickListener(v -> controls.onTogglePaused());
         gpsStatus.setClickable(true);
         gpsStatus.setFocusable(true);
-        gpsStatus.setOnClickListener(v -> gpsDetailsDialog.show(currentState));
+        gpsStatus.setOnClickListener(v -> detailsDialogs.showGps(currentState));
+        View.OnClickListener directionsClickListener = v -> detailsDialogs.showDirections(currentBinder);
+        directionsBlock.setClickable(true);
+        directionsBlock.setFocusable(true);
+        directionsBlock.setOnClickListener(directionsClickListener);
+        next.setClickable(true);
+        next.setFocusable(true);
+        next.setOnClickListener(directionsClickListener);
+        afterNext.setClickable(true);
+        afterNext.setFocusable(true);
+        afterNext.setOnClickListener(directionsClickListener);
         destination.setClickable(true);
         destination.setFocusable(true);
-        destination.setOnClickListener(v -> tripStatsDialog.show(currentState));
+        destination.setOnClickListener(v -> detailsDialogs.showTripStats(currentState));
     }
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
@@ -120,7 +128,7 @@ final class NavigationActivityRenderer {
         afterNext.setText(state.routeStatus.guidance.afterNextLine);
         destination.setText(state.routeStatus.displayStatusBlock());
         renderCompassState();
-        renderSpeedLimit(state.routeStatus.speedLimit);
+        renderSpeedLimit(state);
         renderBlockedRoadButton(state, navBinder);
         export.setEnabled(navBinder != null);
         pauseResume.setEnabled(navBinder != null);
@@ -150,29 +158,17 @@ final class NavigationActivityRenderer {
 
     void renderLiveDetails() {
         renderGpsStatus();
-        tripStatsDialog.update(currentState);
+        detailsDialogs.updateLiveDetails(currentState, currentBinder);
     }
 
     private void renderGpsStatus() {
-        String statusText;
-        if (currentState == null) {
-            statusText = activity.getString(
-                    R.string.format_nav_gps_status_with_countdown,
-                    NavStateComposer.waiting(activity).gpsStatus.statusLine,
-                    activity.getString(R.string.nav_status_unavailable)
-            );
-            gpsStatus.setText(statusText);
-            gpsDetailsDialog.update(currentState);
-            return;
-        }
-        String nextEvaluationValue = gpsDetailsDialog.nextEvaluationValue(currentState);
-        statusText = activity.getString(
+        String nextEvaluationValue = detailsDialogs.nextGpsEvaluationValue(currentState);
+        String statusText = activity.getString(
                 R.string.format_nav_gps_status_with_countdown,
-                currentState.gpsStatus.statusLine,
+                detailsDialogs.gpsStatusLine(currentState),
                 nextEvaluationValue
         );
         gpsStatus.setText(styleGpsStatus(statusText, currentState));
-        gpsDetailsDialog.update(currentState);
     }
 
     void cancelPendingCompassTransition() {
@@ -180,8 +176,7 @@ final class NavigationActivityRenderer {
     }
 
     void dismissDetailsDialogs() {
-        gpsDetailsDialog.dismiss();
-        tripStatsDialog.dismiss();
+        detailsDialogs.dismissAll();
     }
 
     private void configureTextScaling() {
@@ -230,16 +225,16 @@ final class NavigationActivityRenderer {
         }
     }
 
-    private void renderSpeedLimit(@Nullable RouteSpeedLimit routeSpeedLimit) {
-        if (routeSpeedLimit == null) {
+    private void renderSpeedLimit(@NonNull NavState state) {
+        if (state.routeStatus.speedLimit == null) {
             speedLimit.setVisibility(View.GONE);
             speedLimit.setText("");
             speedLimit.setContentDescription(null);
             return;
         }
-        speedLimit.setText(NavigationSpeedLimitFormatter.formatBadge(routeSpeedLimit));
+        speedLimit.setText(NavigationSpeedLimitFormatter.formatBadge(state.routeStatus.speedLimit));
         speedLimit.setContentDescription(
-                NavigationSpeedLimitFormatter.formatContentDescription(activity, routeSpeedLimit)
+                NavigationSpeedLimitFormatter.formatContentDescription(activity, state.routeStatus.speedLimit)
         );
         speedLimit.setVisibility(View.VISIBLE);
     }
@@ -313,7 +308,7 @@ final class NavigationActivityRenderer {
                 + "|" + state.routeStatus.progress.stopProgressBlock
                 + "|" + state.routeStatus.progress.detailBlock
                 + "|" + state.pauseStatus.paused
-                + "|" + formatLogSpeedLimit(state.routeStatus.speedLimit)
+                + "|" + formatLogSpeedLimit(state)
                 + "|" + (state.routeStatus.compassState == null ? "no-compass"
                 : state.routeStatus.compassState.routePoints.size());
         if (stateKey.equals(lastRenderedStateKey)) {
@@ -327,7 +322,7 @@ final class NavigationActivityRenderer {
                 + " destination=" + state.routeStatus.progress.destinationLine
                 + " stops=" + state.routeStatus.progress.stopProgressBlock
                 + " paused=" + state.pauseStatus.paused
-                + " speedLimit=" + formatLogSpeedLimit(state.routeStatus.speedLimit)
+                + " speedLimit=" + formatLogSpeedLimit(state)
                 + " compass=" + (state.routeStatus.compassState == null ? "none"
                 : ("points=" + state.routeStatus.compassState.routePoints.size()
                 + " heading=" + state.routeStatus.compassState.displayMode.headingDegrees))
@@ -335,8 +330,10 @@ final class NavigationActivityRenderer {
     }
 
     @NonNull
-    private static String formatLogSpeedLimit(@Nullable RouteSpeedLimit routeSpeedLimit) {
-        return routeSpeedLimit == null ? "none" : routeSpeedLimit.value + " " + routeSpeedLimit.unit;
+    private static String formatLogSpeedLimit(@NonNull NavState state) {
+        return state.routeStatus.speedLimit == null
+                ? "none"
+                : state.routeStatus.speedLimit.value + " " + state.routeStatus.speedLimit.unit;
     }
 }
 

@@ -43,6 +43,13 @@ final class NavigationSessionComponents {
                     tripStatsTracker,
                     acceptedFixHistory
             );
+    @NonNull
+    final NavigationSessionDirectionDetailsBuilder directionDetailsBuilder =
+            new NavigationSessionDirectionDetailsBuilder(
+                    locationState,
+                    routeState,
+                    straightLineState
+            );
 
     void reset(long nowMs) {
         locationEvaluator.reset();

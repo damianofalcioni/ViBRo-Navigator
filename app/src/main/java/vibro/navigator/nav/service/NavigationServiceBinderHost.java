@@ -4,7 +4,9 @@ package vibro.navigator.nav.service;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
@@ -154,5 +156,14 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Nullable
     public String buildCurrentRouteGpx() {
         return navigationSession.buildCurrentRouteGpx(context);
+    }
+
+    @Override
+    @NonNull
+    public List<String> buildCurrentDirectionDetails() {
+        return NavigationSessionResourceAdapter.buildCurrentDirectionDetails(
+                navigationSession,
+                new AndroidNavigationTextResources(context)
+        );
     }
 }

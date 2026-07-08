@@ -180,6 +180,14 @@ final class StraightLineNavigationState {
         return state;
     }
 
+    boolean isDestinationReachedForDisplay() {
+        return destinationReached;
+    }
+
+    int nextStopIndexForDisplay() {
+        return nextStopIndex;
+    }
+
     @NonNull
     private List<NavigationTurnEvent> advanceReachedStops(
             @NonNull NavigationRequest request,

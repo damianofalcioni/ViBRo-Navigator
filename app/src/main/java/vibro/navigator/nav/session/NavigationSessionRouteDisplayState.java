@@ -1,12 +1,10 @@
 package vibro.navigator.nav.session;
 
 
-import vibro.navigator.nav.routing.NavigationRouteFailureFormatter;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.presentation.NavStateBuildInput;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.nav.presentation.NavStateResourceComposer;
@@ -22,8 +20,6 @@ import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.nav.route.RouteStartApproach;
-import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -172,7 +168,7 @@ public final class NavigationSessionRouteDisplayState {
         if (routeStartApproachTarget != null) {
             state = NavStateComposer.withGuidanceLines(
                     state,
-                    buildRouteStartApproachLine(snapshot, routeStartApproachTarget),
+                    NavigationRouteStartApproachText.buildLine(snapshot, routeStartApproachTarget),
                     ""
             );
         }
@@ -192,31 +188,21 @@ public final class NavigationSessionRouteDisplayState {
         }
     }
 
+    @Nullable
+    LatLon routeStartApproachTargetForDetails() {
+        return routeStartApproachTarget;
+    }
+
+    @NonNull
+    List<NavTarget> targetsForDetails() {
+        return targets;
+    }
+
     @NonNull
     private NavState buildStateWithoutLocation(
             @NonNull NavigationDisplaySnapshot snapshot
     ) {
-        if (snapshot.lastRouteFailure != null) {
-            return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
-                    NavStateResourceComposer.routeUnavailable(
-                            snapshot.textResources,
-                            NavigationRouteFailureFormatter.format(
-                                    snapshot.textResources,
-                                    snapshot.lastRouteFailure,
-                                    false
-                            ),
-                            snapshot.nextEvaluationDeadlineElapsedMs
-                    ),
-                    snapshot
-            );
-        }
-        return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
-                NavStateResourceComposer.waitingForLocation(
-                        snapshot.textResources,
-                        snapshot.nextEvaluationDeadlineElapsedMs
-                ),
-                snapshot
-        );
+        return NavigationNoRouteDisplayState.waitingForLocation(snapshot);
     }
 
     @NonNull
@@ -241,12 +227,7 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationDisplaySnapshot snapshot,
             @NonNull NavState state
     ) {
-        return snapshot.lastRouteFailure != null
-                ? NavStateComposer.withNotice(
-                state,
-                NavigationRouteFailureFormatter.format(snapshot.textResources, snapshot.lastRouteFailure, true)
-        )
-                : state;
+        return NavigationNoRouteDisplayState.withLastRouteFailureNotice(snapshot, state);
     }
 
     @NonNull
@@ -316,28 +297,6 @@ public final class NavigationSessionRouteDisplayState {
                 turnManeuverTrackIndex,
                 polylineIndex,
                 snapshot.headingDegrees
-        );
-    }
-
-    @NonNull
-    private static String buildRouteStartApproachLine(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @NonNull LatLon target
-    ) {
-        double distanceMeters = RouteStartApproach.distanceMeters(
-                new LatLon(snapshot.lastFiltered.getLatitude(), snapshot.lastFiltered.getLongitude()),
-                target
-        );
-        double timeSeconds = RouteStartApproach.estimateApproachTimeSeconds(
-                distanceMeters,
-                snapshot.speedMps,
-                snapshot.likelyStationary
-        );
-        return NavigationTextFormatter.formatTurnNotification(
-                snapshot.textResources,
-                new VoiceHint(0, RouteStartApproach.BEELINE_COMMAND, 0, 0.0, 0),
-                distanceMeters,
-                timeSeconds
         );
     }
 

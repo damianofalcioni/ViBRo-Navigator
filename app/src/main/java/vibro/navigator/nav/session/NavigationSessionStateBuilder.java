@@ -89,32 +89,16 @@ final class NavigationSessionStateBuilder {
             int acquiredFixCount,
             boolean paused
     ) {
-        NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
-        float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
-        float displaySpeedMps = lastFiltered != null ? locationState.displaySpeedMps(lastFiltered) : 0f;
-        boolean likelyStationary = locationState.isLikelyStationary();
-        float accuracyMeters = lastFiltered != null
-                ? locationState.accuracyMeters(lastFiltered)
-                : Float.MAX_VALUE;
-        NavigationSessionHeadingResolver.Selection heading = headingResolver.selectHeading(
-                lastFiltered,
-                likelyStationary,
+        NavigationDisplaySnapshot snapshot = buildSnapshot(
+                textResources,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
                 displayHeadingDegrees,
-                displayHeadingAccuracyDegrees
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                acquiredFixCount
         );
-        NavigationDisplaySnapshot snapshot = NavigationDisplaySnapshot.builder(textResources)
-                .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
-                .gps(fixedSatelliteCount, acquiredFixCount)
-                .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
-                .orientationCue(orientationCue)
-                .blockedPoints(routeState.copyBlockedPoints())
-                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
-                .routeCalculation(
-                        routeRequestManager.isRouteCalculationInProgress(),
-                        routeRequestManager.getInProgressNotice(),
-                        routeRequestManager.getLastRouteFailure()
-                )
-                .build();
         if (currentRequest.isStraightLine()) {
             NavState baseState = NavStateResourceComposer.withPauseState(
                     textResources,
@@ -131,5 +115,44 @@ final class NavigationSessionStateBuilder {
                 NavStateResourceComposer.withPauseState(textResources, baseState, paused),
                 tripStatsTracker.snapshot()
         );
+    }
+
+    @NonNull
+    private NavigationDisplaySnapshot buildSnapshot(
+            @NonNull NavigationTextResources textResources,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            int acquiredFixCount
+    ) {
+        NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
+        float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
+        float displaySpeedMps = lastFiltered != null ? locationState.displaySpeedMps(lastFiltered) : 0f;
+        boolean likelyStationary = locationState.isLikelyStationary();
+        float accuracyMeters = lastFiltered != null
+                ? locationState.accuracyMeters(lastFiltered)
+                : Float.MAX_VALUE;
+        NavigationSessionHeadingResolver.Selection heading = headingResolver.selectHeading(
+                lastFiltered,
+                likelyStationary,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees
+        );
+        return NavigationDisplaySnapshot.builder(textResources)
+                .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
+                .gps(fixedSatelliteCount, acquiredFixCount)
+                .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
+                .orientationCue(orientationCue)
+                .blockedPoints(routeState.copyBlockedPoints())
+                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
+                .routeCalculation(
+                        routeRequestManager.isRouteCalculationInProgress(),
+                        routeRequestManager.getInProgressNotice(),
+                        routeRequestManager.getLastRouteFailure()
+                )
+                .build();
     }
 }

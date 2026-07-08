@@ -33,6 +33,18 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
+    public List<String> buildDirectionDetails(@NonNull NavigationDisplaySnapshot snapshot) {
+        return NavigationRouteDirectionDetails.build(
+                snapshot,
+                components.geometryState,
+                components.turnState,
+                components.progressTracker,
+                components.displayState.routeStartApproachTargetForDetails(),
+                components.displayState.targetsForDetails()
+        );
+    }
+
+    @NonNull
     public List<NavigationRouteGpxExportHistory.PassedRoute> passedRoutesForExport() {
         return components.travelHistory.passedRoutesSnapshot();
     }

@@ -15,4 +15,12 @@ public final class NavGuidanceStatus {
         this.nextLine = nextLine;
         this.afterNextLine = afterNextLine;
     }
+
+    @NonNull
+    public NavGuidanceStatus withDisplayedLines(
+            @NonNull String nextLine,
+            @NonNull String afterNextLine
+    ) {
+        return new NavGuidanceStatus(nextLine, afterNextLine);
+    }
 }

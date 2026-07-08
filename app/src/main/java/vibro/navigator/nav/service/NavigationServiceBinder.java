@@ -57,6 +57,9 @@ public final class NavigationServiceBinder extends Binder {
 
         @Nullable
         String buildCurrentRouteGpx();
+
+        @NonNull
+        List<String> buildCurrentDirectionDetails();
     }
 
     private final Host host;
@@ -136,6 +139,11 @@ public final class NavigationServiceBinder extends Binder {
     @Nullable
     public String buildCurrentRouteGpx() {
         return host.buildCurrentRouteGpx();
+    }
+
+    @NonNull
+    public List<String> buildCurrentDirectionDetails() {
+        return host.buildCurrentDirectionDetails();
     }
 
     @NonNull

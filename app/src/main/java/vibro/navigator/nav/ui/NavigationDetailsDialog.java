@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ final class NavigationDetailsDialog {
     private static final float DETAILS_TEXT_SIZE_SP = 20f;
     private static final float TITLE_TEXT_SIZE_SP = 26f;
     private static final float DETAILS_TOP_MARGIN_DP = 22f;
+    private static final float DETAILS_MAX_HEIGHT_DP = 360f;
     private static final float BUTTON_TOP_MARGIN_DP = 18f;
     private static final float BUTTON_MIN_WIDTH_DP = 72f;
     private static final float BUTTON_MIN_HEIGHT_DP = 48f;
@@ -72,6 +74,10 @@ final class NavigationDetailsDialog {
         }
     }
 
+    boolean isShowing() {
+        return dialog != null && dialog.isShowing();
+    }
+
     void dismiss() {
         Dialog activeDialog = dialog;
         if (activeDialog != null) {
@@ -104,9 +110,9 @@ final class NavigationDetailsDialog {
         content.setBackground(dialogBackground());
         content.addView(createTitle(), wrapContentParams());
 
-        LinearLayout.LayoutParams detailsParams = wrapContentParams();
+        LinearLayout.LayoutParams detailsParams = matchWidthWrapContentParams();
         detailsParams.setMargins(0, dp(DETAILS_TOP_MARGIN_DP), 0, 0);
-        content.addView(details, detailsParams);
+        content.addView(createDetailsScroller(details), detailsParams);
 
         LinearLayout.LayoutParams buttonRowParams = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -115,6 +121,18 @@ final class NavigationDetailsDialog {
         buttonRowParams.setMargins(0, dp(BUTTON_TOP_MARGIN_DP), 0, 0);
         content.addView(createButtonRow(), buttonRowParams);
         return content;
+    }
+
+    @NonNull
+    private ScrollView createDetailsScroller(@NonNull TextView details) {
+        ScrollView scroller = new MaxHeightScrollView(activity, dp(DETAILS_MAX_HEIGHT_DP));
+        scroller.setFillViewport(false);
+        scroller.setClipToPadding(false);
+        scroller.addView(details, new ScrollView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        ));
+        return scroller;
     }
 
     @NonNull
@@ -165,6 +183,14 @@ final class NavigationDetailsDialog {
     }
 
     @NonNull
+    private LinearLayout.LayoutParams matchWidthWrapContentParams() {
+        return new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+    }
+
+    @NonNull
     private GradientDrawable dialogBackground() {
         GradientDrawable background = new GradientDrawable();
         background.setColor(AndroidAppTheme.color(activity, R.attr.vibroSurfaceStrongColor));
@@ -201,5 +227,24 @@ final class NavigationDetailsDialog {
                 value,
                 activity.getResources().getDisplayMetrics()
         ));
+    }
+
+    private static final class MaxHeightScrollView extends ScrollView {
+        private final int maxHeightPx;
+
+        MaxHeightScrollView(@NonNull Activity activity, int maxHeightPx) {
+            super(activity);
+            this.maxHeightPx = maxHeightPx;
+        }
+
+        @Override
+        protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+            int heightLimitPx = maxHeightPx;
+            if (MeasureSpec.getMode(heightMeasureSpec) != MeasureSpec.UNSPECIFIED) {
+                heightLimitPx = Math.min(maxHeightPx, MeasureSpec.getSize(heightMeasureSpec));
+            }
+            int limitedHeightSpec = MeasureSpec.makeMeasureSpec(heightLimitPx, MeasureSpec.AT_MOST);
+            super.onMeasure(widthMeasureSpec, limitedHeightSpec);
+        }
     }
 }

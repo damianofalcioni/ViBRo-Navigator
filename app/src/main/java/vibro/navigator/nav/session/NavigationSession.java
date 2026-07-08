@@ -18,7 +18,6 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
-import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import java.util.Collections;
@@ -29,12 +28,12 @@ public final class NavigationSession {
 
     private static final String TAG = "NavigationSession";
 
-    private final NavigationSessionComponents components = new NavigationSessionComponents();
-    private boolean started;
-    private boolean paused;
+    final NavigationSessionComponents components = new NavigationSessionComponents();
+    boolean started;
+    boolean paused;
 
     @NonNull
-    private NavigationRequest currentRequest = new NavigationRequest(null, null, null, Collections.emptyList());
+    NavigationRequest currentRequest = new NavigationRequest(null, null, null, Collections.emptyList());
 
     public void loadRequest(@NonNull NavigationRequest request) {
         currentRequest = request;
@@ -42,7 +41,7 @@ public final class NavigationSession {
     }
 
     public boolean start(@NonNull Context context, long nowMs) {
-        return ResourceAdapter.start(this, new AndroidNavigationTextResources(context), nowMs);
+        return NavigationSessionResourceAdapter.start(this, new AndroidNavigationTextResources(context), nowMs);
     }
 
     public void stop() {
@@ -131,7 +130,7 @@ public final class NavigationSession {
 
     @NonNull
     public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull NavigationLocation location, long nowMs) {
-        return ResourceAdapter.onRawLocationChanged(
+        return NavigationSessionResourceAdapter.onRawLocationChanged(
                 this,
                 new AndroidNavigationTextResources(context),
                 location,
@@ -146,7 +145,7 @@ public final class NavigationSession {
             long nowMs,
             long expectedUpdateIntervalMs
     ) {
-        return ResourceAdapter.onRawLocationChanged(
+        return NavigationSessionResourceAdapter.onRawLocationChanged(
                 this,
                 new AndroidNavigationTextResources(context),
                 location,
@@ -205,7 +204,7 @@ public final class NavigationSession {
             long beganAt,
             long routeAppliedAtElapsedMs
     ) {
-        return ResourceAdapter.applyRouteResult(
+        return NavigationSessionResourceAdapter.applyRouteResult(
                 this,
                 new AndroidNavigationTextResources(context),
                 snapshot,
@@ -224,7 +223,12 @@ public final class NavigationSession {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        return ResourceAdapter.applyRouteFailure(this, new AndroidNavigationTextResources(context), snapshot, error);
+        return NavigationSessionResourceAdapter.applyRouteFailure(
+                this,
+                new AndroidNavigationTextResources(context),
+                snapshot,
+                error
+        );
     }
 
     @Nullable
@@ -262,7 +266,7 @@ public final class NavigationSession {
             @Nullable Float displayHeadingAccuracyDegrees,
             @Nullable CompassOrientationCue orientationCue
     ) {
-        return ResourceAdapter.buildState(
+        return NavigationSessionResourceAdapter.buildState(
                 this,
                 new AndroidNavigationTextResources(context),
                 nextEvaluationDeadlineElapsedMs,
@@ -272,160 +276,6 @@ public final class NavigationSession {
                 displayHeadingAccuracyDegrees,
                 orientationCue
         );
-    }
-
-    public static final class ResourceAdapter {
-        private ResourceAdapter() {
-        }
-
-        public static boolean start(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                long nowMs
-        ) {
-            session.started = false;
-            session.paused = false;
-            session.components.reset(nowMs);
-
-            if (!session.currentRequest.isComplete()) {
-                session.components.routeRequestManager.markInvalidRequest(textResources);
-                AppLogger.e(TAG, "Navigation start aborted because the request is incomplete "
-                        + session.currentRequest.describe(), null);
-                return false;
-            }
-            if (session.currentRequest.isStraightLine()) {
-                session.components.straightLineState.onRequestStarted(session.currentRequest);
-            }
-            session.components.tripStatsTracker.start(nowMs);
-            session.started = true;
-            return true;
-        }
-
-        @NonNull
-        public static NavigationLocationUpdateResult onRawLocationChanged(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                @NonNull NavigationLocation location,
-                long nowMs
-        ) {
-            return onRawLocationChanged(
-                    session,
-                    textResources,
-                    location,
-                    nowMs,
-                    vibro.navigator.nav.location.NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS
-            );
-        }
-
-        @NonNull
-        public static NavigationLocationUpdateResult onRawLocationChanged(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                @NonNull NavigationLocation location,
-                long nowMs,
-                long expectedUpdateIntervalMs
-        ) {
-            return session.components.locationEvaluator.onRawLocationChanged(
-                    textResources,
-                    session.currentRequest,
-                    location,
-                    nowMs,
-                    expectedUpdateIntervalMs
-            );
-        }
-
-        @NonNull
-        public static List<NavigationTurnEvent> applyRouteResult(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                @NonNull NavigationRouteRequestSnapshot snapshot,
-                @NonNull GeoJsonRoute newRoute,
-                long beganAt
-        ) {
-            return applyRouteResult(session, textResources, snapshot, newRoute, beganAt, beganAt);
-        }
-
-        @NonNull
-        public static List<NavigationTurnEvent> applyRouteResult(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                @NonNull NavigationRouteRequestSnapshot snapshot,
-                @NonNull GeoJsonRoute newRoute,
-                long beganAt,
-                long routeAppliedAtElapsedMs
-        ) {
-            if (!session.components.routeRequestManager.onRouteApplied(snapshot)) {
-                return Collections.emptyList();
-            }
-            session.components.warmupController.onRouteApplied(routeAppliedAtElapsedMs);
-            NavigationLocation lastFiltered = session.components.locationState.getLastFilteredLocation();
-            float speedMps = lastFiltered != null ? session.components.locationState.speedMps(lastFiltered) : 0f;
-            return session.components.routeState.applyRouteResult(
-                    textResources,
-                    snapshot,
-                    newRoute,
-                    lastFiltered,
-                    speedMps,
-                    session.components.locationState.isLikelyStationary(),
-                    beganAt
-            );
-        }
-
-        public static boolean applyRouteFailure(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                @NonNull NavigationRouteRequestSnapshot snapshot,
-                @NonNull Exception error
-        ) {
-            return session.components.routeRequestManager.onRouteFailure(textResources, snapshot, error);
-        }
-
-        @NonNull
-        public static NavState buildState(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                long nextEvaluationDeadlineElapsedMs,
-                long nowMs,
-                @Nullable Integer fixedSatelliteCount,
-                @Nullable Double displayHeadingDegrees,
-                @Nullable Float displayHeadingAccuracyDegrees
-        ) {
-            return buildState(
-                    session,
-                    textResources,
-                    nextEvaluationDeadlineElapsedMs,
-                    nowMs,
-                    fixedSatelliteCount,
-                    displayHeadingDegrees,
-                    displayHeadingAccuracyDegrees,
-                    null
-            );
-        }
-
-        @NonNull
-        public static NavState buildState(
-                @NonNull NavigationSession session,
-                @NonNull NavigationTextResources textResources,
-                long nextEvaluationDeadlineElapsedMs,
-                long nowMs,
-                @Nullable Integer fixedSatelliteCount,
-                @Nullable Double displayHeadingDegrees,
-                @Nullable Float displayHeadingAccuracyDegrees,
-                @Nullable CompassOrientationCue orientationCue
-        ) {
-            return session.components.stateBuilder.build(
-                    textResources,
-                    session.currentRequest,
-                    nextEvaluationDeadlineElapsedMs,
-                    nowMs,
-                    fixedSatelliteCount,
-                    displayHeadingDegrees,
-                    displayHeadingAccuracyDegrees,
-                    orientationCue,
-                    session.components.locationEvaluator.acquiredFixCount(),
-                    session.paused
-            );
-        }
     }
 
 }

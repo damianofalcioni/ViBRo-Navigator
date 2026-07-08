@@ -2,6 +2,7 @@ package vibro.navigator.nav.session;
 
 import androidx.annotation.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import vibro.navigator.geo.GeoMath;
@@ -21,7 +22,7 @@ final class StraightLineNavigationGuidanceText {
             @NonNull NavigationRequest request,
             @NonNull NavigationDisplaySnapshot snapshot,
             boolean destinationReached,
-            int nextStopIndex
+        int nextStopIndex
     ) {
         if (destinationReached) {
             return new NavGuidanceStatus(formatReachedDestinationLine(snapshot), "");
@@ -41,6 +42,25 @@ final class StraightLineNavigationGuidanceText {
                 formatNextTargetLine(snapshot, targets),
                 formatFollowingTargetLine(snapshot, targets)
         );
+    }
+
+    @NonNull
+    static List<String> buildDetailLines(
+            @NonNull NavigationRequest request,
+            @NonNull NavigationDisplaySnapshot snapshot,
+            boolean destinationReached,
+            int nextStopIndex
+    ) {
+        if (destinationReached) {
+            List<String> lines = new ArrayList<>(1);
+            lines.add(formatReachedDestinationLine(snapshot));
+            return lines;
+        }
+        if (snapshot.lastFiltered == null) {
+            return new ArrayList<>();
+        }
+        List<LatLon> targets = StraightLineNavigationProgress.remainingTargets(request, false, nextStopIndex);
+        return targets.isEmpty() ? new ArrayList<>() : formatRemainingTargetLines(snapshot, targets);
     }
 
     @NonNull
@@ -78,6 +98,25 @@ final class StraightLineNavigationGuidanceText {
                 distanceMeters(targets.get(0), targets.get(1)),
                 commandForTarget(targets, 1)
         );
+    }
+
+    @NonNull
+    private static List<String> formatRemainingTargetLines(
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @NonNull List<LatLon> targets
+    ) {
+        List<String> lines = new ArrayList<>(targets.size());
+        LatLon cursor = new LatLon(snapshot.lastFiltered.getLatitude(), snapshot.lastFiltered.getLongitude());
+        for (int i = 0; i < targets.size(); i++) {
+            LatLon target = targets.get(i);
+            lines.add(formatTargetDirectionLine(
+                    snapshot,
+                    distanceMeters(cursor, target),
+                    commandForTarget(targets, i)
+            ));
+            cursor = target;
+        }
+        return lines;
     }
 
     @NonNull

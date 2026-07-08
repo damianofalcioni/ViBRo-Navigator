@@ -55,8 +55,8 @@ public class NavigationSessionGpxExportTest {
         ));
         long nowMs = 1_000L;
 
-        assertTrue(NavigationSession.ResourceAdapter.start(session, textResources, nowMs));
-        NavigationSession.ResourceAdapter.onRawLocationChanged(
+        assertTrue(NavigationSessionResourceAdapter.start(session, textResources, nowMs));
+        NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
                 locationWithSpeed(0.0, 0.0, nowMs, 2f),
@@ -88,14 +88,14 @@ public class NavigationSessionGpxExportTest {
                 Collections.emptyList()
         ));
 
-        assertTrue(NavigationSession.ResourceAdapter.start(session, textResources, 1_000L));
-        NavigationSession.ResourceAdapter.onRawLocationChanged(
+        assertTrue(NavigationSessionResourceAdapter.start(session, textResources, 1_000L));
+        NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
                 locationWithSpeed(0.0, 0.0, 1_000L, 2f),
                 1_000L
         );
-        NavigationSession.ResourceAdapter.onRawLocationChanged(
+        NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
                 locationWithSpeed(0.0, 0.001, 2_000L, 2f),
@@ -123,8 +123,8 @@ public class NavigationSessionGpxExportTest {
                 Collections.emptyList()
         ));
 
-        assertTrue(NavigationSession.ResourceAdapter.start(session, textResources, 1_000L));
-        NavigationSession.ResourceAdapter.onRawLocationChanged(
+        assertTrue(NavigationSessionResourceAdapter.start(session, textResources, 1_000L));
+        NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
                 locationWithSpeed(0.0, 0.0, 1_000L, 2f),
@@ -132,14 +132,14 @@ public class NavigationSessionGpxExportTest {
         );
         NavigationRouteRequestSnapshot firstSnapshot = session.prepareRouteRequest(true, 1_000L);
         assertNotNull(firstSnapshot);
-        NavigationSession.ResourceAdapter.applyRouteResult(
+        NavigationSessionResourceAdapter.applyRouteResult(
                 session,
                 textResources,
                 firstSnapshot,
                 route(new VoiceHint(0, 2, 0, 40.0, -90), 0.0, 0.0, 0.001, 0.002),
                 1_000L
         );
-        NavigationSession.ResourceAdapter.onRawLocationChanged(
+        NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
                 locationWithSpeed(0.0, 0.002, 2_000L, 2f),
@@ -147,7 +147,7 @@ public class NavigationSessionGpxExportTest {
         );
         NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, 3_000L);
         assertNotNull(secondSnapshot);
-        NavigationSession.ResourceAdapter.applyRouteResult(
+        NavigationSessionResourceAdapter.applyRouteResult(
                 session,
                 textResources,
                 secondSnapshot,

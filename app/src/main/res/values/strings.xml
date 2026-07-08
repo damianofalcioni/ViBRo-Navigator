@@ -285,6 +285,9 @@
     <string name="title_nav_gps_details">GPS details</string>
     <string name="format_nav_gps_obtained_time_value">%1$tH:%1$tM:%1$tS</string>
     <string name="format_nav_gps_details">Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nGPS time: %4$s\nSatellites: %5$s\nInterval: %6$s\nGPS fixes: %7$s\nGPS bearing: %8$s\nBearing accuracy: %9$s</string>
+    <string name="title_nav_directions_details">Directions</string>
+    <string name="nav_directions_unavailable">No upcoming directions</string>
+    <string name="format_nav_direction_details_row">%1$d. %2$s</string>
     <string name="title_nav_trip_stats">Trip stats</string>
     <string name="format_nav_trip_stats_details">Elapsed: %1$s\nDistance: %2$s\nMoving time: %3$s\nStationary time: %4$s\nAverage speed: %5$s\nMoving average: %6$s\nMax speed: %7$s</string>
     <string name="format_turn_notification">%1$s %2$s - %3$s - %4$s</string>
