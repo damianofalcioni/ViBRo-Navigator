@@ -68,13 +68,15 @@ final class CompassDisplayMemory {
         passedRouteArchive.archive(
                 routeGeometry,
                 previousRouteMatch,
-                lastActivePassedRouteSamplePointCount
+                lastActivePassedRouteSamplePointCount,
+                RouteRecalculationBridge.firstRoutePoint(route)
         );
         routeGeometry = CompassRouteGeometryFactory.build(
                 route,
                 polylineIndex,
                 intermediateStops,
-                passedRouteArchive.segments()
+                passedRouteArchive.segments(),
+                passedRouteArchive.bridgeSegments()
         );
         lastActivePassedRouteSamplePointCount = 0;
         lastVisibleRadiusMeters = null;

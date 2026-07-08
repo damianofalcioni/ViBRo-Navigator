@@ -37,6 +37,11 @@ public final class NavigationSessionRouteState {
         return components.travelHistory.passedRoutesSnapshot();
     }
 
+    @NonNull
+    public List<List<LatLon>> recalculationBridgeSegmentsForExport() {
+        return components.travelHistory.recalculationBridgeSegmentsSnapshot();
+    }
+
     @Nullable
     public GeoJsonRoute currentRoute() {
         return components.geometryState.route();

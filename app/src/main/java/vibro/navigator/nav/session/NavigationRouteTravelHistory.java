@@ -18,6 +18,8 @@ final class NavigationRouteTravelHistory {
 
     @NonNull
     private final List<NavigationRouteGpxExportHistory.PassedRoute> archivedPassedRoutes = new ArrayList<>();
+    @NonNull
+    private final List<List<LatLon>> recalculationBridgeSegments = new ArrayList<>();
     @Nullable
     private GeoJsonRoute activeRoute;
     @Nullable
@@ -27,6 +29,7 @@ final class NavigationRouteTravelHistory {
 
     void reset() {
         archivedPassedRoutes.clear();
+        recalculationBridgeSegments.clear();
         activeRoute = null;
         activePolylineIndex = null;
         lastActiveMatch = null;
@@ -37,7 +40,8 @@ final class NavigationRouteTravelHistory {
             @NonNull PolylineIndex polylineIndex,
             @Nullable PolylineIndex.Match previousRouteMatch
     ) {
-        archiveActiveRoute(previousRouteMatch);
+        LatLon bridgeStart = archiveActiveRoute(previousRouteMatch);
+        appendBridgeSegment(bridgeStart, RouteRecalculationBridge.firstRoutePoint(route));
         activeRoute = route;
         activePolylineIndex = polylineIndex;
         lastActiveMatch = null;
@@ -58,11 +62,22 @@ final class NavigationRouteTravelHistory {
         return snapshot.isEmpty() ? Collections.emptyList() : Collections.unmodifiableList(snapshot);
     }
 
-    private void archiveActiveRoute(@Nullable PolylineIndex.Match replacementMatch) {
+    @NonNull
+    List<List<LatLon>> recalculationBridgeSegmentsSnapshot() {
+        if (recalculationBridgeSegments.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return RouteRecalculationBridge.copiedSegments(recalculationBridgeSegments);
+    }
+
+    @Nullable
+    private LatLon archiveActiveRoute(@Nullable PolylineIndex.Match replacementMatch) {
         NavigationRouteGpxExportHistory.PassedRoute route = passedRouteFor(activeProgressMatch(replacementMatch), true);
         if (route != null) {
             archivedPassedRoutes.add(route);
+            return RouteRecalculationBridge.lastPoint(route.segment);
         }
+        return null;
     }
 
     @Nullable
@@ -141,6 +156,13 @@ final class NavigationRouteTravelHistory {
     private static void appendDistinct(@NonNull List<LatLon> points, @NonNull LatLon point) {
         if (points.isEmpty() || !samePoint(points.get(points.size() - 1), point)) {
             points.add(copy(point));
+        }
+    }
+
+    private void appendBridgeSegment(@Nullable LatLon from, @Nullable LatLon to) {
+        List<LatLon> bridgeSegment = RouteRecalculationBridge.segment(from, to);
+        if (!bridgeSegment.isEmpty()) {
+            recalculationBridgeSegments.add(bridgeSegment);
         }
     }
 

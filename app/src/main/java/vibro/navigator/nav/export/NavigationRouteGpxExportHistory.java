@@ -14,13 +14,24 @@ public final class NavigationRouteGpxExportHistory {
     @NonNull
     public final List<PassedRoute> passedRoutes;
     @NonNull
+    public final List<List<LatLon>> recalculationBridgeSegments;
+    @NonNull
     public final List<NavigationLocation> acceptedFixes;
 
     public NavigationRouteGpxExportHistory(
             @NonNull List<PassedRoute> passedRoutes,
             @NonNull List<NavigationLocation> acceptedFixes
     ) {
+        this(passedRoutes, Collections.emptyList(), acceptedFixes);
+    }
+
+    public NavigationRouteGpxExportHistory(
+            @NonNull List<PassedRoute> passedRoutes,
+            @NonNull List<List<LatLon>> recalculationBridgeSegments,
+            @NonNull List<NavigationLocation> acceptedFixes
+    ) {
         this.passedRoutes = immutablePassedRoutes(passedRoutes);
+        this.recalculationBridgeSegments = immutableNestedPoints(recalculationBridgeSegments);
         this.acceptedFixes = immutableLocationCopies(acceptedFixes);
     }
 
@@ -87,5 +98,20 @@ public final class NavigationRouteGpxExportHistory {
             copy.add(new LatLon(value.lat, value.lon));
         }
         return Collections.unmodifiableList(copy);
+    }
+
+    @NonNull
+    private static List<List<LatLon>> immutableNestedPoints(@NonNull List<List<LatLon>> values) {
+        if (values.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<List<LatLon>> copy = new ArrayList<>(values.size());
+        for (List<LatLon> value : values) {
+            List<LatLon> segment = immutablePoints(value);
+            if (!segment.isEmpty()) {
+                copy.add(segment);
+            }
+        }
+        return copy.isEmpty() ? Collections.emptyList() : Collections.unmodifiableList(copy);
     }
 }

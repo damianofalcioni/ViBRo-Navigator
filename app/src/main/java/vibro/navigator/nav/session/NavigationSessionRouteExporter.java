@@ -49,7 +49,11 @@ final class NavigationSessionRouteExporter {
                 new AndroidNavigationTextResources(context),
                 route,
                 routeState.remainingIntermediateStops(request.stops),
-                new NavigationRouteGpxExportHistory(routeState.passedRoutesForExport(), acceptedFixes)
+                new NavigationRouteGpxExportHistory(
+                        routeState.passedRoutesForExport(),
+                        routeState.recalculationBridgeSegmentsForExport(),
+                        acceptedFixes
+                )
         );
     }
 

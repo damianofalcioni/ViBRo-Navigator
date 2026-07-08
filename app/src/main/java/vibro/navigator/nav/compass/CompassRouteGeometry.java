@@ -30,6 +30,8 @@ public final class CompassRouteGeometry {
     private final List<LatLon> intermediateSamplePoints;
     @NonNull
     private final CompassPassedRouteSegments archivedPassedRouteSegments;
+    @NonNull
+    private final CompassPassedRouteSegments recalculationBridgeSegments;
 
     public CompassRouteGeometry(
             @NonNull List<SamplePoint> routeSamplePoints,
@@ -52,10 +54,27 @@ public final class CompassRouteGeometry {
             @NonNull List<LatLon> intermediateSamplePoints,
             @NonNull List<List<LatLon>> archivedPassedRouteSegments
     ) {
+        this(
+                routeSamplePoints,
+                hintSamplePoints,
+                intermediateSamplePoints,
+                archivedPassedRouteSegments,
+                Collections.emptyList()
+        );
+    }
+
+    public CompassRouteGeometry(
+            @NonNull List<SamplePoint> routeSamplePoints,
+            @NonNull List<LatLon> hintSamplePoints,
+            @NonNull List<LatLon> intermediateSamplePoints,
+            @NonNull List<List<LatLon>> archivedPassedRouteSegments,
+            @NonNull List<List<LatLon>> recalculationBridgeSegments
+    ) {
         this.routeSamplePoints = immutableCopy(routeSamplePoints);
         this.hintSamplePoints = immutableCopy(hintSamplePoints);
         this.intermediateSamplePoints = immutableCopy(intermediateSamplePoints);
         this.archivedPassedRouteSegments = new CompassPassedRouteSegments(archivedPassedRouteSegments);
+        this.recalculationBridgeSegments = new CompassPassedRouteSegments(recalculationBridgeSegments);
     }
 
     public int routeSamplePointCount() {
@@ -97,6 +116,11 @@ public final class CompassRouteGeometry {
     @NonNull
     public CompassPassedRouteSegments archivedPassedRouteSegments() {
         return archivedPassedRouteSegments;
+    }
+
+    @NonNull
+    public CompassPassedRouteSegments recalculationBridgeSegments() {
+        return recalculationBridgeSegments;
     }
 
     public int passedRoutePointCount(double alongTrackMeters) {

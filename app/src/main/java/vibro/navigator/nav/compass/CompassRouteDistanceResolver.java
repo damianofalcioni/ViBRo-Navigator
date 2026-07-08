@@ -41,7 +41,25 @@ final class CompassRouteDistanceResolver {
             double currentLat,
             double currentLon
     ) {
-        CompassPassedRouteSegments archivedSegments = routeGeometry.archivedPassedRouteSegments();
+        return Math.max(
+                furthestSegmentCollectionDistanceMeters(
+                        routeGeometry.archivedPassedRouteSegments(),
+                        currentLat,
+                        currentLon
+                ),
+                furthestSegmentCollectionDistanceMeters(
+                        routeGeometry.recalculationBridgeSegments(),
+                        currentLat,
+                        currentLon
+                )
+        );
+    }
+
+    private static double furthestSegmentCollectionDistanceMeters(
+            @NonNull CompassPassedRouteSegments archivedSegments,
+            double currentLat,
+            double currentLon
+    ) {
         double furthestDistanceMeters = 0.0;
         for (int segmentIndex = 0; segmentIndex < archivedSegments.segmentCount(); segmentIndex++) {
             furthestDistanceMeters = Math.max(

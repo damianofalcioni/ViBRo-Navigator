@@ -115,14 +115,14 @@ public class NavigationSessionGpxExportTest {
                 session,
                 textResources,
                 secondSnapshot,
-                route(new VoiceHint(1, 5, 0, 30.0, 90), 0.0, 0.002, 0.0025, 0.003),
+                route(new VoiceHint(1, 5, 0, 30.0, 90), 0.0, 0.0025, 0.00275, 0.003),
                 3_000L
         );
 
         String gpx = session.buildCurrentRouteGpx(androidContext);
 
         assertNotNull(gpx);
-        assertEquals(2, countOccurrences(gpx, "<trkseg>"));
+        assertEquals(3, countOccurrences(gpx, "<trkseg>"));
         assertTrue(countOccurrences(gpx, GPX_TRACK_POINT) >= 5);
         assertEquals(5, countOccurrences(gpx, GPX_WAYPOINT));
         assertTrue(gpx.contains("Passed route"));

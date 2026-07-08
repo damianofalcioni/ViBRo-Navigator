@@ -139,6 +139,39 @@ public class CompassRouteGeometryFactoryTest {
     }
 
     @Test
+    public void build_keepsRecalculationBridgeSegmentsForCompassRendering() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.emptyList(),
+                30.0,
+                111.0
+        );
+        List<LatLon> bridgeSegment = new ArrayList<>();
+        bridgeSegment.add(new LatLon(0.0, -0.001));
+        bridgeSegment.add(new LatLon(0.0, 0.0));
+        List<List<LatLon>> bridgeSegments = new ArrayList<>();
+        bridgeSegments.add(bridgeSegment);
+
+        CompassRouteGeometry geometry = CompassRouteGeometryFactory.build(
+                route,
+                new PolylineIndex(route.track),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                bridgeSegments
+        );
+        bridgeSegment.clear();
+        bridgeSegments.clear();
+
+        assertEquals(1, geometry.recalculationBridgeSegments().segmentCount());
+        assertEquals(2, geometry.recalculationBridgeSegments().samplePointCount(0));
+        assertNotNull(geometry.recalculationBridgeSegments().samplePointAt(0, 0));
+        assertNotNull(geometry.recalculationBridgeSegments().samplePointAt(0, 1));
+    }
+
+    @Test
     public void geometry_defensivelyCopiesSampleLists() {
         List<CompassRouteGeometry.SamplePoint> routeSamples = new ArrayList<>();
         routeSamples.add(new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.0), 0.0));

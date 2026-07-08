@@ -121,11 +121,26 @@ public final class NavigationRouteGpxExporter {
 
     @NonNull
     private static List<List<LatLon>> passedSegments(@NonNull NavigationRouteGpxExportHistory history) {
-        List<List<LatLon>> segments = new ArrayList<>(history.passedRoutes.size());
-        for (NavigationRouteGpxExportHistory.PassedRoute passedRoute : history.passedRoutes) {
+        int segmentCount = history.passedRoutes.size() + history.recalculationBridgeSegments.size();
+        List<List<LatLon>> segments = new ArrayList<>(segmentCount);
+        for (int i = 0; i < history.passedRoutes.size(); i++) {
+            NavigationRouteGpxExportHistory.PassedRoute passedRoute = history.passedRoutes.get(i);
             segments.add(passedRoute.segment);
+            if (i < history.recalculationBridgeSegments.size()) {
+                segments.add(history.recalculationBridgeSegments.get(i));
+            }
         }
+        appendRemainingBridgeSegments(history, segments);
         return segments;
+    }
+
+    private static void appendRemainingBridgeSegments(
+            @NonNull NavigationRouteGpxExportHistory history,
+            @NonNull List<List<LatLon>> segments
+    ) {
+        for (int i = history.passedRoutes.size(); i < history.recalculationBridgeSegments.size(); i++) {
+            segments.add(history.recalculationBridgeSegments.get(i));
+        }
     }
 
     @NonNull

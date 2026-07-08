@@ -137,6 +137,44 @@ public class NavigationRouteGpxExporterTest {
     }
 
     @Test
+    public void export_includesRecalculationBridgeSegmentsInPassedRouteTrack() throws Exception {
+        GeoJsonRoute currentRoute = sampleRoute(Collections.singletonList(new VoiceHint(1, 5, 0, 25.0, 90)));
+        GeoJsonRoute passedRoute = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(47.0, 15.0),
+                        new LatLon(47.1, 15.1)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 40.0, -90)),
+                20.0,
+                200.0
+        );
+        NavigationRouteGpxExportHistory history = new NavigationRouteGpxExportHistory(
+                Collections.singletonList(new NavigationRouteGpxExportHistory.PassedRoute(
+                        passedRoute,
+                        passedRoute.track,
+                        1
+                )),
+                Collections.singletonList(Arrays.asList(
+                        new LatLon(47.1, 15.1),
+                        new LatLon(48.0, 16.0)
+                )),
+                Collections.emptyList()
+        );
+
+        Document document = parse(NavigationRouteGpxExporter.export(
+                TestNavigationTextResources.metric(),
+                currentRoute,
+                Collections.emptyList(),
+                history
+        ));
+
+        assertEquals(7, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
+        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_SEGMENT).getLength());
+        Element passedTrack = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, "trk").item(0);
+        assertEquals(2, passedTrack.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_SEGMENT).getLength());
+    }
+
+    @Test
     public void exportStraightLine_includesOnlyStopsDestinationAndStraightRoute() throws Exception {
         LatLon stop = new LatLon(48.1, 16.1);
         LatLon destination = new LatLon(48.2, 16.2);
