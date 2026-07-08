@@ -1,16 +1,10 @@
 package vibro.navigator.nav.compass;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.format.AndroidNavigationTextResources;
-import vibro.navigator.nav.format.NavigationMeasurementFormatter;
-import vibro.navigator.nav.format.NavigationTextResources;
-import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.policy.NavigationSpeedBucket;
@@ -18,6 +12,7 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
+import java.util.Collections;
 import java.util.List;
 
 public final class NavCompassStateFactory {
@@ -41,68 +36,6 @@ public final class NavCompassStateFactory {
         return CompassRouteGeometryFactory.build(route, index, intermediateStops);
     }
 
-    @NonNull
-    public static String buildGpsStatusLine(
-            float speedMps,
-            @Nullable NavigationLocation currentLocation,
-            float accuracyMeters,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Integer acquiredFixCount,
-            @NonNull Context context
-    ) {
-        return buildGpsStatusLine(
-                speedMps,
-                currentLocation,
-                accuracyMeters,
-                fixedSatelliteCount,
-                acquiredFixCount,
-                new AndroidNavigationTextResources(context)
-        );
-    }
-
-    @NonNull
-    public static String buildGpsStatusLine(
-            float speedMps,
-            @Nullable NavigationLocation currentLocation,
-            float accuracyMeters,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Integer acquiredFixCount,
-            @NonNull NavigationTextResources textResources
-    ) {
-        return NavigationTextFormatter.formatGpsStatus(
-                textResources,
-                speedMps,
-                elevationMeters(currentLocation),
-                accuracyMeters,
-                bearingDegrees(currentLocation),
-                bearingAccuracyDegrees(currentLocation),
-                fixedSatelliteCount,
-                acquiredFixCount
-        );
-    }
-
-    @Nullable
-    private static Double elevationMeters(@Nullable NavigationLocation currentLocation) {
-        return currentLocation != null && currentLocation.hasAltitude()
-                ? currentLocation.getAltitude()
-                : null;
-    }
-
-    @Nullable
-    private static Float bearingDegrees(@Nullable NavigationLocation currentLocation) {
-        return currentLocation != null && currentLocation.hasBearing()
-                ? currentLocation.getBearing()
-                : null;
-    }
-
-    @Nullable
-    private static Float bearingAccuracyDegrees(@Nullable NavigationLocation currentLocation) {
-        return currentLocation != null
-                && currentLocation.hasBearingAccuracy()
-                ? currentLocation.getBearingAccuracyDegrees()
-                : null;
-    }
-
     @Nullable
     public static NavCompassState buildCompassState(@NonNull NavCompassStateInput input) {
         return buildCompassState(
@@ -124,6 +57,7 @@ public final class NavCompassStateFactory {
                 input.radiusTransition,
                 input.orientationCue,
                 input.routeStartApproachTarget,
+                input.blockedAreas,
                 input.nowMs,
                 false
         );
@@ -209,6 +143,7 @@ public final class NavCompassStateFactory {
                 compassRadiusTransition,
                 orientationCue,
                 routeStartApproachTarget,
+                Collections.emptyList(),
                 nowMs,
                 false
         );
@@ -234,6 +169,7 @@ public final class NavCompassStateFactory {
             @Nullable CompassRadiusTransition compassRadiusTransition,
             @Nullable CompassOrientationCue orientationCue,
             @Nullable LatLon routeStartApproachTarget,
+            @NonNull List<CompassBlockedArea> blockedAreas,
             long nowMs,
             boolean straightLineMode
     ) {
@@ -268,6 +204,7 @@ public final class NavCompassStateFactory {
                 furthestDistanceMeters,
                 routeStartApproachProjection
         );
+        furthestDistanceMeters = extendFurthestDistanceForBlockedAreas(furthestDistanceMeters, blockedAreas);
         CompassRadiusResolver.State radiusState = CompassRadiusResolver.resolve(
                 furthestDistanceMeters,
                 currentLocation,
@@ -319,6 +256,7 @@ public final class NavCompassStateFactory {
                         destinationReachedRadiusMeters,
                         destinationDistanceMeters <= radiusState.visibleRadiusMeters
                 ),
+                blockedAreas,
                 routeStartApproachProjection,
                 orientationCue
         ));
@@ -345,7 +283,7 @@ public final class NavCompassStateFactory {
     }
 
     private static float sanitizeAccuracyMeters(float accuracyMeters) {
-        return NavigationMeasurementFormatter.isDisplayableAccuracyMeters(accuracyMeters) ? accuracyMeters : 0f;
+        return CompassAccuracyMeters.sanitize(accuracyMeters);
     }
 
     private static float sanitizeReferenceSpeedMps(float speedMps) {
@@ -367,6 +305,25 @@ public final class NavCompassStateFactory {
             normalized += 360.0;
         }
         return (float) normalized;
+    }
+
+    private static double extendFurthestDistanceForBlockedAreas(
+            double furthestDistanceMeters,
+            @NonNull List<CompassBlockedArea> blockedAreas
+    ) {
+        double resolved = furthestDistanceMeters;
+        for (CompassBlockedArea area : blockedAreas) {
+            if (Float.isFinite(area.radiusMeters)
+                    && area.radiusMeters > 0f
+                    && Float.isFinite(area.eastMeters)
+                    && Float.isFinite(area.northMeters)) {
+                resolved = Math.max(
+                        resolved,
+                        Math.hypot(area.eastMeters, area.northMeters) + area.radiusMeters
+                );
+            }
+        }
+        return resolved;
     }
 
 }

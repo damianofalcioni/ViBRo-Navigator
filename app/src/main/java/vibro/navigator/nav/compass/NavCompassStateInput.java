@@ -11,6 +11,9 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 
+import java.util.Collections;
+import java.util.List;
+
 public final class NavCompassStateInput {
     @NonNull
     public final GeoJsonRoute route;
@@ -42,6 +45,8 @@ public final class NavCompassStateInput {
     public final CompassOrientationCue orientationCue;
     @Nullable
     public final LatLon routeStartApproachTarget;
+    @NonNull
+    public final List<CompassBlockedArea> blockedAreas;
     public final long nowMs;
 
     private NavCompassStateInput(@NonNull Builder builder) {
@@ -63,6 +68,7 @@ public final class NavCompassStateInput {
         radiusTransition = builder.radiusTransition;
         orientationCue = builder.orientationCue;
         routeStartApproachTarget = builder.routeStartApproachTarget;
+        blockedAreas = builder.blockedAreas;
         nowMs = builder.nowMs;
     }
 
@@ -106,6 +112,8 @@ public final class NavCompassStateInput {
         private CompassOrientationCue orientationCue;
         @Nullable
         private LatLon routeStartApproachTarget;
+        @NonNull
+        private List<CompassBlockedArea> blockedAreas = Collections.emptyList();
         private long nowMs;
 
         private Builder(
@@ -184,6 +192,12 @@ public final class NavCompassStateInput {
         @NonNull
         public Builder routeStartApproachTarget(@Nullable LatLon routeStartApproachTarget) {
             this.routeStartApproachTarget = routeStartApproachTarget;
+            return this;
+        }
+
+        @NonNull
+        public Builder blockedAreas(@NonNull List<CompassBlockedArea> blockedAreas) {
+            this.blockedAreas = blockedAreas;
             return this;
         }
 

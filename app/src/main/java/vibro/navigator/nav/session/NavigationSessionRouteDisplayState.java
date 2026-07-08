@@ -148,6 +148,7 @@ public final class NavigationSessionRouteDisplayState {
                 .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
                 .routeStartApproachTarget(routeStartApproachTarget)
                 .orientationCue(orientationCue)
+                .blockedAreas(NavigationBlockedCompassAreas.project(snapshot.lastFiltered, snapshot.blockedPoints))
                 .nowMs(snapshot.nowMs)
                 .build();
         NavState state = NavStateComposer.from(NavStateBuildInput

@@ -289,6 +289,7 @@ public final class NavigationSessionRouteState {
                 .location(lastFiltered, speedMps, likelyStationary, accuracyMeters)
                 .gps(fixedSatelliteCount, 0)
                 .heading(headingDegrees, headingAccuracyDegrees)
+                .blockedPoints(copyBlockedPoints())
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .routeCalculation(routeCalculationInProgress, routeCalculationNotice, lastRouteFailure)
                 .build());

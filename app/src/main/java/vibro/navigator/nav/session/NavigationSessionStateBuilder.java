@@ -103,6 +103,7 @@ final class NavigationSessionStateBuilder {
                 .gps(fixedSatelliteCount, acquiredFixCount)
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
                 .orientationCue(orientationCue)
+                .blockedPoints(routeState.copyBlockedPoints())
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .routeCalculation(
                         routeRequestManager.isRouteCalculationInProgress(),

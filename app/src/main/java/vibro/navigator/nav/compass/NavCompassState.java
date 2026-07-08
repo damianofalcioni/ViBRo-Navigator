@@ -28,6 +28,8 @@ public final class NavCompassState {
     @NonNull
     public final List<CompassRoutePoint> hintPoints;
     @NonNull
+    public final List<CompassBlockedArea> blockedAreas;
+    @NonNull
     public final CompassStreetOverlay streetOverlay;
     @Nullable
     public final CompassOrientationCue orientationCue;
@@ -219,6 +221,7 @@ public final class NavCompassState {
         this.passedRoutePoints = Collections.unmodifiableList(new ArrayList<>(input.passedRoutePoints));
         this.routePoints = Collections.unmodifiableList(new ArrayList<>(input.routePoints));
         this.hintPoints = Collections.unmodifiableList(new ArrayList<>(input.hintPoints));
+        this.blockedAreas = Collections.unmodifiableList(new ArrayList<>(input.blockedAreas));
         this.streetOverlay = CompassStreetOverlay.EMPTY;
         this.orientationCue = input.orientationCue;
         this.routeGeometry = null;
@@ -286,6 +289,7 @@ public final class NavCompassState {
                 input.routeGeometry.hintSamplePointCount(),
                 true
         );
+        this.blockedAreas = Collections.unmodifiableList(new ArrayList<>(input.blockedAreas));
         this.streetOverlay = CompassStreetOverlay.EMPTY;
         this.orientationCue = input.orientationCue;
     }
@@ -301,6 +305,7 @@ public final class NavCompassState {
         passedRoutePoints = source.passedRoutePoints;
         routePoints = source.routePoints;
         hintPoints = source.hintPoints;
+        blockedAreas = source.blockedAreas;
         this.streetOverlay = streetOverlay;
         orientationCue = source.orientationCue;
         routeGeometry = source.routeGeometry;
@@ -366,6 +371,7 @@ public final class NavCompassState {
                             progressLabels.destinationReachedRadiusMeters,
                             targetDestinationWithinRadius
                     ),
+                    blockedAreas,
                     routeStartApproachProjection,
                     orientationCue
             )).withStreetOverlay(streetOverlay);
@@ -398,6 +404,7 @@ public final class NavCompassState {
                         progressLabels.destinationReachedRadiusMeters,
                         targetDestinationWithinRadius
                 ),
+                blockedAreas,
                 routeStartApproachProjection,
                 orientationCue
         )).withStreetOverlay(streetOverlay);

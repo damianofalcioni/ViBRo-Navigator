@@ -89,6 +89,7 @@ public final class StraightLineNavCompassStateFactory {
                 null,
                 orientationCue(currentLocation, target),
                 null,
+                Collections.emptyList(),
                 nowMs,
                 true
         );

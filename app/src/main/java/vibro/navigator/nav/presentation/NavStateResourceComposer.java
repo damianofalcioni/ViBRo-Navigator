@@ -4,7 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
-import vibro.navigator.nav.compass.NavCompassStateFactory;
+import vibro.navigator.nav.compass.NavCompassGpsStatusLineFactory;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -139,7 +139,7 @@ public final class NavStateResourceComposer {
             @Nullable Integer acquiredFixCount,
             @NonNull NavigationTextResources textResources
     ) {
-        return NavCompassStateFactory.buildGpsStatusLine(
+        return NavCompassGpsStatusLineFactory.build(
                 speedMps,
                 currentLocation,
                 accuracyMeters,

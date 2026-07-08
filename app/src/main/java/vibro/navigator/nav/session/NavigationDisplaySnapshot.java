@@ -9,6 +9,10 @@ import androidx.annotation.Nullable;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.brouter.NogoPoint;
+
+import java.util.Collections;
+import java.util.List;
 
 public final class NavigationDisplaySnapshot {
     @NonNull
@@ -28,6 +32,8 @@ public final class NavigationDisplaySnapshot {
     final Float headingAccuracyDegrees;
     @Nullable
     final CompassOrientationCue orientationCue;
+    @NonNull
+    final List<NogoPoint> blockedPoints;
     final long nextEvaluationDeadlineElapsedMs;
     final long nowMs;
     final boolean routeCalculationInProgress;
@@ -48,6 +54,7 @@ public final class NavigationDisplaySnapshot {
         headingDegrees = builder.headingDegrees;
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
         orientationCue = builder.orientationCue;
+        blockedPoints = builder.blockedPoints;
         nextEvaluationDeadlineElapsedMs = builder.nextEvaluationDeadlineElapsedMs;
         nowMs = builder.nowMs;
         routeCalculationInProgress = builder.routeCalculationInProgress;
@@ -83,6 +90,8 @@ public final class NavigationDisplaySnapshot {
         private Float headingAccuracyDegrees;
         @Nullable
         private CompassOrientationCue orientationCue;
+        @NonNull
+        private List<NogoPoint> blockedPoints = Collections.emptyList();
         private long nextEvaluationDeadlineElapsedMs;
         private long nowMs;
         private boolean routeCalculationInProgress;
@@ -138,6 +147,12 @@ public final class NavigationDisplaySnapshot {
         @NonNull
         Builder orientationCue(@Nullable CompassOrientationCue orientationCue) {
             this.orientationCue = orientationCue;
+            return this;
+        }
+
+        @NonNull
+        Builder blockedPoints(@NonNull List<NogoPoint> blockedPoints) {
+            this.blockedPoints = blockedPoints;
             return this;
         }
 

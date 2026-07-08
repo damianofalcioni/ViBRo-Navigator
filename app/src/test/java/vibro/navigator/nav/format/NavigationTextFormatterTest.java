@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.TimeZone;
 
-import vibro.navigator.nav.compass.NavCompassStateFactory;
+import vibro.navigator.nav.compass.NavCompassGpsStatusLineFactory;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
@@ -51,7 +51,7 @@ public class NavigationTextFormatterTest {
         location.setLatitude(48.2082);
         location.setLongitude(16.3738);
 
-        String line = NavCompassStateFactory.buildGpsStatusLine(
+        String line = NavCompassGpsStatusLineFactory.build(
                 0f,
                 location,
                 Float.MAX_VALUE,
@@ -107,7 +107,7 @@ public class NavigationTextFormatterTest {
         location.setLongitude(16.3738);
         location.setAltitude(245.4);
 
-        String line = NavCompassStateFactory.buildGpsStatusLine(
+        String line = NavCompassGpsStatusLineFactory.build(
                 4.5f,
                 location,
                 5f,

@@ -29,6 +29,7 @@
     <color name="compass_paused_ring">#E0E0E0</color>
     <color name="compass_accent">#F28A35</color>
     <color name="compass_route">#E14646</color>
+    <color name="compass_blocked_area">#B71C1C</color>
     <color name="compass_route_passed">#80E14646</color>
     <color name="compass_center">#F8F8F8</color>
 </resources>
