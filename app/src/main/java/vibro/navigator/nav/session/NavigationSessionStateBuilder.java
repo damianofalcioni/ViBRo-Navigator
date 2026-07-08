@@ -28,6 +28,8 @@ final class NavigationSessionStateBuilder {
     private final NavigationRouteRequestManager routeRequestManager;
     @NonNull
     private final NavigationTripStatsTracker tripStatsTracker;
+    @NonNull
+    private final NavigationAcceptedFixHistory acceptedFixHistory;
 
     NavigationSessionStateBuilder(
             @NonNull NavigationSessionLocationState locationState,
@@ -35,7 +37,8 @@ final class NavigationSessionStateBuilder {
             @NonNull NavigationSessionRouteState routeState,
             @NonNull StraightLineNavigationState straightLineState,
             @NonNull NavigationRouteRequestManager routeRequestManager,
-            @NonNull NavigationTripStatsTracker tripStatsTracker
+            @NonNull NavigationTripStatsTracker tripStatsTracker,
+            @NonNull NavigationAcceptedFixHistory acceptedFixHistory
     ) {
         this.locationState = locationState;
         this.headingResolver = headingResolver;
@@ -43,6 +46,7 @@ final class NavigationSessionStateBuilder {
         this.straightLineState = straightLineState;
         this.routeRequestManager = routeRequestManager;
         this.tripStatsTracker = tripStatsTracker;
+        this.acceptedFixHistory = acceptedFixHistory;
     }
 
     @NonNull
@@ -114,7 +118,7 @@ final class NavigationSessionStateBuilder {
         if (currentRequest.isStraightLine()) {
             NavState baseState = NavStateResourceComposer.withPauseState(
                     textResources,
-                    straightLineState.buildState(currentRequest, snapshot),
+                    straightLineState.buildState(currentRequest, snapshot, acceptedFixHistory.snapshot()),
                     paused
             );
             return NavStateComposer.withTripStatus(baseState, tripStatsTracker.snapshot());

@@ -205,6 +205,44 @@ public class NavigationRouteGpxExporterTest {
     }
 
     @Test
+    public void exportStraightLine_includesAcceptedFixesAsPassedTrackSegment() throws Exception {
+        LatLon stop = new LatLon(48.1, 16.1);
+        LatLon destination = new LatLon(48.2, 16.2);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(48.0, 16.0),
+                        stop,
+                        destination
+                ),
+                Collections.emptyList(),
+                0.0,
+                0.0
+        );
+        NavigationRouteGpxExportHistory history = new NavigationRouteGpxExportHistory(
+                Collections.emptyList(),
+                Arrays.asList(
+                        location(48.0, 16.0, 1_000L),
+                        location(48.05, 16.05, 2_000L)
+                )
+        );
+
+        Document document = parse(NavigationRouteGpxExporter.exportStraightLine(
+                TestNavigationTextResources.metric(),
+                route,
+                Collections.singletonList(stop),
+                destination,
+                history
+        ));
+
+        assertEquals(5, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
+        assertEquals(2, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_SEGMENT).getLength());
+        assertEquals(2, countWaypointsByType(document, TYPE_GPS_FIX));
+        Element passedTrack = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, "trk").item(0);
+        assertEquals(PASSED_ROUTE_NAME, childText(passedTrack, TAG_NAME));
+        assertEquals(2, passedTrack.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
+    }
+
+    @Test
     public void export_omitsInstructionCountdownWhenTrackTimesDoNotAlign() throws Exception {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(

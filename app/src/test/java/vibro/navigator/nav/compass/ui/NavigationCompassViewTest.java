@@ -28,6 +28,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
@@ -313,6 +314,40 @@ public class NavigationCompassViewTest {
         Paint linePaint = renderer.straightLinePaintForTest(activity);
         assertEquals(ContextCompat.getColor(activity, R.color.compass_route), linePaint.getColor());
         assertEquals(220, linePaint.getAlpha());
+        assertTrue(linePaint.getPathEffect() instanceof DashPathEffect);
+    }
+
+    @Test
+    public void straightLineModeUsesDottedPassedRoutePaintForAcceptedFixPath() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
+        NavCompassState state = StraightLineNavCompassStateFactory.buildTargetCompassState(
+                location(0.0, 0.002),
+                2f,
+                false,
+                5f,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                0.0,
+                null,
+                Arrays.asList(
+                        location(0.0, 0.0),
+                        location(0.0, 0.001),
+                        location(0.0, 0.002)
+                ),
+                null,
+                null,
+                null,
+                0L,
+                0L
+        );
+
+        assertNotNull(state);
+        assertEquals(1, state.archivedPassedRouteSegments().segmentCount());
+        assertEquals(3, state.archivedPassedRouteSegments().samplePointCount(0));
+        Paint linePaint = renderer.passedStraightLinePaintForTest(activity);
+        assertEquals(ContextCompat.getColor(activity, R.color.compass_route_passed), linePaint.getColor());
         assertTrue(linePaint.getPathEffect() instanceof DashPathEffect);
     }
 

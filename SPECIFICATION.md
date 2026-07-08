@@ -294,7 +294,8 @@ The app must monitor user position:
 - The navigation session must support an explicit paused mode that preserves the current request and loaded route while temporarily suspending live guidance processing
 - While paused, the app must stop live location/orientation-driven navigation updates, suppress turn and reroute handling, and resume from the same session state when the user continues navigation
 - In straight-line mode, the navigation session must not request BRouter routes or display turn directions
-- In straight-line mode, the navigation UI must not draw the red route polyline; it must show only the destination/intermediate target points and the compass target/arc for the next destination point
+- In straight-line mode, the navigation UI must not draw a BRouter route polyline or turn-by-turn route corridor; it must show the dotted direct beeline to the next destination/intermediate target point, the destination/intermediate target points, and the compass target/arc for the next destination point
+- In straight-line mode, the compass must also show the passed beeline path connecting accepted GPS fixes from the current navigation session as red dotted segments using the same passed-route color used for passed route geometry in route mode
 - In straight-line mode with intermediate stops, the next compass target must be the next unreached intermediate stop; after each stop is reached, the compass target must advance to the following stop or final destination
 - In straight-line mode, entering the destination-reached radius around an intermediate stop or the final destination must emit the same intermediate/final arrival guidance notifications as routed navigation
 - In straight-line mode, the progress line for the next stop must use the direct distance from the current location to that stop
@@ -553,6 +554,7 @@ The navigation UI must show the following in large text:
 - The exported GPX route, track, and metadata name must use `ViBRo-Navigator Export <current datetime>` rather than the destination label
 - The exported GPX must include the active route geometry as GPX route/track geometry, must include passed route segments from the current navigation session as additional GPX track segments, must include straight connector track segments for recalculation gaps shown in the compass, must include turn-instruction waypoints derived from the current and passed route voice hints using the same user-visible instruction text mapping as the navigation UI and turn notifications, and must include explicit waypoint entries for remaining intermediate destinations
 - The exported GPX must include accepted GPS fixes from the current navigation session as waypoint entries and should attach GPX timestamps to those fix waypoints when wall-clock fix times are available
+- For straight-line navigation, the exported GPX must also include the passed beeline path connecting accepted GPS fixes as an additional passed-route track segment when at least two accepted fixes are available
 - When the active route has no explicit destination-arrival voice hint, the exported GPX should include a synthetic destination-reached waypoint at the final route point
 - The export flow must write the generated GPX XML into the application log before launching the chooser
 - The export flow must use an app-private cache file exposed through a read-only `FileProvider` content URI with a temporary read grant, not broad storage permissions

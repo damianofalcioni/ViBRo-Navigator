@@ -40,7 +40,8 @@ final class NavigationSessionComponents {
                     routeState,
                     straightLineState,
                     routeRequestManager,
-                    tripStatsTracker
+                    tripStatsTracker,
+                    acceptedFixHistory
             );
 
     void reset(long nowMs) {

@@ -76,6 +76,42 @@ public class NavigationSessionGpxExportTest {
     }
 
     @Test
+    public void buildCurrentRouteGpx_exportsStraightLineAcceptedFixPathAsPassedTrack() {
+        Context androidContext = ApplicationProvider.getApplicationContext();
+        NavigationTextResources textResources = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList()
+        ));
+
+        assertTrue(NavigationSession.ResourceAdapter.start(session, textResources, 1_000L));
+        NavigationSession.ResourceAdapter.onRawLocationChanged(
+                session,
+                textResources,
+                locationWithSpeed(0.0, 0.0, 1_000L, 2f),
+                1_000L
+        );
+        NavigationSession.ResourceAdapter.onRawLocationChanged(
+                session,
+                textResources,
+                locationWithSpeed(0.0, 0.001, 2_000L, 2f),
+                2_000L
+        );
+
+        String gpx = session.buildCurrentRouteGpx(androidContext);
+
+        assertNotNull(gpx);
+        assertEquals(2, countOccurrences(gpx, "<trkseg>"));
+        assertEquals(4, countOccurrences(gpx, GPX_TRACK_POINT));
+        assertEquals(2, countOccurrences(gpx, TYPE_GPS_FIX));
+        assertTrue(gpx.contains("Passed route"));
+    }
+
+    @Test
     public void buildCurrentRouteGpx_exportsPassedRouteHistoryAndAcceptedFixes() {
         Context androidContext = ApplicationProvider.getApplicationContext();
         NavigationTextResources textResources = TestNavigationTextResources.metric();

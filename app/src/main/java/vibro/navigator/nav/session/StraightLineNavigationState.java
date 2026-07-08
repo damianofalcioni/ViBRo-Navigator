@@ -124,12 +124,16 @@ final class StraightLineNavigationState {
     }
 
     @NonNull
-    NavState buildState(@NonNull NavigationRequest request, @NonNull NavigationDisplaySnapshot snapshot) {
+    NavState buildState(
+            @NonNull NavigationRequest request,
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @NonNull List<NavigationLocation> acceptedFixes
+    ) {
         if (snapshot.lastFiltered == null) {
             return buildWaitingForLocationState(snapshot);
         }
 
-        NavCompassState compassState = buildCompassState(request, snapshot);
+        NavCompassState compassState = buildCompassState(request, snapshot, acceptedFixes);
         NavState state = new NavState(
                 new NavRouteStatus(
                         StraightLineNavigationGuidanceText.buildStatus(
@@ -233,7 +237,8 @@ final class StraightLineNavigationState {
     @Nullable
     private NavCompassState buildCompassState(
             @NonNull NavigationRequest request,
-            @NonNull NavigationDisplaySnapshot snapshot
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @NonNull List<NavigationLocation> acceptedFixes
     ) {
         LatLon target = destinationReached
                 ? request.destination
@@ -254,6 +259,7 @@ final class StraightLineNavigationState {
                 request.stops,
                 snapshot.headingDegrees,
                 snapshot.headingAccuracyDegrees,
+                acceptedFixes,
                 compassMemory.lastVisibleRadiusMeters(),
                 compassMemory.lastReliableMovingVisibleRadiusMeters(),
                 compassMemory.lastReliableMovingSpeedBucket(),

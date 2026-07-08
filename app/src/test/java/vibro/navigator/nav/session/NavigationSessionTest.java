@@ -282,6 +282,48 @@ public class NavigationSessionTest {
     }
 
     @Test
+    public void straightLineModeCompassShowsAcceptedFixPathAsPassedBeeline() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList()
+        ));
+        long nowMs = 1_000L;
+
+        assertTrue(ResourceAdapter.start(session, context, nowMs));
+        ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                nowMs
+        );
+        ResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.001, nowMs + 1_000L, 2f),
+                nowMs + 1_000L
+        );
+        NavState state = ResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 1_000L,
+                null,
+                0.0,
+                null
+        );
+
+        assertNotNull(state.routeStatus.compassState);
+        assertTrue(state.routeStatus.compassState.displayMode.straightLineMode);
+        assertEquals(1, state.routeStatus.compassState.archivedPassedRouteSegments().segmentCount());
+        assertEquals(2, state.routeStatus.compassState.archivedPassedRouteSegments().samplePointCount(0));
+    }
+
+    @Test
     public void roundTripModeKeepsOffTrackNoticeWithoutRouteRecalculationOrBlockedRoadAction() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();

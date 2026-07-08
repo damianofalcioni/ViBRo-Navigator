@@ -67,6 +67,43 @@ public final class StraightLineNavCompassStateFactory {
             long radiusUpdateDeltaMs,
             long nowMs
     ) {
+        return buildTargetCompassState(
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                target,
+                remainingTargetsAfterNext,
+                intermediateMarkers,
+                headingDegrees,
+                headingAccuracyDegrees,
+                Collections.emptyList(),
+                previousVisibleRadiusMeters,
+                previousReliableMovingVisibleRadiusMeters,
+                previousMovingSpeedBucket,
+                radiusUpdateDeltaMs,
+                nowMs
+        );
+    }
+
+    @Nullable
+    public static NavCompassState buildTargetCompassState(
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            @NonNull LatLon target,
+            @NonNull List<LatLon> remainingTargetsAfterNext,
+            @NonNull List<LatLon> intermediateMarkers,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @NonNull List<NavigationLocation> acceptedFixes,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingVisibleRadiusMeters,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
+            long radiusUpdateDeltaMs,
+            long nowMs
+    ) {
         List<LatLon> track = buildTrack(currentLocation, target, remainingTargetsAfterNext);
         GeoJsonRoute route = new GeoJsonRoute(track, Collections.emptyList(), 0.0, 0.0);
         PolylineIndex index = new PolylineIndex(track);
@@ -85,7 +122,7 @@ public final class StraightLineNavCompassStateFactory {
                 previousReliableMovingVisibleRadiusMeters,
                 previousMovingSpeedBucket,
                 radiusUpdateDeltaMs,
-                buildGeometry(track, index, intermediateMarkers),
+                buildGeometry(track, index, intermediateMarkers, acceptedFixes),
                 null,
                 orientationCue(currentLocation, target),
                 null,
@@ -112,12 +149,14 @@ public final class StraightLineNavCompassStateFactory {
     private static CompassRouteGeometry buildGeometry(
             @NonNull List<LatLon> track,
             @NonNull PolylineIndex index,
-            @NonNull List<LatLon> intermediateMarkers
+            @NonNull List<LatLon> intermediateMarkers,
+            @NonNull List<NavigationLocation> acceptedFixes
     ) {
         return new CompassRouteGeometry(
                 buildSamplePoints(track, index),
                 Collections.emptyList(),
-                intermediateMarkers
+                intermediateMarkers,
+                passedBeelineSegments(acceptedFixes)
         );
     }
 
@@ -147,5 +186,27 @@ public final class StraightLineNavCompassStateFactory {
                 target.lat,
                 target.lon
         ));
+    }
+
+    @NonNull
+    private static List<List<LatLon>> passedBeelineSegments(
+            @NonNull List<NavigationLocation> acceptedFixes
+    ) {
+        List<LatLon> path = acceptedFixPath(acceptedFixes);
+        return path.size() < 2 ? Collections.emptyList() : Collections.singletonList(path);
+    }
+
+    @NonNull
+    private static List<LatLon> acceptedFixPath(@NonNull List<NavigationLocation> acceptedFixes) {
+        if (acceptedFixes.size() < 2) {
+            return Collections.emptyList();
+        }
+        List<LatLon> path = new ArrayList<>(acceptedFixes.size());
+        for (NavigationLocation location : acceptedFixes) {
+            if (Double.isFinite(location.getLatitude()) && Double.isFinite(location.getLongitude())) {
+                path.add(new LatLon(location.getLatitude(), location.getLongitude()));
+            }
+        }
+        return path;
     }
 }

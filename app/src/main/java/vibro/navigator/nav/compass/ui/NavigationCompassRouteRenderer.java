@@ -30,6 +30,7 @@ final class NavigationCompassRouteRenderer {
 
     private final Paint routePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint straightLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint passedStraightLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint routeThresholdPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint passedRoutePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint accuracyOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -96,6 +97,11 @@ final class NavigationCompassRouteRenderer {
         return straightLinePaint;
     }
 
+    Paint passedStraightLinePaintForTest(@NonNull Context context) {
+        ensurePaintsInitialized(context);
+        return passedStraightLinePaint;
+    }
+
     private void ensurePaintsInitialized(@NonNull Context context) {
         if (initialized) {
             return;
@@ -111,13 +117,18 @@ final class NavigationCompassRouteRenderer {
         straightLinePaint.setStrokeWidth(dp(context, STRAIGHT_LINE_STROKE_WIDTH_DP));
         straightLinePaint.setColor(ContextCompat.getColor(context, R.color.compass_route));
         straightLinePaint.setAlpha(STRAIGHT_LINE_ALPHA);
-        straightLinePaint.setPathEffect(new DashPathEffect(
+        DashPathEffect straightLineDashEffect = new DashPathEffect(
                 new float[] {
                         dp(context, STRAIGHT_LINE_DOT_LENGTH_DP),
                         dp(context, STRAIGHT_LINE_DOT_GAP_DP)
                 },
                 0f
-        ));
+        );
+        straightLinePaint.setPathEffect(straightLineDashEffect);
+
+        passedStraightLinePaint.set(straightLinePaint);
+        passedStraightLinePaint.setColor(ContextCompat.getColor(context, R.color.compass_route_passed));
+        passedStraightLinePaint.setPathEffect(straightLineDashEffect);
 
         routeThresholdPaint.set(routePaint);
         routeThresholdPaint.setAlpha(ROUTE_THRESHOLD_ALPHA);
@@ -241,6 +252,17 @@ final class NavigationCompassRouteRenderer {
     ) {
         float scale = routeRadius / state.radiusState.visibleRadiusMeters;
         if (state.hasRouteGeometry()) {
+            storedSegmentRenderer.draw(
+                    canvas,
+                    state,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    resolveRouteDrawPaddingMeters(state),
+                    passedStraightLinePaint,
+                    passedStraightLinePaint
+            );
             drawRouteGeometrySegment(
                     canvas,
                     state,
