@@ -6,6 +6,7 @@ import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 
 final class NavigationServiceDependencies {
     @NonNull
@@ -37,7 +38,16 @@ final class NavigationServiceDependencies {
             @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
     ) {
         NavigationForegroundRuntime foreground =
-                NavigationForegroundRuntime.create(service, uiVisibility, locationHandler);
+                NavigationForegroundRuntime.create(
+                        service,
+                        uiVisibility,
+                        locationHandler,
+                        interactive -> NavigationSessionResourceAdapter.recordScreenInteractive(
+                                navigationSession,
+                                interactive,
+                                AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs()
+                        )
+                );
         NavigationTrackingRuntime tracking = NavigationTrackingRuntime.create(
                 service,
                 uiScheduler,

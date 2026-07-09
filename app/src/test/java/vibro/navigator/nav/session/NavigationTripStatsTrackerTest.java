@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import vibro.navigator.nav.model.NavTripStatus;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.power.NavigationBatterySnapshot;
 
 public class NavigationTripStatsTrackerTest {
     @Test
@@ -50,6 +51,59 @@ public class NavigationTripStatsTrackerTest {
         NavTripStatus status = tracker.snapshot();
 
         assertEquals(30_000L, status.stationaryDurationMs(31_000L));
+    }
+
+    @Test
+    public void recordScreenInteractive_tracksScreenOnAndOffDurations() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L, true, NavigationBatterySnapshot.unavailable());
+
+        tracker.recordScreenInteractive(false, 61_000L);
+        tracker.recordScreenInteractive(true, 91_000L);
+
+        NavTripStatus status = tracker.snapshot();
+
+        assertEquals(80_000L, status.screenOnDurationMs(111_000L));
+        assertEquals(30_000L, status.screenOffDurationMs(111_000L));
+    }
+
+    @Test
+    public void snapshot_reportsBatteryUsedAndDropFromStartAndLatestSamples() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L, true, NavigationBatterySnapshot.of(3_000_000, 90));
+
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(2_987_500, 87));
+
+        NavTripStatus status = tracker.snapshot();
+
+        assertEquals(12.5f, status.batteryUsedMilliAmpHours, 0.0f);
+        assertEquals(3, status.batteryDropPercent);
+    }
+
+    @Test
+    public void snapshot_reportsBatteryDropWhenChargeCounterIsUnavailable() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L, true, NavigationBatterySnapshot.of(0, 90));
+
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(0, 88));
+
+        NavTripStatus status = tracker.snapshot();
+
+        assertTrue(Float.isNaN(status.batteryUsedMilliAmpHours));
+        assertEquals(2, status.batteryDropPercent);
+    }
+
+    @Test
+    public void snapshot_reportsUnavailableBatteryWhenLatestSampleIsUnavailable() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L, true, NavigationBatterySnapshot.of(3_000_000, 90));
+
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.unavailable());
+
+        NavTripStatus status = tracker.snapshot();
+
+        assertTrue(Float.isNaN(status.batteryUsedMilliAmpHours));
+        assertEquals(NavTripStatus.UNKNOWN_BATTERY_DROP_PERCENT, status.batteryDropPercent);
     }
 
     private static NavigationLocation location(double lat, double lon) {

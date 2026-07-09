@@ -119,9 +119,13 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_nav_gps_details,
                 "Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nGPS obtained: %4$s\nSatellites: %5$s\n"
                         + "Interval: %6$s\nGPS fixes: %7$s\nGPS bearing: %8$s\nBearing accuracy: %9$s");
+        strings.put(R.string.format_nav_battery_used_mah, "%1$.1f mAh");
+        strings.put(R.string.format_nav_battery_drop_percent, "%1$d%%");
         strings.put(R.string.format_nav_trip_stats_details,
                 "Elapsed: %1$s\nDistance: %2$s\nMoving time: %3$s\nStationary time: %4$s\n"
-                        + "Average speed: %5$s\nMoving average: %6$s\nMax speed: %7$s");
+                        + "Average speed: %5$s\nMoving average: %6$s\nMax speed: %7$s\n"
+                        + "Screen on: %8$s\nScreen off: %9$s\n"
+                        + "Battery used: %10$s\nBattery drop: %11$s");
     }
 
     private static void addNavigationStatusStrings(@NonNull Map<Integer, String> strings) {

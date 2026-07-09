@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.power.AndroidBatterySnapshotReader;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
@@ -28,6 +29,8 @@ final class NavigationServiceRuntime {
     private final NavigationRoutingRuntime routing;
     @NonNull
     private final NavigationServiceStreetOverlay streetOverlay;
+    @NonNull
+    final AndroidBatterySnapshotReader batterySnapshotReader;
 
     NavigationServiceRuntime(
             @NonNull Context context,
@@ -40,6 +43,7 @@ final class NavigationServiceRuntime {
         tracking = dependencies.tracking;
         routing = dependencies.routing;
         this.streetOverlay = streetOverlay;
+        batterySnapshotReader = new AndroidBatterySnapshotReader(context);
     }
 
     @NonNull

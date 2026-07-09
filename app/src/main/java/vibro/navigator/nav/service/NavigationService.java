@@ -4,9 +4,11 @@ package vibro.navigator.nav.service;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.dispatch.TaskScheduler;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
@@ -162,7 +164,13 @@ public class NavigationService extends Service {
         runtime().resetStreetOverlay();
 
         long nowElapsedMs = runtime().elapsedRealtimeMs();
-        if (!navigationSession.start(this, nowElapsedMs)) {
+        if (!NavigationSessionResourceAdapter.start(
+                navigationSession,
+                new AndroidNavigationTextResources(this),
+                nowElapsedMs,
+                uiVisibility.isScreenInteractive(),
+                runtime().batterySnapshotReader.read()
+        )) {
             emitState();
             return;
         }
@@ -234,6 +242,12 @@ public class NavigationService extends Service {
     }
 
     private void emitState() {
+        if (runtime != null) {
+            NavigationSessionResourceAdapter.recordBatterySnapshot(
+                    navigationSession,
+                    runtime.batterySnapshotReader.read()
+            );
+        }
         if (!uiVisibility.canDispatchStateToUi()) {
             return;
         }

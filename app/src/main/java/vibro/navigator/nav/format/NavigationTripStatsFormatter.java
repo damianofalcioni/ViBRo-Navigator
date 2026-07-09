@@ -34,7 +34,11 @@ public final class NavigationTripStatsFormatter {
                 formatDurationField(resources, status, status.stationaryDurationMs(nowElapsedMs)),
                 formatOverallAverageSpeed(resources, status, nowElapsedMs),
                 formatMovingAverageSpeed(resources, status, nowElapsedMs),
-                formatSpeedField(resources, status, status.maxSpeedMps)
+                formatSpeedField(resources, status, status.maxSpeedMps),
+                formatDurationField(resources, status, status.screenOnDurationMs(nowElapsedMs)),
+                formatDurationField(resources, status, status.screenOffDurationMs(nowElapsedMs)),
+                formatBatteryUsed(resources, status),
+                formatBatteryDrop(resources, status)
         );
     }
 
@@ -127,6 +131,26 @@ public final class NavigationTripStatsFormatter {
             );
         }
         return resources.getString(R.string.format_time_s, totalSeconds);
+    }
+
+    @NonNull
+    private static String formatBatteryUsed(
+            @NonNull NavigationTextResources resources,
+            @NonNull NavTripStatus status
+    ) {
+        return status.started && Float.isFinite(status.batteryUsedMilliAmpHours)
+                ? resources.getString(R.string.format_nav_battery_used_mah, status.batteryUsedMilliAmpHours)
+                : resources.getString(R.string.nav_status_unavailable);
+    }
+
+    @NonNull
+    private static String formatBatteryDrop(
+            @NonNull NavigationTextResources resources,
+            @NonNull NavTripStatus status
+    ) {
+        return status.started && status.batteryDropPercent >= 0
+                ? resources.getString(R.string.format_nav_battery_drop_percent, status.batteryDropPercent)
+                : resources.getString(R.string.nav_status_unavailable);
     }
 
     private static float averageSpeedMps(double distanceMeters, long durationMs) {

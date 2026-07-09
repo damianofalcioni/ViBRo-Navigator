@@ -19,7 +19,13 @@ public class NavigationTripStatsFormatterTest {
                 10f,
                 3,
                 false,
-                false
+                false,
+                90_000L,
+                30_000L,
+                120_000L,
+                false,
+                12.5f,
+                3
         );
 
         String details = NavigationTripStatsFormatter.formatDetails(
@@ -34,6 +40,10 @@ public class NavigationTripStatsFormatterTest {
         assertTrue(details.contains("Average speed: 30 km/h"));
         assertTrue(details.contains("Moving average: 60 km/h"));
         assertTrue(details.contains("Max speed: 36 km/h"));
+        assertTrue(details.contains("Screen on: 1 min 30 s"));
+        assertTrue(details.contains("Screen off: 30 s"));
+        assertTrue(details.contains("Battery used: 12.5 mAh"));
+        assertTrue(details.contains("Battery drop: 3%"));
     }
 
     @Test
@@ -76,5 +86,9 @@ public class NavigationTripStatsFormatterTest {
         assertTrue(details.contains("Average speed: --"));
         assertTrue(details.contains("Moving average: --"));
         assertTrue(details.contains("Max speed: --"));
+        assertTrue(details.contains("Screen on: --"));
+        assertTrue(details.contains("Screen off: --"));
+        assertTrue(details.contains("Battery used: --"));
+        assertTrue(details.contains("Battery drop: --"));
     }
 }

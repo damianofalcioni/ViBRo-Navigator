@@ -14,6 +14,7 @@ import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.power.NavigationBatterySnapshot;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
@@ -28,6 +29,16 @@ public final class NavigationSessionResourceAdapter {
             @NonNull NavigationTextResources textResources,
             long nowMs
     ) {
+        return start(session, textResources, nowMs, true, NavigationBatterySnapshot.unavailable());
+    }
+
+    public static boolean start(
+            @NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources,
+            long nowMs,
+            boolean screenInteractive,
+            @NonNull NavigationBatterySnapshot batterySnapshot
+    ) {
         session.started = false;
         session.paused = false;
         session.components.reset(nowMs);
@@ -41,9 +52,24 @@ public final class NavigationSessionResourceAdapter {
         if (session.currentRequest.isStraightLine()) {
             session.components.straightLineState.onRequestStarted(session.currentRequest);
         }
-        session.components.tripStatsTracker.start(nowMs);
+        session.components.tripStatsTracker.start(nowMs, screenInteractive, batterySnapshot);
         session.started = true;
         return true;
+    }
+
+    public static void recordScreenInteractive(
+            @NonNull NavigationSession session,
+            boolean interactive,
+            long nowMs
+    ) {
+        session.components.tripStatsTracker.recordScreenInteractive(interactive, nowMs);
+    }
+
+    public static void recordBatterySnapshot(
+            @NonNull NavigationSession session,
+            @NonNull NavigationBatterySnapshot batterySnapshot
+    ) {
+        session.components.tripStatsTracker.recordBatterySnapshot(batterySnapshot);
     }
 
     @NonNull
