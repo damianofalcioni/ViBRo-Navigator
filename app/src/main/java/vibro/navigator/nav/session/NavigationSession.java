@@ -120,7 +120,7 @@ public final class NavigationSession {
                     components.locationState.getLastFilteredLocation()
             );
         }
-        return components.routeState.currentSegmentBearingDegrees(components.locationState.getLastFilteredLocation());
+        return components.routeState.currentRouteBearingDegrees(components.locationState.getLastFilteredLocation());
     }
 
     @NonNull

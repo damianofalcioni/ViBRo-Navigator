@@ -130,6 +130,45 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @Test
+    public void routeStartApproachBearingUsesBeelineTargetUntilUserReachesRoute() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.001, 0.001),
+                Collections.emptyList()
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                routeStartingEastThenHeadingNorth(),
+                requestedStart,
+                0f,
+                true,
+                500L
+        );
+
+        assertEquals(0.0, state.currentSegmentBearingDegrees(requestedStart), 1.0);
+        assertEquals(90.0, state.currentRouteBearingDegrees(requestedStart), 1.0);
+
+        NavigationLocation routeStart = location(0.0, 0.001, 2_000L);
+        state.evaluateLocation(
+                routeStart,
+                0f,
+                true,
+                3f,
+                null,
+                2_000L,
+                0L
+        );
+
+        assertEquals(0.0, state.currentRouteBearingDegrees(routeStart), 1.0);
+    }
+
+    @Test
     public void brouterRouteStartApproachRefreshesWhenStartupFixSettlesAwayFromRequestedStart() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -290,6 +329,20 @@ public class NavigationRouteStartApproachStateTest {
                 Collections.singletonList(new VoiceHint(1, 5, 0, 0.0, 0)),
                 120.0,
                 222.0
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute routeStartingEastThenHeadingNorth() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.001, 0.001),
+                        new LatLon(0.001, 0.002)
+                ),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                120.0,
+                268.0
         );
     }
 

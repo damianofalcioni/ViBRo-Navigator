@@ -139,6 +139,19 @@ public final class NavigationSessionRouteState {
         return components.geometryState.currentSegmentBearingDegrees(lastFiltered);
     }
 
+    @Nullable
+    public Double currentRouteBearingDegrees(@Nullable NavigationLocation lastFiltered) {
+        Double approachBearingDegrees = currentRouteStartApproachBearingDegrees(lastFiltered);
+        return approachBearingDegrees != null
+                ? approachBearingDegrees
+                : currentSegmentBearingDegrees(lastFiltered);
+    }
+
+    @Nullable
+    private Double currentRouteStartApproachBearingDegrees(@Nullable NavigationLocation lastFiltered) {
+        return components.routeStartApproachState.bearingDegreesFrom(lastFiltered);
+    }
+
     @NonNull
     public List<NogoPoint> addBlockedPointsAhead(@Nullable NavigationLocation lastFiltered, long nowMs) {
         return components.blockedPointSelector.addBlockedPointsAhead(lastFiltered, nowMs);

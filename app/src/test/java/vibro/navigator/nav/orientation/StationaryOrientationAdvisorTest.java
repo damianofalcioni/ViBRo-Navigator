@@ -135,6 +135,53 @@ public class StationaryOrientationAdvisorTest {
     }
 
     @Test
+    public void evaluate_allowsFreshLegacyOrientationMediumWhenTurnClearsUncertainty() {
+        StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
+                0.0f,
+                1_000L,
+                90.0,
+                sample(
+                        20.0,
+                        0.0,
+                        0.0,
+                        HeadingAccuracyStatus.HIGH,
+                        HeadingAccuracyStatus.MEDIUM,
+                        5_500L,
+                        3.0,
+                        5_500L
+                ),
+                6_000L
+        );
+
+        assertEquals(StationaryOrientationAdvisor.Outcome.NOTIFY, evaluation.outcome);
+        assertNotNull(evaluation.decision);
+        assertEquals(70.0, evaluation.decision.absoluteTurnDegrees(), 0.001);
+    }
+
+    @Test
+    public void evaluate_waitsWhenFreshLegacyOrientationMediumMakesTurnAmbiguous() {
+        StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
+                0.0f,
+                1_000L,
+                40.0,
+                sample(
+                        20.0,
+                        0.0,
+                        0.0,
+                        HeadingAccuracyStatus.HIGH,
+                        HeadingAccuracyStatus.MEDIUM,
+                        5_500L,
+                        3.0,
+                        5_500L
+                ),
+                6_000L
+        );
+
+        assertEquals(StationaryOrientationAdvisor.Outcome.WAITING_FOR_CALIBRATION, evaluation.outcome);
+        assertNull(evaluation.decision);
+    }
+
+    @Test
     public void evaluate_ignoresStaleLegacyOrientationAccuracy() {
         StationaryOrientationAdvisor.Evaluation evaluation = advisor.evaluate(
                 0.0f,

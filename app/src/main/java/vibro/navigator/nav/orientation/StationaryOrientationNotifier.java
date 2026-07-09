@@ -19,6 +19,8 @@ public final class StationaryOrientationNotifier {
     private boolean handledForCurrentStop;
     @Nullable
     private CompassOrientationCue activeOrientationCue;
+    @Nullable
+    private StationaryOrientationAdvisor.Outcome lastLoggedOutcome;
 
     public StationaryOrientationNotifier(@NonNull StationaryOrientationAdvisor advisor) {
         this.advisor = advisor;
@@ -28,6 +30,7 @@ public final class StationaryOrientationNotifier {
         stationarySinceElapsedRealtimeMs = 0L;
         handledForCurrentStop = false;
         activeOrientationCue = null;
+        lastLoggedOutcome = null;
     }
 
     @Nullable
@@ -69,6 +72,7 @@ public final class StationaryOrientationNotifier {
                 sample,
                 nowElapsedRealtimeMs
         );
+        logEvaluationIfChanged(evaluation, speedMps, routeBearingDegrees, sample, nowElapsedRealtimeMs);
         handleEvaluation(evaluation, routeBearingDegrees, sink);
     }
 
@@ -116,6 +120,68 @@ public final class StationaryOrientationNotifier {
         }
         sink.sendStationaryOrientationNotification(evaluation.decision);
         handledForCurrentStop = true;
+    }
+
+    private void logEvaluationIfChanged(
+            @NonNull StationaryOrientationAdvisor.Evaluation evaluation,
+            float speedMps,
+            @Nullable Double routeBearingDegrees,
+            @Nullable GeomagneticOrientationMonitor.Sample sample,
+            long nowElapsedRealtimeMs
+    ) {
+        if (evaluation.outcome == lastLoggedOutcome) {
+            return;
+        }
+        lastLoggedOutcome = evaluation.outcome;
+        AppLogger.i(TAG, buildEvaluationMessage(
+                evaluation,
+                speedMps,
+                routeBearingDegrees,
+                sample,
+                nowElapsedRealtimeMs
+        ));
+    }
+
+    @NonNull
+    private String buildEvaluationMessage(
+            @NonNull StationaryOrientationAdvisor.Evaluation evaluation,
+            float speedMps,
+            @Nullable Double routeBearingDegrees,
+            @Nullable GeomagneticOrientationMonitor.Sample sample,
+            long nowElapsedRealtimeMs
+    ) {
+        StringBuilder message = new StringBuilder("Stationary orientation evaluation outcome=");
+        message.append(evaluation.outcome)
+                .append(" speedMps=").append(speedMps)
+                .append(" stationaryForMs=")
+                .append(Math.max(0L, nowElapsedRealtimeMs - stationarySinceElapsedRealtimeMs))
+                .append(" routeBearing=").append(routeBearingDegrees);
+        appendSample(message, sample, nowElapsedRealtimeMs);
+        if (evaluation.decision != null) {
+            message.append(" signedTurnDegrees=").append(evaluation.decision.signedTurnDegrees);
+        }
+        return message.toString();
+    }
+
+    private static void appendSample(
+            @NonNull StringBuilder message,
+            @Nullable GeomagneticOrientationMonitor.Sample sample,
+            long nowElapsedRealtimeMs
+    ) {
+        if (sample == null) {
+            message.append(" sample=null");
+            return;
+        }
+        message.append(" sampleHeading=").append(sample.headingDegrees)
+                .append(" sampleAgeMs=").append(nowElapsedRealtimeMs - sample.elapsedRealtimeMs)
+                .append(" sampleAccuracy=").append(sample.accuracy)
+                .append(" effectiveHeadingAccuracy=")
+                .append(sample.effectiveHeadingAccuracyDegrees(nowElapsedRealtimeMs))
+                .append(" legacyAccuracy=").append(sample.legacyOrientationAccuracy)
+                .append(" legacyAgeMs=")
+                .append(sample.legacyOrientationAccuracyElapsedRealtimeMs < 0L
+                        ? null
+                        : nowElapsedRealtimeMs - sample.legacyOrientationAccuracyElapsedRealtimeMs);
     }
 
     private void updateActiveTarget(@Nullable Double routeBearingDegrees) {

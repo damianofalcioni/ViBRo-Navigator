@@ -27,7 +27,7 @@ final class HeadingAccuracyPolicy {
         );
         return selectedAccuracy >= HeadingAccuracyStatus.HIGH
                 && (freshLegacyAccuracy == null
-                || freshLegacyAccuracy >= HeadingAccuracyStatus.HIGH);
+                || freshLegacyAccuracy >= HeadingAccuracyStatus.MEDIUM);
     }
 
     @Nullable
