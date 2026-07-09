@@ -25,6 +25,11 @@
 > [!NOTE]
 > **The project is entirely created by AI. No code has been written nor reviewed by humans. Despite that...**
 
+## ❓ Why
+
+I needed an offline GPS navigation for my Android 8 phone with little storage space left, as my preferred app dropped support, so, here we are.
+Yes, I know, but I like to push technology to the limit, and avoid waste...a dangerous combination.
+
 ## ✨ Key Features
 
 * **Vibration-based navigation**
