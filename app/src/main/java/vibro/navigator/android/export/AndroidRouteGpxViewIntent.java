@@ -125,6 +125,9 @@ public final class AndroidRouteGpxViewIntent {
             if (activityInfo == null || activityInfo.packageName == null || activityInfo.name == null) {
                 continue;
             }
+            if (context.getPackageName().equals(activityInfo.packageName)) {
+                continue;
+            }
             targets.add(new Intent(actionView).setComponent(new ComponentName(
                     activityInfo.packageName,
                     activityInfo.name

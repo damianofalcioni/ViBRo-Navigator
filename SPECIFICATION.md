@@ -754,6 +754,12 @@ The navigation UI must show the following in large text:
 - Parsing of incoming locations must be compatible with the app's minimum supported Android API level
 - Invalid or malformed incoming coordinate payloads must fail gracefully instead of crashing or silently redirecting to placeholder coordinates
 - On devices where multiple apps can handle the same map/share intent, the system chooser may appear before the user selects ViBRo Navigator
+- The app must also open or receive GPX documents advertised as `application/gpx+xml`, common GPX MIME aliases, or phone file providers that expose `.gpx` documents with generic XML/binary MIME types. GPX document reads must stay off the main UI thread.
+- A GPX import must prefer valid explicit route-form `<wpt>` entries in document order: the last waypoint becomes the destination and every preceding waypoint becomes an intermediate stop in that same order. Waypoint names should be used as the visible POI labels, falling back to coordinates when a name is absent. ViBRo-exported annotation waypoints such as turn instructions and accepted GPS fixes must not be imported as stops or destinations.
+- When a GPX document has no usable route-form waypoints, import its valid `<rtept>` entries in document order. When a GPX document is track-only, import the final valid `<trkpt>` as the destination without treating dense track geometry samples as intermediate stops.
+- Applying a GPX route must switch out of Round Trip mode, replace the existing destination and intermediate-stop form values, and promote all imported points into the normal POI history without triggering POI-search popups.
+- A malformed GPX document, unreadable URI, or GPX document with no valid waypoints must leave the existing route form unchanged and show a short failure message.
+- Opening a GPX document while navigation is already running must not replace the active navigation screen with the main route form; the import should be rejected and the existing navigation UI resumed.
 
 ## Non-functional expectations
 

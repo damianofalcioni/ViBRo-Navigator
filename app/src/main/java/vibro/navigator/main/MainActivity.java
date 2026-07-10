@@ -41,6 +41,10 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         appliedLightTheme = AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
+        if (MainActivityIntentHandler.redirectGpxImportDuringActiveNavigation(this, getIntent())) {
+            finish();
+            return;
+        }
         setContentView(R.layout.activity_main);
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " intent=" + MainActivityIntentHandler.describeIntent(getIntent()));
@@ -131,6 +135,9 @@ public class MainActivity extends Activity {
                 this,
                 getIntent(),
                 destinationController,
+                stopController,
+                historyStore,
+                routeModeController,
                 reverseGeocodeController
         );
     }
@@ -140,6 +147,10 @@ public class MainActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
         AppLogger.i(TAG, "onNewIntent " + MainActivityIntentHandler.describeIntent(intent));
+        if (MainActivityIntentHandler.redirectGpxImportDuringActiveNavigation(this, intent)) {
+            finish();
+            return;
+        }
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, intent)) {
             return;
         }
@@ -150,6 +161,9 @@ public class MainActivity extends Activity {
                 this,
                 intent,
                 destinationController,
+                stopController,
+                historyStore,
+                routeModeController,
                 reverseGeocodeController
         );
     }

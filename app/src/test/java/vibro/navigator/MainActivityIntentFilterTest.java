@@ -23,6 +23,8 @@ import java.util.List;
 
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityIntentFilterTest {
+    private static final String GPX_CONTENT_URI = "content://example.documents/routes/weekend.gpx";
+    private static final String NON_GPX_CONTENT_URI = "content://example.documents/routes/weekend.pdf";
 
     @Test
     public void mainActivityDoesNotResolveGenericWebUrls() {
@@ -49,6 +51,86 @@ public class MainActivityIntentFilterTest {
                 Uri.parse("https://www.google.com/maps?q=48.2082,16.3738")
         );
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesGpxOpenIntent() {
+        Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(
+                        Uri.parse(GPX_CONTENT_URI),
+                        "application/gpx+xml"
+                );
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesGenericMimeGpxOpenIntentByFileName() {
+        Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(
+                        Uri.parse(GPX_CONTENT_URI),
+                        "application/octet-stream"
+                );
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesTextPlainGpxOpenIntentByFileName() {
+        Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(
+                        Uri.parse(GPX_CONTENT_URI),
+                        "text/plain"
+                );
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityDoesNotResolveGenericMimeNonGpxOpenIntent() {
+        Intent intent = new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(
+                        Uri.parse(NON_GPX_CONTENT_URI),
+                        "application/octet-stream"
+                );
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertFalse(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesGpxOpenIntentByFileNameWithoutMimeType() {
+        Intent intent = new Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse(GPX_CONTENT_URI)
+        );
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesFileSchemeGpxOpenIntentByFileName() {
+        Intent intent = new Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("file:///sdcard/Download/weekend.gpx")
+        );
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesGpxShareIntent() {
+        Intent intent = new Intent(Intent.ACTION_SEND)
+                .setType("application/gpx+xml")
+                .putExtra(Intent.EXTRA_STREAM, Uri.parse(GPX_CONTENT_URI));
         intent.addCategory(Intent.CATEGORY_DEFAULT);
 
         assertTrue(resolvesToMainActivity(intent));

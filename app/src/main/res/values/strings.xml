@@ -91,6 +91,8 @@
     <string name="msg_open_settings_failed">Could not open settings on this device.</string>
     <string name="msg_open_brouter_store_failed">Could not open a BRouter store page on this device.</string>
     <string name="msg_intent_unrecognized">Shared location not recognized</string>
+    <string name="msg_gpx_import_failed">Could not load GPX waypoints.</string>
+    <string name="msg_gpx_import_blocked_navigation">Stop navigation before opening a GPX route.</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>

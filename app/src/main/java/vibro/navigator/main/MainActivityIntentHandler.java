@@ -1,8 +1,10 @@
 package vibro.navigator.main;
 
 import vibro.navigator.R;
+import vibro.navigator.android.service.AndroidServiceRunningState;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.intent.IntentLocationParser;
+import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.ui.NavigationActivity;
 
 
@@ -16,6 +18,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
@@ -25,6 +28,34 @@ final class MainActivityIntentHandler {
     private static final String TAG = "MainIntentHandler";
 
     private MainActivityIntentHandler() {
+    }
+
+    static boolean redirectGpxImportDuringActiveNavigation(
+            @NonNull Activity activity,
+            @Nullable Intent intent
+    ) {
+        return redirectGpxImportDuringActiveNavigation(
+                activity,
+                intent,
+                AndroidServiceRunningState.isRunning(activity, NavigationService.class)
+        );
+    }
+
+    static boolean redirectGpxImportDuringActiveNavigation(
+            @NonNull Activity activity,
+            @Nullable Intent intent,
+            boolean navigationServiceRunning
+    ) {
+        if (!navigationServiceRunning || !MainActivityGpxImportController.isGpxImportIntent(intent)) {
+            return false;
+        }
+        AppLogger.i(TAG, "Ignoring GPX import while navigation service is running");
+        Toast.makeText(activity, R.string.msg_gpx_import_blocked_navigation, Toast.LENGTH_SHORT).show();
+        Intent navigationIntent = new Intent(activity, NavigationActivity.class);
+        navigationIntent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+        navigationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        activity.startActivity(navigationIntent);
+        return true;
     }
 
     static boolean handleOpenNavigationIntent(@NonNull Activity activity, @Nullable Intent intent) {
@@ -60,6 +91,47 @@ final class MainActivityIntentHandler {
     }
 
     static void handleIncomingIntent(
+            @NonNull Activity activity,
+            @Nullable Intent intent,
+            @NonNull PoiInputController destinationController,
+            @NonNull MainActivityStopController stopController,
+            @NonNull PoiHistoryStore historyStore,
+            @NonNull MainActivityRouteModeController routeModeController,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
+    ) {
+        if (intent != null && MainActivityGpxImportController.importIfSupported(
+                activity,
+                intent,
+                destinationController,
+                stopController,
+                historyStore,
+                routeModeController
+        )) {
+            return;
+        }
+        handleIncomingLocation(
+                activity,
+                intent,
+                destinationController,
+                reverseGeocodeController
+        );
+    }
+
+    static void handleIncomingIntent(
+            @NonNull Context context,
+            @Nullable Intent intent,
+            @NonNull PoiInputController destinationController,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
+    ) {
+        handleIncomingLocation(
+                context,
+                intent,
+                destinationController,
+                reverseGeocodeController
+        );
+    }
+
+    private static void handleIncomingLocation(
             @NonNull Context context,
             @Nullable Intent intent,
             @NonNull PoiInputController destinationController,
@@ -82,6 +154,18 @@ final class MainActivityIntentHandler {
             return;
         }
         String trimmedQuery = query.trim();
+        applyIncomingLocation(
+                destinationController,
+                reverseGeocodeController,
+                trimmedQuery
+        );
+    }
+
+    private static void applyIncomingLocation(
+            @NonNull PoiInputController destinationController,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController,
+            @NonNull String trimmedQuery
+    ) {
         Poi parsedPoi = CoordinateParser.tryParse(trimmedQuery, trimmedQuery);
         if (parsedPoi != null) {
             reverseGeocodeController.setPoiAndResolveAddress(destinationController, parsedPoi);
