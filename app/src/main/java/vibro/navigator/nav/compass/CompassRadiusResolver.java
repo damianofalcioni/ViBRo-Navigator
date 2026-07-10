@@ -93,6 +93,7 @@ public final class CompassRadiusResolver {
                         fullRouteVisibleRadiusMeters,
                         speedMps,
                         movingScale.horizonSeconds,
+                        reliableMovingSpeed,
                         previousReliableMovingRadiusMeters,
                         reusableMovingRadius
                 ),
@@ -190,16 +191,17 @@ public final class CompassRadiusResolver {
             float fullRouteVisibleRadiusMeters,
             float speedMps,
             float movingScaleHorizonSeconds,
+            boolean reliableMovingSpeed,
             @Nullable Float previousReliableMovingRadiusMeters,
             boolean reusableMovingRadius
     ) {
-        float movingRadiusMeters = reusableMovingRadius
-                ? previousReliableMovingRadiusMeters
-                : CompassMovingScalePolicy.visibleRadiusMeters(
+        float movingRadiusMeters = reliableMovingSpeed || !reusableMovingRadius
+                ? CompassMovingScalePolicy.visibleRadiusMeters(
                         speedMps,
                         movingScaleHorizonSeconds,
                         MIN_VISIBLE_RADIUS_METERS
-                );
+                )
+                : previousReliableMovingRadiusMeters;
         return Math.min(fullRouteVisibleRadiusMeters, movingRadiusMeters);
     }
 

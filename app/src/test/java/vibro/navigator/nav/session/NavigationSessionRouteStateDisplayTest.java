@@ -157,6 +157,100 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
     }
 
     @Test
+    public void buildState_doesNotRememberAnimatedOverviewRadiusAsMovingScale() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.03),
+                Collections.emptyList()
+        );
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.015),
+                        new LatLon(0.0, 0.03)
+                ),
+                Collections.emptyList(),
+                3_000.0,
+                3_333.0
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                route,
+                locationWithSpeed(0.0, 0.0, 1_000L, 0f),
+                0f,
+                true,
+                500L
+        );
+        state.buildState(
+                context,
+                locationWithSpeed(0.0, 0.0, 1_000L, 0f),
+                0f,
+                true,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_000L,
+                false,
+                null,
+                null
+        );
+
+        NavState apparentMovementState = state.buildState(
+                context,
+                locationWithSpeed(0.0, 0.00001, 1_001L, 1f),
+                1f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_001L,
+                false,
+                null,
+                null
+        );
+        NavState suppressedSpeedState = state.buildState(
+                context,
+                locationWithSpeed(0.0, 0.00001, 1_002L, 1f),
+                0f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                1_002L,
+                false,
+                null,
+                null
+        );
+
+        assertTrue(apparentMovementState.routeStatus.compassState.radiusState.visibleRadiusMeters > 1_000f);
+        assertEquals(
+                90f,
+                apparentMovementState.routeStatus.compassState.radiusState.movingScaleVisibleRadiusMeters,
+                0.01f
+        );
+        assertEquals(
+                90f,
+                suppressedSpeedState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                0.01f
+        );
+        assertEquals(
+                30f,
+                suppressedSpeedState.routeStatus.compassState.displayMode.movingScaleHorizonSeconds,
+                0.01f
+        );
+    }
+
+    @Test
     public void buildState_stationaryOverviewTransitionUsesFixedOneSecondDurationAcrossRouteLengths() {
         NavigationTextResources context = TestNavigationTextResources.metric();
 

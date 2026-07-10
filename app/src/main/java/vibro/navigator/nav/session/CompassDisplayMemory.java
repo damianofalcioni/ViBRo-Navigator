@@ -148,7 +148,8 @@ final class CompassDisplayMemory {
         lastRadiusUpdateTimeMs = nowMs;
         if (lastFiltered != null
                 && NavCompassStateFactory.hasReliableMovingSpeed(lastFiltered, speedMps, likelyStationary)) {
-            lastReliableMovingVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
+            lastReliableMovingVisibleRadiusMeters =
+                    state.routeStatus.compassState.radiusState.movingScaleVisibleRadiusMeters;
             lastReliableMovingSpeedBucket =
                     state.routeStatus.compassState.displayMode.movingScaleSpeedBucket;
         }

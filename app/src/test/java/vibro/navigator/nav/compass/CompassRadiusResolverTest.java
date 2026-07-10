@@ -50,6 +50,28 @@ public class CompassRadiusResolverTest {
         assertMovingHorizon(84f, NavigationSpeedBucket.MEDIUM, NavigationSpeedBucket.HIGH, 60f);
     }
 
+    @Test
+    public void resolve_replacesRememberedRadiusWhenCurrentMovingSpeedIsReliable() {
+        float speedMps = 20f;
+        NavigationLocation location = movingLocation(speedMps);
+
+        CompassRadiusResolver.State state = CompassRadiusResolver.resolve(
+                5_000.0,
+                location,
+                speedMps,
+                false,
+                NavigationSpeedBucket.LOW,
+                90f,
+                90f,
+                1_000L,
+                null,
+                1_000L
+        );
+
+        assertEquals(NavigationSpeedBucket.MEDIUM, state.movingScaleSpeedBucket);
+        assertEquals(900f, state.movingScaleVisibleRadiusMeters, 0.01f);
+    }
+
     private static void assertMovingHorizon(
             float speedKmh,
             NavigationSpeedBucket previousBucket,
