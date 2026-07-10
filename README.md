@@ -27,9 +27,7 @@
 
 ## ❓ Why
 
-I needed an offline GPS navigation for my Android 8 phone with degraded battery and little storage space left, as my preferred app dropped support, so, here we are.
-
-Yes, I know, but I like to push technology to the limit, and avoid waste...a dangerous combination.
+I needed an offline GPS navigation for my Android 8 phone with degraded battery and little storage space left, as my preferred app dropped support, so, here we are...yes, I know, but I like to push technology to the limit and avoid waste...a dangerous combination.
 
 ## ✨ Key Features
 
