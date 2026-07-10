@@ -23,6 +23,8 @@ import vibro.navigator.poi.PoiHistoryStore;
 
 @RunWith(RobolectricTestRunner.class)
 public class PoiReverseGeocodeControllerTest {
+    private static final String STEPHANSPLATZ_ADDRESS = "Stephansplatz, Vienna";
+
     private Context context;
     private ImmediateScheduler mainThreadScheduler;
     private RecordingDispatcher dispatcher;
@@ -42,7 +44,7 @@ public class PoiReverseGeocodeControllerTest {
     public void setPoiAndResolveAddress_updatesCoordinateLabelWithAddress() {
         PoiInputController inputController = createInputController();
         PoiReverseGeocodeController reverseController = new PoiReverseGeocodeController(
-                (lat, lon) -> "Stephansplatz, Vienna",
+                (lat, lon) -> STEPHANSPLATZ_ADDRESS,
                 mainThreadScheduler,
                 dispatcher
         );
@@ -53,7 +55,27 @@ public class PoiReverseGeocodeControllerTest {
         );
         dispatcher.runNext();
 
-        assertEquals("Stephansplatz, Vienna", inputController.getRawText());
+        assertEquals(STEPHANSPLATZ_ADDRESS, inputController.getRawText());
+        assertEquals(48.2082d, inputController.getSelectedPoi().lat, 0.0d);
+        assertEquals(16.3738d, inputController.getSelectedPoi().lon, 0.0d);
+    }
+
+    @Test
+    public void setPoiAndResolveAddress_updatesUnnamedCoordinateFallbackWithAddress() {
+        PoiInputController inputController = createInputController();
+        PoiReverseGeocodeController reverseController = new PoiReverseGeocodeController(
+                (lat, lon) -> STEPHANSPLATZ_ADDRESS,
+                mainThreadScheduler,
+                dispatcher
+        );
+
+        reverseController.setPoiAndResolveAddress(
+                inputController,
+                new Poi("", 48.2082d, 16.3738d)
+        );
+        dispatcher.runNext();
+
+        assertEquals(STEPHANSPLATZ_ADDRESS, inputController.getRawText());
         assertEquals(48.2082d, inputController.getSelectedPoi().lat, 0.0d);
         assertEquals(16.3738d, inputController.getSelectedPoi().lon, 0.0d);
     }

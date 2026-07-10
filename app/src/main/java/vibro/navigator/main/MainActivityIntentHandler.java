@@ -18,7 +18,6 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
-import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
@@ -95,7 +94,6 @@ final class MainActivityIntentHandler {
             @Nullable Intent intent,
             @NonNull PoiInputController destinationController,
             @NonNull MainActivityStopController stopController,
-            @NonNull PoiHistoryStore historyStore,
             @NonNull MainActivityRouteModeController routeModeController,
             @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
@@ -104,8 +102,8 @@ final class MainActivityIntentHandler {
                 intent,
                 destinationController,
                 stopController,
-                historyStore,
-                routeModeController
+                routeModeController,
+                reverseGeocodeController
         )) {
             return;
         }

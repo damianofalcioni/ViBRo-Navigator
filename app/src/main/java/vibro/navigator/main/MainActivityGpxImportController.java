@@ -11,7 +11,6 @@ import androidx.core.content.IntentCompat;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -22,9 +21,8 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.intent.GpxWaypointParser;
 import vibro.navigator.intent.GpxWaypointRoute;
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.poi.Poi;
-import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 
 /** Handles external GPX content without blocking the main activity's UI thread. */
 final class MainActivityGpxImportController {
@@ -44,9 +42,9 @@ final class MainActivityGpxImportController {
     @NonNull
     private final MainActivityStopController stopController;
     @NonNull
-    private final PoiHistoryStore historyStore;
-    @NonNull
     private final MainActivityRouteModeController routeModeController;
+    @NonNull
+    private final PoiReverseGeocodeController reverseGeocodeController;
     @NonNull
     private final TaskScheduler mainThreadScheduler;
     @NonNull
@@ -57,15 +55,15 @@ final class MainActivityGpxImportController {
             @NonNull Intent incomingIntent,
             @NonNull PoiInputController destinationController,
             @NonNull MainActivityStopController stopController,
-            @NonNull PoiHistoryStore historyStore,
-            @NonNull MainActivityRouteModeController routeModeController
+            @NonNull MainActivityRouteModeController routeModeController,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
         this.activity = activity;
         this.incomingIntent = incomingIntent;
         this.destinationController = destinationController;
         this.stopController = stopController;
-        this.historyStore = historyStore;
         this.routeModeController = routeModeController;
+        this.reverseGeocodeController = reverseGeocodeController;
         mainThreadScheduler = AndroidTaskScheduler.main();
         parser = new GpxWaypointParser();
     }
@@ -75,8 +73,8 @@ final class MainActivityGpxImportController {
             @NonNull Intent intent,
             @NonNull PoiInputController destinationController,
             @NonNull MainActivityStopController stopController,
-            @NonNull PoiHistoryStore historyStore,
-            @NonNull MainActivityRouteModeController routeModeController
+            @NonNull MainActivityRouteModeController routeModeController,
+            @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
         Uri uri = gpxUri(intent);
         if (uri == null) {
@@ -87,8 +85,8 @@ final class MainActivityGpxImportController {
                 intent,
                 destinationController,
                 stopController,
-                historyStore,
-                routeModeController
+                routeModeController,
+                reverseGeocodeController
         ).startImport(uri);
         return true;
     }
@@ -147,18 +145,13 @@ final class MainActivityGpxImportController {
         if (!isCurrentIntent()) {
             return;
         }
-        routeModeController.showRouteMode();
-        destinationController.setPoi(route.destination);
-        stopController.replaceStops(route.stops);
-        rememberStops(route.stops);
-        AppLogger.i(TAG, "Applied incoming GPX destination=" + route.destination.displayLabel()
-                + " stopCount=" + route.stops.size());
-    }
-
-    private void rememberStops(@NonNull List<Poi> stops) {
-        for (Poi stop : stops) {
-            historyStore.addOrPromote(stop);
-        }
+        MainActivityGpxRouteApplier.apply(
+                route,
+                destinationController,
+                stopController,
+                routeModeController::showRouteMode,
+                reverseGeocodeController::setPoiAndResolveAddress
+        );
     }
 
     private void showImportFailure() {

@@ -82,10 +82,11 @@ public final class PoiHistoryStore {
             return;
         }
         AppLogger.i(TAG, "Saving or promoting POI " + poi.displayLabel());
+        Poi historyPoi = historyPoi(poi);
         List<Poi> current = list();
         Map<String, Poi> unique = new LinkedHashMap<>();
 
-        unique.put(poi.stableKey(), poi);
+        unique.put(historyPoi.stableKey(), historyPoi);
         for (Poi p : current) {
             if (unique.size() >= MAX_ITEMS) {
                 break;
@@ -96,6 +97,14 @@ public final class PoiHistoryStore {
             }
         }
         save(unique.values());
+    }
+
+    @NonNull
+    private static Poi historyPoi(@NonNull Poi poi) {
+        if (poi.name.trim().isEmpty()) {
+            return new Poi(poi.displayLabel(), poi.lat, poi.lon);
+        }
+        return poi;
     }
 
     public void remove(@NonNull Poi poi) {

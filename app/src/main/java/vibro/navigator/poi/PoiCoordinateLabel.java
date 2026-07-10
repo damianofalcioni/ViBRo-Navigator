@@ -7,7 +7,14 @@ public final class PoiCoordinateLabel {
     }
 
     public static boolean isCoordinateLabel(@NonNull Poi poi) {
-        Poi parsedName = CoordinateParser.tryParse(poi.name, null);
+        if (!poi.hasValidCoordinates()) {
+            return false;
+        }
+        String trimmedName = poi.name.trim();
+        if (trimmedName.isEmpty()) {
+            return true;
+        }
+        Poi parsedName = CoordinateParser.tryParse(trimmedName, null);
         return parsedName != null && parsedName.stableKey().equals(poi.stableKey());
     }
 }

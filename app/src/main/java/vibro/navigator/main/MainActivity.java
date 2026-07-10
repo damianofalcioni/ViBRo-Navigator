@@ -136,7 +136,6 @@ public class MainActivity extends Activity {
                 getIntent(),
                 destinationController,
                 stopController,
-                historyStore,
                 routeModeController,
                 reverseGeocodeController
         );
@@ -162,7 +161,6 @@ public class MainActivity extends Activity {
                 intent,
                 destinationController,
                 stopController,
-                historyStore,
                 routeModeController,
                 reverseGeocodeController
         );
