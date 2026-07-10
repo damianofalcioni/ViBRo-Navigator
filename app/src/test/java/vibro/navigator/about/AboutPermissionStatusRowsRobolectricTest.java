@@ -45,11 +45,11 @@ public class AboutPermissionStatusRowsRobolectricTest {
     @Test
     public void aboutPageShowsPermissionRowsBeforeSensorStatus() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
-        LinearLayout content = activity.findViewById(R.id.aboutContent);
+        LinearLayout diagnostics = activity.findViewById(R.id.aboutDiagnosticsSection);
         View permissionList = activity.findViewById(R.id.aboutPermissionStatusList);
         View sensorStatusSubtitle = activity.findViewById(R.id.aboutSensorStatusSubtitle);
 
-        assertTrue(content.indexOfChild(permissionList) < content.indexOfChild(sensorStatusSubtitle));
+        assertTrue(diagnostics.indexOfChild(permissionList) < diagnostics.indexOfChild(sensorStatusSubtitle));
         assertPermissionRow(
                 activity,
                 R.id.aboutPermissionLocationLabel,

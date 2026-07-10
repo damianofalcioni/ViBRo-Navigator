@@ -165,7 +165,8 @@
                 android:id="@+id/aboutLogEnabledInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -191,7 +192,8 @@
                 android:id="@+id/aboutFusedLocationInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -217,7 +219,8 @@
                 android:id="@+id/aboutDynamicGpsFixIntervalInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -243,7 +246,8 @@
                 android:id="@+id/aboutImperialUnitsInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -269,7 +273,8 @@
                 android:id="@+id/aboutLightThemeInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -295,7 +300,8 @@
                 android:id="@+id/aboutCompassSurroundingStreetsInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -321,7 +327,8 @@
                 android:id="@+id/aboutNavigationNotificationsInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -349,7 +356,8 @@
                 android:id="@+id/aboutAndroidAutoInfoButton"
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
-                android:layout_height="40dp" />
+                android:layout_height="40dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -391,7 +399,8 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -433,7 +442,8 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -477,7 +487,8 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="4dp" />
+                android:layout_marginStart="4dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -503,7 +514,8 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="8dp" />
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
         <LinearLayout
@@ -529,304 +541,10 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
-                android:layout_marginStart="8dp" />
+                android:layout_marginStart="8dp"
+                android:contentDescription="@string/action_setting_info" />
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="24dp"
-            android:background="?attr/vibroOutlineColor" />
-
-        <TextView
-            android:id="@+id/aboutSensorStatusTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/about_diagnostic_title"
-            android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="18sp" />
-
-        <TextView
-            android:id="@+id/aboutPermissionStatusTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/about_permission_status_title"
-            android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:id="@+id/aboutPermissionStatusList"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:id="@+id/aboutPermissionLocationRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/aboutPermissionLocationMark"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_permission_status_ok"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionLocationLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_permission_location"
-                    android:textColor="?attr/vibroTextPrimaryColor"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionLocationStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/permission_status_ok"
-                    android:textColor="@color/success"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/aboutPermissionLocationServicesRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/aboutPermissionLocationServicesMark"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_permission_status_ok"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionLocationServicesLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_permission_location_services"
-                    android:textColor="?attr/vibroTextPrimaryColor"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionLocationServicesStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/permission_status_ok"
-                    android:textColor="@color/success"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/aboutPermissionNotificationsRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/aboutPermissionNotificationsMark"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_permission_status_ok"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionNotificationsLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_permission_notifications"
-                    android:textColor="?attr/vibroTextPrimaryColor"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionNotificationsStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/permission_status_ok"
-                    android:textColor="@color/success"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/aboutPermissionBatteryRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal">
-
-                <View
-                    android:id="@+id/aboutPermissionBatteryMark"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_permission_status_ok"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionBatteryLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_permission_battery"
-                    android:textColor="?attr/vibroTextPrimaryColor"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionBatteryStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/permission_status_ok"
-                    android:textColor="@color/success"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/aboutPermissionSurroundingStreetStorageRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <View
-                    android:id="@+id/aboutPermissionSurroundingStreetStorageMark"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_permission_status_ok"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionSurroundingStreetStorageLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/label_permission_surrounding_street_storage"
-                    android:textColor="?attr/vibroTextPrimaryColor"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionSurroundingStreetStorageStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/permission_status_ok"
-                    android:textColor="@color/success"
-                    android:textSize="14sp" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/aboutSensorStatusSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/about_sensor_status_title"
-            android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
-
-        <TextView
-            android:id="@+id/aboutSensorStatusBody"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:textColor="?attr/vibroTextSecondaryColor"
-            android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/aboutSymbolTestTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/label_direction_notification_tests"
-            android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:id="@+id/aboutSymbolTestButtonRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/aboutSymbolTestLeftButton"
-                style="@style/Widget.ViBRoNavigator.Button.Primary"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="4dp"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:text="@string/action_test_left_notification"
-                android:textSize="14sp" />
-
-            <Button
-                android:id="@+id/aboutSymbolTestOtherButton"
-                style="@style/Widget.ViBRoNavigator.Button.Primary"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:text="@string/action_test_other_notification"
-                android:textSize="14sp" />
-
-            <Button
-                android:id="@+id/aboutSymbolTestRightButton"
-                style="@style/Widget.ViBRoNavigator.Button.Primary"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_weight="1"
-                android:maxLines="1"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"
-                android:text="@string/action_test_right_notification"
-                android:textSize="14sp" />
-        </LinearLayout>
+        <include layout="@layout/about_diagnostics_section" />
     </LinearLayout>
 </ScrollView>
