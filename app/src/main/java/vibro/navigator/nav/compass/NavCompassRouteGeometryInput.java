@@ -15,7 +15,7 @@ final class NavCompassRouteGeometryInput {
     public final CompassRouteGeometry routeGeometry;
     public final double currentLatitude;
     public final double currentLongitude;
-    public final int passedRouteSamplePointCount;
+    public final double alongTrackMeters;
     @NonNull
     public final CompassDestinationProjection destinationProjection;
     @NonNull
@@ -31,7 +31,7 @@ final class NavCompassRouteGeometryInput {
             @NonNull CompassRouteGeometry routeGeometry,
             double currentLatitude,
             double currentLongitude,
-            int passedRouteSamplePointCount,
+            double alongTrackMeters,
             @NonNull CompassDestinationProjection destinationProjection
     ) {
         this(
@@ -40,7 +40,7 @@ final class NavCompassRouteGeometryInput {
                 routeGeometry,
                 currentLatitude,
                 currentLongitude,
-                passedRouteSamplePointCount,
+                alongTrackMeters,
                 destinationProjection,
                 Collections.emptyList(),
                 null,
@@ -54,7 +54,7 @@ final class NavCompassRouteGeometryInput {
             @NonNull CompassRouteGeometry routeGeometry,
             double currentLatitude,
             double currentLongitude,
-            int passedRouteSamplePointCount,
+            double alongTrackMeters,
             @NonNull CompassDestinationProjection destinationProjection,
             @Nullable CompassOrientationCue orientationCue
     ) {
@@ -64,7 +64,7 @@ final class NavCompassRouteGeometryInput {
                 routeGeometry,
                 currentLatitude,
                 currentLongitude,
-                passedRouteSamplePointCount,
+                alongTrackMeters,
                 destinationProjection,
                 Collections.emptyList(),
                 null,
@@ -78,7 +78,7 @@ final class NavCompassRouteGeometryInput {
             @NonNull CompassRouteGeometry routeGeometry,
             double currentLatitude,
             double currentLongitude,
-            int passedRouteSamplePointCount,
+            double alongTrackMeters,
             @NonNull CompassDestinationProjection destinationProjection,
             @Nullable CompassDestinationProjection routeStartApproachProjection,
             @Nullable CompassOrientationCue orientationCue
@@ -89,7 +89,7 @@ final class NavCompassRouteGeometryInput {
                 routeGeometry,
                 currentLatitude,
                 currentLongitude,
-                passedRouteSamplePointCount,
+                alongTrackMeters,
                 destinationProjection,
                 Collections.emptyList(),
                 routeStartApproachProjection,
@@ -103,7 +103,7 @@ final class NavCompassRouteGeometryInput {
             @NonNull CompassRouteGeometry routeGeometry,
             double currentLatitude,
             double currentLongitude,
-            int passedRouteSamplePointCount,
+            double alongTrackMeters,
             @NonNull CompassDestinationProjection destinationProjection,
             @NonNull List<CompassBlockedArea> blockedAreas,
             @Nullable CompassDestinationProjection routeStartApproachProjection,
@@ -114,7 +114,7 @@ final class NavCompassRouteGeometryInput {
         this.routeGeometry = routeGeometry;
         this.currentLatitude = currentLatitude;
         this.currentLongitude = currentLongitude;
-        this.passedRouteSamplePointCount = passedRouteSamplePointCount;
+        this.alongTrackMeters = alongTrackMeters;
         this.destinationProjection = destinationProjection;
         this.blockedAreas = blockedAreas;
         this.routeStartApproachProjection = routeStartApproachProjection;

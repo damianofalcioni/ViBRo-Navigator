@@ -55,6 +55,7 @@ public final class CompassRouteGeometryFactory {
     ) {
         return new CompassRouteGeometry(
                 buildRouteSamplePoints(route, index),
+                buildFullRoutePoints(route, index),
                 buildHintSamplePoints(route, index),
                 buildIntermediateSamplePoints(index, intermediateStops),
                 archivedPassedRouteSegments,
@@ -67,18 +68,22 @@ public final class CompassRouteGeometryFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index
     ) {
-        List<CompassRouteGeometry.SamplePoint> routeSamplePoints = new ArrayList<>();
-        if (route.track.isEmpty()) {
-            return routeSamplePoints;
+        return CompassRouteShapeSampler.sample(route.track, index, MAX_COMPASS_ROUTE_POINTS);
+    }
+
+    @NonNull
+    private static List<CompassRouteGeometry.SamplePoint> buildFullRoutePoints(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index
+    ) {
+        List<CompassRouteGeometry.SamplePoint> points = new ArrayList<>(route.track.size());
+        for (int i = 0; i < route.track.size(); i++) {
+            points.add(new CompassRouteGeometry.SamplePoint(
+                    route.track.get(i),
+                    index.distanceAtPointIndex(i)
+            ));
         }
-        if (route.track.size() == 1) {
-            routeSamplePoints.add(new CompassRouteGeometry.SamplePoint(route.track.get(0), 0.0));
-            return routeSamplePoints;
-        }
-        double totalLengthMeters = index.totalLengthMeters();
-        double stepMeters = Math.max(12.0, totalLengthMeters / MAX_COMPASS_ROUTE_POINTS);
-        addSampledRoutePoints(index, 0.0, totalLengthMeters, stepMeters, routeSamplePoints);
-        return routeSamplePoints;
+        return points;
     }
 
     @NonNull
@@ -117,28 +122,6 @@ public final class CompassRouteGeometryFactory {
 
     private static int clampHintIndex(@NonNull GeoJsonRoute route, int selectedIndex) {
         return Math.min(route.voiceHints.size() - 1, Math.max(0, selectedIndex));
-    }
-
-    private static void addSampledRoutePoints(
-            @NonNull PolylineIndex index,
-            double startMeters,
-            double endMeters,
-            double stepMeters,
-            @NonNull List<CompassRouteGeometry.SamplePoint> target
-    ) {
-        if (endMeters < startMeters) {
-            return;
-        }
-        for (double distance = startMeters; distance < endMeters; distance += stepMeters) {
-            LatLon point = index.pointAtDistance(distance);
-            if (point != null) {
-                target.add(new CompassRouteGeometry.SamplePoint(point, distance));
-            }
-        }
-        LatLon endPoint = index.pointAtDistance(endMeters);
-        if (endPoint != null) {
-            target.add(new CompassRouteGeometry.SamplePoint(endPoint, endMeters));
-        }
     }
 
     private static void addHintSamplePoints(

@@ -4,8 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.policy.NavigationSpeedBucket;
-import vibro.navigator.nav.route.NavigationRouteGeometryState;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,12 +31,15 @@ public final class NavCompassState {
     public final CompassStreetOverlay streetOverlay;
     @Nullable
     public final CompassOrientationCue orientationCue;
+    @NonNull
+    public final CompassFullRouteView fullRouteView;
     @Nullable
     private final CompassRouteGeometry routeGeometry;
     private final double currentLatitude;
     private final double currentLongitude;
     private final int passedRouteSamplePointCount;
     private final int remainingRouteStartSamplePointIndex;
+    private final double alongTrackMeters;
 
     @NonNull
     static NavCompassState fromProjectedPoints(@NonNull NavCompassProjectedPointsInput input) {
@@ -86,7 +87,7 @@ public final class NavCompassState {
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
-                        (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(accuracyRadiusMeters),
+                        CompassRadiusMetrics.destinationReachedRadiusMeters(accuracyRadiusMeters),
                         destinationWithinRadius
                 )
         ));
@@ -132,9 +133,7 @@ public final class NavCompassState {
                         destinationNorthMeters,
                         Math.max(
                                 routeThresholdMeters,
-                                (float) NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(
-                                        accuracyRadiusMeters
-                                )
+                                CompassRadiusMetrics.destinationReachedRadiusMeters(accuracyRadiusMeters)
                         ),
                         destinationWithinRadius
                 )
@@ -182,7 +181,7 @@ public final class NavCompassState {
                 routeGeometry,
                 currentLatitude,
                 currentLongitude,
-                passedRouteSamplePointCount,
+                routeGeometry.alongTrackMetersForSampleCount(passedRouteSamplePointCount),
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,
@@ -229,6 +228,8 @@ public final class NavCompassState {
         this.currentLongitude = Double.NaN;
         this.passedRouteSamplePointCount = input.passedRoutePoints.size();
         this.remainingRouteStartSamplePointIndex = 0;
+        this.fullRouteView = CompassFullRouteView.EMPTY;
+        this.alongTrackMeters = 0.0;
     }
 
     private NavCompassState(@NonNull NavCompassRouteGeometryInput input) {
@@ -260,13 +261,12 @@ public final class NavCompassState {
         this.routeGeometry = input.routeGeometry;
         this.currentLatitude = input.currentLatitude;
         this.currentLongitude = input.currentLongitude;
-        this.passedRouteSamplePointCount = Math.max(
-                0,
-                Math.min(input.passedRouteSamplePointCount, input.routeGeometry.routeSamplePointCount())
-        );
+        this.alongTrackMeters = input.alongTrackMeters;
+        this.passedRouteSamplePointCount = input.routeGeometry.passedRoutePointCount(input.alongTrackMeters);
         this.remainingRouteStartSamplePointIndex = input.routeGeometry.routeSamplePointCount() == 0
                 ? 0
                 : Math.max(0, this.passedRouteSamplePointCount - 1);
+        this.fullRouteView = CompassFullRouteView.from(input);
         this.passedRoutePoints = new ProjectedCompassPassedRoutePointList(
                 input.routeGeometry,
                 this.currentLatitude,
@@ -313,6 +313,8 @@ public final class NavCompassState {
         currentLongitude = source.currentLongitude;
         passedRouteSamplePointCount = source.passedRouteSamplePointCount;
         remainingRouteStartSamplePointIndex = source.remainingRouteStartSamplePointIndex;
+        fullRouteView = source.fullRouteView;
+        alongTrackMeters = source.alongTrackMeters;
     }
 
     @NonNull
@@ -343,16 +345,10 @@ public final class NavCompassState {
                 <= targetVisibleRadiusMeters;
         if (routeGeometry != null) {
             return fromRouteGeometry(new NavCompassRouteGeometryInput(
-                    displayMetrics(
-                            displayMode.headingDegrees,
-                            displayMode.headingAccuracyDegrees,
+                    CompassDisplayMetrics.forDisplayMode(
+                            displayMode,
                             targetReferenceSpeedMps,
-                            displayMode.fullRouteReferenceSpeedMps,
-                            displayMode.movingScaleReferenceSpeedMps,
-                            displayMode.movingScaleHorizonSeconds,
-                            displayMode.movingScaleSpeedBucket,
-                            movingScaleView,
-                            displayMode.straightLineMode
+                            movingScaleView
                     ),
                     new CompassRadiusMetrics(
                             targetVisibleRadiusMeters,
@@ -364,7 +360,7 @@ public final class NavCompassState {
                     routeGeometry,
                     currentLatitude,
                     currentLongitude,
-                    passedRouteSamplePointCount,
+                    alongTrackMeters,
                     new CompassDestinationProjection(
                             progressLabels.destinationEastMeters,
                             progressLabels.destinationNorthMeters,
@@ -377,16 +373,10 @@ public final class NavCompassState {
             )).withStreetOverlay(streetOverlay);
         }
         return fromProjectedPoints(new NavCompassProjectedPointsInput(
-                displayMetrics(
-                        displayMode.headingDegrees,
-                        displayMode.headingAccuracyDegrees,
+                CompassDisplayMetrics.forDisplayMode(
+                        displayMode,
                         targetReferenceSpeedMps,
-                        displayMode.fullRouteReferenceSpeedMps,
-                        displayMode.movingScaleReferenceSpeedMps,
-                        displayMode.movingScaleHorizonSeconds,
-                        displayMode.movingScaleSpeedBucket,
-                        movingScaleView,
-                        displayMode.straightLineMode
+                        movingScaleView
                 ),
                 new CompassRadiusMetrics(
                         targetVisibleRadiusMeters,
@@ -413,31 +403,6 @@ public final class NavCompassState {
     @NonNull
     public NavCompassState withStreetOverlay(@NonNull CompassStreetOverlay streetOverlay) {
         return new NavCompassState(this, streetOverlay);
-    }
-
-    @NonNull
-    private static CompassDisplayMetrics displayMetrics(
-            float headingDegrees,
-            @Nullable Float headingAccuracyDegrees,
-            float referenceSpeedMps,
-            float fullRouteReferenceSpeedMps,
-            float movingScaleReferenceSpeedMps,
-            float movingScaleHorizonSeconds,
-            @NonNull NavigationSpeedBucket movingScaleSpeedBucket,
-            boolean movingScaleActive,
-            boolean straightLineMode
-    ) {
-        return new CompassDisplayMetrics(
-                headingDegrees,
-                headingAccuracyDegrees,
-                referenceSpeedMps,
-                fullRouteReferenceSpeedMps,
-                movingScaleReferenceSpeedMps,
-                movingScaleHorizonSeconds,
-                movingScaleSpeedBucket,
-                movingScaleActive,
-                straightLineMode
-        );
     }
 
     private static float sanitizeVisibleRadiusMeters(float visibleRadiusMeters, float fallbackVisibleRadiusMeters) {
@@ -495,4 +460,5 @@ public final class NavCompassState {
     public double currentLongitude() {
         return currentLongitude;
     }
+
 }

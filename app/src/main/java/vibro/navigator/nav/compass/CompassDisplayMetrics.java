@@ -60,4 +60,23 @@ public final class CompassDisplayMetrics {
         this.movingScaleActive = movingScaleActive;
         this.straightLineMode = straightLineMode;
     }
+
+    @NonNull
+    static CompassDisplayMetrics forDisplayMode(
+            @NonNull CompassDisplayMode source,
+            float referenceSpeedMps,
+            boolean movingScaleActive
+    ) {
+        return new CompassDisplayMetrics(
+                source.headingDegrees,
+                source.headingAccuracyDegrees,
+                referenceSpeedMps,
+                source.fullRouteReferenceSpeedMps,
+                source.movingScaleReferenceSpeedMps,
+                source.movingScaleHorizonSeconds,
+                source.movingScaleSpeedBucket,
+                movingScaleActive,
+                source.straightLineMode
+        );
+    }
 }

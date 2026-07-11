@@ -2,7 +2,6 @@ package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.R;
-import vibro.navigator.nav.compass.CompassRoutePoint;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
 import android.graphics.Canvas;
@@ -13,10 +12,6 @@ import android.util.TypedValue;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
-
-import java.util.List;
-
-import vibro.navigator.geo.LatLon;
 
 final class NavigationCompassRouteRenderer {
 
@@ -40,9 +35,14 @@ final class NavigationCompassRouteRenderer {
     private final NavigationCompassRouteMarkerRenderer markerRenderer = new NavigationCompassRouteMarkerRenderer();
     private final NavigationCompassRouteStartApproachRenderer routeStartApproachRenderer =
             new NavigationCompassRouteStartApproachRenderer();
-    private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
-    private final NavigationCompassStoredRouteSegmentRenderer storedSegmentRenderer =
-            new NavigationCompassStoredRouteSegmentRenderer();
+    private final NavigationCompassFullResolutionRouteRenderer fullResolutionRenderer =
+            new NavigationCompassFullResolutionRouteRenderer(
+                    routePaint,
+                    passedRoutePaint,
+                    routeThresholdPaint,
+                    straightLinePaint,
+                    passedStraightLinePaint
+            );
     private boolean initialized;
 
     void drawRouteLayer(
@@ -192,17 +192,20 @@ final class NavigationCompassRouteRenderer {
         passedRoutePaint.setStrokeWidth(dp(context, ROUTE_STROKE_WIDTH_DP));
         float scale = routeRadius / state.radiusState.visibleRadiusMeters;
         if (state.hasRouteGeometry()) {
-            drawRouteThresholdGeometrySegment(
-                    canvas,
-                    state,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    state.remainingRouteStartSamplePointIndex(),
-                    state.routeSamplePointCount()
-            );
-            storedSegmentRenderer.draw(
+            if (state.fullRouteView.isActive()) {
+                fullResolutionRenderer.drawRoute(
+                        canvas,
+                        state,
+                        cx,
+                        cy,
+                        scale,
+                        headingDegrees,
+                        resolveRouteDrawPaddingMeters(state),
+                        shouldDrawRouteThresholdOverlay(state)
+                );
+                return;
+            }
+            fullResolutionRenderer.drawSampledRoute(
                     canvas,
                     state,
                     cx,
@@ -210,36 +213,19 @@ final class NavigationCompassRouteRenderer {
                     scale,
                     headingDegrees,
                     resolveRouteDrawPaddingMeters(state),
-                    passedRoutePaint,
-                    straightLinePaint
-            );
-            drawRouteGeometrySegment(
-                    canvas,
-                    state,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    0,
-                    state.passedRouteSamplePointCount(),
-                    passedRoutePaint
-            );
-            drawRouteGeometrySegment(
-                    canvas,
-                    state,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    state.remainingRouteStartSamplePointIndex(),
-                    state.routeSamplePointCount(),
-                    routePaint
+                    shouldDrawRouteThresholdOverlay(state)
             );
             return;
         }
-        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.passedRoutePoints, passedRoutePaint);
-        drawRouteThresholdSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints);
-        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints, routePaint);
+        fullResolutionRenderer.drawProjectedRoute(
+                canvas,
+                state,
+                cx,
+                cy,
+                scale,
+                headingDegrees,
+                shouldDrawRouteThresholdOverlay(state)
+        );
     }
 
     private void drawStraightLineRoute(
@@ -252,137 +238,36 @@ final class NavigationCompassRouteRenderer {
     ) {
         float scale = routeRadius / state.radiusState.visibleRadiusMeters;
         if (state.hasRouteGeometry()) {
-            storedSegmentRenderer.draw(
-                    canvas,
-                    state,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    resolveRouteDrawPaddingMeters(state),
-                    passedStraightLinePaint,
-                    passedStraightLinePaint
-            );
-            drawRouteGeometrySegment(
-                    canvas,
-                    state,
-                    cx,
-                    cy,
-                    scale,
-                    headingDegrees,
-                    state.remainingRouteStartSamplePointIndex(),
-                    state.routeSamplePointCount(),
-                    straightLinePaint
-            );
-            return;
-        }
-        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, state.routePoints, straightLinePaint);
-    }
-
-    private void drawRouteThresholdGeometrySegment(
-            @NonNull Canvas canvas,
-            @NonNull NavCompassState state,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            int startIndex,
-            int endIndex
-    ) {
-        if (!shouldDrawRouteThresholdOverlay(state)) {
-            return;
-        }
-        drawRouteGeometrySegment(canvas, state, cx, cy, scale, headingDegrees, startIndex, endIndex, routeThresholdPaint);
-    }
-
-    private void drawRouteThresholdSegment(
-            @NonNull Canvas canvas,
-            @NonNull NavCompassState state,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            @NonNull List<CompassRoutePoint> points
-    ) {
-        if (!shouldDrawRouteThresholdOverlay(state)) {
-            return;
-        }
-        drawRouteSegment(canvas, state, cx, cy, scale, headingDegrees, points, routeThresholdPaint);
-    }
-
-    private void drawRouteGeometrySegment(
-            @NonNull Canvas canvas,
-            @NonNull NavCompassState state,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            int startIndex,
-            int endIndex,
-            @NonNull Paint strokePaint
-    ) {
-        if (startIndex < 0 || endIndex <= startIndex) {
-            return;
-        }
-
-        drawProjectedRouteSegment(canvas, state, cx, cy, scale, startIndex, endIndex, strokePaint, (i, out) -> {
-            LatLon point = state.routeSamplePointAt(i);
-            if (point == null) {
-                return false;
+            if (state.fullRouteView.isActive()) {
+                fullResolutionRenderer.drawStraightLineRoute(
+                        canvas,
+                        state,
+                        cx,
+                        cy,
+                        scale,
+                        headingDegrees,
+                        resolveRouteDrawPaddingMeters(state)
+                );
+            } else {
+                fullResolutionRenderer.drawSampledStraightLineRoute(
+                        canvas,
+                        state,
+                        cx,
+                        cy,
+                        scale,
+                        headingDegrees,
+                        resolveRouteDrawPaddingMeters(state)
+                );
             }
-            NavigationCompassRouteProjector.projectRoutePoint(state, point, headingDegrees, out);
-            return true;
-        });
-    }
-
-    private void drawRouteSegment(
-            @NonNull Canvas canvas,
-            @NonNull NavCompassState state,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees,
-            @NonNull List<CompassRoutePoint> points,
-            @NonNull Paint strokePaint
-    ) {
-        if (points.isEmpty()) {
             return;
         }
-
-        drawProjectedRouteSegment(canvas, state, cx, cy, scale, 0, points.size(), strokePaint, (i, out) -> {
-            CompassRoutePoint point = points.get(i);
-            NavigationCompassRouteProjector.projectHeadingUp(
-                    point.eastMeters,
-                    point.northMeters,
-                    headingDegrees,
-                    out
-            );
-            return true;
-        });
-    }
-
-    private void drawProjectedRouteSegment(
-            @NonNull Canvas canvas,
-            @NonNull NavCompassState state,
-            float cx,
-            float cy,
-            float scale,
-            int startIndex,
-            int endIndex,
-            @NonNull Paint strokePaint,
-            @NonNull ProjectedRoutePointSource pointSource
-    ) {
-        routePathRenderer.drawProjectedRouteSegment(
+        fullResolutionRenderer.drawProjectedStraightLineRoute(
                 canvas,
+                state,
                 cx,
                 cy,
                 scale,
-                startIndex,
-                endIndex,
-                state.radiusState.visibleRadiusMeters,
-                resolveRouteDrawPaddingMeters(state),
-                strokePaint,
-                pointSource::project
+                headingDegrees
         );
     }
 
@@ -402,7 +287,4 @@ final class NavigationCompassRouteRenderer {
         );
     }
 
-    private interface ProjectedRoutePointSource {
-        boolean project(int index, @NonNull NavigationRoutePathRenderer.PlotPoint out);
-    }
 }

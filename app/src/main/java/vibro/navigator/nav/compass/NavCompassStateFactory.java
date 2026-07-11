@@ -249,7 +249,7 @@ public final class NavCompassStateFactory {
                 routeGeometry,
                 currentLat,
                 currentLon,
-                routeGeometry.passedRoutePointCount(alongTrackMeters),
+                alongTrackMeters,
                 new CompassDestinationProjection(
                         destinationEastMeters,
                         destinationNorthMeters,

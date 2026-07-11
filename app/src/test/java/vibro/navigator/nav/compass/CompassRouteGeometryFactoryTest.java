@@ -58,6 +58,29 @@ public class CompassRouteGeometryFactoryTest {
 
         assertEquals(48, geometry.hintSamplePointCount());
         assertTrue(geometry.routeSamplePointCount() > 2);
+        assertEquals(track.size(), geometry.fullRoutePointCount());
+    }
+
+    @Test
+    public void build_longRouteRetainsShortBendsNearRouteStart() {
+        List<LatLon> track = new ArrayList<>();
+        LatLon firstBend = new LatLon(0.0, 0.0002);
+        LatLon secondBend = new LatLon(0.0002, 0.0002);
+        track.add(new LatLon(0.0, 0.0));
+        track.add(firstBend);
+        track.add(secondBend);
+        track.add(new LatLon(0.0002, 0.0));
+        for (int i = 1; i <= 500; i++) {
+            track.add(new LatLon(0.0002 + i * 0.001, 0.0));
+        }
+        GeoJsonRoute route = new GeoJsonRoute(track, Collections.emptyList(), 10_000.0, 55_000.0);
+
+        CompassRouteGeometry geometry = CompassRouteGeometryFactory.build(route, new PolylineIndex(route.track));
+
+        assertTrue(geometry.routeSamplePointCount() <= 240);
+        assertEquals(track.size(), geometry.fullRoutePointCount());
+        assertTrue(containsPoint(geometry, firstBend));
+        assertTrue(containsPoint(geometry, secondBend));
     }
 
     @Test
@@ -225,5 +248,15 @@ public class CompassRouteGeometryFactoryTest {
             return;
         }
         throw new AssertionError("Expected compass route points to be immutable");
+    }
+
+    private static boolean containsPoint(CompassRouteGeometry geometry, LatLon expected) {
+        for (int i = 0; i < geometry.routeSamplePointCount(); i++) {
+            LatLon actual = geometry.routeSamplePointAt(i);
+            if (actual != null && actual.lat == expected.lat && actual.lon == expected.lon) {
+                return true;
+            }
+        }
+        return false;
     }
 }

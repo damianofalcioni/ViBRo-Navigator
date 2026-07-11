@@ -25,6 +25,10 @@ public final class CompassRouteGeometry {
     @NonNull
     private final List<SamplePoint> routeSamplePoints;
     @NonNull
+    private final List<SamplePoint> fullRoutePoints;
+    @NonNull
+    private final CompassRouteSpatialIndex fullRouteSpatialIndex;
+    @NonNull
     private final List<LatLon> hintSamplePoints;
     @NonNull
     private final List<LatLon> intermediateSamplePoints;
@@ -70,7 +74,27 @@ public final class CompassRouteGeometry {
             @NonNull List<List<LatLon>> archivedPassedRouteSegments,
             @NonNull List<List<LatLon>> recalculationBridgeSegments
     ) {
+        this(
+                routeSamplePoints,
+                routeSamplePoints,
+                hintSamplePoints,
+                intermediateSamplePoints,
+                archivedPassedRouteSegments,
+                recalculationBridgeSegments
+        );
+    }
+
+    public CompassRouteGeometry(
+            @NonNull List<SamplePoint> routeSamplePoints,
+            @NonNull List<SamplePoint> fullRoutePoints,
+            @NonNull List<LatLon> hintSamplePoints,
+            @NonNull List<LatLon> intermediateSamplePoints,
+            @NonNull List<List<LatLon>> archivedPassedRouteSegments,
+            @NonNull List<List<LatLon>> recalculationBridgeSegments
+    ) {
         this.routeSamplePoints = immutableCopy(routeSamplePoints);
+        this.fullRoutePoints = immutableCopy(fullRoutePoints);
+        this.fullRouteSpatialIndex = new CompassRouteSpatialIndex(this.fullRoutePoints);
         this.hintSamplePoints = immutableCopy(hintSamplePoints);
         this.intermediateSamplePoints = immutableCopy(intermediateSamplePoints);
         this.archivedPassedRouteSegments = new CompassPassedRouteSegments(archivedPassedRouteSegments);
@@ -79,6 +103,10 @@ public final class CompassRouteGeometry {
 
     public int routeSamplePointCount() {
         return routeSamplePoints.size();
+    }
+
+    public int fullRoutePointCount() {
+        return fullRoutePoints.size();
     }
 
     public int hintSamplePointCount() {
@@ -95,6 +123,14 @@ public final class CompassRouteGeometry {
             return null;
         }
         return routeSamplePoints.get(index).point;
+    }
+
+    @Nullable
+    public LatLon fullRoutePointAt(int index) {
+        if (index < 0 || index >= fullRoutePoints.size()) {
+            return null;
+        }
+        return fullRoutePoints.get(index).point;
     }
 
     @Nullable
@@ -124,18 +160,24 @@ public final class CompassRouteGeometry {
     }
 
     public int passedRoutePointCount(double alongTrackMeters) {
-        if (routeSamplePoints.isEmpty()) {
-            return 0;
+        return passedPointCount(routeSamplePoints, alongTrackMeters);
+    }
+
+    public int passedFullRoutePointCount(double alongTrackMeters) {
+        return passedPointCount(fullRoutePoints, alongTrackMeters);
+    }
+
+    public double alongTrackMetersForSampleCount(int samplePointCount) {
+        if (routeSamplePoints.isEmpty() || samplePointCount <= 0) {
+            return 0.0;
         }
-        int passedPointCount = 0;
-        for (int i = 0; i < routeSamplePoints.size(); i++) {
-            if (routeSamplePoints.get(i).alongTrackMeters <= alongTrackMeters) {
-                passedPointCount = i + 1;
-            } else {
-                break;
-            }
-        }
-        return Math.max(1, passedPointCount);
+        int index = Math.min(samplePointCount, routeSamplePoints.size()) - 1;
+        return routeSamplePoints.get(index).alongTrackMeters;
+    }
+
+    @NonNull
+    CompassRouteSpatialIndex fullRouteSpatialIndex() {
+        return fullRouteSpatialIndex;
     }
 
     @NonNull
@@ -157,5 +199,23 @@ public final class CompassRouteGeometry {
             return Collections.emptyList();
         }
         return Collections.unmodifiableList(new ArrayList<>(values));
+    }
+
+    private static int passedPointCount(
+            @NonNull List<SamplePoint> points,
+            double alongTrackMeters
+    ) {
+        if (points.isEmpty()) {
+            return 0;
+        }
+        int passedPointCount = 0;
+        for (int i = 0; i < points.size(); i++) {
+            if (points.get(i).alongTrackMeters <= alongTrackMeters) {
+                passedPointCount = i + 1;
+            } else {
+                break;
+            }
+        }
+        return Math.max(1, passedPointCount);
     }
 }

@@ -1,5 +1,6 @@
 package vibro.navigator.nav.compass.ui;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
@@ -37,6 +38,28 @@ public class NavigationCompassRouteRendererBridgeTest {
         renderer.drawRouteLayer(canvas, activity, compassStateWithBridge(), 120f, 120f, 100f, 0f);
 
         assertTrue(hasDottedRedPath(activity, Shadows.shadowOf(canvas)));
+    }
+
+    @Test
+    public void drawRouteLayer_movingScaleUsesFullResolutionRoutePoints() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
+        Canvas canvas = new Canvas(Bitmap.createBitmap(240, 240, Bitmap.Config.ARGB_8888));
+
+        renderer.drawRouteLayer(canvas, activity, movingStateWithLocalFullRoute(), 120f, 120f, 100f, 0f);
+
+        assertTrue(hasSolidRedPath(activity, Shadows.shadowOf(canvas)));
+    }
+
+    @Test
+    public void drawRouteLayer_movingScaleDoesNotFallBackToOverviewShortcut() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
+        Canvas canvas = new Canvas(Bitmap.createBitmap(240, 240, Bitmap.Config.ARGB_8888));
+
+        renderer.drawRouteLayer(canvas, activity, movingStateWithDistantDetour(), 120f, 120f, 100f, 0f);
+
+        assertFalse(hasSolidRedPath(activity, Shadows.shadowOf(canvas)));
     }
 
     private static NavCompassState compassStateWithBridge() {
@@ -82,6 +105,85 @@ public class NavigationCompassRouteRendererBridgeTest {
         );
     }
 
+    private static NavCompassState movingStateWithLocalFullRoute() {
+        CompassRouteGeometry geometry = new CompassRouteGeometry(
+                Arrays.asList(
+                        new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.01), 0.0),
+                        new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.02), 1_111.0)
+                ),
+                Arrays.asList(
+                        new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.0), 0.0),
+                        new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.0005), 55.0)
+                ),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+        return NavCompassState.fromRouteGeometry(
+                0f,
+                null,
+                1f,
+                1f,
+                1f,
+                100f,
+                2_500f,
+                100f,
+                5f,
+                true,
+                13f,
+                geometry,
+                0.0,
+                0.0,
+                1,
+                0f,
+                0f,
+                10f,
+                true
+        );
+    }
+
+    private static NavCompassState movingStateWithDistantDetour() {
+        CompassRouteGeometry.SamplePoint first =
+                new CompassRouteGeometry.SamplePoint(new LatLon(0.0, -0.01), 0.0);
+        CompassRouteGeometry.SamplePoint last =
+                new CompassRouteGeometry.SamplePoint(new LatLon(0.0, 0.01), 3_333.0);
+        CompassRouteGeometry geometry = new CompassRouteGeometry(
+                Arrays.asList(first, last),
+                Arrays.asList(
+                        first,
+                        new CompassRouteGeometry.SamplePoint(new LatLon(0.01, -0.01), 1_111.0),
+                        new CompassRouteGeometry.SamplePoint(new LatLon(0.01, 0.01), 2_222.0),
+                        last
+                ),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
+        return NavCompassState.fromRouteGeometry(
+                0f,
+                null,
+                1f,
+                1f,
+                1f,
+                100f,
+                2_500f,
+                100f,
+                5f,
+                true,
+                13f,
+                geometry,
+                0.0,
+                0.0,
+                1,
+                0f,
+                0f,
+                10f,
+                true
+        );
+    }
+
     private static boolean hasDottedRedPath(Activity activity, ShadowCanvas shadowCanvas) {
         int routeColor = ContextCompat.getColor(activity, R.color.compass_route);
         for (int i = 0; i < shadowCanvas.getPathPaintHistoryCount(); i++) {
@@ -89,6 +191,17 @@ public class NavigationCompassRouteRendererBridgeTest {
             if (paint.getColor() == routeColor
                     && paint.getAlpha() == 220
                     && paint.getPathEffect() instanceof DashPathEffect) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasSolidRedPath(Activity activity, ShadowCanvas shadowCanvas) {
+        int routeColor = ContextCompat.getColor(activity, R.color.compass_route);
+        for (int i = 0; i < shadowCanvas.getPathPaintHistoryCount(); i++) {
+            Paint paint = shadowCanvas.getDrawnPathPaint(i);
+            if (paint.getColor() == routeColor && !(paint.getPathEffect() instanceof DashPathEffect)) {
                 return true;
             }
         }

@@ -175,9 +175,8 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertEquals(2, geometry.archivedPassedRouteSegments().segmentCount());
         assertTrue(geometry.archivedPassedRouteSegments().samplePointCount(0) >= 2);
         assertTrue(geometry.archivedPassedRouteSegments().samplePointCount(1) >= 2);
-        assertEquals(2, geometry.recalculationBridgeSegments().segmentCount());
+        assertEquals(1, geometry.recalculationBridgeSegments().segmentCount());
         assertEquals(2, geometry.recalculationBridgeSegments().samplePointCount(0));
-        assertEquals(2, geometry.recalculationBridgeSegments().samplePointCount(1));
         assertTrue(navState.routeStatus.compassState.passedRoutePoints.size()
                 > navState.routeStatus.compassState.passedRouteSamplePointCount());
     }
