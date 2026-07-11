@@ -94,7 +94,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 
 #### 2.1 History dropdown before typing
 
-- Before the user starts typing, a dropdown must appear below the input field
+- Before the user starts typing, a compact dropdown must appear adjacent to the input field without covering it; the dropdown may open above the field when keyboard or screen space makes that clearer
 - The dropdown must show previously searched POIs
 - History entries must be promoted when a destination or stop is selected or otherwise resolved to valid coordinates for navigation
 - Each history row must include an edit control on the right that lets the user rename the stored display label without changing the saved coordinates
@@ -114,7 +114,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 
 #### 2.3 Search results dropdown
 
-- Search results must be shown in a dropdown below the input field
+- Search results must be shown in a compact dropdown adjacent to the input field without covering it; the dropdown may open above the field when keyboard or screen space makes that clearer
 - The user must be able to select a result from the dropdown
 - Selecting a result must bind the destination to the coordinates of that POI
 - Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again

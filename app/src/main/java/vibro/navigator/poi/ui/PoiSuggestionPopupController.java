@@ -1,7 +1,9 @@
 package vibro.navigator.poi.ui;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -15,13 +17,22 @@ import vibro.navigator.logging.AppLogger;
 
 final class PoiSuggestionPopupController {
 
+    private static final int MAX_VISIBLE_ROWS = 3;
+    private static final int POPUP_ROW_HEIGHT_DP = 56;
+    private static final int MIN_VISIBLE_POPUP_HEIGHT_DP = 48;
+
     interface SelectionListener {
         void onPoiSelected(@NonNull Poi poi);
     }
 
     private final EditText anchor;
+    private final PoiSuggestionAdapter adapter;
     private final ListPopupWindow popup;
     private final String logTag;
+    private final int popupRowHeightPx;
+    private final int minVisiblePopupHeightPx;
+    private final Rect visibleFrame = new Rect();
+    private final int[] anchorLocation = new int[2];
 
     PoiSuggestionPopupController(
             @NonNull Context context,
@@ -31,11 +42,15 @@ final class PoiSuggestionPopupController {
             @NonNull SelectionListener listener
     ) {
         this.anchor = anchor;
+        this.adapter = adapter;
         this.logTag = logTag;
+        this.popupRowHeightPx = dp(context, POPUP_ROW_HEIGHT_DP);
+        this.minVisiblePopupHeightPx = dp(context, MIN_VISIBLE_POPUP_HEIGHT_DP);
         this.popup = new ListPopupWindow(context);
         popup.setAnchorView(anchor);
         popup.setAdapter(adapter);
         popup.setModal(false);
+        popup.setInputMethodMode(ListPopupWindow.INPUT_METHOD_NOT_NEEDED);
         popup.setBackgroundDrawable(new ColorDrawable(
                 AndroidAppTheme.color(context, R.attr.vibroBackgroundColor)
         ));
@@ -56,6 +71,7 @@ final class PoiSuggestionPopupController {
             return;
         }
         try {
+            configurePopupPlacement();
             popup.show();
             if (popup.getListView() != null) {
                 popup.getListView().setItemsCanFocus(true);
@@ -63,6 +79,24 @@ final class PoiSuggestionPopupController {
         } catch (WindowManager.BadTokenException | IllegalStateException e) {
             AppLogger.w(logTag, "Skipping popup show because anchor window is not ready reason=" + reason, e);
         }
+    }
+
+    private void configurePopupPlacement() {
+        anchor.getWindowVisibleDisplayFrame(visibleFrame);
+        anchor.getLocationOnScreen(anchorLocation);
+        PopupLayout layout = popupLayout(
+                visibleFrame.top,
+                visibleFrame.bottom,
+                anchorLocation[1],
+                anchor.getHeight(),
+                adapter.getCount(),
+                popupRowHeightPx,
+                minVisiblePopupHeightPx
+        );
+        int anchorWidth = anchor.getWidth();
+        popup.setWidth(anchorWidth > 0 ? anchorWidth : ListPopupWindow.WRAP_CONTENT);
+        popup.setHeight(layout.heightPx);
+        popup.setVerticalOffset(layout.verticalOffsetPx);
     }
 
     private boolean canShow(@NonNull String reason) {
@@ -82,5 +116,57 @@ final class PoiSuggestionPopupController {
                 + " viewVisible=" + viewVisible
                 + " windowVisible=" + windowVisible);
         return false;
+    }
+
+    @NonNull
+    static PopupLayout popupLayout(
+            int visibleTop,
+            int visibleBottom,
+            int anchorTop,
+            int anchorHeight,
+            int itemCount,
+            int rowHeightPx,
+            int minVisibleHeightPx
+    ) {
+        int safeAnchorHeight = Math.max(0, anchorHeight);
+        int anchorBottom = anchorTop + safeAnchorHeight;
+        int desiredHeight = desiredPopupHeight(itemCount, rowHeightPx);
+        int above = Math.max(0, anchorTop - visibleTop);
+        int below = Math.max(0, visibleBottom - anchorBottom);
+        if (above >= minVisibleHeightPx) {
+            int height = boundedHeight(desiredHeight, above);
+            return new PopupLayout(height, -(safeAnchorHeight + height));
+        }
+        return new PopupLayout(boundedHeight(desiredHeight, below), 0);
+    }
+
+    private static int desiredPopupHeight(int itemCount, int rowHeightPx) {
+        int visibleRows = Math.max(1, Math.min(itemCount, MAX_VISIBLE_ROWS));
+        return visibleRows * Math.max(1, rowHeightPx);
+    }
+
+    private static int boundedHeight(int desiredHeight, int availableHeight) {
+        if (availableHeight <= 0) {
+            return desiredHeight;
+        }
+        return Math.max(1, Math.min(desiredHeight, availableHeight));
+    }
+
+    private static int dp(@NonNull Context context, int value) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                value,
+                context.getResources().getDisplayMetrics()
+        );
+    }
+
+    static final class PopupLayout {
+        final int heightPx;
+        final int verticalOffsetPx;
+
+        PopupLayout(int heightPx, int verticalOffsetPx) {
+            this.heightPx = heightPx;
+            this.verticalOffsetPx = verticalOffsetPx;
+        }
     }
 }
