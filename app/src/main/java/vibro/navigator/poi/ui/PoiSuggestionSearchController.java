@@ -11,14 +11,17 @@ import vibro.navigator.logging.AppLogger;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Future;
 
 final class PoiSuggestionSearchController {
 
-    private static final int MAX_SUGGESTIONS = 10;
+    private static final int MAX_HISTORY_SUGGESTIONS = 10;
+    private static final int MAX_ONLINE_SUGGESTIONS = 10;
     private static final int SEARCH_DELAY_MS = 300;
-    private static final int MIN_ONLINE_QUERY_LENGTH = 4;
+    private static final int MIN_ONLINE_QUERY_LENGTH = 3;
 
     interface Presenter {
         void showHistory();
@@ -84,11 +87,17 @@ final class PoiSuggestionSearchController {
         cancelPendingSearch();
 
         String query = raw.trim();
-        if (showCoordinateSuggestion(query) || showHistoryMatches(query) || handleShortQuery(query)) {
+        if (showCoordinateSuggestion(query) || handleEmptyQuery(query)) {
+            return;
+        }
+
+        List<PoiSuggestion> historySuggestions = matchingHistorySuggestions(query);
+        if (handleShortQuery(query, historySuggestions)) {
             return;
         }
 
         cancelInFlightSearch();
+        showTypedHistoryMatches(query, historySuggestions);
         pendingSearch = () -> runSearch(query);
         AppLogger.d(logTag, "Scheduling search query=" + query);
         mainThreadScheduler.postDelayed(pendingSearch, SEARCH_DELAY_MS);
@@ -122,33 +131,45 @@ final class PoiSuggestionSearchController {
         return true;
     }
 
-    private boolean showHistoryMatches(@NonNull String query) {
-        List<PoiSuggestion> historySuggestions = matchingHistorySuggestions(query);
-        if (historySuggestions.isEmpty()) {
+    private boolean handleEmptyQuery(@NonNull String query) {
+        if (!query.isEmpty()) {
             return false;
         }
-
         cancelInFlightSearch();
-        AppLogger.d(logTag, "Showing matching history query=" + query
-                + " items=" + historySuggestions.size());
-        presenter.showSuggestions(historySuggestions, "history-search-results");
+        AppLogger.d(logTag, "Empty query, showing history");
+        presenter.showHistory();
         return true;
     }
 
-    private boolean handleShortQuery(@NonNull String query) {
+    private boolean handleShortQuery(
+            @NonNull String query,
+            @NonNull List<PoiSuggestion> historySuggestions
+    ) {
         if (query.length() >= MIN_ONLINE_QUERY_LENGTH) {
             return false;
         }
 
         cancelInFlightSearch();
-        if (query.isEmpty()) {
-            AppLogger.d(logTag, "Empty query, showing history");
-            presenter.showHistory();
-        } else {
+        if (historySuggestions.isEmpty()) {
             AppLogger.d(logTag, "Query too short for search query=" + query);
             presenter.clearSuggestionsAndDismiss();
+        } else {
+            showTypedHistoryMatches(query, historySuggestions);
         }
         return true;
+    }
+
+    private void showTypedHistoryMatches(
+            @NonNull String query,
+            @NonNull List<PoiSuggestion> historySuggestions
+    ) {
+        if (historySuggestions.isEmpty()) {
+            presenter.clearSuggestionsAndDismiss();
+            return;
+        }
+        AppLogger.d(logTag, "Showing matching history query=" + query
+                + " items=" + historySuggestions.size());
+        presenter.showSuggestions(historySuggestions, "history-search-results");
     }
 
     private void runSearch(@NonNull String query) {
@@ -160,7 +181,7 @@ final class PoiSuggestionSearchController {
                 mainThreadScheduler.post(() -> handleSearchSuccess(query, generation, suggestions));
             } catch (IOException e) {
                 AppLogger.e(logTag, "Search failed query=" + query, e);
-                mainThreadScheduler.post(() -> handleSearchFailure(generation));
+                mainThreadScheduler.post(() -> handleSearchFailure(query, generation));
             }
         });
     }
@@ -168,7 +189,7 @@ final class PoiSuggestionSearchController {
     @NonNull
     private List<PoiSuggestion> performSearch(@NonNull String query) throws IOException {
         AppLogger.i(logTag, "Running search query=" + query);
-        List<Poi> results = searchClient.search(query, MAX_SUGGESTIONS);
+        List<Poi> results = searchClient.search(query, MAX_ONLINE_SUGGESTIONS);
         List<PoiSuggestion> suggestions = new ArrayList<>();
         for (Poi poi : results) {
             suggestions.add(new PoiSuggestion(poi, false));
@@ -186,14 +207,15 @@ final class PoiSuggestionSearchController {
             return;
         }
         inFlight = null;
-        AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + suggestions.size());
-        presenter.showSuggestions(suggestions, "search-results");
+        List<PoiSuggestion> combined = suggestionsWithCurrentHistory(query, suggestions);
+        AppLogger.i(logTag, "Search finished query=" + query + " suggestions=" + combined.size());
+        presenter.showSuggestions(combined, "search-results");
     }
 
-    private void handleSearchFailure(int generation) {
+    private void handleSearchFailure(@NonNull String query, int generation) {
         if (generation == searchGeneration) {
             inFlight = null;
-            presenter.showSuggestions(new ArrayList<>(), "search-failure");
+            showTypedHistoryMatches(query, matchingHistorySuggestions(query));
         }
     }
 
@@ -207,9 +229,33 @@ final class PoiSuggestionSearchController {
     @NonNull
     private List<PoiSuggestion> matchingHistorySuggestions(@NonNull String query) {
         List<PoiSuggestion> items = new ArrayList<>();
-        for (Poi poi : history.search(query, MAX_SUGGESTIONS)) {
+        for (Poi poi : history.search(query, MAX_HISTORY_SUGGESTIONS)) {
             items.add(new PoiSuggestion(poi, true));
         }
         return items;
+    }
+
+    @NonNull
+    private List<PoiSuggestion> suggestionsWithCurrentHistory(
+            @NonNull String query,
+            @NonNull List<PoiSuggestion> onlineSuggestions
+    ) {
+        List<PoiSuggestion> combined = matchingHistorySuggestions(query);
+        Set<String> knownKeys = knownSuggestionKeys(combined);
+        for (PoiSuggestion suggestion : onlineSuggestions) {
+            if (knownKeys.add(suggestion.poi.stableKey())) {
+                combined.add(suggestion);
+            }
+        }
+        return combined;
+    }
+
+    @NonNull
+    private static Set<String> knownSuggestionKeys(@NonNull List<PoiSuggestion> suggestions) {
+        Set<String> keys = new HashSet<>();
+        for (PoiSuggestion suggestion : suggestions) {
+            keys.add(suggestion.poi.stableKey());
+        }
+        return keys;
     }
 }

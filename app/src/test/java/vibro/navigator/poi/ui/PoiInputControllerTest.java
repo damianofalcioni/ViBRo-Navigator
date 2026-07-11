@@ -325,12 +325,14 @@ public class PoiInputControllerTest {
     }
 
     @Test
-    public void typedQuery_prefersMatchingHistoryOverOnlineSearch() {
+    public void typedQuery_keepsMatchingHistoryWhileOnlineSearchRuns() throws Exception {
+        CountDownLatch searchLatch = new CountDownLatch(1);
         AtomicInteger searchCalls = new AtomicInteger();
         PoiHistoryStore historyStore = new PoiHistoryStore(context);
         historyStore.addOrPromote(new Poi(COFFEE_SPOT, 48.2082d, 16.3738d));
         PoiSearchClient searchClient = (query, limit) -> {
             searchCalls.incrementAndGet();
+            searchLatch.countDown();
             return Collections.singletonList(new Poi("Coffee Online", 48.2000d, 16.3600d));
         };
         PoiInputController controller = new PoiInputController(
@@ -343,11 +345,13 @@ public class PoiInputControllerTest {
         );
 
         controller.getEditText().setText("coffee");
-        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
-
-        assertEquals(0, searchCalls.get());
         assertEquals(1, controller.getSuggestionCountForTesting());
         assertEquals(COFFEE_SPOT, controller.getSuggestionLabelForTesting(0));
+
+        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
+
+        assertTrue(searchLatch.await(1, TimeUnit.SECONDS));
+        assertEquals(1, searchCalls.get());
     }
 
     @Test

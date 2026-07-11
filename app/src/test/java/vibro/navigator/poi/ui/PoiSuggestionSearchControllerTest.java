@@ -14,6 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +29,10 @@ import vibro.navigator.poi.PoiHistoryStore;
 public class PoiSuggestionSearchControllerTest {
     private static final String QUERY_INITIAL = "museum";
     private static final String QUERY_UPDATED = "museumx";
+    private static final String QUERY_COFFEE = "cof";
+    private static final String HISTORY_COFFEE = "Coffee Spot";
+    private static final String ONLINE_COFFEE = "Coffee Online";
+    private static final String TEST_LOG_TAG = "PoiSuggestionSearchControllerTest";
 
     private Context context;
 
@@ -49,7 +54,7 @@ public class PoiSuggestionSearchControllerTest {
                 scheduler,
                 new PoiHistoryStore(context),
                 (query, limit) -> Collections.singletonList(new Poi(query, 48.2082d, 16.3738d)),
-                "PoiSuggestionSearchControllerTest",
+                TEST_LOG_TAG,
                 presenter,
                 dispatcher
         );
@@ -72,7 +77,7 @@ public class PoiSuggestionSearchControllerTest {
                 scheduler,
                 new PoiHistoryStore(context),
                 (query, limit) -> Collections.singletonList(new Poi(query, 48.2082d, 16.3738d)),
-                "PoiSuggestionSearchControllerTest",
+                TEST_LOG_TAG,
                 presenter,
                 dispatcher
         );
@@ -85,6 +90,88 @@ public class PoiSuggestionSearchControllerTest {
         assertEquals(1, presenter.suggestions.size());
         assertEquals("48.2082,16.3738", presenter.suggestions.get(0).poi.displayLabel());
         assertFalse(dispatcher.future(0).cancelled);
+    }
+
+    @Test
+    public void scheduleSearch_showsHistoryImmediatelyAndAppendsOnlineResultsForThreeCharacterQuery() {
+        FakeScheduler scheduler = new FakeScheduler();
+        CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
+        CapturingPresenter presenter = new CapturingPresenter();
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        historyStore.addOrPromote(new Poi(HISTORY_COFFEE, 48.2082d, 16.3738d));
+        PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
+                scheduler,
+                historyStore,
+                (query, limit) -> Collections.singletonList(new Poi(ONLINE_COFFEE, 48.2000d, 16.3600d)),
+                TEST_LOG_TAG,
+                presenter,
+                dispatcher
+        );
+
+        controller.scheduleSearch(QUERY_COFFEE);
+        assertEquals(1, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
+        assertTrue(presenter.suggestions.get(0).deletable);
+        assertEquals(0, dispatcher.taskCount());
+
+        scheduler.runDelayed();
+        dispatcher.runTask(0);
+
+        assertEquals(2, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
+        assertEquals(ONLINE_COFFEE, presenter.suggestions.get(1).poi.displayLabel());
+        assertTrue(presenter.suggestions.get(0).deletable);
+        assertFalse(presenter.suggestions.get(1).deletable);
+    }
+
+    @Test
+    public void scheduleSearch_skipsOnlineResultWhenHistoryAlreadyHasSameCoordinates() {
+        FakeScheduler scheduler = new FakeScheduler();
+        CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
+        CapturingPresenter presenter = new CapturingPresenter();
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        historyStore.addOrPromote(new Poi(HISTORY_COFFEE, 48.2082d, 16.3738d));
+        PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
+                scheduler,
+                historyStore,
+                (query, limit) -> Collections.singletonList(new Poi(ONLINE_COFFEE, 48.2082d, 16.3738d)),
+                TEST_LOG_TAG,
+                presenter,
+                dispatcher
+        );
+
+        controller.scheduleSearch(QUERY_COFFEE);
+        scheduler.runDelayed();
+        dispatcher.runTask(0);
+
+        assertEquals(1, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
+    }
+
+    @Test
+    public void scheduleSearch_keepsHistoryMatchesWhenOnlineSearchFails() {
+        FakeScheduler scheduler = new FakeScheduler();
+        CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
+        CapturingPresenter presenter = new CapturingPresenter();
+        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        historyStore.addOrPromote(new Poi(HISTORY_COFFEE, 48.2082d, 16.3738d));
+        PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
+                scheduler,
+                historyStore,
+                (query, limit) -> {
+                    throw new IOException("offline");
+                },
+                TEST_LOG_TAG,
+                presenter,
+                dispatcher
+        );
+
+        controller.scheduleSearch(QUERY_COFFEE);
+        scheduler.runDelayed();
+        dispatcher.runTask(0);
+
+        assertEquals(1, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
     }
 
     private static final class FakeScheduler implements TaskScheduler {
@@ -127,6 +214,10 @@ public class PoiSuggestionSearchControllerTest {
 
         void runTask(int index) {
             tasks.get(index).run();
+        }
+
+        int taskCount() {
+            return tasks.size();
         }
 
         @NonNull

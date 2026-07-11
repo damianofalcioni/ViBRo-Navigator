@@ -104,9 +104,9 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 #### 2.2 Search after 3+ characters
 
 - Typed destination and stop queries must first check the saved history entries from the first typed character and preserve their recency order
-- When one or more history entries match the typed query, the dropdown must show those history matches instead of online provider results
-- On every typed character, but only once the query length is greater than 3, the app must retrieve matching POIs
-- Online provider search must only run when the typed query has no matching history entries and the query length is greater than 3
+- When one or more history entries match the typed query, the dropdown must show those history matches first
+- On every typed character, but only once the query length is at least 3, the app must retrieve matching POIs
+- Online provider results must appear in the same dropdown after the matching history rows, skipping provider results whose coordinate identity already exists in the shown history rows
 - Each result must include the POI full name and coordinates
 - In the Google Play flavor, the data source must be Google Maps REST APIs when Google search is enabled and a valid Google API key is saved in the app settings
 - If the Google API key is not defined or Google search is disabled, the app must use OpenStreetMap APIs
