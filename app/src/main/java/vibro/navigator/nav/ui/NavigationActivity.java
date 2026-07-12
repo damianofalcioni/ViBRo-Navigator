@@ -46,6 +46,8 @@ public class NavigationActivity extends Activity {
 
     private NavigationServiceBinder navBinder;
     private boolean bound;
+    private boolean appliedLightTheme;
+    private boolean refreshLocationSettingsOnReconnect;
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
     private NavigationActivityRenderer renderer;
@@ -74,6 +76,10 @@ public class NavigationActivity extends Activity {
             navBinder.ensureForegroundNotification();
             navBinder.setNavigationUiVisible(true);
             navBinder.registerListener(navListener);
+            if (refreshLocationSettingsOnReconnect) {
+                refreshLocationSettingsOnReconnect = false;
+                navBinder.refreshLocationUpdateSettings();
+            }
         }
 
         @Override
@@ -86,7 +92,7 @@ public class NavigationActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        AndroidAppTheme.apply(this);
+        appliedLightTheme = AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_navigation);
         startupCoordinator.setAutoStartNavigation(
@@ -98,7 +104,12 @@ public class NavigationActivity extends Activity {
         backHandler = new NavigationActivityBackHandler(this, lifecyclePolicy, this::runLegacyBackFallback);
         backHandler.registerPredictiveBackCallbackIfSupported();
 
-        renderer = new NavigationActivityRenderer(this, uiScheduler, AndroidElapsedRealtimeClock.INSTANCE);
+        renderer = new NavigationActivityRenderer(
+                this,
+                uiScheduler,
+                AndroidElapsedRealtimeClock.INSTANCE,
+                () -> refreshLocationSettingsOnReconnect = true
+        );
         render(NavStateComposer.waiting(this));
         configureControls();
 
@@ -206,6 +217,7 @@ public class NavigationActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
         startupCoordinator.onResume();
     }
 

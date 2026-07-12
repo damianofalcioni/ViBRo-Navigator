@@ -60,9 +60,11 @@ final class NavigationActivityRenderer {
     private final TextView speedLimit;
     private final ImageButton blocked;
     private final ImageButton export;
+    private final ImageButton settings;
     private final ImageButton pauseResume;
     private final ImageButton stop;
     private final NavigationDetailsDialogs detailsDialogs;
+    private final Runnable afterSettingsLaunch;
     private final Runnable compassTransitionTicker = this::renderCompassState;
 
     @Nullable
@@ -74,10 +76,12 @@ final class NavigationActivityRenderer {
     NavigationActivityRenderer(
             @NonNull Activity activity,
             @NonNull TaskScheduler uiScheduler,
-            @NonNull ElapsedRealtimeClock elapsedRealtimeClock
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock,
+            @NonNull Runnable afterSettingsLaunch
     ) {
         this.activity = activity;
         this.uiScheduler = uiScheduler;
+        this.afterSettingsLaunch = afterSettingsLaunch;
         compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         directionsBlock = activity.findViewById(R.id.turnInstructionRow);
         next = activity.findViewById(R.id.nextDirectionText);
@@ -88,6 +92,7 @@ final class NavigationActivityRenderer {
         speedLimit = activity.findViewById(R.id.speedLimitText);
         blocked = activity.findViewById(R.id.blockedRoadButton);
         export = activity.findViewById(R.id.exportRouteButton);
+        settings = activity.findViewById(R.id.navigationSettingsButton);
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
         stop = activity.findViewById(R.id.stopNavButton);
         detailsDialogs = new NavigationDetailsDialogs(activity, elapsedRealtimeClock);
@@ -101,6 +106,7 @@ final class NavigationActivityRenderer {
         });
         blocked.setOnClickListener(v -> controls.onBlockedRoad());
         export.setOnClickListener(v -> controls.onExportRoute());
+        NavigationSettingsLauncher.configure(activity, uiScheduler, settings, afterSettingsLaunch);
         stop.setOnClickListener(v -> controls.onStopNavigation());
         pauseResume.setOnClickListener(v -> controls.onTogglePaused());
         gpsStatus.setClickable(true);

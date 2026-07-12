@@ -102,6 +102,7 @@ public class NavigationService extends Service {
                     runtime.onCompassStreetViewport(compassState);
                 }
             },
+            this::refreshLocationUpdateSettings,
             notice -> routeRecalculator.request(true, null, notice),
             () -> {
                 stopNavigation();
@@ -248,6 +249,12 @@ public class NavigationService extends Service {
     private void setGnssStatusDisplayActive(boolean active) {
         if (runtime != null) {
             runtime.setGnssStatusTrackingAllowed(active);
+        }
+    }
+
+    private void refreshLocationUpdateSettings() {
+        if (runtime != null && navigationSession.isStarted() && !navigationSession.isPaused()) {
+            runtime.requestLocationUpdates(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         }
     }
 

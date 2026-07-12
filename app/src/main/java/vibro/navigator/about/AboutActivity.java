@@ -4,9 +4,11 @@ package vibro.navigator.about;
 import vibro.navigator.BuildConfig;
 import vibro.navigator.R;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -15,6 +17,8 @@ import androidx.annotation.NonNull;
 import vibro.navigator.android.theme.AndroidAppTheme;
 
 public class AboutActivity extends Activity {
+
+    public static final String EXTRA_SCROLL_TO_SETTINGS = "vibro.navigator.about.SCROLL_TO_SETTINGS";
 
     private final AboutDiagnosticRenderScheduler diagnosticRenderScheduler =
             AboutDiagnosticRenderScheduler.mainThread(this::renderDiagnosticSectionNow);
@@ -26,6 +30,12 @@ public class AboutActivity extends Activity {
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
     private AboutDatabaseBackupActions databaseBackupActions;
+
+    @NonNull
+    public static Intent settingsIntent(@NonNull Context context) {
+        return new Intent(context, AboutActivity.class)
+                .putExtra(EXTRA_SCROLL_TO_SETTINGS, true);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +101,7 @@ public class AboutActivity extends Activity {
         AboutProjectLinks.configure(this);
 
         version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
+        scrollToSettingsIfRequested();
     }
 
     @Override
@@ -155,6 +166,15 @@ public class AboutActivity extends Activity {
 
     private void renderSettingsControls() {
         settingsSwitches.render();
+    }
+
+    private void scrollToSettingsIfRequested() {
+        if (!getIntent().getBooleanExtra(EXTRA_SCROLL_TO_SETTINGS, false)) {
+            return;
+        }
+        ScrollView root = findViewById(R.id.aboutRoot);
+        View settingsTitle = findViewById(R.id.aboutSettingsTitle);
+        root.post(() -> root.scrollTo(0, settingsTitle.getTop()));
     }
 
     private void renderPoiCategorySetting() {

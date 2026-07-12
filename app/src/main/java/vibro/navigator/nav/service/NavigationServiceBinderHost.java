@@ -35,6 +35,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     private final NavigationServiceUiVisibility uiVisibility;
     private final Runnable stateEmitter;
     private final CompassStreetViewportSink compassStreetViewportSink;
+    private final Runnable locationUpdateSettingsRefresher;
     private final BlockedRoadRouteRecalculator blockedRoadRouteRecalculator;
     private final Runnable stopNavigationAndService;
     private final Runnable pauseNavigation;
@@ -49,6 +50,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
             @NonNull NavigationServiceUiVisibility uiVisibility,
             @NonNull Runnable stateEmitter,
             @NonNull CompassStreetViewportSink compassStreetViewportSink,
+            @NonNull Runnable locationUpdateSettingsRefresher,
             @NonNull BlockedRoadRouteRecalculator blockedRoadRouteRecalculator,
             @NonNull Runnable stopNavigationAndService,
             @NonNull Runnable pauseNavigation,
@@ -61,6 +63,7 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
         this.uiVisibility = uiVisibility;
         this.stateEmitter = stateEmitter;
         this.compassStreetViewportSink = compassStreetViewportSink;
+        this.locationUpdateSettingsRefresher = locationUpdateSettingsRefresher;
         this.blockedRoadRouteRecalculator = blockedRoadRouteRecalculator;
         this.stopNavigationAndService = stopNavigationAndService;
         this.pauseNavigation = pauseNavigation;
@@ -102,6 +105,13 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Override
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
         compassStreetViewportSink.set(uiVisibility.canUseCompassStreetViewport() ? compassState : null);
+    }
+
+    @Override
+    public void refreshLocationUpdateSettings() {
+        if (navigationSession.isStarted() && !navigationSession.isPaused()) {
+            locationUpdateSettingsRefresher.run();
+        }
     }
 
     @Override

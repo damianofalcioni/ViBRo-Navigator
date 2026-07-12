@@ -423,7 +423,7 @@ The navigation UI must show the following in large text:
 - While the dedicated navigation UI is visible, the app must keep the display awake so the screen does not time out during active on-screen guidance
 - On phone-sized screens in landscape orientation, the navigation UI must switch to a two-column layout
 - In that landscape layout, the left column must contain all navigation text content and both action buttons
-- In that landscape layout, the right column must contain only the compass route view plus the overlaid GPX export control
+- In that landscape layout, the right column must contain only the compass route view plus the overlaid GPX export and settings controls
 - In that landscape layout, the left column must keep the turn-instruction block near the top and the blocked-road, stop, and pause/resume actions together in the bottom action row instead of placing them under the compass
 
 #### 4.5.1 Next two directions
@@ -567,6 +567,13 @@ The navigation UI must show the following in large text:
 - The export flow must use an app-private cache file exposed through a read-only `FileProvider` content URI with a temporary read grant, not broad storage permissions
 - If no active route exists, the navigation UI must show a short failure message instead of opening an empty GPX file
 - If no installed app can open GPX routes, the navigation UI must show a short failure message instead of crashing
+
+#### 4.5.3.3 Settings button
+
+- The navigation UI must show an icon-only settings button in the bottom-left corner of the measured compass square
+- The settings button must overlay the compass area so it does not shrink, reflow, or otherwise change the compass route view
+- Pressing the settings button must open the existing About page and scroll directly to its Settings section while keeping the active foreground navigation session running
+- Returning from the About page must refresh navigation UI theme state and active location-update settings so relevant setting changes apply during the ongoing navigation session
 
 #### 4.5.4 Blocked road button
 

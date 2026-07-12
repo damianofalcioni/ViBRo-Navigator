@@ -34,6 +34,8 @@ public final class NavigationServiceBinder extends Binder {
 
         void setCompassStreetViewport(@Nullable NavCompassState compassState);
 
+        void refreshLocationUpdateSettings();
+
         boolean isNavigationPaused();
 
         @Nullable
@@ -84,6 +86,10 @@ public final class NavigationServiceBinder extends Binder {
 
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
         host.setCompassStreetViewport(compassState);
+    }
+
+    public void refreshLocationUpdateSettings() {
+        host.refreshLocationUpdateSettings();
     }
 
     public void unregisterListener(@NonNull NavigationService.Listener listener) {
