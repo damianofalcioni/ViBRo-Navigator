@@ -5,27 +5,24 @@ import androidx.annotation.NonNull;
 public final class NavigationDeviationConfirmation {
 
     private static final int DEVIATION_CONFIRMATION_SAMPLES = 2;
-    private static final float WALKING_SPEED_MPS = 2.0f;
-    private static final float FAST_TRAVEL_SPEED_MPS = 8.0f;
-    private static final double LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 12.0;
-    private static final double MEDIUM_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 8.0;
-    private static final double HIGH_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS = 5.0;
+    private static final long MINIMUM_CONFIRMATION_SPACING_MS = 750L;
 
     @NonNull
     private RouteDeviationPolicy.Reason pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
     private int pendingDeviationSampleCount;
+    private long lastDeviationSampleMs;
 
-    public boolean isConfirmed(@NonNull RouteDeviationPolicy.Decision decision, float speedMps) {
-        if (decision.reason == RouteDeviationPolicy.Reason.OFF_TRACK
-                && decision.distanceToTrackMeters >= decision.offTrackThresholdMeters
-                + immediateOffTrackMarginMeters(speedMps)) {
-            return true;
-        }
+    public boolean isConfirmed(@NonNull RouteDeviationPolicy.Decision decision, long nowMs) {
         if (pendingDeviationReason != decision.reason) {
             pendingDeviationReason = decision.reason;
             pendingDeviationSampleCount = 1;
+            lastDeviationSampleMs = nowMs;
             return false;
         }
+        if (nowMs - lastDeviationSampleMs < MINIMUM_CONFIRMATION_SPACING_MS) {
+            return false;
+        }
+        lastDeviationSampleMs = nowMs;
         pendingDeviationSampleCount++;
         return pendingDeviationSampleCount >= DEVIATION_CONFIRMATION_SAMPLES;
     }
@@ -37,15 +34,6 @@ public final class NavigationDeviationConfirmation {
     public void clear() {
         pendingDeviationReason = RouteDeviationPolicy.Reason.NONE;
         pendingDeviationSampleCount = 0;
-    }
-
-    private double immediateOffTrackMarginMeters(float speedMps) {
-        if (speedMps >= FAST_TRAVEL_SPEED_MPS) {
-            return HIGH_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
-        }
-        if (speedMps >= WALKING_SPEED_MPS) {
-            return MEDIUM_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
-        }
-        return LOW_SPEED_IMMEDIATE_OFF_TRACK_MARGIN_METERS;
+        lastDeviationSampleMs = 0L;
     }
 }

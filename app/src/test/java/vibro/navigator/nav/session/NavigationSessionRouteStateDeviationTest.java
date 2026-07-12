@@ -51,7 +51,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 500L
         );
 
-        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+        NavigationRouteEvaluation firstEvaluation = state.evaluateLocation(
                 location(0.0003, 0.0, 2_000L),
                 5f,
                 5f,
@@ -59,7 +59,18 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 2_000L,
                 0L
         );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                location(0.0003, 0.0, 3_000L),
+                5f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
 
+        assertFalse(firstEvaluation.shouldRecalculateRoute());
+        assertTrue(firstEvaluation.isRouteDeviationConfirmationPending());
+        assertEquals(1_000L, firstEvaluation.getSuggestedUpdateIntervalMs());
         assertTrue(evaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, evaluation.rerouteNotice.reason);
         assertEquals(13.0, evaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
@@ -94,7 +105,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 80_000L,
                 true
         );
-        NavigationRouteEvaluation followUpEvaluation = state.evaluateLocation(
+        NavigationRouteEvaluation firstFollowUpEvaluation = state.evaluateLocation(
                 location(0.0003, 0.0, 21_000L),
                 5f,
                 5f,
@@ -102,12 +113,22 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 21_000L,
                 80_000L
         );
+        NavigationRouteEvaluation confirmedFollowUpEvaluation = state.evaluateLocation(
+                location(0.0003, 0.0, 22_000L),
+                5f,
+                5f,
+                90.0,
+                22_000L,
+                80_000L
+        );
 
         assertFalse(reacquiringEvaluation.shouldRecalculateRoute());
         assertFalse(reacquiringEvaluation.isStableOnRouteSample());
         assertEquals(3_000L, reacquiringEvaluation.getSuggestedUpdateIntervalMs());
-        assertTrue(followUpEvaluation.shouldRecalculateRoute());
-        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, followUpEvaluation.rerouteNotice.reason);
+        assertFalse(firstFollowUpEvaluation.shouldRecalculateRoute());
+        assertEquals(1_000L, firstFollowUpEvaluation.getSuggestedUpdateIntervalMs());
+        assertTrue(confirmedFollowUpEvaluation.shouldRecalculateRoute());
+        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, confirmedFollowUpEvaluation.rerouteNotice.reason);
     }
 
     @Test
@@ -202,6 +223,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
         assertFalse(firstEvaluation.shouldRecalculateRoute());
         assertFalse(firstEvaluation.isStableOnRouteSample());
+        assertEquals(1_000L, firstEvaluation.getSuggestedUpdateIntervalMs());
         assertTrue(secondEvaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, secondEvaluation.rerouteNotice.reason);
     }
@@ -253,7 +275,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
     }
 
     @Test
-    public void evaluateLocation_allowsFasterImmediateOffTrackRerouteAtHigherSpeed() {
+    public void evaluateLocation_requiresConfirmationAtHigherSpeed() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -271,7 +293,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 500L
         );
 
-        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+        NavigationRouteEvaluation firstEvaluation = state.evaluateLocation(
                 location(0.00018, 0.0, 2_000L),
                 10f,
                 5f,
@@ -279,7 +301,17 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 2_000L,
                 0L
         );
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                location(0.00018, 0.00005, 3_000L),
+                10f,
+                5f,
+                90.0,
+                3_000L,
+                0L
+        );
 
+        assertFalse(firstEvaluation.shouldRecalculateRoute());
+        assertEquals(1_000L, firstEvaluation.getSuggestedUpdateIntervalMs());
         assertTrue(evaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, evaluation.rerouteNotice.reason);
         assertEquals(13.0, evaluation.rerouteNotice.offTrackThresholdMeters, 0.0);

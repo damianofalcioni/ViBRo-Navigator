@@ -125,6 +125,28 @@ public class NavigationLocationControllerTest {
     }
 
     @Test
+    public void restartActiveLocationUpdates_reregistersAndPreservesActiveInterval() {
+        MutableClock clock = new MutableClock(5_000L);
+        FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController controller = controller(provider, clock);
+
+        controller.requestLocationUpdates(60_000L);
+        controller.restartActiveLocationUpdates(3_000L);
+
+        assertEquals(2, provider.requestProviderUpdatesCount);
+        assertEquals(60_000L, provider.requestedMinTimeMs);
+        assertEquals(Collections.singletonList(GPS_PROVIDER), provider.requestedProviders);
+
+        FakeLocationProvider fastProvider = new FakeLocationProvider(GPS_PROVIDER);
+        NavigationLocationController fastController = controller(fastProvider, clock);
+        fastController.requestFastLocationUpdates();
+        fastController.restartActiveLocationUpdates(3_000L);
+
+        assertEquals(2, fastProvider.requestProviderUpdatesCount);
+        assertEquals(1_000L, fastProvider.requestedMinTimeMs);
+    }
+
+    @Test
     public void resetTrackingState_clearsActiveProviderUpdatesAndPendingSeeds() {
         MutableClock clock = new MutableClock(5_000L);
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER);
@@ -466,6 +488,10 @@ public class NavigationLocationControllerTest {
         }
 
         @Override
+        public void setUpdateFailureListener(@NonNull Runnable listener) {
+        }
+
+        @Override
         public boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted) {
             return false;
         }
@@ -488,6 +514,7 @@ public class NavigationLocationControllerTest {
         public String describeAvailability() {
             return "fake fused";
         }
+
     }
 
     @NonNull

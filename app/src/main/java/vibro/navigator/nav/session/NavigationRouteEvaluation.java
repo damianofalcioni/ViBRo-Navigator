@@ -13,6 +13,7 @@ import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
 public final class NavigationRouteEvaluation {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
+    private static final long DEVIATION_CONFIRMATION_INTERVAL_MS = 1_000L;
 
     private final boolean shouldRecalculateRoute;
     private final boolean stableOnRouteSample;
@@ -100,6 +101,19 @@ public final class NavigationRouteEvaluation {
     }
 
     @NonNull
+    public static NavigationRouteEvaluation waitForDeviationConfirmation() {
+        return new NavigationRouteEvaluation(
+                false,
+                false,
+                DEVIATION_CONFIRMATION_INTERVAL_MS,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION,
+                null,
+                null,
+                Collections.emptyList()
+        );
+    }
+
+    @NonNull
     NavigationRouteEvaluation asNotificationOnly() {
         if (rerouteNotice == null || !shouldRecalculateRoute) {
             return this;
@@ -121,6 +135,11 @@ public final class NavigationRouteEvaluation {
 
     public long getSuggestedUpdateIntervalMs() {
         return suggestedUpdateIntervalMs;
+    }
+
+    public boolean isRouteDeviationConfirmationPending() {
+        return !shouldRecalculateRoute
+                && recalculationReason == NavigationRouteRecalculationReason.ROUTE_DEVIATION;
     }
 
     @Nullable

@@ -15,39 +15,39 @@ public class NavigationDeviationConfirmationTest {
     public void isConfirmed_requiresSecondSampleForMarginalOffTrackDecision() {
         RouteDeviationPolicy.Decision decision = policy.evaluate(20.0, 10f, null, 90.0);
 
-        assertFalse(confirmation.isConfirmed(decision, 1f));
+        assertFalse(confirmation.isConfirmed(decision, 1_000L));
         assertEquals(1, confirmation.pendingSampleCount());
-        assertTrue(confirmation.isConfirmed(decision, 1f));
+        assertTrue(confirmation.isConfirmed(decision, 2_000L));
         assertEquals(2, confirmation.pendingSampleCount());
     }
 
     @Test
-    public void isConfirmed_confirmsLargeOffTrackDecisionImmediately() {
+    public void isConfirmed_requiresSecondSampleForLargeOffTrackDecision() {
         RouteDeviationPolicy.Decision decision = policy.evaluate(31.0, 10f, null, 90.0);
 
-        assertTrue(confirmation.isConfirmed(decision, 1f));
-        assertEquals(0, confirmation.pendingSampleCount());
+        assertFalse(confirmation.isConfirmed(decision, 1_000L));
+        assertTrue(confirmation.isConfirmed(decision, 2_000L));
     }
 
     @Test
-    public void isConfirmed_usesSmallerImmediateMarginAtHigherSpeed() {
+    public void isConfirmed_ignoresSecondCallbackUntilItIsTimeSeparated() {
         RouteDeviationPolicy.Decision decision = policy.evaluate(24.0, 10f, null, 90.0);
 
-        assertFalse(confirmation.isConfirmed(decision, 1f));
-        confirmation.clear();
-
-        assertTrue(confirmation.isConfirmed(decision, 8f));
+        assertFalse(confirmation.isConfirmed(decision, 1_000L));
+        assertFalse(confirmation.isConfirmed(decision, 1_100L));
+        assertEquals(1, confirmation.pendingSampleCount());
+        assertTrue(confirmation.isConfirmed(decision, 1_800L));
     }
 
     @Test
     public void clear_resetsPendingSamples() {
         RouteDeviationPolicy.Decision decision = policy.evaluate(5.0, 5f, 180.0, 90.0);
 
-        assertFalse(confirmation.isConfirmed(decision, 1f));
+        assertFalse(confirmation.isConfirmed(decision, 1_000L));
         confirmation.clear();
 
         assertEquals(0, confirmation.pendingSampleCount());
-        assertFalse(confirmation.isConfirmed(decision, 1f));
+        assertFalse(confirmation.isConfirmed(decision, 2_000L));
         assertEquals(1, confirmation.pendingSampleCount());
     }
 }

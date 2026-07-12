@@ -12,6 +12,8 @@ import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationStallMonitor;
+import vibro.navigator.android.location.AndroidNavigationLocationRecoveryAlarm;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
@@ -30,6 +32,8 @@ final class NavigationServiceRuntime {
     @NonNull
     private final NavigationServiceStreetOverlay streetOverlay;
     @NonNull
+    final NavigationServiceLocationRecovery locationRecovery;
+    @NonNull
     final AndroidBatterySnapshotReader batterySnapshotReader;
 
     NavigationServiceRuntime(
@@ -43,6 +47,16 @@ final class NavigationServiceRuntime {
         tracking = dependencies.tracking;
         routing = dependencies.routing;
         this.streetOverlay = streetOverlay;
+        locationRecovery = new NavigationServiceLocationRecovery(
+                tracking.locationController,
+                new NavigationLocationStallMonitor(),
+                new AndroidNavigationLocationRecoveryAlarm(
+                        context,
+                        NavigationService.class,
+                        NavigationService.ACTION_RECOVER_LOCATION
+                ),
+                AndroidElapsedRealtimeClock.INSTANCE
+        );
         batterySnapshotReader = new AndroidBatterySnapshotReader(context);
     }
 
@@ -63,8 +77,9 @@ final class NavigationServiceRuntime {
         streetOverlay.reset();
     }
 
-    void onAcceptedLocationForSurroundingStreets(@NonNull NavigationLocation location) {
+    void onAcceptedLocation(@NonNull NavigationLocation location) {
         streetOverlay.onAcceptedLocation(location);
+        locationRecovery.onAcceptedFix();
     }
 
     void onCompassStreetViewport(@Nullable NavCompassState compassState) {
@@ -101,6 +116,7 @@ final class NavigationServiceRuntime {
     }
 
     void stopTrackingAndOrientation() {
+        locationRecovery.stop();
         tracking.locationController.stopTracking();
         tracking.orientationController.stop();
     }

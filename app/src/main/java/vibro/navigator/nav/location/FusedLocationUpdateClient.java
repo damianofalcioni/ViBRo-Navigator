@@ -5,6 +5,8 @@ import androidx.annotation.NonNull;
 public interface FusedLocationUpdateClient {
     boolean isAvailable();
 
+    void setUpdateFailureListener(@NonNull Runnable listener);
+
     boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted);
 
     void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted);

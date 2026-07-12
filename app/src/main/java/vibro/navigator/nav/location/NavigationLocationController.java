@@ -24,6 +24,7 @@ public final class NavigationLocationController {
     @Nullable
     private String lastRequestedProvider;
     private long nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+    private boolean legacyRecoveryActive;
 
     public NavigationLocationController(
             @NonNull NavigationLocationProvider providerAccess,
@@ -44,12 +45,14 @@ public final class NavigationLocationController {
                 providerAccess::removeUpdates,
                 this::describeAvailability
         );
+        fusedLocationUpdateClient.setUpdateFailureListener(this::recoverAfterFusedFailure);
     }
 
     public void resetTrackingState() {
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
+        legacyRecoveryActive = false;
         providerAccess.cancelPendingCurrentLocationRequests();
         fusedLocationUpdateClient.removeUpdates();
         gnssStatusTracker.reset();
@@ -77,11 +80,39 @@ public final class NavigationLocationController {
         requestLocationUpdates(STARTUP_UPDATE_INTERVAL_MS, STARTUP_UPDATE_INTERVAL_MS);
     }
 
+    public void restartActiveLocationUpdates(long fallbackMinTimeMs) {
+        long activeMinTimeMs = getLastRequestedLocationMinTimeMsOrDefault(fallbackMinTimeMs);
+        if (LiveLocationCoordinator.FUSED_PROVIDER.equals(lastRequestedProvider)) {
+            legacyRecoveryActive = true;
+            AppLogger.w(TAG, "Fused updates stalled; activating legacy location recovery");
+        }
+        lastRequestedLocationMinTimeMs = -1L;
+        lastRequestedProvider = null;
+        requestLocationUpdates(
+                activeMinTimeMs,
+                Math.min(DEFAULT_UPDATE_INTERVAL_MS, activeMinTimeMs)
+        );
+    }
+
+    private void recoverAfterFusedFailure() {
+        if (!LiveLocationCoordinator.FUSED_PROVIDER.equals(lastRequestedProvider)) {
+            return;
+        }
+        legacyRecoveryActive = true;
+        AppLogger.w(TAG, "Fused update request failed asynchronously; activating legacy location recovery");
+        long activeMinTimeMs = getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_UPDATE_INTERVAL_MS);
+        lastRequestedLocationMinTimeMs = -1L;
+        lastRequestedProvider = null;
+        requestLocationUpdates(activeMinTimeMs, Math.min(DEFAULT_UPDATE_INTERVAL_MS, activeMinTimeMs));
+    }
+
     private void requestLocationUpdates(long minTimeMs, long minimumIntervalMs) {
         long requestedMinTimeMs = Math.max(minimumIntervalMs, minTimeMs);
+        boolean preferFusedLocation = fusedLocationUsePolicy.shouldUseFusedLocation()
+                && !legacyRecoveryActive;
         NavigationLocationUpdateRequester.Result result = updateRequester.request(
                 requestedMinTimeMs,
-                fusedLocationUsePolicy.shouldUseFusedLocation(),
+                preferFusedLocation,
                 lastRequestedLocationMinTimeMs,
                 lastRequestedProvider
         );
@@ -95,6 +126,10 @@ public final class NavigationLocationController {
         refreshNextEvaluationDeadline(requestedMinTimeMs);
         lastRequestedLocationMinTimeMs = requestedMinTimeMs;
         lastRequestedProvider = result.activeProviderSummary();
+        if (preferFusedLocation && !result.isFusedActive()) {
+            legacyRecoveryActive = true;
+            AppLogger.w(TAG, "Fused request failed; keeping legacy location recovery active");
+        }
     }
 
     public void requestCurrentLocationSeeds() {
@@ -103,10 +138,11 @@ public final class NavigationLocationController {
         if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
             return;
         }
-        if (fusedLocationUsePolicy.shouldUseFusedLocation()) {
+        if (fusedLocationUsePolicy.shouldUseFusedLocation() && !legacyRecoveryActive) {
             fusedLocationUpdateClient.requestCurrentLocationSeed(fineGranted, coarseGranted);
+        } else {
+            providerAccess.requestCurrentLocationSeeds(fineGranted, coarseGranted);
         }
-        providerAccess.requestCurrentLocationSeeds(fineGranted, coarseGranted);
     }
 
     public void cancelCurrentLocationSeeds() {

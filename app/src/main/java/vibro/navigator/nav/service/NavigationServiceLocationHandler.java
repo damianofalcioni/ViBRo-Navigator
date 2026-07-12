@@ -130,8 +130,8 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             return;
         }
         controllers.locationController.recordAcceptedLocationUpdate();
-        surroundingStreetLocationSink.onAcceptedLocation(location);
         applyRouteUpdateRequest(result, controllers);
+        surroundingStreetLocationSink.onAcceptedLocation(location);
         if (result.getWrongDirectionNotice() != null) {
             controllers.foregroundController.sendWrongDirectionNotification(result.getWrongDirectionNotice());
         }

@@ -3,7 +3,7 @@ package vibro.navigator.nav.location;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.logging.AppLogger;
@@ -61,7 +61,7 @@ final class NavigationLocationUpdateRequester {
         }
 
         List<String> legacyProviders = providerAccess.enabledPermittedProviders(fineGranted, coarseGranted);
-        String desiredProviderSummary = providerSummary(useFusedLocation, legacyProviders);
+        String desiredProviderSummary = desiredProviderSummary(useFusedLocation, legacyProviders);
         if (desiredProviderSummary == null) {
             AppLogger.w(TAG, "No enabled location provider available for updates "
                     + availabilityDescriptor.describeAvailability());
@@ -79,20 +79,24 @@ final class NavigationLocationUpdateRequester {
         fusedLocationUpdateClient.removeUpdates();
         legacyUpdatesRemover.removeLegacyUpdates();
         boolean fusedRequested = requestFusedUpdates(useFusedLocation, minTimeMs, fineGranted, coarseGranted);
-        List<String> requestedLegacyProviders = providerAccess.requestProviderUpdates(legacyProviders, minTimeMs);
-        String activeProviderSummary = providerSummary(fusedRequested, requestedLegacyProviders);
+        List<String> requestedLegacyProviders = fusedRequested
+                ? Collections.emptyList()
+                : providerAccess.requestProviderUpdates(legacyProviders, minTimeMs);
+        String activeProviderSummary = fusedRequested
+                ? LiveLocationCoordinator.FUSED_PROVIDER
+                : NavigationLocationProviders.join(requestedLegacyProviders);
         if (activeProviderSummary == null) {
             AppLogger.w(TAG, "Failed to request location updates from permitted providers "
                     + availabilityDescriptor.describeAvailability());
             return Result.clearActiveRequest();
         }
 
-        updateGnssStatus(requestedLegacyProviders);
+        updateGnssStatus(legacyProviders);
         AppLogger.i(TAG, "Requested location updates provider="
                 + activeProviderSummary
                 + " minTimeMs="
                 + minTimeMs);
-        return Result.active(activeProviderSummary);
+        return Result.active(activeProviderSummary, fusedRequested);
     }
 
     private boolean requestFusedUpdates(
@@ -121,33 +125,44 @@ final class NavigationLocationUpdateRequester {
     }
 
     @Nullable
-    private static String providerSummary(boolean includeFused, @NonNull List<String> legacyProviders) {
-        List<String> providers = new ArrayList<>(legacyProviders.size() + 1);
-        if (includeFused) {
-            providers.add(LiveLocationCoordinator.FUSED_PROVIDER);
-        }
-        providers.addAll(legacyProviders);
-        return NavigationLocationProviders.join(providers);
+    private static String desiredProviderSummary(
+            boolean useFusedLocation,
+            @NonNull List<String> legacyProviders
+    ) {
+        return useFusedLocation
+                ? LiveLocationCoordinator.FUSED_PROVIDER
+                : NavigationLocationProviders.join(legacyProviders);
     }
 
     static final class Result {
         private final boolean clearActiveRequest;
+        private final boolean fusedActive;
         @Nullable
         private final String activeProviderSummary;
 
-        private Result(boolean clearActiveRequest, @Nullable String activeProviderSummary) {
+        private Result(
+                boolean clearActiveRequest,
+                @Nullable String activeProviderSummary,
+                boolean fusedActive
+        ) {
             this.clearActiveRequest = clearActiveRequest;
             this.activeProviderSummary = activeProviderSummary;
+            this.fusedActive = fusedActive;
         }
 
         @NonNull
         static Result clearActiveRequest() {
-            return new Result(true, null);
+            return new Result(true, null, false);
         }
 
         @NonNull
         static Result active(@NonNull String activeProviderSummary) {
-            return new Result(false, activeProviderSummary);
+            return active(activeProviderSummary, LiveLocationCoordinator.FUSED_PROVIDER.equals(activeProviderSummary));
+        }
+
+        @NonNull
+        static Result active(@NonNull String activeProviderSummary, boolean fusedActive) {
+            return new Result(false, activeProviderSummary, fusedActive);
         }
 
         boolean shouldClearActiveRequest() {
@@ -156,6 +171,10 @@ final class NavigationLocationUpdateRequester {
 
         boolean hasActiveRequest() {
             return activeProviderSummary != null;
+        }
+
+        boolean isFusedActive() {
+            return fusedActive;
         }
 
         @NonNull

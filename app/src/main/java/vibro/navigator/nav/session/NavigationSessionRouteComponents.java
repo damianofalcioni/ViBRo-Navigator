@@ -18,7 +18,7 @@ final class NavigationSessionRouteComponents {
     @NonNull
     final NavigationRouteProgressTracker progressTracker = new NavigationRouteProgressTracker();
     @NonNull
-    final NavigationRouteTravelHistory travelHistory = new NavigationRouteTravelHistory();
+    final NavigationRouteHistory routeHistory = new NavigationRouteHistory();
     @NonNull
     final NavigationRouteDeviationHandler deviationHandler =
             new NavigationRouteDeviationHandler(progressTracker);
@@ -41,7 +41,7 @@ final class NavigationSessionRouteComponents {
             arrivalDetector,
             intermediateArrivalTracker,
             routeStartApproachState,
-            travelHistory
+            routeHistory
     );
     @NonNull
     final NavigationBlockedPointSelector blockedPointSelector = new NavigationBlockedPointSelector(
@@ -56,7 +56,7 @@ final class NavigationSessionRouteComponents {
             arrivalDetector,
             intermediateArrivalTracker,
             routeStartApproachState,
-            travelHistory
+            routeHistory
     );
 
     void reset() {
@@ -64,7 +64,7 @@ final class NavigationSessionRouteComponents {
         displayState.reset();
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
-        travelHistory.reset();
+        routeHistory.reset();
         blockedRouteState.reset();
         turnState.reset();
         intermediateArrivalTracker.reset();

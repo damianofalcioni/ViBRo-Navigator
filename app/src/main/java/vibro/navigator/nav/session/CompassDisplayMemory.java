@@ -41,7 +41,7 @@ final class CompassDisplayMemory {
     private float lastSmoothedAccuracyMeters = Float.NaN;
     private long lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
-    private final CompassRadiusTransition radiusTransition = new CompassRadiusTransition(1_000L);
+    final CompassRadiusTransition radiusTransition = new CompassRadiusTransition(1_000L);
     @NonNull
     private final CompassPassedRouteArchive passedRouteArchive = new CompassPassedRouteArchive();
     private int lastActivePassedRouteSamplePointCount;
@@ -63,13 +63,15 @@ final class CompassDisplayMemory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
-            @Nullable PolylineIndex.Match previousRouteMatch
+            @Nullable PolylineIndex.Match previousRouteMatch,
+            boolean appendDirectBridge
     ) {
         passedRouteArchive.archive(
                 routeGeometry,
                 previousRouteMatch,
                 lastActivePassedRouteSamplePointCount,
-                RouteRecalculationBridge.firstRoutePoint(route)
+                RouteRecalculationBridge.firstRoutePoint(route),
+                appendDirectBridge
         );
         routeGeometry = CompassRouteGeometryFactory.build(
                 route,
@@ -84,6 +86,14 @@ final class CompassDisplayMemory {
         lastSmoothedAccuracyMeters = Float.NaN;
         lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         radiusTransition.reset();
+    }
+
+    void appendRecalculationBridgeSegment(@NonNull List<LatLon> segment) {
+        passedRouteArchive.appendBridge(segment);
+        routeGeometry = routeGeometry.withStoredRouteSegments(
+                passedRouteArchive.segments(),
+                passedRouteArchive.bridgeSegments()
+        );
     }
 
     void rememberSmoothedAccuracyMeters(float smoothedAccuracyMeters) {
@@ -158,11 +168,6 @@ final class CompassDisplayMemory {
     @Nullable
     CompassRouteGeometry routeGeometry() {
         return routeGeometry;
-    }
-
-    @NonNull
-    CompassRadiusTransition radiusTransition() {
-        return radiusTransition;
     }
 
     @Nullable

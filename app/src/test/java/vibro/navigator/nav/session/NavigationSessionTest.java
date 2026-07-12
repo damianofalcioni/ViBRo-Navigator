@@ -343,22 +343,30 @@ public class NavigationSessionTest {
         assertNotNull(snapshot);
         NavigationSessionResourceAdapter.applyRouteResult(session, context, snapshot, routeWithoutHints(), nowMs);
 
-        NavigationLocationUpdateResult offTrackResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+        NavigationLocationUpdateResult tentativeResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
                 locationWithSpeed(0.0003, 0.0, nowMs + 2_000L, 5f),
                 nowMs + 2_000L
         );
+        NavigationLocationUpdateResult offTrackResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0003, 0.00005, nowMs + 3_000L, 5f),
+                nowMs + 3_000L
+        );
         NavState state = NavigationSessionResourceAdapter.buildState(
                 session,
                 context,
                 NavState.NO_DEADLINE,
-                nowMs + 2_000L,
+                nowMs + 3_000L,
                 null,
                 null,
                 null
         );
 
+        assertFalse(tentativeResult.shouldRecalculateRoute());
+        assertEquals(1_000L, tentativeResult.getSuggestedUpdateIntervalMs());
         assertFalse(offTrackResult.shouldRecalculateRoute());
         assertNotNull(offTrackResult.getRerouteNotice());
         assertFalse(offTrackResult.getRerouteNotice().routeRecalculationExpected);

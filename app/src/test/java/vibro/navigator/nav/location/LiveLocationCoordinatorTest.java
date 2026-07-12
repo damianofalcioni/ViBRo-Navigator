@@ -57,6 +57,41 @@ public class LiveLocationCoordinatorTest {
     }
 
     @Test
+    public void shouldDispatch_rejectsEarlyCrossProviderFixInsideRequestedInterval() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        NavigationLocation gps = location(GPS_PROVIDER, 1_000_000L, 100_000L, 5f, 48.20d, 16.37d);
+        coordinator.markDispatched(gps, 100_000L);
+        NavigationLocation fused = location(
+                LiveLocationCoordinator.FUSED_PROVIDER,
+                1_008_000L,
+                108_000L,
+                5f,
+                48.21d,
+                16.38d
+        );
+
+        assertFalse(coordinator.shouldDispatch(fused, 108_000L, 60_000L));
+        assertTrue(coordinator.shouldDispatch(fused, 160_000L, 60_000L));
+    }
+
+    @Test
+    public void shouldDispatch_acceptsMateriallyBetterCrossProviderFixInsideRequestedInterval() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        NavigationLocation fused = location(
+                LiveLocationCoordinator.FUSED_PROVIDER,
+                1_000_000L,
+                100_000L,
+                40f,
+                48.20d,
+                16.37d
+        );
+        coordinator.markDispatched(fused, 100_000L);
+        NavigationLocation gps = location(GPS_PROVIDER, 1_001_000L, 101_000L, 5f, 48.20d, 16.37d);
+
+        assertTrue(coordinator.shouldDispatch(gps, 101_000L, 60_000L));
+    }
+
+    @Test
     public void selectBestLiveLocation_acceptsFusedFixWhenItIsOnlyFreshCandidate() {
         LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
         coordinator.remember(newFix(LiveLocationCoordinator.FUSED_PROVIDER, 500L, 8f, 48.30d, 16.41d));

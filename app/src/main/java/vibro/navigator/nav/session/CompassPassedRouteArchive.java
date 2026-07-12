@@ -25,7 +25,8 @@ final class CompassPassedRouteArchive {
             @Nullable CompassRouteGeometry routeGeometry,
             @Nullable PolylineIndex.Match previousRouteMatch,
             int fallbackPassedRouteSamplePointCount,
-            @Nullable LatLon replacementRouteStart
+            @Nullable LatLon replacementRouteStart,
+            boolean appendDirectBridge
     ) {
         if (routeGeometry == null) {
             return;
@@ -39,7 +40,15 @@ final class CompassPassedRouteArchive {
         );
         if (passedSegment.size() >= 2) {
             segments.add(passedSegment);
-            appendBridge(lastPoint(passedSegment), replacementRouteStart);
+            if (appendDirectBridge) {
+                appendBridge(lastPoint(passedSegment), replacementRouteStart);
+            }
+        }
+    }
+
+    void appendBridge(@NonNull List<LatLon> bridge) {
+        if (bridge.size() >= 2) {
+            bridgeSegments.add(RouteRecalculationBridge.copiedPoints(bridge));
         }
     }
 

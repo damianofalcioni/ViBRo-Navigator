@@ -70,6 +70,10 @@ public final class NavigationSession {
         return paused;
     }
 
+    public boolean isStarted() {
+        return started;
+    }
+
     public boolean hasActiveRoute() {
         return components.routeState.hasActiveRoute() || (started && currentRequest.isStraightLine());
     }

@@ -41,6 +41,9 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     @NonNull
     private final GplayCurrentLocationSeedRequest currentLocationSeedRequest =
             new GplayCurrentLocationSeedRequest();
+    @NonNull
+    private final GplayFusedUpdateFailureHandler updateFailureHandler =
+            new GplayFusedUpdateFailureHandler();
 
     public GplayFusedLocationClient(
             @NonNull Context context,
@@ -88,15 +91,21 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     }
 
     @Override
+    public void setUpdateFailureListener(@NonNull Runnable listener) {
+        updateFailureHandler.setListener(listener);
+    }
+
+    @Override
     @SuppressLint("MissingPermission")
     public boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted) {
         if (callback == null || !isAvailable() || (!fineGranted && !coarseGranted)) {
             return false;
         }
         try {
+            int requestGeneration = updateFailureHandler.beginRequest();
             LocationRequest request = buildRequest(minTimeMs, fineGranted);
             client.requestLocationUpdates(request, callback, Looper.getMainLooper())
-                    .addOnFailureListener(error -> AppLogger.w(TAG, "Fused location updates failed", error));
+                    .addOnFailureListener(error -> updateFailureHandler.handle(requestGeneration, error));
             AppLogger.i(TAG, "Requested fused location updates minTimeMs=" + minTimeMs);
             return true;
         } catch (SecurityException e) {
@@ -120,7 +129,7 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
             CurrentLocationRequest request = buildCurrentLocationSeedRequest(fineGranted);
             client.getCurrentLocation(request, activeRequest.cancellation.getToken())
                     .addOnSuccessListener(location -> dispatchCurrentLocationSeed(activeRequest.id, location))
-                    .addOnFailureListener(error -> handleCurrentLocationSeedFailure(activeRequest.id, error));
+                    .addOnFailureListener(error -> currentLocationSeedRequest.handleFailure(activeRequest.id, error));
             AppLogger.d(TAG, "Requested fused current location seed");
         } catch (SecurityException e) {
             currentLocationSeedRequest.cancel();
@@ -139,6 +148,7 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
     @Override
     public void removeUpdates() {
         cancelCurrentLocationSeed();
+        updateFailureHandler.invalidate();
         if (callback == null) {
             return;
         }
@@ -218,14 +228,6 @@ public final class GplayFusedLocationClient implements FusedLocationUpdateClient
         }
         AppLogger.i(TAG, "Received fused current location seed");
         callback.onLocationResult(LocationResult.create(Collections.singletonList(location)));
-    }
-
-    private void handleCurrentLocationSeedFailure(int requestId, @NonNull Exception error) {
-        if (!currentLocationSeedRequest.completeIfActive(requestId)) {
-            AppLogger.d(TAG, "Ignoring stale fused current location seed failure");
-            return;
-        }
-        AppLogger.w(TAG, "Fused current location seed failed", error);
     }
 
     private static int runtimeStatus(@NonNull Context context) {

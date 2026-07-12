@@ -36,6 +36,7 @@ public class NavigationService extends Service {
 
     public static final String ACTION_START = "vibro.navigator.action.START";
     public static final String ACTION_STOP = "vibro.navigator.action.STOP";
+    public static final String ACTION_RECOVER_LOCATION = "vibro.navigator.action.RECOVER_LOCATION";
 
     public static final int NOTIFICATION_ID_ONGOING = 1;
     public static final int NOTIFICATION_ID_TURN = 2;
@@ -72,7 +73,7 @@ public class NavigationService extends Service {
             uiVisibility::isScreenInteractive,
             location -> {
                 if (runtime != null) {
-                    runtime.onAcceptedLocationForSurroundingStreets(location);
+                    runtime.onAcceptedLocation(location);
                 }
             },
             this::emitState
@@ -136,6 +137,9 @@ public class NavigationService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null && ACTION_RECOVER_LOCATION.equals(intent.getAction())) {
+            return recoverStalledLocation();
+        }
         return commandHandler.handle(intent, flags, startId);
     }
 
@@ -177,6 +181,7 @@ public class NavigationService extends Service {
 
         setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         runtime().requestLocationUpdates(STARTUP_LOCATION_UPDATE_INTERVAL_MS);
+        runtime().locationRecovery.start();
         requestCurrentLocationSeedsIfScreenInteractive();
         runtime().startOrientation();
         emitState();
@@ -203,6 +208,7 @@ public class NavigationService extends Service {
         runtime().requestLocationUpdates(
                 runtime().lastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
+        runtime().locationRecovery.start();
         requestCurrentLocationSeedsIfScreenInteractive();
         runtime().startOrientation();
         promoteToForeground();
@@ -229,6 +235,16 @@ public class NavigationService extends Service {
         runtime().stopForegroundService();
     }
 
+    private int recoverStalledLocation() {
+        AppLogger.i(TAG, "onStartCommand action=" + ACTION_RECOVER_LOCATION);
+        if (!navigationSession.isStarted() || navigationSession.isPaused()) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+        runtime().locationRecovery.recoverIfStalled();
+        return START_STICKY;
+    }
+
     private void setGnssStatusDisplayActive(boolean active) {
         if (runtime != null) {
             runtime.setGnssStatusTrackingAllowed(active);
@@ -243,6 +259,7 @@ public class NavigationService extends Service {
 
     private void emitState() {
         if (runtime != null) {
+            runtime.locationRecovery.onUpdateIntervalChanged();
             NavigationSessionResourceAdapter.recordBatterySnapshot(
                     navigationSession,
                     runtime.batterySnapshotReader.read()

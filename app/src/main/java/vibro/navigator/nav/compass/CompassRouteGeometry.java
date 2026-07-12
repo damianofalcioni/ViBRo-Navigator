@@ -159,6 +159,21 @@ public final class CompassRouteGeometry {
         return recalculationBridgeSegments;
     }
 
+    @NonNull
+    public CompassRouteGeometry withStoredRouteSegments(
+            @NonNull List<List<LatLon>> archivedPassedRouteSegments,
+            @NonNull List<List<LatLon>> recalculationBridgeSegments
+    ) {
+        return new CompassRouteGeometry(
+                routeSamplePoints,
+                fullRoutePoints,
+                hintSamplePoints,
+                intermediateSamplePoints,
+                archivedPassedRouteSegments,
+                recalculationBridgeSegments
+        );
+    }
+
     public int passedRoutePointCount(double alongTrackMeters) {
         return passedPointCount(routeSamplePoints, alongTrackMeters);
     }

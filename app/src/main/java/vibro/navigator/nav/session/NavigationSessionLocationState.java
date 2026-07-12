@@ -78,13 +78,13 @@ public final class NavigationSessionLocationState {
                     + formatLocation(rawLocation));
             return Update.dropped();
         }
-        if (!liveLocationCoordinator.shouldDispatch(selected)) {
+        if (!liveLocationCoordinator.shouldDispatch(selected, nowMs, expectedUpdateIntervalMs)) {
             AppLogger.d(TAG, "Dropped NavigationLocation because selected candidate is unchanged raw="
                     + formatLocation(rawLocation)
                     + " selected=" + formatLocation(selected));
             return Update.dropped();
         }
-        liveLocationCoordinator.markDispatched(selected);
+        liveLocationCoordinator.markDispatched(selected, nowMs);
 
         boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs, expectedUpdateIntervalMs);
         if (reacquiringAfterLongGap) {

@@ -46,12 +46,12 @@ public final class NavigationSessionRouteState {
 
     @NonNull
     public List<NavigationRouteGpxExportHistory.PassedRoute> passedRoutesForExport() {
-        return components.travelHistory.passedRoutesSnapshot();
+        return components.routeHistory.passedRoutesSnapshot();
     }
 
     @NonNull
     public List<List<LatLon>> recalculationBridgeSegmentsForExport() {
-        return components.travelHistory.recalculationBridgeSegmentsSnapshot();
+        return components.routeHistory.recalculationBridgeSegmentsSnapshot();
     }
 
     @Nullable
@@ -137,6 +137,22 @@ public final class NavigationSessionRouteState {
     @Nullable
     public Double currentSegmentBearingDegrees(@Nullable NavigationLocation lastFiltered) {
         return components.geometryState.currentSegmentBearingDegrees(lastFiltered);
+    }
+
+    void recordRecalculationFixPath(
+            @NonNull NavigationLocation filtered,
+            @NonNull NavigationRouteEvaluation evaluation,
+            boolean routeCalculationInProgress
+    ) {
+        List<LatLon> completed = components.routeHistory.recordRerouteFixPath(
+                filtered,
+                evaluation,
+                routeCalculationInProgress
+        );
+        if (completed.size() < 2) {
+            return;
+        }
+        components.displayState.appendRecalculationBridgeSegment(completed);
     }
 
     @Nullable

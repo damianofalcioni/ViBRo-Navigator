@@ -20,6 +20,7 @@ public final class LiveLocationCoordinator {
     private NavigationLocationFix latestFusedFix;
     @Nullable
     private NavigationLocationFix lastDispatchedRawFix;
+    private long lastDispatchedAtMs = -1L;
 
     public void reset() {
         latestGpsLocation = null;
@@ -29,6 +30,7 @@ public final class LiveLocationCoordinator {
         latestNetworkFix = null;
         latestFusedFix = null;
         lastDispatchedRawFix = null;
+        lastDispatchedAtMs = -1L;
     }
 
     public void remember(@NonNull NavigationLocation location) {
@@ -92,12 +94,32 @@ public final class LiveLocationCoordinator {
         return shouldDispatch(NavigationLocationFix.from(candidate));
     }
 
+    public boolean shouldDispatch(
+            @NonNull NavigationLocation candidate,
+            long nowMs,
+            long expectedUpdateIntervalMs
+    ) {
+        NavigationLocationFix fix = NavigationLocationFix.from(candidate);
+        long elapsedSinceLastDispatchMs = lastDispatchedAtMs < 0L ? -1L : nowMs - lastDispatchedAtMs;
+        return LiveLocationPolicy.shouldDispatchForRequestedInterval(
+                lastDispatchedRawFix,
+                fix,
+                elapsedSinceLastDispatchMs,
+                expectedUpdateIntervalMs
+        );
+    }
+
     boolean shouldDispatch(@NonNull NavigationLocationFix candidate) {
         return LiveLocationPolicy.shouldDispatch(lastDispatchedRawFix, candidate);
     }
 
     public void markDispatched(@NonNull NavigationLocation location) {
         lastDispatchedRawFix = NavigationLocationFix.from(location);
+    }
+
+    public void markDispatched(@NonNull NavigationLocation location, long nowMs) {
+        markDispatched(location);
+        lastDispatchedAtMs = nowMs;
     }
 
     void markDispatched(@NonNull NavigationLocationFix fix) {

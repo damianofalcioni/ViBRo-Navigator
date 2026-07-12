@@ -27,7 +27,6 @@ public final class NavigationRouteDeviationHandler {
             @NonNull PolylineIndex.Match match,
             double smoothedAccuracyMeters,
             @NonNull NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
-            float speedMps,
             double expectedBearingDegrees,
             @Nullable Double actualBearingDegrees,
             long nowMs
@@ -54,10 +53,10 @@ public final class NavigationRouteDeviationHandler {
             return Decision.continueOnRoute();
         }
 
-        if (!deviationConfirmation.isConfirmed(deviationDecision, speedMps)) {
+        if (!deviationConfirmation.isConfirmed(deviationDecision, nowMs)) {
             logTentativeDeviation(deviationDecision, directionOfProgress, match);
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            return Decision.keepCurrentRoute(false);
+            return Decision.waitForDeviationConfirmation();
         }
 
         logConfirmedDeviation(deviationDecision, directionOfProgress, match, expectedBearingDegrees, actualBearingDegrees);
@@ -128,32 +127,40 @@ public final class NavigationRouteDeviationHandler {
     public static final class Decision {
         private final boolean keepCurrentRoute;
         private final boolean stableOnRouteSample;
+        private final boolean deviationConfirmationPending;
         @Nullable
         private final NavigationRerouteNotice rerouteNotice;
 
         private Decision(
                 boolean keepCurrentRoute,
                 boolean stableOnRouteSample,
+                boolean deviationConfirmationPending,
                 @Nullable NavigationRerouteNotice rerouteNotice
         ) {
             this.keepCurrentRoute = keepCurrentRoute;
             this.stableOnRouteSample = stableOnRouteSample;
+            this.deviationConfirmationPending = deviationConfirmationPending;
             this.rerouteNotice = rerouteNotice;
         }
 
         @NonNull
         public static Decision continueOnRoute() {
-            return new Decision(false, true, null);
+            return new Decision(false, true, false, null);
         }
 
         @NonNull
         public static Decision keepCurrentRoute(boolean stableOnRouteSample) {
-            return new Decision(true, stableOnRouteSample, null);
+            return new Decision(true, stableOnRouteSample, false, null);
+        }
+
+        @NonNull
+        public static Decision waitForDeviationConfirmation() {
+            return new Decision(true, false, true, null);
         }
 
         @NonNull
         public static Decision requestRouteRecalculation(@NonNull NavigationRerouteNotice rerouteNotice) {
-            return new Decision(false, false, rerouteNotice);
+            return new Decision(false, false, false, rerouteNotice);
         }
 
         public boolean shouldKeepCurrentRoute() {
@@ -162,6 +169,10 @@ public final class NavigationRouteDeviationHandler {
 
         public boolean isStableOnRouteSample() {
             return stableOnRouteSample;
+        }
+
+        public boolean isDeviationConfirmationPending() {
+            return deviationConfirmationPending;
         }
 
         public boolean shouldRecalculateRoute() {

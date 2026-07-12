@@ -9,6 +9,7 @@ final class LiveLocationPolicy {
     private static final long LOCATION_TIME_TOLERANCE_MS = 1_000L;
     private static final float LOCATION_ACCURACY_BIAS_METERS = 15f;
     private static final float LOCATION_ACCURACY_IMPROVEMENT_METERS = 5f;
+    private static final long CROSS_PROVIDER_INTERVAL_TOLERANCE_MS = 500L;
 
     private LiveLocationPolicy() {
     }
@@ -51,6 +52,29 @@ final class LiveLocationPolicy {
             return false;
         }
         return candidateAccuracy <= lastAccuracy + LOCATION_ACCURACY_BIAS_METERS;
+    }
+
+    static boolean shouldDispatchForRequestedInterval(
+            @Nullable NavigationLocationFix lastDispatched,
+            @NonNull NavigationLocationFix candidate,
+            long elapsedSinceLastDispatchMs,
+            long expectedUpdateIntervalMs
+    ) {
+        if (lastDispatched == null) {
+            return true;
+        }
+        if (!shouldDispatch(lastDispatched, candidate)) {
+            return false;
+        }
+        if (safeProvider(lastDispatched.provider).equals(safeProvider(candidate.provider))) {
+            return true;
+        }
+        boolean arrivedInsideRequestedInterval = elapsedSinceLastDispatchMs >= 0L
+                && elapsedSinceLastDispatchMs + CROSS_PROVIDER_INTERVAL_TOLERANCE_MS
+                < expectedUpdateIntervalMs;
+        return !arrivedInsideRequestedInterval
+                || candidate.accuracyMeters + LOCATION_ACCURACY_IMPROVEMENT_METERS
+                < lastDispatched.accuracyMeters;
     }
 
     static boolean isRecentFix(@Nullable NavigationLocationFix fix, long nowMs) {

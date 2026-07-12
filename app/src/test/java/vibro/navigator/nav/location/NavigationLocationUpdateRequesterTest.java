@@ -20,7 +20,7 @@ public class NavigationLocationUpdateRequesterTest {
     private static final String NETWORK_PROVIDER = "network";
 
     @Test
-    public void request_whenFusedEnabled_requestsFusedAndLegacyProvidersInParallel() {
+    public void request_whenFusedEnabled_requestsOnlyFusedProvider() {
         FakeLocationProvider provider = new FakeLocationProvider(GPS_PROVIDER, NETWORK_PROVIDER);
         FakeFusedLocationUpdateClient fused = new FakeFusedLocationUpdateClient(true);
         NavigationLocationUpdateRequester requester = requester(provider, fused);
@@ -28,10 +28,10 @@ public class NavigationLocationUpdateRequesterTest {
         NavigationLocationUpdateRequester.Result result = requester.request(1_000L, true, -1L, null);
 
         assertTrue(result.hasActiveRequest());
-        assertEquals("fused+gps+network", result.activeProviderSummary());
+        assertEquals("fused", result.activeProviderSummary());
+        assertTrue(result.isFusedActive());
         assertEquals(1, fused.requestUpdatesCount);
-        assertEquals(Arrays.asList(GPS_PROVIDER, NETWORK_PROVIDER), provider.requestedProviders);
-        assertEquals(1_000L, provider.requestedMinTimeMs);
+        assertTrue(provider.requestedProviders.isEmpty());
     }
 
     @Test
@@ -55,10 +55,10 @@ public class NavigationLocationUpdateRequesterTest {
         NavigationLocationUpdateRequester requester = requester(provider, fused);
 
         NavigationLocationUpdateRequester.Result result =
-                requester.request(1_000L, true, 1_000L, "fused+gps+network");
+                requester.request(1_000L, true, 1_000L, "fused");
 
         assertTrue(result.hasActiveRequest());
-        assertEquals("fused+gps+network", result.activeProviderSummary());
+        assertEquals("fused", result.activeProviderSummary());
         assertEquals(0, fused.requestUpdatesCount);
         assertTrue(provider.requestedProviders.isEmpty());
     }
@@ -97,7 +97,6 @@ public class NavigationLocationUpdateRequesterTest {
         private final boolean coarseGranted;
         @NonNull
         private List<String> requestedProviders = Collections.emptyList();
-        private long requestedMinTimeMs = -1L;
 
         FakeLocationProvider(@NonNull String... enabledProviders) {
             this(true, true, enabledProviders);
@@ -129,7 +128,6 @@ public class NavigationLocationUpdateRequesterTest {
         @Override
         public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
             requestedProviders = new ArrayList<>(providers);
-            requestedMinTimeMs = minTimeMs;
             return new ArrayList<>(providers);
         }
 
@@ -193,6 +191,10 @@ public class NavigationLocationUpdateRequesterTest {
         @Override
         public boolean isAvailable() {
             return true;
+        }
+
+        @Override
+        public void setUpdateFailureListener(@NonNull Runnable listener) {
         }
 
         @Override

@@ -182,6 +182,85 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
     }
 
     @Test
+    public void offTrackRecalculation_usesAcceptedFixPathInCompassAndExport() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        state.applyRouteResult(
+                context,
+                snapshotForRoute(new LatLon(0.0, 0.0), new LatLon(0.001, 0.004)),
+                routeFrom(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                location(0.0, 0.0, 1_000L),
+                5f,
+                500L
+        );
+        NavigationLocation lastOnRoute = location(0.0, 0.001, 2_000L);
+        NavigationLocation offRoute = location(0.001, 0.0015, 3_000L);
+        state.recordRecalculationFixPath(
+                lastOnRoute,
+                NavigationRouteEvaluation.keepRoute(Collections.emptyList(), 3_000L, true),
+                false
+        );
+        state.recordRecalculationFixPath(
+                offRoute,
+                NavigationRouteEvaluation.requestRecalculation(
+                        null,
+                        vibro.navigator.nav.routing.NavigationRouteRecalculationReason.ROUTE_DEVIATION
+                ),
+                true
+        );
+        state.applyRouteResult(
+                context,
+                snapshotForRoute(new LatLon(0.001, 0.0015), new LatLon(0.001, 0.004)),
+                routeFrom(
+                        new LatLon(0.001, 0.0015),
+                        new LatLon(0.001, 0.0025),
+                        new LatLon(0.001, 0.004)
+                ),
+                offRoute,
+                5f,
+                2_500L
+        );
+        NavigationLocation firstOnNewRoute = location(0.001, 0.0025, 4_000L);
+        state.recordRecalculationFixPath(
+                firstOnNewRoute,
+                NavigationRouteEvaluation.keepRoute(Collections.emptyList(), 3_000L, true),
+                false
+        );
+
+        NavState navState = state.buildState(
+                context,
+                firstOnNewRoute,
+                5f,
+                false,
+                5f,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                4_000L,
+                false,
+                null,
+                null
+        );
+
+        assertNotNull(navState.routeStatus.compassState);
+        CompassRouteGeometry geometry = navState.routeStatus.compassState.routeGeometry();
+        assertNotNull(geometry);
+        assertEquals(1, geometry.recalculationBridgeSegments().segmentCount());
+        assertEquals(3, geometry.recalculationBridgeSegments().samplePointCount(0));
+        assertEquals(0.0, geometry.recalculationBridgeSegments().samplePointAt(0, 0).lat, 0.0);
+        assertEquals(0.001, geometry.recalculationBridgeSegments().samplePointAt(0, 0).lon, 0.0);
+        assertEquals(0.001, geometry.recalculationBridgeSegments().samplePointAt(0, 1).lat, 0.0);
+        assertEquals(0.0015, geometry.recalculationBridgeSegments().samplePointAt(0, 1).lon, 0.0);
+        assertEquals(1, state.recalculationBridgeSegmentsForExport().size());
+        assertEquals(3, state.recalculationBridgeSegmentsForExport().get(0).size());
+    }
+
+    @Test
     public void buildState_showsTurnManeuverCueFromFiveSecondNotificationWithCoarseAccuracyUntilPassed() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

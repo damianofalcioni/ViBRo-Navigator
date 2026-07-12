@@ -38,13 +38,20 @@ final class NavigationRouteTravelHistory {
     void onRouteApplied(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @Nullable PolylineIndex.Match previousRouteMatch
+            @Nullable PolylineIndex.Match previousRouteMatch,
+            boolean appendDirectBridge
     ) {
         LatLon bridgeStart = archiveActiveRoute(previousRouteMatch);
-        appendBridgeSegment(bridgeStart, RouteRecalculationBridge.firstRoutePoint(route));
+        if (appendDirectBridge) {
+            appendBridgeSegment(bridgeStart, RouteRecalculationBridge.firstRoutePoint(route));
+        }
         activeRoute = route;
         activePolylineIndex = polylineIndex;
         lastActiveMatch = null;
+    }
+
+    void appendRecalculationBridgeSegment(@NonNull List<LatLon> segment) {
+        recalculationBridgeSegments.add(RouteRecalculationBridge.copiedPoints(segment));
     }
 
     void recordProgress(@NonNull PolylineIndex.Match match) {
@@ -86,7 +93,7 @@ final class NavigationRouteTravelHistory {
     }
 
     @Nullable
-    private PolylineIndex.Match activeProgressMatch(@Nullable PolylineIndex.Match replacementMatch) {
+    PolylineIndex.Match activeProgressMatch(@Nullable PolylineIndex.Match replacementMatch) {
         if (replacementMatch == null || lastActiveMatch == null) {
             return replacementMatch != null ? replacementMatch : lastActiveMatch;
         }

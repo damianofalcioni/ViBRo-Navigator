@@ -32,7 +32,7 @@ final class NavigationRouteResultApplier {
     @NonNull
     private final RouteStartApproachState routeStartApproachState;
     @NonNull
-    private final NavigationRouteTravelHistory travelHistory;
+    private final NavigationRouteHistory routeHistory;
 
     NavigationRouteResultApplier(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -41,7 +41,7 @@ final class NavigationRouteResultApplier {
             @NonNull NavigationArrivalDetector arrivalDetector,
             @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
             @NonNull RouteStartApproachState routeStartApproachState,
-            @NonNull NavigationRouteTravelHistory travelHistory
+            @NonNull NavigationRouteHistory routeHistory
     ) {
         this.geometryState = geometryState;
         this.displayState = displayState;
@@ -49,7 +49,7 @@ final class NavigationRouteResultApplier {
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
         this.routeStartApproachState = routeStartApproachState;
-        this.travelHistory = travelHistory;
+        this.routeHistory = routeHistory;
     }
 
     @NonNull
@@ -67,17 +67,21 @@ final class NavigationRouteResultApplier {
                 !input.snapshot.isRoundTrip()
         );
         logRouteStartApproachIfNeeded(approachPlan);
-        PolylineIndex.Match previousRouteMatch = previousRouteMatch(input.lastFiltered, accuracyMeters);
+        boolean fixPathPending = routeHistory.hasPendingRerouteFixPath();
+        PolylineIndex.Match previousRouteMatch = fixPathPending
+                ? routeHistory.lastActiveRouteMatch()
+                : previousRouteMatch(input.lastFiltered, accuracyMeters);
         geometryState.loadRoute(route, input.snapshot.isRoundTrip());
         PolylineIndex polylineIndex = requireActivePolylineIndex();
-        travelHistory.onRouteApplied(route, polylineIndex, previousRouteMatch);
+        routeHistory.onRouteApplied(route, polylineIndex, previousRouteMatch, !fixPathPending);
         displayState.onRouteApplied(
                 input.textResources,
                 route,
                 polylineIndex,
                 input.snapshot.intermediates,
                 routeStartApproachState.target(),
-                previousRouteMatch
+                previousRouteMatch,
+                !fixPathPending
         );
         intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, polylineIndex);
         float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;

@@ -51,7 +51,7 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull List<LatLon> intermediateStops,
             @Nullable LatLon routeStartApproachTarget
     ) {
-        onRouteApplied(textResources, route, polylineIndex, intermediateStops, routeStartApproachTarget, null);
+        onRouteApplied(textResources, route, polylineIndex, intermediateStops, routeStartApproachTarget, null, true);
     }
 
     public void onRouteApplied(
@@ -60,11 +60,22 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
             @Nullable LatLon routeStartApproachTarget,
-            @Nullable PolylineIndex.Match previousRouteMatch
+            @Nullable PolylineIndex.Match previousRouteMatch,
+            boolean appendDirectBridge
     ) {
-        compassMemory.onRouteApplied(route, polylineIndex, intermediateStops, previousRouteMatch);
+        compassMemory.onRouteApplied(
+                route,
+                polylineIndex,
+                intermediateStops,
+                previousRouteMatch,
+                appendDirectBridge
+        );
         this.routeStartApproachTarget = copy(routeStartApproachTarget);
         targets = buildTargets(textResources, intermediateStops, route.track.size(), polylineIndex);
+    }
+
+    void appendRecalculationBridgeSegment(@NonNull List<LatLon> segment) {
+        compassMemory.appendRecalculationBridgeSegment(segment);
     }
 
     public void clearRouteStartApproachTarget() {
@@ -141,7 +152,7 @@ public final class NavigationSessionRouteDisplayState {
                         compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
                 )
                 .speedBucketMemory(compassMemory.lastReliableMovingSpeedBucket())
-                .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition())
+                .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition)
                 .routeStartApproachTarget(routeStartApproachTarget)
                 .orientationCue(orientationCue)
                 .blockedAreas(NavigationBlockedCompassAreas.project(snapshot.lastFiltered, snapshot.blockedPoints))

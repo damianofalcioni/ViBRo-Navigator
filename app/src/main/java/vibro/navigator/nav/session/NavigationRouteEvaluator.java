@@ -44,7 +44,7 @@ final class NavigationRouteEvaluator {
     @NonNull
     private final RouteStartApproachState routeStartApproachState;
     @NonNull
-    private final NavigationRouteTravelHistory travelHistory;
+    private final NavigationRouteHistory routeHistory;
 
     NavigationRouteEvaluator(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -55,7 +55,7 @@ final class NavigationRouteEvaluator {
             @NonNull NavigationArrivalDetector arrivalDetector,
             @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
             @NonNull RouteStartApproachState routeStartApproachState,
-            @NonNull NavigationRouteTravelHistory travelHistory
+            @NonNull NavigationRouteHistory routeHistory
     ) {
         this.geometryState = geometryState;
         this.turnState = turnState;
@@ -65,7 +65,7 @@ final class NavigationRouteEvaluator {
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
         this.routeStartApproachState = routeStartApproachState;
-        this.travelHistory = travelHistory;
+        this.routeHistory = routeHistory;
     }
 
     @NonNull
@@ -148,7 +148,7 @@ final class NavigationRouteEvaluator {
         if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match)) {
             deviationHandler.clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            travelHistory.recordProgress(match);
+            routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
                     NO_SUGGESTED_INTERVAL,
@@ -163,7 +163,7 @@ final class NavigationRouteEvaluator {
         if (reachedIntermediateTrackIndex != null) {
             deviationHandler.clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            travelHistory.recordProgress(match);
+            routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex),
                     NO_SUGGESTED_INTERVAL,
@@ -175,7 +175,6 @@ final class NavigationRouteEvaluator {
                 match,
                 smoothedAccuracyMeters,
                 directionOfProgress,
-                speedMps,
                 expectedBearingDegrees,
                 actualBearingDegrees,
                 nowMs
@@ -187,6 +186,9 @@ final class NavigationRouteEvaluator {
             );
         }
         if (deviationDecision.shouldKeepCurrentRoute()) {
+            if (deviationDecision.isDeviationConfirmationPending()) {
+                return NavigationRouteEvaluation.waitForDeviationConfirmation();
+            }
             return keepCurrentRoute(
                     match,
                     etaSpeedMps,
@@ -215,7 +217,7 @@ final class NavigationRouteEvaluator {
             routeStartApproachState.reset();
             displayState.clearRouteStartApproachTarget();
             geometryState.rememberSegment(match);
-            travelHistory.recordProgress(match);
+            routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
                     turnState.buildInitialTurnEventIfNeeded(
                             geometryState.route(),
@@ -307,7 +309,7 @@ final class NavigationRouteEvaluator {
             return null;
         }
         if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match)) {
-            travelHistory.recordProgress(match);
+            routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
                     NO_SUGGESTED_INTERVAL,
@@ -367,7 +369,7 @@ final class NavigationRouteEvaluator {
             long fastChecksUntilMs,
             boolean stableOnRouteSample
     ) {
-        travelHistory.recordProgress(match);
+        routeHistory.recordProgress(match);
         NavigationTurnState.Progress progress = turnState.evaluate(
                 geometryState.route(),
                 geometryState.polylineIndex(),
@@ -389,7 +391,7 @@ final class NavigationRouteEvaluator {
             @NonNull PolylineIndex.Match match,
             int reachedIntermediateTrackIndex
     ) {
-        travelHistory.recordProgress(match);
+        routeHistory.recordProgress(match);
         return NavigationRouteEvaluation.keepRoute(
                 turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex),
                 NO_SUGGESTED_INTERVAL,

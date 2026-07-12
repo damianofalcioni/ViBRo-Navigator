@@ -12,6 +12,10 @@ public final class NoOpFusedLocationClient implements FusedLocationUpdateClient,
     }
 
     @Override
+    public void setUpdateFailureListener(@NonNull Runnable listener) {
+    }
+
+    @Override
     public boolean requestUpdates(long minTimeMs, boolean fineGranted, boolean coarseGranted) {
         return false;
     }

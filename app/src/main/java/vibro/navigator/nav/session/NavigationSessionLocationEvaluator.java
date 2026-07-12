@@ -173,6 +173,11 @@ final class NavigationSessionLocationEvaluator {
                 fastChecksUntilMs,
                 update.isReacquiringAfterLongGap()
         );
+        routeState.recordRecalculationFixPath(
+                filtered,
+                evaluation,
+                routeRequestManager.isRouteCalculationInProgress()
+        );
         warmupController.recordEvaluation(evaluation.isStableOnRouteSample(), locationState.accuracyMeters(filtered), nowMs);
         boolean shouldRecalculateRoute = evaluation.shouldRecalculateRoute();
         if (currentRequest.isRoundTrip() && evaluation.rerouteNotice != null) {
