@@ -24,6 +24,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Date;
@@ -33,55 +34,84 @@ import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 
 @RunWith(RobolectricTestRunner.class)
 public class AndroidRouteGpxViewIntentTest {
+    private static final String GPX_DIR = "gpx";
+    private static final String GPX = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
+
     private final Context context = ApplicationProvider.getApplicationContext();
 
     @Before
     public void setUp() {
         File externalFilesDir = context.getExternalFilesDir(null);
         if (externalFilesDir != null) {
-            deleteChildren(new File(externalFilesDir, "gpx"));
+            deleteChildren(new File(externalFilesDir, GPX_DIR));
         }
-        deleteChildren(new File(context.getFilesDir(), "gpx"));
+        deleteChildren(new File(context.getFilesDir(), GPX_DIR));
     }
 
     @Test
-    public void writeExportFile_writesGpxToRouteCache() throws Exception {
-        String gpx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
+    public void writeExportFile_writesTimestampedGpxToPersistentGpxFolder() throws Exception {
+        File file = AndroidRouteGpxViewIntent.writeExportFile(context, GPX, new Date(0L));
 
-        File file = AndroidRouteGpxViewIntent.writeExportFile(context, gpx);
-
-        assertEquals(exportFile(), file);
-        assertEquals(gpx, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
-    }
-
-    @Test
-    public void autoSave_writesGpxToPersistentGpxFolderWithTimestampedName() throws Exception {
-        String gpx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
-
-        File file = AndroidRouteGpxAutoSaver.save(context, gpx, new Date(0L));
-
-        assertEquals("gpx", file.getParentFile().getName());
+        assertEquals(GPX_DIR, file.getParentFile().getName());
         assertTrue(Pattern.matches("vibro-navigator-route-\\d{14}\\.gpx", file.getName()));
-        assertEquals(gpx, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+        assertEquals(GPX, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
     }
 
     @Test
-    public void autoSave_usesCollisionSuffixForSameSecond() throws Exception {
-        String gpx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
+    public void writeExportFile_usesCollisionSuffixForSameSecond() throws Exception {
         Date now = new Date(0L);
 
-        File first = AndroidRouteGpxAutoSaver.save(context, gpx, now);
-        File second = AndroidRouteGpxAutoSaver.save(context, gpx, now);
+        File first = AndroidRouteGpxViewIntent.writeExportFile(context, GPX, now);
+        File second = AndroidRouteGpxViewIntent.writeExportFile(context, GPX, now);
 
         assertEquals(AndroidRouteGpxAutoSaver.buildFileName(now), first.getName());
         assertEquals(first.getName().replace(".gpx", "-2.gpx"), second.getName());
     }
 
     @Test
+    public void autoSave_writesGpxToPersistentGpxFolderWithTimestampedName() throws Exception {
+        File file = AndroidRouteGpxAutoSaver.save(context, GPX, new Date(0L));
+
+        assertEquals(GPX_DIR, file.getParentFile().getName());
+        assertTrue(Pattern.matches("vibro-navigator-route-\\d{14}\\.gpx", file.getName()));
+        assertEquals(GPX, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void autoSave_usesCollisionSuffixForSameSecond() throws Exception {
+        Date now = new Date(0L);
+
+        File first = AndroidRouteGpxAutoSaver.save(context, GPX, now);
+        File second = AndroidRouteGpxAutoSaver.save(context, GPX, now);
+
+        assertEquals(AndroidRouteGpxAutoSaver.buildFileName(now), first.getName());
+        assertEquals(first.getName().replace(".gpx", "-2.gpx"), second.getName());
+    }
+
+    @Test
+    public void create_buildsActionViewIntentForPersistentGpxFile() throws Exception {
+        Intent intent = AndroidRouteGpxViewIntent.create(context, GPX);
+
+        String uri = intent.getData().toString();
+        assertEquals(Intent.ACTION_VIEW, intent.getAction());
+        assertTrue(uri, Pattern.matches(
+                "content://[^/]+/(internal|external\\d+)/gpx/vibro-navigator-route-\\d{14}\\.gpx",
+                uri
+        ));
+        assertEquals(NavigationRouteGpxExporter.GPX_MIME_TYPE, intent.getType());
+        assertTrue((intent.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+        assertNotNull(intent.getClipData());
+        try (InputStream input = context.getContentResolver().openInputStream(intent.getData())) {
+            assertNotNull(input);
+            assertEquals(GPX, new String(input.readAllBytes(), StandardCharsets.UTF_8));
+        }
+    }
+
+    @Test
     public void createForUri_buildsActionViewGpxIntent() {
         Intent intent = AndroidRouteGpxViewIntent.createForUri(
                 context,
-                Uri.parse("content://vibro.navigator.debug.fileprovider/exports/current-route.gpx")
+                Uri.parse("content://vibro.navigator.debug.fileprovider/external0/gpx/vibro-navigator-route-20260713123456.gpx")
         );
 
         assertEquals(Intent.ACTION_VIEW, intent.getAction());
@@ -107,7 +137,7 @@ public class AndroidRouteGpxViewIntentTest {
     public void createChooserForIntent_addsExplicitViewTargetsWhenGpxHandlersExist() {
         Intent actionView = AndroidRouteGpxViewIntent.createForUri(
                 context,
-                Uri.parse("content://vibro.navigator.debug.fileprovider/exports/current-route.gpx")
+                Uri.parse("content://vibro.navigator.debug.fileprovider/external0/gpx/vibro-navigator-route-20260713123456.gpx")
         );
         registerResolvableIntent(actionView, "com.example.first", "FirstActivity");
         registerResolvableIntent(actionView, "com.example.second", "SecondActivity");
@@ -132,10 +162,6 @@ public class AndroidRouteGpxViewIntentTest {
         assertTrue((chooser.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
         assertNotNull(chooser.getClipData());
         assertFalse(chooser.getBooleanExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, true));
-    }
-
-    private File exportFile() {
-        return new File(new File(context.getCacheDir(), "exports"), "current-route.gpx");
     }
 
     private static void deleteChildren(@NonNull File dir) {

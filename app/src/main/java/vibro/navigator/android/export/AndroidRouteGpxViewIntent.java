@@ -12,31 +12,24 @@ import android.os.Build;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.FileProvider;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 
 public final class AndroidRouteGpxViewIntent {
-    private static final String FILE_PROVIDER_SUFFIX = ".fileprovider";
-    private static final String EXPORT_DIR = "exports";
-    private static final String EXPORT_FILE_NAME = "current-route.gpx";
-
     private AndroidRouteGpxViewIntent() {
     }
 
     @NonNull
     public static Intent create(@NonNull Context context, @NonNull String gpx) throws IOException {
         File file = writeExportFile(context, gpx);
-        Uri uri = FileProvider.getUriForFile(context, authority(context), file);
+        Uri uri = AndroidRouteGpxFileProvider.uriForFile(context, file);
         return createForUri(context, uri);
     }
 
@@ -73,23 +66,12 @@ public final class AndroidRouteGpxViewIntent {
 
     @NonNull
     static File writeExportFile(@NonNull Context context, @NonNull String gpx) throws IOException {
-        File exportDir = new File(context.getCacheDir(), EXPORT_DIR);
-        if (!exportDir.isDirectory() && !exportDir.mkdirs()) {
-            throw new IOException("Could not create route export cache directory");
-        }
-        File file = new File(exportDir, EXPORT_FILE_NAME);
-        try (OutputStreamWriter writer = new OutputStreamWriter(
-                new FileOutputStream(file),
-                StandardCharsets.UTF_8
-        )) {
-            writer.write(gpx);
-        }
-        return file;
+        return writeExportFile(context, gpx, new Date());
     }
 
     @NonNull
-    private static String authority(@NonNull Context context) {
-        return context.getPackageName() + FILE_PROVIDER_SUFFIX;
+    static File writeExportFile(@NonNull Context context, @NonNull String gpx, @NonNull Date now) throws IOException {
+        return AndroidRouteGpxAutoSaver.save(context.getApplicationContext(), gpx, now);
     }
 
     @NonNull
