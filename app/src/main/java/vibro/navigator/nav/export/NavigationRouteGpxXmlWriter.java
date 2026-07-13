@@ -13,6 +13,7 @@ final class NavigationRouteGpxXmlWriter {
     static final String TAG_DESC = "desc";
     static final String TAG_TYPE = "type";
     static final String TAG_TIME = "time";
+    static final String TAG_ELEVATION = "ele";
     static final String LINE_END = "\n";
 
     private static final String GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";

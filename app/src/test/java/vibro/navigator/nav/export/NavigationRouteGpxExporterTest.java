@@ -28,6 +28,7 @@ public class NavigationRouteGpxExporterTest {
     private static final String TAG_TRACK_SEGMENT = "trkseg";
     private static final String TAG_NAME = "name";
     private static final String TAG_TYPE = "type";
+    private static final String TAG_ELEVATION = "ele";
     private static final String ATTR_LAT = "lat";
     private static final String ATTR_LON = "lon";
     private static final String TYPE_GPS_FIX = "vibro.navigator.gps-fix";
@@ -102,13 +103,15 @@ public class NavigationRouteGpxExporterTest {
                 30.0,
                 300.0
         );
+        NavigationLocation acceptedFix = location(48.5, 16.5, 1_000L);
+        acceptedFix.setAltitude(188.5);
         NavigationRouteGpxExportHistory history = new NavigationRouteGpxExportHistory(
                 Collections.singletonList(new NavigationRouteGpxExportHistory.PassedRoute(
                         passedRoute,
                         Arrays.asList(passedRoute.track.get(0), passedRoute.track.get(1)),
                         1
                 )),
-                Collections.singletonList(location(48.5, 16.5, 1_000L))
+                Collections.singletonList(acceptedFix)
         );
 
         Document document = parse(NavigationRouteGpxExporter.export(
@@ -132,6 +135,7 @@ public class NavigationRouteGpxExporterTest {
         assertEquals("48.500000", gpsFix.getAttribute(ATTR_LAT));
         assertEquals("16.500000", gpsFix.getAttribute(ATTR_LON));
         assertEquals("GPS fix 1", childText(gpsFix, TAG_NAME));
+        assertEquals("188.5", childText(gpsFix, TAG_ELEVATION));
         assertEquals(FIRST_GPS_FIX_TIME, childText(gpsFix, "time"));
         assertEquals(0, countWaypointsByName(document, "Sharp right"));
     }

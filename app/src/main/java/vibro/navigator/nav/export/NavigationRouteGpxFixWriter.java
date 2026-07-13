@@ -47,6 +47,7 @@ final class NavigationRouteGpxFixWriter {
                 NavigationRouteGpxXmlWriter.TAG_NAME,
                 textResources.getString(R.string.format_gpx_gps_fix_name, fixNumber)
         );
+        appendElevation(out, location);
         appendTime(out, location);
         NavigationRouteGpxXmlWriter.appendSimpleElement(
                 out,
@@ -60,6 +61,17 @@ final class NavigationRouteGpxFixWriter {
     @NonNull
     private static LatLon locationPoint(@NonNull NavigationLocation location) {
         return new LatLon(location.getLatitude(), location.getLongitude());
+    }
+
+    private static void appendElevation(@NonNull StringBuilder out, @NonNull NavigationLocation location) {
+        if (location.hasAltitude() && Double.isFinite(location.getAltitude())) {
+            NavigationRouteGpxXmlWriter.appendSimpleElement(
+                    out,
+                    2,
+                    NavigationRouteGpxXmlWriter.TAG_ELEVATION,
+                    formatElevation(location.getAltitude())
+            );
+        }
     }
 
     private static void appendTime(@NonNull StringBuilder out, @NonNull NavigationLocation location) {
@@ -82,5 +94,10 @@ final class NavigationRouteGpxFixWriter {
         SimpleDateFormat formatter = new SimpleDateFormat(GPX_TIME_PATTERN, Locale.US);
         formatter.setTimeZone(UTC);
         return formatter.format(new Date(timeMs));
+    }
+
+    @NonNull
+    private static String formatElevation(double elevationMeters) {
+        return String.format(Locale.US, "%.1f", elevationMeters);
     }
 }

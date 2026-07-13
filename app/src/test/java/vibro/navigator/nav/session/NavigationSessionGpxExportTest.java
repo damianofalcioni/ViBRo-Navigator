@@ -38,6 +38,7 @@ public class NavigationSessionGpxExportTest {
     private static final String TYPE_TURN = "vibro.navigator.turn";
     private static final String TYPE_GPS_FIX = "vibro.navigator.gps-fix";
     private static final String FIRST_GPS_FIX_TIME = "<time>1970-01-01T00:00:01.000Z</time>";
+    private static final String FIRST_GPS_FIX_ELEVATION = "<ele>188.5</ele>";
 
     @Test
     public void buildCurrentRouteGpx_exportsStraightLinePointsAndStraightRouteOnly() {
@@ -59,7 +60,7 @@ public class NavigationSessionGpxExportTest {
         NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
-                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                locationWithSpeedAndAltitude(0.0, 0.0, nowMs, 2f, 188.5),
                 nowMs
         );
         String gpx = session.buildCurrentRouteGpx(androidContext);
@@ -72,6 +73,7 @@ public class NavigationSessionGpxExportTest {
         assertTrue(gpx.contains(TYPE_DESTINATION));
         assertTrue(gpx.contains(TYPE_GPS_FIX));
         assertTrue(gpx.contains(FIRST_GPS_FIX_TIME));
+        assertTrue(gpx.contains(FIRST_GPS_FIX_ELEVATION));
         assertFalse(gpx.contains(TYPE_TURN));
     }
 
@@ -181,6 +183,19 @@ public class NavigationSessionGpxExportTest {
         location.setTime(timeMs);
         location.setAccuracy(5f);
         location.setSpeed(speedMetersPerSecond);
+        return location;
+    }
+
+    @NonNull
+    private static NavigationLocation locationWithSpeedAndAltitude(
+            double lat,
+            double lon,
+            long timeMs,
+            float speedMetersPerSecond,
+            double altitudeMeters
+    ) {
+        NavigationLocation location = locationWithSpeed(lat, lon, timeMs, speedMetersPerSecond);
+        location.setAltitude(altitudeMeters);
         return location;
     }
 
