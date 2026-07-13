@@ -267,6 +267,7 @@ public class NavigationActivity extends Activity {
                 .setPositiveButton(R.string.action_stop_navigation, (dialog, which) -> {
                     if (navBinder != null) {
                         AppLogger.i(TAG, "Stop navigation requested from UI");
+                        NavigationStopGpxAutoSave.saveIfEnabled(this, navBinder::buildCurrentRouteGpx);
                         navBinder.stop();
                     } else {
                         AppLogger.w(TAG, "Stop navigation confirmed before service binding completed");

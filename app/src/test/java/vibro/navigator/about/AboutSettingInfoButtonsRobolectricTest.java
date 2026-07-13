@@ -44,6 +44,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
 
         assertInfoButton(activity, R.id.aboutLogEnabledInfoButton, R.string.label_log_enabled);
+        assertInfoButton(activity, R.id.aboutAutoSaveGpxInfoButton, R.string.label_auto_save_gpx_enabled);
         assertInfoButton(activity, R.id.aboutFusedLocationInfoButton, R.string.label_fused_location_enabled);
         assertInfoButton(
                 activity,

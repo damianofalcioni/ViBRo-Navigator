@@ -45,6 +45,7 @@ public class AboutActivity extends Activity {
 
         TextView version = findViewById(R.id.aboutVersion);
         Switch logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
+        Switch autoSaveGpxSwitch = findViewById(R.id.aboutAutoSaveGpxSwitch);
         Switch fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
         Switch dynamicGpsFixIntervalSwitch = findViewById(R.id.aboutDynamicGpsFixIntervalSwitch);
         Switch imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
@@ -66,6 +67,7 @@ public class AboutActivity extends Activity {
         settingsSwitches = new AboutSettingsSwitches(
                 this,
                 logEnabledSwitch,
+                autoSaveGpxSwitch,
                 fusedLocationSwitch,
                 dynamicGpsFixIntervalSwitch,
                 imperialUnitsSwitch,

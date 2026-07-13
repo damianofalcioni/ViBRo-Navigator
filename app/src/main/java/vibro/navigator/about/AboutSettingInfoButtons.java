@@ -20,6 +20,11 @@ final class AboutSettingInfoButtons {
     void configure() {
         bind(R.id.aboutLogEnabledInfoButton, R.string.label_log_enabled, R.string.about_setting_log_info);
         bind(
+                R.id.aboutAutoSaveGpxInfoButton,
+                R.string.label_auto_save_gpx_enabled,
+                R.string.about_setting_auto_save_gpx_info
+        );
+        bind(
                 R.id.aboutFusedLocationInfoButton,
                 R.string.label_fused_location_enabled,
                 R.string.about_setting_fused_location_info

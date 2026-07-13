@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.core.content.IntentCompat;
 import androidx.test.core.app.ApplicationProvider;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -25,12 +26,23 @@ import org.robolectric.shadows.ShadowPackageManager;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Date;
+import java.util.regex.Pattern;
 
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 
 @RunWith(RobolectricTestRunner.class)
 public class AndroidRouteGpxViewIntentTest {
     private final Context context = ApplicationProvider.getApplicationContext();
+
+    @Before
+    public void setUp() {
+        File externalFilesDir = context.getExternalFilesDir(null);
+        if (externalFilesDir != null) {
+            deleteChildren(new File(externalFilesDir, "gpx"));
+        }
+        deleteChildren(new File(context.getFilesDir(), "gpx"));
+    }
 
     @Test
     public void writeExportFile_writesGpxToRouteCache() throws Exception {
@@ -40,6 +52,29 @@ public class AndroidRouteGpxViewIntentTest {
 
         assertEquals(exportFile(), file);
         assertEquals(gpx, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void autoSave_writesGpxToPersistentGpxFolderWithTimestampedName() throws Exception {
+        String gpx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
+
+        File file = AndroidRouteGpxAutoSaver.save(context, gpx, new Date(0L));
+
+        assertEquals("gpx", file.getParentFile().getName());
+        assertTrue(Pattern.matches("vibro-navigator-route-\\d{14}\\.gpx", file.getName()));
+        assertEquals(gpx, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void autoSave_usesCollisionSuffixForSameSecond() throws Exception {
+        String gpx = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><gpx />";
+        Date now = new Date(0L);
+
+        File first = AndroidRouteGpxAutoSaver.save(context, gpx, now);
+        File second = AndroidRouteGpxAutoSaver.save(context, gpx, now);
+
+        assertEquals(AndroidRouteGpxAutoSaver.buildFileName(now), first.getName());
+        assertEquals(first.getName().replace(".gpx", "-2.gpx"), second.getName());
     }
 
     @Test
@@ -101,6 +136,18 @@ public class AndroidRouteGpxViewIntentTest {
 
     private File exportFile() {
         return new File(new File(context.getCacheDir(), "exports"), "current-route.gpx");
+    }
+
+    private static void deleteChildren(@NonNull File dir) {
+        File[] children = dir.listFiles();
+        if (children == null) {
+            return;
+        }
+        for (File child : children) {
+            if (!child.delete()) {
+                throw new AssertionError("Failed to delete " + child.getAbsolutePath());
+            }
+        }
     }
 
     private void registerResolvableIntent(@NonNull Intent intent, @NonNull String packageName, @NonNull String name) {

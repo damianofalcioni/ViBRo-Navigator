@@ -78,6 +78,7 @@ public class AppDataBackupTest {
         Poi originalPoi = new Poi("Coffee", 48.2082d, 16.3738d);
         new PoiHistoryStore(context).addOrPromote(originalPoi);
         AppSettings.setFusedLocationEnabled(context, false);
+        AppGpxSettings.setAutoSaveOnStopEnabled(context, true);
         AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
@@ -127,6 +128,7 @@ public class AppDataBackupTest {
         assertEquals(originalPoi.lat, restoredPois.get(0).lat, 0.0d);
         assertEquals(originalPoi.lon, restoredPois.get(0).lon, 0.0d);
         assertFalse(AppSettings.isFusedLocationEnabled(context));
+        assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(context));
         assertFalse(AppLocationSettings.isDynamicGpsFixIntervalEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
@@ -153,6 +155,7 @@ public class AppDataBackupTest {
     @Test
     public void exportJson_containsTypedSharedPreferencePayload() throws Exception {
         AppSettings.setImperialUnitsEnabled(context, true);
+        AppGpxSettings.setAutoSaveOnStopEnabled(context, true);
         AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
@@ -171,7 +174,6 @@ public class AppDataBackupTest {
         JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
         JSONObject sharedPreferences = root.getJSONObject(KEY_SHARED_PREFERENCES);
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
-        JSONObject imperialUnits = appSettings.getJSONObject("use_imperial_units");
         JSONObject compassSurroundingStreets = appSettings.getJSONObject("compass_surrounding_streets_enabled");
         JSONObject navigationNotifications = appSettings.getJSONObject("navigation_notifications_enabled");
         JSONObject mainUiRoutingMode = appSettings.getJSONObject("main_ui_routing_mode");
@@ -185,8 +187,8 @@ public class AppDataBackupTest {
         JSONObject mapPoiCategoryNames = appSettings.getJSONObject("map_poi_category_names");
 
         assertEquals(1, root.getInt("schemaVersion"));
-        assertEquals(BACKUP_TYPE_BOOLEAN, imperialUnits.getString(BACKUP_TYPE));
-        assertTrue(imperialUnits.getBoolean(BACKUP_VALUE));
+        assertBooleanPreference(appSettings, "use_imperial_units", true);
+        assertBooleanPreference(appSettings, "auto_save_gpx_on_stop_enabled", true);
         assertBooleanPreference(appSettings, "dynamic_gps_fix_interval_enabled", false);
         assertEquals(BACKUP_TYPE_BOOLEAN, compassSurroundingStreets.getString(BACKUP_TYPE));
         assertTrue(compassSurroundingStreets.getBoolean(BACKUP_VALUE));

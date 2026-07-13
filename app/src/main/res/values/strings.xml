@@ -47,7 +47,7 @@
     <string name="action_profile_settings">Profile settings</string>
     <string name="action_reset_defaults">Reset defaults</string>
 
-    <string name="label_vehicle_profile">BRouter Profile</string>
+    <string name="label_vehicle_profile">Profile</string>
     <string name="label_route_mode_route">Route mode</string>
     <string name="label_route_mode_round_trip">Round Trip mode</string>
     <string name="label_route_mode_straight_line">Straight Line mode</string>
@@ -327,6 +327,7 @@
     <string name="about_credits">Credits: BRouter for routing. POI search and coordinate reverse geocoding use OpenStreetMap Nominatim; map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
     <string name="about_settings_title">Settings</string>
     <string name="label_log_enabled">Logs</string>
+    <string name="label_auto_save_gpx_enabled">Auto-save GPX</string>
     <string name="label_fused_location_enabled">Google Fused Location</string>
     <string name="label_dynamic_gps_fix_interval_enabled">Dynamic GPS interval</string>
     <string name="label_imperial_units_enabled">Imperial units (ft/mi/mph)</string>
@@ -348,6 +349,7 @@
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
     <string name="format_about_setting_info_content_description">Show help for %1$s</string>
     <string name="about_setting_log_info">Keeps a log that can help diagnose problems. Leave this off unless you need to share details for support.</string>
+    <string name="about_setting_auto_save_gpx_info">Saves the active route as a GPX file when you stop navigation with the Stop button.</string>
     <string name="about_setting_fused_location_info">Uses Google location when available. This can improve location updates on some phones.</string>
     <string name="about_setting_dynamic_gps_fix_interval_info">Saves battery by checking your location less often but still in a reliable way. Turn it off for continuous location updates.</string>
     <string name="about_setting_imperial_units_info">Shows distances and speeds in feet, miles, and mph instead of meters and km/h.</string>

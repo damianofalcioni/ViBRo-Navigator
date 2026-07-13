@@ -13,6 +13,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppCompassSettings;
+import vibro.navigator.settings.AppGpxSettings;
 import vibro.navigator.settings.AppLocationSettings;
 import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.settings.AppSettings;
@@ -25,6 +26,8 @@ final class AboutSettingsSwitches {
     private final Activity activity;
     @NonNull
     private final Switch logEnabledSwitch;
+    @NonNull
+    private final Switch autoSaveGpxSwitch;
     @NonNull
     private final Switch fusedLocationSwitch;
     @NonNull
@@ -43,6 +46,7 @@ final class AboutSettingsSwitches {
     private final TaskScheduler settingsChangeScheduler = AndroidTaskScheduler.main();
 
     private AboutDeferredBooleanSetting logEnabledSetting;
+    private AboutDeferredBooleanSetting autoSaveGpxSetting;
     private AboutDeferredBooleanSetting fusedLocationSetting;
     private AboutDeferredBooleanSetting dynamicGpsFixIntervalSetting;
     private AboutDeferredBooleanSetting imperialUnitsSetting;
@@ -53,6 +57,7 @@ final class AboutSettingsSwitches {
     AboutSettingsSwitches(
             @NonNull Activity activity,
             @NonNull Switch logEnabledSwitch,
+            @NonNull Switch autoSaveGpxSwitch,
             @NonNull Switch fusedLocationSwitch,
             @NonNull Switch dynamicGpsFixIntervalSwitch,
             @NonNull Switch imperialUnitsSwitch,
@@ -63,6 +68,7 @@ final class AboutSettingsSwitches {
     ) {
         this.activity = activity;
         this.logEnabledSwitch = logEnabledSwitch;
+        this.autoSaveGpxSwitch = autoSaveGpxSwitch;
         this.fusedLocationSwitch = fusedLocationSwitch;
         this.dynamicGpsFixIntervalSwitch = dynamicGpsFixIntervalSwitch;
         this.imperialUnitsSwitch = imperialUnitsSwitch;
@@ -74,6 +80,7 @@ final class AboutSettingsSwitches {
 
     void configure() {
         configureLogEnabledSwitch();
+        configureAutoSaveGpxSwitch();
         configureFusedLocationSwitch();
         configureDynamicGpsFixIntervalSwitch();
         configureImperialUnitsSwitch();
@@ -84,6 +91,7 @@ final class AboutSettingsSwitches {
 
     void render() {
         logEnabledSetting.render(logEnabledSwitch, AppLogger.isLoggingEnabled(activity));
+        autoSaveGpxSetting.render(autoSaveGpxSwitch, AppGpxSettings.isAutoSaveOnStopEnabled(activity));
         fusedLocationSetting.render(
                 fusedLocationSwitch,
                 DistributionServices.supportsFusedLocation() && AppSettings.isFusedLocationEnabled(activity)
@@ -106,6 +114,7 @@ final class AboutSettingsSwitches {
 
     void flush() {
         logEnabledSetting.flush();
+        autoSaveGpxSetting.flush();
         fusedLocationSetting.flush();
         dynamicGpsFixIntervalSetting.flush();
         imperialUnitsSetting.flush();
@@ -142,6 +151,17 @@ final class AboutSettingsSwitches {
         logEnabledSetting.render(logEnabledSwitch, AppLogger.isLoggingEnabled(activity));
         logEnabledSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 logEnabledSetting.set(isChecked));
+    }
+
+    private void configureAutoSaveGpxSwitch() {
+        autoSaveGpxSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppGpxSettings.setAutoSaveOnStopEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        autoSaveGpxSetting.render(autoSaveGpxSwitch, AppGpxSettings.isAutoSaveOnStopEnabled(activity));
+        autoSaveGpxSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                autoSaveGpxSetting.set(isChecked));
     }
 
     private void configureFusedLocationSwitch() {
