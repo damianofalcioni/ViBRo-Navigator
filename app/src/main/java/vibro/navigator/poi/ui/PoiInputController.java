@@ -8,7 +8,6 @@ import android.widget.EditText;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.CoordinateParser;
@@ -28,6 +27,7 @@ public final class PoiInputController {
     }
 
     private final EditText editText;
+    private final Context context;
     private final PoiHistoryStore history;
     private final Listener listener;
 
@@ -52,6 +52,7 @@ public final class PoiInputController {
             @NonNull PoiSearchClient searchClient,
             @NonNull Listener listener
     ) {
+        this.context = context;
         this.editText = editText;
         this.history = history;
         this.listener = listener;
@@ -71,7 +72,7 @@ public final class PoiInputController {
                 editText,
                 adapter,
                 logTag,
-                this::selectPoi
+                suggestion -> selectPoi(suggestion.selectedPoi(context))
         );
         selectedHistorySuggestions = new PoiSelectedHistorySuggestionController(
                 editText,
@@ -86,22 +87,12 @@ public final class PoiInputController {
 
     @NonNull
     private PoiSuggestionAdapter createSuggestionAdapter(@NonNull Context context) {
-        return new PoiSuggestionAdapter(context, new PoiSuggestionAdapter.Listener() {
-            @Override
-            public void onSuggestionClicked(@NonNull PoiSuggestion suggestion) {
-                selectPoi(suggestion.poi);
-            }
-
-            @Override
-            public void onEditClicked(@NonNull PoiSuggestion suggestion) {
-                historyActions.promptRenameHistoryItem(suggestion);
-            }
-
-            @Override
-            public void onDeleteClicked(@NonNull PoiSuggestion suggestion) {
-                deleteHistorySuggestion(suggestion);
-            }
-        });
+        return new PoiSuggestionAdapter(context, new PoiSuggestionActionController(
+                context,
+                historyActions,
+                suggestion -> selectPoi(suggestion.selectedPoi(context)),
+                this::deleteHistorySuggestion
+        ));
     }
 
     @NonNull
@@ -353,6 +344,7 @@ public final class PoiInputController {
             return null;
         }
         PoiSuggestion suggestion = (PoiSuggestion) adapter.getItem(position);
-        return suggestion.poi.displayLabel();
+        return suggestion.displayLabel(context);
     }
+
 }

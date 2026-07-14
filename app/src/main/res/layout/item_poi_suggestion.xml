@@ -19,6 +19,22 @@
         android:textSize="15sp" />
 
     <ImageButton
+        android:id="@+id/poiSuggestionInfoButton"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginEnd="4dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/action_poi_details"
+        android:focusable="false"
+        android:focusableInTouchMode="false"
+        android:padding="8dp"
+        android:scaleType="centerInside"
+        android:src="@drawable/ic_info"
+        android:tint="?attr/vibroIconColor"
+        android:visibility="gone" />
+
+    <ImageButton
         android:id="@+id/editSuggestionButton"
         android:layout_width="40dp"
         android:layout_height="40dp"

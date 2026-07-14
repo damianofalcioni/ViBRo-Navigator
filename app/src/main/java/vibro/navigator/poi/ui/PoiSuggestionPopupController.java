@@ -12,7 +12,6 @@ import android.widget.ListPopupWindow;
 import androidx.annotation.NonNull;
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
-import vibro.navigator.poi.Poi;
 import vibro.navigator.logging.AppLogger;
 
 final class PoiSuggestionPopupController {
@@ -22,7 +21,7 @@ final class PoiSuggestionPopupController {
     private static final int MIN_VISIBLE_POPUP_HEIGHT_DP = 48;
 
     interface SelectionListener {
-        void onPoiSelected(@NonNull Poi poi);
+        void onSuggestionSelected(@NonNull PoiSuggestion suggestion);
     }
 
     private final EditText anchor;
@@ -56,7 +55,7 @@ final class PoiSuggestionPopupController {
         ));
         popup.setOnItemClickListener((parent, view, position, id) -> {
             PoiSuggestion suggestion = (PoiSuggestion) adapter.getItem(position);
-            listener.onPoiSelected(suggestion.poi);
+            listener.onSuggestionSelected(suggestion);
         });
     }
 

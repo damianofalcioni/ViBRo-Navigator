@@ -108,6 +108,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 - On every typed character, but only once the query length is at least 3, the app must retrieve matching POIs
 - Online provider results must appear in the same dropdown after the matching history rows, skipping provider results whose coordinate identity already exists in the shown history rows
 - Each result must include the POI full name and coordinates
+- OpenStreetMap Nominatim POI search must request address details, extra tags, and entrances. Results with extra tags or entrance details must show an info control on the right side of the dropdown row that opens a details UI including the available extra tags, address details, and entrances. When Nominatim returns entrances for a result, those entrances must also appear as separate selectable dropdown rows in addition to the original result, except when the only returned entrance has the same coordinate identity as the original result.
 - In the Google Play flavor, the data source must be Google Maps REST APIs when Google search is enabled and a valid Google API key is saved in the app settings
 - If the Google API key is not defined or Google search is disabled, the app must use OpenStreetMap APIs
 - In the F-Droid flavor, POI search must always use OpenStreetMap APIs and must not include Google search code or require a Google API key

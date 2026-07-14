@@ -44,6 +44,7 @@
     <string name="action_export_route">Export GPX</string>
     <string name="action_profile_info">Profile info</string>
     <string name="action_setting_info">Setting info</string>
+    <string name="action_poi_details">POI details</string>
     <string name="action_profile_settings">Profile settings</string>
     <string name="action_reset_defaults">Reset defaults</string>
 
@@ -52,6 +53,12 @@
     <string name="label_route_mode_round_trip">Round Trip mode</string>
     <string name="label_route_mode_straight_line">Straight Line mode</string>
     <string name="label_destination">Destination</string>
+    <string name="label_poi_entrance">Entrance</string>
+    <string name="label_poi_entrances">Entrances</string>
+    <string name="label_poi_entrance_type">Type</string>
+    <string name="label_poi_coordinates">Coordinates</string>
+    <string name="label_poi_extra_tags">Extra tags</string>
+    <string name="label_poi_address_details">Address</string>
     <string name="label_round_trip_distance_km">Average round trip distance (km)</string>
     <string name="label_round_trip_distance_mi">Average round trip distance (mi)</string>
     <string name="label_round_trip_direction">Round trip direction (°)</string>
@@ -59,6 +66,11 @@
     <string name="label_profile_attention_icon">Experimental or debug profile</string>
     <string name="format_profile_info_content_description">Show information for %1$s</string>
     <string name="format_route_mode_info_content_description">Show mode information for %1$s</string>
+    <string name="format_poi_details_content_description">Show POI details for %1$s</string>
+    <string name="format_poi_entrance_label">%1$s - %2$s</string>
+    <string name="format_poi_entrance_heading">Entrance %1$d</string>
+    <string name="format_poi_entrance_type">Entrance: %1$s</string>
+    <string name="format_poi_detail_pair">%1$s: %2$s</string>
     <string name="format_stop_label">Stop %1$d</string>
     <string name="format_default_saved_route_name">Route %1$s</string>
 
@@ -100,6 +112,7 @@
     <string name="msg_profile_parameters_reset">Profile settings reset to profile defaults.</string>
     <string name="msg_profile_parameter_invalid_number">Enter a valid number.</string>
     <string name="msg_profile_parameter_invalid_text">Values cannot contain &amp; or =.</string>
+    <string name="msg_poi_details_unavailable">No extra details available.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>

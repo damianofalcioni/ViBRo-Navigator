@@ -3,11 +3,9 @@ package vibro.navigator.poi.search;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.logging.AppLogger;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -79,10 +77,11 @@ public final class OsmNominatimClient implements PoiSearchClient, PoiReverseGeoc
     }
 
     @NonNull
-    private static String buildSearchUrl(@NonNull String query, int limit) throws IOException {
+    static String buildSearchUrl(@NonNull String query, int limit) throws IOException {
         String q = URLEncoder.encode(query, StandardCharsets.UTF_8.name());
         return String.format(Locale.US,
-                "https://nominatim.openstreetmap.org/search?q=%s&format=jsonv2&addressdetails=0&limit=%d",
+                "https://nominatim.openstreetmap.org/search?q=%s&format=jsonv2"
+                        + "&addressdetails=1&extratags=1&entrances=1&limit=%d",
                 q, Math.max(1, Math.min(20, limit))
         );
     }
@@ -114,36 +113,8 @@ public final class OsmNominatimClient implements PoiSearchClient, PoiReverseGeoc
     }
 
     @NonNull
-    private static List<Poi> parsePois(@NonNull String body) throws JSONException {
-        JSONArray arr = new JSONArray(body);
-        List<Poi> out = new ArrayList<>();
-        for (int i = 0; i < arr.length(); i++) {
-            Poi poi = parsePoi(arr.optJSONObject(i));
-            if (poi != null) {
-                out.add(poi);
-            }
-        }
-        return out;
-    }
-
-    @Nullable
-    private static Poi parsePoi(@Nullable JSONObject object) {
-        if (object == null) {
-            return null;
-        }
-        String display = object.optString("display_name", "");
-        String latStr = object.optString("lat", "");
-        String lonStr = object.optString("lon", "");
-        if (display.isEmpty() || latStr.isEmpty() || lonStr.isEmpty()) {
-            return null;
-        }
-        try {
-            double lat = Double.parseDouble(latStr);
-            double lon = Double.parseDouble(lonStr);
-            return LatLon.isValidCoordinate(lat, lon) ? new Poi(display, lat, lon) : null;
-        } catch (NumberFormatException ignored) {
-            return null;
-        }
+    static List<Poi> parsePois(@NonNull String body) throws JSONException {
+        return OsmNominatimSearchParser.parsePois(body);
     }
 
     @Nullable

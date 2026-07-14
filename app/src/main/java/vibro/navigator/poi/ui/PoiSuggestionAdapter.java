@@ -20,15 +20,18 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
 
     public interface Listener {
         void onSuggestionClicked(@NonNull PoiSuggestion suggestion);
+        void onInfoClicked(@NonNull PoiSuggestion suggestion);
         void onEditClicked(@NonNull PoiSuggestion suggestion);
         void onDeleteClicked(@NonNull PoiSuggestion suggestion);
     }
 
+    private final Context context;
     private final LayoutInflater inflater;
     private final Listener listener;
     private final List<PoiSuggestion> items = new ArrayList<>();
 
     public PoiSuggestionAdapter(@NonNull Context context, @NonNull Listener listener) {
+        this.context = context;
         this.inflater = LayoutInflater.from(context);
         this.listener = listener;
     }
@@ -64,13 +67,15 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
         }
 
         PoiSuggestion s = items.get(position);
+        ImageButton info = v.findViewById(R.id.poiSuggestionInfoButton);
         TextView text = v.findViewById(R.id.suggestionText);
         ImageButton edit = v.findViewById(R.id.editSuggestionButton);
         ImageButton del = v.findViewById(R.id.deleteSuggestionButton);
 
-        String label = s.poi.displayLabel();
+        String label = s.displayLabel(context);
         text.setText(label);
         v.setOnClickListener(row -> listener.onSuggestionClicked(s));
+        bindInfoButton(info, s, label);
 
         if (s.deletable) {
             edit.setVisibility(View.VISIBLE);
@@ -85,5 +90,25 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
         }
 
         return v;
+    }
+
+    private void bindInfoButton(
+            @NonNull ImageButton info,
+            @NonNull PoiSuggestion suggestion,
+            @NonNull String label
+    ) {
+        if (!suggestion.hasDetails()) {
+            info.setVisibility(View.GONE);
+            info.setOnClickListener(null);
+            info.setContentDescription(null);
+            return;
+        }
+
+        info.setVisibility(View.VISIBLE);
+        info.setContentDescription(context.getString(
+                R.string.format_poi_details_content_description,
+                label
+        ));
+        info.setOnClickListener(btn -> listener.onInfoClicked(suggestion));
     }
 }
