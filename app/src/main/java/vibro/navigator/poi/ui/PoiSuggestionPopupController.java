@@ -7,6 +7,7 @@ import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ListPopupWindow;
 
 import androidx.annotation.NonNull;
@@ -83,16 +84,16 @@ final class PoiSuggestionPopupController {
     private void configurePopupPlacement() {
         anchor.getWindowVisibleDisplayFrame(visibleFrame);
         anchor.getLocationOnScreen(anchorLocation);
+        int anchorWidth = anchor.getWidth();
+        int desiredHeight = desiredPopupHeight(anchorWidth);
         PopupLayout layout = popupLayout(
                 visibleFrame.top,
                 visibleFrame.bottom,
                 anchorLocation[1],
                 anchor.getHeight(),
-                adapter.getCount(),
-                popupRowHeightPx,
+                desiredHeight,
                 minVisiblePopupHeightPx
         );
-        int anchorWidth = anchor.getWidth();
         popup.setWidth(anchorWidth > 0 ? anchorWidth : ListPopupWindow.WRAP_CONTENT);
         popup.setHeight(layout.heightPx);
         popup.setVerticalOffset(layout.verticalOffsetPx);
@@ -127,21 +128,81 @@ final class PoiSuggestionPopupController {
             int rowHeightPx,
             int minVisibleHeightPx
     ) {
+        return popupLayout(
+                visibleTop,
+                visibleBottom,
+                anchorTop,
+                anchorHeight,
+                desiredPopupHeight(itemCount, rowHeightPx, 0),
+                minVisibleHeightPx
+        );
+    }
+
+    @NonNull
+    static PopupLayout popupLayout(
+            int visibleTop,
+            int visibleBottom,
+            int anchorTop,
+            int anchorHeight,
+            int desiredHeightPx,
+            int minVisibleHeightPx
+    ) {
         int safeAnchorHeight = Math.max(0, anchorHeight);
         int anchorBottom = anchorTop + safeAnchorHeight;
-        int desiredHeight = desiredPopupHeight(itemCount, rowHeightPx);
         int above = Math.max(0, anchorTop - visibleTop);
         int below = Math.max(0, visibleBottom - anchorBottom);
         if (above >= minVisibleHeightPx) {
-            int height = boundedHeight(desiredHeight, above);
+            int height = boundedHeight(desiredHeightPx, above);
             return new PopupLayout(height, -(safeAnchorHeight + height));
         }
-        return new PopupLayout(boundedHeight(desiredHeight, below), 0);
+        return new PopupLayout(boundedHeight(desiredHeightPx, below), 0);
     }
 
-    private static int desiredPopupHeight(int itemCount, int rowHeightPx) {
+    private int desiredPopupHeight(int popupWidthPx) {
+        int itemCount = adapter.getCount();
+        return desiredPopupHeight(
+                itemCount,
+                popupRowHeightPx,
+                measuredVisibleContentHeight(popupWidthPx, itemCount)
+        );
+    }
+
+    static int desiredPopupHeight(
+            int itemCount,
+            int rowHeightPx,
+            int measuredVisibleContentHeightPx
+    ) {
+        int compactHeight = compactPopupHeight(itemCount, rowHeightPx);
+        if (measuredVisibleContentHeightPx > compactHeight) {
+            return Math.min(measuredVisibleContentHeightPx, maxPopupHeight(rowHeightPx));
+        }
+        return compactHeight;
+    }
+
+    private int measuredVisibleContentHeight(int popupWidthPx, int itemCount) {
+        if (popupWidthPx <= 0 || itemCount <= 0 || itemCount >= MAX_VISIBLE_ROWS) {
+            return 0;
+        }
+        int widthSpec = View.MeasureSpec.makeMeasureSpec(popupWidthPx, View.MeasureSpec.EXACTLY);
+        int heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED);
+        FrameLayout parent = new FrameLayout(anchor.getContext());
+        View row = null;
+        int measuredHeight = 0;
+        for (int i = 0; i < itemCount; i++) {
+            row = adapter.getView(i, row, parent);
+            row.measure(widthSpec, heightSpec);
+            measuredHeight += Math.max(1, row.getMeasuredHeight());
+        }
+        return measuredHeight;
+    }
+
+    private static int compactPopupHeight(int itemCount, int rowHeightPx) {
         int visibleRows = Math.max(1, Math.min(itemCount, MAX_VISIBLE_ROWS));
         return visibleRows * Math.max(1, rowHeightPx);
+    }
+
+    private static int maxPopupHeight(int rowHeightPx) {
+        return MAX_VISIBLE_ROWS * Math.max(1, rowHeightPx);
     }
 
     private static int boundedHeight(int desiredHeight, int availableHeight) {

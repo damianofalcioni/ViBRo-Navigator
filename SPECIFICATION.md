@@ -107,7 +107,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 - When one or more history entries match the typed query, the dropdown must show those history matches first
 - On every typed character, but only once the query length is at least 3, the app must retrieve matching POIs
 - Online provider results must appear in the same dropdown after the matching history rows, skipping provider results whose coordinate identity already exists in the shown history rows
-- Each result must include the POI full name and coordinates
+- Each result must include a concise POI/address label and coordinates. When structured address data is available, the visible label should keep the meaningful place name, street address, and city/locality while omitting lower-value administrative tails such as postcode, county, region/state, and country.
 - OpenStreetMap Nominatim POI search must request address details, extra tags, and entrances. Results with extra tags or entrance details must show an info control on the right side of the dropdown row that opens a details UI including the available extra tags, address details, and entrances. When Nominatim returns entrances for a result, those entrances must also appear as separate selectable dropdown rows in addition to the original result, except when the only returned entrance has the same coordinate identity as the original result.
 - In the Google Play flavor, the data source must be Google Maps REST APIs when Google search is enabled and a valid Google API key is saved in the app settings
 - If the Google API key is not defined or Google search is disabled, the app must use OpenStreetMap APIs
@@ -116,6 +116,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 #### 2.3 Search results dropdown
 
 - Search results must be shown in a compact dropdown adjacent to the input field without covering it; the dropdown may open above the field when keyboard or screen space makes that clearer
+- Suggestion dropdowns may use a reduced height for short one- or two-row lists, but if displayed rows would scroll because of wrapped long labels or addresses, the dropdown must expand only as much as the measured rows need, capped by the same maximum visible height used for larger result sets and constrained by available screen space.
 - The user must be able to select a result from the dropdown
 - Selecting a result must bind the destination to the coordinates of that POI
 - Selecting a stored history entry must be treated as a final selection: the dropdown should close and the app must not immediately reopen search suggestions unless the user edits the text again
@@ -134,7 +135,7 @@ In `Route` mode, below the route-mode selector, the app must show an input field
 - If the destination field already resolves to coordinates, the picker must open centered on that destination and must apply a predefined zoom level
 - If the destination field does not yet resolve to coordinates, the picker must open centered on the current device location when available, and otherwise fall back gracefully
 - The picker must let the user select a point directly from the map and return that point as the destination
-- When a map-selected destination or stop is returned as raw coordinates, the main input field should show the coordinates immediately, then replace the visible display label with a reverse-geocoded address when an internet lookup succeeds. The selected internal latitude/longitude must remain the original coordinates returned by the picker.
+- When a map-selected destination or stop is returned as raw coordinates, the main input field should show the coordinates immediately, then replace the visible display label with a concise reverse-geocoded address when an internet lookup succeeds. The selected internal latitude/longitude must remain the original coordinates returned by the picker.
 - The picker must support icon-only controls for confirm, cancel, current location, zoom in, and zoom out
 - The picker must support an icon-only POI category control overlaid on the map. Opening the control must show POI categories dynamically discovered from OpenStreetMap/Overpass tags in the current map view, sorted alphabetically, with each row showing the number of discovered items such as `Fuel (15)`. Category rows must be text-only, support a single active category, highlight the active category, and toggle that category off when tapped again. Category discovery should be initiated by opening the POI control rather than by initial map load. Returned POIs must be drawn with one shared POI pin style, and POI names must appear automatically when the map is zoomed in enough.
 - When the POI category filter setting is enabled, opening the POI category control must show only the configured and enabled category names and must query Overpass only for selectors derived from those configured names instead of running broad category discovery.
@@ -753,7 +754,7 @@ The navigation UI must show the following in large text:
 
 - The app must support opening or sharing map coordinates or addresses into the app
 - Shared/opened coordinates or addresses must be set as the destination
-- Shared/opened coordinates must show the coordinates immediately, then replace the visible destination label with a reverse-geocoded address when an internet lookup succeeds. The stored destination coordinates must remain the original incoming coordinates.
+- Shared/opened coordinates must show the coordinates immediately, then replace the visible destination label with a concise reverse-geocoded address when an internet lookup succeeds. The stored destination coordinates must remain the original incoming coordinates.
 - Incoming locations that resolve to valid coordinates must be saved into the same destination history list used by manual POI selection
 - The app must register as a target for at least these incoming Android formats:
   - `geo:` map intents

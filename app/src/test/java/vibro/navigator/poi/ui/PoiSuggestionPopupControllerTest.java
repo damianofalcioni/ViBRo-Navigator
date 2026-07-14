@@ -55,4 +55,37 @@ public class PoiSuggestionPopupControllerTest {
         assertEquals(150, layout.heightPx);
         assertEquals(0, layout.verticalOffsetPx);
     }
+
+    @Test
+    public void desiredPopupHeight_usesCompactHeightWhenMeasuredRowsFit() {
+        int height = PoiSuggestionPopupController.desiredPopupHeight(
+                2,
+                ROW_HEIGHT,
+                100
+        );
+
+        assertEquals(100, height);
+    }
+
+    @Test
+    public void desiredPopupHeight_expandsToMeasuredContentWhenRowsWouldScroll() {
+        int height = PoiSuggestionPopupController.desiredPopupHeight(
+                1,
+                ROW_HEIGHT,
+                80
+        );
+
+        assertEquals(80, height);
+    }
+
+    @Test
+    public void desiredPopupHeight_capsMeasuredContentAtMaxHeight() {
+        int height = PoiSuggestionPopupController.desiredPopupHeight(
+                2,
+                ROW_HEIGHT,
+                200
+        );
+
+        assertEquals(150, height);
+    }
 }

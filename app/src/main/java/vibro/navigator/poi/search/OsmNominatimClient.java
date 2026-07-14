@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiAddressLabel;
 import vibro.navigator.logging.AppLogger;
 
 import org.json.JSONException;
@@ -89,7 +90,7 @@ public final class OsmNominatimClient implements PoiSearchClient, PoiReverseGeoc
     @NonNull
     private static String buildReverseGeocodeUrl(double lat, double lon) {
         return String.format(Locale.US,
-                "https://nominatim.openstreetmap.org/reverse?lat=%.8f&lon=%.8f&format=jsonv2&addressdetails=0",
+                "https://nominatim.openstreetmap.org/reverse?lat=%.8f&lon=%.8f&format=jsonv2&addressdetails=1",
                 lat,
                 lon
         );
@@ -121,7 +122,13 @@ public final class OsmNominatimClient implements PoiSearchClient, PoiReverseGeoc
     static String parseReverseDisplayName(@NonNull String body) throws JSONException {
         JSONObject root = new JSONObject(body);
         String displayName = root.optString("display_name", "").trim();
-        return displayName.isEmpty() ? null : displayName;
+        if (displayName.isEmpty()) {
+            return null;
+        }
+        return PoiAddressLabel.conciseLabel(
+                displayName,
+                OsmNominatimSearchParser.parseAddressDetails(root.optJSONObject("address"))
+        );
     }
 
     @NonNull

@@ -15,6 +15,7 @@ import java.util.Map;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.poi.Poi;
+import vibro.navigator.poi.PoiAddressLabel;
 import vibro.navigator.poi.PoiDetails;
 
 final class OsmNominatimSearchParser {
@@ -72,16 +73,23 @@ final class OsmNominatimSearchParser {
         if (coordinate == null) {
             return null;
         }
-        return new Poi(display, coordinate.lat, coordinate.lon, parseBaseDetails(object, entrances));
+        Map<String, String> addressDetails = parseAddressDetails(object.optJSONObject(KEY_ADDRESS));
+        return new Poi(
+                PoiAddressLabel.conciseLabel(display, addressDetails),
+                coordinate.lat,
+                coordinate.lon,
+                parseBaseDetails(object, addressDetails, entrances)
+        );
     }
 
     @NonNull
     private static PoiDetails parseBaseDetails(
             @NonNull JSONObject object,
+            @NonNull Map<String, String> addressDetails,
             @NonNull List<PoiDetails.Entrance> entrances
     ) {
         return new PoiDetails(
-                parseStringMap(object.optJSONObject(KEY_ADDRESS)),
+                addressDetails,
                 parseStringMap(object.optJSONObject(KEY_EXTRA_TAGS)),
                 entrances
         );
@@ -96,7 +104,7 @@ final class OsmNominatimSearchParser {
         if (entrances.isEmpty() || singleEntranceMatchesBasePoi(basePoi, entrances)) {
             return;
         }
-        Map<String, String> addressDetails = parseStringMap(object.optJSONObject(KEY_ADDRESS));
+        Map<String, String> addressDetails = parseAddressDetails(object.optJSONObject(KEY_ADDRESS));
         for (PoiDetails.Entrance entrance : entrances) {
             out.add(entrancePoi(basePoi.displayLabel(), addressDetails, entrance));
         }
@@ -174,6 +182,11 @@ final class OsmNominatimSearchParser {
         } catch (NumberFormatException ignored) {
             return null;
         }
+    }
+
+    @NonNull
+    static Map<String, String> parseAddressDetails(@Nullable JSONObject object) {
+        return parseStringMap(object);
     }
 
     @NonNull

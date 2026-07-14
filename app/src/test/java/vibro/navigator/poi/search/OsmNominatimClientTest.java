@@ -12,14 +12,33 @@ import java.util.List;
 import vibro.navigator.poi.Poi;
 
 public class OsmNominatimClientTest {
-    private static final String MUSEUM_NAME = "Museum, Test City";
+    private static final String MUSEUM_NAME = "Museum";
+    private static final String MUSEUM_FULL_NAME = "Museum, Main Street, Test City, Test Region, Test Country";
     private static final String OPENING_HOURS = "10:00-18:00";
 
     @Test
-    public void parseReverseDisplayName_returnsDisplayName() throws Exception {
+    public void parseReverseDisplayName_returnsDisplayNameWhenAddressDetailsAreMissing() throws Exception {
         String body = "{\"display_name\":\"Stephansplatz, Vienna, Austria\"}";
 
         assertEquals("Stephansplatz, Vienna, Austria", OsmNominatimClient.parseReverseDisplayName(body));
+    }
+
+    @Test
+    public void parseReverseDisplayName_returnsConciseLabelWhenAddressDetailsAreAvailable() throws Exception {
+        String body = "{"
+                + "\"display_name\":\"Cafe Central, Herrengasse 14, Innere Stadt, Vienna, Austria\","
+                + "\"address\":{"
+                + "\"amenity\":\"Cafe Central\","
+                + "\"road\":\"Herrengasse\","
+                + "\"house_number\":\"14\","
+                + "\"city\":\"Vienna\","
+                + "\"state\":\"Vienna\","
+                + "\"postcode\":\"1010\","
+                + "\"country\":\"Austria\""
+                + "}"
+                + "}";
+
+        assertEquals("Cafe Central, Herrengasse 14, Vienna", OsmNominatimClient.parseReverseDisplayName(body));
     }
 
     @Test
@@ -40,10 +59,10 @@ public class OsmNominatimClientTest {
     @Test
     public void parsePois_addsEntrancePoisAfterOriginalResult() throws Exception {
         String body = "[{"
-                + "\"display_name\":\"" + MUSEUM_NAME + "\","
+                + "\"display_name\":\"" + MUSEUM_FULL_NAME + "\","
                 + "\"lat\":\"48.2000000\","
                 + "\"lon\":\"16.3000000\","
-                + "\"address\":{\"road\":\"Main Street\"},"
+                + "\"address\":{\"amenity\":\"" + MUSEUM_NAME + "\",\"road\":\"Main Street\",\"city\":\"Test City\"},"
                 + "\"extratags\":{\"opening_hours\":\"" + OPENING_HOURS + "\"},"
                 + "\"entrances\":[{"
                 + "\"type\":\"main\","
@@ -57,7 +76,7 @@ public class OsmNominatimClientTest {
 
         assertEquals(2, pois.size());
         Poi original = pois.get(0);
-        assertEquals(MUSEUM_NAME, original.displayLabel());
+        assertEquals("Museum, Main Street, Test City", original.displayLabel());
         assertNotNull(original.details());
         assertEquals(OPENING_HOURS, original.details().extraTags().get("opening_hours"));
         assertEquals("Main Street", original.details().addressDetails().get("road"));
@@ -65,7 +84,7 @@ public class OsmNominatimClientTest {
         assertEquals("main", original.details().entrances().get(0).type());
 
         Poi entrance = pois.get(1);
-        assertEquals(MUSEUM_NAME, entrance.displayLabel());
+        assertEquals("Museum, Main Street, Test City", entrance.displayLabel());
         assertEquals(48.2001d, entrance.lat, 0.0d);
         assertEquals(16.3001d, entrance.lon, 0.0d);
         assertNotNull(entrance.details());
