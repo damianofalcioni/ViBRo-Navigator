@@ -43,6 +43,8 @@ final class MainActivityControls {
     @NonNull
     final EditText destinationEdit;
     @NonNull
+    final ImageButton destinationVoiceButton;
+    @NonNull
     final ImageButton destinationMapButton;
     @NonNull
     final View destinationRow;
@@ -76,6 +78,7 @@ final class MainActivityControls {
             @NonNull EditText roundTripDirectionEdit,
             @NonNull MainRoundTripDirectionCompassView roundTripDirectionCompass,
             @NonNull EditText destinationEdit,
+            @NonNull ImageButton destinationVoiceButton,
             @NonNull ImageButton destinationMapButton,
             @NonNull View destinationRow,
             @NonNull MainRouteRailView routeRailView,
@@ -100,6 +103,7 @@ final class MainActivityControls {
         this.roundTripDirectionEdit = roundTripDirectionEdit;
         this.roundTripDirectionCompass = roundTripDirectionCompass;
         this.destinationEdit = destinationEdit;
+        this.destinationVoiceButton = destinationVoiceButton;
         this.destinationMapButton = destinationMapButton;
         this.destinationRow = destinationRow;
         this.routeRailView = routeRailView;
@@ -128,6 +132,7 @@ final class MainActivityControls {
                 activity.findViewById(R.id.roundTripDirectionEdit),
                 activity.findViewById(R.id.roundTripDirectionCompass),
                 activity.findViewById(R.id.destinationEdit),
+                activity.findViewById(R.id.destinationVoiceButton),
                 activity.findViewById(R.id.destinationMapButton),
                 activity.findViewById(R.id.destinationRow),
                 activity.findViewById(R.id.routeRailView),

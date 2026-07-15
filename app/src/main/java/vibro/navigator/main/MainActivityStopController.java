@@ -25,6 +25,12 @@ final class MainActivityStopController {
 
     interface MapPickListener {
         void onPickStopFromMap(@NonNull PoiInputController stopInputController);
+
+        default void onStopRowCreated(
+                @NonNull View row,
+                @NonNull PoiInputController stopInputController
+        ) {
+        }
     }
 
     private static final String STATE_STOP_TEXTS = "stopTexts";
@@ -191,6 +197,7 @@ final class MainActivityStopController {
         row.findViewById(R.id.stopMapButton).setOnClickListener(v -> {
             mapPickListener.onPickStopFromMap(controller);
         });
+        mapPickListener.onStopRowCreated(row, controller);
         row.findViewById(R.id.removeStopButton).setOnClickListener(v -> removeStopRow(row, controller));
 
         stopsContainer.addView(row);

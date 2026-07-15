@@ -5,17 +5,32 @@
     android:layout_marginTop="10dp"
     android:orientation="horizontal">
 
-    <EditText
-        android:id="@+id/stopEdit"
+    <FrameLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:hint="@string/hint_search_stop"
-        android:importantForAutofill="no"
-        android:imeOptions="actionDone"
-        android:inputType="text"
-        android:textColor="?attr/vibroTextPrimaryColor"
-        android:textColorHint="?attr/vibroTextHintColor" />
+        android:layout_weight="1">
+
+        <EditText
+            android:id="@+id/stopEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/hint_search_stop"
+            android:importantForAutofill="no"
+            android:imeOptions="actionDone"
+            android:inputType="text"
+            android:paddingEnd="48dp"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textColorHint="?attr/vibroTextHintColor" />
+
+        <ImageButton
+            android:id="@+id/stopVoiceButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end|center_vertical"
+            android:contentDescription="@string/action_voice_search_stop"
+            android:src="@drawable/ic_mic" />
+    </FrameLayout>
 
     <ImageButton
         android:id="@+id/stopMapButton"

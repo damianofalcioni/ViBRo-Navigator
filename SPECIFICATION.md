@@ -92,6 +92,11 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 
 In `Route` mode, below the route-mode selector, the app must show an input field for searching a destination POI or coordinates.
 
+- The destination field must include an icon-only speech button inside the right edge of the text field
+- Pressing the speech button must open Android's built-in speech recognition UI for dictated destination search text
+- A recognized speech result must populate the destination field as editable text and use the normal POI history/search suggestion flow rather than binding coordinates by itself
+- If speech recognition is unavailable, cancelled, or returns no usable text, the current destination field value must remain unchanged and the app should show a short message when appropriate
+
 #### 2.1 History dropdown before typing
 
 - Before the user starts typing, a compact dropdown must appear adjacent to the input field without covering it; the dropdown may open above the field when keyboard or screen space makes that clearer
@@ -153,6 +158,7 @@ The destination, intermediate stops, and start-navigation area must include a no
 
 - Pressing the plus button must add a new input field for an intermediate POI
 - Each intermediate input must have the same behavior and capabilities as the destination field
+- Each intermediate input must include the same inline speech button as the destination field; recognized speech text must populate that stop field as a normal POI search query
 - Each intermediate row must also include a map-picker icon button with the same map-selection capabilities as the destination field
 
 #### 3.2 Remove stop field

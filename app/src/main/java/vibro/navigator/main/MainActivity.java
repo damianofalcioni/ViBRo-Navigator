@@ -31,7 +31,7 @@ public class MainActivity extends Activity {
     private PoiHistoryStore historyStore;
     private MainActivityProfileCoordinator profileCoordinator;
     private MainActivityStopController stopController;
-    private MainActivityMapPickerCoordinator mapPickerCoordinator;
+    private MainActivityPoiInputActionCoordinator poiInputActionCoordinator;
     private PoiReverseGeocodeController reverseGeocodeController;
     private MainActivityRouteModeController routeModeController;
     private MainActivityRoundTripDirectionController roundTripDirectionController;
@@ -49,7 +49,7 @@ public class MainActivity extends Activity {
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " intent=" + MainActivityIntentHandler.describeIntent(getIntent()));
         reverseGeocodeController = PoiReverseGeocodeController.createDefault(this);
-        mapPickerCoordinator = new MainActivityMapPickerCoordinator(this, reverseGeocodeController);
+        poiInputActionCoordinator = new MainActivityPoiInputActionCoordinator(this, reverseGeocodeController);
         MainActivityControls controls = MainActivityControls.bind(this);
 
         MainActivityAboutLauncher.configure(this, controls.aboutButton);
@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
                 controls.stopsContainer,
                 historyStore,
                 searchClient,
-                this::openStopMapPicker,
+                poiInputActionCoordinator.stopRowActions(this::openStopMapPicker),
                 controls.routeRailView
         );
         MainActivitySavedRouteController savedRouteController = new MainActivitySavedRouteController(
@@ -114,7 +114,10 @@ public class MainActivity extends Activity {
         savedRouteController.configure(controls.saveRouteButton, controls.restoreRouteButton);
 
         controls.destinationMapButton.setOnClickListener(
-                v -> mapPickerCoordinator.openDestinationMapPicker(destinationController)
+                v -> poiInputActionCoordinator.openDestinationMapPicker(destinationController)
+        );
+        controls.destinationVoiceButton.setOnClickListener(
+                v -> poiInputActionCoordinator.openDestinationSpeechInput(destinationController)
         );
 
         controls.addStopButton.setOnClickListener(v -> {
@@ -191,7 +194,7 @@ public class MainActivity extends Activity {
             AppLogger.w(TAG, "Stop map picker requested before stop controller was ready");
             return;
         }
-        mapPickerCoordinator.openStopMapPicker(stopController, stopInputController);
+        poiInputActionCoordinator.openStopMapPicker(stopController, stopInputController);
     }
 
     @Override
@@ -279,7 +282,7 @@ public class MainActivity extends Activity {
         if (profileCoordinator != null && profileCoordinator.handleActivityResult(requestCode, resultCode, data)) {
             return;
         }
-        mapPickerCoordinator.handleActivityResult(
+        poiInputActionCoordinator.handleActivityResult(
                 requestCode,
                 resultCode,
                 data,

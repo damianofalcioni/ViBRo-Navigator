@@ -106,17 +106,32 @@
                     android:paddingStart="18dp"
                     android:paddingEnd="0dp">
 
-                    <EditText
-                        android:id="@+id/destinationEdit"
+                    <FrameLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:hint="@string/hint_search_destination"
-                        android:importantForAutofill="no"
-                        android:imeOptions="actionDone"
-                        android:inputType="text"
-                        android:textColor="?attr/vibroTextPrimaryColor"
-                        android:textColorHint="?attr/vibroTextHintColor" />
+                        android:layout_weight="1">
+
+                        <EditText
+                            android:id="@+id/destinationEdit"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="@string/hint_search_destination"
+                            android:importantForAutofill="no"
+                            android:imeOptions="actionDone"
+                            android:inputType="text"
+                            android:paddingEnd="48dp"
+                            android:textColor="?attr/vibroTextPrimaryColor"
+                            android:textColorHint="?attr/vibroTextHintColor" />
+
+                        <ImageButton
+                            android:id="@+id/destinationVoiceButton"
+                            style="@style/Widget.ViBRoNavigator.InfoButton"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_gravity="end|center_vertical"
+                            android:contentDescription="@string/action_voice_search_destination"
+                            android:src="@drawable/ic_mic" />
+                    </FrameLayout>
 
                     <ImageButton
                         android:id="@+id/destinationMapButton"

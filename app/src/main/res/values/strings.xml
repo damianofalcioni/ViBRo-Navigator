@@ -19,6 +19,8 @@
     <string name="action_open_speech_directions_settings">Open speech directions settings</string>
     <string name="action_android_tts_settings_short">Android TTS</string>
     <string name="action_test_maneuver_voice">Test speech directions voice</string>
+    <string name="action_voice_search_destination">Speak destination</string>
+    <string name="action_voice_search_stop">Speak stop</string>
     <string name="action_save">Save Key</string>
     <string name="action_save_poi_categories">Save</string>
     <string name="action_open_map">Map</string>
@@ -76,6 +78,8 @@
 
     <string name="hint_search_destination">Search destination</string>
     <string name="hint_search_stop">Search stop</string>
+    <string name="prompt_speech_destination">Say the destination</string>
+    <string name="prompt_speech_stop">Say the stop</string>
     <string name="hint_round_trip_distance_km">15</string>
     <string name="hint_round_trip_distance_mi">10</string>
     <string name="hint_round_trip_direction">0&#8211;359</string>
@@ -105,6 +109,8 @@
     <string name="msg_intent_unrecognized">Shared location not recognized</string>
     <string name="msg_gpx_import_failed">Could not load GPX waypoints.</string>
     <string name="msg_gpx_import_blocked_navigation">Stop navigation before opening a GPX route.</string>
+    <string name="msg_speech_input_unavailable">Speech input is not available on this device.</string>
+    <string name="msg_speech_input_empty">No speech was recognized.</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>

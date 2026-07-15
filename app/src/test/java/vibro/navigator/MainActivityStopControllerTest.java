@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityStopControllerTest {
@@ -155,6 +156,43 @@ public class MainActivityStopControllerTest {
         assertEquals("Second stop", controller.getStopControllers().get(1).getRawText());
         assertEquals("First stop", stopTextAt(stopsContainer.getChildAt(0)));
         assertEquals("Second stop", stopTextAt(stopsContainer.getChildAt(1)));
+    }
+
+    @Test
+    public void addStopRow_allowsBindingActionsInsideCreatedRow() {
+        LinearLayout stopsContainer = new LinearLayout(activity);
+        AtomicReference<View> boundRow = new AtomicReference<>();
+        AtomicReference<PoiInputController> boundController = new AtomicReference<>();
+        AtomicInteger voiceClicks = new AtomicInteger();
+        MainActivityStopController controller = new MainActivityStopController(
+                activity,
+                stopsContainer,
+                new PoiHistoryStore(activity),
+                (query, limit) -> Collections.emptyList(),
+                new MainActivityStopController.MapPickListener() {
+                    @Override
+                    public void onPickStopFromMap(@NonNull PoiInputController stopInputController) {
+                    }
+
+                    @Override
+                    public void onStopRowCreated(
+                            @NonNull View row,
+                            @NonNull PoiInputController stopInputController
+                    ) {
+                        boundRow.set(row);
+                        boundController.set(stopInputController);
+                        row.findViewById(R.id.stopVoiceButton)
+                                .setOnClickListener(v -> voiceClicks.incrementAndGet());
+                    }
+                }
+        );
+
+        controller.addStopRow(null);
+        stopsContainer.getChildAt(0).findViewById(R.id.stopVoiceButton).performClick();
+
+        assertEquals(stopsContainer.getChildAt(0), boundRow.get());
+        assertEquals(controller.getStopControllers().get(0), boundController.get());
+        assertEquals(1, voiceClicks.get());
     }
 
     @Test
