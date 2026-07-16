@@ -39,11 +39,11 @@ public class NavigationInputResolverTest {
     }
 
     @Test
-    public void resolve_keepsBrouterStopsInVisibleInputOrder() {
+    public void resolve_reversesBrouterStopsFromCurrentPositionSide() {
         NavigationInputResolver.Result result = resolve(ProfileSelection.brouter("car-eco"));
 
-        assertEquals(TOP_STOP.lat, result.request.stops.get(0).lat, 0.0);
-        assertEquals(BOTTOM_STOP.lat, result.request.stops.get(1).lat, 0.0);
+        assertEquals(BOTTOM_STOP.lat, result.request.stops.get(0).lat, 0.0);
+        assertEquals(TOP_STOP.lat, result.request.stops.get(1).lat, 0.0);
     }
 
     @Test

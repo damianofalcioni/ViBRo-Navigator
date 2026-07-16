@@ -34,7 +34,10 @@ public class AndroidBRouterRouteClientTest {
     public void buildRouteParams_encodesProfilePointsNogosAndGeoJsonMode() {
         BRouterRouteRequest request = new BRouterRouteRequest(
                 new LatLon(48.0, 16.0),
-                Collections.singletonList(new LatLon(48.1, 16.1)),
+                Arrays.asList(
+                        new LatLon(48.1, 16.1),
+                        new LatLon(48.15, 16.15)
+                ),
                 new LatLon(48.2, 16.2),
                 PROFILE_TREKKING,
                 Arrays.asList(
@@ -45,8 +48,8 @@ public class AndroidBRouterRouteClientTest {
 
         Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
 
-        assertArrayEquals(new double[]{48.0, 48.1, 48.2}, params.getDoubleArray("lats"), 0.0);
-        assertArrayEquals(new double[]{16.0, 16.1, 16.2}, params.getDoubleArray("lons"), 0.0);
+        assertArrayEquals(new double[]{48.0, 48.1, 48.15, 48.2}, params.getDoubleArray("lats"), 0.0);
+        assertArrayEquals(new double[]{16.0, 16.1, 16.15, 16.2}, params.getDoubleArray("lons"), 0.0);
         assertArrayEquals(new double[]{48.3, 48.4}, params.getDoubleArray("nogoLats"), 0.0);
         assertArrayEquals(new double[]{16.3, 16.4}, params.getDoubleArray("nogoLons"), 0.0);
         assertArrayEquals(new double[]{25.0, 40.0}, params.getDoubleArray("nogoRadi"), 0.0);

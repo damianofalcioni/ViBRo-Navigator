@@ -1,24 +1,20 @@
 package vibro.navigator.main;
 
-import vibro.navigator.R;
-
-
-import vibro.navigator.nav.model.NavigationRequest;
 import android.content.Context;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.ui.PoiInputController;
-import vibro.navigator.logging.AppLogger;
-import vibro.navigator.nav.model.NavigationRoutingMode;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 final class NavigationInputResolver {
@@ -40,15 +36,12 @@ final class NavigationInputResolver {
             return null;
         }
 
-        List<Poi> stops = resolveStops(context, stopControllers, profileSelection);
+        List<Poi> stops = resolveStops(context, stopControllers);
         if (stops == null) {
             return null;
         }
 
-        List<LatLon> stopPoints = new ArrayList<>(stops.size());
-        for (Poi stop : stops) {
-            stopPoints.add(new LatLon(stop.lat, stop.lon));
-        }
+        List<LatLon> stopPoints = stopPointsInNavigationOrder(stops);
 
         return new Result(
                 new NavigationRequest(
@@ -95,11 +88,10 @@ final class NavigationInputResolver {
     @Nullable
     private static List<Poi> resolveStops(
             @NonNull Context context,
-            @NonNull List<PoiInputController> stopControllers,
-            @NonNull ProfileSelection profileSelection
+            @NonNull List<PoiInputController> stopControllers
     ) {
         List<Poi> resolvedStops = new ArrayList<>();
-        for (PoiInputController controller : stopControllersInNavigationOrder(stopControllers, profileSelection)) {
+        for (PoiInputController controller : stopControllers) {
             String raw = controller.getRawText().trim();
             if (raw.isEmpty()) {
                 continue;
@@ -119,15 +111,13 @@ final class NavigationInputResolver {
     }
 
     @NonNull
-    private static List<PoiInputController> stopControllersInNavigationOrder(
-            @NonNull List<PoiInputController> stopControllers,
-            @NonNull ProfileSelection profileSelection
-    ) {
-        List<PoiInputController> ordered = new ArrayList<>(stopControllers);
-        if (profileSelection.routingMode == NavigationRoutingMode.STRAIGHT_LINE) {
-            Collections.reverse(ordered);
+    private static List<LatLon> stopPointsInNavigationOrder(@NonNull List<Poi> stops) {
+        List<LatLon> stopPoints = new ArrayList<>(stops.size());
+        for (int i = stops.size() - 1; i >= 0; i--) {
+            Poi stop = stops.get(i);
+            stopPoints.add(new LatLon(stop.lat, stop.lon));
         }
-        return ordered;
+        return stopPoints;
     }
 
     @NonNull
