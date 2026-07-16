@@ -3,18 +3,20 @@ package vibro.navigator.main;
 import vibro.navigator.R;
 
 import android.app.Activity;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.speech.RecognizerIntent;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
 
+import vibro.navigator.android.speech.AndroidSpeechInputLauncher;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.speech.SpeechInputLauncher;
 
 import java.util.ArrayList;
 
@@ -30,9 +32,12 @@ final class MainActivitySpeechInputController {
     private final Activity activity;
     @NonNull
     private final TaskScheduler scheduler;
+    @NonNull
+    private final SpeechInputLauncher speechInputLauncher;
 
     @Nullable
     private PoiInputController pendingController;
+    private boolean waitingForActivityResult;
 
     MainActivitySpeechInputController(@NonNull Activity activity) {
         this(activity, AndroidTaskScheduler.main());
@@ -42,8 +47,17 @@ final class MainActivitySpeechInputController {
             @NonNull Activity activity,
             @NonNull TaskScheduler scheduler
     ) {
+        this(activity, scheduler, new AndroidSpeechInputLauncher(activity));
+    }
+
+    MainActivitySpeechInputController(
+            @NonNull Activity activity,
+            @NonNull TaskScheduler scheduler,
+            @NonNull SpeechInputLauncher speechInputLauncher
+    ) {
         this.activity = activity;
         this.scheduler = scheduler;
+        this.speechInputLauncher = speechInputLauncher;
     }
 
     void openDestinationSpeechInput(@NonNull PoiInputController controller) {
@@ -74,11 +88,16 @@ final class MainActivitySpeechInputController {
             return;
         }
         pendingController = controller;
-        try {
-            activity.startActivityForResult(createSpeechIntent(prompt), REQ_SPEECH_INPUT);
-        } catch (ActivityNotFoundException e) {
-            pendingController = null;
-            AppLogger.w(TAG, "Speech recognizer activity unavailable", e);
+        waitingForActivityResult = false;
+        SpeechInputLauncher.StartMode startMode = speechInputLauncher.start(
+                createSpeechIntent(prompt),
+                REQ_SPEECH_INPUT,
+                speechCallback()
+        );
+        if (startMode == SpeechInputLauncher.StartMode.ACTIVITY) {
+            waitingForActivityResult = true;
+        } else if (startMode == SpeechInputLauncher.StartMode.UNAVAILABLE) {
+            clearPendingSpeechInput();
             Toast.makeText(activity, R.string.msg_speech_input_unavailable, Toast.LENGTH_SHORT).show();
         }
     }
@@ -103,6 +122,11 @@ final class MainActivitySpeechInputController {
         if (requestCode != REQ_SPEECH_INPUT) {
             return false;
         }
+        if (!waitingForActivityResult) {
+            AppLogger.i(TAG, "Ignoring speech activity result without pending activity launch");
+            return true;
+        }
+        waitingForActivityResult = false;
         PoiInputController controller = pendingController;
         pendingController = null;
         if (resultCode != Activity.RESULT_OK || controller == null) {
@@ -111,6 +135,43 @@ final class MainActivitySpeechInputController {
         }
         applySpeechResult(controller, data);
         return true;
+    }
+
+    boolean handleRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+        return speechInputLauncher.handleRequestPermissionsResult(requestCode, grantResults);
+    }
+
+    void dispose() {
+        clearPendingSpeechInput();
+        speechInputLauncher.dispose();
+    }
+
+    @NonNull
+    private SpeechInputLauncher.Callback speechCallback() {
+        return new SpeechInputLauncher.Callback() {
+            @Override
+            public void onSpeechInputResult(@NonNull Intent data) {
+                PoiInputController controller = pendingController;
+                clearPendingSpeechInput();
+                if (controller == null) {
+                    AppLogger.w(TAG, "Speech input returned without a target field");
+                    return;
+                }
+                applySpeechResult(controller, data);
+            }
+
+            @Override
+            public void onSpeechInputMessage(@StringRes int messageResId) {
+                clearPendingSpeechInput();
+                Toast.makeText(activity, messageResId, Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onSpeechInputCancelled() {
+                clearPendingSpeechInput();
+                AppLogger.i(TAG, "Speech input cancelled or missing target");
+            }
+        };
     }
 
     private void applySpeechResult(
@@ -143,5 +204,10 @@ final class MainActivitySpeechInputController {
         }
         String trimmed = first.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private void clearPendingSpeechInput() {
+        pendingController = null;
+        waitingForActivityResult = false;
     }
 }

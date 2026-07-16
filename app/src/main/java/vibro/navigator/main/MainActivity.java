@@ -190,11 +190,11 @@ public class MainActivity extends Activity {
     }
 
     private void openStopMapPicker(@NonNull PoiInputController stopInputController) {
-        if (stopController == null) {
-            AppLogger.w(TAG, "Stop map picker requested before stop controller was ready");
-            return;
-        }
-        poiInputActionCoordinator.openStopMapPicker(stopController, stopInputController);
+        MainActivityPoiInputActionCoordinator.openStopMapPicker(
+                poiInputActionCoordinator,
+                stopController,
+                stopInputController
+        );
     }
 
     @Override
@@ -223,6 +223,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        MainActivityPoiInputActionCoordinator.dispose(poiInputActionCoordinator);
         if (destinationController != null) {
             destinationController.dispose();
         }
@@ -289,6 +290,23 @@ public class MainActivity extends Activity {
                 destinationController,
                 stopController
         );
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+            int requestCode,
+            @NonNull String[] permissions,
+            @NonNull int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        boolean handled = MainActivityPoiInputActionCoordinator.handleRequestPermissionsResult(
+                poiInputActionCoordinator,
+                requestCode,
+                grantResults
+        );
+        AppLogger.i(TAG, "onRequestPermissionsResult requestCode=" + requestCode
+                + " permissionCount=" + permissions.length
+                + " speechHandled=" + handled);
     }
 
     private void restoreDestinationState(@NonNull Bundle savedInstanceState) {

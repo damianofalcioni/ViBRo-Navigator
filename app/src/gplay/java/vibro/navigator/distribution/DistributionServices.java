@@ -88,4 +88,12 @@ public final class DistributionServices {
         }
         return new GoogleGeocodeClient(key);
     }
+
+    @Nullable
+    public static ComponentName createSpeechRecognitionServiceFallback() {
+        return new ComponentName(
+                "com.google.android.googlequicksearchbox",
+                "com.google.android.voicesearch.serviceapi.GoogleRecognitionService"
+        );
+    }
 }

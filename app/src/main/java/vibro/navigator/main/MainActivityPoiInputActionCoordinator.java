@@ -8,10 +8,13 @@ import android.view.View;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 
 final class MainActivityPoiInputActionCoordinator {
+
+    private static final String TAG = "MainPoiActions";
 
     @NonNull
     private final MainActivityMapPickerCoordinator mapPickerCoordinator;
@@ -24,6 +27,33 @@ final class MainActivityPoiInputActionCoordinator {
     ) {
         mapPickerCoordinator = new MainActivityMapPickerCoordinator(activity, reverseGeocodeController);
         speechInputController = new MainActivitySpeechInputController(activity);
+    }
+
+    static boolean handleRequestPermissionsResult(
+            @Nullable MainActivityPoiInputActionCoordinator coordinator,
+            int requestCode,
+            @NonNull int[] grantResults
+    ) {
+        return coordinator != null
+                && coordinator.handleRequestPermissionsResult(requestCode, grantResults);
+    }
+
+    static void dispose(@Nullable MainActivityPoiInputActionCoordinator coordinator) {
+        if (coordinator != null) {
+            coordinator.dispose();
+        }
+    }
+
+    static void openStopMapPicker(
+            @Nullable MainActivityPoiInputActionCoordinator coordinator,
+            @Nullable MainActivityStopController stopController,
+            @NonNull PoiInputController stopInputController
+    ) {
+        if (coordinator == null || stopController == null) {
+            AppLogger.w(TAG, "Stop map picker requested before stop controller was ready");
+            return;
+        }
+        coordinator.openStopMapPicker(stopController, stopInputController);
     }
 
     void openDestinationMapPicker(@NonNull PoiInputController destinationController) {
@@ -65,6 +95,14 @@ final class MainActivityPoiInputActionCoordinator {
                 destinationController,
                 stopController
         );
+    }
+
+    boolean handleRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+        return speechInputController.handleRequestPermissionsResult(requestCode, grantResults);
+    }
+
+    void dispose() {
+        speechInputController.dispose();
     }
 
     private static final class StopRowActions implements MainActivityStopController.MapPickListener {

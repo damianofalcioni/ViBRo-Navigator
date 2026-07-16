@@ -94,9 +94,9 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 In `Route` mode, below the route-mode selector, the app must show an input field for searching a destination POI or coordinates.
 
 - The destination field must include an icon-only speech button inside the right edge of the text field
-- Pressing the speech button must open Android's built-in speech recognition UI for dictated destination search text
+- Pressing the speech button must first try Android's built-in speech recognition UI for dictated destination search text. If no recognizer UI activity is available but an Android speech recognition service is installed, the app must fall back to that service with an in-app listening prompt and request microphone permission only when that fallback needs it.
 - A recognized speech result must populate the destination field as editable text and use the normal POI history/search suggestion flow rather than binding coordinates by itself
-- If speech recognition is unavailable, cancelled, or returns no usable text, the current destination field value must remain unchanged and the app should show a short message when appropriate
+- If speech recognition is unavailable, cancelled, fails to become ready, or returns no usable text, the current destination field value must remain unchanged and the app should show a short message when appropriate. When no recognizer activity or service is exposed by Android, or when a recognizer-looking service does not become ready after launch, the message must guide the user to enable a real Android voice-recognition provider such as the Google app.
 
 #### 2.1 History dropdown before typing
 
@@ -159,7 +159,7 @@ The destination, intermediate stops, and start-navigation area must include a no
 
 - Pressing the plus button must add a new input field for an intermediate POI
 - Each intermediate input must have the same behavior and capabilities as the destination field
-- Each intermediate input must include the same inline speech button as the destination field; recognized speech text must populate that stop field as a normal POI search query
+- Each intermediate input must include the same inline speech button as the destination field, including the service fallback when no recognizer UI activity is available; recognized speech text must populate that stop field as a normal POI search query
 - Each intermediate row must also include a map-picker icon button with the same map-selection capabilities as the destination field
 
 #### 3.2 Remove stop field

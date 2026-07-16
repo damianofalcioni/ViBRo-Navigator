@@ -1,5 +1,6 @@
 package vibro.navigator.distribution;
 
+import android.content.ComponentName;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -60,6 +61,11 @@ public final class DistributionServices {
 
     @Nullable
     public static PoiReverseGeocodingClient createGooglePoiReverseGeocodingClient(@NonNull Context context) {
+        return null;
+    }
+
+    @Nullable
+    public static ComponentName createSpeechRecognitionServiceFallback() {
         return null;
     }
 }

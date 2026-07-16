@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.robolectric.Shadows.shadowOf;
 
 import vibro.navigator.R;
 
@@ -20,13 +19,13 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.speech.SpeechInputLauncher;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowToast;
 
 import java.util.ArrayList;
@@ -36,13 +35,18 @@ import java.util.Collections;
 @RunWith(RobolectricTestRunner.class)
 public class MainActivitySpeechInputControllerTest {
 
+    private static final String CAFE_QUERY = "Cafe Central";
+    private static final String EXISTING_DESTINATION = "Existing destination";
+
     private Activity activity;
     private RecordingScheduler scheduler;
+    private RecordingSpeechInputLauncher speechInputLauncher;
 
     @Before
     public void setUp() {
         activity = Robolectric.buildActivity(Activity.class).setup().get();
         scheduler = new RecordingScheduler();
+        speechInputLauncher = new RecordingSpeechInputLauncher();
         ShadowToast.reset();
         activity.getSharedPreferences("vibenavigator_poi_history", Activity.MODE_PRIVATE)
                 .edit()
@@ -52,19 +56,18 @@ public class MainActivitySpeechInputControllerTest {
 
     @Test
     public void openDestinationSpeechInput_defersRecognizerLaunchForPressFeedback() {
-        MainActivitySpeechInputController controller = new MainActivitySpeechInputController(activity, scheduler);
+        MainActivitySpeechInputController controller = createController();
         PoiInputController inputController = createPoiController();
 
         controller.openDestinationSpeechInput(inputController);
 
         assertEquals(MainActivitySpeechInputController.SPEECH_INPUT_LAUNCH_DELAY_MS, scheduler.delayMs);
-        assertNull(shadowOf(activity).getNextStartedActivityForResult());
+        assertNull(speechInputLauncher.startedIntent);
 
         scheduler.runDelayed();
 
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         assertRecognizerIntent(
-                started,
+                speechInputLauncher.startedIntent,
                 activity.getString(R.string.prompt_speech_destination)
         );
         inputController.dispose();
@@ -72,45 +75,46 @@ public class MainActivitySpeechInputControllerTest {
 
     @Test
     public void openStopSpeechInput_usesStopPrompt() {
-        MainActivitySpeechInputController controller = new MainActivitySpeechInputController(activity, scheduler);
+        MainActivitySpeechInputController controller = createController();
         PoiInputController inputController = createPoiController();
 
         controller.openStopSpeechInput(inputController);
         scheduler.runDelayed();
 
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
-        assertRecognizerIntent(started, activity.getString(R.string.prompt_speech_stop));
+        assertRecognizerIntent(speechInputLauncher.startedIntent, activity.getString(R.string.prompt_speech_stop));
         inputController.dispose();
     }
 
     @Test
     public void handleActivityResult_appliesRecognizedTextAsEditableQuery() {
-        MainActivitySpeechInputController controller = new MainActivitySpeechInputController(activity, scheduler);
+        MainActivitySpeechInputController controller = createController();
         PoiInputController inputController = createPoiController();
         controller.openDestinationSpeechInput(inputController);
         scheduler.runDelayed();
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
-        Intent result = speechResult("  Cafe Central  ");
+        Intent result = speechResult("  " + CAFE_QUERY + "  ");
 
-        assertTrue(controller.handleActivityResult(started.requestCode, Activity.RESULT_OK, result));
+        assertTrue(controller.handleActivityResult(speechInputLauncher.requestCode, Activity.RESULT_OK, result));
 
-        assertEquals("Cafe Central", inputController.getRawText());
+        assertEquals(CAFE_QUERY, inputController.getRawText());
         assertNull(inputController.getSelectedPoi());
         inputController.dispose();
     }
 
     @Test
     public void handleActivityResult_showsMessageWhenRecognizerReturnsNoText() {
-        MainActivitySpeechInputController controller = new MainActivitySpeechInputController(activity, scheduler);
+        MainActivitySpeechInputController controller = createController();
         PoiInputController inputController = createPoiController();
-        inputController.restoreText("Existing destination");
+        inputController.restoreText(EXISTING_DESTINATION);
         controller.openDestinationSpeechInput(inputController);
         scheduler.runDelayed();
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
 
-        assertTrue(controller.handleActivityResult(started.requestCode, Activity.RESULT_OK, speechResult("   ")));
+        assertTrue(controller.handleActivityResult(
+                speechInputLauncher.requestCode,
+                Activity.RESULT_OK,
+                speechResult("   ")
+        ));
 
-        assertEquals("Existing destination", inputController.getRawText());
+        assertEquals(EXISTING_DESTINATION, inputController.getRawText());
         assertEquals(
                 activity.getString(R.string.msg_speech_input_empty),
                 ShadowToast.getTextOfLatestToast()
@@ -120,9 +124,94 @@ public class MainActivitySpeechInputControllerTest {
 
     @Test
     public void handleActivityResult_ignoresOtherRequestCodes() {
-        MainActivitySpeechInputController controller = new MainActivitySpeechInputController(activity, scheduler);
+        MainActivitySpeechInputController controller = createController();
 
         assertFalse(controller.handleActivityResult(9999, Activity.RESULT_OK, speechResult("Ignored")));
+    }
+
+    @Test
+    public void directSpeechInputCallback_appliesRecognizedTextAsEditableQuery() {
+        speechInputLauncher.startMode = SpeechInputLauncher.StartMode.DIRECT;
+        MainActivitySpeechInputController controller = createController();
+        PoiInputController inputController = createPoiController();
+        controller.openDestinationSpeechInput(inputController);
+        scheduler.runDelayed();
+
+        speechInputLauncher.callback.onSpeechInputResult(speechResult("  " + CAFE_QUERY + "  "));
+
+        assertEquals(CAFE_QUERY, inputController.getRawText());
+        assertNull(inputController.getSelectedPoi());
+        inputController.dispose();
+    }
+
+    @Test
+    public void directSpeechInput_ignoresStrayCancelledActivityResult() {
+        speechInputLauncher.startMode = SpeechInputLauncher.StartMode.DIRECT;
+        MainActivitySpeechInputController controller = createController();
+        PoiInputController inputController = createPoiController();
+        controller.openDestinationSpeechInput(inputController);
+        scheduler.runDelayed();
+
+        assertTrue(controller.handleActivityResult(speechInputLauncher.requestCode, Activity.RESULT_CANCELED, null));
+        speechInputLauncher.callback.onSpeechInputResult(speechResult(CAFE_QUERY));
+
+        assertEquals(CAFE_QUERY, inputController.getRawText());
+        inputController.dispose();
+    }
+
+    @Test
+    public void unavailableSpeechInput_showsMessageAndKeepsCurrentText() {
+        speechInputLauncher.startMode = SpeechInputLauncher.StartMode.UNAVAILABLE;
+        MainActivitySpeechInputController controller = createController();
+        PoiInputController inputController = createPoiController();
+        inputController.restoreText(EXISTING_DESTINATION);
+
+        controller.openDestinationSpeechInput(inputController);
+        scheduler.runDelayed();
+
+        assertEquals(EXISTING_DESTINATION, inputController.getRawText());
+        assertEquals(
+                activity.getString(R.string.msg_speech_input_unavailable),
+                ShadowToast.getTextOfLatestToast()
+        );
+        inputController.dispose();
+    }
+
+    @Test
+    public void directSpeechInputMessage_showsMessageAndClearsPendingTarget() {
+        speechInputLauncher.startMode = SpeechInputLauncher.StartMode.DIRECT;
+        MainActivitySpeechInputController controller = createController();
+        PoiInputController inputController = createPoiController();
+        inputController.restoreText(EXISTING_DESTINATION);
+        controller.openDestinationSpeechInput(inputController);
+        scheduler.runDelayed();
+
+        speechInputLauncher.callback.onSpeechInputMessage(R.string.msg_speech_permission_required);
+        speechInputLauncher.callback.onSpeechInputResult(speechResult(CAFE_QUERY));
+
+        assertEquals(EXISTING_DESTINATION, inputController.getRawText());
+        assertEquals(
+                activity.getString(R.string.msg_speech_permission_required),
+                ShadowToast.getTextOfLatestToast()
+        );
+        inputController.dispose();
+    }
+
+    @Test
+    public void handleRequestPermissionsResult_delegatesToSpeechLauncher() {
+        speechInputLauncher.permissionResultHandled = true;
+        MainActivitySpeechInputController controller = createController();
+        int[] grantResults = {Activity.RESULT_OK};
+
+        assertTrue(controller.handleRequestPermissionsResult(5002, grantResults));
+
+        assertEquals(5002, speechInputLauncher.permissionRequestCode);
+        assertEquals(grantResults, speechInputLauncher.permissionGrantResults);
+    }
+
+    @NonNull
+    private MainActivitySpeechInputController createController() {
+        return new MainActivitySpeechInputController(activity, scheduler, speechInputLauncher);
     }
 
     @NonNull
@@ -152,17 +241,51 @@ public class MainActivitySpeechInputControllerTest {
     }
 
     private static void assertRecognizerIntent(
-            @NonNull ShadowActivity.IntentForResult started,
+            @NonNull Intent started,
             @NonNull String prompt
     ) {
         assertNotNull(started);
-        assertEquals(RecognizerIntent.ACTION_RECOGNIZE_SPEECH, started.intent.getAction());
+        assertEquals(RecognizerIntent.ACTION_RECOGNIZE_SPEECH, started.getAction());
         assertEquals(
                 RecognizerIntent.LANGUAGE_MODEL_FREE_FORM,
-                started.intent.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL)
+                started.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL)
         );
-        assertEquals(prompt, started.intent.getStringExtra(RecognizerIntent.EXTRA_PROMPT));
-        assertEquals(1, started.intent.getIntExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 0));
+        assertEquals(prompt, started.getStringExtra(RecognizerIntent.EXTRA_PROMPT));
+        assertEquals(1, started.getIntExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 0));
+    }
+
+    private static final class RecordingSpeechInputLauncher implements SpeechInputLauncher {
+        private StartMode startMode = StartMode.ACTIVITY;
+        private Intent startedIntent;
+        private int requestCode = -1;
+        private Callback callback;
+        private boolean permissionResultHandled;
+        private int permissionRequestCode = -1;
+        private int[] permissionGrantResults;
+
+        @NonNull
+        @Override
+        public StartMode start(
+                @NonNull Intent recognizerIntent,
+                int requestCode,
+                @NonNull Callback callback
+        ) {
+            startedIntent = recognizerIntent;
+            this.requestCode = requestCode;
+            this.callback = callback;
+            return startMode;
+        }
+
+        @Override
+        public boolean handleRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+            permissionRequestCode = requestCode;
+            permissionGrantResults = grantResults;
+            return permissionResultHandled;
+        }
+
+        @Override
+        public void dispose() {
+        }
     }
 
     private static final class RecordingScheduler implements TaskScheduler {

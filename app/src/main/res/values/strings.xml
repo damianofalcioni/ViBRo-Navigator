@@ -109,8 +109,12 @@
     <string name="msg_intent_unrecognized">Shared location not recognized</string>
     <string name="msg_gpx_import_failed">Could not load GPX waypoints.</string>
     <string name="msg_gpx_import_blocked_navigation">Stop navigation before opening a GPX route.</string>
-    <string name="msg_speech_input_unavailable">Speech input is not available on this device.</string>
+    <string name="msg_speech_input_unavailable">No speech recognition service is enabled. Enable the Google app or Android voice input.</string>
+    <string name="msg_speech_input_listening">Listening...</string>
     <string name="msg_speech_input_empty">No speech was recognized.</string>
+    <string name="msg_speech_input_failed">Speech input failed. Try again.</string>
+    <string name="msg_speech_input_unresponsive">Speech recognition did not start. Enable the Google app or Android voice input.</string>
+    <string name="msg_speech_permission_required">Microphone permission is needed for speech input.</string>
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>
