@@ -58,6 +58,19 @@ public final class NavigationRouteExecutor {
         }
 
         @NonNull
+        public default GeoJsonRoute routeGeoJson(
+                @NonNull LatLon start,
+                @NonNull List<LatLon> intermediates,
+                @NonNull LatLon destination,
+                @NonNull String profile,
+                boolean customProfile,
+                @NonNull List<NogoPoint> blocked,
+                @NonNull String profileParameters
+        ) throws Exception {
+            return routeGeoJson(start, intermediates, destination, profile, blocked, profileParameters);
+        }
+
+        @NonNull
         public default GeoJsonRoute roundTripGeoJson(
                 @NonNull LatLon start,
                 @NonNull String profile,
@@ -85,6 +98,26 @@ public final class NavigationRouteExecutor {
                 @NonNull String profileParameters
         ) throws Exception {
             return routeGeoJson(start, java.util.Collections.emptyList(), start, profile, blocked, profileParameters);
+        }
+
+        @NonNull
+        public default GeoJsonRoute roundTripGeoJson(
+                @NonNull LatLon start,
+                @NonNull String profile,
+                boolean customProfile,
+                @NonNull List<NogoPoint> blocked,
+                int roundTripDistanceMeters,
+                int roundTripDirectionDegrees,
+                @NonNull String profileParameters
+        ) throws Exception {
+            return roundTripGeoJson(
+                    start,
+                    profile,
+                    blocked,
+                    roundTripDistanceMeters,
+                    roundTripDirectionDegrees,
+                    profileParameters
+            );
         }
     }
 

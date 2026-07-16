@@ -143,6 +143,28 @@ public class AndroidNavigationRequestIntentContractTest {
     }
 
     @Test
+    public void toExtras_thenFromExtras_preservesCustomProfileSource() {
+        NavigationRequest original = new NavigationRequest(
+                NavigationRoutingMode.BROUTER,
+                PROFILE,
+                true,
+                PROFILE_PARAMETERS,
+                DESTINATION_NAME,
+                new LatLon(48.2082d, 16.3738d),
+                new ArrayList<>()
+        );
+
+        AndroidNavigationRequestIntentContract.Extras extras =
+                AndroidNavigationRequestIntentContract.toExtras(original);
+        NavigationRequest restored = AndroidNavigationRequestIntentContract.fromExtras(extras);
+
+        assertTrue(extras.customProfile);
+        assertTrue(restored.customProfile);
+        assertEquals(PROFILE, restored.profile);
+        assertEquals(PROFILE_PARAMETERS, restored.profileParameters);
+    }
+
+    @Test
     public void toExtras_thenFromExtras_preservesRoundTripModeAndDistance() {
         NavigationRequest original = new NavigationRequest(
                 NavigationRoutingMode.ROUND_TRIP,

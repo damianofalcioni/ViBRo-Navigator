@@ -37,14 +37,47 @@ public final class BRouterRouter {
             @Nullable List<NogoPoint> blockedWaypoints,
             @Nullable String profileParameters
     ) throws Exception {
+        return routeGeoJson(
+                client,
+                start,
+                intermediates,
+                end,
+                profile,
+                false,
+                blockedWaypoints,
+                profileParameters
+        );
+    }
+
+    @NonNull
+    public GeoJsonRoute routeGeoJson(
+            @NonNull BRouterRouteClient client,
+            @NonNull LatLon start,
+            @NonNull List<LatLon> intermediates,
+            @NonNull LatLon end,
+            @NonNull String profile,
+            boolean customProfile,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            @Nullable String profileParameters
+    ) throws Exception {
         List<LatLon> stops = intermediates != null ? intermediates : new ArrayList<>();
         AppLogger.i(TAG, "Building route request start=" + start.lat + "," + start.lon
                 + " destination=" + end.lat + "," + end.lon
                 + " profile=" + profile
+                + " profileSource=" + (customProfile ? "custom" : "brouter")
                 + " profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
                 + " intermediates=" + stops.size()
                 + " blocked=" + (blockedWaypoints == null ? 0 : blockedWaypoints.size()));
-        String decoded = requestRoutePayload(client, start, stops, end, profile, blockedWaypoints, profileParameters);
+        String decoded = requestRoutePayload(
+                client,
+                start,
+                stops,
+                end,
+                profile,
+                customProfile,
+                blockedWaypoints,
+                profileParameters
+        );
         return parseRoutePayload(decoded);
     }
 
@@ -58,8 +91,32 @@ public final class BRouterRouter {
             int roundTripDirectionDegrees,
             @Nullable String profileParameters
     ) throws Exception {
+        return roundTripGeoJson(
+                client,
+                start,
+                profile,
+                false,
+                blockedWaypoints,
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees,
+                profileParameters
+        );
+    }
+
+    @NonNull
+    public GeoJsonRoute roundTripGeoJson(
+            @NonNull BRouterRouteClient client,
+            @NonNull LatLon start,
+            @NonNull String profile,
+            boolean customProfile,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees,
+            @Nullable String profileParameters
+    ) throws Exception {
         AppLogger.i(TAG, "Building round trip request start=" + start.lat + "," + start.lon
                 + " profile=" + profile
+                + " profileSource=" + (customProfile ? "custom" : "brouter")
                 + " profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
                 + " radiusMeters=" + roundTripDistanceMeters
                 + " directionDegrees=" + roundTripDirectionDegrees
@@ -67,6 +124,7 @@ public final class BRouterRouter {
         String decoded = client.requestRoutePayload(BRouterRouteRequest.roundTrip(
                 start,
                 profile,
+                customProfile,
                 profileParameters,
                 blockedWaypoints,
                 roundTripDistanceMeters,
@@ -87,6 +145,7 @@ public final class BRouterRouter {
             @NonNull List<LatLon> stops,
             @NonNull LatLon end,
             @NonNull String profile,
+            boolean customProfile,
             @Nullable List<NogoPoint> blockedWaypoints,
             @Nullable String profileParameters
     ) throws Exception {
@@ -95,6 +154,7 @@ public final class BRouterRouter {
                 stops,
                 end,
                 profile,
+                customProfile,
                 profileParameters,
                 blockedWaypoints
         ));

@@ -54,6 +54,7 @@ final class NavigationInputResolver {
                 new NavigationRequest(
                         profileSelection.routingMode,
                         profileSelection.profileName,
+                        profileSelection.customProfile,
                         profileSelection.profileParameters,
                         destination.name,
                         new LatLon(destination.lat, destination.lon),

@@ -149,7 +149,7 @@ final class ProfileSpinnerController {
     private ProfileSelection resolveCustomProfile() {
         String customProfile = profilesRepository.getCustomProfileName(context);
         if (customProfile != null && !customProfile.trim().isEmpty()) {
-            return resolveBRouterProfile(customProfile);
+            return ProfileSelectionResolver.customBrouter(context, profilesRepository, customProfile);
         }
         Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
         listener.onCustomProfilePickerRequested();

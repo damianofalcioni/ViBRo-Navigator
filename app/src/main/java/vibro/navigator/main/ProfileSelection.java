@@ -10,16 +10,19 @@ final class ProfileSelection {
     final NavigationRoutingMode routingMode;
     @Nullable
     final String profileName;
+    final boolean customProfile;
     @Nullable
     final String profileParameters;
 
     private ProfileSelection(
             @NonNull NavigationRoutingMode routingMode,
             @Nullable String profileName,
+            boolean customProfile,
             @Nullable String profileParameters
     ) {
         this.routingMode = routingMode;
         this.profileName = profileName;
+        this.customProfile = customProfile;
         this.profileParameters = clean(profileParameters);
     }
 
@@ -30,12 +33,17 @@ final class ProfileSelection {
 
     @NonNull
     static ProfileSelection brouter(@NonNull String profileName, @Nullable String profileParameters) {
-        return new ProfileSelection(NavigationRoutingMode.BROUTER, profileName, profileParameters);
+        return new ProfileSelection(NavigationRoutingMode.BROUTER, profileName, false, profileParameters);
+    }
+
+    @NonNull
+    static ProfileSelection customBrouter(@NonNull String profileName, @Nullable String profileParameters) {
+        return new ProfileSelection(NavigationRoutingMode.BROUTER, profileName, true, profileParameters);
     }
 
     @NonNull
     static ProfileSelection straightLine() {
-        return new ProfileSelection(NavigationRoutingMode.STRAIGHT_LINE, null, null);
+        return new ProfileSelection(NavigationRoutingMode.STRAIGHT_LINE, null, false, null);
     }
 
     @Nullable

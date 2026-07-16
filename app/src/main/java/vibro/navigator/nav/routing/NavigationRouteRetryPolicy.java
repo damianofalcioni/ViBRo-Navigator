@@ -55,6 +55,7 @@ final class NavigationRouteRetryPolicy {
             return routeCalculator.roundTripGeoJson(
                     snapshot.start,
                     requireProfile(snapshot),
+                    snapshot.customProfile,
                     snapshot.blocked,
                     requireRoundTripDistance(snapshot),
                     snapshot.roundTripDirectionDegrees,
@@ -66,6 +67,7 @@ final class NavigationRouteRetryPolicy {
                 snapshot.intermediates,
                 requireDestination(snapshot),
                 requireProfile(snapshot),
+                snapshot.customProfile,
                 snapshot.blocked,
                 profileParameters(snapshot)
         );

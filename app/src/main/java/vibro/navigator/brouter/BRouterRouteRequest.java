@@ -19,6 +19,7 @@ public final class BRouterRouteRequest {
     public final LatLon destination;
     @NonNull
     public final String profile;
+    public final boolean customProfile;
     @Nullable
     public final String profileParameters;
     @NonNull
@@ -44,7 +45,19 @@ public final class BRouterRouteRequest {
             @Nullable String profileParameters,
             @Nullable List<NogoPoint> blockedWaypoints
     ) {
-        this(start, intermediates, destination, profile, profileParameters, blockedWaypoints, 0);
+        this(start, intermediates, destination, profile, false, profileParameters, blockedWaypoints);
+    }
+
+    public BRouterRouteRequest(
+            @NonNull LatLon start,
+            @Nullable List<LatLon> intermediates,
+            @NonNull LatLon destination,
+            @NonNull String profile,
+            boolean customProfile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints
+    ) {
+        this(start, intermediates, destination, profile, customProfile, profileParameters, blockedWaypoints, 0);
     }
 
     private BRouterRouteRequest(
@@ -52,6 +65,7 @@ public final class BRouterRouteRequest {
             @Nullable List<LatLon> intermediates,
             @Nullable LatLon destination,
             @NonNull String profile,
+            boolean customProfile,
             @Nullable String profileParameters,
             @Nullable List<NogoPoint> blockedWaypoints,
             int roundTripDistanceMeters
@@ -61,6 +75,7 @@ public final class BRouterRouteRequest {
                 intermediates,
                 destination,
                 profile,
+                customProfile,
                 profileParameters,
                 blockedWaypoints,
                 roundTripDistanceMeters,
@@ -73,6 +88,7 @@ public final class BRouterRouteRequest {
             @Nullable List<LatLon> intermediates,
             @Nullable LatLon destination,
             @NonNull String profile,
+            boolean customProfile,
             @Nullable String profileParameters,
             @Nullable List<NogoPoint> blockedWaypoints,
             int roundTripDistanceMeters,
@@ -82,6 +98,7 @@ public final class BRouterRouteRequest {
         this.intermediates = immutableCopy(intermediates);
         this.destination = destination;
         this.profile = profile;
+        this.customProfile = customProfile;
         this.profileParameters = clean(profileParameters);
         this.blockedWaypoints = immutableCopy(blockedWaypoints);
         this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
@@ -96,8 +113,15 @@ public final class BRouterRouteRequest {
             @Nullable List<NogoPoint> blockedWaypoints,
             int roundTripDistanceMeters
     ) {
-        return roundTrip(start, profile, profileParameters, blockedWaypoints, roundTripDistanceMeters,
-                RoundTripDirection.DEFAULT_DIRECTION_DEGREES);
+        return roundTrip(
+                start,
+                profile,
+                false,
+                profileParameters,
+                blockedWaypoints,
+                roundTripDistanceMeters,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+        );
     }
 
     @NonNull
@@ -109,11 +133,33 @@ public final class BRouterRouteRequest {
             int roundTripDistanceMeters,
             int roundTripDirectionDegrees
     ) {
+        return roundTrip(
+                start,
+                profile,
+                false,
+                profileParameters,
+                blockedWaypoints,
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees
+        );
+    }
+
+    @NonNull
+    public static BRouterRouteRequest roundTrip(
+            @NonNull LatLon start,
+            @NonNull String profile,
+            boolean customProfile,
+            @Nullable String profileParameters,
+            @Nullable List<NogoPoint> blockedWaypoints,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees
+    ) {
         return new BRouterRouteRequest(
                 start,
                 Collections.emptyList(),
                 null,
                 profile,
+                customProfile,
                 profileParameters,
                 blockedWaypoints,
                 roundTripDistanceMeters,

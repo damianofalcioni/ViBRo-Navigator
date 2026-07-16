@@ -77,6 +77,8 @@ public final class BRouterRouteException extends Exception {
     private static boolean hasInvalidProfileMarker(@NonNull String normalizedMessage) {
         return normalizedMessage.contains("invalid")
                 || normalizedMessage.contains("unknown")
+                || normalizedMessage.contains("does not exist")
+                || normalizedMessage.contains("does not exists")
                 || normalizedMessage.contains("not found")
                 || normalizedMessage.contains("missing");
     }

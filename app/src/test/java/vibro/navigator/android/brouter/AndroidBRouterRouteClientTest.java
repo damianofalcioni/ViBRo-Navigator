@@ -27,6 +27,8 @@ import vibro.navigator.geo.LatLon;
 public class AndroidBRouterRouteClientTest {
     private static final String PROFILE_TREKKING = "trekking";
     private static final String PROFILE_PARAMETERS = "avoid_path=1";
+    private static final String CUSTOM_PROFILE_TEXT = "assign validForBikes = true";
+    private static final String EXTRA_PARAMS = "extraParams";
 
     @Test
     public void buildRouteParams_encodesProfilePointsNogosAndGeoJsonMode() {
@@ -53,7 +55,7 @@ public class AndroidBRouterRouteClientTest {
         assertEquals("json", params.getString("trackFormat"));
         assertEquals("9", params.getString("timode"));
         assertEquals("true", params.getString("acceptCompressedResult"));
-        assertFalse(params.containsKey("extraParams"));
+        assertFalse(params.containsKey(EXTRA_PARAMS));
         assertFalse(params.containsKey("v"));
     }
 
@@ -70,7 +72,26 @@ public class AndroidBRouterRouteClientTest {
 
         Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
 
-        assertEquals("avoid_path=1&uphillcost=90", params.getString("extraParams"));
+        assertEquals("avoid_path=1&uphillcost=90", params.getString(EXTRA_PARAMS));
+    }
+
+    @Test
+    public void buildRouteParams_encodesCustomProfileAsRemoteProfile() {
+        BRouterRouteRequest request = new BRouterRouteRequest(
+                new LatLon(48.0, 16.0),
+                Collections.emptyList(),
+                new LatLon(48.2, 16.2),
+                "custom-car",
+                true,
+                PROFILE_PARAMETERS,
+                Collections.emptyList()
+        );
+
+        Bundle params = AndroidBRouterRouteParams.build(request, CUSTOM_PROFILE_TEXT);
+
+        assertFalse(params.containsKey("profile"));
+        assertEquals(CUSTOM_PROFILE_TEXT, params.getString("remoteProfile"));
+        assertEquals(PROFILE_PARAMETERS, params.getString(EXTRA_PARAMS));
     }
 
     @Test
@@ -93,7 +114,7 @@ public class AndroidBRouterRouteClientTest {
         assertEquals(123, params.getInt("direction"));
         assertEquals(15_000, params.getInt("roundTripDistance"));
         assertFalse(params.containsKey("roundTripPoints"));
-        assertEquals(PROFILE_PARAMETERS, params.getString("extraParams"));
+        assertEquals(PROFILE_PARAMETERS, params.getString(EXTRA_PARAMS));
     }
 
     @Test

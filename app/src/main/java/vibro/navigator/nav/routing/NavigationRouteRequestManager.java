@@ -193,6 +193,7 @@ public final class NavigationRouteRequestManager {
                 new ArrayList<>(intermediates),
                 request.destination,
                 request.profile,
+                request.customProfile,
                 request.profileParameters,
                 new ArrayList<>(blocked),
                 request.roundTripDistanceMeters,

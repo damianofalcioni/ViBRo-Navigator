@@ -82,6 +82,7 @@ final class MainActivityRoundTripRequestFactory {
         return new NavigationRequest(
                 NavigationRoutingMode.ROUND_TRIP,
                 profileSelection.profileName,
+                profileSelection.customProfile,
                 profileSelection.profileParameters,
                 null,
                 null,

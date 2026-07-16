@@ -349,6 +349,34 @@ public class NavigationRouteRequestManagerTest {
     }
 
     @Test
+    public void prepare_copiesCustomProfileSourceIntoSnapshot() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+        NavigationRequest request = new NavigationRequest(
+                NavigationRoutingMode.BROUTER,
+                TREKKING_PROFILE,
+                true,
+                PROFILE_PARAMETERS,
+                "Destination",
+                new LatLon(48.2082, 16.3738),
+                Collections.emptyList()
+        );
+
+        NavigationRouteRequestSnapshot snapshot = manager.prepare(
+                true,
+                2_000L,
+                request,
+                location(0.0, 0.0, 2_000L),
+                Collections.emptyList(),
+                null
+        );
+
+        assertNotNull(snapshot);
+        assertTrue(snapshot.customProfile);
+        assertEquals(PROFILE_PARAMETERS, snapshot.profileParameters);
+    }
+
+    @Test
     public void prepare_copiesRoundTripModeAndDistanceIntoSnapshot() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset();

@@ -3,6 +3,7 @@ package vibro.navigator.android.brouter;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +18,17 @@ final class AndroidBRouterRouteParams {
 
     @NonNull
     static Bundle build(@NonNull BRouterRouteRequest request) {
+        return build(request, null);
+    }
+
+    @NonNull
+    static Bundle build(@NonNull BRouterRouteRequest request, @Nullable String remoteProfile) {
         List<LatLon> points = routePoints(request);
 
         Bundle bundle = new Bundle();
         putRoutePoints(bundle, request, points);
         putNogos(bundle, request.blockedWaypoints);
-        bundle.putString("profile", request.profile);
+        putProfile(bundle, request, remoteProfile);
         if (request.profileParameters != null) {
             bundle.putString("extraParams", request.profileParameters);
         }
@@ -36,6 +42,21 @@ final class AndroidBRouterRouteParams {
         bundle.putString("timode", "9");
         bundle.putString("acceptCompressedResult", "true");
         return bundle;
+    }
+
+    private static void putProfile(
+            @NonNull Bundle bundle,
+            @NonNull BRouterRouteRequest request,
+            @Nullable String remoteProfile
+    ) {
+        if (!request.customProfile) {
+            bundle.putString("profile", request.profile);
+            return;
+        }
+        if (remoteProfile == null || remoteProfile.trim().isEmpty()) {
+            throw new IllegalStateException("Custom BRouter profile is unavailable");
+        }
+        bundle.putString("remoteProfile", remoteProfile);
     }
 
     private static void putRoutePoints(

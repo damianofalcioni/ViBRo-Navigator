@@ -373,6 +373,7 @@ public class NavigationRouteStartApproachStateTest {
                 request.stops,
                 request.destination,
                 request.profile,
+                request.customProfile,
                 request.profileParameters,
                 Collections.emptyList(),
                 request.roundTripDistanceMeters,

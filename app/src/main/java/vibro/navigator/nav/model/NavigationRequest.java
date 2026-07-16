@@ -14,6 +14,7 @@ public final class NavigationRequest {
     public final NavigationRoutingMode routingMode;
     @Nullable
     public final String profile;
+    public final boolean customProfile;
     @Nullable
     public final String profileParameters;
     @Nullable
@@ -52,7 +53,19 @@ public final class NavigationRequest {
             @Nullable LatLon destination,
             @NonNull List<LatLon> stops
     ) {
-        this(routingMode, profile, profileParameters, destinationName, destination, stops, 0);
+        this(routingMode, profile, false, profileParameters, destinationName, destination, stops, 0);
+    }
+
+    public NavigationRequest(
+            @NonNull NavigationRoutingMode routingMode,
+            @Nullable String profile,
+            boolean customProfile,
+            @Nullable String profileParameters,
+            @Nullable String destinationName,
+            @Nullable LatLon destination,
+            @NonNull List<LatLon> stops
+    ) {
+        this(routingMode, profile, customProfile, profileParameters, destinationName, destination, stops, 0);
     }
 
     public NavigationRequest(
@@ -67,6 +80,30 @@ public final class NavigationRequest {
         this(
                 routingMode,
                 profile,
+                false,
+                profileParameters,
+                destinationName,
+                destination,
+                stops,
+                roundTripDistanceMeters,
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+        );
+    }
+
+    public NavigationRequest(
+            @NonNull NavigationRoutingMode routingMode,
+            @Nullable String profile,
+            boolean customProfile,
+            @Nullable String profileParameters,
+            @Nullable String destinationName,
+            @Nullable LatLon destination,
+            @NonNull List<LatLon> stops,
+            int roundTripDistanceMeters
+    ) {
+        this(
+                routingMode,
+                profile,
+                customProfile,
                 profileParameters,
                 destinationName,
                 destination,
@@ -86,8 +123,33 @@ public final class NavigationRequest {
             int roundTripDistanceMeters,
             int roundTripDirectionDegrees
     ) {
+        this(
+                routingMode,
+                profile,
+                false,
+                profileParameters,
+                destinationName,
+                destination,
+                stops,
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees
+        );
+    }
+
+    public NavigationRequest(
+            @NonNull NavigationRoutingMode routingMode,
+            @Nullable String profile,
+            boolean customProfile,
+            @Nullable String profileParameters,
+            @Nullable String destinationName,
+            @Nullable LatLon destination,
+            @NonNull List<LatLon> stops,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees
+    ) {
         this.routingMode = routingMode;
         this.profile = profile;
+        this.customProfile = customProfile;
         this.profileParameters = clean(profileParameters);
         this.destinationName = destinationName;
         this.destination = destination;
@@ -115,6 +177,7 @@ public final class NavigationRequest {
     public String describe() {
         return "mode=" + routingMode.serializedName()
                 + ", profile=" + safe(profile)
+                + ", profileSource=" + (customProfile ? "custom" : "brouter")
                 + ", profileParams=" + (profileParameters == null ? 0 : profileParameters.length())
                 + ", destName=" + safe(destinationName)
                 + ", destination=" + formatLatLon(destination)

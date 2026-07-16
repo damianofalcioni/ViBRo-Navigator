@@ -141,7 +141,7 @@ public class BRouterProfilesRepository {
             @NonNull Context context,
             @Nullable String profileName
     ) {
-        String cleanName = cleanProfileName(profileName);
+        String cleanName = BRouterProfileNames.clean(profileName);
         if (cleanName == null) {
             return Collections.emptyList();
         }
@@ -159,7 +159,7 @@ public class BRouterProfilesRepository {
             @NonNull Context context,
             @Nullable String profileName
     ) {
-        String cleanName = cleanProfileName(profileName);
+        String cleanName = BRouterProfileNames.clean(profileName);
         if (cleanName == null) {
             return Collections.emptyMap();
         }
@@ -182,7 +182,7 @@ public class BRouterProfilesRepository {
             @NonNull List<BRouterProfileParameter> parameters,
             @NonNull Map<String, String> values
     ) {
-        String cleanName = cleanProfileName(profileName);
+        String cleanName = BRouterProfileNames.clean(profileName);
         if (cleanName == null) {
             return;
         }
@@ -190,11 +190,22 @@ public class BRouterProfilesRepository {
     }
 
     public void resetProfileParameterValues(@NonNull Context context, @Nullable String profileName) {
-        String cleanName = cleanProfileName(profileName);
+        String cleanName = BRouterProfileNames.clean(profileName);
         if (cleanName == null) {
             return;
         }
         parameterStore.reset(context, cleanName);
+    }
+
+    @Nullable
+    public String getCustomProfileText(@NonNull Context context, @Nullable String profileName) {
+        return BRouterCustomProfileSource.readText(
+                context,
+                dependencies.documentAccess,
+                getCustomProfileUri(context),
+                getCustomProfileName(context),
+                profileName
+        );
     }
 
     @Nullable
@@ -243,14 +254,5 @@ public class BRouterProfilesRepository {
 
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
         return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
-    }
-
-    @Nullable
-    private static String cleanProfileName(@Nullable String profileName) {
-        if (profileName == null) {
-            return null;
-        }
-        String cleanName = profileName.trim();
-        return cleanName.isEmpty() ? null : cleanName;
     }
 }

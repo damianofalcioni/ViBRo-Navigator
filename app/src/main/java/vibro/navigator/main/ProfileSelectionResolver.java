@@ -19,15 +19,34 @@ final class ProfileSelectionResolver {
             @NonNull BRouterProfilesRepository profilesRepository,
             @Nullable String profileName
     ) {
+        return brouter(context, profilesRepository, profileName, false);
+    }
+
+    @Nullable
+    static ProfileSelection customBrouter(
+            @NonNull Context context,
+            @NonNull BRouterProfilesRepository profilesRepository,
+            @Nullable String profileName
+    ) {
+        return brouter(context, profilesRepository, profileName, true);
+    }
+
+    @Nullable
+    private static ProfileSelection brouter(
+            @NonNull Context context,
+            @NonNull BRouterProfilesRepository profilesRepository,
+            @Nullable String profileName,
+            boolean customProfile
+    ) {
         String cleanProfileName = clean(profileName);
         if (cleanProfileName == null) {
             Toast.makeText(context, R.string.msg_select_custom_profile, Toast.LENGTH_SHORT).show();
             return null;
         }
-        return ProfileSelection.brouter(
-                cleanProfileName,
-                profilesRepository.getProfileParameterOverridesExtraParams(context, cleanProfileName)
-        );
+        String profileParameters = profilesRepository.getProfileParameterOverridesExtraParams(context, cleanProfileName);
+        return customProfile
+                ? ProfileSelection.customBrouter(cleanProfileName, profileParameters)
+                : ProfileSelection.brouter(cleanProfileName, profileParameters);
     }
 
     @Nullable

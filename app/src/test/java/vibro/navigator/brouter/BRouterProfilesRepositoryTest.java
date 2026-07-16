@@ -2,6 +2,7 @@ package vibro.navigator.brouter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import android.app.Activity;
 import android.net.Uri;
@@ -127,6 +128,20 @@ public class BRouterProfilesRepositoryTest {
 
         assertEquals(1, parameters.size());
         assertEquals(PARAM_AVOID_PATH, parameters.get(0).name);
+    }
+
+    @Test
+    public void getCustomProfileText_readsOnlyMatchingSavedCustomProfile() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Uri customUri = Uri.parse("content://profiles/" + PROFILE_TREKKING + ".brf");
+        String profileText = "assign " + PARAM_AVOID_PATH + " = false";
+        BRouterProfilesRepository repository = new BRouterProfilesRepository(
+                TestProfileParameterDependencies.create(customUri, profileText)
+        );
+        repository.saveCustomProfile(activity, customUri, PROFILE_TREKKING);
+
+        assertEquals(profileText, repository.getCustomProfileText(activity, PROFILE_TREKKING));
+        assertNull(repository.getCustomProfileText(activity, PROFILE_FASTBIKE));
     }
 
     @NonNull

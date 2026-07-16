@@ -17,6 +17,7 @@ import vibro.navigator.nav.model.RoundTripDirection;
 public final class AndroidNavigationRequestIntentContract {
 
     public static final String EXTRA_PROFILE = "vibro.navigator.extra.PROFILE";
+    public static final String EXTRA_CUSTOM_PROFILE = "vibro.navigator.extra.CUSTOM_PROFILE";
     public static final String EXTRA_PROFILE_PARAMETERS = "vibro.navigator.extra.PROFILE_PARAMETERS";
     public static final String EXTRA_ROUTING_MODE = "vibro.navigator.extra.ROUTING_MODE";
     public static final String EXTRA_DEST_NAME = "vibro.navigator.extra.DEST_NAME";
@@ -40,6 +41,7 @@ public final class AndroidNavigationRequestIntentContract {
         return fromExtras(new Extras(
                 intent.getStringExtra(EXTRA_ROUTING_MODE),
                 intent.getStringExtra(EXTRA_PROFILE),
+                intent.getBooleanExtra(EXTRA_CUSTOM_PROFILE, false),
                 intent.getStringExtra(EXTRA_PROFILE_PARAMETERS),
                 intent.getStringExtra(EXTRA_DEST_NAME),
                 intent.getDoubleExtra(EXTRA_DEST_LAT, Double.NaN),
@@ -74,6 +76,7 @@ public final class AndroidNavigationRequestIntentContract {
         return new NavigationRequest(
                 routingMode,
                 extras.profile,
+                extras.customProfile,
                 extras.profileParameters,
                 extras.destinationName,
                 destination,
@@ -86,12 +89,25 @@ public final class AndroidNavigationRequestIntentContract {
     public static void putInto(@NonNull Intent intent, @NonNull NavigationRequest request) {
         Extras extras = toExtras(request);
         intent.putExtra(EXTRA_ROUTING_MODE, extras.routingMode);
+        putProfileExtras(intent, extras);
+        putDestinationExtras(intent, extras);
+        putStopsExtra(intent, extras);
+        putRoundTripExtras(intent, extras);
+    }
+
+    private static void putProfileExtras(@NonNull Intent intent, @NonNull Extras extras) {
         if (extras.profile != null) {
             intent.putExtra(EXTRA_PROFILE, extras.profile);
+        }
+        if (extras.customProfile) {
+            intent.putExtra(EXTRA_CUSTOM_PROFILE, true);
         }
         if (extras.profileParameters != null) {
             intent.putExtra(EXTRA_PROFILE_PARAMETERS, extras.profileParameters);
         }
+    }
+
+    private static void putDestinationExtras(@NonNull Intent intent, @NonNull Extras extras) {
         if (extras.destinationName != null) {
             intent.putExtra(EXTRA_DEST_NAME, extras.destinationName);
         }
@@ -99,9 +115,15 @@ public final class AndroidNavigationRequestIntentContract {
             intent.putExtra(EXTRA_DEST_LAT, extras.destinationLat);
             intent.putExtra(EXTRA_DEST_LON, extras.destinationLon);
         }
+    }
+
+    private static void putStopsExtra(@NonNull Intent intent, @NonNull Extras extras) {
         if (!extras.stops.isEmpty()) {
             intent.putStringArrayListExtra(EXTRA_STOPS, extras.stops);
         }
+    }
+
+    private static void putRoundTripExtras(@NonNull Intent intent, @NonNull Extras extras) {
         if (extras.roundTripDistanceMeters > 0) {
             intent.putExtra(EXTRA_ROUND_TRIP_DISTANCE_METERS, extras.roundTripDistanceMeters);
             intent.putExtra(EXTRA_ROUND_TRIP_DIRECTION_DEGREES, extras.roundTripDirectionDegrees);
@@ -115,6 +137,7 @@ public final class AndroidNavigationRequestIntentContract {
         return new Extras(
                 request.routingMode.serializedName(),
                 request.profile,
+                request.customProfile,
                 request.profileParameters,
                 request.destinationName,
                 destinationLat,
@@ -159,6 +182,7 @@ public final class AndroidNavigationRequestIntentContract {
         final String routingMode;
         @Nullable
         final String profile;
+        final boolean customProfile;
         @Nullable
         final String profileParameters;
         @Nullable
@@ -180,6 +204,7 @@ public final class AndroidNavigationRequestIntentContract {
             this(
                     null,
                     profile,
+                    false,
                     null,
                     destinationName,
                     destinationLat,
@@ -202,6 +227,7 @@ public final class AndroidNavigationRequestIntentContract {
             this(
                     routingMode,
                     profile,
+                    false,
                     profileParameters,
                     destinationName,
                     destinationLat,
@@ -225,6 +251,7 @@ public final class AndroidNavigationRequestIntentContract {
             this(
                     routingMode,
                     profile,
+                    false,
                     profileParameters,
                     destinationName,
                     destinationLat,
@@ -238,6 +265,7 @@ public final class AndroidNavigationRequestIntentContract {
         Extras(
                 @Nullable String routingMode,
                 @Nullable String profile,
+                boolean customProfile,
                 @Nullable String profileParameters,
                 @Nullable String destinationName,
                 double destinationLat,
@@ -248,6 +276,7 @@ public final class AndroidNavigationRequestIntentContract {
         ) {
             this.routingMode = NavigationRoutingMode.fromSerializedName(routingMode).serializedName();
             this.profile = profile;
+            this.customProfile = customProfile;
             this.profileParameters = clean(profileParameters);
             this.destinationName = destinationName;
             this.destinationLat = destinationLat;

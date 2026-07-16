@@ -91,6 +91,7 @@ public class ProfileSpinnerControllerTest {
         ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
         assertEquals(NavigationRoutingMode.BROUTER, selectedProfile.routingMode);
         assertEquals(PROFILE_TREKKING, selectedProfile.profileName);
+        assertTrue(selectedProfile.customProfile);
     }
 
     @Test
@@ -134,6 +135,7 @@ public class ProfileSpinnerControllerTest {
         ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
         assertEquals(NavigationRoutingMode.BROUTER, selectedProfile.routingMode);
         assertEquals(PROFILE_TREKKING, selectedProfile.profileName);
+        assertFalse(selectedProfile.customProfile);
     }
 
     @Test
@@ -187,6 +189,7 @@ public class ProfileSpinnerControllerTest {
         ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
 
         assertEquals(PROFILE_TREKKING, selectedProfile.profileName);
+        assertFalse(selectedProfile.customProfile);
         assertEquals("avoid_path=1", selectedProfile.profileParameters);
     }
 

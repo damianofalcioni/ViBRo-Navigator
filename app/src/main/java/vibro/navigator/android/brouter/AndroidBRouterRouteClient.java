@@ -13,6 +13,7 @@ import btools.routingapp.IBRouterService;
 import vibro.navigator.brouter.BRouterRouteClient;
 import vibro.navigator.brouter.BRouterRouteException;
 import vibro.navigator.brouter.BRouterRouteRequest;
+import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 
 import java.io.BufferedReader;
@@ -30,10 +31,21 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
     private static final String Z64_BASE64_PREFIX = "ejY0";
     private static final int Z64_MARKER_LENGTH = 3;
 
+    private final Context context;
     private final AndroidBRouterConnectionController connectionController;
+    private final BRouterProfilesRepository profilesRepository;
 
     public AndroidBRouterRouteClient(@NonNull Context context) {
+        this(context, AndroidBRouterProfilesRepositoryFactory.create());
+    }
+
+    AndroidBRouterRouteClient(
+            @NonNull Context context,
+            @NonNull BRouterProfilesRepository profilesRepository
+    ) {
+        this.context = context.getApplicationContext();
         connectionController = new AndroidBRouterConnectionController(context);
+        this.profilesRepository = profilesRepository;
     }
 
     public boolean connect() {
@@ -65,7 +77,7 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
         try {
             AppLogger.d(TAG, "Requesting track from BRouter service attempt="
                     + attempt + "/" + MAX_REQUEST_ATTEMPTS);
-            String raw = service.getTrackFromParams(buildRouteParams(request));
+            String raw = service.getTrackFromParams(buildRouteParamsForRequest(request));
             return RoutePayloadAttemptResult.done(raw == null ? null : decodeRoutePayload(raw));
         } catch (RemoteException e) {
             if (!recoverFromRouteRequestFailure(attempt, e)) {
@@ -149,6 +161,25 @@ public final class AndroidBRouterRouteClient implements BRouterRouteClient {
     @NonNull
     static Bundle buildRouteParams(@NonNull BRouterRouteRequest request) {
         return AndroidBRouterRouteParams.build(request);
+    }
+
+    @NonNull
+    private Bundle buildRouteParamsForRequest(@NonNull BRouterRouteRequest request) throws BRouterRouteException {
+        return AndroidBRouterRouteParams.build(request, readRemoteProfile(request));
+    }
+
+    @Nullable
+    private String readRemoteProfile(@NonNull BRouterRouteRequest request) throws BRouterRouteException {
+        if (!request.customProfile) {
+            return null;
+        }
+        String profileText = profilesRepository.getCustomProfileText(context, request.profile);
+        if (profileText == null || profileText.trim().isEmpty()) {
+            throw BRouterRouteException.fromTextResponse(
+                    "Profile " + request.profile + " missing custom profile document"
+            );
+        }
+        return profileText;
     }
 
     @NonNull

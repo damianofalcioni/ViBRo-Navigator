@@ -1,6 +1,7 @@
 package vibro.navigator.brouter;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -55,6 +56,26 @@ public class BRouterRouterTest {
         assertEquals(0, route.track.size());
     }
 
+    @Test
+    public void routeGeoJson_marksCustomProfileRequest() throws Exception {
+        CapturingClient client = new CapturingClient("{\"type\":\"FeatureCollection\",\"features\":[]}");
+
+        new BRouterRouter().routeGeoJson(
+                client,
+                START,
+                Collections.emptyList(),
+                END,
+                "custom-car",
+                true,
+                Collections.emptyList(),
+                "avoid_path=1"
+        );
+
+        assertTrue(client.request.customProfile);
+        assertEquals("custom-car", client.request.profile);
+        assertEquals("avoid_path=1", client.request.profileParameters);
+    }
+
     private static final class FixedPayloadClient implements BRouterRouteClient {
         private final String payload;
 
@@ -64,6 +85,21 @@ public class BRouterRouterTest {
 
         @Override
         public String requestRoutePayload(BRouterRouteRequest request) {
+            return payload;
+        }
+    }
+
+    private static final class CapturingClient implements BRouterRouteClient {
+        private final String payload;
+        private BRouterRouteRequest request;
+
+        private CapturingClient(String payload) {
+            this.payload = payload;
+        }
+
+        @Override
+        public String requestRoutePayload(BRouterRouteRequest request) {
+            this.request = request;
             return payload;
         }
     }

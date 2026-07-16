@@ -2,6 +2,7 @@ package vibro.navigator.main;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.widget.EditText;
@@ -51,6 +52,14 @@ public class NavigationInputResolverTest {
 
         assertEquals(BOTTOM_STOP.lat, result.request.stops.get(0).lat, 0.0);
         assertEquals(TOP_STOP.lat, result.request.stops.get(1).lat, 0.0);
+    }
+
+    @Test
+    public void resolve_preservesCustomProfileSource() {
+        NavigationInputResolver.Result result = resolve(ProfileSelection.customBrouter("custom-car", null));
+
+        assertEquals("custom-car", result.request.profile);
+        assertTrue(result.request.customProfile);
     }
 
     private NavigationInputResolver.Result resolve(ProfileSelection profileSelection) {
