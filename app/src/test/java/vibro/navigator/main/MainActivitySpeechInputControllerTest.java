@@ -19,6 +19,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.settings.AppSpeechRecognitionSettings;
 import vibro.navigator.speech.SpeechInputLauncher;
 
 import org.junit.Before;
@@ -52,6 +53,8 @@ public class MainActivitySpeechInputControllerTest {
                 .edit()
                 .clear()
                 .commit();
+        AppSpeechRecognitionSettings.setEnabled(activity, true);
+        AppSpeechRecognitionSettings.setLanguageTag(activity, AppSpeechRecognitionSettings.LANGUAGE_SYSTEM_DEFAULT);
     }
 
     @Test
@@ -82,6 +85,32 @@ public class MainActivitySpeechInputControllerTest {
         scheduler.runDelayed();
 
         assertRecognizerIntent(speechInputLauncher.startedIntent, activity.getString(R.string.prompt_speech_stop));
+        inputController.dispose();
+    }
+
+    @Test
+    public void isSpeechInputVisible_returnsFalseWhenSettingIsDisabled() {
+        AppSpeechRecognitionSettings.setLanguageTag(activity, "de-AT");
+        AppSpeechRecognitionSettings.setEnabled(activity, false);
+        MainActivitySpeechInputController controller = createController();
+
+        assertFalse(controller.isSpeechInputVisible());
+    }
+
+    @Test
+    public void openDestinationSpeechInput_usesConfiguredRecognitionLanguage() {
+        AppSpeechRecognitionSettings.setLanguageTag(activity, "de_AT");
+        MainActivitySpeechInputController controller = createController();
+        PoiInputController inputController = createPoiController();
+
+        controller.openDestinationSpeechInput(inputController);
+        scheduler.runDelayed();
+
+        assertRecognizerIntent(
+                speechInputLauncher.startedIntent,
+                activity.getString(R.string.prompt_speech_destination)
+        );
+        assertEquals("de-AT", speechInputLauncher.startedIntent.getStringExtra(RecognizerIntent.EXTRA_LANGUAGE));
         inputController.dispose();
     }
 

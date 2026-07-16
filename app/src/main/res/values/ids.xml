@@ -7,5 +7,8 @@
     <item name="aboutManeuverVoiceSpinner" type="id" />
     <item name="aboutManeuverVoicePlayButton" type="id" />
     <item name="aboutTtsSettingsButton" type="id" />
+    <item name="aboutSpeechRecognitionLanguageLabel" type="id" />
+    <item name="aboutSpeechRecognitionLanguageSpinner" type="id" />
+    <item name="aboutSpeechRecognitionAndroidSettingsButton" type="id" />
     <item name="profileParameterInfoButton" type="id" />
 </resources>

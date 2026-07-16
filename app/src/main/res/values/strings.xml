@@ -17,7 +17,11 @@
     <string name="action_open_settings">Open settings</string>
     <string name="action_open_tts_settings">Open text-to-speech settings</string>
     <string name="action_open_speech_directions_settings">Open speech directions settings</string>
+    <string name="action_open_speech_recognition_settings">Open speech recognition settings</string>
+    <string name="action_open_android_stt_settings">Open Android speech-to-text settings</string>
+    <string name="action_enable_speech_recognition">Show speech recognition buttons</string>
     <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
     <string name="action_test_maneuver_voice">Test speech directions voice</string>
     <string name="action_voice_search_destination">Speak destination</string>
     <string name="action_voice_search_stop">Speak stop</string>
@@ -360,6 +364,9 @@
     <string name="label_android_auto_integration_enabled">Android Auto</string>
     <string name="label_poi_categories">POI categories filter</string>
     <string name="hint_poi_category_name">POI Category Name</string>
+    <string name="label_speech_recognition">Speech recognition</string>
+    <string name="label_speech_recognition_language">Language</string>
+    <string name="label_speech_recognition_language_system_default">System default</string>
     <string name="label_maneuver_voice">Speech directions</string>
     <string name="label_maneuver_voice_spinner">Voice</string>
     <string name="label_maneuver_voice_disabled">Disabled</string>
@@ -381,6 +388,7 @@
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto.</string>
     <string name="about_setting_poi_categories_info">Chooses which places can appear on the map picker, such as fuel, parking, or toilets.</string>
+    <string name="about_setting_speech_recognition_info">Shows microphone buttons for destination and stop voice input and chooses the requested recognition language. Android may use its default if the selected speech recognizer does not support the requested language.</string>
     <string name="about_setting_maneuver_voice_info">Reads upcoming direction prompts aloud using an Android voice.</string>
     <string name="about_setting_google_poi_api_key_info">Lets destination search use Google Maps when you provide a valid key.</string>
     <string name="about_setting_export_database_info">Saves your app data, including history, saved routes, settings, and profile choices, to a backup file.</string>

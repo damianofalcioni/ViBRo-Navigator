@@ -1,13 +1,16 @@
 package vibro.navigator.android.speech;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.content.ComponentName;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.speech.RecognizerIntent;
 import android.speech.RecognitionService;
 
 import androidx.annotation.NonNull;
@@ -58,6 +61,30 @@ public class AndroidSpeechRecognitionAvailabilityTest {
         installPackage(PACKAGE_NAME, false);
 
         assertNull(availabilityWithFallback().firstRecognitionService());
+    }
+
+    @Test
+    public void hasRecognitionProvider_returnsTrueWhenRecognizerActivityExists() {
+        ComponentName activity = new ComponentName("com.example.default", "DefaultRecognizerActivity");
+        packageManager.addActivityIfNotPresent(activity);
+        packageManager.addIntentFilterForActivity(
+                activity,
+                intentFilterFor(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+        );
+
+        assertTrue(availabilityWithFallback().hasRecognitionProvider());
+    }
+
+    @Test
+    public void hasRecognitionProvider_returnsTrueWhenFallbackServiceIsEnabled() {
+        installPackage(PACKAGE_NAME, true);
+
+        assertTrue(availabilityWithFallback().hasRecognitionProvider());
+    }
+
+    @Test
+    public void hasRecognitionProvider_returnsFalseWhenNoQueriedOrFallbackProviderExists() {
+        assertFalse(availabilityWithFallback().hasRecognitionProvider());
     }
 
     @NonNull

@@ -56,6 +56,11 @@ final class AboutSettingInfoButtons {
                 R.string.about_setting_android_auto_info
         );
         bind(R.id.aboutPoiCategoriesInfoButton, R.string.label_poi_categories, R.string.about_setting_poi_categories_info);
+        bind(
+                R.id.aboutSpeechRecognitionInfoButton,
+                R.string.label_speech_recognition,
+                R.string.about_setting_speech_recognition_info
+        );
         bind(R.id.aboutManeuverVoiceInfoButton, R.string.label_maneuver_voice, R.string.about_setting_maneuver_voice_info);
         bind(R.id.aboutGooglePoiApiKeyInfoButton, R.string.label_google_poi_api_key, R.string.about_setting_google_poi_api_key_info);
         bind(R.id.aboutExportDatabaseInfoButton, R.string.action_export_database, R.string.about_setting_export_database_info);

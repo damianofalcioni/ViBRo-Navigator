@@ -23,10 +23,7 @@ public class AboutActivity extends Activity {
     private final AboutDiagnosticRenderScheduler diagnosticRenderScheduler =
             AboutDiagnosticRenderScheduler.mainThread(this::renderDiagnosticSectionNow);
 
-    private AboutManeuverVoiceSettings maneuverVoiceSettings;
-    private AboutGooglePoiApiKeySettings googlePoiApiKeySettings;
-    private AboutAndroidAutoSettings androidAutoSettings;
-    private AboutPoiCategorySettings poiCategorySettings;
+    private AboutSettingsControllers settingsControllers;
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
     private AboutDatabaseBackupActions databaseBackupActions;
@@ -52,15 +49,6 @@ public class AboutActivity extends Activity {
         Switch lightThemeSwitch = findViewById(R.id.aboutLightThemeSwitch);
         Switch surroundingStreetsSwitch = findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
         Switch navigationNotificationsSwitch = findViewById(R.id.aboutNavigationNotificationsSwitch);
-        Switch poiCategoriesSwitch = findViewById(R.id.aboutPoiCategoriesSwitch);
-        View poiCategoriesButton = findViewById(R.id.aboutPoiCategoriesButton);
-        View maneuverVoiceSettingsButton = findViewById(R.id.aboutManeuverVoiceSettingsButton);
-        Switch maneuverVoiceSwitch = findViewById(R.id.aboutManeuverVoiceSwitch);
-        View googlePoiApiKeyContainer = findViewById(R.id.aboutGooglePoiApiKeyContainer);
-        View googlePoiApiKeyButton = findViewById(R.id.aboutGooglePoiApiKeyButton);
-        Switch googlePoiSearchSwitch = findViewById(R.id.aboutGooglePoiSearchSwitch);
-        View androidAutoRow = findViewById(R.id.aboutAndroidAutoRow);
-        Switch androidAutoSwitch = findViewById(R.id.aboutAndroidAutoSwitch);
         View exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         View importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
         diagnosticSection = new AboutDiagnosticSection(this);
@@ -77,22 +65,8 @@ public class AboutActivity extends Activity {
                 this::scheduleDiagnosticSectionRender
         );
         settingsSwitches.configure();
-        poiCategorySettings = new AboutPoiCategorySettings(this, poiCategoriesButton, poiCategoriesSwitch);
-        poiCategorySettings.configure();
-        maneuverVoiceSettings = new AboutManeuverVoiceSettings(
-                this,
-                maneuverVoiceSettingsButton,
-                maneuverVoiceSwitch
-        );
-        googlePoiApiKeySettings = new AboutGooglePoiApiKeySettings(
-                this,
-                googlePoiApiKeyContainer,
-                googlePoiApiKeyButton,
-                googlePoiSearchSwitch
-        );
-        googlePoiApiKeySettings.configure();
-        androidAutoSettings = new AboutAndroidAutoSettings(this, androidAutoRow, androidAutoSwitch);
-        androidAutoSettings.configure();
+        settingsControllers = new AboutSettingsControllers(this);
+        settingsControllers.configure();
         databaseBackupActions = new AboutDatabaseBackupActions(
                 this,
                 this::flushDeferredSettings,
@@ -128,11 +102,8 @@ public class AboutActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (maneuverVoiceSettings != null) {
-            maneuverVoiceSettings.shutdown();
-        }
-        if (googlePoiApiKeySettings != null) {
-            googlePoiApiKeySettings.shutdown();
+        if (settingsControllers != null) {
+            settingsControllers.shutdown();
         }
         super.onDestroy();
     }
@@ -179,36 +150,17 @@ public class AboutActivity extends Activity {
         root.post(() -> root.scrollTo(0, settingsTitle.getTop()));
     }
 
-    private void renderPoiCategorySetting() {
-        if (poiCategorySettings != null) {
-            poiCategorySettings.refresh();
-        }
-    }
-
-    private void renderGooglePoiApiKeySetting() {
-        if (googlePoiApiKeySettings != null) {
-            googlePoiApiKeySettings.refresh();
-        }
-    }
-
-    private void renderAndroidAutoSetting() {
-        if (androidAutoSettings != null) {
-            androidAutoSettings.refresh();
-        }
-    }
-
     private void flushDeferredSettings() {
         settingsSwitches.flush();
-        androidAutoSettings.flush();
+        if (settingsControllers != null) {
+            settingsControllers.flush();
+        }
     }
 
     private void renderAfterDatabaseImport() {
         diagnosticRenderScheduler.renderNow();
-        renderGooglePoiApiKeySetting();
-        renderAndroidAutoSetting();
-        renderPoiCategorySetting();
-        if (maneuverVoiceSettings != null) {
-            maneuverVoiceSettings.refreshSelection();
+        if (settingsControllers != null) {
+            settingsControllers.refreshAfterDatabaseImport();
         }
     }
 

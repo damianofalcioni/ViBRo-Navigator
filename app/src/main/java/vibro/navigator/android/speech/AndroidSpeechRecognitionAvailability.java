@@ -54,6 +54,10 @@ final class AndroidSpeechRecognitionAvailability {
         return enabledFallbackService();
     }
 
+    boolean hasRecognitionProvider() {
+        return !recognizerActivities().isEmpty() || firstRecognitionService() != null;
+    }
+
     @NonNull
     String describe() {
         return "recognizerActivities=" + describeComponents(recognizerActivities(), true)

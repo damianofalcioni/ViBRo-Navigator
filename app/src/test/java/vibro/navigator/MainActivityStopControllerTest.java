@@ -196,6 +196,31 @@ public class MainActivityStopControllerTest {
     }
 
     @Test
+    public void stopVoiceButtonsHelper_updatesExistingStopRows() {
+        LinearLayout stopsContainer = new LinearLayout(activity);
+        MainActivityStopController controller = new MainActivityStopController(
+                activity,
+                stopsContainer,
+                new PoiHistoryStore(activity),
+                (query, limit) -> Collections.emptyList(),
+                stopInputController -> {
+                }
+        );
+        controller.addStopRow(null);
+        controller.addStopRow(null);
+
+        MainActivityStopVoiceButtons.setVisible(stopsContainer, false);
+
+        assertEquals(View.GONE, stopsContainer.getChildAt(0).findViewById(R.id.stopVoiceButton).getVisibility());
+        assertEquals(View.GONE, stopsContainer.getChildAt(1).findViewById(R.id.stopVoiceButton).getVisibility());
+
+        MainActivityStopVoiceButtons.setVisible(stopsContainer, true);
+
+        assertEquals(View.VISIBLE, stopsContainer.getChildAt(0).findViewById(R.id.stopVoiceButton).getVisibility());
+        assertEquals(View.VISIBLE, stopsContainer.getChildAt(1).findViewById(R.id.stopVoiceButton).getVisibility());
+    }
+
+    @Test
     public void replaceStops_clearsExistingRowsAndRestoresSelectedStopsWithoutSearch() {
         LinearLayout stopsContainer = new LinearLayout(activity);
         AtomicInteger searchCalls = new AtomicInteger();

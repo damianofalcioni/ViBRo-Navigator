@@ -4,6 +4,7 @@ import vibro.navigator.R;
 
 import android.content.Intent;
 import android.view.View;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -62,6 +63,15 @@ final class MainActivityPoiInputActionCoordinator {
 
     void openDestinationSpeechInput(@NonNull PoiInputController destinationController) {
         speechInputController.openDestinationSpeechInput(destinationController);
+    }
+
+    void renderSpeechInputButtons(
+            @NonNull View destinationVoiceButton,
+            @NonNull LinearLayout stopsContainer
+    ) {
+        boolean visible = speechInputController.isSpeechInputVisible();
+        destinationVoiceButton.setVisibility(visible ? View.VISIBLE : View.GONE);
+        MainActivityStopVoiceButtons.setVisible(stopsContainer, visible);
     }
 
     void openStopMapPicker(
@@ -130,7 +140,9 @@ final class MainActivityPoiInputActionCoordinator {
                 @NonNull View row,
                 @NonNull PoiInputController stopInputController
         ) {
-            row.findViewById(R.id.stopVoiceButton).setOnClickListener(
+            View stopVoiceButton = row.findViewById(R.id.stopVoiceButton);
+            stopVoiceButton.setVisibility(speechInputController.isSpeechInputVisible() ? View.VISIBLE : View.GONE);
+            stopVoiceButton.setOnClickListener(
                     v -> speechInputController.openStopSpeechInput(stopInputController)
             );
         }

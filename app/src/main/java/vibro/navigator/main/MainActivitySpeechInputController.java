@@ -11,11 +11,13 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 
-import vibro.navigator.android.speech.AndroidSpeechInputLauncher;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.speech.AndroidSpeechInputLauncher;
+import vibro.navigator.android.speech.AndroidSpeechRecognitionSupport;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.settings.AppSpeechRecognitionSettings;
 import vibro.navigator.speech.SpeechInputLauncher;
 
 import java.util.ArrayList;
@@ -68,6 +70,11 @@ final class MainActivitySpeechInputController {
         openSpeechInput(controller, activity.getString(R.string.prompt_speech_stop));
     }
 
+    boolean isSpeechInputVisible() {
+        return AppSpeechRecognitionSettings.isEnabled(activity)
+                && AndroidSpeechRecognitionSupport.isAvailable(activity);
+    }
+
     private void openSpeechInput(
             @NonNull PoiInputController controller,
             @NonNull String prompt
@@ -90,7 +97,7 @@ final class MainActivitySpeechInputController {
         pendingController = controller;
         waitingForActivityResult = false;
         SpeechInputLauncher.StartMode startMode = speechInputLauncher.start(
-                createSpeechIntent(prompt),
+                createSpeechIntent(prompt, AppSpeechRecognitionSettings.getLanguageTag(activity)),
                 REQ_SPEECH_INPUT,
                 speechCallback()
         );
@@ -106,11 +113,17 @@ final class MainActivitySpeechInputController {
         return !activity.isFinishing() && !activity.isDestroyed();
     }
 
-    private static Intent createSpeechIntent(@NonNull String prompt) {
+    private static Intent createSpeechIntent(
+            @NonNull String prompt,
+            @NonNull String languageTag
+    ) {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_PROMPT, prompt);
         intent.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, MAX_SPEECH_RESULTS);
+        if (!languageTag.isEmpty()) {
+            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag);
+        }
         return intent;
     }
 

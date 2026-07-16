@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
     private PoiReverseGeocodeController reverseGeocodeController;
     private MainActivityRouteModeController routeModeController;
     private MainActivityRoundTripDirectionController roundTripDirectionController;
+    private MainActivityControls controls;
     private boolean appliedLightTheme;
 
     @Override
@@ -50,7 +51,7 @@ public class MainActivity extends Activity {
                 + " intent=" + MainActivityIntentHandler.describeIntent(getIntent()));
         reverseGeocodeController = PoiReverseGeocodeController.createDefault(this);
         poiInputActionCoordinator = new MainActivityPoiInputActionCoordinator(this, reverseGeocodeController);
-        MainActivityControls controls = MainActivityControls.bind(this);
+        controls = MainActivityControls.bind(this);
 
         MainActivityAboutLauncher.configure(this, controls.aboutButton);
         profileCoordinator = MainActivityProfileCoordinator.configure(this, controls);
@@ -129,6 +130,7 @@ public class MainActivity extends Activity {
         controls.roundTripStartNavButton.setOnClickListener(v -> startNavigationFromInputs());
 
         stopController.restoreRows(savedInstanceState);
+        MainActivitySpeechInputVisibility.render(poiInputActionCoordinator, controls);
 
         profileCoordinator.refresh(brouterInstalled);
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
@@ -179,6 +181,7 @@ public class MainActivity extends Activity {
         if (roundTripDirectionController != null) {
             roundTripDirectionController.onResume();
         }
+        MainActivitySpeechInputVisibility.render(poiInputActionCoordinator, controls);
     }
 
     @Override

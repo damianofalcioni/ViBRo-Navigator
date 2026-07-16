@@ -65,6 +65,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
         );
         assertInfoButton(activity, R.id.aboutAndroidAutoInfoButton, R.string.label_android_auto_integration_enabled);
         assertInfoButton(activity, R.id.aboutPoiCategoriesInfoButton, R.string.label_poi_categories);
+        assertInfoButton(activity, R.id.aboutSpeechRecognitionInfoButton, R.string.label_speech_recognition);
         assertInfoButton(activity, R.id.aboutManeuverVoiceInfoButton, R.string.label_maneuver_voice);
         assertInfoButton(activity, R.id.aboutGooglePoiApiKeyInfoButton, R.string.label_google_poi_api_key);
         assertInfoButton(activity, R.id.aboutExportDatabaseInfoButton, R.string.action_export_database);
