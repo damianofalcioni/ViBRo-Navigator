@@ -83,6 +83,7 @@ public class AppDataBackupTest {
         AppSettings.setImperialUnitsEnabled(context, true);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
+        AppNotificationSettings.setSingleInstructionModeEnabled(context, true);
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.ROUND_TRIP);
         AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
@@ -133,6 +134,7 @@ public class AppDataBackupTest {
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
         assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(context));
+        assertTrue(AppNotificationSettings.isSingleInstructionModeEnabled(context));
         assertEquals(NavigationRoutingMode.ROUND_TRIP, AppMainUiSettings.getRoutingMode(context));
         assertTrue(AppThemeSettings.isLightThemeEnabled(context));
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
@@ -159,6 +161,7 @@ public class AppDataBackupTest {
         AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
+        AppNotificationSettings.setSingleInstructionModeEnabled(context, true);
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.STRAIGHT_LINE);
         AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
@@ -176,6 +179,7 @@ public class AppDataBackupTest {
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
         JSONObject compassSurroundingStreets = appSettings.getJSONObject("compass_surrounding_streets_enabled");
         JSONObject navigationNotifications = appSettings.getJSONObject("navigation_notifications_enabled");
+        JSONObject singleInstructionMode = appSettings.getJSONObject("single_instruction_mode_enabled");
         JSONObject mainUiRoutingMode = appSettings.getJSONObject("main_ui_routing_mode");
         JSONObject lightTheme = appSettings.getJSONObject("light_theme");
         JSONObject googlePoiApiKey = appSettings.getJSONObject("google_poi_api_key");
@@ -192,8 +196,7 @@ public class AppDataBackupTest {
         assertBooleanPreference(appSettings, "dynamic_gps_fix_interval_enabled", false);
         assertEquals(BACKUP_TYPE_BOOLEAN, compassSurroundingStreets.getString(BACKUP_TYPE));
         assertTrue(compassSurroundingStreets.getBoolean(BACKUP_VALUE));
-        assertEquals(BACKUP_TYPE_BOOLEAN, navigationNotifications.getString(BACKUP_TYPE));
-        assertFalse(navigationNotifications.getBoolean(BACKUP_VALUE));
+        assertNotificationPreferences(navigationNotifications, singleInstructionMode);
         assertEquals(BACKUP_TYPE_STRING, mainUiRoutingMode.getString(BACKUP_TYPE));
         assertEquals(NavigationRoutingMode.STRAIGHT_LINE.serializedName(), mainUiRoutingMode.getString(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, lightTheme.getString(BACKUP_TYPE));
@@ -316,6 +319,16 @@ public class AppDataBackupTest {
         JSONObject preference = preferences.getJSONObject(key);
         assertEquals(BACKUP_TYPE_BOOLEAN, preference.getString(BACKUP_TYPE));
         assertEquals(expectedValue, preference.getBoolean(BACKUP_VALUE));
+    }
+
+    private static void assertNotificationPreferences(
+            JSONObject navigationNotifications,
+            JSONObject singleInstructionMode
+    ) throws JSONException {
+        assertEquals(BACKUP_TYPE_BOOLEAN, navigationNotifications.getString(BACKUP_TYPE));
+        assertFalse(navigationNotifications.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_BOOLEAN, singleInstructionMode.getString(BACKUP_TYPE));
+        assertTrue(singleInstructionMode.getBoolean(BACKUP_VALUE));
     }
 
     private static final class OneShotFailingCommitContext extends ContextWrapper {

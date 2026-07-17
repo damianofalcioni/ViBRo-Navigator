@@ -51,6 +51,11 @@ final class AboutSettingInfoButtons {
                 R.string.about_setting_navigation_notifications_info
         );
         bind(
+                R.id.aboutSingleInstructionModeInfoButton,
+                R.string.label_single_instruction_mode_enabled,
+                R.string.about_setting_single_instruction_mode_info
+        );
+        bind(
                 R.id.aboutAndroidAutoInfoButton,
                 R.string.label_android_auto_integration_enabled,
                 R.string.about_setting_android_auto_info

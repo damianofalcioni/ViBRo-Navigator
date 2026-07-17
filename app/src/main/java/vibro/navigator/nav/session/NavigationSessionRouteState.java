@@ -23,9 +23,14 @@ import java.util.List;
 public final class NavigationSessionRouteState {
 
     private final NavigationSessionRouteComponents components = new NavigationSessionRouteComponents();
+    private boolean singleInstructionMode;
 
     public void reset() {
         components.reset();
+    }
+
+    void setSingleInstructionMode(boolean singleInstructionMode) {
+        this.singleInstructionMode = singleInstructionMode;
     }
 
     public boolean hasActiveRoute() {
@@ -130,7 +135,8 @@ public final class NavigationSessionRouteState {
                 actualBearingDegrees,
                 nowMs,
                 fastChecksUntilMs,
-                reacquiringAfterLongGap
+                reacquiringAfterLongGap,
+                singleInstructionMode
         );
     }
 
@@ -252,7 +258,8 @@ public final class NavigationSessionRouteState {
                 lastFiltered,
                 speedMps,
                 likelyStationary,
-                beganAt
+                beganAt,
+                singleInstructionMode
         ));
     }
 

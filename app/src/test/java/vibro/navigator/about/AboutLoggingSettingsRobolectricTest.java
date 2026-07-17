@@ -67,6 +67,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppSettings.setImperialUnitsEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, false);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
+        AppNotificationSettings.setSingleInstructionModeEnabled(context, false);
         AppThemeSettings.setLightThemeEnabled(context, false);
         AppAndroidAutoSettings.setIntegrationEnabled(context, true);
         AppSettings.setManeuverVoiceName(context, AppSettings.MANEUVER_VOICE_DISABLED);

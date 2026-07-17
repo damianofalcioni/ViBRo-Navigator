@@ -12,6 +12,8 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationController;
+import vibro.navigator.settings.AppNotificationSettings;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -138,7 +140,9 @@ public final class NavigationSession {
                 this,
                 new AndroidNavigationTextResources(context),
                 location,
-                nowMs
+                nowMs,
+                NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS,
+                isSingleInstructionModeEnabled(context)
         );
     }
 
@@ -154,7 +158,8 @@ public final class NavigationSession {
                 new AndroidNavigationTextResources(context),
                 location,
                 nowMs,
-                expectedUpdateIntervalMs
+                expectedUpdateIntervalMs,
+                isSingleInstructionModeEnabled(context)
         );
     }
 
@@ -214,7 +219,8 @@ public final class NavigationSession {
                 snapshot,
                 newRoute,
                 beganAt,
-                routeAppliedAtElapsedMs
+                routeAppliedAtElapsedMs,
+                isSingleInstructionModeEnabled(context)
         );
     }
 
@@ -280,6 +286,10 @@ public final class NavigationSession {
                 displayHeadingAccuracyDegrees,
                 orientationCue
         );
+    }
+
+    private static boolean isSingleInstructionModeEnabled(@NonNull Context context) {
+        return AppNotificationSettings.isSingleInstructionModeEnabled(context);
     }
 
 }

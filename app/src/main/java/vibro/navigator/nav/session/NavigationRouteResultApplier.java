@@ -152,6 +152,10 @@ final class NavigationRouteResultApplier {
                 initialSpeedMps,
                 suppressInitialTurnEvent ? Float.MAX_VALUE : accuracyMeters
         );
+        initialEvents = NavigationInitialTurnEvents.suppressForSingleInstructionMode(
+                initialEvents,
+                input.singleInstructionMode
+        );
         if (input.lastFiltered == null) {
             return initialEvents;
         }

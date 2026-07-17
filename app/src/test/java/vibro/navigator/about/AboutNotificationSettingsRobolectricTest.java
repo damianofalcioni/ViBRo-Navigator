@@ -30,6 +30,10 @@ public class AboutNotificationSettingsRobolectricTest {
                 ApplicationProvider.getApplicationContext(),
                 true
         );
+        AppNotificationSettings.setSingleInstructionModeEnabled(
+                ApplicationProvider.getApplicationContext(),
+                false
+        );
     }
 
     @Test
@@ -58,6 +62,34 @@ public class AboutNotificationSettingsRobolectricTest {
         idleDeferredSettingApply();
 
         assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(activity));
+    }
+
+    @Test
+    public void aboutPageShowsSingleInstructionModeSwitchDisabledByDefault() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Switch singleInstructionModeSwitch = activity.findViewById(R.id.aboutSingleInstructionModeSwitch);
+
+        assertEquals(
+                activity.getString(R.string.label_single_instruction_mode_enabled),
+                singleInstructionModeSwitch.getText().toString()
+        );
+        assertFalse(singleInstructionModeSwitch.isChecked());
+    }
+
+    @Test
+    public void aboutPageSingleInstructionModeSwitchPersistsPreference() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        Switch singleInstructionModeSwitch = activity.findViewById(R.id.aboutSingleInstructionModeSwitch);
+
+        assertFalse(AppNotificationSettings.isSingleInstructionModeEnabled(activity));
+
+        singleInstructionModeSwitch.performClick();
+
+        assertTrue(singleInstructionModeSwitch.isChecked());
+        assertFalse(AppNotificationSettings.isSingleInstructionModeEnabled(activity));
+        idleDeferredSettingApply();
+
+        assertTrue(AppNotificationSettings.isSingleInstructionModeEnabled(activity));
     }
 
     private static void idleDeferredSettingApply() {

@@ -96,6 +96,26 @@ public final class NavigationSessionResourceAdapter {
             long nowMs,
             long expectedUpdateIntervalMs
     ) {
+        return onRawLocationChanged(
+                session,
+                textResources,
+                location,
+                nowMs,
+                expectedUpdateIntervalMs,
+                false
+        );
+    }
+
+    @NonNull
+    public static NavigationLocationUpdateResult onRawLocationChanged(
+            @NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationLocation location,
+            long nowMs,
+            long expectedUpdateIntervalMs,
+            boolean singleInstructionMode
+    ) {
+        session.components.routeState.setSingleInstructionMode(singleInstructionMode);
         return session.components.locationEvaluator.onRawLocationChanged(
                 textResources,
                 session.currentRequest,
@@ -125,6 +145,28 @@ public final class NavigationSessionResourceAdapter {
             long beganAt,
             long routeAppliedAtElapsedMs
     ) {
+        return applyRouteResult(
+                session,
+                textResources,
+                snapshot,
+                newRoute,
+                beganAt,
+                routeAppliedAtElapsedMs,
+                false
+        );
+    }
+
+    @NonNull
+    public static List<NavigationTurnEvent> applyRouteResult(
+            @NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull GeoJsonRoute newRoute,
+            long beganAt,
+            long routeAppliedAtElapsedMs,
+            boolean singleInstructionMode
+    ) {
+        session.components.routeState.setSingleInstructionMode(singleInstructionMode);
         if (!session.components.routeRequestManager.onRouteApplied(snapshot)) {
             return Collections.emptyList();
         }

@@ -79,6 +79,29 @@ public final class NavigationTurnState {
             long nowMs,
             long fastChecksUntilMs
     ) {
+        return evaluate(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                nowMs,
+                fastChecksUntilMs,
+                false
+        );
+    }
+
+    @NonNull
+    public Progress evaluate(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps,
+            long nowMs,
+            long fastChecksUntilMs,
+            boolean singleInstructionMode
+    ) {
         TurnEventPlanner.Progress progress = turnEventPlanner.advance(
                 route,
                 polylineIndex,
@@ -89,7 +112,8 @@ public final class NavigationTurnState {
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps
+                speedMps,
+                singleInstructionMode
         );
         guidanceHints.advanceTo(progress.nextHintIdx);
         syncNextRouteHintIndex(route);
@@ -136,7 +160,13 @@ public final class NavigationTurnState {
         intermediateDestinationReachedTrackIndex = -1;
         updateScheduler.resetPostManeuverIntervalRamp();
         maneuverCueState.clear();
-        return buildInitialTurnEventIfNeeded(route, polylineIndex, lastFiltered, speedMps, accuracyMeters);
+        return buildInitialTurnEventIfNeeded(
+                route,
+                polylineIndex,
+                lastFiltered,
+                speedMps,
+                accuracyMeters
+        );
     }
 
     @NonNull

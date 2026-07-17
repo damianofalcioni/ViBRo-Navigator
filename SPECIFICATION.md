@@ -367,6 +367,7 @@ The app must monitor user position:
   - When the previous direction has just been passed, only if advancing guidance requires surfacing a new actionable upcoming instruction rather than replaying the just-passed maneuver; if route-matched progress is stable, the app may surface that next actionable instruction immediately
   - When 20 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
   - When 5 seconds remain to the next direction, if the next maneuver is actionable and route progress is trustworthy
+- When Single instruction mode is enabled, the app must suppress the route-start, 20-second, and 5-second approaching-maneuver notifications and instead emit only one approaching-maneuver notification when 10 seconds remain, if the next maneuver is actionable and route progress is trustworthy
 - The app must suppress or delay turn notifications when the user's route progress is not trustworthy enough to identify the next actionable maneuver
 - When the 5-second imminent notification is emitted for a real BRouter voice hint, the visible navigation compass must show that hint's signed maneuver angle using the same red partial arc and target marker as the stationary orientation cue, resolved from the incoming route bearing into an absolute target heading so the marker and arc rotate with subsequent compass movement, and must hide that cue once the hint is passed
 - For the initial startup notification, remaining maneuver distance must be trustworthy relative to current location accuracy before the notification is emitted
@@ -733,6 +734,7 @@ The navigation UI must show the following in large text:
 - When logging is enabled, the app must log the full decoded BRouter response payload in addition to the existing route summaries
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
 - The about page Settings section must show a Navigation notifications switch that enables or disables transient live-navigation alert notifications; the permanent foreground navigation notification and diagnostic direction test notifications must remain enabled
+- The about page Settings section must show a Single instruction mode switch that keeps navigation alert notifications enabled but changes routed maneuver notifications to a single trustworthy 10-second approaching alert; reached-arrival and warning notifications must not be disabled by this mode
 - The about page Diagnostic section must currently list the app's used live inputs:
   - GPS provider
   - network provider

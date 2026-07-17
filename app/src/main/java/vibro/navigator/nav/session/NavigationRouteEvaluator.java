@@ -77,7 +77,8 @@ final class NavigationRouteEvaluator {
             @Nullable Double actualBearingDegrees,
             long nowMs,
             long fastChecksUntilMs,
-            boolean reacquiringAfterLongGap
+            boolean reacquiringAfterLongGap,
+            boolean singleInstructionMode
     ) {
         if (geometryState.isRouteUnavailable()) {
             return evaluateUnavailableRoute(filtered, accuracyMeters, nowMs);
@@ -99,7 +100,8 @@ final class NavigationRouteEvaluator {
                     accuracyMeters,
                     likelyStationary,
                     nowMs,
-                    fastChecksUntilMs
+                    fastChecksUntilMs,
+                    singleInstructionMode
             );
         }
         return evaluateMatchedRoute(
@@ -110,7 +112,8 @@ final class NavigationRouteEvaluator {
                 accuracyMeters,
                 actualBearingDegrees,
                 nowMs,
-                fastChecksUntilMs
+                fastChecksUntilMs,
+                singleInstructionMode
         );
     }
 
@@ -123,13 +126,21 @@ final class NavigationRouteEvaluator {
             float accuracyMeters,
             @Nullable Double actualBearingDegrees,
             long nowMs,
-            long fastChecksUntilMs
+            long fastChecksUntilMs,
+            boolean singleInstructionMode
     ) {
         double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
         float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
         displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
         NavigationRouteEvaluation routeStartApproach =
-                evaluateRouteStartApproachIfNeeded(filtered, match, speedMps, likelyStationary, trustedAccuracyMeters);
+                evaluateRouteStartApproachIfNeeded(
+                        filtered,
+                        match,
+                        speedMps,
+                        likelyStationary,
+                        trustedAccuracyMeters,
+                        singleInstructionMode
+                );
         if (routeStartApproach != null) {
             return routeStartApproach;
         }
@@ -194,12 +205,13 @@ final class NavigationRouteEvaluator {
                     etaSpeedMps,
                     nowMs,
                     fastChecksUntilMs,
+                    singleInstructionMode,
                     deviationDecision.isStableOnRouteSample()
             );
         }
 
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-        return keepCurrentRoute(match, etaSpeedMps, nowMs, fastChecksUntilMs, true);
+        return keepCurrentRoute(match, etaSpeedMps, nowMs, fastChecksUntilMs, singleInstructionMode, true);
     }
 
     @Nullable
@@ -208,7 +220,8 @@ final class NavigationRouteEvaluator {
             @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
-            float trustedAccuracyMeters
+            float trustedAccuracyMeters,
+            boolean singleInstructionMode
     ) {
         if (!routeStartApproachState.isActive()) {
             return null;
@@ -219,12 +232,15 @@ final class NavigationRouteEvaluator {
             geometryState.rememberSegment(match);
             routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
-                    turnState.buildInitialTurnEventIfNeeded(
-                            geometryState.route(),
-                            geometryState.polylineIndex(),
-                            new LatLon(filtered.getLatitude(), filtered.getLongitude()),
-                            likelyStationary ? 0f : speedMps,
-                            trustedAccuracyMeters
+                    NavigationInitialTurnEvents.suppressForSingleInstructionMode(
+                            turnState.buildInitialTurnEventIfNeeded(
+                                    geometryState.route(),
+                                    geometryState.polylineIndex(),
+                                    new LatLon(filtered.getLatitude(), filtered.getLongitude()),
+                                    likelyStationary ? 0f : speedMps,
+                                    trustedAccuracyMeters
+                            ),
+                            singleInstructionMode
                     ),
                     ROUTE_START_APPROACH_INTERVAL_MS,
                     true
@@ -253,7 +269,8 @@ final class NavigationRouteEvaluator {
             float accuracyMeters,
             boolean likelyStationary,
             long nowMs,
-            long fastChecksUntilMs
+            long fastChecksUntilMs,
+            boolean singleInstructionMode
     ) {
         deviationHandler.clearDeviationEvidence();
         progressTracker.reset();
@@ -280,6 +297,7 @@ final class NavigationRouteEvaluator {
                 likelyStationary ? 0f : speedMps,
                 nowMs,
                 fastChecksUntilMs,
+                singleInstructionMode,
                 false
         );
     }
@@ -367,6 +385,7 @@ final class NavigationRouteEvaluator {
             float etaSpeedMps,
             long nowMs,
             long fastChecksUntilMs,
+            boolean singleInstructionMode,
             boolean stableOnRouteSample
     ) {
         routeHistory.recordProgress(match);
@@ -377,7 +396,8 @@ final class NavigationRouteEvaluator {
                 match.segmentIndex,
                 etaSpeedMps,
                 nowMs,
-                fastChecksUntilMs
+                fastChecksUntilMs,
+                singleInstructionMode
         );
         return NavigationRouteEvaluation.keepRoute(
                 progress.turnEvents,

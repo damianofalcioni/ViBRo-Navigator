@@ -13,8 +13,6 @@ import java.util.List;
 
 public final class TurnEventPlanner {
 
-    private static final double PREPARATORY_IMMINENT_THRESHOLD_SECONDS = 20.0;
-    private static final double VERY_IMMINENT_THRESHOLD_SECONDS = 5.0;
     private static final double MIN_TRUSTED_TURN_DISTANCE_METERS = 5.0;
     private static final double MIN_SLOW_SPEED_TURN_DISTANCE_METERS = 0.75;
     static final double MIN_ACTIONABLE_NOTICE_SECONDS = 2.0;
@@ -93,13 +91,39 @@ public final class TurnEventPlanner {
         return advance(
                 route,
                 polylineIndex,
+                nextHintIdx,
+                notified20,
+                notified5,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                false
+        );
+    }
+
+    @NonNull
+    public Progress advance(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            int nextHintIdx,
+            boolean notified20,
+            boolean notified5,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps,
+            boolean singleInstructionMode
+    ) {
+        return advance(
+                route,
+                polylineIndex,
                 route.voiceHints,
                 nextHintIdx,
                 notified20,
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps
+                speedMps,
+                singleInstructionMode
         );
     }
 
@@ -119,13 +143,41 @@ public final class TurnEventPlanner {
                 route,
                 polylineIndex,
                 hints,
+                nextHintIdx,
+                notified20,
+                notified5,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                false
+        );
+    }
+
+    @NonNull
+    public Progress advance(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<VoiceHint> hints,
+            int nextHintIdx,
+            boolean notified20,
+            boolean notified5,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps,
+            boolean singleInstructionMode
+    ) {
+        return advance(
+                route,
+                polylineIndex,
+                hints,
                 buildHintAlongTrackMeters(polylineIndex, hints),
                 nextHintIdx,
                 notified20,
                 notified5,
                 alongTrackMeters,
                 currentSegmentIndex,
-                speedMps
+                speedMps,
+                singleInstructionMode
         );
     }
 
@@ -141,6 +193,64 @@ public final class TurnEventPlanner {
             double alongTrackMeters,
             int currentSegmentIndex,
             float speedMps
+    ) {
+        return advance(
+                route,
+                polylineIndex,
+                hints,
+                hintAlongTrackMeters,
+                nextHintIdx,
+                notified20,
+                notified5,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                false
+        );
+    }
+
+    @NonNull
+    public Progress advance(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<VoiceHint> hints,
+            @NonNull List<Double> hintAlongTrackMeters,
+            int nextHintIdx,
+            boolean notified20,
+            boolean notified5,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps,
+            boolean singleInstructionMode
+    ) {
+        return advance(
+                route,
+                polylineIndex,
+                hints,
+                hintAlongTrackMeters,
+                nextHintIdx,
+                notified20,
+                notified5,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                TurnNotificationPlan.from(singleInstructionMode)
+        );
+    }
+
+    @NonNull
+    Progress advance(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            @NonNull List<VoiceHint> hints,
+            @NonNull List<Double> hintAlongTrackMeters,
+            int nextHintIdx,
+            boolean notified20,
+            boolean notified5,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps,
+            @NonNull TurnNotificationPlan notificationPlan
     ) {
         if (hints.isEmpty() || nextHintIdx >= hints.size()) {
             return new Progress(nextHintIdx, notified20, notified5, false, Collections.emptyList());
@@ -180,6 +290,7 @@ public final class TurnEventPlanner {
                 alongTrackMeters,
                 currentSegmentIndex,
                 speedMps,
+                notificationPlan,
                 signals
         );
     }
@@ -194,6 +305,7 @@ public final class TurnEventPlanner {
             double alongTrackMeters,
             int currentSegmentIndex,
             float speedMps,
+            @NonNull TurnNotificationPlan notificationPlan,
             @NonNull List<TurnSignal> signals
     ) {
         VoiceHint next = hints.get(cursor.nextHintIdx);
@@ -216,7 +328,7 @@ public final class TurnEventPlanner {
 
         boolean updatedNotified20 = cursor.notified20;
         boolean updatedNotified5 = cursor.notified5;
-        if (!cursor.notified5 && timeToNextSeconds <= VERY_IMMINENT_THRESHOLD_SECONDS) {
+        if (!cursor.notified5 && notificationPlan.isClosestAlertDue(timeToNextSeconds)) {
             updatedNotified20 = true;
             updatedNotified5 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
@@ -228,7 +340,7 @@ public final class TurnEventPlanner {
                     signals
             );
         }
-        if (!cursor.notified20 && timeToNextSeconds <= PREPARATORY_IMMINENT_THRESHOLD_SECONDS) {
+        if (!cursor.notified20 && notificationPlan.isPreparatoryAlertDue(timeToNextSeconds)) {
             updatedNotified20 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
         }
@@ -328,7 +440,10 @@ public final class TurnEventPlanner {
             float speedMps,
             float accuracyMeters
     ) {
-        if (initialTurnNotificationSent || hints.isEmpty() || nextHintIdx < 0 || nextHintIdx >= hints.size()) {
+        if (initialTurnNotificationSent
+                || hints.isEmpty()
+                || nextHintIdx < 0
+                || nextHintIdx >= hints.size()) {
             return null;
         }
 

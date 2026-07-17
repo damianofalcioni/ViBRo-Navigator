@@ -361,6 +361,7 @@
     <string name="label_light_theme_enabled">Light Theme</string>
     <string name="label_compass_surrounding_streets_enabled">Surrounding streets</string>
     <string name="label_navigation_notifications_enabled">Notifications</string>
+    <string name="label_single_instruction_mode_enabled">Single instruction mode</string>
     <string name="label_android_auto_integration_enabled">Android Auto</string>
     <string name="label_poi_categories">POI categories filter</string>
     <string name="hint_poi_category_name">POI Category Name</string>
@@ -386,6 +387,7 @@
     <string name="about_setting_light_theme_info">Switches the app from the default dark look to a light look.</string>
     <string name="about_setting_compass_surrounding_streets_info">Shows nearby streets in the compass when local map data is available.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
+    <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto.</string>
     <string name="about_setting_poi_categories_info">Chooses which places can appear on the map picker, such as fuel, parking, or toilets.</string>
     <string name="about_setting_speech_recognition_info">Shows microphone buttons for destination and stop voice input and chooses the requested recognition language. Android may use its default if the selected speech recognizer does not support the requested language.</string>

@@ -50,6 +50,37 @@ public class NavigationTurnStateTest {
     }
 
     @Test
+    public void singleInstructionModeEmitsTenSecondAlertAfterRouteApplied() {
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = routeWithHint();
+        PolylineIndex polylineIndex = new PolylineIndex(route.track);
+
+        state.onRouteApplied(
+                route,
+                polylineIndex,
+                Collections.emptyList(),
+                location(0.0, 0.0),
+                5f,
+                5f
+        );
+
+        NavigationTurnState.Progress progress = state.evaluate(
+                route,
+                polylineIndex,
+                polylineIndex.totalLengthMeters() - 50.0,
+                0,
+                5f,
+                1_000L,
+                0L,
+                true
+        );
+
+        assertEquals(1, progress.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, progress.turnEvents.get(0).type);
+        assertEquals(10.0, progress.turnEvents.get(0).timeSeconds, 0.01);
+    }
+
+    @Test
     public void evaluate_emitsApproachingIntermediateArrivalBeforeLaterTurn() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = new GeoJsonRoute(

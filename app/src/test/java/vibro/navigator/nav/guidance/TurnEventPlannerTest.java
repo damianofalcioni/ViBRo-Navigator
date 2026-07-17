@@ -146,6 +146,83 @@ public class TurnEventPlannerTest {
     }
 
     @Test
+    public void advance_singleInstructionModeWaitsWhenMoreThanTenSecondsRemain() {
+        GeoJsonRoute route = routeWithSingleHint();
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 55.0,
+                0,
+                5f,
+                true
+        );
+
+        assertTrue(progress.signals.isEmpty());
+        assertFalse(progress.notified20);
+        assertFalse(progress.notified5);
+    }
+
+    @Test
+    public void advance_singleInstructionModeEmitsOneSignalAtTenSeconds() {
+        GeoJsonRoute route = routeWithSingleHint();
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 50.0,
+                0,
+                5f,
+                true
+        );
+
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertEquals(10.0, progress.signals.get(0).timeSeconds, 0.01);
+        assertTrue(progress.notified20);
+        assertTrue(progress.notified5);
+    }
+
+    @Test
+    public void advance_singleInstructionModeDoesNotRepeatAtFiveSeconds() {
+        GeoJsonRoute route = routeWithSingleHint();
+        PolylineIndex index = new PolylineIndex(route.track);
+        TurnEventPlanner.Progress firstProgress = planner.advance(
+                route,
+                index,
+                0,
+                false,
+                false,
+                index.totalLengthMeters() - 50.0,
+                0,
+                5f,
+                true
+        );
+
+        TurnEventPlanner.Progress secondProgress = planner.advance(
+                route,
+                index,
+                firstProgress.nextHintIdx,
+                firstProgress.notified20,
+                firstProgress.notified5,
+                index.totalLengthMeters() - 25.0,
+                0,
+                5f,
+                true
+        );
+
+        assertTrue(secondProgress.signals.isEmpty());
+    }
+
+    @Test
     public void buildInitialSignal_usesCurrentDistanceToNextHint() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
@@ -536,5 +613,17 @@ public class TurnEventPlannerTest {
 
         assertNotNull(signal);
         assertEquals(42.0, signal.timeSeconds, 0.0);
+    }
+
+    private static GeoJsonRoute routeWithSingleHint() {
+        return new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(1, 0, 0, 0.0, 0)),
+                0.0,
+                111.0
+        );
     }
 }

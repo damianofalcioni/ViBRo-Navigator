@@ -41,6 +41,8 @@ final class AboutSettingsSwitches {
     @NonNull
     private final Switch navigationNotificationsSwitch;
     @NonNull
+    private final Switch singleInstructionModeSwitch;
+    @NonNull
     private final Runnable afterSettingApplied;
     @NonNull
     private final TaskScheduler settingsChangeScheduler = AndroidTaskScheduler.main();
@@ -53,6 +55,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting lightThemeSetting;
     private AboutDeferredBooleanSetting surroundingStreetsSetting;
     private AboutDeferredBooleanSetting navigationNotificationsSetting;
+    private AboutDeferredBooleanSetting singleInstructionModeSetting;
 
     AboutSettingsSwitches(
             @NonNull Activity activity,
@@ -64,6 +67,7 @@ final class AboutSettingsSwitches {
             @NonNull Switch lightThemeSwitch,
             @NonNull Switch surroundingStreetsSwitch,
             @NonNull Switch navigationNotificationsSwitch,
+            @NonNull Switch singleInstructionModeSwitch,
             @NonNull Runnable afterSettingApplied
     ) {
         this.activity = activity;
@@ -75,6 +79,7 @@ final class AboutSettingsSwitches {
         this.lightThemeSwitch = lightThemeSwitch;
         this.surroundingStreetsSwitch = surroundingStreetsSwitch;
         this.navigationNotificationsSwitch = navigationNotificationsSwitch;
+        this.singleInstructionModeSwitch = singleInstructionModeSwitch;
         this.afterSettingApplied = afterSettingApplied;
     }
 
@@ -87,6 +92,7 @@ final class AboutSettingsSwitches {
         configureLightThemeSwitch();
         configureSurroundingStreetsSwitch();
         configureNavigationNotificationsSwitch();
+        configureSingleInstructionModeSwitch();
     }
 
     void render() {
@@ -110,6 +116,10 @@ final class AboutSettingsSwitches {
                 navigationNotificationsSwitch,
                 AppNotificationSettings.areNavigationNotificationsEnabled(activity)
         );
+        singleInstructionModeSetting.render(
+                singleInstructionModeSwitch,
+                AppNotificationSettings.isSingleInstructionModeEnabled(activity)
+        );
     }
 
     void flush() {
@@ -121,6 +131,7 @@ final class AboutSettingsSwitches {
         lightThemeSetting.flush(false);
         surroundingStreetsSetting.flush(false);
         navigationNotificationsSetting.flush(false);
+        singleInstructionModeSetting.flush(false);
     }
 
     void onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
@@ -252,6 +263,20 @@ final class AboutSettingsSwitches {
         );
         navigationNotificationsSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 navigationNotificationsSetting.set(isChecked));
+    }
+
+    private void configureSingleInstructionModeSwitch() {
+        singleInstructionModeSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppNotificationSettings.setSingleInstructionModeEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        singleInstructionModeSetting.render(
+                singleInstructionModeSwitch,
+                AppNotificationSettings.isSingleInstructionModeEnabled(activity)
+        );
+        singleInstructionModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                singleInstructionModeSetting.set(isChecked));
     }
 
     private void recreateForThemeChange() {

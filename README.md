@@ -79,7 +79,7 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
   The GPS fix acquisition interval dynamically adapts to the remaining distance to the next direction point.
 
 * **Time-based distance to the next direction**  
-  Notifications are always triggered 20, 10, and 5 seconds before the next turn instruction, based on the current speed. No more guessing how far 500 meters are.
+  Notifications are triggered from the estimated time to the next turn instruction, based on current speed. Single instruction mode can reduce maneuver alerts to one notification about 10 seconds before the turn.
 
 * **Streets rendered directly from BRouter segments**  
   No additional OSM data download is required. Nearby streets are extracted directly from the already downloaded BRouter segments.

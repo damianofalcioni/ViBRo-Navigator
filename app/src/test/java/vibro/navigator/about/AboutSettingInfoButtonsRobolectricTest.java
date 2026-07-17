@@ -63,6 +63,11 @@ public class AboutSettingInfoButtonsRobolectricTest {
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled
         );
+        assertInfoButton(
+                activity,
+                R.id.aboutSingleInstructionModeInfoButton,
+                R.string.label_single_instruction_mode_enabled
+        );
         assertInfoButton(activity, R.id.aboutAndroidAutoInfoButton, R.string.label_android_auto_integration_enabled);
         assertInfoButton(activity, R.id.aboutPoiCategoriesInfoButton, R.string.label_poi_categories);
         assertInfoButton(activity, R.id.aboutSpeechRecognitionInfoButton, R.string.label_speech_recognition);
