@@ -564,7 +564,7 @@ The navigation UI must show the following in large text:
 
 #### 4.5.3.2 GPX export button
 
-- The navigation UI must show an icon-only export button in the top-right corner of the measured compass square
+- The navigation UI must show an icon-only export button in the bottom-right corner of the measured compass square
 - The export button must overlay the compass area so it does not shrink, reflow, or otherwise change the compass route view
 - The export button must sit in the square corner outside the compass circle rather than covering the circular compass surface
 - Pressing the export button must transform the current active route into GPX and open it through an Android chooser using the GPX MIME type `application/gpx+xml`, with the GPX file provided as a stream and GPX viewer apps offered as explicit targets, so the user can select which installed GPX-capable app should receive the export instead of Android auto-opening a saved default viewer
