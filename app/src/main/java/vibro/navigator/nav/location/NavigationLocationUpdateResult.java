@@ -17,6 +17,8 @@ public final class NavigationLocationUpdateResult {
 
     private final boolean dropped;
     private final boolean shouldRecalculateRoute;
+    private final boolean shouldSpeculativelyRecalculateRoute;
+    private final boolean shouldCancelSpeculativeRouteRecalculation;
     private final long suggestedUpdateIntervalMs;
     @Nullable
     private final NavigationRerouteNotice rerouteNotice;
@@ -32,6 +34,8 @@ public final class NavigationLocationUpdateResult {
     private NavigationLocationUpdateResult(
             boolean dropped,
             boolean shouldRecalculateRoute,
+            boolean shouldSpeculativelyRecalculateRoute,
+            boolean shouldCancelSpeculativeRouteRecalculation,
             long suggestedUpdateIntervalMs,
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable NavigationRouteRecalculationReason recalculationReason,
@@ -41,6 +45,8 @@ public final class NavigationLocationUpdateResult {
     ) {
         this.dropped = dropped;
         this.shouldRecalculateRoute = shouldRecalculateRoute;
+        this.shouldSpeculativelyRecalculateRoute = shouldSpeculativelyRecalculateRoute;
+        this.shouldCancelSpeculativeRouteRecalculation = shouldCancelSpeculativeRouteRecalculation;
         this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
         this.rerouteNotice = rerouteNotice;
         this.recalculationReason = recalculationReason;
@@ -53,6 +59,8 @@ public final class NavigationLocationUpdateResult {
     public static NavigationLocationUpdateResult dropped() {
         return new NavigationLocationUpdateResult(
                 true,
+                false,
+                false,
                 false,
                 NO_SUGGESTED_INTERVAL,
                 null,
@@ -74,6 +82,8 @@ public final class NavigationLocationUpdateResult {
         return accepted(
                 filteredLocation,
                 shouldRecalculateRoute,
+                false,
+                false,
                 rerouteNotice,
                 null,
                 null,
@@ -94,6 +104,8 @@ public final class NavigationLocationUpdateResult {
         return accepted(
                 filteredLocation,
                 shouldRecalculateRoute,
+                false,
+                false,
                 rerouteNotice,
                 recalculationReason,
                 null,
@@ -112,9 +124,36 @@ public final class NavigationLocationUpdateResult {
             @NonNull List<NavigationTurnEvent> turnEvents,
             long suggestedUpdateIntervalMs
     ) {
+        return accepted(
+                filteredLocation,
+                shouldRecalculateRoute,
+                false,
+                false,
+                rerouteNotice,
+                recalculationReason,
+                wrongDirectionNotice,
+                turnEvents,
+                suggestedUpdateIntervalMs
+        );
+    }
+
+    @NonNull
+    public static NavigationLocationUpdateResult accepted(
+            @Nullable NavigationLocation filteredLocation,
+            boolean shouldRecalculateRoute,
+            boolean shouldSpeculativelyRecalculateRoute,
+            boolean shouldCancelSpeculativeRouteRecalculation,
+            @Nullable NavigationRerouteNotice rerouteNotice,
+            @Nullable NavigationRouteRecalculationReason recalculationReason,
+            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice,
+            @NonNull List<NavigationTurnEvent> turnEvents,
+            long suggestedUpdateIntervalMs
+    ) {
         return new NavigationLocationUpdateResult(
                 false,
                 shouldRecalculateRoute,
+                shouldSpeculativelyRecalculateRoute,
+                shouldCancelSpeculativeRouteRecalculation,
                 suggestedUpdateIntervalMs,
                 rerouteNotice,
                 recalculationReason,
@@ -130,6 +169,14 @@ public final class NavigationLocationUpdateResult {
 
     public boolean shouldRecalculateRoute() {
         return shouldRecalculateRoute;
+    }
+
+    public boolean shouldSpeculativelyRecalculateRoute() {
+        return shouldSpeculativelyRecalculateRoute;
+    }
+
+    public boolean shouldCancelSpeculativeRouteRecalculation() {
+        return shouldCancelSpeculativeRouteRecalculation;
     }
 
     public long getSuggestedUpdateIntervalMs() {

@@ -18,6 +18,8 @@ final class NavigationSessionComponents {
     @NonNull
     final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();
     @NonNull
+    final NavigationSpeculativeRouteState speculativeRouteState = new NavigationSpeculativeRouteState();
+    @NonNull
     final NavigationTripStatsTracker tripStatsTracker = new NavigationTripStatsTracker();
     @NonNull
     final NavigationAcceptedFixHistory acceptedFixHistory = new NavigationAcceptedFixHistory();
@@ -58,6 +60,7 @@ final class NavigationSessionComponents {
         straightLineState.reset();
         warmupController.reset(nowMs);
         routeRequestManager.reset();
+        speculativeRouteState.reset();
         tripStatsTracker.reset();
         acceptedFixHistory.reset();
     }

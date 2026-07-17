@@ -13,6 +13,7 @@ import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
@@ -106,6 +107,52 @@ public class NavigationRouteRequestManagerTest {
 
         assertNotNull(second);
         assertTrue(manager.isRouteCalculationInProgress());
+    }
+
+    @Test
+    public void ignoredSpeculativeRequestDoesNotThrottleConfirmedDeviationReroute() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        NavigationRouteRequestSnapshot speculative = prepareSpeculative(manager, 10_000L);
+        assertNotNull(speculative);
+        assertTrue(speculative.speculative);
+        assertTrue(manager.onSpeculativeRouteFinished(speculative, false));
+
+        NavigationRouteRequestSnapshot confirmed = manager.prepare(
+                false,
+                11_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 11_000L),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION
+        );
+
+        assertNotNull(confirmed);
+    }
+
+    @Test
+    public void appliedDeferredSpeculativeRequestKeepsRerouteThrottle() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        NavigationRouteRequestSnapshot speculative = prepareSpeculative(manager, 10_000L);
+        assertNotNull(speculative);
+        assertTrue(manager.onSpeculativeRouteFinished(speculative, true));
+        manager.onDeferredSpeculativeRouteApplied();
+
+        NavigationRouteRequestSnapshot repeated = manager.prepare(
+                false,
+                11_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 11_000L),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION
+        );
+
+        assertNull(repeated);
     }
 
     @Test
@@ -471,6 +518,24 @@ public class NavigationRouteRequestManagerTest {
                 "Destination",
                 new LatLon(48.2082, 16.3738),
                 Collections.emptyList()
+        );
+    }
+
+    @Nullable
+    private static NavigationRouteRequestSnapshot prepareSpeculative(
+            @NonNull NavigationRouteRequestManager manager,
+            long nowMs
+    ) {
+        return manager.prepare(
+                false,
+                nowMs,
+                navigationRequest(),
+                Collections.emptyList(),
+                location(0.0, 0.0, nowMs),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION,
+                true
         );
     }
 

@@ -366,6 +366,7 @@ public class NavigationSessionTest {
         );
 
         assertFalse(tentativeResult.shouldRecalculateRoute());
+        assertFalse(tentativeResult.shouldSpeculativelyRecalculateRoute());
         assertEquals(1_000L, tentativeResult.getSuggestedUpdateIntervalMs());
         assertFalse(offTrackResult.shouldRecalculateRoute());
         assertNotNull(offTrackResult.getRerouteNotice());

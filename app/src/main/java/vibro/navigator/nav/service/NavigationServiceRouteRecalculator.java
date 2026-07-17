@@ -9,6 +9,7 @@ import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionSpeculativeRoutes;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class NavigationServiceRouteRecalculator {
@@ -16,6 +17,13 @@ final class NavigationServiceRouteRecalculator {
     interface RuntimeProvider {
         @NonNull
         NavigationServiceRuntime runtime();
+    }
+
+    interface SpeculativeRouteConfirmationSink {
+        void onSpeculativeRouteConfirmed(
+                @Nullable NavigationRerouteNotice rerouteNotice,
+                @NonNull NavigationSessionSpeculativeRoutes.Confirmation confirmation
+        );
     }
 
     @NonNull
@@ -26,6 +34,9 @@ final class NavigationServiceRouteRecalculator {
     private final Runnable stateEmitter;
     @NonNull
     private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
+    @NonNull
+    private SpeculativeRouteConfirmationSink speculativeRouteConfirmationSink = (rerouteNotice, confirmation) -> {
+    };
 
     NavigationServiceRouteRecalculator(
             @NonNull NavigationSession navigationSession,
@@ -35,6 +46,12 @@ final class NavigationServiceRouteRecalculator {
         this.navigationSession = navigationSession;
         this.runtimeProvider = runtimeProvider;
         this.stateEmitter = stateEmitter;
+    }
+
+    void attachSpeculativeRouteConfirmationSink(
+            @NonNull SpeculativeRouteConfirmationSink speculativeRouteConfirmationSink
+    ) {
+        this.speculativeRouteConfirmationSink = speculativeRouteConfirmationSink;
     }
 
     void request(boolean force, @Nullable NavigationRerouteNotice rerouteNotice) {
@@ -59,6 +76,41 @@ final class NavigationServiceRouteRecalculator {
             @NonNull NavigationRouteRecalculationReason reason
     ) {
         request(force, rerouteNotice, null, reason);
+    }
+
+    void requestSpeculative(@NonNull NavigationRouteRecalculationReason reason) {
+        NavigationRouteRequestSnapshot snapshot =
+                navigationSession.speculativeRoutes().prepareRequest(
+                        false,
+                        elapsedRealtimeClock.elapsedRealtimeMs(),
+                        reason
+                );
+        if (snapshot == null) {
+            return;
+        }
+        stateEmitter.run();
+        runtimeProvider.runtime().requestRoute(snapshot);
+    }
+
+    boolean confirmSpeculative(@Nullable NavigationRerouteNotice rerouteNotice) {
+        NavigationSessionSpeculativeRoutes.Confirmation confirmation =
+                navigationSession.speculativeRoutes().confirmRecalculation();
+        if (confirmation == NavigationSessionSpeculativeRoutes.Confirmation.NONE) {
+            return false;
+        }
+        speculativeRouteConfirmationSink.onSpeculativeRouteConfirmed(rerouteNotice, confirmation);
+        return true;
+    }
+
+    void cancelSpeculative() {
+        if (!navigationSession.speculativeRoutes().cancelRecalculation()) {
+            return;
+        }
+        stateEmitter.run();
+        PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();
+        if (pending != null) {
+            request(pending);
+        }
     }
 
     void request(@NonNull PendingRouteRecalculation pendingRecalculation) {

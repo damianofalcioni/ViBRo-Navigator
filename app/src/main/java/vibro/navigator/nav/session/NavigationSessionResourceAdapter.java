@@ -173,7 +173,7 @@ public final class NavigationSessionResourceAdapter {
         session.components.warmupController.onRouteApplied(routeAppliedAtElapsedMs);
         NavigationLocation lastFiltered = session.components.locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? session.components.locationState.speedMps(lastFiltered) : 0f;
-        return session.components.routeState.applyRouteResult(
+        List<NavigationTurnEvent> turnEvents = session.components.routeState.applyRouteResult(
                 textResources,
                 snapshot,
                 newRoute,
@@ -181,6 +181,69 @@ public final class NavigationSessionResourceAdapter {
                 speedMps,
                 session.components.locationState.isLikelyStationary(),
                 beganAt
+        );
+        session.components.speculativeRouteState.onRouteApplied(snapshot);
+        return turnEvents;
+    }
+
+    public static boolean handleUnconfirmedSpeculativeRouteResult(
+            @NonNull NavigationSession session,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull GeoJsonRoute newRoute,
+            long beganAt
+    ) {
+        if (!snapshot.speculative || session.components.speculativeRouteState.isConfirmed(snapshot)) {
+            return false;
+        }
+        boolean deferred = session.components.speculativeRouteState.deferResult(snapshot, newRoute, beganAt);
+        boolean handled = session.components.routeRequestManager.onSpeculativeRouteFinished(snapshot, deferred);
+        if (!handled && deferred) {
+            session.components.speculativeRouteState.onRouteFailed(snapshot);
+        }
+        return true;
+    }
+
+    public static boolean ignoreUnconfirmedSpeculativeRouteFailure(
+            @NonNull NavigationSession session,
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull Exception error
+    ) {
+        if (!snapshot.speculative || session.components.speculativeRouteState.isConfirmed(snapshot)) {
+            return false;
+        }
+        boolean ignored = session.components.routeRequestManager.onSpeculativeRouteFinished(snapshot, false);
+        session.components.speculativeRouteState.onRouteFailed(snapshot);
+        if (ignored) {
+            AppLogger.w(TAG, "Ignoring unconfirmed speculative route recalculation failure", error);
+        }
+        return ignored;
+    }
+
+    @NonNull
+    public static List<NavigationTurnEvent> applyConfirmedSpeculativeRouteResult(
+            @NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources,
+            long routeAppliedAtElapsedMs,
+            boolean singleInstructionMode
+    ) {
+        NavigationSpeculativeRouteState.PendingRouteResult result =
+                session.components.speculativeRouteState.consumeConfirmedResult();
+        if (result == null) {
+            return Collections.emptyList();
+        }
+        session.components.routeRequestManager.onDeferredSpeculativeRouteApplied();
+        session.components.routeState.setSingleInstructionMode(singleInstructionMode);
+        session.components.warmupController.onRouteApplied(routeAppliedAtElapsedMs);
+        NavigationLocation lastFiltered = session.components.locationState.getLastFilteredLocation();
+        float speedMps = lastFiltered != null ? session.components.locationState.speedMps(lastFiltered) : 0f;
+        return session.components.routeState.applyRouteResult(
+                textResources,
+                result.snapshot,
+                result.route,
+                lastFiltered,
+                speedMps,
+                session.components.locationState.isLikelyStationary(),
+                result.beganAt
         );
     }
 
@@ -190,7 +253,11 @@ public final class NavigationSessionResourceAdapter {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
-        return session.components.routeRequestManager.onRouteFailure(textResources, snapshot, error);
+        boolean applied = session.components.routeRequestManager.onRouteFailure(textResources, snapshot, error);
+        if (applied) {
+            session.components.speculativeRouteState.onRouteFailed(snapshot);
+        }
+        return applied;
     }
 
     @NonNull

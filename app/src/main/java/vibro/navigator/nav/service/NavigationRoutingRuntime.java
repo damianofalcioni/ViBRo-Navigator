@@ -39,7 +39,7 @@ final class NavigationRoutingRuntime {
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull NavigationServiceRouteCallback.RouteAppliedLocationRequester routeAppliedLocationRequester,
             @NonNull Runnable stateEmitter,
-            @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
+            @NonNull NavigationServiceRouteRecalculator routeRecalculator
     ) {
         NavigationRouteExecutor executor = AndroidNavigationRouteExecutorFactory.create(service, uiScheduler);
         NavigationManeuverSpeaker maneuverSpeaker = new NavigationManeuverSpeaker(service);
@@ -55,8 +55,9 @@ final class NavigationRoutingRuntime {
                 turnEvents,
                 routeAppliedLocationRequester,
                 stateEmitter,
-                routeRecalculator
+                pending -> routeRecalculator.request(pending)
         );
+        routeRecalculator.attachSpeculativeRouteConfirmationSink(callback::onSpeculativeRouteConfirmed);
         return new NavigationRoutingRuntime(executor, callback, maneuverSpeaker);
     }
 }

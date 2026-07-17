@@ -27,8 +27,11 @@ public final class NavigationRouteRequestManager {
     private int routeRequestCount;
     private int routeRequestToken;
     private boolean routeCalculationInProgress;
-    @Nullable
-    private PendingRouteRecalculation pendingRecalculation;
+    @NonNull
+    private final NavigationRouteRequestSpeculation speculation = new NavigationRouteRequestSpeculation();
+    @NonNull
+    private final NavigationPendingRouteRecalculations pendingRecalculations =
+            new NavigationPendingRouteRecalculations();
     @Nullable
     private NavigationLocation activeRequestStartLocation;
     @NonNull
@@ -44,7 +47,8 @@ public final class NavigationRouteRequestManager {
         lastRerouteMs = 0L;
         routeRequestCount = 0;
         routeCalculationInProgress = false;
-        pendingRecalculation = null;
+        speculation.reset();
+        pendingRecalculations.reset();
         activeRequestStartLocation = null;
         activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         lastRouteFailure = null;
@@ -54,7 +58,8 @@ public final class NavigationRouteRequestManager {
     public void stop() {
         routeRequestToken++;
         routeCalculationInProgress = false;
-        pendingRecalculation = null;
+        speculation.reset();
+        pendingRecalculations.reset();
         activeRequestStartLocation = null;
         activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         inProgressNotice = null;
@@ -62,6 +67,22 @@ public final class NavigationRouteRequestManager {
 
     public boolean isRouteCalculationInProgress() {
         return routeCalculationInProgress;
+    }
+
+    public boolean cancelActiveSpeculativeRequest() {
+        NavigationRouteRequestSpeculation.CancelResult cancellation =
+                speculation.cancel(routeCalculationInProgress, lastRerouteMs);
+        if (!cancellation.canceled) {
+            return false;
+        }
+        routeRequestToken += cancellation.requestTokenIncrement;
+        lastRerouteMs = cancellation.lastRerouteMs;
+        routeCalculationInProgress = false;
+        activeRequestStartLocation = null;
+        activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
+        inProgressNotice = null;
+        AppLogger.i(TAG, "Canceled speculative route recalculation");
+        return true;
     }
 
     @Nullable
@@ -84,9 +105,7 @@ public final class NavigationRouteRequestManager {
 
     @Nullable
     public PendingRouteRecalculation consumePendingRecalculation() {
-        PendingRouteRecalculation queued = pendingRecalculation;
-        pendingRecalculation = null;
-        return queued;
+        return pendingRecalculations.consume();
     }
 
     public void markInvalidRequest(@NonNull Context context) {
@@ -128,7 +147,7 @@ public final class NavigationRouteRequestManager {
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
-        return prepare(force, nowMs, request, request.stops, lastFiltered, blocked, inProgressNotice, reason);
+        return prepare(force, nowMs, request, request.stops, lastFiltered, blocked, inProgressNotice, reason, false);
     }
 
     @Nullable
@@ -164,14 +183,29 @@ public final class NavigationRouteRequestManager {
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
-        if (routeCalculationInProgress) {
-            updatePendingRecalculation(force, lastFiltered, reason, inProgressNotice);
+        return prepare(force, nowMs, request, intermediates, lastFiltered, blocked, inProgressNotice, reason, false);
+    }
+
+    @Nullable
+    public NavigationRouteRequestSnapshot prepare(
+            boolean force,
+            long nowMs,
+            @NonNull NavigationRequest request,
+            @NonNull List<LatLon> intermediates,
+            @Nullable NavigationLocation lastFiltered,
+            @NonNull List<NogoPoint> blocked,
+            @Nullable String inProgressNotice,
+            @NonNull NavigationRouteRecalculationReason reason,
+            boolean speculative
+    ) {
+        if (shouldSkipBecauseRequestInProgress(force, lastFiltered, reason, inProgressNotice, speculative)) {
             return null;
         }
         if (request.isStraightLine()) {
             AppLogger.d(TAG, "Skipping route recalculation for straight-line navigation mode");
             return null;
         }
+        lastRerouteMs = speculation.restoreDeferredThrottleIfNeeded(lastRerouteMs);
         if (!force && isWithinRerouteThrottle(nowMs)) {
             AppLogger.d(TAG, "Skipping route recalculation because of throttle elapsedMs="
                     + elapsedSinceLastRerouteMs(nowMs));
@@ -182,6 +216,7 @@ public final class NavigationRouteRequestManager {
             return null;
         }
 
+        speculation.onRequestStarted(speculative, lastRerouteMs);
         lastRerouteMs = nowMs;
         int requestNumber = ++routeRequestCount;
         int requestToken = ++routeRequestToken;
@@ -197,13 +232,14 @@ public final class NavigationRouteRequestManager {
                 request.profileParameters,
                 new ArrayList<>(blocked),
                 request.roundTripDistanceMeters,
-                request.roundTripDirectionDegrees
+                request.roundTripDirectionDegrees,
+                speculative
         );
         routeCalculationInProgress = true;
         activeRequestStartLocation = new NavigationLocation(lastFiltered);
         activeRequestReason = reason;
         lastRouteFailure = null;
-        this.inProgressNotice = sanitizeNotice(inProgressNotice);
+        this.inProgressNotice = RouteRecalculationNotice.sanitize(inProgressNotice);
         AppLogger.i(TAG, "Submitting route recalculation #" + requestNumber
                 + " force=" + force
                 + " reason=" + reason
@@ -211,7 +247,8 @@ public final class NavigationRouteRequestManager {
                 + " destination=" + formatLatLon(snapshot.destination)
                 + " intermediates=" + snapshot.intermediates.size()
                 + " blocked=" + snapshot.blocked.size()
-                + " roundTripDirectionDegrees=" + snapshot.roundTripDirectionDegrees);
+                + " roundTripDirectionDegrees=" + snapshot.roundTripDirectionDegrees
+                + " speculative=" + speculative);
         return snapshot;
     }
 
@@ -221,11 +258,36 @@ public final class NavigationRouteRequestManager {
             return false;
         }
         routeCalculationInProgress = false;
+        speculation.onRequestCompleted();
         activeRequestStartLocation = null;
         activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         lastRouteFailure = null;
         inProgressNotice = null;
         return true;
+    }
+
+    public boolean onSpeculativeRouteFinished(
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            boolean deferred
+    ) {
+        if (snapshot.requestToken != routeRequestToken) {
+            AppLogger.d(TAG, "Ignored stale route result #" + snapshot.requestNumber);
+            return false;
+        }
+        routeCalculationInProgress = false;
+        lastRerouteMs = speculation.onSpeculativeRequestFinished(
+                snapshot.speculative,
+                deferred,
+                lastRerouteMs
+        );
+        activeRequestStartLocation = null;
+        activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
+        inProgressNotice = null;
+        return true;
+    }
+
+    public void onDeferredSpeculativeRouteApplied() {
+        speculation.onDeferredSpeculativeRouteApplied();
     }
 
     public boolean onRouteFailure(
@@ -246,6 +308,7 @@ public final class NavigationRouteRequestManager {
             return false;
         }
         routeCalculationInProgress = false;
+        speculation.onRequestCompleted();
         activeRequestStartLocation = null;
         activeRequestReason = NavigationRouteRecalculationReason.EXPLICIT;
         lastRouteFailure = error;
@@ -264,46 +327,6 @@ public final class NavigationRouteRequestManager {
         return value.lat + "," + value.lon;
     }
 
-    private void updatePendingRecalculation(
-            boolean force,
-            @Nullable NavigationLocation latestStart,
-            @NonNull NavigationRouteRecalculationReason reason,
-            @Nullable String inProgressNotice
-    ) {
-        PendingRouteRecalculation next = new PendingRouteRecalculation(
-                true,
-                reason,
-                sanitizeNotice(inProgressNotice)
-        );
-        if (pendingRecalculation != null) {
-            pendingRecalculation = pendingRecalculation.merge(next);
-            AppLogger.d(TAG, "Route recalculation already queued while previous request is still running");
-            return;
-        }
-        if (!shouldQueuePendingRecalculation(force, latestStart, reason)) {
-            AppLogger.i(TAG, "Skipped queued startup route recalculation because latest fix does not "
-                    + "materially improve route start distance="
-                    + StartupRouteRefreshPolicy.distanceMeters(activeRequestStartLocation, latestStart));
-            return;
-        }
-        pendingRecalculation = next;
-        AppLogger.d(TAG, "Queued route recalculation while previous request is still running");
-    }
-
-    private boolean shouldQueuePendingRecalculation(
-            boolean force,
-            @Nullable NavigationLocation latestStart,
-            @NonNull NavigationRouteRecalculationReason reason
-    ) {
-        return StartupRouteRefreshPolicy.shouldQueuePending(
-                force,
-                activeRequestReason,
-                reason,
-                activeRequestStartLocation,
-                latestStart
-        );
-    }
-
     private boolean isWithinRerouteThrottle(long nowMs) {
         long elapsedMs = elapsedSinceLastRerouteMs(nowMs);
         return elapsedMs >= 0L && elapsedMs < REROUTE_THROTTLE_MS;
@@ -313,12 +336,29 @@ public final class NavigationRouteRequestManager {
         return lastRerouteMs <= 0L ? REROUTE_THROTTLE_MS : nowMs - lastRerouteMs;
     }
 
-    @Nullable
-    private static String sanitizeNotice(@Nullable String value) {
-        if (value == null) {
-            return null;
+    private boolean shouldSkipBecauseRequestInProgress(
+            boolean force,
+            @Nullable NavigationLocation latestStart,
+            @NonNull NavigationRouteRecalculationReason reason,
+            @Nullable String pendingNotice,
+            boolean speculative
+    ) {
+        if (!routeCalculationInProgress) {
+            return false;
         }
-        String trimmed = value.trim();
-        return trimmed.isEmpty() ? null : trimmed;
+        if (speculative) {
+            AppLogger.d(TAG, "Skipping speculative route recalculation while another request is running");
+            return true;
+        }
+        pendingRecalculations.update(
+                force,
+                latestStart,
+                activeRequestReason,
+                activeRequestStartLocation,
+                reason,
+                pendingNotice
+        );
+        return true;
     }
+
 }

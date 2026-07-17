@@ -35,7 +35,7 @@ final class NavigationServiceDependencies {
             @NonNull NavigationServiceLocationHandler locationHandler,
             @NonNull NavigationServiceUiVisibility uiVisibility,
             @NonNull Runnable stateEmitter,
-            @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
+            @NonNull NavigationServiceRouteRecalculator routeRecalculator
     ) {
         NavigationForegroundRuntime foreground =
                 NavigationForegroundRuntime.create(

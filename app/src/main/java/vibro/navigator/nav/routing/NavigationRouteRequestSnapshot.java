@@ -32,6 +32,7 @@ public final class NavigationRouteRequestSnapshot {
     public final List<NogoPoint> blocked;
     public final int roundTripDistanceMeters;
     public final int roundTripDirectionDegrees;
+    public final boolean speculative;
 
     public NavigationRouteRequestSnapshot(
             int requestNumber,
@@ -55,7 +56,8 @@ public final class NavigationRouteRequestSnapshot {
                 profileParameters,
                 blocked,
                 0,
-                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES,
+                false
         );
     }
 
@@ -83,7 +85,8 @@ public final class NavigationRouteRequestSnapshot {
                 profileParameters,
                 blocked,
                 roundTripDistanceMeters,
-                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES,
+                false
         );
     }
 
@@ -112,7 +115,8 @@ public final class NavigationRouteRequestSnapshot {
                 profileParameters,
                 blocked,
                 roundTripDistanceMeters,
-                RoundTripDirection.DEFAULT_DIRECTION_DEGREES
+                RoundTripDirection.DEFAULT_DIRECTION_DEGREES,
+                false
         );
     }
 
@@ -141,7 +145,8 @@ public final class NavigationRouteRequestSnapshot {
                 profileParameters,
                 blocked,
                 roundTripDistanceMeters,
-                roundTripDirectionDegrees
+                roundTripDirectionDegrees,
+                false
         );
     }
 
@@ -159,6 +164,38 @@ public final class NavigationRouteRequestSnapshot {
             int roundTripDistanceMeters,
             int roundTripDirectionDegrees
     ) {
+        this(
+                requestNumber,
+                requestToken,
+                routingMode,
+                start,
+                intermediates,
+                destination,
+                profile,
+                customProfile,
+                profileParameters,
+                blocked,
+                roundTripDistanceMeters,
+                roundTripDirectionDegrees,
+                false
+        );
+    }
+
+    public NavigationRouteRequestSnapshot(
+            int requestNumber,
+            int requestToken,
+            @NonNull NavigationRoutingMode routingMode,
+            @NonNull LatLon start,
+            @NonNull List<LatLon> intermediates,
+            @Nullable LatLon destination,
+            @Nullable String profile,
+            boolean customProfile,
+            @Nullable String profileParameters,
+            @NonNull List<NogoPoint> blocked,
+            int roundTripDistanceMeters,
+            int roundTripDirectionDegrees,
+            boolean speculative
+    ) {
         this.requestNumber = requestNumber;
         this.requestToken = requestToken;
         this.routingMode = routingMode;
@@ -171,6 +208,7 @@ public final class NavigationRouteRequestSnapshot {
         this.blocked = immutableCopy(blocked);
         this.roundTripDistanceMeters = Math.max(0, roundTripDistanceMeters);
         this.roundTripDirectionDegrees = RoundTripDirection.sanitizeDirectionDegrees(roundTripDirectionDegrees);
+        this.speculative = speculative;
     }
 
     public boolean isRoundTrip() {

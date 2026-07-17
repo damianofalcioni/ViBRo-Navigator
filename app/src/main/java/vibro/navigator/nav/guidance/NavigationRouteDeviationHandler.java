@@ -56,7 +56,7 @@ public final class NavigationRouteDeviationHandler {
         if (!deviationConfirmation.isConfirmed(deviationDecision, nowMs)) {
             logTentativeDeviation(deviationDecision, directionOfProgress, match);
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-            return Decision.waitForDeviationConfirmation();
+            return Decision.waitForDeviationConfirmation(deviationDecision.reason);
         }
 
         logConfirmedDeviation(deviationDecision, directionOfProgress, match, expectedBearingDegrees, actualBearingDegrees);
@@ -129,38 +129,44 @@ public final class NavigationRouteDeviationHandler {
         private final boolean stableOnRouteSample;
         private final boolean deviationConfirmationPending;
         @Nullable
+        private final RouteDeviationPolicy.Reason pendingDeviationReason;
+        @Nullable
         private final NavigationRerouteNotice rerouteNotice;
 
         private Decision(
                 boolean keepCurrentRoute,
                 boolean stableOnRouteSample,
                 boolean deviationConfirmationPending,
+                @Nullable RouteDeviationPolicy.Reason pendingDeviationReason,
                 @Nullable NavigationRerouteNotice rerouteNotice
         ) {
             this.keepCurrentRoute = keepCurrentRoute;
             this.stableOnRouteSample = stableOnRouteSample;
             this.deviationConfirmationPending = deviationConfirmationPending;
+            this.pendingDeviationReason = pendingDeviationReason;
             this.rerouteNotice = rerouteNotice;
         }
 
         @NonNull
         public static Decision continueOnRoute() {
-            return new Decision(false, true, false, null);
+            return new Decision(false, true, false, null, null);
         }
 
         @NonNull
         public static Decision keepCurrentRoute(boolean stableOnRouteSample) {
-            return new Decision(true, stableOnRouteSample, false, null);
+            return new Decision(true, stableOnRouteSample, false, null, null);
         }
 
         @NonNull
-        public static Decision waitForDeviationConfirmation() {
-            return new Decision(true, false, true, null);
+        public static Decision waitForDeviationConfirmation(
+                @NonNull RouteDeviationPolicy.Reason pendingDeviationReason
+        ) {
+            return new Decision(true, false, true, pendingDeviationReason, null);
         }
 
         @NonNull
         public static Decision requestRouteRecalculation(@NonNull NavigationRerouteNotice rerouteNotice) {
-            return new Decision(false, false, false, rerouteNotice);
+            return new Decision(false, false, false, null, rerouteNotice);
         }
 
         public boolean shouldKeepCurrentRoute() {
@@ -173,6 +179,11 @@ public final class NavigationRouteDeviationHandler {
 
         public boolean isDeviationConfirmationPending() {
             return deviationConfirmationPending;
+        }
+
+        @Nullable
+        public RouteDeviationPolicy.Reason getPendingDeviationReason() {
+            return pendingDeviationReason;
         }
 
         public boolean shouldRecalculateRoute() {

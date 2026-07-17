@@ -18,7 +18,7 @@ final class NavigationServiceRuntimeFactory {
             @NonNull NavigationServiceLocationHandler locationHandler,
             @NonNull NavigationServiceUiVisibility uiVisibility,
             @NonNull Runnable stateEmitter,
-            @NonNull NavigationServiceRouteCallback.RouteRecalculator routeRecalculator
+            @NonNull NavigationServiceRouteRecalculator routeRecalculator
     ) {
         NavigationServiceDependencies dependencies = NavigationServiceDependencies.create(
                 service,

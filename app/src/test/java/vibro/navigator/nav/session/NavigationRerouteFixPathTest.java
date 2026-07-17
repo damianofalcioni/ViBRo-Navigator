@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
@@ -49,7 +50,7 @@ public class NavigationRerouteFixPathTest {
     }
 
     private static NavigationRouteEvaluation tentativeDeviationEvaluation() {
-        return NavigationRouteEvaluation.waitForDeviationConfirmation();
+        return NavigationRouteEvaluation.waitForDeviationConfirmation(RouteDeviationPolicy.Reason.OFF_TRACK);
     }
 
     private static NavigationLocation location(double lat, double lon) {

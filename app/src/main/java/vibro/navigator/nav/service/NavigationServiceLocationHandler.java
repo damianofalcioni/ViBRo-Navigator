@@ -32,6 +32,12 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
                 @Nullable NavigationRerouteNotice rerouteNotice,
                 @NonNull NavigationRouteRecalculationReason reason
         );
+
+        void requestSpeculative(@NonNull NavigationRouteRecalculationReason reason);
+
+        boolean confirmSpeculative(@Nullable NavigationRerouteNotice rerouteNotice);
+
+        void cancelSpeculative();
     }
 
     public interface SurroundingStreetLocationSink {
@@ -157,15 +163,39 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             @NonNull NavigationLocationUpdateResult result,
             @NonNull Controllers controllers
     ) {
+        NavigationRouteRecalculationReason reason = recalculationReason(result);
         if (result.shouldRecalculateRoute()) {
-            routeRecalculator.request(false, result.getRerouteNotice(), recalculationReason(result));
+            if (tryConfirmSpeculativeRoute(result, reason)) {
+                return;
+            }
+            routeRecalculator.request(false, result.getRerouteNotice(), reason);
             return;
         }
+        applySpeculativeRouteSignal(result, reason);
         if (result.getRerouteNotice() != null) {
             controllers.foregroundController.sendOffRouteNotification(result.getRerouteNotice());
         }
         if (result.getSuggestedUpdateIntervalMs() > 0L) {
             requestSuggestedLocationUpdates(result.getSuggestedUpdateIntervalMs(), controllers.locationController);
+        }
+    }
+
+    private boolean tryConfirmSpeculativeRoute(
+            @NonNull NavigationLocationUpdateResult result,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
+        return reason == NavigationRouteRecalculationReason.ROUTE_DEVIATION
+                && routeRecalculator.confirmSpeculative(result.getRerouteNotice());
+    }
+
+    private void applySpeculativeRouteSignal(
+            @NonNull NavigationLocationUpdateResult result,
+            @NonNull NavigationRouteRecalculationReason reason
+    ) {
+        if (result.shouldSpeculativelyRecalculateRoute()) {
+            routeRecalculator.requestSpeculative(reason);
+        } else if (result.shouldCancelSpeculativeRouteRecalculation()) {
+            routeRecalculator.cancelSpeculative();
         }
     }
 

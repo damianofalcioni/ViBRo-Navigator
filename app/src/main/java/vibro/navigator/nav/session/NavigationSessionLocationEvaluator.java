@@ -154,6 +154,8 @@ final class NavigationSessionLocationEvaluator {
             return NavigationLocationUpdateResult.accepted(
                     filtered,
                     evaluation.shouldRecalculateRoute(),
+                    false,
+                    false,
                     evaluation.rerouteNotice,
                     evaluation.recalculationReason,
                     evaluation.getWrongDirectionNotice(),
@@ -180,15 +182,24 @@ final class NavigationSessionLocationEvaluator {
         );
         warmupController.recordEvaluation(evaluation.isStableOnRouteSample(), locationState.accuracyMeters(filtered), nowMs);
         boolean shouldRecalculateRoute = evaluation.shouldRecalculateRoute();
+        boolean shouldSpeculativelyRecalculateRoute = evaluation.shouldSpeculativelyRecalculateRoute();
+        boolean shouldCancelSpeculativeRouteRecalculation = evaluation.shouldCancelSpeculativeRouteRecalculation();
         if (currentRequest.isRoundTrip() && evaluation.rerouteNotice != null) {
             shouldRecalculateRoute = false;
+            shouldSpeculativelyRecalculateRoute = false;
+            shouldCancelSpeculativeRouteRecalculation = true;
             evaluation = evaluation.asNotificationOnly();
+        } else if (currentRequest.isRoundTrip()) {
+            shouldSpeculativelyRecalculateRoute = false;
         }
         return NavigationLocationUpdateResult.accepted(
                 filtered,
                 shouldRecalculateRoute,
+                shouldSpeculativelyRecalculateRoute,
+                shouldCancelSpeculativeRouteRecalculation,
                 evaluation.rerouteNotice,
                 evaluation.recalculationReason,
+                null,
                 evaluation.turnEvents,
                 evaluation.getSuggestedUpdateIntervalMs()
         );

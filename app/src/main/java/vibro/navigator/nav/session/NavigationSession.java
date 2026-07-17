@@ -27,10 +27,12 @@ import java.util.List;
 
 // Session coordinator: explicit state collaborators make navigation handoffs auditable without a generic facade.
 public final class NavigationSession {
-
     private static final String TAG = "NavigationSession";
 
     final NavigationSessionComponents components = new NavigationSessionComponents();
+    @NonNull
+    private final NavigationSessionSpeculativeRoutes speculativeRoutes =
+            new NavigationSessionSpeculativeRoutes(this);
     boolean started;
     boolean paused;
 
@@ -193,7 +195,7 @@ public final class NavigationSession {
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
-        return components.routeRequestManager.prepare(
+        NavigationRouteRequestSnapshot snapshot = components.routeRequestManager.prepare(
                 force,
                 nowMs,
                 currentRequest,
@@ -203,6 +205,8 @@ public final class NavigationSession {
                 inProgressNotice,
                 reason
         );
+        components.speculativeRouteState.onRouteRequestPrepared(snapshot);
+        return snapshot;
     }
 
     @NonNull
@@ -226,6 +230,11 @@ public final class NavigationSession {
 
     public boolean isCurrentRouteRequest(@NonNull NavigationRouteRequestSnapshot snapshot) {
         return components.routeRequestManager.isCurrentRequest(snapshot);
+    }
+
+    @NonNull
+    public NavigationSessionSpeculativeRoutes speculativeRoutes() {
+        return speculativeRoutes;
     }
 
     public boolean applyRouteFailure(
@@ -288,7 +297,7 @@ public final class NavigationSession {
         );
     }
 
-    private static boolean isSingleInstructionModeEnabled(@NonNull Context context) {
+    static boolean isSingleInstructionModeEnabled(@NonNull Context context) {
         return AppNotificationSettings.isSingleInstructionModeEnabled(context);
     }
 

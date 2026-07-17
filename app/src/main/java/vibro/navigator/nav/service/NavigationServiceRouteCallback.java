@@ -7,10 +7,13 @@ import vibro.navigator.nav.routing.NavigationRouteExecutor;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionSpeculativeRoutes;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.logging.AppLogger;
@@ -71,6 +74,48 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         if (!navigationSession.isCurrentRouteRequest(snapshot)) {
             return;
         }
+        if (navigationSession.speculativeRoutes().handleUnconfirmedRouteResult(snapshot, newRoute, beganAt)) {
+            stateEmitter.run();
+            runQueuedRouteRecalculation("Re-running queued route recalculation after speculative request finished");
+            return;
+        }
+        applyRouteResult(snapshot, newRoute, beganAt);
+    }
+
+    @Override
+    public void onRouteFailure(
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull Exception error
+    ) {
+        if (navigationSession.speculativeRoutes().ignoreUnconfirmedRouteFailure(snapshot, error)) {
+            stateEmitter.run();
+            runQueuedRouteRecalculation("Retrying queued route recalculation after speculative request failed");
+            return;
+        }
+        if (!navigationSession.applyRouteFailure(context, snapshot, error)) {
+            return;
+        }
+        stateEmitter.run();
+        runQueuedRouteRecalculation("Retrying queued route recalculation after previous request failed");
+    }
+
+    void onSpeculativeRouteConfirmed(
+            @Nullable NavigationRerouteNotice rerouteNotice,
+            @NonNull NavigationSessionSpeculativeRoutes.Confirmation confirmation
+    ) {
+        if (rerouteNotice != null) {
+            foregroundController.sendOffRouteNotification(rerouteNotice);
+        }
+        if (confirmation == NavigationSessionSpeculativeRoutes.Confirmation.RESULT_READY) {
+            applyConfirmedSpeculativeRouteResult();
+        }
+    }
+
+    private void applyRouteResult(
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull GeoJsonRoute newRoute,
+            long beganAt
+    ) {
         long routeAppliedAtElapsedMs = routeAppliedLocationRequester.requestFastLocationUpdates();
         turnEventDispatcher.dispatch(navigationSession.applyRouteResult(
                 context,
@@ -81,25 +126,24 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         ));
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
-        PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();
-        if (pending != null) {
-            AppLogger.i(TAG, "Re-running queued route recalculation after previous request finished");
-            routeRecalculator.request(pending);
-        }
+        runQueuedRouteRecalculation("Re-running queued route recalculation after previous request finished");
     }
 
-    @Override
-    public void onRouteFailure(
-            @NonNull NavigationRouteRequestSnapshot snapshot,
-            @NonNull Exception error
-    ) {
-        if (!navigationSession.applyRouteFailure(context, snapshot, error)) {
-            return;
-        }
+    private void applyConfirmedSpeculativeRouteResult() {
+        long routeAppliedAtElapsedMs = routeAppliedLocationRequester.requestFastLocationUpdates();
+        turnEventDispatcher.dispatch(navigationSession.speculativeRoutes().applyConfirmedRouteResult(
+                context,
+                routeAppliedAtElapsedMs
+        ));
+        orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
+        runQueuedRouteRecalculation("Re-running queued route recalculation after speculative route was confirmed");
+    }
+
+    private void runQueuedRouteRecalculation(@NonNull String logMessage) {
         PendingRouteRecalculation pending = navigationSession.consumePendingRouteRecalculation();
         if (pending != null) {
-            AppLogger.i(TAG, "Retrying queued route recalculation after previous request failed");
+            AppLogger.i(TAG, logMessage);
             routeRecalculator.request(pending);
         }
     }

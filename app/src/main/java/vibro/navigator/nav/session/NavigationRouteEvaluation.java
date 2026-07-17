@@ -9,6 +9,7 @@ import java.util.List;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
 public final class NavigationRouteEvaluation {
@@ -21,6 +22,8 @@ public final class NavigationRouteEvaluation {
     @Nullable
     final NavigationRouteRecalculationReason recalculationReason;
     @Nullable
+    private final RouteDeviationPolicy.Reason pendingDeviationReason;
+    @Nullable
     final NavigationRerouteNotice rerouteNotice;
     @Nullable
     final NavigationWrongDirectionNotice wrongDirectionNotice;
@@ -32,6 +35,7 @@ public final class NavigationRouteEvaluation {
             boolean stableOnRouteSample,
             long suggestedUpdateIntervalMs,
             @Nullable NavigationRouteRecalculationReason recalculationReason,
+            @Nullable RouteDeviationPolicy.Reason pendingDeviationReason,
             @Nullable NavigationRerouteNotice rerouteNotice,
             @Nullable NavigationWrongDirectionNotice wrongDirectionNotice,
             @NonNull List<NavigationTurnEvent> turnEvents
@@ -40,6 +44,7 @@ public final class NavigationRouteEvaluation {
         this.stableOnRouteSample = stableOnRouteSample;
         this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
         this.recalculationReason = recalculationReason;
+        this.pendingDeviationReason = pendingDeviationReason;
         this.rerouteNotice = rerouteNotice;
         this.wrongDirectionNotice = wrongDirectionNotice;
         this.turnEvents = turnEvents;
@@ -63,6 +68,7 @@ public final class NavigationRouteEvaluation {
                 false,
                 NO_SUGGESTED_INTERVAL,
                 reason,
+                null,
                 rerouteNotice,
                 null,
                 Collections.emptyList()
@@ -91,6 +97,7 @@ public final class NavigationRouteEvaluation {
                 suggestedUpdateIntervalMs,
                 null,
                 null,
+                null,
                 wrongDirectionNotice,
                 turnEvents
         );
@@ -101,12 +108,15 @@ public final class NavigationRouteEvaluation {
     }
 
     @NonNull
-    public static NavigationRouteEvaluation waitForDeviationConfirmation() {
+    public static NavigationRouteEvaluation waitForDeviationConfirmation(
+            @NonNull RouteDeviationPolicy.Reason pendingDeviationReason
+    ) {
         return new NavigationRouteEvaluation(
                 false,
                 false,
                 DEVIATION_CONFIRMATION_INTERVAL_MS,
                 NavigationRouteRecalculationReason.ROUTE_DEVIATION,
+                pendingDeviationReason,
                 null,
                 null,
                 Collections.emptyList()
@@ -122,6 +132,7 @@ public final class NavigationRouteEvaluation {
                 false,
                 stableOnRouteSample,
                 suggestedUpdateIntervalMs,
+                null,
                 null,
                 rerouteNotice.asNotificationOnly(),
                 wrongDirectionNotice,
@@ -140,6 +151,16 @@ public final class NavigationRouteEvaluation {
     public boolean isRouteDeviationConfirmationPending() {
         return !shouldRecalculateRoute
                 && recalculationReason == NavigationRouteRecalculationReason.ROUTE_DEVIATION;
+    }
+
+    public boolean shouldSpeculativelyRecalculateRoute() {
+        return isRouteDeviationConfirmationPending()
+                && pendingDeviationReason == RouteDeviationPolicy.Reason.OFF_TRACK;
+    }
+
+    public boolean shouldCancelSpeculativeRouteRecalculation() {
+        return !shouldRecalculateRoute
+                && pendingDeviationReason != RouteDeviationPolicy.Reason.OFF_TRACK;
     }
 
     @Nullable

@@ -70,6 +70,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
 
         assertFalse(firstEvaluation.shouldRecalculateRoute());
         assertTrue(firstEvaluation.isRouteDeviationConfirmationPending());
+        assertTrue(firstEvaluation.shouldSpeculativelyRecalculateRoute());
         assertEquals(1_000L, firstEvaluation.getSuggestedUpdateIntervalMs());
         assertTrue(evaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, evaluation.rerouteNotice.reason);
@@ -178,6 +179,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
         assertFalse(seedEvaluation.shouldRecalculateRoute());
         assertFalse(firstMismatchEvaluation.shouldRecalculateRoute());
         assertFalse(firstMismatchEvaluation.isStableOnRouteSample());
+        assertFalse(firstMismatchEvaluation.shouldSpeculativelyRecalculateRoute());
         assertTrue(secondMismatchEvaluation.shouldRecalculateRoute());
         assertEquals(RouteDeviationPolicy.Reason.BEARING_MISMATCH, secondMismatchEvaluation.rerouteNotice.reason);
         assertEquals(180.0, secondMismatchEvaluation.rerouteNotice.bearingDiffDegrees, 0.0);

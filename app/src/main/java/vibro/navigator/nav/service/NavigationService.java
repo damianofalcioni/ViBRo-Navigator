@@ -69,7 +69,7 @@ public class NavigationService extends Service {
             this,
             navigationSession,
             turnEvents,
-            routeRecalculator::requestForLocation,
+            new NavigationServiceLocationRouteRecalculator(routeRecalculator),
             uiVisibility::isScreenInteractive,
             location -> {
                 if (runtime != null) {
@@ -130,7 +130,7 @@ public class NavigationService extends Service {
                 locationHandler,
                 uiVisibility,
                 this::emitState,
-                pending -> routeRecalculator.request(pending)
+                routeRecalculator
         );
         setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         AppLogger.i(TAG, "Service created");

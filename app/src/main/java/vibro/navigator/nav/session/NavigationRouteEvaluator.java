@@ -198,7 +198,9 @@ final class NavigationRouteEvaluator {
         }
         if (deviationDecision.shouldKeepCurrentRoute()) {
             if (deviationDecision.isDeviationConfirmationPending()) {
-                return NavigationRouteEvaluation.waitForDeviationConfirmation();
+                return NavigationRouteEvaluation.waitForDeviationConfirmation(
+                        deviationDecision.getPendingDeviationReason()
+                );
             }
             return keepCurrentRoute(
                     match,

@@ -3,6 +3,7 @@ package vibro.navigator.nav.service;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
 
@@ -22,6 +23,8 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.location.NavigationLocationUpdateResult;
+import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -79,6 +82,54 @@ public class NavigationServiceRouteCallbackTest {
     }
 
     @Test
+    public void onSpeculativeRouteConfirmed_appliesDeferredRouteResult() {
+        Context context = ApplicationProvider.getApplicationContext();
+        NavigationSession session = sessionWithActiveRoute(context);
+        CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
+        CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
+        CountingRunnable stateEmitter = new CountingRunnable();
+        NavigationServiceRouteCallback callback = callback(
+                context,
+                session,
+                turnEvents,
+                fastLocationRequester,
+                stateEmitter
+        );
+
+        NavigationLocationUpdateResult tentative = session.onRawLocationChanged(
+                context,
+                routeModeLocation(0.0003, 0.0, NOW_MS + 2_000L),
+                NOW_MS + 2_000L
+        );
+        NavigationRouteRequestSnapshot speculative = requireSnapshot(session.speculativeRoutes().prepareRequest(
+                false,
+                NOW_MS + 2_000L,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION
+        ));
+        callback.onRouteApplied(speculative, replacementRoute(), NOW_MS + 2_100L);
+
+        assertTrue(tentative.shouldSpeculativelyRecalculateRoute());
+        assertEquals(0, turnEvents.calls);
+        assertEquals(0, fastLocationRequester.calls);
+        assertEquals(1, stateEmitter.calls);
+
+        NavigationLocationUpdateResult confirmed = session.onRawLocationChanged(
+                context,
+                routeModeLocation(0.0003, 0.00005, NOW_MS + 3_000L),
+                NOW_MS + 3_000L
+        );
+        callback.onSpeculativeRouteConfirmed(
+                confirmed.getRerouteNotice(),
+                session.speculativeRoutes().confirmRecalculation()
+        );
+
+        assertTrue(confirmed.shouldRecalculateRoute());
+        assertEquals(1, turnEvents.calls);
+        assertEquals(1, fastLocationRequester.calls);
+        assertEquals(2, stateEmitter.calls);
+    }
+
+    @Test
     public void onRouteFailure_ignoresStaleRouteFailureSideEffects() {
         Context context = ApplicationProvider.getApplicationContext();
         NavigationSession session = sessionWithPreparedRouteRequest(context);
@@ -112,6 +163,22 @@ public class NavigationServiceRouteCallbackTest {
         ));
         session.start(context, NOW_MS);
         session.onRawLocationChanged(context, location(), NOW_MS);
+        return session;
+    }
+
+    @NonNull
+    private static NavigationSession sessionWithActiveRoute(@NonNull Context context) {
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        ));
+        session.start(context, NOW_MS);
+        session.onRawLocationChanged(context, routeModeLocation(0.0, 0.0, NOW_MS), NOW_MS);
+        NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
+        session.applyRouteResult(context, snapshot, routeLine(), NOW_MS, NOW_MS);
         return session;
     }
 
@@ -155,12 +222,42 @@ public class NavigationServiceRouteCallbackTest {
     }
 
     @NonNull
+    private static NavigationLocation routeModeLocation(double lat, double lon, long timeMs) {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setLatitude(lat);
+        location.setLongitude(lon);
+        location.setTime(timeMs);
+        location.setAccuracy(5f);
+        return location;
+    }
+
+    @NonNull
     private static GeoJsonRoute route() {
         return new GeoJsonRoute(
                 Arrays.asList(new LatLon(48.0, 16.0), new LatLon(48.2, 16.2)),
                 Collections.emptyList(),
                 0.0,
                 30_000.0
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute routeLine() {
+        return new GeoJsonRoute(
+                Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.003)),
+                Collections.emptyList(),
+                0.0,
+                333.0
+        );
+    }
+
+    @NonNull
+    private static GeoJsonRoute replacementRoute() {
+        return new GeoJsonRoute(
+                Arrays.asList(new LatLon(0.0003, 0.0), new LatLon(0.0003, 0.003)),
+                Collections.emptyList(),
+                0.0,
+                333.0
         );
     }
 
