@@ -310,6 +310,55 @@ public class TurnEventPlannerTest {
     }
 
     @Test
+    public void advance_emitsFiveSecondSignalWhenAccelerationBringsEtaWithinThreshold() {
+        GeoJsonRoute route = routeWithSingleHint();
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                route.voiceHints,
+                Collections.singletonList(index.distanceAtPointIndex(1)),
+                0,
+                true,
+                false,
+                index.totalLengthMeters() - 28.0,
+                0,
+                5f,
+                0.5f,
+                TurnNotificationPlan.from(false)
+        );
+
+        assertEquals(1, progress.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
+        assertTrue(progress.notified5);
+    }
+
+    @Test
+    public void advance_waitsForFiveSecondSignalWhenDecelerationKeepsEtaAboveThreshold() {
+        GeoJsonRoute route = routeWithSingleHint();
+        PolylineIndex index = new PolylineIndex(route.track);
+
+        TurnEventPlanner.Progress progress = planner.advance(
+                route,
+                index,
+                route.voiceHints,
+                Collections.singletonList(index.distanceAtPointIndex(1)),
+                0,
+                true,
+                false,
+                index.totalLengthMeters() - 24.0,
+                0,
+                5f,
+                -0.2f,
+                TurnNotificationPlan.from(false)
+        );
+
+        assertTrue(progress.signals.isEmpty());
+        assertFalse(progress.notified5);
+    }
+
+    @Test
     public void advance_doesNotEmitLateTwentySecondSignalAfterFiveSecondSignalFiresFirst() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(

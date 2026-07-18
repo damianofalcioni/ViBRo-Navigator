@@ -5,8 +5,6 @@ import androidx.annotation.Nullable;
 
 import java.util.Locale;
 
-import vibro.navigator.nav.orientation.HeadingAccuracyStatus;
-
 final class AndroidHeadingSensorValueFormatter {
     private AndroidHeadingSensorValueFormatter() {
     }
@@ -33,9 +31,9 @@ final class AndroidHeadingSensorValueFormatter {
                 orientation.pitchDegrees,
                 orientation.rollDegrees,
                 describeHeadingAccuracy(rotationVector),
-                accuracyLabel(accuracy),
+                AndroidSensorValueFormat.accuracyLabel(accuracy),
                 ageMs,
-                formatVector(rotationVector)
+                AndroidSensorValueFormat.formatVector(rotationVector)
         );
     }
 
@@ -53,8 +51,8 @@ final class AndroidHeadingSensorValueFormatter {
             return String.format(
                     Locale.US,
                     "value=invalid acc=%s raw=%s",
-                    accuracyLabel(accuracy),
-                    formatVector(orientationValues)
+                    AndroidSensorValueFormat.accuracyLabel(accuracy),
+                    AndroidSensorValueFormat.formatVector(orientationValues)
             );
         }
 
@@ -66,9 +64,9 @@ final class AndroidHeadingSensorValueFormatter {
                 (orientationValues[0] + 360.0) % 360.0,
                 orientationValues[1],
                 orientationValues[2],
-                accuracyLabel(accuracy),
+                AndroidSensorValueFormat.accuracyLabel(accuracy),
                 ageMs,
-                formatVector(orientationValues)
+                AndroidSensorValueFormat.formatVector(orientationValues)
         );
     }
 
@@ -85,33 +83,5 @@ final class AndroidHeadingSensorValueFormatter {
             return "unreliable";
         }
         return String.format(Locale.US, "%.1fdeg", Math.toDegrees(headingAccuracyRadians));
-    }
-
-    @NonNull
-    private static String accuracyLabel(int accuracy) {
-        switch (accuracy) {
-            case HeadingAccuracyStatus.LOW:
-                return "low";
-            case HeadingAccuracyStatus.MEDIUM:
-                return "medium";
-            case HeadingAccuracyStatus.HIGH:
-                return "high";
-            case HeadingAccuracyStatus.UNRELIABLE:
-            default:
-                return "unreliable";
-        }
-    }
-
-    @NonNull
-    private static String formatVector(@NonNull float[] values) {
-        StringBuilder sb = new StringBuilder("[");
-        for (int i = 0; i < values.length; i++) {
-            if (i > 0) {
-                sb.append(", ");
-            }
-            sb.append(String.format(Locale.US, "%.3f", values[i]));
-        }
-        sb.append("]");
-        return sb.toString();
     }
 }

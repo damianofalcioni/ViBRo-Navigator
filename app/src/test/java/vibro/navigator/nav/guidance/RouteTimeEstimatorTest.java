@@ -147,4 +147,52 @@ public class RouteTimeEstimatorTest {
 
         assertEquals(5.0, seconds, 0.01);
     }
+
+    @Test
+    public void estimateSecondsToAlongTrack_shortensCurrentSegmentEtaWhenAccelerating() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Arrays.asList(),
+                0.0,
+                111.0
+        );
+
+        Double seconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
+                route,
+                new PolylineIndex(route.track),
+                0.0,
+                0,
+                50.0,
+                RouteMotionEstimate.withAcceleration(5f, 0.2f)
+        );
+
+        assertEquals(8.54, seconds, 0.01);
+    }
+
+    @Test
+    public void estimateSecondsToAlongTrack_lengthensCurrentSegmentEtaWhenDecelerating() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Arrays.asList(),
+                0.0,
+                111.0
+        );
+
+        Double seconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
+                route,
+                new PolylineIndex(route.track),
+                0.0,
+                0,
+                50.0,
+                RouteMotionEstimate.withAcceleration(5f, -0.1f)
+        );
+
+        assertEquals(11.27, seconds, 0.01);
+    }
 }

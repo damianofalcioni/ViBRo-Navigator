@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
 import vibro.navigator.android.location.AndroidLocationDiagnostics;
+import vibro.navigator.android.sensor.AndroidAccelerationSensorDiagnostics;
 import vibro.navigator.android.sensor.AndroidHeadingSensorDiagnostics;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
@@ -17,6 +18,8 @@ final class AboutSensorStatusFormatter {
     @NonNull
     private final AndroidHeadingSensorDiagnostics headingSensorDiagnostics;
     @NonNull
+    private final AndroidAccelerationSensorDiagnostics accelerationSensorDiagnostics;
+    @NonNull
     private final AboutFusedLocationDiagnostic fusedLocationDiagnostic;
 
     private boolean started;
@@ -25,6 +28,7 @@ final class AboutSensorStatusFormatter {
         Context appContext = context.getApplicationContext();
         locationDiagnostics = new AndroidLocationDiagnostics(appContext);
         headingSensorDiagnostics = new AndroidHeadingSensorDiagnostics(appContext);
+        accelerationSensorDiagnostics = new AndroidAccelerationSensorDiagnostics(appContext);
         fusedLocationDiagnostic = new AboutFusedLocationDiagnostic(appContext);
     }
 
@@ -32,13 +36,15 @@ final class AboutSensorStatusFormatter {
         if (started) {
             return;
         }
-        boolean sensorStarted = headingSensorDiagnostics.start();
+        boolean headingStarted = headingSensorDiagnostics.start();
+        boolean accelerationStarted = accelerationSensorDiagnostics.start();
         boolean gnssStarted = locationDiagnostics.startFixedSatelliteTracking();
-        started = sensorStarted || gnssStarted;
+        started = headingStarted || accelerationStarted || gnssStarted;
     }
 
     void stop() {
         headingSensorDiagnostics.stop();
+        accelerationSensorDiagnostics.stop();
         locationDiagnostics.stopFixedSatelliteTracking();
         started = false;
     }
@@ -70,6 +76,15 @@ final class AboutSensorStatusFormatter {
                 describeLocationValue(NavigationLocationProviders.NETWORK_PROVIDER)
         );
         for (AndroidHeadingSensorDiagnostics.Snapshot snapshot : headingSensorDiagnostics.snapshots()) {
+            appendLine(
+                    context,
+                    sb,
+                    snapshot.labelResId,
+                    snapshot.available ? R.string.sensor_status_available : R.string.sensor_status_unavailable,
+                    snapshot.value
+            );
+        }
+        for (AndroidAccelerationSensorDiagnostics.Snapshot snapshot : accelerationSensorDiagnostics.snapshots()) {
             appendLine(
                     context,
                     sb,

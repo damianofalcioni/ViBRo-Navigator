@@ -152,6 +152,12 @@ final class NavigationRouteEvaluator {
                 accuracyMeters,
                 likelyStationary
         );
+        float etaAccelerationMps2 = progressTracker.resolveEtaAccelerationMps2(
+                filtered,
+                match.alongTrackMeters,
+                accuracyMeters,
+                likelyStationary
+        );
         NavigationRouteProgressTracker.DirectionAssessment directionOfProgress = progressTracker.assessDirection(
                 match.alongTrackMeters,
                 nowMs
@@ -205,6 +211,7 @@ final class NavigationRouteEvaluator {
             return keepCurrentRoute(
                     match,
                     etaSpeedMps,
+                    etaAccelerationMps2,
                     nowMs,
                     fastChecksUntilMs,
                     singleInstructionMode,
@@ -213,7 +220,15 @@ final class NavigationRouteEvaluator {
         }
 
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
-        return keepCurrentRoute(match, etaSpeedMps, nowMs, fastChecksUntilMs, singleInstructionMode, true);
+        return keepCurrentRoute(
+                match,
+                etaSpeedMps,
+                etaAccelerationMps2,
+                nowMs,
+                fastChecksUntilMs,
+                singleInstructionMode,
+                true
+        );
     }
 
     @Nullable
@@ -297,6 +312,7 @@ final class NavigationRouteEvaluator {
         return keepCurrentRoute(
                 match,
                 likelyStationary ? 0f : speedMps,
+                Float.NaN,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode,
@@ -385,6 +401,7 @@ final class NavigationRouteEvaluator {
     private NavigationRouteEvaluation keepCurrentRoute(
             @NonNull PolylineIndex.Match match,
             float etaSpeedMps,
+            float etaAccelerationMps2,
             long nowMs,
             long fastChecksUntilMs,
             boolean singleInstructionMode,
@@ -397,6 +414,7 @@ final class NavigationRouteEvaluator {
                 match.alongTrackMeters,
                 match.segmentIndex,
                 etaSpeedMps,
+                etaAccelerationMps2,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode

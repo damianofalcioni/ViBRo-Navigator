@@ -25,7 +25,7 @@ final class TurnHintAdvancePolicy {
             boolean notified5,
             double alongTrackMeters,
             int currentSegmentIndex,
-            float speedMps,
+            @NonNull RouteMotionEstimate motionEstimate,
             @NonNull List<TurnEventPlanner.TurnSignal> signals
     ) {
         int updatedHintIdx = nextHintIdx;
@@ -41,7 +41,7 @@ final class TurnHintAdvancePolicy {
                     hintAlongTrackMetersValue,
                     alongTrackMeters,
                     currentSegmentIndex,
-                    speedMps,
+                    motionEstimate,
                     updatedNotified5
             );
             if (!passed && !retired) {
@@ -71,7 +71,7 @@ final class TurnHintAdvancePolicy {
             double hintAlongTrackMeters,
             double alongTrackMeters,
             int currentSegmentIndex,
-            float speedMps,
+            @NonNull RouteMotionEstimate motionEstimate,
             boolean notified5
     ) {
         if (!notified5) {
@@ -87,11 +87,11 @@ final class TurnHintAdvancePolicy {
                 alongTrackMeters,
                 currentSegmentIndex,
                 hintAlongTrackMeters,
-                speedMps
+                motionEstimate
         );
         return timeToHintSeconds != null
                 && Double.isFinite(timeToHintSeconds)
-                && timeToHintSeconds <= TurnEventPlanner.MIN_ACTIONABLE_NOTICE_SECONDS;
+                && timeToHintSeconds <= TurnDistanceReliability.MIN_ACTIONABLE_NOTICE_SECONDS;
     }
 
     static final class Result {

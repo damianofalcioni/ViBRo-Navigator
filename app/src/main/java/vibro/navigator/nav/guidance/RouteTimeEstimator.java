@@ -66,6 +66,25 @@ public final class RouteTimeEstimator {
             double targetAlongTrackMeters,
             float speedMps
     ) {
+        return estimateSecondsToAlongTrack(
+                route,
+                polylineIndex,
+                alongTrackMeters,
+                currentSegmentIndex,
+                targetAlongTrackMeters,
+                RouteMotionEstimate.speedOnly(speedMps)
+        );
+    }
+
+    @Nullable
+    public static Double estimateSecondsToAlongTrack(
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex polylineIndex,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            double targetAlongTrackMeters,
+            @NonNull RouteMotionEstimate motionEstimate
+    ) {
         double totalLengthMeters = polylineIndex.totalLengthMeters();
         double clampedAlongTrackMeters = clampAlongTrackMeters(alongTrackMeters, totalLengthMeters);
         double clampedTargetAlongTrackMeters = clampAlongTrackMeters(targetAlongTrackMeters, totalLengthMeters);
@@ -85,7 +104,7 @@ public final class RouteTimeEstimator {
                 totalLengthMeters
         );
         if (currentSegmentEndAlongTrackMeters <= clampedAlongTrackMeters
-                || !hasUsableLiveSpeed(speedMps)) {
+                || !hasUsableLiveSpeed(motionEstimate)) {
             return routeModelSeconds;
         }
 
@@ -93,7 +112,10 @@ public final class RouteTimeEstimator {
                 clampedTargetAlongTrackMeters,
                 currentSegmentEndAlongTrackMeters
         );
-        double currentSegmentSeconds = (liveSegmentTargetAlongTrackMeters - clampedAlongTrackMeters) / speedMps;
+        double currentSegmentSeconds = CurrentSegmentTimeEstimator.estimateSeconds(
+                liveSegmentTargetAlongTrackMeters - clampedAlongTrackMeters,
+                motionEstimate
+        );
         if (clampedTargetAlongTrackMeters <= currentSegmentEndAlongTrackMeters) {
             return Math.max(0.0, currentSegmentSeconds);
         }
@@ -110,8 +132,8 @@ public final class RouteTimeEstimator {
         return routeModelSeconds;
     }
 
-    private static boolean hasUsableLiveSpeed(float speedMps) {
-        return Float.isFinite(speedMps) && speedMps >= MIN_LIVE_SPEED_METERS_PER_SECOND;
+    private static boolean hasUsableLiveSpeed(@NonNull RouteMotionEstimate motionEstimate) {
+        return motionEstimate.hasUsableSpeed(MIN_LIVE_SPEED_METERS_PER_SECOND);
     }
 
     @Nullable

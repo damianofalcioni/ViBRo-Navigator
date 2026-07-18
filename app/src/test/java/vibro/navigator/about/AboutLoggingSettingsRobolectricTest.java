@@ -218,22 +218,15 @@ public class AboutLoggingSettingsRobolectricTest {
         assertEquals(activity.getString(R.string.action_test_left_notification), symbolTestLeftButton.getText().toString());
         assertEquals(activity.getString(R.string.action_test_other_notification), symbolTestOtherButton.getText().toString());
         assertEquals(activity.getString(R.string.action_test_right_notification), symbolTestRightButton.getText().toString());
-        assertTrue(sensorStatusBody.getText().toString().contains(
-                activity.getString(R.string.label_sensor_gps_provider)
-        ));
-        assertTrue(sensorStatusBody.getText().toString().contains(
-                activity.getString(R.string.label_sensor_network_provider)
-        ));
-        assertTrue(sensorStatusBody.getText().toString().contains(
-                activity.getString(R.string.label_sensor_rotation_vector)
-        ));
-        assertTrue(sensorStatusBody.getText().toString().contains(
-                activity.getString(R.string.label_sensor_geomagnetic_rotation_vector)
-        ));
-        assertTrue(sensorStatusBody.getText().toString().contains(
-                activity.getString(R.string.label_sensor_orientation)
-        ));
-        assertTrue(sensorStatusBody.getText().toString().contains("value="));
+        String sensorStatusText = sensorStatusBody.getText().toString();
+        assertTrue(sensorStatusText.contains(activity.getString(R.string.label_sensor_gps_provider))
+                && sensorStatusText.contains(activity.getString(R.string.label_sensor_network_provider))
+                && sensorStatusText.contains(activity.getString(R.string.label_sensor_rotation_vector))
+                && sensorStatusText.contains(activity.getString(R.string.label_sensor_geomagnetic_rotation_vector))
+                && sensorStatusText.contains(activity.getString(R.string.label_sensor_orientation))
+                && sensorStatusText.contains(activity.getString(R.string.label_sensor_linear_acceleration))
+                && sensorStatusText.contains(activity.getString(R.string.label_sensor_accelerometer)));
+        assertTrue(sensorStatusText.contains("value="));
     }
 
     @Test

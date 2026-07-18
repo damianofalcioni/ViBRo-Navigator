@@ -62,6 +62,32 @@ public final class NavigationUpdateScheduler {
             int currentSegmentIndex,
             float speedMps
     ) {
+        return suggestUpdateInterval(
+                nowMs,
+                fastChecksUntilMs,
+                route,
+                polylineIndex,
+                next,
+                nextAlongTrackMeters,
+                alongTrackMeters,
+                currentSegmentIndex,
+                speedMps,
+                Float.NaN
+        );
+    }
+
+    public long suggestUpdateInterval(
+            long nowMs,
+            long fastChecksUntilMs,
+            @Nullable GeoJsonRoute route,
+            @Nullable PolylineIndex polylineIndex,
+            @Nullable VoiceHint next,
+            @Nullable Double nextAlongTrackMeters,
+            double alongTrackMeters,
+            int currentSegmentIndex,
+            float speedMps,
+            float accelerationMps2
+    ) {
         if (!canEstimateRouteTime(nowMs, fastChecksUntilMs, route, polylineIndex)) {
             return MIN_UPDATE_INTERVAL_MS;
         }
@@ -73,7 +99,7 @@ public final class NavigationUpdateScheduler {
                 alongTrackMeters,
                 currentSegmentIndex,
                 targetAlongTrackMeters,
-                speedMps
+                RouteMotionEstimate.withAcceleration(speedMps, accelerationMps2)
         );
         if (timeToNextSeconds == null) {
             return MIN_UPDATE_INTERVAL_MS;

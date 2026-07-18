@@ -52,6 +52,30 @@ public class NavigationRouteProgressTrackerTest {
     }
 
     @Test
+    public void resolveEtaMotion_reportsPositiveAccelerationFromAlongTrackProgress() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(0.0, 0L);
+        tracker.rememberAlongTrackSample(6.0, 3_000L);
+
+        RouteMotionEstimate motion = tracker.resolveEtaMotion(6_000L, 18.0, 2f, false);
+
+        assertEquals(4.0f, motion.speedMps, 0.0f);
+        assertEquals(0.67f, motion.accelerationMps2, 0.01f);
+    }
+
+    @Test
+    public void resolveEtaMotion_reportsNegativeAccelerationFromAlongTrackProgress() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(0.0, 0L);
+        tracker.rememberAlongTrackSample(12.0, 3_000L);
+
+        RouteMotionEstimate motion = tracker.resolveEtaMotion(6_000L, 18.0, 2f, false);
+
+        assertEquals(2.0f, motion.speedMps, 0.0f);
+        assertEquals(-0.67f, motion.accelerationMps2, 0.01f);
+    }
+
+    @Test
     public void resolveEtaSpeedMps_keepsSlowWalkingProgressUsable() {
         NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
         tracker.rememberAlongTrackSample(10.0, 1_000L);

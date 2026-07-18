@@ -283,7 +283,7 @@ The app must monitor user position:
 - After a new route is applied, including after an off-track recalculation, the app must immediately re-enter 3-second location polling before returning to dynamic intervals after stable on-route fixes
 - After startup fast polling has ended, an unexpected long gap between accepted location evaluations, beyond the currently requested active interval plus reasonable scheduling slack, must temporarily resume 3-second checks so the app can restabilize position accuracy before continuing with long dynamic intervals; a normal callback at a requested long dynamic bucket must not be treated as reacquisition
 - The first accepted fix after such a long gap must be treated as location reacquisition: reset stale Kalman velocity and motion/progress evidence, use trusted on-route matches to catch up route/turn state, but suppress immediate off-route or wrong-direction reroutes until follow-up samples confirm the deviation
-- Later at a dynamic interval derived from the estimated time to the next direction, using the current speed and remaining route distance when the next maneuver still lies on the current matched route segment and live speed is available, or route timing metadata when the next maneuver lies beyond the current matched route segment
+- Later at a dynamic interval derived from the estimated time to the next direction, using the current speed, bounded recent acceleration/deceleration, and remaining route distance when the next maneuver still lies on the current matched route segment and live speed is available, or route timing metadata when the next maneuver lies beyond the current matched route segment
 - When the next direction is estimated to be 8 seconds away or less, the dynamic interval must be 3 seconds
 - Otherwise the dynamic interval should scale to roughly one quarter of the estimated time remaining to the next direction
 - When the next maneuver or arrival is estimated within about 3 minutes, the dynamic interval should be capped at 20 seconds so speed changes cannot leave the app waiting through a long quiet window near guidance-critical points
@@ -743,6 +743,8 @@ The navigation UI must show the following in large text:
   - rotation vector heading sensor
   - geomagnetic rotation vector heading sensor
   - deprecated orientation sensor, used by navigation only as a calibration cross-check when available
+  - linear acceleration sensor
+  - accelerometer
 - Before the sensor-status list, the Diagnostic section must show a Required access block for navigation access status:
   - location permission
   - device location services
@@ -755,6 +757,7 @@ The navigation UI must show the following in large text:
 - Each listed item must show both its current status and its latest available value details
 - Location-provider details should include the latest available fix data such as coordinates, accuracy, speed, bearing, bearing accuracy, satellite count, and sample age when available
 - Heading-sensor details should include the selected sensor type plus the latest available heading/orientation-derived values and sample age when available
+- Acceleration-sensor details should include the latest available axis values, vector magnitude, accuracy, and sample age when available
 - The about page Diagnostic section must also show actions to send notification-symbol tests for left, other, and right guidance notifications
 - Triggering any of those actions must post a fresh notification entry, not only update an existing one, so mirrored smart bands or similar devices can treat each test run as a new notification
 - Those test notifications must contain the full set of distinct user-visible symbols currently used by the app's notification text formatting, including all direction/status symbols used in guidance notifications and the degree sign used by stationary-orientation notifications
