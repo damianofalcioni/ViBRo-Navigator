@@ -78,7 +78,7 @@ public final class BRouterRouter {
                 blockedWaypoints,
                 profileParameters
         );
-        return parseRoutePayload(decoded);
+        return parseRoutePayload(decoded, stops, end);
     }
 
     @NonNull
@@ -168,6 +168,15 @@ public final class BRouterRouter {
 
     @NonNull
     private GeoJsonRoute parseRoutePayload(@NonNull String decoded) throws Exception {
+        return parseRoutePayload(decoded, null, null);
+    }
+
+    @NonNull
+    private GeoJsonRoute parseRoutePayload(
+            @NonNull String decoded,
+            @Nullable List<LatLon> intermediates,
+            @Nullable LatLon destination
+    ) throws Exception {
         String sanitized = decoded == null ? "" : decoded.trim();
         if (!sanitized.startsWith("{")) {
             AppLogger.w(TAG, "BRouter returned non-GeoJSON payload prefix="
@@ -175,6 +184,13 @@ public final class BRouterRouter {
             throw BRouterRouteException.fromTextResponse(sanitized);
         }
         GeoJsonRoute route = GeoJsonRouteParser.parse(decoded);
+        if (destination != null) {
+            route = BRouterRouteBeelineAppender.appendDestinationBeelines(
+                    route,
+                    intermediates != null ? intermediates : new ArrayList<LatLon>(),
+                    destination
+            );
+        }
         AppLogger.i(TAG, "Parsed route trackPoints=" + route.track.size()
                 + " voiceHints=" + route.voiceHints.size()
                 + " lengthMeters=" + route.trackLengthMeters

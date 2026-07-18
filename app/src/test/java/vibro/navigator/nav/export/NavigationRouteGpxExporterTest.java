@@ -15,6 +15,9 @@ import java.util.List;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import vibro.navigator.brouter.BRouterRouteClient;
+import vibro.navigator.brouter.BRouterRouteRequest;
+import vibro.navigator.brouter.BRouterRouter;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -24,6 +27,7 @@ import vibro.navigator.nav.route.VoiceHint;
 public class NavigationRouteGpxExporterTest {
     private static final String GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
     private static final String TAG_WAYPOINT = "wpt";
+    private static final String TAG_ROUTE_POINT = "rtept";
     private static final String TAG_TRACK_POINT = "trkpt";
     private static final String TAG_TRACK_SEGMENT = "trkseg";
     private static final String TAG_NAME = "name";
@@ -35,6 +39,7 @@ public class NavigationRouteGpxExporterTest {
     private static final String TYPE_TURN = "vibro.navigator.turn";
     private static final String PASSED_ROUTE_NAME = "Passed route";
     private static final String FIRST_GPS_FIX_TIME = "1970-01-01T00:00:01.000Z";
+    private static final String PROFILE_TREKKING = "trekking";
 
     @Test
     public void export_includesTrackRouteAndInstructionWaypoints() throws Exception {
@@ -48,7 +53,7 @@ public class NavigationRouteGpxExporterTest {
 
         assertEquals("gpx", document.getDocumentElement().getLocalName());
         assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
-        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, "rtept").getLength());
+        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_ROUTE_POINT).getLength());
         assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength());
         Element turnWaypoint = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).item(0);
         Element arrivalWaypoint = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).item(1);
@@ -84,6 +89,47 @@ public class NavigationRouteGpxExporterTest {
         assertEquals(2, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength());
         assertTrue(NavigationRouteGpxExporter.buildRouteName(new java.util.Date(0L))
                 .matches("ViBRo-Navigator Export \\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}"));
+    }
+
+    @Test
+    public void export_includesSyntheticBRouterDestinationBeelinesInRouteAndTrackGeometry() throws Exception {
+        LatLon start = new LatLon(48.0, 16.0);
+        LatLon requestedStop = new LatLon(48.0, 16.051);
+        LatLon snappedStop = new LatLon(48.0, 16.05);
+        LatLon nextRoutePoint = new LatLon(48.05, 16.05);
+        LatLon snappedEnd = new LatLon(48.09, 16.09);
+        LatLon destination = new LatLon(48.1, 16.1);
+        String payload = brouterRoutePayload(
+                "\"voicehints\":[[2,5,0,25.0,90]]",
+                "[[16.0,48.0],[16.05,48.0],[16.05,48.05],[16.09,48.09]]"
+        );
+        GeoJsonRoute route = new BRouterRouter().routeGeoJson(
+                new FixedPayloadClient(payload),
+                start,
+                Collections.singletonList(requestedStop),
+                destination,
+                PROFILE_TREKKING,
+                Collections.emptyList()
+        );
+
+        Document document = parse(NavigationRouteGpxExporter.export(
+                TestNavigationTextResources.metric(),
+                route,
+                Collections.singletonList(requestedStop)
+        ));
+
+        assertEquals(7, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
+        assertEquals(7, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_ROUTE_POINT).getLength());
+        assertPoint(document, TAG_ROUTE_POINT, 1, snappedStop);
+        assertPoint(document, TAG_ROUTE_POINT, 2, requestedStop);
+        assertPoint(document, TAG_ROUTE_POINT, 3, snappedStop);
+        assertPoint(document, TAG_ROUTE_POINT, 4, nextRoutePoint);
+        assertPoint(document, TAG_ROUTE_POINT, 5, snappedEnd);
+        assertPoint(document, TAG_ROUTE_POINT, 6, destination);
+        assertPoint(document, TAG_TRACK_POINT, 2, requestedStop);
+        assertPoint(document, TAG_TRACK_POINT, 6, destination);
+        assertEquals(3, countWaypointsByName(document, "Beeline"));
+        assertEquals(1, countWaypointsByName(document, "Stop 1"));
     }
 
     @Test
@@ -201,7 +247,7 @@ public class NavigationRouteGpxExporterTest {
         ));
 
         assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
-        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, "rtept").getLength());
+        assertEquals(3, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_ROUTE_POINT).getLength());
         assertEquals(2, document.getElementsByTagNameNS(GPX_NAMESPACE, TAG_WAYPOINT).getLength());
         assertEquals(0, countWaypointsByType(document, TYPE_TURN));
         assertEquals(1, countWaypointsByType(document, "vibro.navigator.stop"));
@@ -318,6 +364,17 @@ public class NavigationRouteGpxExporterTest {
         );
     }
 
+    private static String brouterRoutePayload(String properties, String coordinates) {
+        return "{"
+                + "\"type\":\"FeatureCollection\","
+                + "\"features\":[{"
+                + "\"type\":\"Feature\","
+                + "\"properties\":{" + properties + "},"
+                + "\"geometry\":{\"type\":\"LineString\",\"coordinates\":" + coordinates + "}"
+                + "}]"
+                + "}";
+    }
+
     private static Document parse(String xml) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         factory.setNamespaceAware(true);
@@ -335,6 +392,21 @@ public class NavigationRouteGpxExporterTest {
 
     private static String childText(Element parent, String name) {
         return parent.getElementsByTagNameNS(GPX_NAMESPACE, name).item(0).getTextContent();
+    }
+
+    private static void assertPoint(
+            Document document,
+            String tag,
+            int index,
+            LatLon point
+    ) {
+        Element element = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, tag).item(index);
+        assertEquals(formatCoordinate(point.lat), element.getAttribute(ATTR_LAT));
+        assertEquals(formatCoordinate(point.lon), element.getAttribute(ATTR_LON));
+    }
+
+    private static String formatCoordinate(double coordinate) {
+        return String.format(java.util.Locale.US, "%.6f", coordinate);
     }
 
     private static Element waypointByType(Document document, String type) {
@@ -367,5 +439,18 @@ public class NavigationRouteGpxExporterTest {
             }
         }
         return matches;
+    }
+
+    private static final class FixedPayloadClient implements BRouterRouteClient {
+        private final String payload;
+
+        private FixedPayloadClient(String payload) {
+            this.payload = payload;
+        }
+
+        @Override
+        public String requestRoutePayload(BRouterRouteRequest request) {
+            return payload;
+        }
     }
 }
