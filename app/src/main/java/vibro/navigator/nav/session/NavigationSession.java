@@ -13,6 +13,7 @@ import vibro.navigator.nav.model.NavState;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationController;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppNotificationSettings;
 
 import androidx.annotation.NonNull;
@@ -293,7 +294,8 @@ public final class NavigationSession {
                 fixedSatelliteCount,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
-                orientationCue
+                orientationCue,
+                !AppCompassSettings.isInstantZoomEnabled(context)
         );
     }
 

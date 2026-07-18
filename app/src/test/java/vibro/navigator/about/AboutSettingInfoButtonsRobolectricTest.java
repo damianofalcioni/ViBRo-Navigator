@@ -60,6 +60,11 @@ public class AboutSettingInfoButtonsRobolectricTest {
         );
         assertInfoButton(
                 activity,
+                R.id.aboutCompassInstantZoomInfoButton,
+                R.string.label_compass_instant_zoom_enabled
+        );
+        assertInfoButton(
+                activity,
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled
         );

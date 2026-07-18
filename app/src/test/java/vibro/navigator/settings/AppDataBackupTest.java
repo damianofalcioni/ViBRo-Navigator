@@ -82,6 +82,7 @@ public class AppDataBackupTest {
         AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppSettings.setImperialUnitsEnabled(context, true);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
+        AppCompassSettings.setInstantZoomEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
         AppNotificationSettings.setSingleInstructionModeEnabled(context, true);
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.ROUND_TRIP);
@@ -133,6 +134,7 @@ public class AppDataBackupTest {
         assertFalse(AppLocationSettings.isDynamicGpsFixIntervalEnabled(context));
         assertTrue(AppSettings.isImperialUnitsEnabled(context));
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
+        assertTrue(AppCompassSettings.isInstantZoomEnabled(context));
         assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(context));
         assertTrue(AppNotificationSettings.isSingleInstructionModeEnabled(context));
         assertEquals(NavigationRoutingMode.ROUND_TRIP, AppMainUiSettings.getRoutingMode(context));
@@ -160,6 +162,7 @@ public class AppDataBackupTest {
         AppGpxSettings.setAutoSaveOnStopEnabled(context, true);
         AppLocationSettings.setDynamicGpsFixIntervalEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
+        AppCompassSettings.setInstantZoomEnabled(context, true);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
         AppNotificationSettings.setSingleInstructionModeEnabled(context, true);
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.STRAIGHT_LINE);
@@ -177,7 +180,6 @@ public class AppDataBackupTest {
         JSONObject root = new JSONObject(AppDataBackup.exportJson(context));
         JSONObject sharedPreferences = root.getJSONObject(KEY_SHARED_PREFERENCES);
         JSONObject appSettings = sharedPreferences.getJSONObject("vibro.navigator.settings");
-        JSONObject compassSurroundingStreets = appSettings.getJSONObject("compass_surrounding_streets_enabled");
         JSONObject navigationNotifications = appSettings.getJSONObject("navigation_notifications_enabled");
         JSONObject singleInstructionMode = appSettings.getJSONObject("single_instruction_mode_enabled");
         JSONObject mainUiRoutingMode = appSettings.getJSONObject("main_ui_routing_mode");
@@ -194,8 +196,8 @@ public class AppDataBackupTest {
         assertBooleanPreference(appSettings, "use_imperial_units", true);
         assertBooleanPreference(appSettings, "auto_save_gpx_on_stop_enabled", true);
         assertBooleanPreference(appSettings, "dynamic_gps_fix_interval_enabled", false);
-        assertEquals(BACKUP_TYPE_BOOLEAN, compassSurroundingStreets.getString(BACKUP_TYPE));
-        assertTrue(compassSurroundingStreets.getBoolean(BACKUP_VALUE));
+        assertBooleanPreference(appSettings, "compass_surrounding_streets_enabled", true);
+        assertBooleanPreference(appSettings, "compass_instant_zoom_enabled", true);
         assertNotificationPreferences(navigationNotifications, singleInstructionMode);
         assertEquals(BACKUP_TYPE_STRING, mainUiRoutingMode.getString(BACKUP_TYPE));
         assertEquals(NavigationRoutingMode.STRAIGHT_LINE.serializedName(), mainUiRoutingMode.getString(BACKUP_VALUE));

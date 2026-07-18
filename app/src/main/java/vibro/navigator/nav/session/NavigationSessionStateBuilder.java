@@ -63,6 +63,35 @@ final class NavigationSessionStateBuilder {
             boolean paused
     ) {
         return build(
+                context,
+                currentRequest,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                acquiredFixCount,
+                paused,
+                true
+        );
+    }
+
+    @NonNull
+    NavState build(
+            @NonNull Context context,
+            @NonNull NavigationRequest currentRequest,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            int acquiredFixCount,
+            boolean paused,
+            boolean compassZoomAnimationEnabled
+    ) {
+        return build(
                 new AndroidNavigationTextResources(context),
                 currentRequest,
                 nextEvaluationDeadlineElapsedMs,
@@ -72,7 +101,8 @@ final class NavigationSessionStateBuilder {
                 displayHeadingAccuracyDegrees,
                 orientationCue,
                 acquiredFixCount,
-                paused
+                paused,
+                compassZoomAnimationEnabled
         );
     }
 
@@ -89,6 +119,35 @@ final class NavigationSessionStateBuilder {
             int acquiredFixCount,
             boolean paused
     ) {
+        return build(
+                textResources,
+                currentRequest,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                acquiredFixCount,
+                paused,
+                true
+        );
+    }
+
+    @NonNull
+    NavState build(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRequest currentRequest,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            int acquiredFixCount,
+            boolean paused,
+            boolean compassZoomAnimationEnabled
+    ) {
         NavigationDisplaySnapshot snapshot = buildSnapshot(
                 textResources,
                 nextEvaluationDeadlineElapsedMs,
@@ -97,7 +156,8 @@ final class NavigationSessionStateBuilder {
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 orientationCue,
-                acquiredFixCount
+                acquiredFixCount,
+                compassZoomAnimationEnabled
         );
         if (currentRequest.isStraightLine()) {
             NavState baseState = NavStateResourceComposer.withPauseState(
@@ -126,7 +186,8 @@ final class NavigationSessionStateBuilder {
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees,
             @Nullable CompassOrientationCue orientationCue,
-            int acquiredFixCount
+            int acquiredFixCount,
+            boolean compassZoomAnimationEnabled
     ) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
@@ -153,6 +214,7 @@ final class NavigationSessionStateBuilder {
                         routeRequestManager.getInProgressNotice(),
                         routeRequestManager.getLastRouteFailure()
                 )
+                .compassZoomAnimationEnabled(compassZoomAnimationEnabled)
                 .build();
     }
 }

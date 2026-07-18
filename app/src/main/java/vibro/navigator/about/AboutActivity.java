@@ -48,6 +48,7 @@ public class AboutActivity extends Activity {
         Switch imperialUnitsSwitch = findViewById(R.id.aboutImperialUnitsSwitch);
         Switch lightThemeSwitch = findViewById(R.id.aboutLightThemeSwitch);
         Switch surroundingStreetsSwitch = findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
+        Switch compassInstantZoomSwitch = findViewById(R.id.aboutCompassInstantZoomSwitch);
         Switch navigationNotificationsSwitch = findViewById(R.id.aboutNavigationNotificationsSwitch);
         Switch singleInstructionModeSwitch = findViewById(R.id.aboutSingleInstructionModeSwitch);
         View exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
@@ -62,6 +63,7 @@ public class AboutActivity extends Activity {
                 imperialUnitsSwitch,
                 lightThemeSwitch,
                 surroundingStreetsSwitch,
+                compassInstantZoomSwitch,
                 navigationNotificationsSwitch,
                 singleInstructionModeSwitch,
                 this::scheduleDiagnosticSectionRender

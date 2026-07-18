@@ -491,6 +491,7 @@ The navigation UI must show the following in large text:
 - The moving compass zoom must use the same resolved trustworthy speed as the GPS status line, so raw native speed alone must not zoom the compass when stationary or noisy movement checks suppress the displayed speed
 - A single tap on the compass route view must toggle the currently displayed zoom mode between the stationary full-route overview and the adaptive moving-scale view
 - Tap-driven zoom changes must use the same smooth radius transition used when the compass switches from stationary overview to the moving-scale view
+- When Instant compass zoom is enabled in settings, automatic and tap-driven compass zoom changes must jump immediately to the target radius instead of animating
 - The moving-scale radius must not be capped to a smaller fixed maximum such as 600 meters
 - When the user is moving but the current native speed reading is not yet reliable, the compass should prefer reusing the last reliable moving zoom radius if one exists instead of jumping back and forth between zoom modes
 - When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
@@ -706,6 +707,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Light Theme switch that enables or disables the app's optional light theme while keeping the black theme as the default
 - The about page Settings section must show a Show surrounding streets in compass switch that enables or disables the local-BRouter-segment street overlay in the navigation compass
 - When legacy external-storage permission is required to read local BRouter street segment files, enabling the Show surrounding streets in compass switch must request that permission and leave the setting disabled if permission is denied
+- The about page Settings section must show an Instant compass zoom switch that disables compass zoom animations so transitions between route overview and moving-scale views are immediate
 - The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and a trash remove button, plus a centered bordered `+` button that adds another field
@@ -726,7 +728,7 @@ The navigation UI must show the following in large text:
 - In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available
 - The about page Settings section must show a Dynamic GPS fix interval switch that is enabled by default; disabling it must force active navigation location fix requests to 1-second intervals instead of the dynamic buckets
 - The app must write its log file only when the Log enabled setting is switched on
-- The Auto-save GPX on stop setting must persist across app launches and be included in database backup/export with other app settings
+- The Auto-save GPX on stop and Instant compass zoom settings must persist across app launches and be included in database backup/export with other app settings
 - The Log enabled setting must persist across app launches
 - When Log enabled is already on at app startup, the app must create a fresh log file for that app session before startup logging begins
 - When Log enabled is switched on during an app session, the app must create a fresh log file for the remaining logs in that session

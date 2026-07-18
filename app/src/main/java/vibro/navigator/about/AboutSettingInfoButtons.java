@@ -46,6 +46,11 @@ final class AboutSettingInfoButtons {
                 R.string.about_setting_compass_surrounding_streets_info
         );
         bind(
+                R.id.aboutCompassInstantZoomInfoButton,
+                R.string.label_compass_instant_zoom_enabled,
+                R.string.about_setting_compass_instant_zoom_info
+        );
+        bind(
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled,
                 R.string.about_setting_navigation_notifications_info

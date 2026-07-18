@@ -41,6 +41,7 @@ public final class NavigationDisplaySnapshot {
     final String routeCalculationNotice;
     @Nullable
     final Throwable lastRouteFailure;
+    final boolean compassZoomAnimationEnabled;
 
     private NavigationDisplaySnapshot(@NonNull Builder builder) {
         textResources = builder.textResources;
@@ -60,6 +61,7 @@ public final class NavigationDisplaySnapshot {
         routeCalculationInProgress = builder.routeCalculationInProgress;
         routeCalculationNotice = builder.routeCalculationNotice;
         lastRouteFailure = builder.lastRouteFailure;
+        compassZoomAnimationEnabled = builder.compassZoomAnimationEnabled;
     }
 
     @NonNull
@@ -99,6 +101,7 @@ public final class NavigationDisplaySnapshot {
         private String routeCalculationNotice;
         @Nullable
         private Throwable lastRouteFailure;
+        private boolean compassZoomAnimationEnabled = true;
 
         private Builder(@NonNull NavigationTextResources textResources) {
             this.textResources = textResources;
@@ -172,6 +175,12 @@ public final class NavigationDisplaySnapshot {
             this.routeCalculationInProgress = routeCalculationInProgress;
             this.routeCalculationNotice = routeCalculationNotice;
             this.lastRouteFailure = lastRouteFailure;
+            return this;
+        }
+
+        @NonNull
+        Builder compassZoomAnimationEnabled(boolean enabled) {
+            compassZoomAnimationEnabled = enabled;
             return this;
         }
 

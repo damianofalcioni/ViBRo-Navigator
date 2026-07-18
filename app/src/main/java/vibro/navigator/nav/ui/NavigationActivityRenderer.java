@@ -11,6 +11,7 @@ import vibro.navigator.nav.orientation.NavigationCompassModeController;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
+import vibro.navigator.settings.AppCompassSettings;
 import android.app.Activity;
 import android.graphics.Typeface;
 import android.graphics.PorterDuff;
@@ -101,7 +102,10 @@ final class NavigationActivityRenderer {
 
     void configureControls(@NonNull Controls controls) {
         compass.setOnClickListener(v -> {
-            compassModeController.onCompassTapped(currentState == null ? null : currentState.routeStatus.compassState);
+            compassModeController.onCompassTapped(
+                    currentState == null ? null : currentState.routeStatus.compassState,
+                    compassZoomAnimationEnabled()
+            );
             renderCompassState();
         });
         blocked.setOnClickListener(v -> controls.onBlockedRoad());
@@ -220,7 +224,10 @@ final class NavigationActivityRenderer {
     private void renderCompassState() {
         @Nullable NavCompassState compassState = currentState == null ? null : currentState.routeStatus.compassState;
         compass.setNavigationPaused(currentState != null && currentState.pauseStatus.paused);
-        NavCompassState displayedCompassState = compassModeController.resolve(compassState);
+        NavCompassState displayedCompassState = compassModeController.resolve(
+                compassState,
+                compassZoomAnimationEnabled()
+        );
         compass.setCompassState(displayedCompassState);
         if (currentBinder != null) {
             currentBinder.setCompassStreetViewport(displayedCompassState);
@@ -229,6 +236,10 @@ final class NavigationActivityRenderer {
         if (compassModeController.isTransitionInProgress()) {
             uiScheduler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
         }
+    }
+
+    private boolean compassZoomAnimationEnabled() {
+        return !AppCompassSettings.isInstantZoomEnabled(activity);
     }
 
     private void renderSpeedLimit(@NonNull NavState state) {

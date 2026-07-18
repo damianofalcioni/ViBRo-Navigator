@@ -118,6 +118,34 @@ public class NavigationCompassModeControllerTest {
         assertEquals(300f, resolvedState.radiusState.visibleRadiusMeters, 0.01f);
     }
 
+    @Test
+    public void tapWhileStationaryWithAnimationDisabledSwitchesRadiusImmediately() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automaticState = stationaryState();
+
+        controller.onCompassTapped(automaticState, 1_000L, false);
+        NavCompassState immediateMovingScaleState = controller.resolve(automaticState, 1_000L, false);
+
+        assertTrue(immediateMovingScaleState.displayMode.movingScaleActive);
+        assertEquals(300f, immediateMovingScaleState.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(controller.isTransitionInProgress());
+    }
+
+    @Test
+    public void disablingAnimationDuringTransitionJumpsToTargetRadius() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automaticState = stationaryState();
+
+        controller.onCompassTapped(automaticState, 1_000L);
+        NavCompassState animatedState = controller.resolve(automaticState, 1_500L);
+        NavCompassState instantState = controller.resolve(automaticState, 1_600L, false);
+
+        assertTrue(animatedState.radiusState.visibleRadiusMeters > 300f);
+        assertTrue(instantState.displayMode.movingScaleActive);
+        assertEquals(300f, instantState.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(controller.isTransitionInProgress());
+    }
+
     private static NavCompassState stationaryState() {
         return compassState(false, 2_000f, 300f, 1f, 5f);
     }

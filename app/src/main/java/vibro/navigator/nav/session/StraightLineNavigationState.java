@@ -268,10 +268,16 @@ final class StraightLineNavigationState {
                 snapshot.headingDegrees,
                 snapshot.headingAccuracyDegrees,
                 acceptedFixes,
-                compassMemory.lastVisibleRadiusMeters(),
+                CompassZoomAnimationPolicy.previousVisibleRadius(
+                        snapshot.compassZoomAnimationEnabled,
+                        compassMemory.lastVisibleRadiusMeters()
+                ),
                 compassMemory.lastReliableMovingVisibleRadiusMeters(),
                 compassMemory.lastReliableMovingSpeedBucket(),
-                compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs),
+                CompassZoomAnimationPolicy.updateDeltaMs(
+                        snapshot.compassZoomAnimationEnabled,
+                        compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
+                ),
                 snapshot.nowMs
         );
     }

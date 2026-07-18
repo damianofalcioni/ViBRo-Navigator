@@ -31,17 +31,33 @@ public final class NavigationCompassModeController {
     }
 
     public void onCompassTapped(@Nullable NavCompassState automaticState) {
-        onCompassTapped(automaticState, elapsedRealtimeClock.elapsedRealtimeMs());
+        onCompassTapped(automaticState, elapsedRealtimeClock.elapsedRealtimeMs(), true);
+    }
+
+    public void onCompassTapped(@Nullable NavCompassState automaticState, boolean animateRadiusTransition) {
+        onCompassTapped(automaticState, elapsedRealtimeClock.elapsedRealtimeMs(), animateRadiusTransition);
     }
 
     public void onCompassTapped(@Nullable NavCompassState automaticState, long nowElapsedMs) {
+        onCompassTapped(automaticState, nowElapsedMs, true);
+    }
+
+    public void onCompassTapped(
+            @Nullable NavCompassState automaticState,
+            long nowElapsedMs,
+            boolean animateRadiusTransition
+    ) {
         if (automaticState == null) {
             return;
         }
         boolean automaticMovingScaleView = automaticState.displayMode.movingScaleActive;
-        boolean displayedMovingScaleView = resolveDisplayedMode(automaticMovingScaleView, nowElapsedMs);
+        boolean displayedMovingScaleView = resolveDisplayedMode(
+                automaticMovingScaleView,
+                nowElapsedMs,
+                animateRadiusTransition
+        );
         boolean targetMovingScaleView = !displayedMovingScaleView;
-        startRadiusTransition(nowElapsedMs);
+        startRadiusTransition(nowElapsedMs, animateRadiusTransition);
         if (targetMovingScaleView == automaticMovingScaleView) {
             clearOverride();
             return;
@@ -54,40 +70,75 @@ public final class NavigationCompassModeController {
 
     @Nullable
     public NavCompassState resolve(@Nullable NavCompassState automaticState) {
-        return resolve(automaticState, elapsedRealtimeClock.elapsedRealtimeMs());
+        return resolve(automaticState, elapsedRealtimeClock.elapsedRealtimeMs(), true);
+    }
+
+    @Nullable
+    public NavCompassState resolve(@Nullable NavCompassState automaticState, boolean animateRadiusTransition) {
+        return resolve(automaticState, elapsedRealtimeClock.elapsedRealtimeMs(), animateRadiusTransition);
     }
 
     @Nullable
     public NavCompassState resolve(@Nullable NavCompassState automaticState, long nowElapsedMs) {
+        return resolve(automaticState, nowElapsedMs, true);
+    }
+
+    @Nullable
+    public NavCompassState resolve(
+            @Nullable NavCompassState automaticState,
+            long nowElapsedMs,
+            boolean animateRadiusTransition
+    ) {
         if (automaticState == null) {
             clear();
             return null;
         }
         boolean automaticMovingScaleView = automaticState.displayMode.movingScaleActive;
-        Boolean displayedMovingScaleView = resolveOverrideMode(automaticMovingScaleView, nowElapsedMs);
+        Boolean displayedMovingScaleView = resolveOverrideMode(
+                automaticMovingScaleView,
+                nowElapsedMs,
+                animateRadiusTransition
+        );
         NavCompassState targetState = displayedMovingScaleView == null
                 ? automaticState
                 : automaticState.withDisplayMode(displayedMovingScaleView);
-        return resolveTransitionedState(automaticState, targetState, nowElapsedMs);
+        return resolveTransitionedState(
+                automaticState,
+                targetState,
+                nowElapsedMs,
+                animateRadiusTransition
+        );
     }
 
     public boolean isTransitionInProgress() {
         return radiusTransitionActive;
     }
 
-    private boolean resolveDisplayedMode(boolean automaticMovingScaleView, long nowElapsedMs) {
-        Boolean overrideMode = resolveOverrideMode(automaticMovingScaleView, nowElapsedMs);
+    private boolean resolveDisplayedMode(
+            boolean automaticMovingScaleView,
+            long nowElapsedMs,
+            boolean animateRadiusTransition
+    ) {
+        Boolean overrideMode = resolveOverrideMode(
+                automaticMovingScaleView,
+                nowElapsedMs,
+                animateRadiusTransition
+        );
         return overrideMode != null ? overrideMode : automaticMovingScaleView;
     }
 
     @Nullable
-    private Boolean resolveOverrideMode(boolean automaticMovingScaleView, long nowElapsedMs) {
+    private Boolean resolveOverrideMode(
+            boolean automaticMovingScaleView,
+            long nowElapsedMs,
+            boolean animateRadiusTransition
+    ) {
         if (overrideMovingScaleView == null) {
             return null;
         }
         if (overrideExpiryElapsedMs != NO_EXPIRY && nowElapsedMs >= overrideExpiryElapsedMs) {
             clearOverride();
-            startRadiusTransition(nowElapsedMs);
+            startRadiusTransition(nowElapsedMs, animateRadiusTransition);
             return null;
         }
         if (overrideMovingScaleView == automaticMovingScaleView) {
@@ -101,8 +152,14 @@ public final class NavigationCompassModeController {
     private NavCompassState resolveTransitionedState(
             @NonNull NavCompassState automaticState,
             @NonNull NavCompassState targetState,
-            long nowElapsedMs
+            long nowElapsedMs,
+            boolean animateRadiusTransition
     ) {
+        if (!animateRadiusTransition) {
+            radiusTransitionActive = false;
+            rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
+            return targetState;
+        }
         if (!radiusTransitionActive) {
             rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
             return targetState;
@@ -130,8 +187,8 @@ public final class NavigationCompassModeController {
         return targetState.withDisplayMode(targetState.displayMode.movingScaleActive, resolvedRadiusMeters);
     }
 
-    private void startRadiusTransition(long nowElapsedMs) {
-        radiusTransitionActive = true;
+    private void startRadiusTransition(long nowElapsedMs, boolean animateRadiusTransition) {
+        radiusTransitionActive = animateRadiusTransition;
         lastRadiusTransitionUpdateElapsedMs = nowElapsedMs;
     }
 

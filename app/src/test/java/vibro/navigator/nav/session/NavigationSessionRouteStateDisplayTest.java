@@ -450,6 +450,61 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
     }
 
     @Test
+    public void buildState_withCompassZoomAnimationDisabledShowsOverviewImmediately() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.018),
+                Collections.emptyList()
+        );
+        state.applyRouteResult(
+                context,
+                snapshot(request),
+                new GeoJsonRoute(
+                        Arrays.asList(
+                                new LatLon(0.0, 0.0),
+                                new LatLon(0.0, 0.006),
+                                new LatLon(0.0, 0.012),
+                                new LatLon(0.0, 0.018)
+                        ),
+                        Collections.emptyList(),
+                        2_000.0,
+                        1_999.0
+                ),
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                500L
+        );
+
+        NavState movingState = state.advanceDisplayState(compassSnapshot(
+                context,
+                locationWithSpeed(0.0, 0.0, 1_000L, 20f),
+                20f,
+                false,
+                1_000L,
+                true
+        ));
+        NavState instantOverviewState = state.advanceDisplayState(compassSnapshot(
+                context,
+                locationWithSpeed(0.0, 0.0, 1_500L, 0f),
+                0f,
+                true,
+                1_500L,
+                false
+        ));
+
+        assertTrue(movingState.routeStatus.compassState.radiusState.visibleRadiusMeters
+                < instantOverviewState.routeStatus.compassState.radiusState.fullRouteVisibleRadiusMeters);
+        assertEquals(
+                instantOverviewState.routeStatus.compassState.radiusState.fullRouteVisibleRadiusMeters,
+                instantOverviewState.routeStatus.compassState.radiusState.visibleRadiusMeters,
+                0.01f
+        );
+    }
+
+    @Test
     public void buildState_withoutActiveRouteShowsFriendlyNoRouteMessage() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -647,5 +702,23 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
 
         assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_route_notice_blocked_road_recalculating)));
         assertTrue(navState.routeStatus.progress.detailBlock.contains(context.getString(R.string.nav_calculating_route_body)));
+    }
+
+    @NonNull
+    private static NavigationDisplaySnapshot compassSnapshot(
+            @NonNull NavigationTextResources context,
+            @NonNull NavigationLocation location,
+            float speedMps,
+            boolean likelyStationary,
+            long nowMs,
+            boolean compassZoomAnimationEnabled
+    ) {
+        return NavigationDisplaySnapshot.builder(context)
+                .location(location, speedMps, likelyStationary, 5f)
+                .gps(null, 0)
+                .timing(NavState.NO_DEADLINE, nowMs)
+                .routeCalculation(false, null, null)
+                .compassZoomAnimationEnabled(compassZoomAnimationEnabled)
+                .build();
     }
 }

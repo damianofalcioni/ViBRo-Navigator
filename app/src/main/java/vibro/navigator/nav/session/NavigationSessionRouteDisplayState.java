@@ -147,12 +147,24 @@ public final class NavigationSessionRouteDisplayState {
                         NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(compassAccuracyMeters))
                 .heading(snapshot.headingDegrees, snapshot.headingAccuracyDegrees)
                 .radiusMemory(
-                        compassMemory.lastVisibleRadiusMeters(),
+                        CompassZoomAnimationPolicy.previousVisibleRadius(
+                                snapshot.compassZoomAnimationEnabled,
+                                compassMemory.lastVisibleRadiusMeters()
+                        ),
                         compassMemory.lastReliableMovingVisibleRadiusMeters(),
-                        compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
+                        CompassZoomAnimationPolicy.updateDeltaMs(
+                                snapshot.compassZoomAnimationEnabled,
+                                compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
+                        )
                 )
                 .speedBucketMemory(compassMemory.lastReliableMovingSpeedBucket())
-                .geometry(compassMemory.routeGeometry(), compassMemory.radiusTransition)
+                .geometry(
+                        compassMemory.routeGeometry(),
+                        CompassZoomAnimationPolicy.transition(
+                                snapshot.compassZoomAnimationEnabled,
+                                compassMemory.radiusTransition
+                        )
+                )
                 .routeStartApproachTarget(routeStartApproachTarget)
                 .orientationCue(orientationCue)
                 .blockedAreas(NavigationBlockedCompassAreas.project(snapshot.lastFiltered, snapshot.blockedPoints))

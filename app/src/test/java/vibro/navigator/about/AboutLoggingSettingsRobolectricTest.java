@@ -66,6 +66,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppSettings.setFusedLocationEnabled(context, true);
         AppSettings.setImperialUnitsEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, false);
+        AppCompassSettings.setInstantZoomEnabled(context, false);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
         AppNotificationSettings.setSingleInstructionModeEnabled(context, false);
         AppThemeSettings.setLightThemeEnabled(context, false);
@@ -143,6 +144,7 @@ public class AboutLoggingSettingsRobolectricTest {
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
+        Switch compassInstantZoomSwitch = activity.findViewById(R.id.aboutCompassInstantZoomSwitch);
         Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
         TextView poiCategoriesLabel = activity.findViewById(R.id.aboutPoiCategoriesLabel);
         ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
@@ -167,6 +169,11 @@ public class AboutLoggingSettingsRobolectricTest {
                 surroundingStreetsSwitch.getText().toString()
         );
         assertFalse(surroundingStreetsSwitch.isChecked());
+        assertEquals(
+                activity.getString(R.string.label_compass_instant_zoom_enabled),
+                compassInstantZoomSwitch.getText().toString()
+        );
+        assertFalse(compassInstantZoomSwitch.isChecked());
         assertAndroidAutoSetting(activity, androidAutoSwitch);
         assertEquals(activity.getString(R.string.label_poi_categories), poiCategoriesLabel.getText().toString());
         assertEquals(
@@ -252,21 +259,27 @@ public class AboutLoggingSettingsRobolectricTest {
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         Switch fusedLocationSwitch = activity.findViewById(R.id.aboutFusedLocationSwitch);
         Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
+        Switch compassInstantZoomSwitch = activity.findViewById(R.id.aboutCompassInstantZoomSwitch);
 
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
         assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+        assertFalse(AppCompassSettings.isInstantZoomEnabled(activity));
 
         imperialUnitsSwitch.performClick();
         surroundingStreetsSwitch.performClick();
+        compassInstantZoomSwitch.performClick();
 
         assertTrue(imperialUnitsSwitch.isChecked());
         assertTrue(surroundingStreetsSwitch.isChecked());
+        assertTrue(compassInstantZoomSwitch.isChecked());
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
         assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+        assertFalse(AppCompassSettings.isInstantZoomEnabled(activity));
         idleDeferredSettingApply();
 
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+        assertTrue(AppCompassSettings.isInstantZoomEnabled(activity));
 
         if (!DistributionServices.supportsFusedLocation()) {
             assertFalse(fusedLocationSwitch.isEnabled());
