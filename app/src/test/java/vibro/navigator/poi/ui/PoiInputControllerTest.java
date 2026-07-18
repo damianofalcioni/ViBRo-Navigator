@@ -9,7 +9,9 @@ import static org.robolectric.Shadows.shadowOf;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Looper;
+import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -87,6 +89,64 @@ public class PoiInputControllerTest {
         controller.setPoi(selected);
 
         assertFalse(controller.getEditText().hasFocus());
+    }
+
+    @Test
+    public void clearButton_appearsOnlyWhenTextIsPresent() {
+        ImageButton clearButton = new ImageButton(context);
+        EditText editText = new EditText(context);
+        PoiInputController controller = new PoiInputController(
+                context,
+                editText,
+                new PoiHistoryStore(context),
+                (query, limit) -> Collections.emptyList(),
+                poi -> {
+                }
+        );
+        PoiInputClearButtonController.bind(editText, clearButton);
+
+        assertEquals(View.GONE, clearButton.getVisibility());
+
+        controller.getEditText().setText("Cafe Central");
+
+        assertEquals(View.VISIBLE, clearButton.getVisibility());
+
+        controller.getEditText().setText("");
+
+        assertEquals(View.GONE, clearButton.getVisibility());
+    }
+
+    @Test
+    public void clearButton_clearsTextSelectionAndHidesItself() {
+        AtomicInteger searchCalls = new AtomicInteger();
+        ImageButton clearButton = new ImageButton(context);
+        EditText editText = new EditText(context);
+        Poi selected = new Poi(SAVED_DESTINATION, 48.2082d, 16.3738d);
+        PoiInputController controller = new PoiInputController(
+                context,
+                editText,
+                new PoiHistoryStore(context),
+                (query, limit) -> {
+                    searchCalls.incrementAndGet();
+                    return Collections.emptyList();
+                },
+                poi -> {
+                }
+        );
+        PoiInputClearButtonController.bind(editText, clearButton);
+
+        assertEquals(View.GONE, clearButton.getVisibility());
+
+        controller.setPoi(selected);
+        assertEquals(View.VISIBLE, clearButton.getVisibility());
+
+        clearButton.performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
+
+        assertEquals("", controller.getRawText());
+        assertEquals(null, controller.getSelectedPoi());
+        assertEquals(View.GONE, clearButton.getVisibility());
+        assertEquals(0, searchCalls.get());
     }
 
     @Test

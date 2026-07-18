@@ -25,6 +25,7 @@
     <string name="action_test_maneuver_voice">Test speech directions voice</string>
     <string name="action_voice_search_destination">Speak destination</string>
     <string name="action_voice_search_stop">Speak stop</string>
+    <string name="action_clear_poi_search">Clear search text</string>
     <string name="action_save">Save Key</string>
     <string name="action_save_poi_categories">Save</string>
     <string name="action_open_map">Map</string>

@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
+import vibro.navigator.poi.ui.PoiInputClearButtonController;
 import vibro.navigator.poi.ui.PoiInputController;
 import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
@@ -98,6 +99,7 @@ public class MainActivity extends Activity {
                 poi -> {
                 }
         );
+        PoiInputClearButtonController.bind(controls.destinationEdit, controls.destinationClearButton);
         controls.routeRailView.setRouteAnchors(controls.destinationRow, controls.startNavButton);
         stopController = new MainActivityStopController(
                 this,
