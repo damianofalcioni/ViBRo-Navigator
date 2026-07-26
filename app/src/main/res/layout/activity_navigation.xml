@@ -82,6 +82,18 @@
                 android:src="@drawable/ic_export"
                 android:tint="@null" />
 
+            <ImageButton
+                android:id="@+id/navigationCustomButton"
+                style="@style/Widget.ViBRoNavigator.IconButton"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_alignTop="@id/navigationCompassView"
+                android:layout_alignEnd="@id/navigationCompassView"
+                android:contentDescription="@string/label_navigation_custom_button"
+                android:src="@drawable/ic_custom_dynamic_gps_interval_enabled"
+                android:tint="@null"
+                android:visibility="gone" />
+
             <TextView
                 android:id="@+id/speedLimitText"
                 style="@style/Widget.ViBRoNavigator.SpeedLimitBadge"

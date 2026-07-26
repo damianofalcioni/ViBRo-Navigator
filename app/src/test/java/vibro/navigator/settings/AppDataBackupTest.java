@@ -84,6 +84,7 @@ public class AppDataBackupTest {
         enableCompassSettings();
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
         AppNotificationSettings.setSingleInstructionModeEnabled(context, true);
+        enableCustomButtonSettings();
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.ROUND_TRIP);
         AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
@@ -135,6 +136,7 @@ public class AppDataBackupTest {
         assertCompassSettingsRestored();
         assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(context));
         assertTrue(AppNotificationSettings.isSingleInstructionModeEnabled(context));
+        assertCustomButtonSettingsRestored();
         assertEquals(NavigationRoutingMode.ROUND_TRIP, AppMainUiSettings.getRoutingMode(context));
         assertTrue(AppThemeSettings.isLightThemeEnabled(context));
         assertEquals(GOOGLE_POI_API_KEY, AppSettings.getGooglePoiApiKey(context));
@@ -162,6 +164,7 @@ public class AppDataBackupTest {
         enableCompassSettings();
         AppNotificationSettings.setNavigationNotificationsEnabled(context, false);
         AppNotificationSettings.setSingleInstructionModeEnabled(context, true);
+        enableCustomButtonSettings();
         AppMainUiSettings.setRoutingMode(context, NavigationRoutingMode.STRAIGHT_LINE);
         AppThemeSettings.setLightThemeEnabled(context, true);
         AppSettings.setValidatedGooglePoiApiKey(context, GOOGLE_POI_API_KEY);
@@ -195,6 +198,7 @@ public class AppDataBackupTest {
         assertBooleanPreference(appSettings, "dynamic_gps_fix_interval_enabled", false);
         assertCompassPreferencePayload(appSettings);
         assertNotificationPreferences(navigationNotifications, singleInstructionMode);
+        assertCustomButtonPreferencePayload(appSettings);
         assertEquals(BACKUP_TYPE_STRING, mainUiRoutingMode.getString(BACKUP_TYPE));
         assertEquals(NavigationRoutingMode.STRAIGHT_LINE.serializedName(), mainUiRoutingMode.getString(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, lightTheme.getString(BACKUP_TYPE));
@@ -315,10 +319,26 @@ public class AppDataBackupTest {
         AppCompassSettings.setFullscreenRouteEnabled(context, true);
     }
 
+    private void enableCustomButtonSettings() {
+        AppNavigationCustomButtonSettings.setEnabled(context, true);
+        AppNavigationCustomButtonSettings.setTarget(
+                context,
+                AppNavigationCustomButtonSettings.Target.SPEECH_DIRECTIONS
+        );
+    }
+
     private void assertCompassSettingsRestored() {
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
         assertTrue(AppCompassSettings.isInstantZoomEnabled(context));
         assertTrue(AppCompassSettings.isFullscreenRouteEnabled(context));
+    }
+
+    private void assertCustomButtonSettingsRestored() {
+        assertTrue(AppNavigationCustomButtonSettings.isEnabled(context));
+        assertEquals(
+                AppNavigationCustomButtonSettings.Target.SPEECH_DIRECTIONS,
+                AppNavigationCustomButtonSettings.getTarget(context)
+        );
     }
 
     private static void assertCompassPreferencePayload(JSONObject appSettings) throws JSONException {
@@ -345,6 +365,26 @@ public class AppDataBackupTest {
         assertFalse(navigationNotifications.getBoolean(BACKUP_VALUE));
         assertEquals(BACKUP_TYPE_BOOLEAN, singleInstructionMode.getString(BACKUP_TYPE));
         assertTrue(singleInstructionMode.getBoolean(BACKUP_VALUE));
+    }
+
+    private static void assertCustomButtonPreferencePayload(JSONObject appSettings) throws JSONException {
+        assertCustomButtonPreferences(
+                appSettings.getJSONObject("navigation_custom_button_enabled"),
+                appSettings.getJSONObject("navigation_custom_button_target")
+        );
+    }
+
+    private static void assertCustomButtonPreferences(
+            JSONObject customButtonEnabled,
+            JSONObject customButtonTarget
+    ) throws JSONException {
+        assertEquals(BACKUP_TYPE_BOOLEAN, customButtonEnabled.getString(BACKUP_TYPE));
+        assertTrue(customButtonEnabled.getBoolean(BACKUP_VALUE));
+        assertEquals(BACKUP_TYPE_STRING, customButtonTarget.getString(BACKUP_TYPE));
+        assertEquals(
+                AppNavigationCustomButtonSettings.Target.SPEECH_DIRECTIONS.serializedName(),
+                customButtonTarget.getString(BACKUP_VALUE)
+        );
     }
 
     private static final class OneShotFailingCommitContext extends ContextWrapper {

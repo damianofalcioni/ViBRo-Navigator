@@ -593,6 +593,13 @@ The navigation UI must show the following in large text:
 - Pressing the settings button must open the existing About page and scroll directly to its Settings section while keeping the active foreground navigation session running
 - Returning from the About page must refresh navigation UI theme state and active location-update settings so relevant setting changes apply during the ongoing navigation session
 
+#### 4.5.3.4 Custom button
+
+- The navigation UI may show an icon-only custom button in the top-right corner of the measured compass square when the Custom button setting is enabled
+- The custom button must overlay the compass area so it does not shrink, reflow, or otherwise change the compass route view
+- Pressing the custom button must toggle exactly one configured setting: Dynamic GPS interval, Light Theme, Surrounding streets, Fullscreen route, Notifications, or Speech directions
+- The custom button icon must reflect both the configured setting and that setting's current enabled or disabled state
+
 #### 4.5.4 Blocked road button
 
 - Near the top of the screen: an icon-only circular blocked-road button
@@ -741,6 +748,7 @@ The navigation UI must show the following in large text:
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
 - The about page Settings section must show a Navigation notifications switch that enables or disables transient live-navigation alert notifications; the permanent foreground navigation notification and diagnostic direction test notifications must remain enabled
 - The about page Settings section must show a Single instruction mode switch that keeps navigation alert notifications enabled but changes routed maneuver notifications to a single trustworthy 10-second approaching alert; reached-arrival and warning notifications must not be disabled by this mode
+- The about page Settings section must show a Custom button setting with a switch to show or hide the navigation custom button and an icon-only configuration button whose UI uses a spinner to choose the setting toggled by that navigation button: Dynamic GPS interval, Light Theme, Surrounding streets, Fullscreen route, Notifications, or Speech directions
 - The about page Diagnostic section must currently list the app's used live inputs:
   - GPS provider
   - network provider

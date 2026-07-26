@@ -12,6 +12,7 @@ import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.ui.NavigationCompassView;
+import vibro.navigator.settings.AppCompassSettings;
 
 final class NavigationCompassSurfaces {
     private static final int FOREGROUND_PANEL_ALPHA = 210;
@@ -77,6 +78,14 @@ final class NavigationCompassSurfaces {
         fullscreenCompass.setNavigationPaused(navigationPaused);
         compactCompass.setCompassState(compassState);
         fullscreenCompass.setCompassState(compassState);
+    }
+
+    boolean fullscreenRouteModeEnabled() {
+        return AppCompassSettings.isFullscreenRouteEnabled(activity);
+    }
+
+    boolean zoomAnimationEnabled() {
+        return !AppCompassSettings.isInstantZoomEnabled(activity);
     }
 
     private void applyFullscreenRouteMode(boolean enabled) {

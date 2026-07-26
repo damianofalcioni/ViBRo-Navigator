@@ -1,32 +1,18 @@
 package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
-import vibro.navigator.android.theme.AndroidAppTheme;
 
 
-import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
-import vibro.navigator.settings.AppCompassSettings;
 import android.app.Activity;
-import android.graphics.Typeface;
-import android.graphics.PorterDuff;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
-import android.util.TypedValue;
 import android.view.View;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
-import androidx.core.widget.TextViewCompat;
 
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
@@ -45,8 +31,6 @@ final class NavigationActivityRenderer {
 
     private static final String TAG = "NavigationActivity";
     private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
-    private static final float BUTTON_ENABLED_ALPHA = 1f;
-    private static final float BLOCKED_ROAD_DISABLED_ALPHA = 0.45f;
 
     private final Activity activity;
     private final TaskScheduler uiScheduler;
@@ -58,13 +42,10 @@ final class NavigationActivityRenderer {
     private final NavigationCompassSurfaces compassSurfaces;
     private final TextView gpsStatus;
     private final TextView speedLimit;
-    private final ImageButton blocked;
-    private final ImageButton export;
-    private final ImageButton settings;
-    private final ImageButton pauseResume;
-    private final ImageButton stop;
+    private final NavigationBlockedRoadButton blockedRoadButton;
+    private final NavigationCustomButtonUi customButtonUi;
+    private final NavigationActionButtons actionButtons;
     private final NavigationDetailsDialogs detailsDialogs;
-    private final Runnable afterSettingsLaunch;
     private final Runnable compassTransitionTicker = this::renderCompassState;
 
     @Nullable
@@ -81,7 +62,6 @@ final class NavigationActivityRenderer {
     ) {
         this.activity = activity;
         this.uiScheduler = uiScheduler;
-        this.afterSettingsLaunch = afterSettingsLaunch;
         compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         directionsBlock = activity.findViewById(R.id.turnInstructionRow);
         next = activity.findViewById(R.id.nextDirectionText);
@@ -89,16 +69,14 @@ final class NavigationActivityRenderer {
         destination = activity.findViewById(R.id.destinationText);
         gpsStatus = activity.findViewById(R.id.gpsStatusText);
         speedLimit = activity.findViewById(R.id.speedLimitText);
-        blocked = activity.findViewById(R.id.blockedRoadButton);
-        export = activity.findViewById(R.id.exportRouteButton);
-        settings = activity.findViewById(R.id.navigationSettingsButton);
+        blockedRoadButton = new NavigationBlockedRoadButton(activity);
+        actionButtons = new NavigationActionButtons(activity, uiScheduler, afterSettingsLaunch);
+        customButtonUi = new NavigationCustomButtonUi(activity, uiScheduler, new CustomButtonHost());
         compassSurfaces = new NavigationCompassSurfaces(activity, directionsBlock, destination);
-        compassSurfaces.alignFullscreenCenterWith(settings, export);
-        pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
-        stop = activity.findViewById(R.id.stopNavButton);
+        compassSurfaces.alignFullscreenCenterWith(actionButtons.settingsAnchor(), actionButtons.exportAnchor());
         detailsDialogs = new NavigationDetailsDialogs(activity, elapsedRealtimeClock);
         compassSurfaces.includeForegroundText(gpsStatus);
-        configureTextScaling();
+        NavigationActivityTextScaling.configure(next, afterNext, gpsStatus, speedLimit);
     }
 
     void configureControls(@NonNull Controls controls) {
@@ -110,11 +88,24 @@ final class NavigationActivityRenderer {
             renderCompassState();
         };
         compassSurfaces.setOnClickListener(compassClickListener);
-        blocked.setOnClickListener(v -> controls.onBlockedRoad());
-        export.setOnClickListener(v -> controls.onExportRoute());
-        NavigationSettingsLauncher.configure(activity, uiScheduler, settings, afterSettingsLaunch);
-        stop.setOnClickListener(v -> controls.onStopNavigation());
-        pauseResume.setOnClickListener(v -> controls.onTogglePaused());
+        blockedRoadButton.setOnClickListener(v -> controls.onBlockedRoad());
+        customButtonUi.configure();
+        actionButtons.configure(new NavigationActionButtons.Listener() {
+            @Override
+            public void onStopNavigation() {
+                controls.onStopNavigation();
+            }
+
+            @Override
+            public void onTogglePaused() {
+                controls.onTogglePaused();
+            }
+
+            @Override
+            public void onExportRoute() {
+                controls.onExportRoute();
+            }
+        });
         gpsStatus.setClickable(true);
         gpsStatus.setFocusable(true);
         gpsStatus.setOnClickListener(v -> detailsDialogs.showGps(currentState));
@@ -140,36 +131,21 @@ final class NavigationActivityRenderer {
         afterNext.setText(state.routeStatus.guidance.afterNextLine);
         destination.setText(state.routeStatus.displayStatusBlock());
         renderCompassState();
-        renderSpeedLimit(state);
-        renderBlockedRoadButton(state, navBinder);
-        export.setEnabled(navBinder != null);
-        pauseResume.setEnabled(navBinder != null);
-        pauseResume.setImageResource(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause);
-        pauseResume.setContentDescription(activity.getString(
-                state.pauseStatus.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
-        ));
+        NavigationActivityTextScaling.renderSpeedLimit(activity, speedLimit, state);
+        blockedRoadButton.render(state, navBinder);
+        customButtonUi.render();
+        actionButtons.render(state, navBinder);
         renderLiveDetails();
         logRenderedStateIfChanged(state);
     }
 
     void refreshSettings() {
         renderCompassState();
+        customButtonUi.render();
     }
 
-    private void renderBlockedRoadButton(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
-        boolean enabled = navBinder != null
-                && state.routeStatus.blockedRoadActionAvailable
-                && !state.pauseStatus.paused;
-        blocked.setEnabled(enabled);
-        blocked.setAlpha(enabled ? BUTTON_ENABLED_ALPHA : BLOCKED_ROAD_DISABLED_ALPHA);
-        if (enabled) {
-            blocked.clearColorFilter();
-            return;
-        }
-        blocked.setColorFilter(
-                AndroidAppTheme.color(activity, R.attr.vibroTextSecondaryColor),
-                PorterDuff.Mode.SRC_IN
-        );
+    boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+        return customButtonUi.onRequestPermissionsResult(requestCode, grantResults);
     }
 
     void renderLiveDetails() {
@@ -184,7 +160,7 @@ final class NavigationActivityRenderer {
                 detailsDialogs.gpsStatusLine(currentState),
                 nextEvaluationValue
         );
-        gpsStatus.setText(styleGpsStatus(statusText, currentState));
+        gpsStatus.setText(NavigationActivityTextScaling.styleGpsStatus(activity, statusText, currentState));
     }
 
     void cancelPendingCompassTransition() {
@@ -195,43 +171,11 @@ final class NavigationActivityRenderer {
         detailsDialogs.dismissAll();
     }
 
-    private void configureTextScaling() {
-        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                next,
-                10,
-                22,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-        );
-        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                afterNext,
-                12,
-                18,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-        );
-        gpsStatus.setMaxLines(1);
-        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                gpsStatus,
-                10,
-                18,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-        );
-        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                speedLimit,
-                10,
-                16,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-        );
-    }
-
     private void renderCompassState() {
-        @Nullable NavCompassState compassState = currentState == null ? null : currentState.routeStatus.compassState;
-        boolean fullscreenRouteMode = AppCompassSettings.isFullscreenRouteEnabled(activity);
+        var compassState = currentState == null ? null : currentState.routeStatus.compassState;
+        boolean fullscreenRouteMode = compassSurfaces.fullscreenRouteModeEnabled();
         boolean navigationPaused = currentState != null && currentState.pauseStatus.paused;
-        NavCompassState displayedCompassState = compassModeController.resolve(
+        var displayedCompassState = compassModeController.resolve(
                 compassState,
                 compassZoomAnimationEnabled()
         );
@@ -246,82 +190,7 @@ final class NavigationActivityRenderer {
     }
 
     private boolean compassZoomAnimationEnabled() {
-        return !AppCompassSettings.isInstantZoomEnabled(activity);
-    }
-
-    private void renderSpeedLimit(@NonNull NavState state) {
-        if (state.routeStatus.speedLimit == null) {
-            speedLimit.setVisibility(View.GONE);
-            speedLimit.setText("");
-            speedLimit.setContentDescription(null);
-            return;
-        }
-        speedLimit.setText(NavigationSpeedLimitFormatter.formatBadge(state.routeStatus.speedLimit));
-        speedLimit.setContentDescription(
-                NavigationSpeedLimitFormatter.formatContentDescription(activity, state.routeStatus.speedLimit)
-        );
-        speedLimit.setVisibility(View.VISIBLE);
-    }
-
-    @NonNull
-    private CharSequence styleGpsStatus(@NonNull String statusText, @Nullable NavState state) {
-        SpannableString styledText = new SpannableString(statusText);
-        if (state == null) {
-            return styledText;
-        }
-        styleAccuracy(styledText, statusText, state);
-        if (!NavigationSpeedLimitFormatter.isOverLimit(
-                state.gpsStatus.telemetry.speedMps,
-                state.routeStatus.speedLimit
-        )) {
-            return styledText;
-        }
-        int speedStart = statusText.indexOf(state.gpsStatus.telemetry.speedText);
-        if (speedStart < 0) {
-            return styledText;
-        }
-        int speedEnd = speedStart + state.gpsStatus.telemetry.speedText.length();
-        styledText.setSpan(
-                new StyleSpan(Typeface.BOLD),
-                speedStart,
-                speedEnd,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        );
-        return styledText;
-    }
-
-    private void styleAccuracy(
-            @NonNull SpannableString styledText,
-            @NonNull String statusText,
-            @NonNull NavState state
-    ) {
-        int accuracyStart = accuracyStart(statusText, state);
-        if (accuracyStart < 0) {
-            return;
-        }
-        int accuracyEnd = accuracyStart + state.gpsStatus.telemetry.accuracyText.length();
-        styledText.setSpan(
-                new ForegroundColorSpan(ContextCompat.getColor(activity, R.color.compass_accent)),
-                accuracyStart,
-                accuracyEnd,
-                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-        );
-    }
-
-    private int accuracyStart(@NonNull String statusText, @NonNull NavState state) {
-        int compactStart = statusText.indexOf(state.gpsStatus.statusLine);
-        if (compactStart < 0) {
-            return -1;
-        }
-        int elevationStart = state.gpsStatus.statusLine.indexOf(state.gpsStatus.telemetry.elevationText);
-        if (elevationStart < 0) {
-            return -1;
-        }
-        int accuracyStart = state.gpsStatus.statusLine.indexOf(
-                state.gpsStatus.telemetry.accuracyText,
-                elevationStart + state.gpsStatus.telemetry.elevationText.length()
-        );
-        return accuracyStart < 0 ? -1 : compactStart + accuracyStart;
+        return compassSurfaces.zoomAnimationEnabled();
     }
 
     private void logRenderedStateIfChanged(@NonNull NavState state) {
@@ -358,6 +227,19 @@ final class NavigationActivityRenderer {
         return state.routeStatus.speedLimit == null
                 ? "none"
                 : state.routeStatus.speedLimit.value + " " + state.routeStatus.speedLimit.unit;
+    }
+
+    private final class CustomButtonHost implements NavigationCustomButtonController.Host {
+        @Nullable
+        @Override
+        public NavigationServiceBinder currentBinder() {
+            return currentBinder;
+        }
+
+        @Override
+        public void refreshNavigationUiSettings() {
+            refreshSettings();
+        }
     }
 }
 

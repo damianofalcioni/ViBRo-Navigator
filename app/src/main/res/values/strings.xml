@@ -42,6 +42,7 @@
     <string name="action_current_location">Current location</string>
     <string name="action_edit_poi_categories">Edit POI categories</string>
     <string name="action_edit_google_poi_api_key">Edit Google Maps API key</string>
+    <string name="action_configure_navigation_custom_button">Configure custom button</string>
     <string name="action_enable_google_poi_search">Enable Google search</string>
     <string name="action_add_poi_category">Add POI category</string>
     <string name="action_remove_poi_category">Remove POI category</string>
@@ -380,8 +381,13 @@
     <string name="label_maneuver_voice_gender_female">Female</string>
     <string name="label_maneuver_voice_gender_male">Male</string>
     <string name="label_google_poi_api_key">Google Maps API key</string>
+    <string name="label_navigation_custom_button">Custom button</string>
+    <string name="label_navigation_custom_button_target">Setting</string>
+    <string name="label_setting_enabled">enabled</string>
+    <string name="label_setting_disabled">disabled</string>
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
     <string name="format_about_setting_info_content_description">Show help for %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">Toggle %1$s (%2$s)</string>
     <string name="about_setting_log_info">Keeps a log that can help diagnose problems. Leave this off unless you need to share details for support.</string>
     <string name="about_setting_auto_save_gpx_info">Saves the active route as a GPX file when you stop navigation with the Stop button.</string>
     <string name="about_setting_fused_location_info">Uses Google location when available. This can improve location updates on some phones.</string>
@@ -393,6 +399,7 @@
     <string name="about_setting_compass_fullscreen_route_info">Expands the route compass view behind the full navigation screen while keeping controls and direction text visible in front.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
+    <string name="about_setting_navigation_custom_button_info">Shows an extra button in the navigation compass that toggles the selected setting while navigation is open.</string>
     <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto.</string>
     <string name="about_setting_poi_categories_info">Chooses which places can appear on the map picker, such as fuel, parking, or toilets.</string>
     <string name="about_setting_speech_recognition_info">Shows microphone buttons for destination and stop voice input and chooses the requested recognition language. Android may use its default if the selected speech recognizer does not support the requested language.</string>

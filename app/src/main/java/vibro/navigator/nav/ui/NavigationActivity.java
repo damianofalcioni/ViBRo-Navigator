@@ -297,7 +297,9 @@ public class NavigationActivity extends Activity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
-        if (NavigationActivityPermissionResultHandler.disableSurroundingStreetsWhenStorageDenied(
+        boolean customButtonHandled = renderer != null
+                && renderer.onRequestPermissionsResult(requestCode, grantResults);
+        if (!customButtonHandled && NavigationActivityPermissionResultHandler.disableSurroundingStreetsWhenStorageDenied(
                 this,
                 permissions,
                 grantResults

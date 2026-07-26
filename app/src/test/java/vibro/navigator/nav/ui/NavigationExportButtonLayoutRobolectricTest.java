@@ -31,6 +31,17 @@ public class NavigationExportButtonLayoutRobolectricTest {
         assertExportButtonIsBottomRightOfCompass();
     }
 
+    @Test
+    public void customButtonIsTopRightOfCompassInPortrait() {
+        assertCustomButtonIsTopRightOfCompass();
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    public void customButtonIsTopRightOfCompassInLandscape() {
+        assertCustomButtonIsTopRightOfCompass();
+    }
+
     private static void assertExportButtonIsBottomRightOfCompass() {
         Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
         intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
@@ -41,6 +52,19 @@ public class NavigationExportButtonLayoutRobolectricTest {
 
         assertEquals(0, params.getRule(RelativeLayout.ALIGN_TOP));
         assertEquals(R.id.navigationCompassView, params.getRule(RelativeLayout.ALIGN_BOTTOM));
+        assertEquals(R.id.navigationCompassView, resolvedEndRule(params));
+    }
+
+    private static void assertCustomButtonIsTopRightOfCompass() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
+        intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+        ActivityController<TestNavigationActivity> controller =
+                Robolectric.buildActivity(TestNavigationActivity.class, intent).setup();
+        View button = controller.get().findViewById(R.id.navigationCustomButton);
+        RelativeLayout.LayoutParams params = (RelativeLayout.LayoutParams) button.getLayoutParams();
+
+        assertEquals(R.id.navigationCompassView, params.getRule(RelativeLayout.ALIGN_TOP));
+        assertEquals(0, params.getRule(RelativeLayout.ALIGN_BOTTOM));
         assertEquals(R.id.navigationCompassView, resolvedEndRule(params));
     }
 

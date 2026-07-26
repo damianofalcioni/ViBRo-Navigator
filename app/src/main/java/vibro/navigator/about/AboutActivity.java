@@ -52,6 +52,7 @@ public class AboutActivity extends Activity {
         Switch compassFullscreenRouteSwitch = findViewById(R.id.aboutCompassFullscreenRouteSwitch);
         Switch navigationNotificationsSwitch = findViewById(R.id.aboutNavigationNotificationsSwitch);
         Switch singleInstructionModeSwitch = findViewById(R.id.aboutSingleInstructionModeSwitch);
+        Switch navigationCustomButtonSwitch = findViewById(R.id.aboutNavigationCustomButtonSwitch);
         View exportDatabaseButton = findViewById(R.id.aboutExportDatabaseButton);
         View importDatabaseButton = findViewById(R.id.aboutImportDatabaseButton);
         diagnosticSection = new AboutDiagnosticSection(this);
@@ -68,6 +69,7 @@ public class AboutActivity extends Activity {
                 compassFullscreenRouteSwitch,
                 navigationNotificationsSwitch,
                 singleInstructionModeSwitch,
+                navigationCustomButtonSwitch,
                 this::scheduleDiagnosticSectionRender
         );
         settingsSwitches.configure();

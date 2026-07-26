@@ -37,6 +37,11 @@ final class AboutSettingsControllers {
                 activity.findViewById(R.id.aboutManeuverVoiceSettingsButton),
                 activity.findViewById(R.id.aboutManeuverVoiceSwitch)
         );
+        AboutNavigationCustomButtonSettings navigationCustomButtonSettings = new AboutNavigationCustomButtonSettings(
+                activity,
+                activity.findViewById(R.id.aboutNavigationCustomButtonSettingsButton)
+        );
+        navigationCustomButtonSettings.configure();
         googlePoiApiKeySettings = new AboutGooglePoiApiKeySettings(
                 activity,
                 activity.findViewById(R.id.aboutGooglePoiApiKeyContainer),

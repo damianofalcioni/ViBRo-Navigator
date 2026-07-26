@@ -15,6 +15,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppGpxSettings;
 import vibro.navigator.settings.AppLocationSettings;
+import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
@@ -47,6 +48,8 @@ final class AboutSettingsSwitches {
     @NonNull
     private final Switch singleInstructionModeSwitch;
     @NonNull
+    private final Switch navigationCustomButtonSwitch;
+    @NonNull
     private final Runnable afterSettingApplied;
     @NonNull
     private final TaskScheduler settingsChangeScheduler = AndroidTaskScheduler.main();
@@ -62,6 +65,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting compassFullscreenRouteSetting;
     private AboutDeferredBooleanSetting navigationNotificationsSetting;
     private AboutDeferredBooleanSetting singleInstructionModeSetting;
+    private AboutDeferredBooleanSetting navigationCustomButtonSetting;
 
     AboutSettingsSwitches(
             @NonNull Activity activity,
@@ -76,6 +80,7 @@ final class AboutSettingsSwitches {
             @NonNull Switch compassFullscreenRouteSwitch,
             @NonNull Switch navigationNotificationsSwitch,
             @NonNull Switch singleInstructionModeSwitch,
+            @NonNull Switch navigationCustomButtonSwitch,
             @NonNull Runnable afterSettingApplied
     ) {
         this.activity = activity;
@@ -90,6 +95,7 @@ final class AboutSettingsSwitches {
         this.compassFullscreenRouteSwitch = compassFullscreenRouteSwitch;
         this.navigationNotificationsSwitch = navigationNotificationsSwitch;
         this.singleInstructionModeSwitch = singleInstructionModeSwitch;
+        this.navigationCustomButtonSwitch = navigationCustomButtonSwitch;
         this.afterSettingApplied = afterSettingApplied;
     }
 
@@ -105,6 +111,7 @@ final class AboutSettingsSwitches {
         configureCompassFullscreenRouteSwitch();
         configureNavigationNotificationsSwitch();
         configureSingleInstructionModeSwitch();
+        configureNavigationCustomButtonSwitch();
     }
 
     void render() {
@@ -140,6 +147,10 @@ final class AboutSettingsSwitches {
                 singleInstructionModeSwitch,
                 AppNotificationSettings.isSingleInstructionModeEnabled(activity)
         );
+        navigationCustomButtonSetting.render(
+                navigationCustomButtonSwitch,
+                AppNavigationCustomButtonSettings.isEnabled(activity)
+        );
     }
 
     void flush() {
@@ -154,6 +165,7 @@ final class AboutSettingsSwitches {
         compassFullscreenRouteSetting.flush(false);
         navigationNotificationsSetting.flush(false);
         singleInstructionModeSetting.flush(false);
+        navigationCustomButtonSetting.flush(false);
     }
 
     void onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
@@ -327,6 +339,20 @@ final class AboutSettingsSwitches {
         );
         singleInstructionModeSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 singleInstructionModeSetting.set(isChecked));
+    }
+
+    private void configureNavigationCustomButtonSwitch() {
+        navigationCustomButtonSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppNavigationCustomButtonSettings.setEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        navigationCustomButtonSetting.render(
+                navigationCustomButtonSwitch,
+                AppNavigationCustomButtonSettings.isEnabled(activity)
+        );
+        navigationCustomButtonSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                navigationCustomButtonSetting.set(isChecked));
     }
 
     private void recreateForThemeChange() {
