@@ -41,6 +41,8 @@ final class AboutSettingsSwitches {
     @NonNull
     private final Switch compassInstantZoomSwitch;
     @NonNull
+    private final Switch compassFullscreenRouteSwitch;
+    @NonNull
     private final Switch navigationNotificationsSwitch;
     @NonNull
     private final Switch singleInstructionModeSwitch;
@@ -57,6 +59,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting lightThemeSetting;
     private AboutDeferredBooleanSetting surroundingStreetsSetting;
     private AboutDeferredBooleanSetting compassInstantZoomSetting;
+    private AboutDeferredBooleanSetting compassFullscreenRouteSetting;
     private AboutDeferredBooleanSetting navigationNotificationsSetting;
     private AboutDeferredBooleanSetting singleInstructionModeSetting;
 
@@ -70,6 +73,7 @@ final class AboutSettingsSwitches {
             @NonNull Switch lightThemeSwitch,
             @NonNull Switch surroundingStreetsSwitch,
             @NonNull Switch compassInstantZoomSwitch,
+            @NonNull Switch compassFullscreenRouteSwitch,
             @NonNull Switch navigationNotificationsSwitch,
             @NonNull Switch singleInstructionModeSwitch,
             @NonNull Runnable afterSettingApplied
@@ -83,6 +87,7 @@ final class AboutSettingsSwitches {
         this.lightThemeSwitch = lightThemeSwitch;
         this.surroundingStreetsSwitch = surroundingStreetsSwitch;
         this.compassInstantZoomSwitch = compassInstantZoomSwitch;
+        this.compassFullscreenRouteSwitch = compassFullscreenRouteSwitch;
         this.navigationNotificationsSwitch = navigationNotificationsSwitch;
         this.singleInstructionModeSwitch = singleInstructionModeSwitch;
         this.afterSettingApplied = afterSettingApplied;
@@ -97,6 +102,7 @@ final class AboutSettingsSwitches {
         configureLightThemeSwitch();
         configureSurroundingStreetsSwitch();
         configureCompassInstantZoomSwitch();
+        configureCompassFullscreenRouteSwitch();
         configureNavigationNotificationsSwitch();
         configureSingleInstructionModeSwitch();
     }
@@ -122,6 +128,10 @@ final class AboutSettingsSwitches {
                 compassInstantZoomSwitch,
                 AppCompassSettings.isInstantZoomEnabled(activity)
         );
+        compassFullscreenRouteSetting.render(
+                compassFullscreenRouteSwitch,
+                AppCompassSettings.isFullscreenRouteEnabled(activity)
+        );
         navigationNotificationsSetting.render(
                 navigationNotificationsSwitch,
                 AppNotificationSettings.areNavigationNotificationsEnabled(activity)
@@ -141,6 +151,7 @@ final class AboutSettingsSwitches {
         lightThemeSetting.flush(false);
         surroundingStreetsSetting.flush(false);
         compassInstantZoomSetting.flush(false);
+        compassFullscreenRouteSetting.flush(false);
         navigationNotificationsSetting.flush(false);
         singleInstructionModeSetting.flush(false);
     }
@@ -274,6 +285,20 @@ final class AboutSettingsSwitches {
         );
         compassInstantZoomSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 compassInstantZoomSetting.set(isChecked));
+    }
+
+    private void configureCompassFullscreenRouteSwitch() {
+        compassFullscreenRouteSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppCompassSettings.setFullscreenRouteEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        compassFullscreenRouteSetting.render(
+                compassFullscreenRouteSwitch,
+                AppCompassSettings.isFullscreenRouteEnabled(activity)
+        );
+        compassFullscreenRouteSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                compassFullscreenRouteSetting.set(isChecked));
     }
 
     private void configureNavigationNotificationsSwitch() {

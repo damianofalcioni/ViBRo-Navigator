@@ -119,7 +119,6 @@
                             android:importantForAutofill="no"
                             android:imeOptions="actionDone"
                             android:inputType="text"
-                            android:paddingEnd="88dp"
                             android:textColor="?attr/vibroTextPrimaryColor"
                             android:textColorHint="?attr/vibroTextHintColor" />
 

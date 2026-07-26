@@ -13,6 +13,7 @@ import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.search.PoiSearchClients;
 import vibro.navigator.poi.ui.PoiInputClearButtonController;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiInputOverlayPadding;
 import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.android.display.AndroidDisplayRotationProvider;
@@ -99,6 +100,7 @@ public class MainActivity extends Activity {
                 poi -> {
                 }
         );
+        PoiInputOverlayPadding.reserveEnd(controls.destinationEdit);
         PoiInputClearButtonController.bind(controls.destinationEdit, controls.destinationClearButton);
         controls.routeRailView.setRouteAnchors(controls.destinationRow, controls.startNavButton);
         stopController = new MainActivityStopController(

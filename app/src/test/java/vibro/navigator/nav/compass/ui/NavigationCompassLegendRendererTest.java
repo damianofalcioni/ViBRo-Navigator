@@ -71,6 +71,48 @@ public class NavigationCompassLegendRendererTest {
         ), 0.01f);
     }
 
+    @Test
+    public void resolveLegendRingDistanceMeters_supportsFullscreenRenderedRouteScaleForThreeLevels() {
+        NavCompassState state = compassState(80f, null);
+
+        assertEquals(
+                25.72f,
+                NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(state, 0.91f, 2.83f),
+                0.01f
+        );
+        assertEquals(
+                17.24f,
+                NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(state, 0.61f, 2.83f),
+                0.01f
+        );
+        assertEquals(
+                8.48f,
+                NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(state, 0.30f, 2.83f),
+                0.01f
+        );
+    }
+
+    @Test
+    public void resolveLegendRingDistanceMeters_supportsLandscapeFullscreenRouteScaleForThreeLevels() {
+        NavCompassState state = compassState(80f, null);
+
+        assertEquals(
+                72.8f,
+                NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(state, 0.91f, 1f),
+                0.01f
+        );
+        assertEquals(
+                48.8f,
+                NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(state, 0.61f, 1f),
+                0.01f
+        );
+        assertEquals(
+                24f,
+                NavigationCompassLegendRenderer.resolveLegendRingDistanceMeters(state, 0.30f, 1f),
+                0.01f
+        );
+    }
+
     private static NavCompassState compassState(float visibleRadiusMeters, Float headingAccuracyDegrees) {
         return NavCompassState.fromProjectedPoints(
                 0f,

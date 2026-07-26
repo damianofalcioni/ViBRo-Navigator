@@ -115,7 +115,7 @@
     <string name="msg_gpx_import_failed">Could not load GPX waypoints.</string>
     <string name="msg_gpx_import_blocked_navigation">Stop navigation before opening a GPX route.</string>
     <string name="msg_speech_input_unavailable">No speech recognition service is enabled. Enable the Google app or Android voice input.</string>
-    <string name="msg_speech_input_listening">Listening...</string>
+    <string name="msg_speech_input_listening">Listening&#8230;</string>
     <string name="msg_speech_input_empty">No speech was recognized.</string>
     <string name="msg_speech_input_failed">Speech input failed. Try again.</string>
     <string name="msg_speech_input_unresponsive">Speech recognition did not start. Enable the Google app or Android voice input.</string>
@@ -362,6 +362,7 @@
     <string name="label_light_theme_enabled">Light Theme</string>
     <string name="label_compass_surrounding_streets_enabled">Surrounding streets</string>
     <string name="label_compass_instant_zoom_enabled">Instant compass zoom</string>
+    <string name="label_compass_fullscreen_route_enabled">Fullscreen route</string>
     <string name="label_navigation_notifications_enabled">Notifications</string>
     <string name="label_single_instruction_mode_enabled">Single instruction mode</string>
     <string name="label_android_auto_integration_enabled">Android Auto</string>
@@ -389,6 +390,7 @@
     <string name="about_setting_light_theme_info">Switches the app from the default dark look to a light look.</string>
     <string name="about_setting_compass_surrounding_streets_info">Shows nearby streets in the compass when local map data is available.</string>
     <string name="about_setting_compass_instant_zoom_info">Skips the compass zoom animation so switching between route overview and moving-scale views is immediate.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Expands the route compass view behind the full navigation screen while keeping controls and direction text visible in front.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto.</string>

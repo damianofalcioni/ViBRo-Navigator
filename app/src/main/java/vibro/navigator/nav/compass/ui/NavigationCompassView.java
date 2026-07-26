@@ -4,6 +4,7 @@ package vibro.navigator.nav.compass.ui;
 import vibro.navigator.R;
 import vibro.navigator.nav.compass.NavCompassState;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Path;
@@ -37,6 +38,9 @@ public final class NavigationCompassView extends View {
     static final float CARDINAL_TEXT_SIZE_SCALE = 0.09f;
     private static final float DISTANCE_MARK_WIDTH_DP = 6f;
     private static final float DISTANCE_LABEL_OFFSET_DP = 6f;
+    private static final float FULLSCREEN_ROUTE_TOP_INSET_DP = 16f;
+    private static final float FULLSCREEN_CENTER_BOTTOM_INSET_DP = 88f;
+    private static final float FULLSCREEN_ORIENTATION_CUE_RADIUS_SCALE = 0.5f;
 
     @Nullable
     private NavCompassState compassState;
@@ -61,24 +65,26 @@ public final class NavigationCompassView extends View {
             new NavigationCompassOrientationCueRenderer();
     private final NavigationCompassLegendRenderer legendRenderer = new NavigationCompassLegendRenderer();
     private final NavigationCompassCalibrationRing calibrationRing = new NavigationCompassCalibrationRing(this);
+    private final NavigationCompassFullscreenMode fullscreenMode = new NavigationCompassFullscreenMode();
 
     public NavigationCompassView(Context context) {
         super(context);
-        init();
+        init(null);
     }
 
     public NavigationCompassView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(attrs);
     }
 
     public NavigationCompassView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init();
+        init(attrs);
     }
 
-    private void init() {
+    private void init(@Nullable AttributeSet attrs) {
         setWillNotDraw(false);
+        fullscreenMode.init(getContext(), attrs);
 
         initBasePaints();
         initTickPaints();
@@ -180,13 +186,19 @@ public final class NavigationCompassView extends View {
         return navigationPaused;
     }
 
+    public void setFullscreenCenterYHint(float centerY) {
+        if (fullscreenMode.setCenterYHint(centerY)) {
+            invalidate();
+        }
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int desired = dpInt(DEFAULT_SIZE_DP);
         int width = resolveSize(desired, widthMeasureSpec);
         int height = resolveSize(desired, heightMeasureSpec);
-        int size = Math.min(width, height);
-        setMeasuredDimension(size, size);
+        NavigationCompassFullscreenMode.Measurement measurement = fullscreenMode.resolveMeasurement(width, height);
+        setMeasuredDimension(measurement.width, measurement.height);
     }
 
     @Override
@@ -197,10 +209,15 @@ public final class NavigationCompassView extends View {
         float height = getHeight();
         float cx = width / 2f;
         float cy = height / 2f;
-        float radius = Math.min(cx, cy) - dp(10f);
-        float routeRadius = radius * OUTER_COMPASS_LAYER_INNER_SCALE;
         float headingDegrees = compassState == null ? 0f : compassState.displayMode.headingDegrees;
 
+        if (fullscreenMode.isEnabled()) {
+            drawFullscreenCompass(canvas, width, height, headingDegrees);
+            return;
+        }
+
+        float radius = fullscreenMode.resolveCompassRadius(cx, cy, dp(10f));
+        float routeRadius = radius * OUTER_COMPASS_LAYER_INNER_SCALE;
         canvas.drawCircle(cx, cy, radius, surfacePaint);
         drawDistanceRings(canvas, cx, cy, radius);
         calibrationRing.draw(
@@ -211,7 +228,16 @@ public final class NavigationCompassView extends View {
                 outerCompassLayerRadius(radius),
                 radius * OUTER_COMPASS_LAYER_STROKE_SCALE
         );
-        drawPausedRing(canvas, cx, cy, radius);
+        NavigationCompassPausedRingRenderer.draw(
+                canvas,
+                navigationPaused,
+                cx,
+                cy,
+                radius,
+                outerCompassLayerRadius(radius),
+                OUTER_COMPASS_LAYER_STROKE_SCALE,
+                pausedRingPaint
+        );
         drawOuterCompass(canvas, cx, cy, radius, headingDegrees);
 
         int saveCount = canvas.save();
@@ -233,16 +259,34 @@ public final class NavigationCompassView extends View {
         drawHeadingGuide(canvas, cx, cy, radius);
         drawHeadingAccuracyGuides(canvas, cx, cy, radius);
         drawCurrentPositionMarker(canvas, cx, cy, radius);
-        drawDistanceLegend(canvas, cx, cy, radius);
+        drawDistanceLegend(canvas, cx, cy, radius, OUTER_DISTANCE_RING_SCALE, true);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
     }
 
-    private void drawPausedRing(@NonNull Canvas canvas, float cx, float cy, float radius) {
-        if (!navigationPaused) {
-            return;
-        }
-        pausedRingPaint.setStrokeWidth(radius * OUTER_COMPASS_LAYER_STROKE_SCALE);
-        canvas.drawCircle(cx, cy, outerCompassLayerRadius(radius), pausedRingPaint);
+    private void drawFullscreenCompass(
+            @NonNull Canvas canvas,
+            float width,
+            float height,
+            float headingDegrees
+    ) {
+        float cx = width / 2f;
+        float cy = fullscreenMode.resolveCenterY(height, dp(FULLSCREEN_CENTER_BOTTOM_INSET_DP));
+        float markerRadius = fullscreenMode.resolveCompassRadius(cx, cy, dp(10f));
+        float routeRadius = fullscreenMode.resolveRouteRadius(cy, dp(FULLSCREEN_ROUTE_TOP_INSET_DP));
+        float headingGuideRadius = fullscreenMode.resolveHeadingGuideRadius(
+                isPortraitOrientation(),
+                routeRadius,
+                markerRadius
+        );
+        float legendOuterScale = fullscreenMode.resolveLegendOuterScale(routeRadius, headingGuideRadius);
+        float cueRadius = markerRadius * FULLSCREEN_ORIENTATION_CUE_RADIUS_SCALE;
+
+        routeRenderer.drawRouteLayer(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
+        routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
+        drawHeadingGuide(canvas, cx, cy, headingGuideRadius);
+        drawDistanceLegend(canvas, cx, cy, headingGuideRadius, legendOuterScale, false);
+        drawCurrentPositionMarker(canvas, cx, cy, markerRadius);
+        orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, cueRadius, headingDegrees);
     }
 
     private void drawDistanceRings(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -336,7 +380,14 @@ public final class NavigationCompassView extends View {
         canvas.drawCircle(cx, cy, markerDotRadius, centerPaint);
     }
 
-    private void drawDistanceLegend(@NonNull Canvas canvas, float cx, float cy, float radius) {
+    private void drawDistanceLegend(
+            @NonNull Canvas canvas,
+            float cx,
+            float cy,
+            float radius,
+            float outerDistanceRingScale,
+            boolean showHeadingAccuracy
+    ) {
         legendRenderer.draw(
                 canvas,
                 getContext(),
@@ -345,13 +396,14 @@ public final class NavigationCompassView extends View {
                 cy,
                 radius,
                 DISTANCE_RING_SCALES,
-                OUTER_DISTANCE_RING_SCALE,
+                outerDistanceRingScale,
                 dp(DISTANCE_MARK_WIDTH_DP),
                 dp(DISTANCE_LABEL_OFFSET_DP),
                 distanceMarkPaint,
                 distanceLegendRightPaint,
                 distanceLegendLeftPaint,
-                headingAccuracyGuidePaint
+                headingAccuracyGuidePaint,
+                showHeadingAccuracy
         );
     }
 
@@ -362,6 +414,10 @@ public final class NavigationCompassView extends View {
                 HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES,
                 HEADING_ACCURACY_GUIDE_MAX_DEGREES
         );
+    }
+
+    private boolean isPortraitOrientation() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
     }
 
     @Override

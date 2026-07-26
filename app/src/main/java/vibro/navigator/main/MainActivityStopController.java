@@ -16,6 +16,7 @@ import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.poi.ui.PoiInputClearButtonController;
 import vibro.navigator.poi.ui.PoiInputController;
+import vibro.navigator.poi.ui.PoiInputOverlayPadding;
 import vibro.navigator.poi.ui.PoiReverseGeocodeController;
 
 import java.util.ArrayList;
@@ -188,6 +189,7 @@ final class MainActivityStopController {
                 poi -> {
                 }
         );
+        PoiInputOverlayPadding.reserveEnd(row.findViewById(R.id.stopEdit));
         PoiInputClearButtonController.bind(row.findViewById(R.id.stopEdit), row.findViewById(R.id.stopClearButton));
         stopControllers.add(controller);
 

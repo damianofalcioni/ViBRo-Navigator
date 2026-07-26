@@ -2,7 +2,6 @@ package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
-import vibro.navigator.nav.compass.ui.NavigationCompassView;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
@@ -56,7 +55,7 @@ final class NavigationActivityRenderer {
     private final TextView next;
     private final TextView afterNext;
     private final TextView destination;
-    private final NavigationCompassView compass;
+    private final NavigationCompassSurfaces compassSurfaces;
     private final TextView gpsStatus;
     private final TextView speedLimit;
     private final ImageButton blocked;
@@ -88,26 +87,29 @@ final class NavigationActivityRenderer {
         next = activity.findViewById(R.id.nextDirectionText);
         afterNext = activity.findViewById(R.id.afterNextDirectionText);
         destination = activity.findViewById(R.id.destinationText);
-        compass = activity.findViewById(R.id.navigationCompassView);
         gpsStatus = activity.findViewById(R.id.gpsStatusText);
         speedLimit = activity.findViewById(R.id.speedLimitText);
         blocked = activity.findViewById(R.id.blockedRoadButton);
         export = activity.findViewById(R.id.exportRouteButton);
         settings = activity.findViewById(R.id.navigationSettingsButton);
+        compassSurfaces = new NavigationCompassSurfaces(activity, directionsBlock, destination);
+        compassSurfaces.alignFullscreenCenterWith(settings, export);
         pauseResume = activity.findViewById(R.id.pauseResumeNavButton);
         stop = activity.findViewById(R.id.stopNavButton);
         detailsDialogs = new NavigationDetailsDialogs(activity, elapsedRealtimeClock);
+        compassSurfaces.includeForegroundText(gpsStatus);
         configureTextScaling();
     }
 
     void configureControls(@NonNull Controls controls) {
-        compass.setOnClickListener(v -> {
+        View.OnClickListener compassClickListener = v -> {
             compassModeController.onCompassTapped(
                     currentState == null ? null : currentState.routeStatus.compassState,
                     compassZoomAnimationEnabled()
             );
             renderCompassState();
-        });
+        };
+        compassSurfaces.setOnClickListener(compassClickListener);
         blocked.setOnClickListener(v -> controls.onBlockedRoad());
         export.setOnClickListener(v -> controls.onExportRoute());
         NavigationSettingsLauncher.configure(activity, uiScheduler, settings, afterSettingsLaunch);
@@ -148,6 +150,10 @@ final class NavigationActivityRenderer {
         ));
         renderLiveDetails();
         logRenderedStateIfChanged(state);
+    }
+
+    void refreshSettings() {
+        renderCompassState();
     }
 
     private void renderBlockedRoadButton(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
@@ -223,12 +229,13 @@ final class NavigationActivityRenderer {
 
     private void renderCompassState() {
         @Nullable NavCompassState compassState = currentState == null ? null : currentState.routeStatus.compassState;
-        compass.setNavigationPaused(currentState != null && currentState.pauseStatus.paused);
+        boolean fullscreenRouteMode = AppCompassSettings.isFullscreenRouteEnabled(activity);
+        boolean navigationPaused = currentState != null && currentState.pauseStatus.paused;
         NavCompassState displayedCompassState = compassModeController.resolve(
                 compassState,
                 compassZoomAnimationEnabled()
         );
-        compass.setCompassState(displayedCompassState);
+        compassSurfaces.render(fullscreenRouteMode, navigationPaused, displayedCompassState);
         if (currentBinder != null) {
             currentBinder.setCompassStreetViewport(displayedCompassState);
         }

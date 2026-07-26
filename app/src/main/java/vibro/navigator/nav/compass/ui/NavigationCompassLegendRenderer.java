@@ -31,13 +31,16 @@ final class NavigationCompassLegendRenderer {
             @NonNull Paint distanceMarkPaint,
             @NonNull Paint distanceLegendRightPaint,
             @NonNull Paint distanceLegendLeftPaint,
-            @NonNull Paint headingAccuracyGuidePaint
+            @NonNull Paint headingAccuracyGuidePaint,
+            boolean showHeadingAccuracy
     ) {
         if (compassState == null || compassState.radiusState.visibleRadiusMeters <= 0f) {
             return;
         }
 
-        Float visibleHeadingAccuracyDegrees = resolvedVisibleHeadingAccuracyDegrees(compassState, 5f, 85f);
+        Float visibleHeadingAccuracyDegrees = showHeadingAccuracy
+                ? resolvedVisibleHeadingAccuracyDegrees(compassState, 5f, 85f)
+                : null;
         Paint.FontMetrics fontMetrics = distanceLegendRightPaint.getFontMetrics();
         float labelBaselineOffset = -(fontMetrics.ascent + fontMetrics.descent) / 2f;
         float dashHalfWidth = distanceMarkWidthPx / 2f;

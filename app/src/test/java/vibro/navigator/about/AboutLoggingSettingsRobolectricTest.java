@@ -67,6 +67,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AppSettings.setImperialUnitsEnabled(context, false);
         AppCompassSettings.setSurroundingStreetsEnabled(context, false);
         AppCompassSettings.setInstantZoomEnabled(context, false);
+        AppCompassSettings.setFullscreenRouteEnabled(context, false);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
         AppNotificationSettings.setSingleInstructionModeEnabled(context, false);
         AppThemeSettings.setLightThemeEnabled(context, false);

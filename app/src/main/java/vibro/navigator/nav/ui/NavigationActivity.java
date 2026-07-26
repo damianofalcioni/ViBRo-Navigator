@@ -218,6 +218,7 @@ public class NavigationActivity extends Activity {
     protected void onResume() {
         super.onResume();
         AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
+        renderer.refreshSettings();
         startupCoordinator.onResume();
     }
 
