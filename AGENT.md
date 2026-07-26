@@ -28,7 +28,7 @@ Primary product requirements live in `SPECIFICATION.md` at the repository root. 
 - UI base: platform `Activity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
 - Keep navigation back handling compatible with predictive back using platform callbacks; do not migrate the app shell to `ComponentActivity` unless explicitly requested
 - Gradle: `9.6.1`
-- Android Gradle Plugin: `9.3.0-rc01`
+- Android Gradle Plugin: `9.3.1`
 - Java toolchain: `17`
 - SDKs in repo today: `compileSdk 37`, `targetSdk 37`, `minSdk 23`
 - Runtime dependencies are intentionally minimal in the common/F-Droid code path: `androidx.core`
