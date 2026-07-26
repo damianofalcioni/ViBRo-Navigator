@@ -5,14 +5,30 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
+    <!-- Sun center -->
     <path
-        android:fillColor="?attr/vibroTextSecondaryColor"
-        android:pathData="M6.76,4.84l-1.8,-1.79l-1.41,1.41l1.79,1.8zM1,13h3v-2H1zM11,1v3h2V1zM20.45,4.46l-1.41,-1.41l-1.8,1.79l1.42,1.42zM17.24,19.16l1.8,1.79l1.41,-1.41l-1.79,-1.8zM20,11v2h3v-2zM12,6a6,6 0,1 0,0.01 0zM11,23h2v-3h-2zM3.55,19.54l1.41,1.41l1.8,-1.79l-1.42,-1.42z" />
+        android:fillColor="?attr/vibroIconColor"
+        android:pathData="
+            M12,7.25
+            A4.75,4.75 0,1 0,12,16.75
+            A4.75,4.75 0,1 0,12,7.25
+            Z" />
 
+    <!-- Rounded rays -->
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M4,20L20,4"
-        android:strokeColor="@color/danger"
+        android:pathData="
+            M12,2.5V4.5
+            M12,19.5V21.5
+            M2.5,12H4.5
+            M19.5,12H21.5
+            M5.28,5.28L6.7,6.7
+            M17.3,17.3L18.72,18.72
+            M17.3,6.7L18.72,5.28
+            M5.28,18.72L6.7,17.3"
+        android:strokeColor="?attr/vibroIconColor"
+        android:strokeWidth="2"
         android:strokeLineCap="round"
-        android:strokeWidth="2.2" />
+        android:strokeLineJoin="round" />
+
 </vector>

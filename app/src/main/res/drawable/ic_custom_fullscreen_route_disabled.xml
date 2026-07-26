@@ -7,16 +7,17 @@
 
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M4,9V4h5M15,4h5v5M20,15v5h-5M9,20H4v-5M7,15c2.8,-4.7 7.2,-7.1 10,-6"
-        android:strokeColor="?attr/vibroTextSecondaryColor"
+        android:pathData="
+            M9,4
+            H4
+            V9
+
+            M15,20
+            H20
+            V15"
+        android:strokeColor="?attr/vibroIconColor"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:strokeWidth="2" />
+        android:strokeWidth="2.6" />
 
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M4,20L20,4"
-        android:strokeColor="@color/danger"
-        android:strokeLineCap="round"
-        android:strokeWidth="2.2" />
 </vector>

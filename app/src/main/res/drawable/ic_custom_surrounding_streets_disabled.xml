@@ -5,17 +5,32 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
+    <!-- Street grid -->
     <path
         android:fillColor="@android:color/transparent"
-        android:pathData="M5,4v16M12,2v20M19,4v16M3,8h18M3,16h18"
-        android:strokeColor="?attr/vibroTextSecondaryColor"
+        android:pathData="
+            M4,3V21
+            M11,3V21
+            M18,3V21
+            M3,8H21
+            M3,16H21"
+        android:strokeColor="?attr/vibroIconColor"
         android:strokeLineCap="round"
-        android:strokeWidth="2" />
-
-    <path
-        android:fillColor="@android:color/transparent"
-        android:pathData="M4,20L20,4"
-        android:strokeColor="@color/danger"
-        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
         android:strokeWidth="2.2" />
+
+    <!-- Highlighted path -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="
+            M11,3V8
+            M11,8H18
+            M18,8V16
+            M18,16H4
+            M4,16V21"
+        android:strokeColor="#F44336"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="2.8" />
+
 </vector>

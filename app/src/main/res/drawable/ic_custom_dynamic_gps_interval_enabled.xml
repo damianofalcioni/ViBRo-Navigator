@@ -5,11 +5,47 @@
     android:viewportWidth="24"
     android:viewportHeight="24">
 
+    <!-- GPS location pin with transparent clock face -->
     <path
         android:fillColor="?attr/vibroIconColor"
-        android:pathData="M12,2C8.13,2 5,5.13 5,9c0,5.25 7,13 7,13s7,-7.75 7,-13c0,-3.87 -3.13,-7 -7,-7zM12,11.5A2.5,2.5 0,1 1,12,6.5a2.5,2.5 0,0 1,0,5z" />
+        android:pathData="
+            M12,2
+            C8.13,2 5,5.13 5,9
+            C5,14.25 12,22 12,22
+            C12,22 19,14.25 19,9
+            C19,5.13 15.87,2 12,2
+            Z
 
+            M12,13.6
+            A4.6,4.6 0,1 1,12,4.4
+            A4.6,4.6 0,0 1,12,13.6
+            Z" />
+
+    <!-- Clock hour markers -->
     <path
         android:fillColor="?attr/vibroIconColor"
-        android:pathData="M14,4h2l-1.1,2.1H17l-3,4.4l0.7,-3H13z" />
+        android:pathData="
+            M11.6,5.1 H12.4 V6.2 H11.6 Z
+            M11.6,11.8 H12.4 V12.9 H11.6 Z
+            M8.1,8.6 H9.2 V9.4 H8.1 Z
+            M14.8,8.6 H15.9 V9.4 H14.8 Z" />
+
+    <!-- Clock hands -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:pathData="M12,9 L13.6,6.2 M12,9 L14.8,10.6"
+        android:strokeColor="?attr/vibroIconColor"
+        android:strokeWidth="1.35"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+
+    <!-- Clock-hand centre -->
+    <path
+        android:fillColor="?attr/vibroIconColor"
+        android:pathData="
+            M12,8.35
+            A0.65,0.65 0,1 0,12,9.65
+            A0.65,0.65 0,1 0,12,8.35
+            Z" />
+
 </vector>
