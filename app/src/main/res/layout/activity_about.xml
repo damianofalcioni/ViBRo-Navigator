@@ -142,20 +142,21 @@
             android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="18sp" />
 
-        <LinearLayout
-            android:id="@+id/aboutLogEnabledRow"
+        <GridLayout
+            android:id="@+id/aboutSwitchSettingsGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
+            android:columnCount="2"
             android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutLogEnabledSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_log_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -166,23 +167,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutAutoSaveGpxRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutAutoSaveGpxSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_auto_save_gpx_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -193,23 +190,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutFusedLocationRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutFusedLocationSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_fused_location_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -220,23 +213,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutDynamicGpsFixIntervalRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutDynamicGpsFixIntervalSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_dynamic_gps_fix_interval_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -247,23 +236,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutImperialUnitsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutImperialUnitsSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_imperial_units_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -274,23 +259,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutLightThemeRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutLightThemeSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_light_theme_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -301,23 +282,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutCompassSurroundingStreetsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutCompassSurroundingStreetsSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_compass_surrounding_streets_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -328,23 +305,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutCompassInstantZoomRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutCompassInstantZoomSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_compass_instant_zoom_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -355,23 +328,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutCompassFullscreenRouteRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutCompassFullscreenRouteSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_compass_fullscreen_route_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -382,23 +351,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutNavigationNotificationsRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutNavigationNotificationsSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_navigation_notifications_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -409,23 +374,19 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutSingleInstructionModeRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:minHeight="48dp"
-            android:orientation="horizontal">
 
             <Switch
                 android:id="@+id/aboutSingleInstructionModeSwitch"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="fill_horizontal|center_vertical"
+                android:layout_marginTop="8dp"
                 android:minHeight="48dp"
                 android:text="@string/label_single_instruction_mode_enabled"
                 android:textColor="?attr/vibroTextPrimaryColor"
@@ -436,8 +397,11 @@
                 style="@style/Widget.ViBRoNavigator.InfoButton"
                 android:layout_width="40dp"
                 android:layout_height="40dp"
+                android:layout_column="1"
+                android:layout_gravity="center_vertical"
+                android:layout_marginTop="8dp"
                 android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
+        </GridLayout>
 
         <LinearLayout
             android:id="@+id/aboutNavigationCustomButtonRow"
