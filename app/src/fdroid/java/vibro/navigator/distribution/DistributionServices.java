@@ -14,6 +14,8 @@ import vibro.navigator.poi.search.PoiReverseGeocodingClient;
 import vibro.navigator.poi.search.PoiSearchClient;
 
 public final class DistributionServices {
+    private static final String NOT_SUPPORTED = "not_supported";
+
     private DistributionServices() {
     }
 
@@ -27,6 +29,20 @@ public final class DistributionServices {
 
     public static boolean supportsAndroidAutoIntegration() {
         return false;
+    }
+
+    public static boolean supportsGooglePlayServicesDiagnostics() {
+        return false;
+    }
+
+    @NonNull
+    public static String googlePlayServicesRuntimeStatus(@NonNull Context context) {
+        return NOT_SUPPORTED;
+    }
+
+    @NonNull
+    public static String androidAutoIntegrationComponentState(@NonNull Context context) {
+        return NOT_SUPPORTED;
     }
 
     public static void configureAndroidAutoIntegration(@NonNull Context context, boolean enabled) {

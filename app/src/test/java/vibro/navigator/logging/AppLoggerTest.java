@@ -3,8 +3,10 @@ package vibro.navigator.logging;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
+import android.content.pm.PackageInfo;
 import android.os.Build;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -13,12 +15,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowPackageManager;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
 import vibro.navigator.BuildConfig;
+import vibro.navigator.brouter.BRouterProfilesRepository;
 
 @RunWith(RobolectricTestRunner.class)
 public class AppLoggerTest {
@@ -62,6 +66,24 @@ public class AppLoggerTest {
         assertFalse(content.contains("first session marker"));
     }
 
+    @Test
+    public void sessionInfoIncludesInstalledBRouterDetails() throws Exception {
+        PackageInfo packageInfo = new PackageInfo();
+        packageInfo.packageName = BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+        packageInfo.versionName = "2.0";
+        packageInfo.setLongVersionCode(200L);
+        ShadowPackageManager shadowPackageManager = shadowOf(context.getPackageManager());
+        shadowPackageManager.installPackage(packageInfo);
+
+        assertTrue(AppLogger.setLoggingEnabled(context, true));
+
+        String firstLine = firstLine(readLogContent());
+        assertTrue(firstLine.contains("brouterPackage=" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME));
+        assertTrue(firstLine.contains("brouterInstalled=true"));
+        assertTrue(firstLine.contains("brouterVersionName=2.0"));
+        assertTrue(firstLine.contains("brouterVersionCode=200"));
+    }
+
     private String readLogContent() throws Exception {
         return new String(
                 Files.readAllBytes(new File(AppLogger.getLogFilePath(context)).toPath()),
@@ -84,6 +106,13 @@ public class AppLoggerTest {
         assertTrue(line.contains("flavor=" + BuildConfig.FLAVOR));
         assertTrue(line.contains("buildType=" + BuildConfig.BUILD_TYPE));
         assertTrue(line.contains("targetSdk="));
+        assertTrue(line.contains("brouterPackage="));
+        assertTrue(line.contains("brouterInstalled="));
+        assertTrue(line.contains("androidAutoSupported="));
+        assertTrue(line.contains("androidAutoIntegrationEnabled="));
+        assertTrue(line.contains("androidAutoServiceState="));
+        assertTrue(line.contains("googlePlayServicesFlavorSupported="));
+        assertTrue(line.contains("googlePlayServicesStatus="));
         assertTrue(line.contains("manufacturer="));
         assertTrue(line.contains("model="));
         assertTrue(line.contains("logFile="));

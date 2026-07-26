@@ -5,6 +5,12 @@
     <uses-permission android:name="androidx.car.app.NAVIGATION_TEMPLATES" />
     <uses-permission android:name="androidx.car.app.ACCESS_SURFACE" />
 
+    <queries>
+        <package android:name="com.google.android.gms" />
+        <package android:name="com.google.android.projection.gearhead" />
+        <package android:name="com.google.android.apps.automotive.templates.host" />
+    </queries>
+
     <application>
         <meta-data
             android:name="com.google.android.gms.car.application"
