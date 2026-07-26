@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 import java.util.ArrayList;
@@ -59,7 +60,8 @@ public final class CompassRouteGeometryFactory {
                 buildHintSamplePoints(route, index),
                 buildIntermediateSamplePoints(index, intermediateStops),
                 archivedPassedRouteSegments,
-                recalculationBridgeSegments
+                recalculationBridgeSegments,
+                beelineTrackSegments(route)
         );
     }
 
@@ -68,7 +70,16 @@ public final class CompassRouteGeometryFactory {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index
     ) {
-        return CompassRouteShapeSampler.sample(route.track, index, MAX_COMPASS_ROUTE_POINTS);
+        List<CompassRouteGeometry.SamplePoint> points =
+                CompassRouteShapeSampler.sample(route.track, index, MAX_COMPASS_ROUTE_POINTS);
+        for (VoiceHint hint : route.voiceHints) {
+            if (isBeelineHintWithTarget(route, hint)) {
+                addTrackPointIfMissing(points, route, index, hint.indexInTrack);
+                addTrackPointIfMissing(points, route, index, hint.indexInTrack + 1);
+            }
+        }
+        Collections.sort(points, (first, second) -> Integer.compare(first.trackIndex, second.trackIndex));
+        return points;
     }
 
     @NonNull
@@ -80,10 +91,49 @@ public final class CompassRouteGeometryFactory {
         for (int i = 0; i < route.track.size(); i++) {
             points.add(new CompassRouteGeometry.SamplePoint(
                     route.track.get(i),
-                    index.distanceAtPointIndex(i)
+                    index.distanceAtPointIndex(i),
+                    i
             ));
         }
         return points;
+    }
+
+    private static void addTrackPointIfMissing(
+            @NonNull List<CompassRouteGeometry.SamplePoint> points,
+            @NonNull GeoJsonRoute route,
+            @NonNull PolylineIndex index,
+            int trackIndex
+    ) {
+        for (CompassRouteGeometry.SamplePoint point : points) {
+            if (point.trackIndex == trackIndex) {
+                return;
+            }
+        }
+        points.add(new CompassRouteGeometry.SamplePoint(
+                route.track.get(trackIndex),
+                index.distanceAtPointIndex(trackIndex),
+                trackIndex
+        ));
+    }
+
+    @NonNull
+    private static boolean[] beelineTrackSegments(@NonNull GeoJsonRoute route) {
+        boolean[] beelineSegments = new boolean[Math.max(0, route.track.size() - 1)];
+        for (VoiceHint hint : route.voiceHints) {
+            if (isBeelineHintWithTarget(route, hint)) {
+                beelineSegments[hint.indexInTrack] = true;
+            }
+        }
+        return beelineSegments;
+    }
+
+    private static boolean isBeelineHintWithTarget(
+            @NonNull GeoJsonRoute route,
+            @NonNull VoiceHint hint
+    ) {
+        return hint.command == RouteStartApproach.BEELINE_COMMAND
+                && hint.indexInTrack >= 0
+                && hint.indexInTrack + 1 < route.track.size();
     }
 
     @NonNull

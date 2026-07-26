@@ -7,7 +7,6 @@ import androidx.annotation.Nullable;
 
 import java.util.Collections;
 
-import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
@@ -25,7 +24,6 @@ final class NavigationRouteEvaluator {
     private static final long STARTUP_LOCATION_WAIT_INTERVAL_MS =
             NavigationLocationController.STARTUP_UPDATE_INTERVAL_MS;
     private static final long REACQUISITION_FOLLOW_UP_INTERVAL_MS = 3_000L;
-    private static final long ROUTE_START_APPROACH_INTERVAL_MS = 3_000L;
 
     @NonNull
     private final NavigationRouteGeometryState geometryState;
@@ -42,7 +40,7 @@ final class NavigationRouteEvaluator {
     @NonNull
     private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
     @NonNull
-    private final RouteStartApproachState routeStartApproachState;
+    private final NavigationRouteDirectGuidanceEvaluator directGuidanceEvaluator;
     @NonNull
     private final NavigationRouteHistory routeHistory;
 
@@ -54,7 +52,7 @@ final class NavigationRouteEvaluator {
             @NonNull NavigationSessionRouteDisplayState displayState,
             @NonNull NavigationArrivalDetector arrivalDetector,
             @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
-            @NonNull RouteStartApproachState routeStartApproachState,
+            @NonNull NavigationRouteDirectGuidanceEvaluator directGuidanceEvaluator,
             @NonNull NavigationRouteHistory routeHistory
     ) {
         this.geometryState = geometryState;
@@ -64,7 +62,7 @@ final class NavigationRouteEvaluator {
         this.displayState = displayState;
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
-        this.routeStartApproachState = routeStartApproachState;
+        this.directGuidanceEvaluator = directGuidanceEvaluator;
         this.routeHistory = routeHistory;
     }
 
@@ -92,7 +90,8 @@ final class NavigationRouteEvaluator {
                     NavigationRouteRecalculationReason.ROUTE_MATCH_FAILED
             );
         }
-        if (reacquiringAfterLongGap) {
+        match = directGuidanceEvaluator.constrainRouteMatch(filtered, match);
+        if (reacquiringAfterLongGap && !directGuidanceEvaluator.isRouteBeelineActive()) {
             return keepRouteWhileReacquiring(
                     filtered,
                     match,
@@ -132,17 +131,18 @@ final class NavigationRouteEvaluator {
         double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
         float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
         displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
-        NavigationRouteEvaluation routeStartApproach =
-                evaluateRouteStartApproachIfNeeded(
-                        filtered,
-                        match,
-                        speedMps,
-                        likelyStationary,
-                        trustedAccuracyMeters,
-                        singleInstructionMode
-                );
-        if (routeStartApproach != null) {
-            return routeStartApproach;
+        NavigationRouteEvaluation directGuidance = directGuidanceEvaluator.evaluateIfNeeded(
+                filtered,
+                match,
+                speedMps,
+                likelyStationary,
+                trustedAccuracyMeters,
+                nowMs,
+                fastChecksUntilMs,
+                singleInstructionMode
+        );
+        if (directGuidance != null) {
+            return directGuidance;
         }
         geometryState.rememberSegment(match);
         double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
@@ -228,53 +228,6 @@ final class NavigationRouteEvaluator {
                 fastChecksUntilMs,
                 singleInstructionMode,
                 true
-        );
-    }
-
-    @Nullable
-    private NavigationRouteEvaluation evaluateRouteStartApproachIfNeeded(
-            @NonNull NavigationLocation filtered,
-            @NonNull PolylineIndex.Match match,
-            float speedMps,
-            boolean likelyStationary,
-            float trustedAccuracyMeters,
-            boolean singleInstructionMode
-    ) {
-        if (!routeStartApproachState.isActive()) {
-            return null;
-        }
-        if (routeStartApproachState.isReached(match, trustedAccuracyMeters)) {
-            routeStartApproachState.reset();
-            displayState.clearRouteStartApproachTarget();
-            geometryState.rememberSegment(match);
-            routeHistory.recordProgress(match);
-            return NavigationRouteEvaluation.keepRoute(
-                    NavigationInitialTurnEvents.suppressForSingleInstructionMode(
-                            turnState.buildInitialTurnEventIfNeeded(
-                                    geometryState.route(),
-                                    geometryState.polylineIndex(),
-                                    new LatLon(filtered.getLatitude(), filtered.getLongitude()),
-                                    likelyStationary ? 0f : speedMps,
-                                    trustedAccuracyMeters
-                            ),
-                            singleInstructionMode
-                    ),
-                    ROUTE_START_APPROACH_INTERVAL_MS,
-                    true
-            );
-        }
-        if (routeStartApproachState.shouldRefreshRouteStart(filtered)) {
-            AppLogger.i(TAG, "Refreshing route-start approach after improved startup NavigationLocation");
-            return NavigationRouteEvaluation.requestRecalculation(
-                    null,
-                    NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH
-            );
-        }
-        deviationHandler.clearDeviationEvidence();
-        return NavigationRouteEvaluation.keepRoute(
-                Collections.emptyList(),
-                ROUTE_START_APPROACH_INTERVAL_MS,
-                false
         );
     }
 

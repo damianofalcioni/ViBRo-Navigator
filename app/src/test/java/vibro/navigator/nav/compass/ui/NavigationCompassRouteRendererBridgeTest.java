@@ -24,7 +24,11 @@ import java.util.Collections;
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.compass.CompassRouteGeometryFactory;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.VoiceHint;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassRouteRendererBridgeTest {
@@ -62,6 +66,19 @@ public class NavigationCompassRouteRendererBridgeTest {
         assertFalse(hasSolidRedPath(activity, Shadows.shadowOf(canvas)));
     }
 
+    @Test
+    public void drawRouteLayer_beelineSegmentIsDottedAndHasNoSolidThresholdPath() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassRouteRenderer renderer = new NavigationCompassRouteRenderer();
+        Canvas canvas = new Canvas(Bitmap.createBitmap(240, 240, Bitmap.Config.ARGB_8888));
+
+        renderer.drawRouteLayer(canvas, activity, beelineOnlyState(), 120f, 120f, 100f, 0f);
+
+        ShadowCanvas shadowCanvas = Shadows.shadowOf(canvas);
+        assertTrue(hasDottedRedPath(activity, shadowCanvas));
+        assertFalse(hasSolidRedPath(activity, shadowCanvas));
+    }
+
     private static NavCompassState compassStateWithBridge() {
         return NavCompassState.fromRouteGeometry(
                 0f,
@@ -76,6 +93,41 @@ public class NavigationCompassRouteRendererBridgeTest {
                 false,
                 0f,
                 bridgeGeometry(),
+                0.0,
+                0.0,
+                1,
+                0f,
+                111f,
+                10f,
+                true
+        );
+    }
+
+    private static NavCompassState beelineOnlyState() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001)
+                ),
+                Collections.singletonList(new VoiceHint(0, 16, 0, 111.0, 0)),
+                80.0,
+                111.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+        CompassRouteGeometry geometry = CompassRouteGeometryFactory.build(route, index);
+        return NavCompassState.fromRouteGeometry(
+                0f,
+                null,
+                1f,
+                1f,
+                1f,
+                220f,
+                220f,
+                220f,
+                5f,
+                false,
+                13f,
+                geometry,
                 0.0,
                 0.0,
                 1,

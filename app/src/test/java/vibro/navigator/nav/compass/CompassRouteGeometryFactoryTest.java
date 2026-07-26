@@ -1,6 +1,7 @@
 package vibro.navigator.nav.compass;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -104,6 +105,33 @@ public class CompassRouteGeometryFactoryTest {
         assertEquals(2, geometry.hintSamplePointCount());
         assertNotNull(geometry.hintSamplePointAt(0));
         assertNotNull(geometry.hintSamplePointAt(1));
+    }
+
+    @Test
+    public void build_marksCommand16TrackSegmentAsBeelineInBothRouteGeometries() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.001, 0.001),
+                        new LatLon(0.001, 0.002)
+                ),
+                Collections.singletonList(new VoiceHint(1, 16, 0, 111.0, 0)),
+                120.0,
+                333.0
+        );
+
+        CompassRouteGeometry geometry = CompassRouteGeometryFactory.build(
+                route,
+                new PolylineIndex(route.track)
+        );
+
+        assertFalse(geometry.beelineSegments().isFullRouteSegment(0));
+        assertTrue(geometry.beelineSegments().isFullRouteSegment(1));
+        assertFalse(geometry.beelineSegments().isFullRouteSegment(2));
+        assertFalse(geometry.beelineSegments().isSampledSegment(0));
+        assertTrue(geometry.beelineSegments().isSampledSegment(1));
+        assertFalse(geometry.beelineSegments().isSampledSegment(2));
     }
 
     @Test

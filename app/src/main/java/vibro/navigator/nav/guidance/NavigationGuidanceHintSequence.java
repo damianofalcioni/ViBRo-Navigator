@@ -11,6 +11,7 @@ import java.util.List;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class NavigationGuidanceHintSequence {
@@ -117,7 +118,9 @@ final class NavigationGuidanceHintSequence {
     @Nullable
     private VoiceHint nextTurnManeuverHint() {
         VoiceHint nextHint = nextHint();
-        return nextHint == null || NavigationTurnManeuverCueState.isSyntheticArrivalHint(nextHint)
+        return nextHint == null
+                || nextHint.command == RouteStartApproach.BEELINE_COMMAND
+                || NavigationTurnManeuverCueState.isSyntheticArrivalHint(nextHint)
                 ? null
                 : nextHint;
     }

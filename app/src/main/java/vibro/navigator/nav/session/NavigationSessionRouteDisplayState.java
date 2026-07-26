@@ -31,12 +31,8 @@ public final class NavigationSessionRouteDisplayState {
     private List<NavTarget> targets = new ArrayList<>();
     @NonNull
     private final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
-    @Nullable
-    private LatLon routeStartApproachTarget;
-
     public void reset() {
         targets = new ArrayList<>();
-        routeStartApproachTarget = null;
         compassMemory.reset();
     }
 
@@ -48,10 +44,9 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationTextResources textResources,
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops,
-            @Nullable LatLon routeStartApproachTarget
+            @NonNull List<LatLon> intermediateStops
     ) {
-        onRouteApplied(textResources, route, polylineIndex, intermediateStops, routeStartApproachTarget, null, true);
+        onRouteApplied(textResources, route, polylineIndex, intermediateStops, null, true);
     }
 
     public void onRouteApplied(
@@ -59,7 +54,6 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
-            @Nullable LatLon routeStartApproachTarget,
             @Nullable PolylineIndex.Match previousRouteMatch,
             boolean appendDirectBridge
     ) {
@@ -70,16 +64,11 @@ public final class NavigationSessionRouteDisplayState {
                 previousRouteMatch,
                 appendDirectBridge
         );
-        this.routeStartApproachTarget = copy(routeStartApproachTarget);
         targets = buildTargets(textResources, intermediateStops, route.track.size(), polylineIndex);
     }
 
     void appendRecalculationBridgeSegment(@NonNull List<LatLon> segment) {
         compassMemory.appendRecalculationBridgeSegment(segment);
-    }
-
-    public void clearRouteStartApproachTarget() {
-        routeStartApproachTarget = null;
     }
 
     @NonNull
@@ -89,15 +78,25 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationRouteProgressTracker progressTracker
     ) {
-        return buildState(snapshot, geometryState, turnState, progressTracker, false);
+        return buildState(
+                snapshot,
+                geometryState,
+                turnState,
+                progressTracker,
+                null,
+                null,
+                false
+        );
     }
 
     @NonNull
-    public NavState buildState(
+    NavState buildState(
             @NonNull NavigationDisplaySnapshot snapshot,
             @NonNull NavigationRouteGeometryState geometryState,
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationRouteProgressTracker progressTracker,
+            @Nullable LatLon directGuidanceTarget,
+            @Nullable PolylineIndex.Match routeMatchOverride,
             boolean showNextManeuverCue
     ) {
         if (snapshot.lastFiltered == null) {
@@ -114,7 +113,9 @@ public final class NavigationSessionRouteDisplayState {
             return buildStateWithoutRoute(snapshot);
         }
 
-        PolylineIndex.Match match = geometryState.match(snapshot.lastFiltered, snapshot.accuracyMeters);
+        PolylineIndex.Match match = routeMatchOverride != null
+                ? routeMatchOverride
+                : geometryState.match(snapshot.lastFiltered, snapshot.accuracyMeters);
         if (match == null) {
             return NavigationDisplayGpsStatusFactory.withSnapshotGpsStatus(
                     NavStateResourceComposer.waiting(snapshot.textResources),
@@ -165,7 +166,7 @@ public final class NavigationSessionRouteDisplayState {
                                 compassMemory.radiusTransition
                         )
                 )
-                .routeStartApproachTarget(routeStartApproachTarget)
+                .routeStartApproachTarget(directGuidanceTarget)
                 .orientationCue(orientationCue)
                 .blockedAreas(NavigationBlockedCompassAreas.project(snapshot.lastFiltered, snapshot.blockedPoints))
                 .nowMs(snapshot.nowMs)
@@ -188,14 +189,10 @@ public final class NavigationSessionRouteDisplayState {
                 .intermediateDestinationReachedTrackIndex(turnState.getIntermediateDestinationReachedTrackIndex())
                 .targets(targets)
                 .build());
-        if (routeStartApproachTarget != null) {
-            state = NavStateComposer.withGuidanceLines(
-                    state,
-                    NavigationRouteStartApproachText.buildLine(snapshot, routeStartApproachTarget),
-                    ""
-            );
-        }
-        return withLastRouteFailureNotice(snapshot, state);
+        return withLastRouteFailureNotice(
+                snapshot,
+                withDirectGuidanceLines(state, snapshot, directGuidanceTarget)
+        );
     }
 
     @NonNull
@@ -209,11 +206,6 @@ public final class NavigationSessionRouteDisplayState {
                     snapshot.likelyStationary
             );
         }
-    }
-
-    @Nullable
-    LatLon routeStartApproachTargetForDetails() {
-        return routeStartApproachTarget;
     }
 
     @NonNull
@@ -251,6 +243,21 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavState state
     ) {
         return NavigationNoRouteDisplayState.withLastRouteFailureNotice(snapshot, state);
+    }
+
+    @NonNull
+    private NavState withDirectGuidanceLines(
+            @NonNull NavState state,
+            @NonNull NavigationDisplaySnapshot snapshot,
+            @Nullable LatLon directGuidanceTarget
+    ) {
+        return directGuidanceTarget == null
+                ? state
+                : NavStateComposer.withGuidanceLines(
+                        state,
+                        NavigationRouteStartApproachText.buildLine(snapshot, directGuidanceTarget),
+                        state.routeStatus.guidance.nextLine
+                );
     }
 
     @NonNull
@@ -321,11 +328,6 @@ public final class NavigationSessionRouteDisplayState {
                 polylineIndex,
                 snapshot.headingDegrees
         );
-    }
-
-    @Nullable
-    private static LatLon copy(@Nullable LatLon point) {
-        return point == null ? null : new LatLon(point.lat, point.lon);
     }
 
 }

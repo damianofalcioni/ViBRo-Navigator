@@ -30,7 +30,7 @@ final class NavigationRouteResultApplier {
     @NonNull
     private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
     @NonNull
-    private final RouteStartApproachState routeStartApproachState;
+    private final NavigationRouteDirectGuidanceState directGuidanceState;
     @NonNull
     private final NavigationRouteHistory routeHistory;
 
@@ -40,7 +40,7 @@ final class NavigationRouteResultApplier {
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationArrivalDetector arrivalDetector,
             @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
-            @NonNull RouteStartApproachState routeStartApproachState,
+            @NonNull NavigationRouteDirectGuidanceState directGuidanceState,
             @NonNull NavigationRouteHistory routeHistory
     ) {
         this.geometryState = geometryState;
@@ -48,7 +48,7 @@ final class NavigationRouteResultApplier {
         this.turnState = turnState;
         this.arrivalDetector = arrivalDetector;
         this.intermediateArrivalTracker = intermediateArrivalTracker;
-        this.routeStartApproachState = routeStartApproachState;
+        this.directGuidanceState = directGuidanceState;
         this.routeHistory = routeHistory;
     }
 
@@ -61,7 +61,7 @@ final class NavigationRouteResultApplier {
                 accuracyMeters
         );
         GeoJsonRoute route = input.route;
-        routeStartApproachState.apply(
+        directGuidanceState.applyRouteStartApproach(
                 approachPlan,
                 routeStartRequestLocation(input),
                 !input.snapshot.isRoundTrip()
@@ -73,13 +73,18 @@ final class NavigationRouteResultApplier {
                 : previousRouteMatch(input.lastFiltered, accuracyMeters);
         geometryState.loadRoute(route, input.snapshot.isRoundTrip());
         PolylineIndex polylineIndex = requireActivePolylineIndex();
+        directGuidanceState.onRouteApplied(route, polylineIndex);
+        activateInitialRouteBeelineIfApplicable(
+                input.lastFiltered,
+                accuracyMeters,
+                approachPlan.active
+        );
         routeHistory.onRouteApplied(route, polylineIndex, previousRouteMatch, !fixPathPending);
         displayState.onRouteApplied(
                 input.textResources,
                 route,
                 polylineIndex,
                 input.snapshot.intermediates,
-                routeStartApproachState.target(),
                 previousRouteMatch,
                 !fixPathPending
         );
@@ -91,7 +96,8 @@ final class NavigationRouteResultApplier {
                 route,
                 initialSpeedMps,
                 accuracyMeters,
-                routeStartApproachState.isActive()
+                directGuidanceState.isRouteStartApproachActive()
+                        || directGuidanceState.isRouteBeelineActive()
         );
         AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
                 + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
@@ -99,6 +105,24 @@ final class NavigationRouteResultApplier {
                 + " voiceHints=" + route.voiceHints.size()
                 + " lengthMeters=" + route.trackLengthMeters);
         return turnEvents;
+    }
+
+    private void activateInitialRouteBeelineIfApplicable(
+            @Nullable NavigationLocation lastFiltered,
+            float accuracyMeters,
+            boolean routeStartApproachActive
+    ) {
+        if (routeStartApproachActive || lastFiltered == null) {
+            return;
+        }
+        PolylineIndex.Match match = geometryState.match(lastFiltered, accuracyMeters);
+        if (match != null) {
+            directGuidanceState.activateRouteBeelineIfReached(
+                    match,
+                    lastFiltered,
+                    NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(accuracyMeters)
+            );
+        }
     }
 
     @NonNull

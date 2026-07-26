@@ -111,6 +111,15 @@ public final class PolylineIndex {
     }
 
     @Nullable
+    public Match matchFromSegmentIndex(@NonNull LatLon point, int firstSegmentIndex) {
+        if (pts.size() < 2) {
+            return null;
+        }
+        int start = Math.max(0, Math.min(firstSegmentIndex, pts.size() - 2));
+        return findBestMatchInRange(point, start, pts.size() - 2);
+    }
+
+    @Nullable
     Match matchBeforeDistance(@NonNull LatLon p, double maxAlongTrackMeters) {
         if (pts.size() < 2) {
             return null;

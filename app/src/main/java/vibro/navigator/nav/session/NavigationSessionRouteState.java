@@ -44,7 +44,11 @@ public final class NavigationSessionRouteState {
                 components.geometryState,
                 components.turnState,
                 components.progressTracker,
-                components.displayState.routeStartApproachTargetForDetails(),
+                components.directGuidance.activeTarget(),
+                components.directGuidance.resolveRouteMatch(
+                        snapshot.lastFiltered,
+                        snapshot.accuracyMeters
+                ),
                 components.displayState.targetsForDetails()
         );
     }
@@ -142,7 +146,16 @@ public final class NavigationSessionRouteState {
 
     @Nullable
     public Double currentSegmentBearingDegrees(@Nullable NavigationLocation lastFiltered) {
-        return components.geometryState.currentSegmentBearingDegrees(lastFiltered);
+        if (lastFiltered == null || components.geometryState.isRouteUnavailable()) {
+            return null;
+        }
+        float accuracyMeters = lastFiltered.hasAccuracy()
+                ? lastFiltered.getAccuracy()
+                : Float.MAX_VALUE;
+        return components.directGuidance.expectedRouteBearingDegrees(
+                lastFiltered,
+                accuracyMeters
+        );
     }
 
     void recordRecalculationFixPath(
@@ -163,15 +176,11 @@ public final class NavigationSessionRouteState {
 
     @Nullable
     public Double currentRouteBearingDegrees(@Nullable NavigationLocation lastFiltered) {
-        Double approachBearingDegrees = currentRouteStartApproachBearingDegrees(lastFiltered);
-        return approachBearingDegrees != null
-                ? approachBearingDegrees
+        Double directGuidanceBearingDegrees =
+                components.directGuidance.bearingDegreesFrom(lastFiltered);
+        return directGuidanceBearingDegrees != null
+                ? directGuidanceBearingDegrees
                 : currentSegmentBearingDegrees(lastFiltered);
-    }
-
-    @Nullable
-    private Double currentRouteStartApproachBearingDegrees(@Nullable NavigationLocation lastFiltered) {
-        return components.routeStartApproachState.bearingDegreesFrom(lastFiltered);
     }
 
     @NonNull
@@ -278,6 +287,11 @@ public final class NavigationSessionRouteState {
                 components.geometryState,
                 components.turnState,
                 components.progressTracker,
+                components.directGuidance.activeTarget(),
+                components.directGuidance.resolveRouteMatch(
+                        snapshot.lastFiltered,
+                        snapshot.accuracyMeters
+                ),
                 showNextManeuverCue
         );
         components.displayState.rememberRenderedState(state, snapshot);

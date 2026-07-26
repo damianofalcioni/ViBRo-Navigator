@@ -15,10 +15,16 @@ public final class CompassRouteGeometry {
         @NonNull
         final LatLon point;
         final double alongTrackMeters;
+        final int trackIndex;
 
         public SamplePoint(@NonNull LatLon point, double alongTrackMeters) {
+            this(point, alongTrackMeters, -1);
+        }
+
+        SamplePoint(@NonNull LatLon point, double alongTrackMeters, int trackIndex) {
             this.point = point;
             this.alongTrackMeters = alongTrackMeters;
+            this.trackIndex = trackIndex;
         }
     }
 
@@ -36,6 +42,10 @@ public final class CompassRouteGeometry {
     private final CompassPassedRouteSegments archivedPassedRouteSegments;
     @NonNull
     private final CompassPassedRouteSegments recalculationBridgeSegments;
+    @NonNull
+    private final CompassRouteBeelineSegments beelineSegments;
+    @NonNull
+    private final boolean[] beelineTrackSegments;
 
     public CompassRouteGeometry(
             @NonNull List<SamplePoint> routeSamplePoints,
@@ -80,7 +90,8 @@ public final class CompassRouteGeometry {
                 hintSamplePoints,
                 intermediateSamplePoints,
                 archivedPassedRouteSegments,
-                recalculationBridgeSegments
+                recalculationBridgeSegments,
+                new boolean[0]
         );
     }
 
@@ -92,6 +103,26 @@ public final class CompassRouteGeometry {
             @NonNull List<List<LatLon>> archivedPassedRouteSegments,
             @NonNull List<List<LatLon>> recalculationBridgeSegments
     ) {
+        this(
+                routeSamplePoints,
+                fullRoutePoints,
+                hintSamplePoints,
+                intermediateSamplePoints,
+                archivedPassedRouteSegments,
+                recalculationBridgeSegments,
+                new boolean[0]
+        );
+    }
+
+    CompassRouteGeometry(
+            @NonNull List<SamplePoint> routeSamplePoints,
+            @NonNull List<SamplePoint> fullRoutePoints,
+            @NonNull List<LatLon> hintSamplePoints,
+            @NonNull List<LatLon> intermediateSamplePoints,
+            @NonNull List<List<LatLon>> archivedPassedRouteSegments,
+            @NonNull List<List<LatLon>> recalculationBridgeSegments,
+            @NonNull boolean[] beelineTrackSegments
+    ) {
         this.routeSamplePoints = immutableCopy(routeSamplePoints);
         this.fullRoutePoints = immutableCopy(fullRoutePoints);
         this.fullRouteSpatialIndex = new CompassRouteSpatialIndex(this.fullRoutePoints);
@@ -99,6 +130,12 @@ public final class CompassRouteGeometry {
         this.intermediateSamplePoints = immutableCopy(intermediateSamplePoints);
         this.archivedPassedRouteSegments = new CompassPassedRouteSegments(archivedPassedRouteSegments);
         this.recalculationBridgeSegments = new CompassPassedRouteSegments(recalculationBridgeSegments);
+        this.beelineTrackSegments = beelineTrackSegments.clone();
+        this.beelineSegments = new CompassRouteBeelineSegments(
+                this.routeSamplePoints,
+                this.fullRoutePoints,
+                this.beelineTrackSegments
+        );
     }
 
     public int routeSamplePointCount() {
@@ -170,16 +207,22 @@ public final class CompassRouteGeometry {
                 hintSamplePoints,
                 intermediateSamplePoints,
                 archivedPassedRouteSegments,
-                recalculationBridgeSegments
+                recalculationBridgeSegments,
+                beelineTrackSegments
         );
     }
 
+    @NonNull
+    public CompassRouteBeelineSegments beelineSegments() {
+        return beelineSegments;
+    }
+
     public int passedRoutePointCount(double alongTrackMeters) {
-        return passedPointCount(routeSamplePoints, alongTrackMeters);
+        return CompassRouteProgress.passedPointCount(routeSamplePoints, alongTrackMeters);
     }
 
     public int passedFullRoutePointCount(double alongTrackMeters) {
-        return passedPointCount(fullRoutePoints, alongTrackMeters);
+        return CompassRouteProgress.passedPointCount(fullRoutePoints, alongTrackMeters);
     }
 
     public double alongTrackMetersForSampleCount(int samplePointCount) {
@@ -216,21 +259,4 @@ public final class CompassRouteGeometry {
         return Collections.unmodifiableList(new ArrayList<>(values));
     }
 
-    private static int passedPointCount(
-            @NonNull List<SamplePoint> points,
-            double alongTrackMeters
-    ) {
-        if (points.isEmpty()) {
-            return 0;
-        }
-        int passedPointCount = 0;
-        for (int i = 0; i < points.size(); i++) {
-            if (points.get(i).alongTrackMeters <= alongTrackMeters) {
-                passedPointCount = i + 1;
-            } else {
-                break;
-            }
-        }
-        return Math.max(1, passedPointCount);
-    }
 }

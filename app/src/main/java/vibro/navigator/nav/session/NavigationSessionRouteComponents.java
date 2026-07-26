@@ -1,7 +1,6 @@
 package vibro.navigator.nav.session;
 
 import androidx.annotation.NonNull;
-
 import vibro.navigator.nav.guidance.NavigationBlockedRouteState;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
@@ -30,7 +29,16 @@ final class NavigationSessionRouteComponents {
     final NavigationIntermediateArrivalTracker intermediateArrivalTracker =
             new NavigationIntermediateArrivalTracker();
     @NonNull
-    final RouteStartApproachState routeStartApproachState = new RouteStartApproachState();
+    final NavigationRouteDirectGuidance directGuidance =
+            new NavigationRouteDirectGuidance(
+                    geometryState,
+                    turnState,
+                    progressTracker,
+                    deviationHandler,
+                    arrivalDetector,
+                    intermediateArrivalTracker,
+                    routeHistory
+            );
     @NonNull
     final NavigationRouteEvaluator routeEvaluator = new NavigationRouteEvaluator(
             geometryState,
@@ -40,7 +48,7 @@ final class NavigationSessionRouteComponents {
             displayState,
             arrivalDetector,
             intermediateArrivalTracker,
-            routeStartApproachState,
+            directGuidance.evaluator(),
             routeHistory
     );
     @NonNull
@@ -55,7 +63,7 @@ final class NavigationSessionRouteComponents {
             turnState,
             arrivalDetector,
             intermediateArrivalTracker,
-            routeStartApproachState,
+            directGuidance.state(),
             routeHistory
     );
 
@@ -68,6 +76,6 @@ final class NavigationSessionRouteComponents {
         blockedRouteState.reset();
         turnState.reset();
         intermediateArrivalTracker.reset();
-        routeStartApproachState.reset();
+        directGuidance.reset();
     }
 }

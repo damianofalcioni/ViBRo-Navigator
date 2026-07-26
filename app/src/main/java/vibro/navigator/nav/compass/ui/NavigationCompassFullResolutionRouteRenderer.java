@@ -25,6 +25,9 @@ final class NavigationCompassFullResolutionRouteRenderer {
     @NonNull
     private final NavigationRoutePathRenderer routePathRenderer = new NavigationRoutePathRenderer();
     @NonNull
+    private final NavigationCompassBeelineRouteRenderer beelineRouteRenderer =
+            new NavigationCompassBeelineRouteRenderer(this);
+    @NonNull
     private final NavigationCompassStoredRouteSegmentRenderer storedSegmentRenderer =
             new NavigationCompassStoredRouteSegmentRenderer();
 
@@ -53,7 +56,16 @@ final class NavigationCompassFullResolutionRouteRenderer {
             boolean drawThreshold
     ) {
         if (drawThreshold) {
-            drawRemainingRoute(canvas, state, cx, cy, scale, headingDegrees, routeThresholdPaint);
+            beelineRouteRenderer.drawRemainingFullRoute(
+                    canvas,
+                    state,
+                    cx,
+                    cy,
+                    scale,
+                    headingDegrees,
+                    routeThresholdPaint,
+                    null
+            );
         }
         storedSegmentRenderer.draw(
                 canvas,
@@ -66,7 +78,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 passedRoutePaint,
                 straightLinePaint
         );
-        drawRanges(
+        beelineRouteRenderer.drawFullRouteRanges(
                 canvas,
                 state,
                 cx,
@@ -75,9 +87,19 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 headingDegrees,
                 0,
                 state.fullRouteView.passedPointCount(),
-                passedRoutePaint
+                passedRoutePaint,
+                passedStraightLinePaint
         );
-        drawRemainingRoute(canvas, state, cx, cy, scale, headingDegrees, routePaint);
+        beelineRouteRenderer.drawRemainingFullRoute(
+                canvas,
+                state,
+                cx,
+                cy,
+                scale,
+                headingDegrees,
+                routePaint,
+                straightLinePaint
+        );
     }
 
     void drawStraightLineRoute(
@@ -114,7 +136,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
             boolean drawThreshold
     ) {
         if (drawThreshold) {
-            drawSampledRange(
+            beelineRouteRenderer.drawSampledRouteRange(
                     canvas,
                     state,
                     cx,
@@ -123,7 +145,8 @@ final class NavigationCompassFullResolutionRouteRenderer {
                     headingDegrees,
                     state.remainingRouteStartSamplePointIndex(),
                     state.routeSamplePointCount(),
-                    routeThresholdPaint
+                    routeThresholdPaint,
+                    null
             );
         }
         storedSegmentRenderer.draw(
@@ -137,7 +160,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 passedRoutePaint,
                 straightLinePaint
         );
-        drawSampledRange(
+        beelineRouteRenderer.drawSampledRouteRange(
                 canvas,
                 state,
                 cx,
@@ -146,9 +169,10 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 headingDegrees,
                 0,
                 state.passedRouteSamplePointCount(),
-                passedRoutePaint
+                passedRoutePaint,
+                passedStraightLinePaint
         );
-        drawSampledRange(
+        beelineRouteRenderer.drawSampledRouteRange(
                 canvas,
                 state,
                 cx,
@@ -157,7 +181,8 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 headingDegrees,
                 state.remainingRouteStartSamplePointIndex(),
                 state.routeSamplePointCount(),
-                routePaint
+                routePaint,
+                straightLinePaint
         );
     }
 
@@ -278,7 +303,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
         }
     }
 
-    private void drawSampledRange(
+    void drawSampledRange(
             @NonNull Canvas canvas,
             @NonNull NavCompassState state,
             float cx,
@@ -333,7 +358,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
         );
     }
 
-    private void drawRange(
+    void drawRange(
             @NonNull Canvas canvas,
             @NonNull NavCompassState state,
             float cx,

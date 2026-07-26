@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.geo.LatLon;
@@ -26,22 +25,25 @@ final class NavigationRouteDirectionDetails {
             @NonNull NavigationRouteGeometryState geometryState,
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationRouteProgressTracker progressTracker,
-            @Nullable LatLon routeStartApproachTarget,
+            @Nullable LatLon directGuidanceTarget,
+            @Nullable PolylineIndex.Match routeMatchOverride,
             @NonNull List<NavTarget> targets
     ) {
-        if (snapshot.lastFiltered == null || routeStartApproachTarget != null) {
-            return routeStartApproachDetails(snapshot, routeStartApproachTarget);
+        if (snapshot.lastFiltered == null) {
+            return new ArrayList<>();
         }
         GeoJsonRoute route = geometryState.route();
         PolylineIndex polylineIndex = geometryState.polylineIndex();
         if (route == null || polylineIndex == null) {
             return new ArrayList<>();
         }
-        PolylineIndex.Match match = geometryState.match(snapshot.lastFiltered, snapshot.accuracyMeters);
+        PolylineIndex.Match match = routeMatchOverride != null
+                ? routeMatchOverride
+                : geometryState.match(snapshot.lastFiltered, snapshot.accuracyMeters);
         if (match == null) {
             return new ArrayList<>();
         }
-        return NavDirectionDetailsTextFactory.buildRelativeLines(
+        List<String> lines = NavDirectionDetailsTextFactory.buildRelativeLines(
                 route,
                 polylineIndex,
                 match.alongTrackMeters,
@@ -59,16 +61,9 @@ final class NavigationRouteDirectionDetails {
                 targets,
                 snapshot.textResources
         );
-    }
-
-    @NonNull
-    private static List<String> routeStartApproachDetails(
-            @NonNull NavigationDisplaySnapshot snapshot,
-            @Nullable LatLon routeStartApproachTarget
-    ) {
-        if (snapshot.lastFiltered == null || routeStartApproachTarget == null) {
-            return new ArrayList<>();
+        if (directGuidanceTarget != null) {
+            lines.add(0, NavigationRouteStartApproachText.buildLine(snapshot, directGuidanceTarget));
         }
-        return Collections.singletonList(NavigationRouteStartApproachText.buildLine(snapshot, routeStartApproachTarget));
+        return lines;
     }
 }

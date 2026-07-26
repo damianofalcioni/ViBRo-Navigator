@@ -195,7 +195,11 @@ final class CompassRouteShapeSampler {
         List<CompassRouteGeometry.SamplePoint> result = new ArrayList<>();
         for (int i = 0; i < selected.length; i++) {
             if (selected[i]) {
-                result.add(new CompassRouteGeometry.SamplePoint(track.get(i), index.distanceAtPointIndex(i)));
+                result.add(new CompassRouteGeometry.SamplePoint(
+                        track.get(i),
+                        index.distanceAtPointIndex(i),
+                        i
+                ));
             }
         }
         return result;
