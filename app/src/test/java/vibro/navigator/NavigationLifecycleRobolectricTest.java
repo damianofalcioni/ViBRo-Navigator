@@ -17,6 +17,7 @@ import static org.robolectric.Shadows.shadowOf;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.ServiceConnection;
+import android.view.WindowManager;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.core.app.ServiceCompat;
@@ -28,6 +29,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.android.controller.ServiceController;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowService;
 
 import java.util.ArrayList;
@@ -50,6 +52,34 @@ public class NavigationLifecycleRobolectricTest {
 
         assertTrue(activity.moveTaskToBackCalled);
         assertFalse(activity.isFinishing());
+    }
+
+    @Test
+    public void navigationActivityShowsOverLockScreenOnModernAndroid() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
+        intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+
+        ActivityController<TestNavigationActivity> controller =
+                Robolectric.buildActivity(TestNavigationActivity.class, intent).setup();
+        TestNavigationActivity activity = controller.get();
+
+        assertTrue(shadowOf(activity).getShowWhenLocked());
+        assertTrue(shadowOf(activity).getTurnScreenOn());
+    }
+
+    @Test
+    @Config(sdk = 26)
+    @SuppressWarnings("deprecation")
+    public void navigationActivityShowsOverLockScreenOnLegacyAndroid() {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
+        intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+
+        ActivityController<TestNavigationActivity> controller =
+                Robolectric.buildActivity(TestNavigationActivity.class, intent).setup();
+        TestNavigationActivity activity = controller.get();
+
+        assertTrue(shadowOf(activity.getWindow()).getFlag(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED));
+        assertTrue(shadowOf(activity.getWindow()).getFlag(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON));
     }
 
     @Test

@@ -433,6 +433,7 @@ The navigation UI must show the following in large text:
 
 - The navigation UI may use different layouts in portrait and landscape as long as the same navigation information and actions remain available
 - While the dedicated navigation UI is visible, the app must keep the display awake so the screen does not time out during active on-screen guidance
+- While the dedicated navigation UI is visible, Android should be allowed to show that navigation screen above the keyguard and turn the screen on when the activity resumes, so pressing the power button off and on during active on-screen guidance returns to navigation instead of requiring an immediate PIN entry. The app must not silently dismiss a secure lock screen or unlock the device.
 - On phone-sized screens in landscape orientation, the navigation UI must switch to a two-column layout
 - In that landscape layout, the left column must contain all navigation text content and both action buttons
 - In that landscape layout, the right column must contain only the compass route view plus the overlaid GPX export and settings controls
