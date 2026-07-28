@@ -56,9 +56,11 @@ final class AboutAndroidAutoSettings {
         enabledSwitch.setEnabled(supported);
         enabledSetting.render(enabledSwitch, enabled);
         rendering = false;
-        if (supported) {
-            DistributionServices.configureAndroidAutoIntegration(activity, enabled);
-        }
+    }
+
+    void refreshAfterDatabaseImport() {
+        refresh();
+        applyStoredEnabled();
     }
 
     void flush() {
@@ -68,5 +70,14 @@ final class AboutAndroidAutoSettings {
     private void applyEnabled(boolean enabled) {
         AppAndroidAutoSettings.setIntegrationEnabled(activity, enabled);
         DistributionServices.configureAndroidAutoIntegration(activity, enabled);
+    }
+
+    private void applyStoredEnabled() {
+        if (DistributionServices.supportsAndroidAutoIntegration()) {
+            DistributionServices.configureAndroidAutoIntegration(
+                    activity,
+                    AppAndroidAutoSettings.isIntegrationEnabled(activity)
+            );
+        }
     }
 }

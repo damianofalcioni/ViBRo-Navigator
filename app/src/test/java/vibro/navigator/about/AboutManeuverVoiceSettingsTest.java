@@ -2,16 +2,23 @@ package vibro.navigator.about;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Looper;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.Voice;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.core.content.ContextCompat;
 
@@ -19,12 +26,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.util.ReflectionHelpers;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.voice.NavigationManeuverVoiceLabelFormatter;
 import vibro.navigator.nav.voice.NavigationTextToSpeechVoiceAvailability;
 import vibro.navigator.nav.voice.NavigationVoiceOption;
@@ -33,6 +44,36 @@ import vibro.navigator.nav.voice.NavigationVoiceOption;
 public class AboutManeuverVoiceSettingsTest {
     private static final String OTHER_VOICE = "other-voice";
     private static final String SELECTED_VOICE = "selected-voice";
+
+    @Test
+    public void aboutPageDoesNotInitializeVoiceClientBeforeVoiceDialog() {
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        AboutSettingsControllers controllers = ReflectionHelpers.getField(activity, "settingsControllers");
+        AboutManeuverVoiceSettings settings = ReflectionHelpers.getField(controllers, "maneuverVoiceSettings");
+        AboutManeuverVoiceClientLoader loader = ReflectionHelpers.getField(settings, "voiceClientLoader");
+
+        assertNull(ReflectionHelpers.getField(loader, "voiceClient"));
+        assertNull(ReflectionHelpers.getField(settings, "voiceAdapter"));
+    }
+
+    @Test
+    public void openingVoiceDialogDefersVoiceClientInitialization() {
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        ImageButton settingsButton = new ImageButton(activity);
+        RecordingScheduler scheduler = new RecordingScheduler();
+
+        new AboutManeuverVoiceSettings(activity, settingsButton, new Switch(activity), scheduler);
+
+        settingsButton.performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(
+                AboutDeferredDialogAction.OPEN_DELAY_MS + 50,
+                TimeUnit.MILLISECONDS
+        );
+
+        assertNotNull(ShadowAlertDialog.getLatestAlertDialog());
+        assertEquals(AboutManeuverVoiceClientLoader.INIT_DELAY_MS, scheduler.delayMs);
+        assertNotNull(scheduler.delayedRunnable);
+    }
 
     @Test
     public void isOfflineVoiceAvailable_acceptsInstalledEmbeddedVoice() {
@@ -181,5 +222,22 @@ public class AboutManeuverVoiceSettingsTest {
                 locale.getDisplayName(),
                 variant
         );
+    }
+
+    private static final class RecordingScheduler implements TaskScheduler {
+        private Runnable delayedRunnable;
+        private long delayMs = -1L;
+
+        @Override
+        public void post(@NonNull Runnable runnable) {
+            delayedRunnable = runnable;
+            delayMs = 0L;
+        }
+
+        @Override
+        public void postDelayed(@NonNull Runnable runnable, long delayMs) {
+            delayedRunnable = runnable;
+            this.delayMs = delayMs;
+        }
     }
 }

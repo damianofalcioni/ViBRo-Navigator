@@ -36,8 +36,8 @@ final class AboutGooglePoiApiKeySettings {
     private final View editButton;
     @NonNull
     private final Switch enabledSwitch;
-    @NonNull
-    private final ApiKeyValidator validator;
+    @Nullable
+    private ApiKeyValidator validator;
     private boolean renderingSwitch;
     private boolean shutdown;
     @Nullable
@@ -53,7 +53,6 @@ final class AboutGooglePoiApiKeySettings {
         this.container = container;
         this.editButton = editButton;
         this.enabledSwitch = enabledSwitch;
-        this.validator = testValidator == null ? new BackgroundApiKeyValidator() : testValidator;
     }
 
     static void setApiKeyValidatorForTests(@Nullable ApiKeyValidator validator) {
@@ -75,7 +74,9 @@ final class AboutGooglePoiApiKeySettings {
 
     void shutdown() {
         shutdown = true;
-        validator.shutdown();
+        if (validator != null) {
+            validator.shutdown();
+        }
     }
 
     void refresh() {
@@ -171,11 +172,19 @@ final class AboutGooglePoiApiKeySettings {
         }
         setDialogButtonsEnabled(dialog, false);
         Toast.makeText(activity, R.string.msg_google_poi_api_key_validating, Toast.LENGTH_SHORT).show();
-        validator.validate(apiKey, result -> {
+        validator().validate(apiKey, result -> {
             if (!shutdown) {
                 handleValidationResult(dialog, apiKey, result);
             }
         });
+    }
+
+    @NonNull
+    private ApiKeyValidator validator() {
+        if (validator == null) {
+            validator = testValidator == null ? new BackgroundApiKeyValidator() : testValidator;
+        }
+        return validator;
     }
 
     private void clearApiKey(@NonNull AlertDialog dialog) {

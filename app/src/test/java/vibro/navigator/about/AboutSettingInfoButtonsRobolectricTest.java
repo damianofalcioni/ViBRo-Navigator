@@ -41,7 +41,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
 
     @Test
     public void aboutPageConfiguresInfoButtonsForEverySettingEntry() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
 
         assertInfoButton(activity, R.id.aboutLogEnabledInfoButton, R.string.label_log_enabled);
         assertInfoButton(activity, R.id.aboutAutoSaveGpxInfoButton, R.string.label_auto_save_gpx_enabled);
@@ -91,7 +91,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
 
     @Test
     public void clickingSettingInfoButtonShowsExplanationDialog() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton infoButton = activity.findViewById(R.id.aboutLogEnabledInfoButton);
 
         infoButton.performClick();

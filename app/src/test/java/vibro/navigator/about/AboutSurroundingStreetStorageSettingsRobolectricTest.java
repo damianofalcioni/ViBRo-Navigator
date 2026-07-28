@@ -96,7 +96,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     }
 
     private static AboutActivity activity() {
-        return Robolectric.buildActivity(AboutActivity.class).setup().get();
+        return AboutActivityTestSupport.setupWithSettings();
     }
 
     private static void sendStorageResult(AboutActivity activity, int grantResult) {
@@ -109,7 +109,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
 
     private static void idleInitialDiagnosticRender() {
         shadowOf(android.os.Looper.getMainLooper()).idleFor(
-                100,
+                AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS + 50,
                 java.util.concurrent.TimeUnit.MILLISECONDS
         );
     }

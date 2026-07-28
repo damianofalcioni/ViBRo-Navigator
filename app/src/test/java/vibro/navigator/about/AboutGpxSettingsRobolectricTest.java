@@ -34,7 +34,7 @@ public class AboutGpxSettingsRobolectricTest {
 
     @Test
     public void aboutPageShowsAutoSaveGpxSwitchDisabledByDefault() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch autoSaveGpxSwitch = activity.findViewById(R.id.aboutAutoSaveGpxSwitch);
 
         assertEquals(
@@ -46,7 +46,7 @@ public class AboutGpxSettingsRobolectricTest {
 
     @Test
     public void aboutPageAutoSaveGpxSwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch autoSaveGpxSwitch = activity.findViewById(R.id.aboutAutoSaveGpxSwitch);
 
         assertFalse(AppGpxSettings.isAutoSaveOnStopEnabled(activity));

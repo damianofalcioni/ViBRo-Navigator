@@ -38,7 +38,7 @@ public class AboutNotificationSettingsRobolectricTest {
 
     @Test
     public void aboutPageShowsNavigationNotificationsSwitchEnabledByDefault() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch notificationsSwitch = activity.findViewById(R.id.aboutNavigationNotificationsSwitch);
 
         assertEquals(
@@ -50,7 +50,7 @@ public class AboutNotificationSettingsRobolectricTest {
 
     @Test
     public void aboutPageNavigationNotificationsSwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch notificationsSwitch = activity.findViewById(R.id.aboutNavigationNotificationsSwitch);
 
         assertTrue(AppNotificationSettings.areNavigationNotificationsEnabled(activity));
@@ -66,7 +66,7 @@ public class AboutNotificationSettingsRobolectricTest {
 
     @Test
     public void aboutPageShowsSingleInstructionModeSwitchDisabledByDefault() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch singleInstructionModeSwitch = activity.findViewById(R.id.aboutSingleInstructionModeSwitch);
 
         assertEquals(
@@ -78,7 +78,7 @@ public class AboutNotificationSettingsRobolectricTest {
 
     @Test
     public void aboutPageSingleInstructionModeSwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch singleInstructionModeSwitch = activity.findViewById(R.id.aboutSingleInstructionModeSwitch);
 
         assertFalse(AppNotificationSettings.isSingleInstructionModeEnabled(activity));

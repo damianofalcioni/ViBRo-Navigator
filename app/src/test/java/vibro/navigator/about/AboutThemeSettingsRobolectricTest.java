@@ -34,7 +34,7 @@ public class AboutThemeSettingsRobolectricTest {
 
     @Test
     public void aboutPageShowsLightThemeSwitchDisabledByDefault() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch lightThemeSwitch = activity.findViewById(R.id.aboutLightThemeSwitch);
 
         assertEquals(activity.getString(R.string.label_light_theme_enabled), lightThemeSwitch.getText().toString());
@@ -43,7 +43,7 @@ public class AboutThemeSettingsRobolectricTest {
 
     @Test
     public void aboutPageLightThemeSwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch lightThemeSwitch = activity.findViewById(R.id.aboutLightThemeSwitch);
 
         assertFalse(AppThemeSettings.isLightThemeEnabled(activity));
@@ -62,7 +62,7 @@ public class AboutThemeSettingsRobolectricTest {
         Application context = ApplicationProvider.getApplicationContext();
         AppThemeSettings.setLightThemeEnabled(context, true);
 
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         TextView title = activity.findViewById(R.id.aboutTitle);
         Switch lightThemeSwitch = activity.findViewById(R.id.aboutLightThemeSwitch);
 

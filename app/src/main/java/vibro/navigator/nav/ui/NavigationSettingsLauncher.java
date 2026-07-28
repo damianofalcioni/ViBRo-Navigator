@@ -11,7 +11,7 @@ import vibro.navigator.logging.AppLogger;
 
 final class NavigationSettingsLauncher {
     private static final String TAG = "NavigationActivity";
-    private static final long SETTINGS_LAUNCH_DELAY_MS = 100L;
+    private static final long SETTINGS_LAUNCH_DELAY_MS = 50L;
 
     @NonNull
     private final Activity activity;
@@ -43,7 +43,6 @@ final class NavigationSettingsLauncher {
     }
 
     private void launchAfterPressFeedback() {
-        AppLogger.i(TAG, "Navigation settings button tapped");
         scheduler.removeCallbacks(launchSettings);
         scheduler.postDelayed(launchSettings, SETTINGS_LAUNCH_DELAY_MS);
     }
@@ -51,5 +50,6 @@ final class NavigationSettingsLauncher {
     private void launchSettings() {
         afterLaunch.run();
         activity.startActivity(AboutActivity.settingsIntent(activity));
+        AppLogger.i(TAG, "Navigation settings button tapped");
     }
 }

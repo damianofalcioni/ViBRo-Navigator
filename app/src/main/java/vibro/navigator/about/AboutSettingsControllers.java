@@ -58,6 +58,9 @@ final class AboutSettingsControllers {
     }
 
     void shutdown() {
+        if (speechRecognitionSettings != null) {
+            speechRecognitionSettings.shutdown();
+        }
         if (maneuverVoiceSettings != null) {
             maneuverVoiceSettings.shutdown();
         }
@@ -68,7 +71,7 @@ final class AboutSettingsControllers {
 
     void refreshAfterDatabaseImport() {
         refreshGooglePoiApiKeySetting();
-        refreshAndroidAutoSetting();
+        refreshAndroidAutoSettingAfterDatabaseImport();
         refreshPoiCategorySetting();
         if (speechRecognitionSettings != null) {
             speechRecognitionSettings.refreshSelection();
@@ -96,9 +99,9 @@ final class AboutSettingsControllers {
         }
     }
 
-    private void refreshAndroidAutoSetting() {
+    private void refreshAndroidAutoSettingAfterDatabaseImport() {
         if (androidAutoSettings != null) {
-            androidAutoSettings.refresh();
+            androidAutoSettings.refreshAfterDatabaseImport();
         }
     }
 }

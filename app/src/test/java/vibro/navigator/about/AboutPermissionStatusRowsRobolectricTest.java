@@ -1,6 +1,7 @@
 package vibro.navigator.about;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -43,8 +44,33 @@ public class AboutPermissionStatusRowsRobolectricTest {
     }
 
     @Test
-    public void aboutPageShowsPermissionRowsBeforeSensorStatus() {
+    public void aboutPageDefersSettingsInflationUntilInitialSettingsRender() {
         AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+
+        assertNull(activity.findViewById(R.id.aboutSettingsSection));
+        assertNull(activity.findViewById(R.id.aboutLogEnabledSwitch));
+
+        AboutActivityTestSupport.idleSettingsInitialization();
+
+        assertNotNull(activity.findViewById(R.id.aboutSettingsSection));
+        assertNotNull(activity.findViewById(R.id.aboutLogEnabledSwitch));
+    }
+
+    @Test
+    public void aboutPageDefersDiagnosticsInflationUntilInitialRender() {
+        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+
+        assertNull(activity.findViewById(R.id.aboutDiagnosticsSection));
+
+        idleInitialDiagnosticRender();
+
+        assertNotNull(activity.findViewById(R.id.aboutDiagnosticsSection));
+    }
+
+    @Test
+    public void aboutPageShowsPermissionRowsBeforeSensorStatus() {
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
         LinearLayout diagnostics = activity.findViewById(R.id.aboutDiagnosticsSection);
         View permissionList = activity.findViewById(R.id.aboutPermissionStatusList);
         View sensorStatusSubtitle = activity.findViewById(R.id.aboutSensorStatusSubtitle);
@@ -79,11 +105,12 @@ public class AboutPermissionStatusRowsRobolectricTest {
     @Test
     public void aboutPagePermissionRowsOpenMatchingSettingsPages() {
         setBatteryOptimizationIgnored(true);
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         registerResolvableIntent(activity, AndroidNavigationPreflight.newAppDetailsSettingsIntent(activity));
         registerResolvableIntent(activity, AndroidNavigationPreflight.newLocationSettingsIntent());
         registerResolvableIntent(activity, AndroidNavigationPreflight.newNotificationSettingsIntent(activity));
         registerResolvableIntent(activity, AndroidNavigationPreflight.newBatteryOptimizationSettingsIntent(activity));
+        idleInitialDiagnosticRender();
 
         Intent permissionIntent = clickAndReadIntent(activity, R.id.aboutPermissionLocationRow);
         Intent locationIntent = clickAndReadIntent(activity, R.id.aboutPermissionLocationServicesRow);
@@ -104,7 +131,7 @@ public class AboutPermissionStatusRowsRobolectricTest {
     @Test
     public void batteryOptimizationMissingShowsOrangeKoAndRequestsExemption() {
         setBatteryOptimizationIgnored(false);
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         registerResolvableIntent(activity, AndroidNavigationPreflight.newBatteryOptimizationRequestIntent(activity));
         idleInitialDiagnosticRender();
         TextView status = activity.findViewById(R.id.aboutPermissionBatteryStatus);
@@ -136,7 +163,10 @@ public class AboutPermissionStatusRowsRobolectricTest {
     }
 
     private static void idleInitialDiagnosticRender() {
-        shadowOf(Looper.getMainLooper()).idleFor(100, TimeUnit.MILLISECONDS);
+        shadowOf(Looper.getMainLooper()).idleFor(
+                AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS + 50,
+                TimeUnit.MILLISECONDS
+        );
     }
 
     private static void setBatteryOptimizationIgnored(boolean ignored) {

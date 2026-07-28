@@ -8,7 +8,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 final class AboutDiagnosticRenderScheduler {
 
     // A normal post can still run before the first activity draw; keep diagnostics just past launch.
-    private static final long INITIAL_DIAGNOSTIC_RENDER_DELAY_MS = 50L;
+    static final long INITIAL_DIAGNOSTIC_RENDER_DELAY_MS = 250L;
 
     @NonNull
     private final TaskScheduler scheduler;

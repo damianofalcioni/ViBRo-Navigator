@@ -1,6 +1,7 @@
 package vibro.navigator.about;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.os.Looper;
@@ -27,13 +28,15 @@ public class AboutSettingsScrollRobolectricTest {
         ScrollView root = activity.findViewById(R.id.aboutRoot);
         View settingsTitle = activity.findViewById(R.id.aboutSettingsTitle);
 
+        shadowOf(Looper.getMainLooper()).idle();
         root.measure(
                 View.MeasureSpec.makeMeasureSpec(480, View.MeasureSpec.EXACTLY),
                 View.MeasureSpec.makeMeasureSpec(800, View.MeasureSpec.EXACTLY)
         );
         root.layout(0, 0, 480, 800);
-        shadowOf(Looper.getMainLooper()).idle();
+        root.getViewTreeObserver().dispatchOnPreDraw();
 
-        assertEquals(settingsTitle.getTop(), root.getScrollY());
+        assertTrue(AboutScrollTarget.scrollYFor(root, settingsTitle) > settingsTitle.getTop());
+        assertEquals(AboutScrollTarget.scrollYFor(root, settingsTitle), root.getScrollY());
     }
 }

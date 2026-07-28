@@ -130,7 +130,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageFiveTapsDoNotEnableLogging() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         View root = activity.findViewById(R.id.aboutRoot);
 
         performFiveTaps(root);
@@ -140,7 +140,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageShowsSettingsAndDiagnosticsWithoutGesture() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
@@ -239,7 +239,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageLogSwitchEnablesLogging() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
 
         assertFalse(AppLogger.isLoggingEnabled(activity));
@@ -256,7 +256,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageUnitAndFusedLocationSwitchesPersistPreferences() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         Switch fusedLocationSwitch = activity.findViewById(R.id.aboutFusedLocationSwitch);
         Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
@@ -300,7 +300,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageAndroidAutoSwitchPersistsPreferenceWhenSupported() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
 
         if (!DistributionServices.supportsAndroidAutoIntegration()) {
@@ -326,7 +326,7 @@ public class AboutLoggingSettingsRobolectricTest {
         String preferredVoice = "preferred-offline-voice";
         AppSettings.setManeuverVoiceName(context, preferredVoice);
         AppSettings.setManeuverSpeechEnabled(context, true);
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch maneuverVoiceSwitch = activity.findViewById(R.id.aboutManeuverVoiceSwitch);
 
         assertTrue(maneuverVoiceSwitch.isChecked());
@@ -339,7 +339,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPagePoiCategorySwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch poiCategoriesSwitch = activity.findViewById(R.id.aboutPoiCategoriesSwitch);
 
         assertFalse(AppSettings.isMapPoiCategoryFilterEnabled(activity));
@@ -351,7 +351,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPagePoiCategoryDialogSavesDynamicRows() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton poiCategoriesButton = activity.findViewById(R.id.aboutPoiCategoriesButton);
 
         poiCategoriesButton.performClick();
@@ -383,7 +383,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageSpeechDirectionsDialogOmitsDisabledVoiceOption() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton settingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
 
         settingsButton.performClick();
@@ -414,7 +414,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageTtsSettingsButtonOpensTextToSpeechSettings() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton settingsButton = activity.findViewById(R.id.aboutManeuverVoiceSettingsButton);
 
         settingsButton.performClick();
@@ -435,7 +435,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageDatabaseButtonsOpenDocumentPickers() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
         Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
 
@@ -453,7 +453,7 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageLinksOpenProjectUrls() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
         TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
         TextView privacyPolicyLink = activity.findViewById(R.id.aboutPrivacyPolicyLink);
@@ -497,7 +497,8 @@ public class AboutLoggingSettingsRobolectricTest {
 
     @Test
     public void aboutPageCanSendSymbolTestNotificationFromDiagnostics() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
         Button symbolTestLeftButton = activity.findViewById(R.id.aboutSymbolTestLeftButton);
         Button symbolTestOtherButton = activity.findViewById(R.id.aboutSymbolTestOtherButton);
         Button symbolTestRightButton = activity.findViewById(R.id.aboutSymbolTestRightButton);
@@ -527,7 +528,10 @@ public class AboutLoggingSettingsRobolectricTest {
     }
 
     private static void idleInitialDiagnosticRender() {
-        shadowOf(Looper.getMainLooper()).idleFor(100, TimeUnit.MILLISECONDS);
+        shadowOf(Looper.getMainLooper()).idleFor(
+                AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS + 50,
+                TimeUnit.MILLISECONDS
+        );
     }
 
     private static void idleDeferredSettingApply() {

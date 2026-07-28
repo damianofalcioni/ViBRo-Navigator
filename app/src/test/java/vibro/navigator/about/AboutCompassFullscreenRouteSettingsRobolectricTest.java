@@ -34,7 +34,7 @@ public class AboutCompassFullscreenRouteSettingsRobolectricTest {
 
     @Test
     public void fullscreenRouteSwitchStartsDisabledWithLabel() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch fullscreenRouteSwitch = activity.findViewById(R.id.aboutCompassFullscreenRouteSwitch);
 
         assertEquals(
@@ -46,7 +46,7 @@ public class AboutCompassFullscreenRouteSettingsRobolectricTest {
 
     @Test
     public void fullscreenRouteSwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch fullscreenRouteSwitch = activity.findViewById(R.id.aboutCompassFullscreenRouteSwitch);
 
         fullscreenRouteSwitch.performClick();

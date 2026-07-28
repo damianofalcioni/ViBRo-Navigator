@@ -41,7 +41,7 @@ public class AboutNavigationCustomButtonSettingsRobolectricTest {
 
     @Test
     public void customButtonRowStartsDisabledWithConfigButton() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         TextView label = activity.findViewById(R.id.aboutNavigationCustomButtonLabel);
         ImageButton settingsButton = activity.findViewById(R.id.aboutNavigationCustomButtonSettingsButton);
         Switch enabledSwitch = activity.findViewById(R.id.aboutNavigationCustomButtonSwitch);
@@ -56,7 +56,7 @@ public class AboutNavigationCustomButtonSettingsRobolectricTest {
 
     @Test
     public void customButtonSwitchPersistsPreference() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch enabledSwitch = activity.findViewById(R.id.aboutNavigationCustomButtonSwitch);
 
         enabledSwitch.performClick();
@@ -70,7 +70,7 @@ public class AboutNavigationCustomButtonSettingsRobolectricTest {
 
     @Test
     public void customButtonConfigDialogPersistsSelectedTarget() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton settingsButton = activity.findViewById(R.id.aboutNavigationCustomButtonSettingsButton);
 
         settingsButton.performClick();

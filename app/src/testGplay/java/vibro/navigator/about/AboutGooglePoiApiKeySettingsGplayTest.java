@@ -27,6 +27,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
+import org.robolectric.util.ReflectionHelpers;
 
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
@@ -64,7 +65,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
 
     @Test
     public void aboutPageShowsPasswordButtonAndSavesUserGooglePoiApiKey() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         View container = activity.findViewById(R.id.aboutGooglePoiApiKeyContainer);
         ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
         Switch googleSearchSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
@@ -93,7 +94,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
 
     @Test
     public void aboutPageDoesNotInitiallyFocusGooglePoiApiKeyButton() {
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         View root = activity.findViewById(R.id.aboutRoot);
         ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
 
@@ -103,9 +104,18 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
     }
 
     @Test
+    public void aboutPageDoesNotCreateGooglePoiApiKeyValidatorBeforeSave() {
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        AboutSettingsControllers controllers = ReflectionHelpers.getField(activity, "settingsControllers");
+        AboutGooglePoiApiKeySettings settings = ReflectionHelpers.getField(controllers, "googlePoiApiKeySettings");
+
+        assertNull(ReflectionHelpers.getField(settings, "validator"));
+    }
+
+    @Test
     public void aboutPageClearsUserGooglePoiApiKeyWithEmptyValue() {
         AppSettings.setValidatedGooglePoiApiKey(context, USER_GOOGLE_POI_API_KEY);
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
         Switch googleSearchSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
 
@@ -131,7 +141,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
         AboutGooglePoiApiKeySettings.setApiKeyValidatorForTests(
                 new FakeApiKeyValidator(GooglePoiApiKeyValidationResult.INVALID)
         );
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
         Switch googleSearchSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
 
@@ -157,7 +167,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
     public void aboutPageIgnoresGooglePoiApiKeyValidationResultAfterDestroy() {
         CapturingApiKeyValidator validator = new CapturingApiKeyValidator();
         AboutGooglePoiApiKeySettings.setApiKeyValidatorForTests(validator);
-        ActivityController<AboutActivity> controller = Robolectric.buildActivity(AboutActivity.class).setup();
+        ActivityController<AboutActivity> controller = AboutActivityTestSupport.setupControllerWithSettings();
         AboutActivity activity = controller.get();
         ImageButton apiKeyButton = activity.findViewById(R.id.aboutGooglePoiApiKeyButton);
 
@@ -178,7 +188,7 @@ public class AboutGooglePoiApiKeySettingsGplayTest {
     @Test
     public void aboutPageGoogleSearchSwitchControlsGoogleSearchClient() {
         AppSettings.setValidatedGooglePoiApiKey(context, USER_GOOGLE_POI_API_KEY);
-        AboutActivity activity = Robolectric.buildActivity(AboutActivity.class).setup().get();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch googleSearchSwitch = activity.findViewById(R.id.aboutGooglePoiSearchSwitch);
 
         assertTrue(googleSearchSwitch.isEnabled());
