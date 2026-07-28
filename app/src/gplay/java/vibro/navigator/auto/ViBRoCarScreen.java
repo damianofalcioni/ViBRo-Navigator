@@ -4,7 +4,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.ActivityNotFoundException;
 import android.os.IBinder;
 
 import androidx.annotation.NonNull;
@@ -17,14 +16,9 @@ import androidx.car.app.model.Template;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
-import java.io.IOException;
-
-import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
-import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.main.MainActivity;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
@@ -37,6 +31,7 @@ public final class ViBRoCarScreen extends Screen {
 
     private final CarContext carContext;
     private final ViBRoCarTemplates templates;
+    private final ViBRoAutoCustomButtonController customButtonController;
     private TaskScheduler uiScheduler;
     private ViBRoAutoSurfaceRenderer surfaceRenderer;
     private final Runnable surfaceCountdownTicker = new Runnable() {
@@ -49,6 +44,7 @@ public final class ViBRoCarScreen extends Screen {
 
     private NavigationServiceBinder navBinder;
     private boolean bound;
+    private boolean refreshLocationSettingsOnReconnect;
     @Nullable
     private NavState currentState;
 
@@ -66,6 +62,10 @@ public final class ViBRoCarScreen extends Screen {
             AppLogger.i(TAG, "NavigationService connected component=" + name);
             navBinder.ensureForegroundNotification();
             navBinder.registerListener(navListener);
+            if (refreshLocationSettingsOnReconnect) {
+                refreshLocationSettingsOnReconnect = false;
+                navBinder.refreshLocationUpdateSettings();
+            }
         }
 
         @Override
@@ -90,6 +90,7 @@ public final class ViBRoCarScreen extends Screen {
         ViBRoAutoSurfaceControls controls = new ViBRoAutoSurfaceControls();
         templates = new ViBRoCarTemplates(carContext, controls);
         surfaceRenderer = new ViBRoAutoSurfaceRenderer(carContext, controls, uiScheduler);
+        customButtonController = new ViBRoAutoCustomButtonController(carContext, new AutoCustomButtonHost());
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
             public void onStart(@NonNull LifecycleOwner owner) {
@@ -191,30 +192,12 @@ public final class ViBRoCarScreen extends Screen {
     }
 
     private void exportCurrentRoute() {
-        if (navBinder == null) {
-            AppLogger.w(TAG, "Route export requested before service binding completed");
-            showToast(R.string.msg_route_export_unavailable);
-            return;
-        }
-        String gpx = navBinder.buildCurrentRouteGpx();
-        if (gpx == null) {
-            AppLogger.w(TAG, "Route export requested without an active route");
-            showToast(R.string.msg_route_export_unavailable);
-            return;
-        }
-        AppLogger.dMultiline(TAG, "Generated route GPX XML from Android Auto", gpx);
-        try {
-            Intent chooser = AndroidRouteGpxViewIntent.createChooser(carContext, gpx)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            carContext.startActivity(chooser);
-            AppLogger.i(TAG, "Route GPX chooser launched from Android Auto");
-        } catch (ActivityNotFoundException e) {
-            AppLogger.w(TAG, "No app can open exported GPX route from Android Auto", e);
-            showToast(R.string.msg_route_export_no_app);
-        } catch (IOException | RuntimeException e) {
-            AppLogger.w(TAG, "Failed to export current route as GPX from Android Auto", e);
-            showToast(R.string.msg_route_export_failed);
-        }
+        ViBRoAutoRouteExporter.exportCurrentRoute(carContext, navBinder, this::showToast);
+    }
+
+    private void openPhoneSettings() {
+        refreshLocationSettingsOnReconnect = true;
+        ViBRoAutoPhoneLauncher.openSettings(carContext);
     }
 
     private void showToast(int messageResId) {
@@ -222,9 +205,7 @@ public final class ViBRoCarScreen extends Screen {
     }
 
     private void openPhoneApp() {
-        Intent intent = new Intent(carContext, MainActivity.class)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        carContext.startActivity(intent);
+        ViBRoAutoPhoneLauncher.openMain(carContext);
     }
 
     private final class ViBRoAutoSurfaceControls
@@ -252,6 +233,52 @@ public final class ViBRoCarScreen extends Screen {
         @Override
         public void onExportRoute() {
             exportCurrentRoute();
+        }
+
+        @Override
+        public void onOpenSettings() {
+            openPhoneSettings();
+        }
+
+        @Override
+        public void onToggleCustomButton() {
+            customButtonController.toggleSelectedSetting();
+        }
+
+        @Override
+        @NonNull
+        public String buildCurrentDirectionDetailsText() {
+            return ViBRoAutoDirectionDetailsText.build(carContext, navBinder);
+        }
+    }
+
+    private final class AutoCustomButtonHost implements ViBRoAutoCustomButtonController.Host {
+        @Nullable
+        @Override
+        public NavigationServiceBinder currentBinder() {
+            return navBinder;
+        }
+
+        @Override
+        public void openPhoneSettings() {
+            ViBRoCarScreen.this.openPhoneSettings();
+        }
+
+        @Override
+        public void refreshSurfaceTheme() {
+            surfaceRenderer.refreshTheme();
+            invalidate();
+        }
+
+        @Override
+        public void refreshSurface() {
+            surfaceRenderer.render();
+            invalidate();
+        }
+
+        @Override
+        public void showToast(int messageResId) {
+            ViBRoCarScreen.this.showToast(messageResId);
         }
     }
 

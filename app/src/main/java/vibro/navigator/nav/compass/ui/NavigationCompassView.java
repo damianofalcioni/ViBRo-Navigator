@@ -182,6 +182,12 @@ public final class NavigationCompassView extends View {
         invalidate();
     }
 
+    public void setFullscreenRouteModeEnabled(boolean enabled) {
+        fullscreenMode.setEnabled(enabled);
+        requestLayout();
+        invalidate();
+    }
+
     boolean isNavigationPausedForTest() {
         return navigationPaused;
     }
@@ -274,7 +280,7 @@ public final class NavigationCompassView extends View {
         float markerRadius = fullscreenMode.resolveCompassRadius(cx, cy, dp(10f));
         float routeRadius = fullscreenMode.resolveRouteRadius(cy, dp(FULLSCREEN_ROUTE_TOP_INSET_DP));
         float headingGuideRadius = fullscreenMode.resolveHeadingGuideRadius(
-                isPortraitOrientation(),
+                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT,
                 routeRadius,
                 markerRadius
         );
@@ -414,10 +420,6 @@ public final class NavigationCompassView extends View {
                 HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES,
                 HEADING_ACCURACY_GUIDE_MAX_DEGREES
         );
-    }
-
-    private boolean isPortraitOrientation() {
-        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
     }
 
     @Override

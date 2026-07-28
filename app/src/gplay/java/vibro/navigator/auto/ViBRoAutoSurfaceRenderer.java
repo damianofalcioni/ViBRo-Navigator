@@ -25,13 +25,22 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         void onTogglePaused();
 
         void onExportRoute();
+
+        void onOpenSettings();
+
+        void onToggleCustomButton();
+
+        @NonNull
+        String buildCurrentDirectionDetailsText();
     }
 
     private static final String TAG = "ViBRoAutoSurface";
     private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
 
     private final TaskScheduler uiScheduler;
-    private final ViBRoAutoSurfacePainter painter;
+    private final CarContext carContext;
+    private final Controls controls;
+    private ViBRoAutoSurfacePainter painter;
     private final Rect stableArea = new Rect();
     private final Runnable compassTransitionTicker = this::renderOnMainThread;
 
@@ -46,6 +55,8 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
             @NonNull Controls controls,
             @NonNull TaskScheduler uiScheduler
     ) {
+        this.carContext = carContext;
+        this.controls = controls;
         this.uiScheduler = uiScheduler;
         painter = new ViBRoAutoSurfacePainter(carContext, controls, AndroidElapsedRealtimeClock.INSTANCE);
     }
@@ -72,6 +83,12 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         currentState = null;
         clearSurface();
         painter.dispose();
+    }
+
+    void refreshTheme() {
+        painter.dispose();
+        painter = new ViBRoAutoSurfacePainter(carContext, controls, AndroidElapsedRealtimeClock.INSTANCE);
+        render();
     }
 
     @Override

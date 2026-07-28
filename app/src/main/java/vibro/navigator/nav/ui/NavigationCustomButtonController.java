@@ -12,6 +12,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings.Target;
+import vibro.navigator.settings.AppNavigationCustomButtonTargetState;
 
 final class NavigationCustomButtonController {
     static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3002;
@@ -50,7 +51,7 @@ final class NavigationCustomButtonController {
             return;
         }
         Target target = AppNavigationCustomButtonSettings.getTarget(activity);
-        boolean enabled = !NavigationCustomButtonSettingState.isEnabled(activity, target);
+        boolean enabled = !AppNavigationCustomButtonTargetState.isEnabled(activity, target);
         if (shouldRequestSurroundingStreetPermission(target, enabled)) {
             waitingForSurroundingStreetPermission = true;
             AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_SURROUNDING_STREETS_STORAGE);
@@ -68,7 +69,7 @@ final class NavigationCustomButtonController {
             applySelectedSetting(Target.SURROUNDING_STREETS, true);
             return true;
         }
-        NavigationCustomButtonSettingState.setEnabled(activity, Target.SURROUNDING_STREETS, false);
+        AppNavigationCustomButtonTargetState.setEnabled(activity, Target.SURROUNDING_STREETS, false);
         host.refreshNavigationUiSettings();
         Toast.makeText(
                 activity,
@@ -85,7 +86,7 @@ final class NavigationCustomButtonController {
     }
 
     private void applySelectedSetting(@NonNull Target target, boolean enabled) {
-        NavigationCustomButtonSettingState.setEnabled(activity, target, enabled);
+        AppNavigationCustomButtonTargetState.setEnabled(activity, target, enabled);
         applyLiveEffect(target);
         host.refreshNavigationUiSettings();
     }

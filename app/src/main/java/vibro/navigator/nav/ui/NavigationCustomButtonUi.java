@@ -10,6 +10,7 @@ import vibro.navigator.R;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings.Target;
+import vibro.navigator.settings.AppNavigationCustomButtonTargetState;
 import vibro.navigator.settings.AppNavigationCustomButtonTargetResources;
 
 final class NavigationCustomButtonUi {
@@ -40,7 +41,7 @@ final class NavigationCustomButtonUi {
             return;
         }
         Target target = AppNavigationCustomButtonSettings.getTarget(activity);
-        boolean settingEnabled = NavigationCustomButtonSettingState.isEnabled(activity, target);
+        boolean settingEnabled = AppNavigationCustomButtonTargetState.isEnabled(activity, target);
         button.setImageResource(AppNavigationCustomButtonTargetResources.iconResId(target, settingEnabled));
         button.setContentDescription(activity.getString(
                 R.string.format_action_toggle_custom_button_setting,

@@ -1,17 +1,12 @@
-package vibro.navigator.nav.ui;
+package vibro.navigator.settings;
 
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.settings.AppCompassSettings;
-import vibro.navigator.settings.AppLocationSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings.Target;
-import vibro.navigator.settings.AppNotificationSettings;
-import vibro.navigator.settings.AppSettings;
-import vibro.navigator.settings.AppThemeSettings;
 
-final class NavigationCustomButtonSettingState {
+public final class AppNavigationCustomButtonTargetState {
     private static final Entry[] ENTRIES = {
             new Entry(
                     Target.DYNAMIC_GPS_INTERVAL,
@@ -45,14 +40,14 @@ final class NavigationCustomButtonSettingState {
             )
     };
 
-    private NavigationCustomButtonSettingState() {
+    private AppNavigationCustomButtonTargetState() {
     }
 
-    static boolean isEnabled(@NonNull Context context, @NonNull Target target) {
+    public static boolean isEnabled(@NonNull Context context, @NonNull Target target) {
         return entryFor(target).reader.isEnabled(context);
     }
 
-    static void setEnabled(@NonNull Context context, @NonNull Target target, boolean enabled) {
+    public static void setEnabled(@NonNull Context context, @NonNull Target target, boolean enabled) {
         entryFor(target).writer.setEnabled(context, enabled);
     }
 

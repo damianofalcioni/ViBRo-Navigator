@@ -52,4 +52,24 @@ public class AppNavigationCustomButtonSettingsTest {
 
         assertEquals(Target.DYNAMIC_GPS_INTERVAL, AppNavigationCustomButtonSettings.getTarget(context));
     }
+
+    @Test
+    public void targetStateReadsAndWritesFullscreenRouteSetting() {
+        AppCompassSettings.setFullscreenRouteEnabled(context, false);
+
+        AppNavigationCustomButtonTargetState.setEnabled(context, Target.FULLSCREEN_ROUTE, true);
+
+        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(context));
+        assertTrue(AppNavigationCustomButtonTargetState.isEnabled(context, Target.FULLSCREEN_ROUTE));
+    }
+
+    @Test
+    public void targetStateReadsAndWritesNavigationNotificationSetting() {
+        AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
+
+        AppNavigationCustomButtonTargetState.setEnabled(context, Target.NOTIFICATIONS, false);
+
+        assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(context));
+        assertFalse(AppNavigationCustomButtonTargetState.isEnabled(context, Target.NOTIFICATIONS));
+    }
 }

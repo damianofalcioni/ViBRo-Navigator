@@ -30,6 +30,10 @@ final class NavigationCompassFullscreenMode {
         return enabled;
     }
 
+    void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @NonNull
     Measurement resolveMeasurement(int width, int height) {
         if (enabled) {

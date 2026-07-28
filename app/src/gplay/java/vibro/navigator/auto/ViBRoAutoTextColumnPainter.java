@@ -14,28 +14,27 @@ import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
-import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class ViBRoAutoTextColumnPainter {
     private static final float GPS_STATUS_TEXT_SIZE_SP = 19f;
     private static final float GPS_STATUS_MIN_TOUCH_HEIGHT_DP = 44f;
-    private static final float GPS_DETAILS_TEXT_SIZE_SP = 17f;
-    private static final float GPS_DETAILS_PADDING_DP = 12f;
     private static final float GPS_DETAILS_RADIUS_DP = 8f;
-    private static final int GPS_DETAILS_MAX_LINES = 8;
+    private static final float FOREGROUND_PANEL_PADDING_DP = 10f;
+    private static final int FOREGROUND_PANEL_ALPHA = 220;
 
     private final CarContext carContext;
     private final ElapsedRealtimeClock elapsedRealtimeClock;
     private final Paint textPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint detailsFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint detailsOutlinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint foregroundPanelFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final TextPaint ellipsizePaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
     private final ViBRoAutoButtonRow buttonRow;
+    private final ViBRoAutoDetailPanelPainter detailPanelPainter;
     private final RectF gpsStatusBounds = new RectF();
-    private final RectF detailsPanelBounds = new RectF();
-    private boolean gpsDetailsVisible;
+    private final RectF directionsBounds = new RectF();
+    private final RectF statusBounds = new RectF();
+    private ViBRoAutoDetailPanel visibleDetailPanel = ViBRoAutoDetailPanel.NONE;
 
     ViBRoAutoTextColumnPainter(
             @NonNull CarContext carContext,
@@ -45,13 +44,12 @@ final class ViBRoAutoTextColumnPainter {
         this.carContext = carContext;
         this.elapsedRealtimeClock = elapsedRealtimeClock;
         buttonRow = new ViBRoAutoButtonRow(carContext, controls);
+        detailPanelPainter = new ViBRoAutoDetailPanelPainter(carContext, controls, elapsedRealtimeClock);
         textPaint.setColor(ContextCompat.getColor(carContext, R.color.white));
         textPaint.setSubpixelText(true);
-        detailsFillPaint.setStyle(Paint.Style.FILL);
-        detailsFillPaint.setColor(ContextCompat.getColor(carContext, R.color.surface_800));
-        detailsOutlinePaint.setStyle(Paint.Style.STROKE);
-        detailsOutlinePaint.setStrokeWidth(dp(1.2f));
-        detailsOutlinePaint.setColor(ContextCompat.getColor(carContext, R.color.outline));
+        foregroundPanelFillPaint.setStyle(Paint.Style.FILL);
+        foregroundPanelFillPaint.setColor(ContextCompat.getColor(carContext, R.color.surface_800));
+        foregroundPanelFillPaint.setAlpha(FOREGROUND_PANEL_ALPHA);
     }
 
     void draw(
@@ -60,17 +58,31 @@ final class ViBRoAutoTextColumnPainter {
             float left,
             float top,
             float width,
-            float height
+            float height,
+            boolean foregroundPanel
     ) {
+        if (foregroundPanel) {
+            drawForegroundPanelBackground(canvas, left, top, width, height);
+        }
         float y = top;
         y = drawGpsStatusLine(canvas, state, left, y, width) + dp(14f);
-        if (gpsDetailsVisible) {
-            drawGpsDetailsPanel(canvas, state, left, y, width, top + height);
+        if (visibleDetailPanel != ViBRoAutoDetailPanel.NONE) {
+            directionsBounds.setEmpty();
+            statusBounds.setEmpty();
+            detailPanelPainter.draw(canvas, state, left, y, width, top + height, visibleDetailPanel);
             buttonRow.draw(canvas, state, left, top + height, width);
             return;
         }
+        detailPanelPainter.clearBounds();
+        float directionsTop = y;
         y = drawSingleLine(canvas, state.routeStatus.guidance.nextLine, left, y, width, 24f) + dp(10f);
-        drawSingleLine(canvas, state.routeStatus.guidance.afterNextLine, left, y, width, 19f);
+        float directionsBottom = drawSingleLine(canvas, state.routeStatus.guidance.afterNextLine, left, y, width, 19f);
+        directionsBounds.set(
+                left,
+                directionsTop,
+                left + width,
+                Math.max(directionsBottom, directionsTop + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP))
+        );
         drawStatusBlock(canvas, state.routeStatus.displayStatusBlock(), left, top, width, height);
         buttonRow.draw(canvas, state, left, top + height, width);
     }
@@ -84,11 +96,26 @@ final class ViBRoAutoTextColumnPainter {
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
-        if (gpsStatusBounds.contains(x, y)) {
-            gpsDetailsVisible = !gpsDetailsVisible;
+        if (buttonRow.handleClick(x, y, state)) {
             return true;
         }
-        return buttonRow.handleClick(x, y, state);
+        if (gpsStatusBounds.contains(x, y)) {
+            toggleDetailPanel(ViBRoAutoDetailPanel.GPS);
+            return true;
+        }
+        if (detailPanelPainter.contains(x, y)) {
+            visibleDetailPanel = ViBRoAutoDetailPanel.NONE;
+            return true;
+        }
+        if (directionsBounds.contains(x, y)) {
+            toggleDetailPanel(ViBRoAutoDetailPanel.DIRECTIONS);
+            return true;
+        }
+        if (statusBounds.contains(x, y)) {
+            toggleDetailPanel(ViBRoAutoDetailPanel.TRIP);
+            return true;
+        }
+        return false;
     }
 
     private float drawGpsStatusLine(
@@ -189,42 +216,6 @@ final class ViBRoAutoTextColumnPainter {
         return accuracyStart;
     }
 
-    private void drawGpsDetailsPanel(
-            @NonNull Canvas canvas,
-            @NonNull NavState state,
-            float left,
-            float top,
-            float width,
-            float bottom
-    ) {
-        String[] lines = NavigationGpsTelemetryFormatter.formatDetails(
-                carContext,
-                state.gpsStatus.telemetry,
-                nextEvaluationValue(state)
-        ).split("\\n");
-        textPaint.setFakeBoldText(false);
-        textPaint.setTextSize(sp(GPS_DETAILS_TEXT_SIZE_SP));
-        textPaint.setTextAlign(Paint.Align.LEFT);
-        Paint.FontMetrics metrics = textPaint.getFontMetrics();
-        float lineHeight = metrics.descent - metrics.ascent + dp(4f);
-        float padding = dp(GPS_DETAILS_PADDING_DP);
-        float actionTop = bottom - dp(ViBRoAutoButtonRow.BUTTON_SIZE_DP) - dp(14f);
-        float panelBottom = Math.max(top, Math.min(actionTop, top + padding * 2f + lineHeight * GPS_DETAILS_MAX_LINES));
-        detailsPanelBounds.set(left, top, left + width, panelBottom);
-        canvas.drawRoundRect(detailsPanelBounds, dp(GPS_DETAILS_RADIUS_DP), dp(GPS_DETAILS_RADIUS_DP), detailsFillPaint);
-        canvas.drawRoundRect(detailsPanelBounds, dp(GPS_DETAILS_RADIUS_DP), dp(GPS_DETAILS_RADIUS_DP), detailsOutlinePaint);
-        float baseline = top + padding - metrics.ascent;
-        int lineCount = Math.min(lines.length, Math.max(0, (int) ((panelBottom - top - padding * 2f) / lineHeight)));
-        for (int i = 0; i < lineCount; i++) {
-            canvas.drawText(
-                    ellipsize(lines[i], width - padding * 2f),
-                    left + padding,
-                    baseline + lineHeight * i,
-                    textPaint
-            );
-        }
-    }
-
     private float drawSingleLine(
             @NonNull Canvas canvas,
             @NonNull String rawText,
@@ -265,6 +256,14 @@ final class ViBRoAutoTextColumnPainter {
         for (int i = 0; i < lineCount; i++) {
             drawStatusLine(canvas, lines[i], left, width, baseline + lineHeight * i);
         }
+        float textTop = baseline + metrics.ascent - dp(8f);
+        float textBottom = baseline + lineHeight * Math.max(0, lineCount - 1) + metrics.descent + dp(8f);
+        statusBounds.set(
+                left,
+                Math.max(top, textTop),
+                left + width,
+                Math.min(actionRowTop, Math.max(textBottom, textTop + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP)))
+        );
     }
 
     private void drawStatusLine(
@@ -275,9 +274,7 @@ final class ViBRoAutoTextColumnPainter {
             float baseline
     ) {
         String text = rawText.trim();
-        if (!text.isEmpty()) {
-            canvas.drawText(ellipsize(text, width), left + width / 2f, baseline, textPaint);
-        }
+        canvas.drawText(ellipsize(text, width), left + width / 2f, baseline, textPaint);
     }
 
     private float statusBaseline(float top, float actionRowTop, float blockHeight, @NonNull Paint.FontMetrics metrics) {
@@ -305,6 +302,30 @@ final class ViBRoAutoTextColumnPainter {
         return carContext.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
     }
 
+    private void toggleDetailPanel(@NonNull ViBRoAutoDetailPanel detailPanel) {
+        visibleDetailPanel = visibleDetailPanel == detailPanel ? ViBRoAutoDetailPanel.NONE : detailPanel;
+    }
+
+    private void drawForegroundPanelBackground(
+            @NonNull Canvas canvas,
+            float left,
+            float top,
+            float width,
+            float height
+    ) {
+        float padding = dp(FOREGROUND_PANEL_PADDING_DP);
+        float radius = dp(GPS_DETAILS_RADIUS_DP);
+        canvas.drawRoundRect(
+                left - padding,
+                top - padding,
+                left + width + padding,
+                top + height + padding,
+                radius,
+                radius,
+                foregroundPanelFillPaint
+        );
+    }
+
     @NonNull
     private String ellipsize(@NonNull String text, float widthPx) {
         ellipsizePaint.set(textPaint);
@@ -319,4 +340,5 @@ final class ViBRoAutoTextColumnPainter {
     private float sp(float value) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, carContext.getResources().getDisplayMetrics());
     }
+
 }
