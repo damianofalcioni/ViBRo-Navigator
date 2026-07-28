@@ -22,9 +22,20 @@ final class PoiDetailsFormatter {
         appendMapSection(context, out, R.string.label_poi_address_details, details.addressDetails());
         appendEntrancesSection(context, out, details);
         if (out.length() == 0) {
-            return context.getString(R.string.msg_poi_details_unavailable);
+            out.append(context.getString(R.string.msg_poi_details_unavailable));
         }
+        appendMapCheckHint(context, out);
         return out.toString();
+    }
+
+    private static void appendMapCheckHint(
+            @NonNull Context context,
+            @NonNull StringBuilder out
+    ) {
+        if (out.length() > 0 && out.charAt(out.length() - 1) != '\n') {
+            out.append('\n');
+        }
+        out.append('\n').append(context.getString(R.string.msg_poi_details_map_check_hint));
     }
 
     private static void appendEntranceSection(

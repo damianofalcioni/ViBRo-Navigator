@@ -129,6 +129,7 @@
     <string name="msg_profile_parameter_invalid_number">Enter a valid number.</string>
     <string name="msg_profile_parameter_invalid_text">Values cannot contain &amp; or =.</string>
     <string name="msg_poi_details_unavailable">No extra details available.</string>
+    <string name="msg_poi_details_map_check_hint">Use the map to double-check that this is the intended location.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>

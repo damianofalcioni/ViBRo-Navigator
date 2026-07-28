@@ -12,6 +12,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.util.Collections;
 
+import vibro.navigator.R;
 import vibro.navigator.poi.PoiDetails;
 
 @RunWith(RobolectricTestRunner.class)
@@ -36,5 +37,6 @@ public class PoiDetailsFormatterTest {
         assertTrue(formatted.contains("Entrance 1"));
         assertTrue(formatted.contains("Coordinates: 48.200000, 16.300000"));
         assertTrue(formatted.contains("wheelchair: yes"));
+        assertTrue(formatted.endsWith(context.getString(R.string.msg_poi_details_map_check_hint)));
     }
 }
