@@ -5,6 +5,8 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.view.View;
 
 import org.junit.Test;
@@ -12,8 +14,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.Shadows;
+import org.robolectric.shadows.ShadowCanvas;
+
+import java.util.Collections;
 
 import vibro.navigator.R;
+import vibro.navigator.nav.compass.NavCompassState;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassFullscreenModeTest {
@@ -53,6 +60,21 @@ public class NavigationCompassFullscreenModeTest {
     }
 
     @Test
+    public void portraitFullscreenCompassDrawsOnlyFarthestDistanceTimePair() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        assertEquals(2, fullscreenCompassTextDrawCount(activity, 300, 500));
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    public void landscapeFullscreenCompassKeepsThreeDistanceTimePairs() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        assertEquals(6, fullscreenCompassTextDrawCount(activity, 500, 300));
+    }
+
+    @Test
     public void fullscreenGeometryKeepsCueBoundedAndRouteExpanded() {
         NavigationCompassFullscreenMode mode = new NavigationCompassFullscreenMode();
 
@@ -68,6 +90,35 @@ public class NavigationCompassFullscreenModeTest {
         assertEquals(396f, mode.resolveHeadingGuideRadius(false, 396f, 140f), 0.01f);
         assertEquals(1f, mode.resolveLegendOuterScale(396f, 396f), 0.01f);
         assertEquals(1f, mode.resolveLegendOuterScale(396f, 0f), 0.01f);
+    }
+
+    private static int fullscreenCompassTextDrawCount(Activity activity, int width, int height) {
+        NavigationCompassView compassView = new NavigationCompassView(activity);
+        Canvas canvas = new Canvas(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
+        compassView.setFullscreenRouteModeEnabled(true);
+        compassView.setCompassState(compassState());
+        compassView.layout(0, 0, width, height);
+
+        compassView.draw(canvas);
+
+        ShadowCanvas shadowCanvas = Shadows.shadowOf(canvas);
+        return shadowCanvas.getTextHistoryCount();
+    }
+
+    private static NavCompassState compassState() {
+        return NavCompassState.fromProjectedPoints(
+                0f,
+                null,
+                1f,
+                80f,
+                0f,
+                Collections.emptyList(),
+                Collections.emptyList(),
+                Collections.emptyList(),
+                60f,
+                0f,
+                true
+        );
     }
 
     private static int exactly(int value) {

@@ -24,6 +24,7 @@ public final class NavigationCompassView extends View {
     private static final int OUTER_TICK_COUNT = 24;
     private static final float OUTER_DISTANCE_RING_SCALE = 0.91f;
     private static final float[] DISTANCE_RING_SCALES = new float[]{OUTER_DISTANCE_RING_SCALE, 0.61f, 0.30f};
+    private static final float[] FARTHEST_DISTANCE_RING_SCALE = new float[]{OUTER_DISTANCE_RING_SCALE};
     private static final float CENTER_MARKER_DOT_RADIUS_SCALE = 0.02f;
     private static final float HEADING_GUIDE_ARROW_WIDTH_DP = NavigationCompassOrientationCueRenderer.MARKER_WIDTH_DP;
     private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = NavigationCompassOrientationCueRenderer.MARKER_HEIGHT_DP;
@@ -265,7 +266,7 @@ public final class NavigationCompassView extends View {
         drawHeadingGuide(canvas, cx, cy, radius);
         drawHeadingAccuracyGuides(canvas, cx, cy, radius);
         drawCurrentPositionMarker(canvas, cx, cy, radius);
-        drawDistanceLegend(canvas, cx, cy, radius, OUTER_DISTANCE_RING_SCALE, true);
+        drawDistanceLegend(canvas, cx, cy, radius, DISTANCE_RING_SCALES, OUTER_DISTANCE_RING_SCALE, true);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
     }
 
@@ -279,8 +280,10 @@ public final class NavigationCompassView extends View {
         float cy = fullscreenMode.resolveCenterY(height, dp(FULLSCREEN_CENTER_BOTTOM_INSET_DP));
         float markerRadius = fullscreenMode.resolveCompassRadius(cx, cy, dp(10f));
         float routeRadius = fullscreenMode.resolveRouteRadius(cy, dp(FULLSCREEN_ROUTE_TOP_INSET_DP));
+        boolean portraitOrientation =
+                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
         float headingGuideRadius = fullscreenMode.resolveHeadingGuideRadius(
-                getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT,
+                portraitOrientation,
                 routeRadius,
                 markerRadius
         );
@@ -290,7 +293,19 @@ public final class NavigationCompassView extends View {
         routeRenderer.drawRouteLayer(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
         drawHeadingGuide(canvas, cx, cy, headingGuideRadius);
-        drawDistanceLegend(canvas, cx, cy, headingGuideRadius, legendOuterScale, false);
+        drawDistanceLegend(
+                canvas,
+                cx,
+                cy,
+                headingGuideRadius,
+                fullscreenMode.resolveLegendRingScales(
+                        portraitOrientation,
+                        DISTANCE_RING_SCALES,
+                        FARTHEST_DISTANCE_RING_SCALE
+                ),
+                legendOuterScale,
+                false
+        );
         drawCurrentPositionMarker(canvas, cx, cy, markerRadius);
         orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, cueRadius, headingDegrees);
     }
@@ -391,6 +406,7 @@ public final class NavigationCompassView extends View {
             float cx,
             float cy,
             float radius,
+            @NonNull float[] ringScales,
             float outerDistanceRingScale,
             boolean showHeadingAccuracy
     ) {
@@ -401,7 +417,7 @@ public final class NavigationCompassView extends View {
                 cx,
                 cy,
                 radius,
-                DISTANCE_RING_SCALES,
+                ringScales,
                 outerDistanceRingScale,
                 dp(DISTANCE_MARK_WIDTH_DP),
                 dp(DISTANCE_LABEL_OFFSET_DP),

@@ -78,6 +78,15 @@ final class NavigationCompassFullscreenMode {
         return routeRadius / compassRadius;
     }
 
+    @NonNull
+    float[] resolveLegendRingScales(
+            boolean portraitOrientation,
+            @NonNull float[] allRingScales,
+            @NonNull float[] farthestRingScale
+    ) {
+        return portraitOrientation ? farthestRingScale : allRingScales;
+    }
+
     float resolveHeadingGuideRadius(boolean portraitOrientation, float routeRadius, float compassRadius) {
         return Math.max(0f, portraitOrientation ? compassRadius : routeRadius);
     }

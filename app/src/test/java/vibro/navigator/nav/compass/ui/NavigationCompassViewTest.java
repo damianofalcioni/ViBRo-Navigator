@@ -2,7 +2,6 @@ package vibro.navigator.nav.compass.ui;
 
 
 import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import android.app.Activity;
 import android.graphics.DashPathEffect;
