@@ -18,16 +18,16 @@
             android:layout_marginTop="20dp"
             android:text="@string/about_diagnostic_title"
             android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="18sp" />
+            android:textSize="22sp" />
 
         <TextView
             android:id="@+id/aboutPermissionStatusTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="14dp"
             android:text="@string/about_permission_status_title"
             android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
 
         <LinearLayout
             android:id="@+id/aboutPermissionStatusList"
@@ -228,14 +228,20 @@
             </LinearLayout>
         </LinearLayout>
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/vibroOutlineColor" />
+
         <TextView
             android:id="@+id/aboutSensorStatusSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:text="@string/about_sensor_status_title"
             android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
 
         <TextView
             android:id="@+id/aboutSensorStatusBody"
@@ -245,14 +251,20 @@
             android:textColor="?attr/vibroTextSecondaryColor"
             android:textSize="14sp" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:background="?attr/vibroOutlineColor" />
+
         <TextView
             android:id="@+id/aboutSymbolTestTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="10dp"
             android:text="@string/label_direction_notification_tests"
             android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
+            android:textSize="18sp" />
 
         <LinearLayout
             android:id="@+id/aboutSymbolTestButtonRow"

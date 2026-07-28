@@ -4,581 +4,699 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="24dp"
-            android:background="?attr/vibroOutlineColor" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="24dp"
+        android:background="?attr/vibroOutlineColor" />
+
+    <TextView
+        android:id="@+id/aboutSettingsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="@string/about_settings_title"
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textSize="22sp" />
+
+    <TextView
+        android:id="@+id/aboutSettingsDisplayTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:text="@string/about_settings_category_display"
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/aboutLightThemeRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutLightThemeSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_light_theme_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutLightThemeInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutImperialUnitsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutImperialUnitsSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_imperial_units_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutImperialUnitsInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/vibroOutlineColor" />
+
+    <TextView
+        android:id="@+id/aboutSettingsGuidanceTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/about_settings_category_guidance"
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/aboutNavigationNotificationsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutNavigationNotificationsSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_navigation_notifications_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutNavigationNotificationsInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutManeuverVoiceRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
         <TextView
-            android:id="@+id/aboutSettingsTitle"
-            android:layout_width="match_parent"
+            android:id="@+id/aboutManeuverVoiceLabel"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="@string/about_settings_title"
+            android:layout_weight="1"
+            android:text="@string/label_maneuver_voice"
             android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="18sp" />
+            android:textSize="16sp" />
 
-        <GridLayout
-            android:id="@+id/aboutSwitchSettingsGrid"
-            android:layout_width="match_parent"
+        <ImageButton
+            android:id="@+id/aboutManeuverVoiceSettingsButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_open_speech_directions_settings"
+            android:src="@drawable/ic_settings" />
+
+        <Switch
+            android:id="@+id/aboutManeuverVoiceSwitch"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:columnCount="2"
-            android:orientation="horizontal">
-
-            <Switch
-                android:id="@+id/aboutLogEnabledSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_log_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutLogEnabledInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutAutoSaveGpxSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_auto_save_gpx_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutAutoSaveGpxInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutFusedLocationSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_fused_location_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutFusedLocationInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutDynamicGpsFixIntervalSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_dynamic_gps_fix_interval_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutDynamicGpsFixIntervalInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutImperialUnitsSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_imperial_units_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutImperialUnitsInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutLightThemeSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_light_theme_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutLightThemeInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutCompassSurroundingStreetsSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_compass_surrounding_streets_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutCompassSurroundingStreetsInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutCompassInstantZoomSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_compass_instant_zoom_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutCompassInstantZoomInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutCompassFullscreenRouteSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_compass_fullscreen_route_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutCompassFullscreenRouteInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutNavigationNotificationsSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_navigation_notifications_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutNavigationNotificationsInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-
-            <Switch
-                android:id="@+id/aboutSingleInstructionModeSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_column="0"
-                android:layout_columnWeight="1"
-                android:layout_gravity="fill_horizontal|center_vertical"
-                android:layout_marginTop="8dp"
-                android:minHeight="48dp"
-                android:text="@string/label_single_instruction_mode_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
-
-            <ImageButton
-                android:id="@+id/aboutSingleInstructionModeInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_column="1"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="8dp"
-                android:contentDescription="@string/action_setting_info" />
-        </GridLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutNavigationCustomButtonRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:layout_marginStart="8dp"
             android:minHeight="48dp"
-            android:orientation="horizontal">
+            android:showText="false" />
 
-            <TextView
-                android:id="@+id/aboutNavigationCustomButtonLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_navigation_custom_button"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
+        <ImageButton
+            android:id="@+id/aboutManeuverVoiceInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutNavigationCustomButtonSettingsButton"
-                style="@style/Widget.ViBRoNavigator.IconButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:contentDescription="@string/action_configure_navigation_custom_button"
-                android:src="@drawable/ic_settings" />
+    <LinearLayout
+        android:id="@+id/aboutDynamicGpsFixIntervalRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
-            <Switch
-                android:id="@+id/aboutNavigationCustomButtonSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/label_navigation_custom_button"
-                android:minHeight="48dp"
-                android:showText="false" />
-
-            <ImageButton
-                android:id="@+id/aboutNavigationCustomButtonInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutAndroidAutoRow"
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/aboutDynamicGpsFixIntervalSwitch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:layout_weight="1"
             android:minHeight="48dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:text="@string/label_dynamic_gps_fix_interval_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
 
-            <Switch
-                android:id="@+id/aboutAndroidAutoSwitch"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:minHeight="48dp"
-                android:text="@string/label_android_auto_integration_enabled"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp"
-                android:visibility="gone" />
+        <ImageButton
+            android:id="@+id/aboutDynamicGpsFixIntervalInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutAndroidAutoInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
+    <LinearLayout
+        android:id="@+id/aboutSingleInstructionModeRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/aboutPoiCategoriesRow"
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/aboutSingleInstructionModeSwitch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:layout_weight="1"
             android:minHeight="48dp"
-            android:orientation="horizontal">
+            android:text="@string/label_single_instruction_mode_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/aboutPoiCategoriesLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_poi_categories"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
+        <ImageButton
+            android:id="@+id/aboutSingleInstructionModeInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutPoiCategoriesButton"
-                style="@style/Widget.ViBRoNavigator.IconButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:contentDescription="@string/action_edit_poi_categories"
-                android:src="@drawable/ic_list" />
+    <LinearLayout
+        android:id="@+id/aboutNavigationCustomButtonRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
-            <Switch
-                android:id="@+id/aboutPoiCategoriesSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:minHeight="48dp"
-                android:showText="false" />
-
-            <ImageButton
-                android:id="@+id/aboutPoiCategoriesInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutSpeechRecognitionRow"
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/aboutNavigationCustomButtonLabel"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:layout_weight="1"
+            android:text="@string/label_navigation_custom_button"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutNavigationCustomButtonSettingsButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_configure_navigation_custom_button"
+            android:src="@drawable/ic_settings" />
+
+        <Switch
+            android:id="@+id/aboutNavigationCustomButtonSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/label_navigation_custom_button"
             android:minHeight="48dp"
-            android:orientation="horizontal">
+            android:showText="false" />
 
-            <TextView
-                android:id="@+id/aboutSpeechRecognitionLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_speech_recognition"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
+        <ImageButton
+            android:id="@+id/aboutNavigationCustomButtonInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutSpeechRecognitionSettingsButton"
-                style="@style/Widget.ViBRoNavigator.IconButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:contentDescription="@string/action_open_speech_recognition_settings"
-                android:src="@drawable/ic_settings" />
+    <LinearLayout
+        android:id="@+id/aboutAutoSaveGpxRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
-            <Switch
-                android:id="@+id/aboutSpeechRecognitionSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/action_enable_speech_recognition"
-                android:minHeight="48dp"
-                android:showText="false" />
-
-            <ImageButton
-                android:id="@+id/aboutSpeechRecognitionInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutManeuverVoiceRow"
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/aboutAutoSaveGpxSwitch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:layout_weight="1"
             android:minHeight="48dp"
-            android:orientation="horizontal">
+            android:text="@string/label_auto_save_gpx_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
 
-            <TextView
-                android:id="@+id/aboutManeuverVoiceLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_maneuver_voice"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
+        <ImageButton
+            android:id="@+id/aboutAutoSaveGpxInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutManeuverVoiceSettingsButton"
-                style="@style/Widget.ViBRoNavigator.IconButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:contentDescription="@string/action_open_speech_directions_settings"
-                android:src="@drawable/ic_settings" />
+    <LinearLayout
+        android:id="@+id/aboutAndroidAutoRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
 
-            <Switch
-                android:id="@+id/aboutManeuverVoiceSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:minHeight="48dp"
-                android:showText="false" />
-
-            <ImageButton
-                android:id="@+id/aboutManeuverVoiceInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/aboutGooglePoiApiKeyContainer"
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/aboutAndroidAutoSwitch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
+            android:layout_weight="1"
             android:minHeight="48dp"
-            android:orientation="horizontal"
-            android:visibility="gone">
+            android:text="@string/label_android_auto_integration_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp"
+            android:visibility="gone" />
 
-            <TextView
-                android:id="@+id/aboutGooglePoiApiKeyLabel"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/label_google_poi_api_key"
-                android:textColor="?attr/vibroTextPrimaryColor"
-                android:textSize="16sp" />
+        <ImageButton
+            android:id="@+id/aboutAndroidAutoInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutGooglePoiApiKeyButton"
-                style="@style/Widget.ViBRoNavigator.IconButton"
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:contentDescription="@string/action_edit_google_poi_api_key"
-                android:src="@drawable/ic_password" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/vibroOutlineColor" />
 
-            <Switch
-                android:id="@+id/aboutGooglePoiSearchSwitch"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/action_enable_google_poi_search"
-                android:minHeight="48dp"
-                android:showText="false" />
+    <TextView
+        android:id="@+id/aboutSettingsCompassTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/about_settings_category_compass"
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textSize="18sp" />
 
-            <ImageButton
-                android:id="@+id/aboutGooglePoiApiKeyInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="4dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
+    <LinearLayout
+        android:id="@+id/aboutCompassSurroundingStreetsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/aboutExportDatabaseRow"
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/aboutCompassSurroundingStreetsSwitch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_compass_surrounding_streets_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/aboutExportDatabaseButton"
-                style="@style/Widget.ViBRoNavigator.Button.Primary"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableStart="@drawable/ic_export"
-                android:drawablePadding="8dp"
-                android:text="@string/action_export_database" />
+        <ImageButton
+            android:id="@+id/aboutCompassSurroundingStreetsInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutExportDatabaseInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
+    <LinearLayout
+        android:id="@+id/aboutCompassInstantZoomRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/aboutImportDatabaseRow"
-            android:layout_width="match_parent"
+        <Switch
+            android:id="@+id/aboutCompassInstantZoomSwitch"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_compass_instant_zoom_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
 
-            <Button
-                android:id="@+id/aboutImportDatabaseButton"
-                style="@style/Widget.ViBRoNavigator.Button.Primary"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:drawableStart="@drawable/ic_import"
-                android:drawablePadding="8dp"
-                android:text="@string/action_import_database" />
+        <ImageButton
+            android:id="@+id/aboutCompassInstantZoomInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/aboutImportDatabaseInfoButton"
-                style="@style/Widget.ViBRoNavigator.InfoButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_marginStart="8dp"
-                android:contentDescription="@string/action_setting_info" />
-        </LinearLayout>
+    <LinearLayout
+        android:id="@+id/aboutCompassFullscreenRouteRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutCompassFullscreenRouteSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_compass_fullscreen_route_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutCompassFullscreenRouteInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/vibroOutlineColor" />
+
+    <TextView
+        android:id="@+id/aboutSettingsSearchInputTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/about_settings_category_search_input"
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/aboutPoiCategoriesRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/aboutPoiCategoriesLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_poi_categories"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutPoiCategoriesButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_edit_poi_categories"
+            android:src="@drawable/ic_list" />
+
+        <Switch
+            android:id="@+id/aboutPoiCategoriesSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:minHeight="48dp"
+            android:showText="false" />
+
+        <ImageButton
+            android:id="@+id/aboutPoiCategoriesInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutSpeechRecognitionRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/aboutSpeechRecognitionLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_speech_recognition"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutSpeechRecognitionSettingsButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_open_speech_recognition_settings"
+            android:src="@drawable/ic_settings" />
+
+        <Switch
+            android:id="@+id/aboutSpeechRecognitionSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/action_enable_speech_recognition"
+            android:minHeight="48dp"
+            android:showText="false" />
+
+        <ImageButton
+            android:id="@+id/aboutSpeechRecognitionInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutGooglePoiApiKeyContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/aboutGooglePoiApiKeyLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_google_poi_api_key"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutGooglePoiApiKeyButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_edit_google_poi_api_key"
+            android:src="@drawable/ic_password" />
+
+        <Switch
+            android:id="@+id/aboutGooglePoiSearchSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/action_enable_google_poi_search"
+            android:minHeight="48dp"
+            android:showText="false" />
+
+        <ImageButton
+            android:id="@+id/aboutGooglePoiApiKeyInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/vibroOutlineColor" />
+
+    <TextView
+        android:id="@+id/aboutSettingsAdvancedTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/about_settings_category_advanced"
+        android:textColor="?attr/vibroTextPrimaryColor"
+        android:textSize="18sp" />
+
+    <LinearLayout
+        android:id="@+id/aboutFusedLocationRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutFusedLocationSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_fused_location_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutFusedLocationInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutLogEnabledRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutLogEnabledSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_log_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutLogEnabledInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutExportDatabaseRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/aboutExportDatabaseButton"
+            style="@style/Widget.ViBRoNavigator.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_export"
+            android:drawablePadding="8dp"
+            android:text="@string/action_export_database" />
+
+        <ImageButton
+            android:id="@+id/aboutExportDatabaseInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/aboutImportDatabaseRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/aboutImportDatabaseButton"
+            style="@style/Widget.ViBRoNavigator.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:drawableStart="@drawable/ic_import"
+            android:drawablePadding="8dp"
+            android:text="@string/action_import_database" />
+
+        <ImageButton
+            android:id="@+id/aboutImportDatabaseInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 </LinearLayout>

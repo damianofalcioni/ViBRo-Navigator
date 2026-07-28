@@ -355,6 +355,11 @@
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>
     <string name="about_credits">Credits: BRouter for routing. POI search and coordinate reverse geocoding use OpenStreetMap Nominatim; map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
     <string name="about_settings_title">Settings</string>
+    <string name="about_settings_category_display">Display</string>
+    <string name="about_settings_category_guidance">Guidance</string>
+    <string name="about_settings_category_compass">Compass</string>
+    <string name="about_settings_category_search_input">Search &amp; Input</string>
+    <string name="about_settings_category_advanced">Advanced</string>
     <string name="label_log_enabled">Logs</string>
     <string name="label_auto_save_gpx_enabled">Auto-save GPX</string>
     <string name="label_fused_location_enabled">Google Fused Location</string>
