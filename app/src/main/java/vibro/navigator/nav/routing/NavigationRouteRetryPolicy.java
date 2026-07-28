@@ -35,7 +35,7 @@ final class NavigationRouteRetryPolicy {
             try {
                 return calculateSnapshotRoute(routeCalculator, snapshot);
             } catch (Exception e) {
-                if (!shouldRetryTransientRouteFailure(e, attempt)) {
+                if (!shouldRetryTransientRouteFailure(snapshot, e, attempt)) {
                     throw e;
                 }
                 AppLogger.w(TAG, "Transient BRouter route failure attempt="
@@ -101,8 +101,14 @@ final class NavigationRouteRetryPolicy {
         return snapshot.profileParameters == null ? "" : snapshot.profileParameters;
     }
 
-    private boolean shouldRetryTransientRouteFailure(@NonNull Exception error, int attempt) {
-        return attempt <= maxTransientRouteRetries && BRouterTransientFailureClassifier.isTransient(error);
+    private boolean shouldRetryTransientRouteFailure(
+            @NonNull NavigationRouteRequestSnapshot snapshot,
+            @NonNull Exception error,
+            int attempt
+    ) {
+        return !snapshot.speculative
+                && attempt <= maxTransientRouteRetries
+                && BRouterTransientFailureClassifier.isTransient(error);
     }
 
     private void sleepBeforeRetry() throws Exception {

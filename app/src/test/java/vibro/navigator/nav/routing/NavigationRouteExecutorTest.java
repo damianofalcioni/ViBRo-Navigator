@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class NavigationRouteExecutorTest {
     private static final String PROFILE_PARAMETERS = "avoid_path=1";
+    private static final String BROUTER_BINDER_DIED = "BRouter binder died during route request";
+    private static final String BROUTER_RETRACKING_FAILURE = "error re-tracking track";
 
 
     @Test
@@ -246,7 +248,7 @@ public class NavigationRouteExecutorTest {
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
                 (start, intermediates, destination, profile, blocked) -> {
                     if (attempts.incrementAndGet() == 1) {
-                        throw BRouterRouteException.serviceUnavailable("BRouter binder died during route request");
+                        throw BRouterRouteException.serviceUnavailable(BROUTER_BINDER_DIED);
                     }
                     return new GeoJsonRoute(
                             Arrays.asList(start, destination),
@@ -295,6 +297,117 @@ public class NavigationRouteExecutorTest {
             assertNull(failure.get());
             assertNotNull(appliedRoute.get());
             assertEquals(2, attempts.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void requestRouteRetriesBRouterRetrackingFailure() throws Exception {
+        AtomicInteger attempts = new AtomicInteger();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                (start, intermediates, destination, profile, blocked) -> {
+                    if (attempts.incrementAndGet() == 1) {
+                        throw BRouterRouteException.fromTextResponse(BROUTER_RETRACKING_FAILURE);
+                    }
+                    return new GeoJsonRoute(
+                            Arrays.asList(start, destination),
+                            Collections.emptyList(),
+                            42.0,
+                            120.0
+                    );
+                },
+                Executors.newSingleThreadExecutor(),
+                Runnable::run,
+                1,
+                0L,
+                delayMs -> {
+                }
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<GeoJsonRoute> appliedRoute = new AtomicReference<>();
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        try {
+            executor.requestRoute(
+                    routeSnapshot(),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationRouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            appliedRoute.set(newRoute);
+                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationRouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            failure.set(error);
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
+            assertNull(failure.get());
+            assertNotNull(appliedRoute.get());
+            assertEquals(2, attempts.get());
+        } finally {
+            executor.shutdown();
+        }
+    }
+
+    @Test
+    public void requestRouteDoesNotRetryTransientSpeculativeFailure() throws Exception {
+        AtomicInteger attempts = new AtomicInteger();
+        NavigationRouteExecutor executor = new NavigationRouteExecutor(
+                (start, intermediates, destination, profile, blocked) -> {
+                    attempts.incrementAndGet();
+                    throw BRouterRouteException.serviceUnavailable(BROUTER_BINDER_DIED);
+                },
+                Executors.newSingleThreadExecutor(),
+                Runnable::run,
+                2,
+                0L,
+                delayMs -> {
+                }
+        );
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Exception> failure = new AtomicReference<>();
+
+        try {
+            executor.requestRoute(
+                    speculativeRouteSnapshot(),
+                    new NavigationRouteExecutor.Callback() {
+                        @Override
+                        public void onRouteApplied(
+                                NavigationRouteRequestSnapshot snapshot,
+                                GeoJsonRoute newRoute,
+                                long beganAt
+                        ) {
+                            latch.countDown();
+                        }
+
+                        @Override
+                        public void onRouteFailure(
+                                NavigationRouteRequestSnapshot snapshot,
+                                Exception error
+                        ) {
+                            failure.set(error);
+                            latch.countDown();
+                        }
+                    }
+            );
+
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
+            assertNotNull(failure.get());
+            assertEquals(BROUTER_BINDER_DIED, failure.get().getMessage());
+            assertEquals(1, attempts.get());
         } finally {
             executor.shutdown();
         }
@@ -664,6 +777,24 @@ public class NavigationRouteExecutorTest {
                 "trekking",
                 profileParameters,
                 Collections.emptyList()
+        );
+    }
+
+    private static NavigationRouteRequestSnapshot speculativeRouteSnapshot() {
+        return new NavigationRouteRequestSnapshot(
+                1,
+                1,
+                NavigationRoutingMode.BROUTER,
+                new LatLon(48.2082, 16.3738),
+                Collections.emptyList(),
+                new LatLon(48.2100, 16.3800),
+                "trekking",
+                false,
+                null,
+                Collections.emptyList(),
+                0,
+                0,
+                true
         );
     }
 

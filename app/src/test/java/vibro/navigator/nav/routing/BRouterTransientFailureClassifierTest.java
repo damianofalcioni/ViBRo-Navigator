@@ -8,6 +8,8 @@ import org.junit.Test;
 import vibro.navigator.brouter.BRouterRouteException;
 
 public class BRouterTransientFailureClassifierTest {
+    private static final String BROUTER_RETRACKING_FAILURE = "error re-tracking track";
+
 
     @Test
     public void isTransientRecognizesServiceUnavailableReason() {
@@ -23,6 +25,13 @@ public class BRouterTransientFailureClassifierTest {
                         "Route failed",
                         new IllegalArgumentException("BRouter binding died")
                 )
+        ));
+    }
+
+    @Test
+    public void isTransientRecognizesBRouterRetrackingFailure() {
+        assertTrue(BRouterTransientFailureClassifier.isTransient(
+                BRouterRouteException.fromTextResponse(BROUTER_RETRACKING_FAILURE)
         ));
     }
 

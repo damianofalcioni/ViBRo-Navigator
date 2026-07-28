@@ -37,7 +37,8 @@ public final class BRouterTransientFailureClassifier {
         return normalized.contains("brouter service not available")
                 || normalized.contains("brouter is not connected")
                 || normalized.contains("brouter binding died")
-                || normalized.contains("null binding");
+                || normalized.contains("null binding")
+                || normalized.equals("error re-tracking track");
     }
 
 }
