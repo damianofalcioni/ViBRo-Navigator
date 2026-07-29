@@ -717,15 +717,16 @@ The navigation UI must show the following in large text:
 
 - Each entry in the about page Settings section must include a right-side info button that opens a short UI explanation of that setting or settings action
 - The about page Settings section must show a Log enabled switch
-- The about page Settings section must show an Auto-save GPX on stop switch
+- The about page Settings section must show an Auto-save GPX on stop switch that is enabled by default
 - The about page Settings section must show a Use fused location switch
 - The about page Settings section must show a Use imperial units (ft/mi/mph) switch for distance, speed, elevation, and accuracy display values
 - The about page Settings section must show a Light Theme switch that enables or disables the app's optional light theme while keeping the black theme as the default
-- The about page Settings section must show a Show surrounding streets in compass switch that enables or disables the local-BRouter-segment street overlay in the navigation compass
+- The about page Settings section must show a Show surrounding streets in compass switch that enables or disables the local-BRouter-segment street overlay in the navigation compass and is enabled by default
 - When legacy external-storage permission is required to read local BRouter street segment files, enabling the Show surrounding streets in compass switch must request that permission and leave the setting disabled if permission is denied
-- The about page Settings section must show an Instant compass zoom switch that disables compass zoom animations so transitions between route overview and moving-scale views are immediate
+- The about page Settings section must show an Instant compass zoom switch that disables compass zoom animations so transitions between route overview and moving-scale views are immediate and is disabled by default
+- The about page Settings section must show a Fullscreen route switch that expands the route view and is enabled by default
 - The about page Settings section must show a disabled-by-default Zoom out when stationary switch under Compass that controls whether stationary navigation automatically changes from a remembered moving-scale route view to the full-route overview
-- The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
+- The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component and is enabled by default; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and a trash remove button, plus a centered bordered `+` button that adds another field
 - Fresh installs must prefill the POI categories filter editor with commonly needed categories for driving, walking/running, and cycling: `Bicycle Repair Station`, `Drinking Water`, `Fuel`, `Hospital`, `Parking`, `Pharmacy`, `Police`, `Public Transport Stop Position`, `Supermarket Shop`, `Taxi`, and `Toilets`
@@ -735,6 +736,7 @@ The navigation UI must show the following in large text:
 - The Speech directions voice spinner dropdown should visually highlight the currently selected voice option
 - The Speech directions voice spinner row must include an icon-only settings button that opens the device's built-in Android Text-to-speech settings page, falling back to Android's TTS data installer when the settings page is unavailable
 - The Speech directions settings dialog must show bordered controls for the voice preview play button and the Android Text-to-speech settings button
+- Fresh installs must enable speech directions with the system default TextToSpeech voice by default
 - The Google Play flavor must let the user save an optional Google Maps API key for POI search and enable or disable Google search; the app must validate a non-empty key through Google Maps Geocoding before marking it valid, and when Google search is enabled with a valid key, POI search and coordinate reverse geocoding must use Google Maps Geocoding instead of OpenStreetMap Nominatim
 - The F-Droid flavor must not enable the Google Maps API key setting
 - The about page Settings section must show an Export database button that lets the user save a JSON backup of all app-managed stored data, including POI history, saved routes, app settings, logging preference, BRouter profile selections, and BRouter profile parameter overrides
@@ -756,7 +758,7 @@ The navigation UI must show the following in large text:
 - The logging implementation should keep a single shared path for log-entry formatting and file appends so single-line and multiline records cannot silently diverge in behavior
 - The about page Settings section must show a Navigation notifications switch that enables or disables transient live-navigation alert notifications; the permanent foreground navigation notification and diagnostic direction test notifications must remain enabled
 - The about page Settings section must show a Single instruction mode switch that keeps navigation alert notifications enabled but changes routed maneuver notifications to a single trustworthy 10-second approaching alert; reached-arrival and warning notifications must not be disabled by this mode
-- The about page Settings section must show a Custom button setting with a switch to show or hide the navigation custom button and an icon-only configuration button whose UI uses a spinner to choose the setting toggled by that navigation button: Dynamic GPS interval, Light Theme, Surrounding streets, Fullscreen route, Notifications, or Speech directions
+- The about page Settings section must show a Custom button setting with a switch to show or hide the navigation custom button and an icon-only configuration button whose UI uses a spinner to choose the setting toggled by that navigation button: Dynamic GPS interval, Light Theme, Surrounding streets, Fullscreen route, Notifications, or Speech directions; fresh installs must show the custom button by default and target Light Theme
 - The about page Diagnostic section must currently list the app's used live inputs:
   - GPS provider
   - network provider

@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 public final class AppNavigationCustomButtonSettings {
     private static final String KEY_NAVIGATION_CUSTOM_BUTTON_ENABLED = "navigation_custom_button_enabled";
     private static final String KEY_NAVIGATION_CUSTOM_BUTTON_TARGET = "navigation_custom_button_target";
-    private static final Target DEFAULT_TARGET = Target.DYNAMIC_GPS_INTERVAL;
+    private static final Target DEFAULT_TARGET = Target.LIGHT_THEME;
 
     private AppNavigationCustomButtonSettings() {
     }
@@ -48,7 +48,7 @@ public final class AppNavigationCustomButtonSettings {
     }
 
     public static boolean isEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_NAVIGATION_CUSTOM_BUTTON_ENABLED, false);
+        return prefs(context).getBoolean(KEY_NAVIGATION_CUSTOM_BUTTON_ENABLED, true);
     }
 
     public static void setEnabled(@NonNull Context context, boolean enabled) {

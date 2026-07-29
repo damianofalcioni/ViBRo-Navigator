@@ -19,7 +19,7 @@ public final class AppCompassSettings {
 
     public static boolean isSurroundingStreetsEnabled(@NonNull Context context) {
         return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_COMPASS_SURROUNDING_STREETS_ENABLED, false);
+                .getBoolean(KEY_COMPASS_SURROUNDING_STREETS_ENABLED, true);
     }
 
     public static void setSurroundingStreetsEnabled(@NonNull Context context, boolean enabled) {
@@ -55,7 +55,7 @@ public final class AppCompassSettings {
 
     public static boolean isFullscreenRouteEnabled(@NonNull Context context) {
         return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_COMPASS_FULLSCREEN_ROUTE_ENABLED, false);
+                .getBoolean(KEY_COMPASS_FULLSCREEN_ROUTE_ENABLED, true);
     }
 
     public static void setFullscreenRouteEnabled(@NonNull Context context, boolean enabled) {

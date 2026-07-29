@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
 import vibro.navigator.android.location.AndroidMapPickerLocationController;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.geo.LatLon;
@@ -75,8 +76,11 @@ public final class MapPickerActivity extends Activity {
         ImageButton mapZoomInButton = findViewById(R.id.mapZoomInButton);
         ImageButton mapZoomOutButton = findViewById(R.id.mapZoomOutButton);
         ImageButton mapCurrentLocationButton = findViewById(R.id.mapCurrentLocationButton);
+        ImageButton mapOpenPositionButton = findViewById(R.id.mapOpenPositionButton);
         ImageButton mapCancelButton = findViewById(R.id.mapCancelButton);
         ImageButton mapUseSelectionButton = findViewById(R.id.mapUseSelectionButton);
+        MapPickerGeoPositionLauncher geoPositionLauncher =
+                new MapPickerGeoPositionLauncher(this, scriptController, () -> selectedPoi);
         locationController = new AndroidMapPickerLocationController(
                 this,
                 new AndroidMapPickerLocationController.Callback() {
@@ -110,6 +114,7 @@ public final class MapPickerActivity extends Activity {
         mapZoomInButton.setOnClickListener(v -> scriptController.zoomIn());
         mapZoomOutButton.setOnClickListener(v -> scriptController.zoomOut());
         mapCurrentLocationButton.setOnClickListener(v -> centerOnCurrentLocation());
+        mapOpenPositionButton.setOnClickListener(v -> geoPositionLauncher.open());
         mapCancelButton.setOnClickListener(v -> finish());
         mapUseSelectionButton.setOnClickListener(v -> finishWithSelection());
     }

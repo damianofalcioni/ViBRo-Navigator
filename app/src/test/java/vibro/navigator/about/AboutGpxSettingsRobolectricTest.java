@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.content.Context;
 import android.os.Looper;
 import android.widget.Switch;
 
@@ -26,14 +27,15 @@ public class AboutGpxSettingsRobolectricTest {
 
     @Before
     public void setUp() {
-        AppGpxSettings.setAutoSaveOnStopEnabled(
-                ApplicationProvider.getApplicationContext(),
-                false
-        );
+        ApplicationProvider.getApplicationContext()
+                .getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit();
     }
 
     @Test
-    public void aboutPageShowsAutoSaveGpxSwitchDisabledByDefault() {
+    public void aboutPageShowsAutoSaveGpxSwitchEnabledByDefault() {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch autoSaveGpxSwitch = activity.findViewById(R.id.aboutAutoSaveGpxSwitch);
 
@@ -41,7 +43,7 @@ public class AboutGpxSettingsRobolectricTest {
                 activity.getString(R.string.label_auto_save_gpx_enabled),
                 autoSaveGpxSwitch.getText().toString()
         );
-        assertFalse(autoSaveGpxSwitch.isChecked());
+        assertTrue(autoSaveGpxSwitch.isChecked());
     }
 
     @Test
@@ -49,15 +51,15 @@ public class AboutGpxSettingsRobolectricTest {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch autoSaveGpxSwitch = activity.findViewById(R.id.aboutAutoSaveGpxSwitch);
 
-        assertFalse(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
+        assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
 
         autoSaveGpxSwitch.performClick();
 
-        assertTrue(autoSaveGpxSwitch.isChecked());
-        assertFalse(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
+        assertFalse(autoSaveGpxSwitch.isChecked());
+        assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
         idleDeferredSettingApply();
 
-        assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
+        assertFalse(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
     }
 
     private static void idleDeferredSettingApply() {

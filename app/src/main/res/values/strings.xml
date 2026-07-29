@@ -34,6 +34,7 @@
     <string name="action_open_fdroid">F-Droid</string>
     <string name="action_use_selected_point">Use selected point</string>
     <string name="action_map_poi_categories">POI categories</string>
+    <string name="action_open_map_position">Open map position</string>
     <string name="action_test_left_notification">Lefts</string>
     <string name="action_test_other_notification">Others</string>
     <string name="action_test_right_notification">Rights</string>
@@ -135,6 +136,9 @@
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>
     <string name="msg_map_selection_required">Select a point on the map first.</string>
+    <string name="msg_map_position_unavailable">Map position is unavailable.</string>
+    <string name="msg_map_position_no_app">No app can open map positions.</string>
+    <string name="msg_map_position_open_failed">Could not open map position.</string>
     <string name="msg_map_poi_loading">Loading POIs…</string>
     <string name="msg_map_poi_unavailable">POIs unavailable.</string>
     <string name="msg_map_poi_zoom_in">Zoom in to load POIs.</string>

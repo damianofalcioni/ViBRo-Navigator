@@ -128,7 +128,7 @@ public final class AppSettings {
         if (sharedPreferences.contains(KEY_MANEUVER_SPEECH_ENABLED)) {
             return sharedPreferences.getBoolean(KEY_MANEUVER_SPEECH_ENABLED, false);
         }
-        String voiceName = sharedPreferences.getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_DISABLED);
+        String voiceName = sharedPreferences.getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_SYSTEM_DEFAULT);
         return !MANEUVER_VOICE_DISABLED.equals(voiceName);
     }
 

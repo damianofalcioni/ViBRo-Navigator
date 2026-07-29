@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
+import android.content.Context;
 import android.os.Looper;
 import android.widget.Switch;
 
@@ -29,11 +30,14 @@ public class AboutCompassFullscreenRouteSettingsRobolectricTest {
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
         AppLogger.init(context);
-        AppCompassSettings.setFullscreenRouteEnabled(context, false);
+        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit();
     }
 
     @Test
-    public void fullscreenRouteSwitchStartsDisabledWithLabel() {
+    public void fullscreenRouteSwitchStartsEnabledWithLabel() {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch fullscreenRouteSwitch = activity.findViewById(R.id.aboutCompassFullscreenRouteSwitch);
 
@@ -41,7 +45,7 @@ public class AboutCompassFullscreenRouteSettingsRobolectricTest {
                 activity.getString(R.string.label_compass_fullscreen_route_enabled),
                 fullscreenRouteSwitch.getText().toString()
         );
-        assertFalse(fullscreenRouteSwitch.isChecked());
+        assertTrue(fullscreenRouteSwitch.isChecked());
     }
 
     @Test
@@ -51,11 +55,11 @@ public class AboutCompassFullscreenRouteSettingsRobolectricTest {
 
         fullscreenRouteSwitch.performClick();
 
-        assertTrue(fullscreenRouteSwitch.isChecked());
-        assertFalse(AppCompassSettings.isFullscreenRouteEnabled(activity));
+        assertFalse(fullscreenRouteSwitch.isChecked());
+        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(activity));
         idleDeferredSettingApply();
 
-        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(activity));
+        assertFalse(AppCompassSettings.isFullscreenRouteEnabled(activity));
     }
 
     private static void idleDeferredSettingApply() {

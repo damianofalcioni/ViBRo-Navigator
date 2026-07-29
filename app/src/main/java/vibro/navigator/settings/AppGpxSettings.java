@@ -12,7 +12,7 @@ public final class AppGpxSettings {
 
     public static boolean isAutoSaveOnStopEnabled(@NonNull Context context) {
         return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
-                .getBoolean(KEY_AUTO_SAVE_ON_STOP_ENABLED, false);
+                .getBoolean(KEY_AUTO_SAVE_ON_STOP_ENABLED, true);
     }
 
     public static void setAutoSaveOnStopEnabled(@NonNull Context context, boolean enabled) {

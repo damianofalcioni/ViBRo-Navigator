@@ -540,6 +540,12 @@
             getBoundsJson: function () {
                 return JSON.stringify(currentMapState());
             },
+            getCenterJson: function () {
+                return JSON.stringify({
+                    centerLat: centerLat,
+                    centerLon: centerLon
+                });
+            },
             select: function (lat, lon) {
                 setSelection(lat, lon, false);
             }

@@ -7,6 +7,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.AlertDialog;
 import android.app.Application;
+import android.content.Context;
 import android.os.Looper;
 import android.widget.ImageButton;
 import android.widget.Spinner;
@@ -35,12 +36,14 @@ public class AboutNavigationCustomButtonSettingsRobolectricTest {
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
         AppLogger.init(context);
-        AppNavigationCustomButtonSettings.setEnabled(context, false);
-        AppNavigationCustomButtonSettings.setTarget(context, Target.DYNAMIC_GPS_INTERVAL);
+        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit();
     }
 
     @Test
-    public void customButtonRowStartsDisabledWithConfigButton() {
+    public void customButtonRowDefaultsEnabledWithConfigButton() {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         TextView label = activity.findViewById(R.id.aboutNavigationCustomButtonLabel);
         ImageButton settingsButton = activity.findViewById(R.id.aboutNavigationCustomButtonSettingsButton);
@@ -51,7 +54,8 @@ public class AboutNavigationCustomButtonSettingsRobolectricTest {
                 activity.getString(R.string.action_configure_navigation_custom_button),
                 settingsButton.getContentDescription().toString()
         );
-        assertFalse(enabledSwitch.isChecked());
+        assertTrue(enabledSwitch.isChecked());
+        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(activity));
     }
 
     @Test
@@ -61,11 +65,11 @@ public class AboutNavigationCustomButtonSettingsRobolectricTest {
 
         enabledSwitch.performClick();
 
-        assertTrue(enabledSwitch.isChecked());
-        assertFalse(AppNavigationCustomButtonSettings.isEnabled(activity));
+        assertFalse(enabledSwitch.isChecked());
+        assertTrue(AppNavigationCustomButtonSettings.isEnabled(activity));
         idleDeferredSettingApply();
 
-        assertTrue(AppNavigationCustomButtonSettings.isEnabled(activity));
+        assertFalse(AppNavigationCustomButtonSettings.isEnabled(activity));
     }
 
     @Test

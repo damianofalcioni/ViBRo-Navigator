@@ -29,9 +29,9 @@ public class AppNavigationCustomButtonSettingsTest {
     }
 
     @Test
-    public void defaultsToHiddenDynamicGpsButton() {
-        assertFalse(AppNavigationCustomButtonSettings.isEnabled(context));
-        assertEquals(Target.DYNAMIC_GPS_INTERVAL, AppNavigationCustomButtonSettings.getTarget(context));
+    public void defaultsToVisibleLightThemeButton() {
+        assertTrue(AppNavigationCustomButtonSettings.isEnabled(context));
+        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(context));
     }
 
     @Test
@@ -44,13 +44,13 @@ public class AppNavigationCustomButtonSettingsTest {
     }
 
     @Test
-    public void unknownSavedTargetFallsBackToDynamicGps() {
+    public void unknownSavedTargetFallsBackToLightTheme() {
         context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
                 .edit()
                 .putString("navigation_custom_button_target", "unknown")
                 .commit();
 
-        assertEquals(Target.DYNAMIC_GPS_INTERVAL, AppNavigationCustomButtonSettings.getTarget(context));
+        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(context));
     }
 
     @Test

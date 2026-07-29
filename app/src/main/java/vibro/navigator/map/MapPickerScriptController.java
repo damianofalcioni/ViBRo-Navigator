@@ -1,6 +1,7 @@
 package vibro.navigator.map;
 
 import android.webkit.WebView;
+import android.webkit.ValueCallback;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -70,13 +71,21 @@ final class MapPickerScriptController {
         run(script);
     }
 
-    void requestBounds(@NonNull android.webkit.ValueCallback<String> callback) {
+    void requestBounds(@NonNull ValueCallback<String> callback) {
+        requestResult("window.mapPicker.getBoundsJson();", callback);
+    }
+
+    void requestCenter(@NonNull ValueCallback<String> callback) {
+        requestResult("window.mapPicker.getCenterJson();", callback);
+    }
+
+    private void requestResult(@NonNull String script, @NonNull ValueCallback<String> callback) {
         WebView view = mapWebView;
         if (!pageLoaded || view == null) {
             callback.onReceiveValue(null);
             return;
         }
-        view.evaluateJavascript("window.mapPicker.getBoundsJson();", callback);
+        view.evaluateJavascript(script, callback);
     }
 
     void setPoiMarkers(@NonNull JSONArray markers) {
