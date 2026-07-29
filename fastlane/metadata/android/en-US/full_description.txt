@@ -1,20 +1,25 @@
-ViBRo Navigator is a lightweight navigation app built around BRouter.
+ViBRo Navigator is a lightweight, battery-efficient, offline-first navigation app built around BRouter.
 
-It keeps route calculation offline through the installed BRouter app and
-communicates turns through vibration patterns instead of voice prompts.
+It provides map-free navigation through vibration patterns, notifications, optional concise speech instructions, and minimal on-screen guidance. Route calculation and turn instruction generation work offline; an internet connection is required only when searching for a destination.
 
 Features:
 
-* Offline routing via BRouter
-* Minimal on-screen guidance with background navigation support
-* Vibration alerts for turns
-* Destination history with rename and delete support
-* Coordinate pasting and map-link handling
-* Online place lookup through OpenStreetMap Nominatim by default
-* Optional Google geocoding support when a developer-supplied API key is configured
+* Offline routing through BRouter
+* Vibration-based and smartband-friendly turn guidance
+* Minimal on-screen and optional spoken instructions
+* Background and screen-off navigation
+* BRouter routing profile selection
+* Route, round-trip, and straight-line modes
+* Straight-line guidance without BRouter
+* Intermediate stops and blocked-road rerouting
+* Destination history and coordinate or map-link handling
+* OpenStreetMap place and map-based POI search
+* Nearby streets extracted from BRouter data
+* GPX route and GPS-fix export
+* Dynamic GPS acquisition to reduce battery usage
 
 Important notes:
 
-* BRouter must be installed separately for route calculation.
-* The app works without Google services.
-* If no Google API key is configured, place search uses OpenStreetMap Nominatim.
+* BRouter must be installed separately for routed turn guidance.
+* Straight-line navigation works without BRouter.
+* The app does not require Google services.
