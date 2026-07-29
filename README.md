@@ -34,8 +34,14 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 * **Vibration-based navigation**
   Clear directional feedback without relying on visual maps. Navigation directions are provided as notifications with different vibration patterns. Best in combination with a smartwatch or smartband that show them.
 
+* **Minimal speech direction instructions**
+  Optional spoken direction instructions keep audio guidance concise and distraction-free.
+
 * **Offline-first routing**
-  Uses BRouter for fully offline route calculation and turn instruction generation.
+  Uses BRouter for fully offline route calculation and turn instruction generation. An internet connection is required only when searching for a destination.
+
+* **BRouter profile selection**
+  Choose any available BRouter routing profile, including custom profiles.
 
 * **Straight-line guidance without BRouter**
   The `Straight-line mode` keeps compass and arrival guidance available even when BRouter is not installed.
@@ -50,17 +56,25 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 
   * History-first suggestions
   * OpenStreetMap search
+  * Google Maps redirect search
+  * Speech input for POI search
   * POI over OpenStreetMap map selection
   * Open from other maps application
 
 * **Map-free compass navigation**
-  Visualizes route direction relative to your position without rendering a map.
+  Visualizes route direction relative to your position, including surrounding streets extracted from downloaded BRouter segments, without rendering a full map.
+
+* **GPX export**
+  Export the planned route, passed route, and collected GPS fixes.
 
 * **Intermediate stops support**
   Easily add, edit, and remove waypoints.
 
 * **Pause and blocked road support**
   Navigation can be paused and rerouted to avoid a blocked street.
+
+* **Dynamic GPS acquisition interval**
+  Adjusts GPS fix acquisition timing based on the distance to the next direction point to reduce battery usage.
 
 * **Background navigation**
   Works with screen off via a foreground service.
@@ -76,7 +90,7 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 ## 💡 Innovations
 
 * **Dynamic GPS fix acquisition**  
-  The GPS fix acquisition interval dynamically adapts to the remaining distance to the next direction point.
+  The GPS fix acquisition interval dynamically adapts to the remaining distance to the next direction point, reducing battery usage when frequent fixes are not needed.
 
 * **Time-based distance to the next direction**  
   Notifications are triggered from the estimated time to the next turn instruction, based on current speed. Single instruction mode can reduce maneuver alerts to one notification about 10 seconds before the turn.
@@ -98,7 +112,7 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 ## 🧭 How It Works
 
 1. Select a working mode between Route, Round Trip, and Straight Line.
-2. Select a **routing profile** from BRouter (not available in Straight Line mode).
+2. Select any available **routing profile** from BRouter, including custom profiles (not available in Straight Line mode).
 3. Enter a **destination** or pick from history/map (not available in Round Trip mode).
 4. Optionally add **intermediate stops** (not available in Round Trip mode).
 5. Start navigation:
