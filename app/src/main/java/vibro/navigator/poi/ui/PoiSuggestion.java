@@ -45,25 +45,35 @@ public final class PoiSuggestion {
 
     @NonNull
     String displayLabel(@NonNull Context context) {
+        return displayLabel(PoiTextResources.from(context));
+    }
+
+    @NonNull
+    String displayLabel(@NonNull PoiTextResources textResources) {
         if (externalMapSearchQuery != null) {
-            return context.getString(R.string.action_search_google_maps);
+            return textResources.getString(R.string.action_search_google_maps);
         }
         Poi poi = poi();
         PoiDetails details = poi.details();
         if (details == null || !details.isEntrance()) {
             return poi.displayLabel();
         }
-        return context.getString(
+        return textResources.getString(
                 R.string.format_poi_entrance_label,
-                entranceLabel(context, details.entranceType()),
+                entranceLabel(textResources, details.entranceType()),
                 parentLabel(details)
         );
     }
 
     @NonNull
     Poi selectedPoi(@NonNull Context context) {
+        return selectedPoi(PoiTextResources.from(context));
+    }
+
+    @NonNull
+    Poi selectedPoi(@NonNull PoiTextResources textResources) {
         Poi poi = poi();
-        String label = displayLabel(context);
+        String label = displayLabel(textResources);
         if (label.equals(poi.displayLabel())) {
             return poi;
         }
@@ -107,10 +117,10 @@ public final class PoiSuggestion {
     }
 
     @NonNull
-    private static String entranceLabel(@NonNull Context context, @Nullable String type) {
+    private static String entranceLabel(@NonNull PoiTextResources textResources, @Nullable String type) {
         if (type == null || type.trim().isEmpty() || "yes".equalsIgnoreCase(type.trim())) {
-            return context.getString(R.string.label_poi_entrance);
+            return textResources.getString(R.string.label_poi_entrance);
         }
-        return context.getString(R.string.format_poi_entrance_type, type.trim());
+        return textResources.getString(R.string.format_poi_entrance_type, type.trim());
     }
 }

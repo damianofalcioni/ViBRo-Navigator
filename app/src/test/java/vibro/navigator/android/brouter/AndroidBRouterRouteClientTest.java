@@ -4,18 +4,15 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import android.os.Bundle;
-
 import androidx.annotation.NonNull;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.zip.GZIPOutputStream;
 
@@ -23,7 +20,6 @@ import vibro.navigator.brouter.BRouterRouteRequest;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
 
-@RunWith(RobolectricTestRunner.class)
 public class AndroidBRouterRouteClientTest {
     private static final String PROFILE_TREKKING = "trekking";
     private static final String PROFILE_PARAMETERS = "avoid_path=1";
@@ -46,7 +42,7 @@ public class AndroidBRouterRouteClientTest {
                 )
         );
 
-        Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
+        AndroidBRouterRouteParameterValues params = AndroidBRouterRouteParameterValues.build(request);
 
         assertArrayEquals(new double[]{48.0, 48.1, 48.15, 48.2}, params.getDoubleArray("lats"), 0.0);
         assertArrayEquals(new double[]{16.0, 16.1, 16.15, 16.2}, params.getDoubleArray("lons"), 0.0);
@@ -73,7 +69,7 @@ public class AndroidBRouterRouteClientTest {
                 Collections.emptyList()
         );
 
-        Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
+        AndroidBRouterRouteParameterValues params = AndroidBRouterRouteParameterValues.build(request);
 
         assertEquals("avoid_path=1&uphillcost=90", params.getString(EXTRA_PARAMS));
     }
@@ -90,7 +86,8 @@ public class AndroidBRouterRouteClientTest {
                 Collections.emptyList()
         );
 
-        Bundle params = AndroidBRouterRouteParams.build(request, CUSTOM_PROFILE_TEXT);
+        AndroidBRouterRouteParameterValues params =
+                AndroidBRouterRouteParameterValues.build(request, CUSTOM_PROFILE_TEXT);
 
         assertFalse(params.containsKey("profile"));
         assertEquals(CUSTOM_PROFILE_TEXT, params.getString("remoteProfile"));
@@ -108,7 +105,7 @@ public class AndroidBRouterRouteClientTest {
                 123
         );
 
-        Bundle params = AndroidBRouterRouteClient.buildRouteParams(request);
+        AndroidBRouterRouteParameterValues params = AndroidBRouterRouteParameterValues.build(request);
 
         assertFalse(params.containsKey("lats"));
         assertFalse(params.containsKey("lons"));
@@ -124,14 +121,19 @@ public class AndroidBRouterRouteClientTest {
     public void decodeRoutePayload_returnsRawPayloadWhenItIsNotCompressed() throws Exception {
         String payload = "{\"type\":\"FeatureCollection\",\"features\":[]}";
 
-        assertEquals(payload, AndroidBRouterRouteClient.decodeRoutePayload(payload));
+        assertEquals(payload, decodeRoutePayload(payload));
     }
 
     @Test
     public void decodeRoutePayload_decodesBRouterZ64Payload() throws Exception {
         String payload = "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\"}]}";
 
-        assertEquals(payload, AndroidBRouterRouteClient.decodeRoutePayload(z64(payload)));
+        assertEquals(payload, decodeRoutePayload(z64(payload)));
+    }
+
+    @NonNull
+    private static String decodeRoutePayload(@NonNull String raw) throws IOException {
+        return BRouterRoutePayloadDecoder.decode(raw, encoded -> Base64.getDecoder().decode(encoded));
     }
 
     @NonNull
@@ -143,6 +145,6 @@ public class AndroidBRouterRouteClientTest {
         try (GZIPOutputStream gzip = new GZIPOutputStream(encoded)) {
             gzip.write(payload.getBytes(StandardCharsets.UTF_8));
         }
-        return java.util.Base64.getEncoder().encodeToString(encoded.toByteArray());
+        return Base64.getEncoder().encodeToString(encoded.toByteArray());
     }
 }

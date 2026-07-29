@@ -59,11 +59,22 @@ final class MapPickerIntentContract {
         if (!LatLon.isValidCoordinate(lat, lon)) {
             return null;
         }
-        String name = data.getStringExtra(EXTRA_RESULT_NAME);
-        if (name == null || name.trim().isEmpty()) {
-            name = context.getString(R.string.format_coordinates, lat, lon);
+        String fallbackName = context.getString(R.string.format_coordinates, lat, lon);
+        return restoreResultPoi(data.getStringExtra(EXTRA_RESULT_NAME), lat, lon, fallbackName);
+    }
+
+    @Nullable
+    static Poi restoreResultPoi(
+            @Nullable String name,
+            double lat,
+            double lon,
+            @NonNull String fallbackName
+    ) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
+            return null;
         }
-        return new Poi(name, lat, lon);
+        String safeName = name == null || name.trim().isEmpty() ? fallbackName : name;
+        return new Poi(safeName, lat, lon);
     }
 
     static void putResult(@NonNull Intent data, @NonNull Poi poi) {

@@ -16,30 +16,35 @@ final class PoiDetailsFormatter {
 
     @NonNull
     static String format(@NonNull Context context, @NonNull PoiDetails details) {
+        return format(PoiTextResources.from(context), details);
+    }
+
+    @NonNull
+    static String format(@NonNull PoiTextResources textResources, @NonNull PoiDetails details) {
         StringBuilder out = new StringBuilder();
-        appendEntranceSection(context, out, details);
-        appendMapSection(context, out, R.string.label_poi_extra_tags, details.extraTags());
-        appendMapSection(context, out, R.string.label_poi_address_details, details.addressDetails());
-        appendEntrancesSection(context, out, details);
+        appendEntranceSection(textResources, out, details);
+        appendMapSection(textResources, out, R.string.label_poi_extra_tags, details.extraTags());
+        appendMapSection(textResources, out, R.string.label_poi_address_details, details.addressDetails());
+        appendEntrancesSection(textResources, out, details);
         if (out.length() == 0) {
-            out.append(context.getString(R.string.msg_poi_details_unavailable));
+            out.append(textResources.getString(R.string.msg_poi_details_unavailable));
         }
-        appendMapCheckHint(context, out);
+        appendMapCheckHint(textResources, out);
         return out.toString();
     }
 
     private static void appendMapCheckHint(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out
     ) {
         if (out.length() > 0 && out.charAt(out.length() - 1) != '\n') {
             out.append('\n');
         }
-        out.append('\n').append(context.getString(R.string.msg_poi_details_map_check_hint));
+        out.append('\n').append(textResources.getString(R.string.msg_poi_details_map_check_hint));
     }
 
     private static void appendEntranceSection(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             @NonNull PoiDetails details
     ) {
@@ -47,28 +52,28 @@ final class PoiDetailsFormatter {
         if (!details.isEntrance() || type == null || type.trim().isEmpty()) {
             return;
         }
-        appendSectionHeader(context, out, R.string.label_poi_entrance);
-        appendPair(context, out, context.getString(R.string.label_poi_entrance_type), type);
+        appendSectionHeader(textResources, out, R.string.label_poi_entrance);
+        appendPair(textResources, out, textResources.getString(R.string.label_poi_entrance_type), type);
     }
 
     private static void appendEntrancesSection(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             @NonNull PoiDetails details
     ) {
         if (details.entrances().isEmpty()) {
             return;
         }
-        appendSectionHeader(context, out, R.string.label_poi_entrances);
+        appendSectionHeader(textResources, out, R.string.label_poi_entrances);
         int index = 1;
         for (PoiDetails.Entrance entrance : details.entrances()) {
-            appendEntranceDetails(context, out, entrance, index);
+            appendEntranceDetails(textResources, out, entrance, index);
             index++;
         }
     }
 
     private static void appendEntranceDetails(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             @NonNull PoiDetails.Entrance entrance,
             int index
@@ -76,27 +81,27 @@ final class PoiDetailsFormatter {
         if (index > 1) {
             out.append('\n');
         }
-        out.append(context.getString(R.string.format_poi_entrance_heading, index)).append('\n');
+        out.append(textResources.getString(R.string.format_poi_entrance_heading, index)).append('\n');
         if (!entrance.type().trim().isEmpty()) {
-            appendPair(context, out, context.getString(R.string.label_poi_entrance_type), entrance.type());
+            appendPair(textResources, out, textResources.getString(R.string.label_poi_entrance_type), entrance.type());
         }
-        appendPair(context, out, context.getString(R.string.label_poi_coordinates),
-                context.getString(R.string.format_coordinates, entrance.lat, entrance.lon));
-        appendEntranceExtraTags(context, out, entrance);
+        appendPair(textResources, out, textResources.getString(R.string.label_poi_coordinates),
+                textResources.getString(R.string.format_coordinates, entrance.lat, entrance.lon));
+        appendEntranceExtraTags(textResources, out, entrance);
     }
 
     private static void appendEntranceExtraTags(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             @NonNull PoiDetails.Entrance entrance
     ) {
         for (Map.Entry<String, String> entry : new TreeMap<>(entrance.extraTags()).entrySet()) {
-            appendPair(context, out, entry.getKey(), entry.getValue());
+            appendPair(textResources, out, entry.getKey(), entry.getValue());
         }
     }
 
     private static void appendMapSection(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             int titleRes,
             @NonNull Map<String, String> values
@@ -104,29 +109,29 @@ final class PoiDetailsFormatter {
         if (values.isEmpty()) {
             return;
         }
-        appendSectionHeader(context, out, titleRes);
+        appendSectionHeader(textResources, out, titleRes);
         for (Map.Entry<String, String> entry : new TreeMap<>(values).entrySet()) {
-            appendPair(context, out, entry.getKey(), entry.getValue());
+            appendPair(textResources, out, entry.getKey(), entry.getValue());
         }
     }
 
     private static void appendSectionHeader(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             int titleRes
     ) {
         if (out.length() > 0) {
             out.append('\n');
         }
-        out.append(context.getString(titleRes)).append('\n');
+        out.append(textResources.getString(titleRes)).append('\n');
     }
 
     private static void appendPair(
-            @NonNull Context context,
+            @NonNull PoiTextResources textResources,
             @NonNull StringBuilder out,
             @NonNull String key,
             @NonNull String value
     ) {
-        out.append(context.getString(R.string.format_poi_detail_pair, key, value)).append('\n');
+        out.append(textResources.getString(R.string.format_poi_detail_pair, key, value)).append('\n');
     }
 }

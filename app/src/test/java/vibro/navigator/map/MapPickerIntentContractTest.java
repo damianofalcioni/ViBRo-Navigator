@@ -1,39 +1,27 @@
 package vibro.navigator.map;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import android.app.Application;
-import android.content.Context;
-import android.content.Intent;
-
-import androidx.test.core.app.ApplicationProvider;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import vibro.navigator.poi.Poi;
 
-@RunWith(RobolectricTestRunner.class)
 public class MapPickerIntentContractTest {
     @Test
     public void parseInitialPoi_rejectsInvalidCoordinates() {
-        Context context = ApplicationProvider.getApplicationContext();
-        Intent intent = MapPickerIntentContract.createIntent(
-                context,
-                "Pick",
-                new Poi("Invalid", 91.0d, 16.3738d)
-        );
-
-        assertNull(MapPickerIntentContract.parseInitialPoi(intent));
+        assertNull(MapPickerIntentContract.restorePoi("Invalid", 91.0d, 16.3738d));
     }
 
     @Test
     public void parseResult_rejectsInvalidCoordinates() {
-        Application context = ApplicationProvider.getApplicationContext();
-        Intent data = new Intent();
-        MapPickerIntentContract.putResult(data, new Poi("Invalid", 48.2082d, 181.0d));
+        assertNull(MapPickerIntentContract.restoreResultPoi("Invalid", 48.2082d, 181.0d, "fallback"));
+    }
 
-        assertNull(MapPickerIntentContract.parseResult(context, data));
+    @Test
+    public void parseResult_usesFallbackNameWhenResultNameIsBlank() {
+        Poi poi = MapPickerIntentContract.restoreResultPoi(" ", 48.2082d, 16.3738d, "48.208200, 16.373800");
+
+        assertEquals("48.208200, 16.373800", poi.name);
     }
 }
