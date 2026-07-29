@@ -332,6 +332,33 @@ public final class NavigationSessionResourceAdapter {
             @Nullable CompassOrientationCue orientationCue,
             boolean compassZoomAnimationEnabled
     ) {
+        return buildState(
+                session,
+                textResources,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                compassZoomAnimationEnabled,
+                true
+        );
+    }
+
+    @NonNull
+    public static NavState buildState(
+            @NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            boolean compassZoomAnimationEnabled,
+            boolean stationaryFullRouteZoomEnabled
+    ) {
         return session.components.stateBuilder.build(
                 textResources,
                 session.currentRequest,
@@ -343,7 +370,8 @@ public final class NavigationSessionResourceAdapter {
                 orientationCue,
                 session.components.locationEvaluator.acquiredFixCount(),
                 session.paused,
-                compassZoomAnimationEnabled
+                compassZoomAnimationEnabled,
+                stationaryFullRouteZoomEnabled
         );
     }
 }

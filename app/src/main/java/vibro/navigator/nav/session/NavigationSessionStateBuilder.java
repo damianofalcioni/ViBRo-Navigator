@@ -92,6 +92,37 @@ final class NavigationSessionStateBuilder {
             boolean compassZoomAnimationEnabled
     ) {
         return build(
+                context,
+                currentRequest,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                acquiredFixCount,
+                paused,
+                compassZoomAnimationEnabled,
+                true
+        );
+    }
+
+    @NonNull
+    NavState build(
+            @NonNull Context context,
+            @NonNull NavigationRequest currentRequest,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            int acquiredFixCount,
+            boolean paused,
+            boolean compassZoomAnimationEnabled,
+            boolean stationaryFullRouteZoomEnabled
+    ) {
+        return build(
                 new AndroidNavigationTextResources(context),
                 currentRequest,
                 nextEvaluationDeadlineElapsedMs,
@@ -102,7 +133,8 @@ final class NavigationSessionStateBuilder {
                 orientationCue,
                 acquiredFixCount,
                 paused,
-                compassZoomAnimationEnabled
+                compassZoomAnimationEnabled,
+                stationaryFullRouteZoomEnabled
         );
     }
 
@@ -148,6 +180,37 @@ final class NavigationSessionStateBuilder {
             boolean paused,
             boolean compassZoomAnimationEnabled
     ) {
+        return build(
+                textResources,
+                currentRequest,
+                nextEvaluationDeadlineElapsedMs,
+                nowMs,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                acquiredFixCount,
+                paused,
+                compassZoomAnimationEnabled,
+                true
+        );
+    }
+
+    @NonNull
+    NavState build(
+            @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRequest currentRequest,
+            long nextEvaluationDeadlineElapsedMs,
+            long nowMs,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            int acquiredFixCount,
+            boolean paused,
+            boolean compassZoomAnimationEnabled,
+            boolean stationaryFullRouteZoomEnabled
+    ) {
         NavigationDisplaySnapshot snapshot = buildSnapshot(
                 textResources,
                 nextEvaluationDeadlineElapsedMs,
@@ -157,7 +220,8 @@ final class NavigationSessionStateBuilder {
                 displayHeadingAccuracyDegrees,
                 orientationCue,
                 acquiredFixCount,
-                compassZoomAnimationEnabled
+                compassZoomAnimationEnabled,
+                stationaryFullRouteZoomEnabled
         );
         if (currentRequest.isStraightLine()) {
             NavState baseState = NavStateResourceComposer.withPauseState(
@@ -187,7 +251,8 @@ final class NavigationSessionStateBuilder {
             @Nullable Float displayHeadingAccuracyDegrees,
             @Nullable CompassOrientationCue orientationCue,
             int acquiredFixCount,
-            boolean compassZoomAnimationEnabled
+            boolean compassZoomAnimationEnabled,
+            boolean stationaryFullRouteZoomEnabled
     ) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
@@ -215,6 +280,7 @@ final class NavigationSessionStateBuilder {
                         routeRequestManager.getLastRouteFailure()
                 )
                 .compassZoomAnimationEnabled(compassZoomAnimationEnabled)
+                .stationaryFullRouteZoomEnabled(stationaryFullRouteZoomEnabled)
                 .build();
     }
 }

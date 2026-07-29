@@ -316,6 +316,7 @@ public class AppDataBackupTest {
     private void enableCompassSettings() {
         AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         AppCompassSettings.setInstantZoomEnabled(context, true);
+        AppCompassSettings.setStationaryFullRouteZoomEnabled(context, true);
         AppCompassSettings.setFullscreenRouteEnabled(context, true);
     }
 
@@ -330,6 +331,7 @@ public class AppDataBackupTest {
     private void assertCompassSettingsRestored() {
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
         assertTrue(AppCompassSettings.isInstantZoomEnabled(context));
+        assertTrue(AppCompassSettings.isStationaryFullRouteZoomEnabled(context));
         assertTrue(AppCompassSettings.isFullscreenRouteEnabled(context));
     }
 
@@ -344,6 +346,7 @@ public class AppDataBackupTest {
     private static void assertCompassPreferencePayload(JSONObject appSettings) throws JSONException {
         assertBooleanPreference(appSettings, "compass_surrounding_streets_enabled", true);
         assertBooleanPreference(appSettings, "compass_instant_zoom_enabled", true);
+        assertBooleanPreference(appSettings, "compass_stationary_full_route_zoom_enabled", true);
         assertBooleanPreference(appSettings, "compass_fullscreen_route_enabled", true);
     }
 

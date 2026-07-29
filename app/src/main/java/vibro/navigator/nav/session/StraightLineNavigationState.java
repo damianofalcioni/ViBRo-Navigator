@@ -278,7 +278,8 @@ final class StraightLineNavigationState {
                         snapshot.compassZoomAnimationEnabled,
                         compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
                 ),
-                snapshot.nowMs
+                snapshot.nowMs,
+                snapshot.stationaryFullRouteZoomEnabled
         );
     }
 

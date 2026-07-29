@@ -51,6 +51,11 @@ final class AboutSettingInfoButtons {
                 R.string.about_setting_compass_instant_zoom_info
         );
         bind(
+                R.id.aboutCompassStationaryFullRouteZoomInfoButton,
+                R.string.label_compass_stationary_full_route_zoom_enabled,
+                R.string.about_setting_compass_stationary_full_route_zoom_info
+        );
+        bind(
                 R.id.aboutCompassFullscreenRouteInfoButton,
                 R.string.label_compass_fullscreen_route_enabled,
                 R.string.about_setting_compass_fullscreen_route_info

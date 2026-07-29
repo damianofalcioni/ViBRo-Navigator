@@ -59,6 +59,7 @@ public final class NavCompassStateFactory {
                 input.routeStartApproachTarget,
                 input.blockedAreas,
                 input.nowMs,
+                input.stationaryFullRouteZoomEnabled,
                 false
         );
     }
@@ -145,6 +146,7 @@ public final class NavCompassStateFactory {
                 routeStartApproachTarget,
                 Collections.emptyList(),
                 nowMs,
+                true,
                 false
         );
     }
@@ -171,6 +173,7 @@ public final class NavCompassStateFactory {
             @Nullable LatLon routeStartApproachTarget,
             @NonNull List<CompassBlockedArea> blockedAreas,
             long nowMs,
+            boolean stationaryFullRouteZoomEnabled,
             boolean straightLineMode
     ) {
         if (route.track.isEmpty()) {
@@ -210,6 +213,7 @@ public final class NavCompassStateFactory {
                 currentLocation,
                 speedMps,
                 likelyStationary,
+                stationaryFullRouteZoomEnabled,
                 previousMovingSpeedBucket,
                 previousCompassVisibleRadiusMeters,
                 previousReliableMovingCompassVisibleRadiusMeters,

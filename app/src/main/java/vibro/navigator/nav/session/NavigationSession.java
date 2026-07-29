@@ -295,7 +295,8 @@ public final class NavigationSession {
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 orientationCue,
-                !AppCompassSettings.isInstantZoomEnabled(context)
+                !AppCompassSettings.isInstantZoomEnabled(context),
+                AppCompassSettings.isStationaryFullRouteZoomEnabled(context)
         );
     }
 

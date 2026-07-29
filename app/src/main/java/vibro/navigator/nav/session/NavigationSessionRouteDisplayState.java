@@ -166,6 +166,7 @@ public final class NavigationSessionRouteDisplayState {
                                 compassMemory.radiusTransition
                         )
                 )
+                .stationaryFullRouteZoomEnabled(snapshot.stationaryFullRouteZoomEnabled)
                 .routeStartApproachTarget(directGuidanceTarget)
                 .orientationCue(orientationCue)
                 .blockedAreas(NavigationBlockedCompassAreas.project(snapshot.lastFiltered, snapshot.blockedPoints))

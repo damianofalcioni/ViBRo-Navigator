@@ -65,6 +65,11 @@ public class AboutSettingInfoButtonsRobolectricTest {
         );
         assertInfoButton(
                 activity,
+                R.id.aboutCompassStationaryFullRouteZoomInfoButton,
+                R.string.label_compass_stationary_full_route_zoom_enabled
+        );
+        assertInfoButton(
+                activity,
                 R.id.aboutCompassFullscreenRouteInfoButton,
                 R.string.label_compass_fullscreen_route_enabled
         );

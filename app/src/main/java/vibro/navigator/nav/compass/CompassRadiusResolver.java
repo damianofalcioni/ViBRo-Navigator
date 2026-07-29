@@ -30,6 +30,7 @@ public final class CompassRadiusResolver {
                 currentLocation,
                 speedMps,
                 likelyStationary,
+                true,
                 null,
                 previousVisibleRadiusMeters,
                 previousReliableMovingRadiusMeters,
@@ -45,6 +46,63 @@ public final class CompassRadiusResolver {
             @NonNull NavigationLocation currentLocation,
             float speedMps,
             boolean likelyStationary,
+            boolean stationaryFullRouteZoomEnabled,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingRadiusMeters,
+            long updateDeltaMs,
+            @Nullable CompassRadiusTransition transition,
+            long nowMs
+    ) {
+        return resolve(
+                furthestDistanceMeters,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                stationaryFullRouteZoomEnabled,
+                null,
+                previousVisibleRadiusMeters,
+                previousReliableMovingRadiusMeters,
+                updateDeltaMs,
+                transition,
+                nowMs
+        );
+    }
+
+    @NonNull
+    public static State resolve(
+            double furthestDistanceMeters,
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingRadiusMeters,
+            long updateDeltaMs,
+            @Nullable CompassRadiusTransition transition,
+            long nowMs
+    ) {
+        return resolve(
+                furthestDistanceMeters,
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                true,
+                previousMovingSpeedBucket,
+                previousVisibleRadiusMeters,
+                previousReliableMovingRadiusMeters,
+                updateDeltaMs,
+                transition,
+                nowMs
+        );
+    }
+
+    @NonNull
+    public static State resolve(
+            double furthestDistanceMeters,
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            boolean stationaryFullRouteZoomEnabled,
             @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
             @Nullable Float previousVisibleRadiusMeters,
             @Nullable Float previousReliableMovingRadiusMeters,
@@ -69,11 +127,13 @@ public final class CompassRadiusResolver {
                 speedMps,
                 movingScale.horizonSeconds,
                 likelyStationary,
+                stationaryFullRouteZoomEnabled,
                 reliableMovingSpeed,
                 previousReliableMovingRadiusMeters,
                 reusableMovingRadius
         );
-        boolean fullRouteOverview = likelyStationary
+        boolean stationaryFullRouteOverview = likelyStationary && stationaryFullRouteZoomEnabled;
+        boolean fullRouteOverview = stationaryFullRouteOverview
                 || (!reliableMovingSpeed && !reusableMovingRadius);
         float visibleRadiusMeters = resolveVisibleRadiusMeters(
                 fullRouteVisibleRadiusMeters,
@@ -99,7 +159,7 @@ public final class CompassRadiusResolver {
                 ),
                 movingScale.horizonSeconds,
                 movingScale.speedBucket,
-                !likelyStationary && (reliableMovingSpeed || reusableMovingRadius)
+                !stationaryFullRouteOverview && (reliableMovingSpeed || reusableMovingRadius)
         );
     }
 
@@ -164,11 +224,15 @@ public final class CompassRadiusResolver {
             float speedMps,
             float movingScaleHorizonSeconds,
             boolean likelyStationary,
+            boolean stationaryFullRouteZoomEnabled,
             boolean reliableMovingSpeed,
             @Nullable Float previousReliableMovingRadiusMeters,
             boolean reusableMovingRadius
     ) {
         if (likelyStationary) {
+            if (!stationaryFullRouteZoomEnabled && reusableMovingRadius) {
+                return Math.min(fullRouteVisibleRadiusMeters, previousReliableMovingRadiusMeters);
+            }
             return fullRouteVisibleRadiusMeters;
         }
         if (reliableMovingSpeed) {

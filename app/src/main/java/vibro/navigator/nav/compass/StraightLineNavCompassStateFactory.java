@@ -77,12 +77,50 @@ public final class StraightLineNavCompassStateFactory {
                 intermediateMarkers,
                 headingDegrees,
                 headingAccuracyDegrees,
+                previousVisibleRadiusMeters,
+                previousReliableMovingVisibleRadiusMeters,
+                previousMovingSpeedBucket,
+                radiusUpdateDeltaMs,
+                nowMs,
+                true
+        );
+    }
+
+    @Nullable
+    public static NavCompassState buildTargetCompassState(
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            @NonNull LatLon target,
+            @NonNull List<LatLon> remainingTargetsAfterNext,
+            @NonNull List<LatLon> intermediateMarkers,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingVisibleRadiusMeters,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
+            long radiusUpdateDeltaMs,
+            long nowMs,
+            boolean stationaryFullRouteZoomEnabled
+    ) {
+        return buildTargetCompassState(
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                target,
+                remainingTargetsAfterNext,
+                intermediateMarkers,
+                headingDegrees,
+                headingAccuracyDegrees,
                 Collections.emptyList(),
                 previousVisibleRadiusMeters,
                 previousReliableMovingVisibleRadiusMeters,
                 previousMovingSpeedBucket,
                 radiusUpdateDeltaMs,
-                nowMs
+                nowMs,
+                stationaryFullRouteZoomEnabled
         );
     }
 
@@ -103,6 +141,45 @@ public final class StraightLineNavCompassStateFactory {
             @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
             long radiusUpdateDeltaMs,
             long nowMs
+    ) {
+        return buildTargetCompassState(
+                currentLocation,
+                speedMps,
+                likelyStationary,
+                compassAccuracyMeters,
+                target,
+                remainingTargetsAfterNext,
+                intermediateMarkers,
+                headingDegrees,
+                headingAccuracyDegrees,
+                acceptedFixes,
+                previousVisibleRadiusMeters,
+                previousReliableMovingVisibleRadiusMeters,
+                previousMovingSpeedBucket,
+                radiusUpdateDeltaMs,
+                nowMs,
+                true
+        );
+    }
+
+    @Nullable
+    public static NavCompassState buildTargetCompassState(
+            @NonNull NavigationLocation currentLocation,
+            float speedMps,
+            boolean likelyStationary,
+            float compassAccuracyMeters,
+            @NonNull LatLon target,
+            @NonNull List<LatLon> remainingTargetsAfterNext,
+            @NonNull List<LatLon> intermediateMarkers,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees,
+            @NonNull List<NavigationLocation> acceptedFixes,
+            @Nullable Float previousVisibleRadiusMeters,
+            @Nullable Float previousReliableMovingVisibleRadiusMeters,
+            @Nullable NavigationSpeedBucket previousMovingSpeedBucket,
+            long radiusUpdateDeltaMs,
+            long nowMs,
+            boolean stationaryFullRouteZoomEnabled
     ) {
         List<LatLon> track = buildTrack(currentLocation, target, remainingTargetsAfterNext);
         GeoJsonRoute route = new GeoJsonRoute(track, Collections.emptyList(), 0.0, 0.0);
@@ -128,6 +205,7 @@ public final class StraightLineNavCompassStateFactory {
                 null,
                 Collections.emptyList(),
                 nowMs,
+                stationaryFullRouteZoomEnabled,
                 true
         );
     }

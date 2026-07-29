@@ -48,6 +48,7 @@ public final class NavCompassStateInput {
     @NonNull
     public final List<CompassBlockedArea> blockedAreas;
     public final long nowMs;
+    public final boolean stationaryFullRouteZoomEnabled;
 
     private NavCompassStateInput(@NonNull Builder builder) {
         route = builder.route;
@@ -70,6 +71,7 @@ public final class NavCompassStateInput {
         routeStartApproachTarget = builder.routeStartApproachTarget;
         blockedAreas = builder.blockedAreas;
         nowMs = builder.nowMs;
+        stationaryFullRouteZoomEnabled = builder.stationaryFullRouteZoomEnabled;
     }
 
     @NonNull
@@ -115,6 +117,7 @@ public final class NavCompassStateInput {
         @NonNull
         private List<CompassBlockedArea> blockedAreas = Collections.emptyList();
         private long nowMs;
+        private boolean stationaryFullRouteZoomEnabled = true;
 
         private Builder(
                 @NonNull GeoJsonRoute route,
@@ -198,6 +201,12 @@ public final class NavCompassStateInput {
         @NonNull
         public Builder blockedAreas(@NonNull List<CompassBlockedArea> blockedAreas) {
             this.blockedAreas = blockedAreas;
+            return this;
+        }
+
+        @NonNull
+        public Builder stationaryFullRouteZoomEnabled(boolean enabled) {
+            stationaryFullRouteZoomEnabled = enabled;
             return this;
         }
 

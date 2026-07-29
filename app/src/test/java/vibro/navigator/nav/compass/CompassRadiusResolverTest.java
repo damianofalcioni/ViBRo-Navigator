@@ -36,6 +36,51 @@ public class CompassRadiusResolverTest {
     }
 
     @Test
+    public void resolve_whenStationaryFullRouteZoomDisabledReusesPreviousMovingRadius() {
+        NavigationLocation stationaryLocation = movingLocation(0f);
+
+        CompassRadiusResolver.State state = CompassRadiusResolver.resolve(
+                2_000.0,
+                stationaryLocation,
+                0f,
+                true,
+                false,
+                NavigationSpeedBucket.LOW,
+                1_200f,
+                240f,
+                1_000L,
+                null,
+                2_000L
+        );
+
+        assertTrue(state.usingMovingScale);
+        assertEquals(240f, state.visibleRadiusMeters, 0.01f);
+        assertEquals(240f, state.movingScaleVisibleRadiusMeters, 0.01f);
+        assertTrue(state.visibleRadiusMeters < state.fullRouteVisibleRadiusMeters);
+    }
+
+    @Test
+    public void resolve_whenStationaryFullRouteZoomDisabledWithoutMovingRadiusFallsBackToFullRoute() {
+        NavigationLocation stationaryLocation = movingLocation(0f);
+
+        CompassRadiusResolver.State state = CompassRadiusResolver.resolve(
+                2_000.0,
+                stationaryLocation,
+                0f,
+                true,
+                false,
+                null,
+                null,
+                0L,
+                null,
+                0L
+        );
+
+        assertFalse(state.usingMovingScale);
+        assertEquals(state.fullRouteVisibleRadiusMeters, state.visibleRadiusMeters, 0.01f);
+    }
+
+    @Test
     public void resolve_usesAdaptiveMovingScaleHorizonForInitialBuckets() {
         assertMovingHorizon(39.9f, null, NavigationSpeedBucket.LOW, 30f);
         assertMovingHorizon(40f, null, NavigationSpeedBucket.MEDIUM, 45f);

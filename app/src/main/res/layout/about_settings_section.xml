@@ -401,6 +401,34 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/aboutCompassStationaryFullRouteZoomRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutCompassStationaryFullRouteZoomSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_compass_stationary_full_route_zoom_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutCompassStationaryFullRouteZoomInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/aboutCompassFullscreenRouteRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -581,122 +609,5 @@
         android:layout_marginTop="16dp"
         android:background="?attr/vibroOutlineColor" />
 
-    <TextView
-        android:id="@+id/aboutSettingsAdvancedTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="@string/about_settings_category_advanced"
-        android:textColor="?attr/vibroTextPrimaryColor"
-        android:textSize="18sp" />
-
-    <LinearLayout
-        android:id="@+id/aboutFusedLocationRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:minHeight="48dp"
-        android:orientation="horizontal">
-
-        <Switch
-            android:id="@+id/aboutFusedLocationSwitch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:minHeight="48dp"
-            android:text="@string/label_fused_location_enabled"
-            android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
-
-        <ImageButton
-            android:id="@+id/aboutFusedLocationInfoButton"
-            style="@style/Widget.ViBRoNavigator.InfoButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:contentDescription="@string/action_setting_info" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/aboutLogEnabledRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:gravity="center_vertical"
-        android:minHeight="48dp"
-        android:orientation="horizontal">
-
-        <Switch
-            android:id="@+id/aboutLogEnabledSwitch"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:minHeight="48dp"
-            android:text="@string/label_log_enabled"
-            android:textColor="?attr/vibroTextPrimaryColor"
-            android:textSize="16sp" />
-
-        <ImageButton
-            android:id="@+id/aboutLogEnabledInfoButton"
-            style="@style/Widget.ViBRoNavigator.InfoButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="4dp"
-            android:contentDescription="@string/action_setting_info" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/aboutExportDatabaseRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/aboutExportDatabaseButton"
-            style="@style/Widget.ViBRoNavigator.Button.Primary"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_export"
-            android:drawablePadding="8dp"
-            android:text="@string/action_export_database" />
-
-        <ImageButton
-            android:id="@+id/aboutExportDatabaseInfoButton"
-            style="@style/Widget.ViBRoNavigator.InfoButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/action_setting_info" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/aboutImportDatabaseRow"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/aboutImportDatabaseButton"
-            style="@style/Widget.ViBRoNavigator.Button.Primary"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:drawableStart="@drawable/ic_import"
-            android:drawablePadding="8dp"
-            android:text="@string/action_import_database" />
-
-        <ImageButton
-            android:id="@+id/aboutImportDatabaseInfoButton"
-            style="@style/Widget.ViBRoNavigator.InfoButton"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="8dp"
-            android:contentDescription="@string/action_setting_info" />
-    </LinearLayout>
+    <include layout="@layout/about_settings_advanced_section" />
 </LinearLayout>

@@ -74,6 +74,8 @@ public class AboutActivity extends Activity {
         Switch lightThemeSwitch = findViewById(R.id.aboutLightThemeSwitch);
         Switch surroundingStreetsSwitch = findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
         Switch compassInstantZoomSwitch = findViewById(R.id.aboutCompassInstantZoomSwitch);
+        Switch compassStationaryFullRouteZoomSwitch =
+                findViewById(R.id.aboutCompassStationaryFullRouteZoomSwitch);
         Switch compassFullscreenRouteSwitch = findViewById(R.id.aboutCompassFullscreenRouteSwitch);
         Switch navigationNotificationsSwitch = findViewById(R.id.aboutNavigationNotificationsSwitch);
         Switch singleInstructionModeSwitch = findViewById(R.id.aboutSingleInstructionModeSwitch);
@@ -90,6 +92,7 @@ public class AboutActivity extends Activity {
                 lightThemeSwitch,
                 surroundingStreetsSwitch,
                 compassInstantZoomSwitch,
+                compassStationaryFullRouteZoomSwitch,
                 compassFullscreenRouteSwitch,
                 navigationNotificationsSwitch,
                 singleInstructionModeSwitch,

@@ -9,6 +9,8 @@ public final class AppCompassSettings {
             "compass_surrounding_streets_enabled";
     private static final String KEY_COMPASS_INSTANT_ZOOM_ENABLED =
             "compass_instant_zoom_enabled";
+    private static final String KEY_COMPASS_STATIONARY_FULL_ROUTE_ZOOM_ENABLED =
+            "compass_stationary_full_route_zoom_enabled";
     private static final String KEY_COMPASS_FULLSCREEN_ROUTE_ENABLED =
             "compass_fullscreen_route_enabled";
 
@@ -36,6 +38,18 @@ public final class AppCompassSettings {
         context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_COMPASS_INSTANT_ZOOM_ENABLED, enabled)
+                .apply();
+    }
+
+    public static boolean isStationaryFullRouteZoomEnabled(@NonNull Context context) {
+        return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
+                .getBoolean(KEY_COMPASS_STATIONARY_FULL_ROUTE_ZOOM_ENABLED, false);
+    }
+
+    public static void setStationaryFullRouteZoomEnabled(@NonNull Context context, boolean enabled) {
+        context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_COMPASS_STATIONARY_FULL_ROUTE_ZOOM_ENABLED, enabled)
                 .apply();
     }
 

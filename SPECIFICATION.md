@@ -485,7 +485,8 @@ The navigation UI must show the following in large text:
 - The compass outer ring must carry the rotating cardinal labels `N`, `O`, `S`, and `W`
 - The compass outer status/calibration layer should stay slim so route and surrounding-street drawing remain dominant, with cardinal labels sized to fit inside that layer
 - The inner circles must remain stable visual distance references for the route
-- When the user is stationary, the compass should zoom out to fit the full active route overview inside the compass
+- When the user is stationary and Zoom out when stationary is enabled in settings, the compass should zoom out to fit the full active route overview inside the compass
+- When Zoom out when stationary is disabled and a previous reliable moving-scale compass radius exists, becoming stationary should keep that moving-scale route view instead of automatically zooming out to the full route
 - When the user is moving and the current native speed reading is reliable, the compass should zoom to a forward-looking moving-scale radius based on the same low, medium, and high speed buckets with hysteresis used by surrounding-street filtering
 - Low-speed moving-scale compass zoom must show about 30 seconds of travel, with the inner distance rings representing about 10 seconds each
 - Medium-speed moving-scale compass zoom must show about 45 seconds of travel, with the inner distance rings representing about 15 seconds each
@@ -500,7 +501,7 @@ The navigation UI must show the following in large text:
 - When the user starts or resumes movement without a reliable moving-speed reading and no previous reliable moving zoom radius exists yet, the compass should fall back to the full-route overview until a reliable moving-speed reading becomes available
 - When the user stops and the compass expands back to the full-route overview, the last reliable moving zoom radius should be preserved so it can be restored when movement resumes before speed confidence has recovered
 - Automatic compass zoom/radius policy is a navigation-state responsibility and must remain separate from compass drawing and activity/service lifecycle wiring
-- That tap-driven zoom toggle must be only a UI override layered on top of the existing automatic behavior, so stationary navigation still defaults to the full-route overview and moving navigation still defaults to the moving-scale view whenever no temporary override is active
+- That tap-driven zoom toggle must be only a UI override layered on top of the existing automatic behavior, so stationary navigation still defaults to the full-route overview when Zoom out when stationary is enabled, and moving navigation still defaults to the moving-scale view whenever no temporary override is active
 - If the user taps the compass while moving and the currently displayed moving-scale view is active, the compass must switch to the full-route overview temporarily and then automatically restore the moving-scale view after about 5 seconds
 - The compass must retain the complete active BRouter track once per route for close moving-scale rendering, while the full-route overview and hint-marker geometry remain bounded and sampled. Moving-scale rendering must use the original points from only the contiguous route ranges intersecting the compass viewport plus drawing padding, keep disjoint re-entering ranges separate, and use a route-built spatial block index so heading and location updates do not project or scan the full long route
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection
@@ -723,6 +724,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show a Show surrounding streets in compass switch that enables or disables the local-BRouter-segment street overlay in the navigation compass
 - When legacy external-storage permission is required to read local BRouter street segment files, enabling the Show surrounding streets in compass switch must request that permission and leave the setting disabled if permission is denied
 - The about page Settings section must show an Instant compass zoom switch that disables compass zoom animations so transitions between route overview and moving-scale views are immediate
+- The about page Settings section must show a disabled-by-default Zoom out when stationary switch under Compass that controls whether stationary navigation automatically changes from a remembered moving-scale route view to the full-route overview
 - The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and a trash remove button, plus a centered bordered `+` button that adds another field
@@ -743,7 +745,7 @@ The navigation UI must show the following in large text:
 - In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available
 - The about page Settings section must show a Dynamic GPS fix interval switch that is enabled by default; disabling it must force active navigation location fix requests to 1-second intervals instead of the dynamic buckets
 - The app must write its log file only when the Log enabled setting is switched on
-- The Auto-save GPX on stop and Instant compass zoom settings must persist across app launches and be included in database backup/export with other app settings
+- The Auto-save GPX on stop, Instant compass zoom, and Zoom out when stationary settings must persist across app launches and be included in database backup/export with other app settings
 - The Log enabled setting must persist across app launches
 - When Log enabled is already on at app startup, the app must create a fresh log file for that app session before startup logging begins
 - When Log enabled is switched on during an app session, the app must create a fresh log file for the remaining logs in that session
