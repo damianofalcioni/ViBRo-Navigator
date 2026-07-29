@@ -73,9 +73,6 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 * **Pause and blocked road support**
   Navigation can be paused and rerouted to avoid a blocked street.
 
-* **Dynamic GPS acquisition interval**
-  Adjusts GPS fix acquisition timing based on the distance to the next direction point to reduce battery usage.
-
 * **Background navigation**
   Works with screen off via a foreground service.
   
