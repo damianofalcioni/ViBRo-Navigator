@@ -6,6 +6,7 @@ import android.content.Context;
 import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -102,6 +103,39 @@ public class PoiSuggestionAdapterTest {
         ImageButton infoButton = row.findViewById(R.id.poiSuggestionInfoButton);
 
         assertEquals(View.VISIBLE, infoButton.getVisibility());
+    }
+
+    @Test
+    public void getView_showsSearchIconAndInfoForExternalMapSearch() {
+        Context context = themedContext();
+        PoiSuggestionAdapter adapter = new PoiSuggestionAdapter(context, noopListener());
+        adapter.setItems(Collections.singletonList(PoiSuggestion.externalMapSearch(CAFE)));
+
+        View row = adapter.getView(0, null, new LinearLayout(context));
+        ImageView leadingIcon = row.findViewById(R.id.poiSuggestionLeadingIcon);
+        ImageButton infoButton = row.findViewById(R.id.poiSuggestionInfoButton);
+        ImageButton editButton = row.findViewById(R.id.editSuggestionButton);
+        ImageButton deleteButton = row.findViewById(R.id.deleteSuggestionButton);
+
+        assertEquals(View.VISIBLE, leadingIcon.getVisibility());
+        assertEquals(View.VISIBLE, infoButton.getVisibility());
+        assertEquals(View.GONE, editButton.getVisibility());
+        assertEquals(View.GONE, deleteButton.getVisibility());
+    }
+
+    @Test
+    public void getView_hidesSearchIconForPoiSuggestion() {
+        Context context = themedContext();
+        PoiSuggestionAdapter adapter = new PoiSuggestionAdapter(context, noopListener());
+        adapter.setItems(Collections.singletonList(new PoiSuggestion(
+                new Poi(CAFE, 48.2d, 16.3d),
+                false
+        )));
+
+        View row = adapter.getView(0, null, new LinearLayout(context));
+        ImageView leadingIcon = row.findViewById(R.id.poiSuggestionLeadingIcon);
+
+        assertEquals(View.GONE, leadingIcon.getVisibility());
     }
 
     private static PoiSuggestionAdapter.Listener noopListener() {

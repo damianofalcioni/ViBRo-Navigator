@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -67,12 +68,14 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
         }
 
         PoiSuggestion s = items.get(position);
+        ImageView leadingIcon = v.findViewById(R.id.poiSuggestionLeadingIcon);
         ImageButton info = v.findViewById(R.id.poiSuggestionInfoButton);
         TextView text = v.findViewById(R.id.suggestionText);
         ImageButton edit = v.findViewById(R.id.editSuggestionButton);
         ImageButton del = v.findViewById(R.id.deleteSuggestionButton);
 
         String label = s.displayLabel(context);
+        bindLeadingIcon(leadingIcon, s);
         text.setText(label);
         v.setOnClickListener(row -> listener.onSuggestionClicked(s));
         bindInfoButton(info, s, label);
@@ -92,12 +95,19 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
         return v;
     }
 
+    private static void bindLeadingIcon(
+            @NonNull ImageView leadingIcon,
+            @NonNull PoiSuggestion suggestion
+    ) {
+        leadingIcon.setVisibility(suggestion.isExternalMapSearch() ? View.VISIBLE : View.GONE);
+    }
+
     private void bindInfoButton(
             @NonNull ImageButton info,
             @NonNull PoiSuggestion suggestion,
             @NonNull String label
     ) {
-        if (!suggestion.hasDetails()) {
+        if (!suggestion.hasInfo()) {
             info.setVisibility(View.GONE);
             info.setOnClickListener(null);
             info.setContentDescription(null);
@@ -106,7 +116,9 @@ public final class PoiSuggestionAdapter extends BaseAdapter {
 
         info.setVisibility(View.VISIBLE);
         info.setContentDescription(context.getString(
-                R.string.format_poi_details_content_description,
+                suggestion.isExternalMapSearch()
+                        ? R.string.format_poi_search_info_content_description
+                        : R.string.format_poi_details_content_description,
                 label
         ));
         info.setOnClickListener(btn -> listener.onInfoClicked(suggestion));

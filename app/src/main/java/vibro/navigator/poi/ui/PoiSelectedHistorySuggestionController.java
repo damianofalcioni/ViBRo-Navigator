@@ -57,6 +57,18 @@ final class PoiSelectedHistorySuggestionController {
         return true;
     }
 
+    void showHistory() {
+        List<PoiSuggestion> items = new ArrayList<>();
+        for (Poi poi : history.list()) {
+            items.add(new PoiSuggestion(poi, true));
+        }
+        adapter.setItems(items);
+        AppLogger.d(logTag, "Showing history items=" + items.size());
+        if (!items.isEmpty() && editText.hasFocus()) {
+            popupController.showIfPossible("history");
+        }
+    }
+
     void showOrElse(
             @Nullable Poi selectedPoi,
             @NonNull String rawText,
@@ -74,9 +86,10 @@ final class PoiSelectedHistorySuggestionController {
             @NonNull Runnable selectedDeleted,
             @NonNull Runnable historyChanged
     ) {
-        AppLogger.i(logTag, "Deleting history item=" + suggestion.poi.displayLabel());
-        boolean clearsSelectedPoi = isCurrentSelectedPoi(selectedPoi, suggestion.poi, rawText);
-        history.remove(suggestion.poi);
+        Poi poi = suggestion.poi();
+        AppLogger.i(logTag, "Deleting history item=" + poi.displayLabel());
+        boolean clearsSelectedPoi = isCurrentSelectedPoi(selectedPoi, poi, rawText);
+        history.remove(poi);
         if (clearsSelectedPoi) {
             selectedDeleted.run();
         } else {

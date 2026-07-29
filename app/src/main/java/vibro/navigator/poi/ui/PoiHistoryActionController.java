@@ -47,7 +47,7 @@ final class PoiHistoryActionController {
 
     void promptRenameHistoryItem(@NonNull PoiSuggestion suggestion) {
         Context context = anchorEditText.getContext();
-        Poi poi = suggestion.poi;
+        Poi poi = suggestion.poi();
         EditText input = new EditText(context);
         input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_WORDS);
         input.setSingleLine(true);

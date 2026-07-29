@@ -64,7 +64,8 @@ public class PoiSuggestionSearchControllerTest {
         controller.scheduleSearch(QUERY_UPDATED);
         dispatcher.runTask(0);
 
-        assertEquals(0, presenter.suggestions.size());
+        assertEquals(1, presenter.suggestions.size());
+        assertExternalMapSearch(presenter.suggestions.get(0), QUERY_UPDATED);
         assertTrue(dispatcher.future(0).cancelled);
     }
 
@@ -88,7 +89,7 @@ public class PoiSuggestionSearchControllerTest {
         controller.scheduleSearch("48.2082,16.3738");
 
         assertEquals(1, presenter.suggestions.size());
-        assertEquals("48.2082,16.3738", presenter.suggestions.get(0).poi.displayLabel());
+        assertEquals("48.2082,16.3738", presenter.suggestions.get(0).poi().displayLabel());
         assertFalse(dispatcher.future(0).cancelled);
     }
 
@@ -109,17 +110,19 @@ public class PoiSuggestionSearchControllerTest {
         );
 
         controller.scheduleSearch(QUERY_COFFEE);
-        assertEquals(1, presenter.suggestions.size());
-        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
+        assertEquals(2, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi().displayLabel());
         assertTrue(presenter.suggestions.get(0).deletable);
+        assertExternalMapSearch(presenter.suggestions.get(1), QUERY_COFFEE);
         assertEquals(0, dispatcher.taskCount());
 
         scheduler.runDelayed();
         dispatcher.runTask(0);
 
-        assertEquals(2, presenter.suggestions.size());
-        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
-        assertEquals(ONLINE_COFFEE, presenter.suggestions.get(1).poi.displayLabel());
+        assertEquals(3, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi().displayLabel());
+        assertEquals(ONLINE_COFFEE, presenter.suggestions.get(1).poi().displayLabel());
+        assertExternalMapSearch(presenter.suggestions.get(2), QUERY_COFFEE);
         assertTrue(presenter.suggestions.get(0).deletable);
         assertFalse(presenter.suggestions.get(1).deletable);
     }
@@ -144,8 +147,9 @@ public class PoiSuggestionSearchControllerTest {
         scheduler.runDelayed();
         dispatcher.runTask(0);
 
-        assertEquals(1, presenter.suggestions.size());
-        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
+        assertEquals(2, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi().displayLabel());
+        assertExternalMapSearch(presenter.suggestions.get(1), QUERY_COFFEE);
     }
 
     @Test
@@ -170,8 +174,36 @@ public class PoiSuggestionSearchControllerTest {
         scheduler.runDelayed();
         dispatcher.runTask(0);
 
+        assertEquals(2, presenter.suggestions.size());
+        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi().displayLabel());
+        assertExternalMapSearch(presenter.suggestions.get(1), QUERY_COFFEE);
+    }
+
+    @Test
+    public void scheduleSearch_showsExternalMapSearchWhileOnlineSearchRunsWithoutHistory() {
+        FakeScheduler scheduler = new FakeScheduler();
+        CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
+        CapturingPresenter presenter = new CapturingPresenter();
+        PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
+                scheduler,
+                new PoiHistoryStore(context),
+                (query, limit) -> Collections.singletonList(new Poi(ONLINE_COFFEE, 48.2000d, 16.3600d)),
+                TEST_LOG_TAG,
+                presenter,
+                dispatcher
+        );
+
+        controller.scheduleSearch(QUERY_COFFEE);
+
         assertEquals(1, presenter.suggestions.size());
-        assertEquals(HISTORY_COFFEE, presenter.suggestions.get(0).poi.displayLabel());
+        assertExternalMapSearch(presenter.suggestions.get(0), QUERY_COFFEE);
+        assertEquals(0, dispatcher.taskCount());
+    }
+
+    private static void assertExternalMapSearch(@NonNull PoiSuggestion suggestion, @NonNull String query) {
+        assertTrue(suggestion.isExternalMapSearch());
+        assertEquals(query, suggestion.externalMapSearchQuery());
+        assertFalse(suggestion.deletable);
     }
 
     private static final class FakeScheduler implements TaskScheduler {

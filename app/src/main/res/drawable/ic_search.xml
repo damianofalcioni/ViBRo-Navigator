@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <path
+        android:fillColor="?attr/vibroIconColor"
+        android:pathData="M10.5,4a6.5,6.5 0,1 0,0 13a6.5,6.5 0,1 0,0 -13zM10.5,6a4.5,4.5 0,1 1,0 9a4.5,4.5 0,1 1,0 -9z" />
+
+    <path
+        android:fillColor="?attr/vibroIconColor"
+        android:pathData="M15.2,14.1l5.1,5.1l-1.4,1.4l-5.1,-5.1z" />
+</vector>

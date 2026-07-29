@@ -1,6 +1,7 @@
 package vibro.navigator.poi.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.content.Context;
@@ -13,6 +14,7 @@ import org.robolectric.RobolectricTestRunner;
 
 import java.util.Collections;
 
+import vibro.navigator.R;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiDetails;
 
@@ -46,6 +48,22 @@ public class PoiSuggestionTest {
         PoiSuggestion suggestion = new PoiSuggestion(entrancePoi(), false);
 
         assertTrue(suggestion.hasDetails());
+    }
+
+    @Test
+    public void externalMapSearchSuggestion_exposesSearchActionState() {
+        Context context = ApplicationProvider.getApplicationContext();
+        PoiSuggestion suggestion = PoiSuggestion.externalMapSearch("  Cafe Central  ");
+
+        assertTrue(suggestion.isExternalMapSearch());
+        assertTrue(suggestion.hasInfo());
+        assertFalse(suggestion.hasDetails());
+        assertFalse(suggestion.deletable);
+        assertEquals("Cafe Central", suggestion.externalMapSearchQuery());
+        assertEquals(
+                context.getString(R.string.action_search_google_maps),
+                suggestion.displayLabel(context)
+        );
     }
 
     private static Poi entrancePoi() {

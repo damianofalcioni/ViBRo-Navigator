@@ -97,7 +97,7 @@ final class PoiSuggestionSearchController {
         }
 
         cancelInFlightSearch();
-        showTypedHistoryMatches(query, historySuggestions);
+        showTypedQuerySuggestions(query, historySuggestions);
         pendingSearch = () -> runSearch(query);
         AppLogger.d(logTag, "Scheduling search query=" + query);
         mainThreadScheduler.postDelayed(pendingSearch, SEARCH_DELAY_MS);
@@ -154,22 +154,23 @@ final class PoiSuggestionSearchController {
             AppLogger.d(logTag, "Query too short for search query=" + query);
             presenter.clearSuggestionsAndDismiss();
         } else {
-            showTypedHistoryMatches(query, historySuggestions);
+            showTypedQuerySuggestions(query, historySuggestions);
         }
         return true;
     }
 
-    private void showTypedHistoryMatches(
+    private void showTypedQuerySuggestions(
             @NonNull String query,
             @NonNull List<PoiSuggestion> historySuggestions
     ) {
-        if (historySuggestions.isEmpty()) {
+        List<PoiSuggestion> suggestions = suggestionsWithExternalMapSearch(query, historySuggestions);
+        if (suggestions.isEmpty()) {
             presenter.clearSuggestionsAndDismiss();
             return;
         }
-        AppLogger.d(logTag, "Showing matching history query=" + query
-                + " items=" + historySuggestions.size());
-        presenter.showSuggestions(historySuggestions, "history-search-results");
+        AppLogger.d(logTag, "Showing typed query suggestions query=" + query
+                + " items=" + suggestions.size());
+        presenter.showSuggestions(suggestions, "history-search-results");
     }
 
     private void runSearch(@NonNull String query) {
@@ -215,7 +216,7 @@ final class PoiSuggestionSearchController {
     private void handleSearchFailure(@NonNull String query, int generation) {
         if (generation == searchGeneration) {
             inFlight = null;
-            showTypedHistoryMatches(query, matchingHistorySuggestions(query));
+            showTypedQuerySuggestions(query, matchingHistorySuggestions(query));
         }
     }
 
@@ -243,19 +244,41 @@ final class PoiSuggestionSearchController {
         List<PoiSuggestion> combined = matchingHistorySuggestions(query);
         Set<String> knownKeys = knownSuggestionKeys(combined);
         for (PoiSuggestion suggestion : onlineSuggestions) {
-            if (knownKeys.add(suggestion.poi.stableKey())) {
+            if (knownKeys.add(suggestion.poi().stableKey())) {
                 combined.add(suggestion);
             }
         }
-        return combined;
+        return suggestionsWithExternalMapSearch(query, combined);
     }
 
     @NonNull
     private static Set<String> knownSuggestionKeys(@NonNull List<PoiSuggestion> suggestions) {
         Set<String> keys = new HashSet<>();
         for (PoiSuggestion suggestion : suggestions) {
-            keys.add(suggestion.poi.stableKey());
+            if (!suggestion.isExternalMapSearch()) {
+                keys.add(suggestion.poi().stableKey());
+            }
         }
         return keys;
+    }
+
+    @NonNull
+    private static List<PoiSuggestion> suggestionsWithExternalMapSearch(
+            @NonNull String query,
+            @NonNull List<PoiSuggestion> suggestions
+    ) {
+        if (!shouldOfferExternalMapSearch(query, suggestions)) {
+            return suggestions;
+        }
+        List<PoiSuggestion> withExternalSearch = new ArrayList<>(suggestions);
+        withExternalSearch.add(PoiSuggestion.externalMapSearch(query));
+        return withExternalSearch;
+    }
+
+    private static boolean shouldOfferExternalMapSearch(
+            @NonNull String query,
+            @NonNull List<PoiSuggestion> suggestions
+    ) {
+        return query.trim().length() >= MIN_ONLINE_QUERY_LENGTH || !suggestions.isEmpty();
     }
 }

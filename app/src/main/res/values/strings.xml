@@ -54,6 +54,7 @@
     <string name="action_profile_info">Profile info</string>
     <string name="action_setting_info">Setting info</string>
     <string name="action_poi_details">POI details</string>
+    <string name="action_search_google_maps">Search in Google Maps</string>
     <string name="action_profile_settings">Profile settings</string>
     <string name="action_reset_defaults">Reset defaults</string>
 
@@ -76,6 +77,7 @@
     <string name="format_profile_info_content_description">Show information for %1$s</string>
     <string name="format_route_mode_info_content_description">Show mode information for %1$s</string>
     <string name="format_poi_details_content_description">Show POI details for %1$s</string>
+    <string name="format_poi_search_info_content_description">Show search information for %1$s</string>
     <string name="format_poi_entrance_label">%1$s - %2$s</string>
     <string name="format_poi_entrance_heading">Entrance %1$d</string>
     <string name="format_poi_entrance_type">Entrance: %1$s</string>
@@ -131,6 +133,7 @@
     <string name="msg_profile_parameter_invalid_text">Values cannot contain &amp; or =.</string>
     <string name="msg_poi_details_unavailable">No extra details available.</string>
     <string name="msg_poi_details_map_check_hint">Use the map to double-check that this is the intended location.</string>
+    <string name="msg_poi_google_maps_search_info">Opens Google Maps with the text from this POI search field. After choosing a place in Google Maps, share that place and select ViBRo Navigator to bring the result back here.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
@@ -154,6 +157,7 @@
     <string name="msg_route_export_unavailable">No active route to export.</string>
     <string name="msg_route_export_failed">Could not export route.</string>
     <string name="msg_route_export_no_app">No app can open GPX routes.</string>
+    <string name="msg_google_maps_search_open_failed">Could not open Google Maps search.</string>
     <string name="msg_open_url_failed">Could not open link on this device.</string>
     <string name="label_exported_route_gpx">ViBRo route GPX</string>
     <string name="gpx_passed_route_track_name">Passed route</string>

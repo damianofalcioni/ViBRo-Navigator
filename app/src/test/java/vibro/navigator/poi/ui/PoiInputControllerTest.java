@@ -16,6 +16,7 @@ import android.widget.LinearLayout;
 
 import androidx.test.core.app.ApplicationProvider;
 
+import vibro.navigator.R;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
@@ -405,8 +406,12 @@ public class PoiInputControllerTest {
         );
 
         controller.getEditText().setText("coffee");
-        assertEquals(1, controller.getSuggestionCountForTesting());
+        assertEquals(2, controller.getSuggestionCountForTesting());
         assertEquals(COFFEE_SPOT, controller.getSuggestionLabelForTesting(0));
+        assertEquals(
+                context.getString(R.string.action_search_google_maps),
+                controller.getSuggestionLabelForTesting(1)
+        );
 
         shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
 
@@ -436,8 +441,12 @@ public class PoiInputControllerTest {
         shadowOf(Looper.getMainLooper()).idleFor(400, TimeUnit.MILLISECONDS);
 
         assertEquals(0, searchCalls.get());
-        assertEquals(1, controller.getSuggestionCountForTesting());
+        assertEquals(2, controller.getSuggestionCountForTesting());
         assertEquals(COFFEE_SPOT, controller.getSuggestionLabelForTesting(0));
+        assertEquals(
+                context.getString(R.string.action_search_google_maps),
+                controller.getSuggestionLabelForTesting(1)
+        );
     }
 
     @Test

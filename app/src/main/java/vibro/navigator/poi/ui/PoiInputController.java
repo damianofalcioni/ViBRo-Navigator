@@ -17,9 +17,6 @@ import vibro.navigator.poi.PoiHistoryStore;
 import vibro.navigator.poi.search.PoiSearchClient;
 import vibro.navigator.logging.AppLogger;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class PoiInputController {
 
     public interface Listener {
@@ -66,13 +63,14 @@ public final class PoiInputController {
                 this::showHistory,
                 this::updateSelectedPoiAfterRename
         );
-        adapter = createSuggestionAdapter(context);
+        PoiSuggestionActionController suggestionActions = createSuggestionActions(context);
+        adapter = new PoiSuggestionAdapter(context, suggestionActions);
         popupController = new PoiSuggestionPopupController(
                 context,
                 editText,
                 adapter,
                 logTag,
-                suggestion -> selectPoi(suggestion.selectedPoi(context))
+                suggestionActions::onSuggestionClicked
         );
         selectedHistorySuggestions = new PoiSelectedHistorySuggestionController(
                 editText,
@@ -86,13 +84,14 @@ public final class PoiInputController {
     }
 
     @NonNull
-    private PoiSuggestionAdapter createSuggestionAdapter(@NonNull Context context) {
-        return new PoiSuggestionAdapter(context, new PoiSuggestionActionController(
+    private PoiSuggestionActionController createSuggestionActions(@NonNull Context context) {
+        return new PoiSuggestionActionController(
                 context,
                 historyActions,
                 suggestion -> selectPoi(suggestion.selectedPoi(context)),
-                this::deleteHistorySuggestion
-        ));
+                this::deleteHistorySuggestion,
+                this::dismissSuggestionsForExternalSearch
+        );
     }
 
     @NonNull
@@ -102,29 +101,7 @@ public final class PoiInputController {
                 history,
                 searchClient,
                 logTag,
-                new PoiSuggestionSearchController.Presenter() {
-                    @Override
-                    public void showHistory() {
-                        PoiInputController.this.showHistory();
-                    }
-
-                    @Override
-                    public void showSuggestions(
-                            @NonNull List<PoiSuggestion> suggestions,
-                            @NonNull String popupReason
-                    ) {
-                        adapter.setItems(suggestions);
-                        if (!suggestions.isEmpty() && editText.hasFocus()) {
-                            popupController.showIfPossible(popupReason);
-                        }
-                    }
-
-                    @Override
-                    public void clearSuggestionsAndDismiss() {
-                        adapter.setItems(new ArrayList<>());
-                        popupController.dismiss();
-                    }
-                }
+                new PoiInputSuggestionPresenter(editText, adapter, popupController, this::showHistory)
         );
     }
 
@@ -252,15 +229,7 @@ public final class PoiInputController {
     }
 
     public void showHistory() {
-        List<PoiSuggestion> items = new ArrayList<>();
-        for (Poi p : history.list()) {
-            items.add(new PoiSuggestion(p, true));
-        }
-        adapter.setItems(items);
-        AppLogger.d(logTag, "Showing history items=" + items.size());
-        if (!items.isEmpty() && editText.hasFocus()) {
-            popupController.showIfPossible("history");
-        }
+        selectedHistorySuggestions.showHistory();
     }
 
     private void maybeShowSelectedOrEmptyHistory() {
@@ -328,6 +297,10 @@ public final class PoiInputController {
     private void selectPoi(@NonNull Poi poi) {
         AppLogger.i(logTag, "Selected POI=" + poi.displayLabel());
         setPoi(poi);
+    }
+
+    private void dismissSuggestionsForExternalSearch() {
+        popupController.dismiss();
     }
 
     void deleteSuggestionForTesting(int position) {

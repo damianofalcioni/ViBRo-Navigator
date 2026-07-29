@@ -10,6 +10,16 @@
     android:padding="10dp"
     tools:ignore="Overdraw">
 
+    <ImageView
+        android:id="@+id/poiSuggestionLeadingIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_marginEnd="10dp"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_search"
+        android:tint="?attr/vibroIconColor"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/suggestionText"
         android:layout_width="0dp"
