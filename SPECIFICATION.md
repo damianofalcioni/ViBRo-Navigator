@@ -800,10 +800,13 @@ The navigation UI must show the following in large text:
   - shared `text/plain` payloads
   - `http(s)` map links for:
     - `maps.google.com`
+    - `maps.app.goo.gl`
     - `google.com/maps`
     - `www.google.com/maps`
+    - regional Google `/maps` domains such as `google.it/maps`, `www.google.it/maps`, and `www.google.co.uk/maps`
     - `openstreetmap.org`
     - `www.openstreetmap.org`
+- Incoming `maps.app.goo.gl` short links must be expanded by following HTTP redirects before applying normal map-link parsing, including when Google returns a regional `/maps` domain such as `google.it`.
 - The app must not register itself as a generic handler for arbitrary web URLs or for non-map `google.com` and `www.google.com` pages such as search results or article links
 - Incoming coordinate or address intents must open the app without crashing on any supported Android version
 - Parsing of incoming locations must be compatible with the app's minimum supported Android API level

@@ -45,10 +45,40 @@ public class MainActivityIntentFilterTest {
     }
 
     @Test
+    public void mainActivityDoesNotResolveGenericRegionalGoogleUrls() {
+        assertFalse(resolvesToMainActivity(browsableIntent("https://www.google.it/search?q=coffee")));
+        assertFalse(resolvesToMainActivity(browsableIntent("https://www.google.co.uk/search?q=coffee")));
+    }
+
+    @Test
     public void mainActivityStillResolvesSupportedMapUrls() {
         Intent intent = new Intent(
                 Intent.ACTION_VIEW,
                 Uri.parse("https://www.google.com/maps?q=48.2082,16.3738")
+        );
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+
+        assertTrue(resolvesToMainActivity(intent));
+    }
+
+    @Test
+    public void mainActivityResolvesRegionalGoogleMapUrls() {
+        assertTrue(resolvesToMainActivity(browsableIntent(
+                "https://www.google.it/maps/place/48%C2%B011'48.2%22N+16%C2%B021'46.2%22E/"
+                        + "@48.196623,16.3615614,17.86z/data=!4m4!3m3!8m2"
+                        + "!3d48.1967292!4d16.3628378"
+        )));
+        assertTrue(resolvesToMainActivity(browsableIntent(
+                "https://www.google.co.uk/maps?q=48.2082,16.3738"
+        )));
+    }
+
+    @Test
+    public void mainActivityResolvesGoogleMapsShortUrls() {
+        Intent intent = new Intent(
+                Intent.ACTION_VIEW,
+                Uri.parse("https://maps.app.goo.gl/abc123")
         );
         intent.addCategory(Intent.CATEGORY_BROWSABLE);
         intent.addCategory(Intent.CATEGORY_DEFAULT);
@@ -165,6 +195,13 @@ public class MainActivityIntentFilterTest {
             }
         }
         return false;
+    }
+
+    private static Intent browsableIntent(String url) {
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        intent.addCategory(Intent.CATEGORY_BROWSABLE);
+        intent.addCategory(Intent.CATEGORY_DEFAULT);
+        return intent;
     }
 }
 

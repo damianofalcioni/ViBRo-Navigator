@@ -11,6 +11,10 @@ public final class IntentLocationParser {
     private static final String ACTION_SEND = "android.intent.action.SEND";
     private static final String ACTION_SEND_MULTIPLE = "android.intent.action.SEND_MULTIPLE";
     private static final String TRAILING_URL_PUNCTUATION = ".,;:!?)]}\"'";
+    private static final Pattern SHORT_MAP_URL_IN_TEXT = Pattern.compile(
+            "((?:https?://)?maps\\.app\\.goo\\.gl/[^\\s]+)",
+            Pattern.CASE_INSENSITIVE
+    );
     private static final Pattern MAP_URL_IN_TEXT = Pattern.compile("((?:https?://|geo:|google\\.navigation:)[^\\s]+)", Pattern.CASE_INSENSITIVE);
 
     private IntentLocationParser() {
@@ -30,6 +34,22 @@ public final class IntentLocationParser {
     }
 
     @Nullable
+    public static String extractShortMapUrl(
+            @Nullable String action,
+            @Nullable String dataString,
+            @Nullable String sharedText
+    ) {
+        String dataUrl = normalizeShortMapUrlCandidate(dataString);
+        if (dataUrl != null) {
+            return dataUrl;
+        }
+        if (!ACTION_SEND.equals(action) && !ACTION_SEND_MULTIPLE.equals(action) && sharedText == null) {
+            return null;
+        }
+        return extractShortMapUrlFromText(sharedText);
+    }
+
+    @Nullable
     private static String parseSharedText(@Nullable String text) {
         if (text == null) {
             return null;
@@ -39,6 +59,7 @@ public final class IntentLocationParser {
             return null;
         }
 
+        String shortMapUrl = extractShortMapUrlFromText(trimmed);
         Matcher urlMatcher = MAP_URL_IN_TEXT.matcher(trimmed);
         while (urlMatcher.find()) {
             String parsedUrl = parseSharedUrlCandidate(urlMatcher.group(1));
@@ -50,6 +71,9 @@ public final class IntentLocationParser {
         String coords = IntentLocationCoordinates.extract(trimmed);
         if (coords != null) {
             return coords;
+        }
+        if (shortMapUrl != null) {
+            return null;
         }
         return trimmed;
     }
@@ -63,6 +87,41 @@ public final class IntentLocationParser {
                 return parsed;
             }
             String trimmed = trimTrailingUrlPunctuation(candidate);
+            if (trimmed.length() == candidate.length()) {
+                return null;
+            }
+            candidate = trimmed;
+        }
+        return null;
+    }
+
+    @Nullable
+    private static String extractShortMapUrlFromText(@Nullable String text) {
+        if (text == null) {
+            return null;
+        }
+        Matcher matcher = SHORT_MAP_URL_IN_TEXT.matcher(text);
+        while (matcher.find()) {
+            String url = normalizeShortMapUrlCandidate(matcher.group(1));
+            if (url != null) {
+                return url;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    private static String normalizeShortMapUrlCandidate(@Nullable String raw) {
+        if (raw == null) {
+            return null;
+        }
+        String candidate = raw;
+        while (!candidate.isEmpty()) {
+            String trimmed = trimTrailingUrlPunctuation(candidate);
+            String normalized = IntentMapShortUrlResolver.normalizeShortMapUrl(trimmed);
+            if (normalized != null) {
+                return normalized;
+            }
             if (trimmed.length() == candidate.length()) {
                 return null;
             }

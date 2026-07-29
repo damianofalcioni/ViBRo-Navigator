@@ -8,8 +8,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 final class IntentWebMapUriParser {
+    private static final String LAT_DECIMAL_NUMBER = "[+-]?\\d{1,2}(?:\\.\\d+)?";
+    private static final String LON_DECIMAL_NUMBER = "[+-]?\\d{1,3}(?:\\.\\d+)?";
     private static final Pattern MAP_FRAGMENT_COORDINATES = Pattern.compile(
-            "(?:^|&)map=[^/]+/(-?\\d{1,2}(?:\\.\\d+)?)/(-?\\d{1,3}(?:\\.\\d+)?)(?:$|&)"
+            "(?:^|&)map=[^/]+/(" + LAT_DECIMAL_NUMBER + ")/("
+                    + LON_DECIMAL_NUMBER + ")(?:$|&)"
     );
 
     private IntentWebMapUriParser() {
@@ -25,17 +28,38 @@ final class IntentWebMapUriParser {
         String host = extractHost(base);
         String path = extractPath(base);
 
-        if (isKnownMapUrl(host, path)) {
-            String mapQueryResult = parseKnownMapQuery(query, mapQueryKeys);
-            if (mapQueryResult != null) {
-                return mapQueryResult;
-            }
-            String fragmentCoordinates = parseMapFragment(fragment);
-            if (fragmentCoordinates != null) {
-                return fragmentCoordinates;
-            }
+        String knownMapResult = parseKnownMapUrl(host, path, query, fragment, withoutFragment, mapQueryKeys);
+        if (knownMapResult != null) {
+            return knownMapResult;
         }
+        return parseCoordinateFallback(withoutFragment);
+    }
 
+    @Nullable
+    private static String parseKnownMapUrl(
+            @Nullable String host,
+            @NonNull String path,
+            @Nullable String query,
+            @Nullable String fragment,
+            @NonNull String withoutFragment,
+            @NonNull String... mapQueryKeys
+    ) {
+        if (!isKnownMapUrl(host, path)) {
+            return null;
+        }
+        String mapQueryResult = parseKnownMapQuery(query, mapQueryKeys);
+        if (mapQueryResult != null) {
+            return mapQueryResult;
+        }
+        String googleDataCoordinates = IntentGoogleMapsUrlParser.parseDataCoordinates(host, path, withoutFragment);
+        if (googleDataCoordinates != null) {
+            return googleDataCoordinates;
+        }
+        return parseMapFragment(fragment);
+    }
+
+    @Nullable
+    private static String parseCoordinateFallback(@NonNull String withoutFragment) {
         String atCoordinates = IntentLocationCoordinates.extractAtCoordinates(withoutFragment);
         if (atCoordinates != null) {
             return atCoordinates;
@@ -111,12 +135,10 @@ final class IntentWebMapUriParser {
         if (host == null || host.isEmpty()) {
             return false;
         }
-        if (host.equals("maps.google.com")
-                || host.equals("openstreetmap.org")
-                || host.equals("www.openstreetmap.org")) {
+        if (IntentGoogleMapsUrlParser.isMapUrl(host, path)) {
             return true;
         }
-        return (host.equals("google.com") || host.equals("www.google.com"))
-                && (path.equals("/maps") || path.startsWith("/maps/"));
+        return host.equals("openstreetmap.org")
+                || host.equals("www.openstreetmap.org");
     }
 }
