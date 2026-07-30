@@ -17,9 +17,21 @@ final class NavigationActivityPermissionResultHandler {
             @NonNull String[] permissions,
             @NonNull int[] grantResults
     ) {
+        return disableSurroundingStreetsWhenStorageDenied(
+                permissions,
+                grantResults,
+                () -> AppCompassSettings.setSurroundingStreetsEnabled(context, false)
+        );
+    }
+
+    static boolean disableSurroundingStreetsWhenStorageDenied(
+            @NonNull String[] permissions,
+            @NonNull int[] grantResults,
+            @NonNull Runnable disableSurroundingStreets
+    ) {
         for (int i = 0; i < permissions.length; i++) {
             if (isDeniedStoragePermission(permissions, grantResults, i)) {
-                AppCompassSettings.setSurroundingStreetsEnabled(context, false);
+                disableSurroundingStreets.run();
                 return true;
             }
         }

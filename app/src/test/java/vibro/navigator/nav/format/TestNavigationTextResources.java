@@ -177,6 +177,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.nav_destination_reached, "Destination reached");
         strings.put(R.string.notification_off_route_title, "Off route");
         strings.put(R.string.notification_wrong_direction_title, "Wrong direction");
+        strings.put(R.string.format_notification_symbol_test_bearing_line, "%1$s bearing sample");
         strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
         strings.put(R.string.format_turn_speech, "%1$s, %2$s");
         strings.put(

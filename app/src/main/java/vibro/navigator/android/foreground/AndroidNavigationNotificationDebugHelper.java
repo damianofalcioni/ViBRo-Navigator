@@ -16,7 +16,9 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.DirectionKind;
 import vibro.navigator.nav.directions.VoiceHintMapper;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextFormatter;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.service.NavigationService;
 
@@ -96,6 +98,14 @@ public final class AndroidNavigationNotificationDebugHelper {
             @NonNull Context context,
             @NonNull SymbolTestGroup group
     ) {
+        return buildSymbolTestSummary(new AndroidNavigationTextResources(context), group);
+    }
+
+    @NonNull
+    public static String buildSymbolTestSummary(
+            @NonNull NavigationTextResources textResources,
+            @NonNull SymbolTestGroup group
+    ) {
         StringBuilder summary = new StringBuilder();
         for (DirectionInfo directionInfo : distinctNotificationDirections(group).values()) {
             if (summary.length() > 0) {
@@ -105,7 +115,7 @@ public final class AndroidNavigationNotificationDebugHelper {
         }
         if (group == SymbolTestGroup.OTHER) {
             summary.append(' ')
-                    .append(NavigationTextFormatter.formatBearingDegrees(context, BEARING_SAMPLE_DEGREES));
+                    .append(NavigationTextFormatter.formatBearingDegrees(textResources, BEARING_SAMPLE_DEGREES));
         }
         return summary.toString();
     }
@@ -115,6 +125,14 @@ public final class AndroidNavigationNotificationDebugHelper {
             @NonNull Context context,
             @NonNull SymbolTestGroup group
     ) {
+        return buildSymbolTestMessage(new AndroidNavigationTextResources(context), group);
+    }
+
+    @NonNull
+    public static String buildSymbolTestMessage(
+            @NonNull NavigationTextResources textResources,
+            @NonNull SymbolTestGroup group
+    ) {
         StringBuilder message = new StringBuilder();
         for (DirectionInfo directionInfo : distinctNotificationDirections(group).values()) {
             if (message.length() > 0) {
@@ -122,23 +140,26 @@ public final class AndroidNavigationNotificationDebugHelper {
             }
             message.append(NavigationTextFormatter.formatDirectionSymbol(directionInfo))
                     .append(' ')
-                    .append(directionLabel(context, directionInfo));
+                    .append(directionLabel(textResources, directionInfo));
         }
         if (group == SymbolTestGroup.OTHER) {
             message.append('\n')
-                    .append(context.getString(
+                    .append(textResources.getString(
                             R.string.format_notification_symbol_test_bearing_line,
-                            NavigationTextFormatter.formatBearingDegrees(context, BEARING_SAMPLE_DEGREES)
+                            NavigationTextFormatter.formatBearingDegrees(textResources, BEARING_SAMPLE_DEGREES)
                     ));
         }
         return message.toString();
     }
 
     @NonNull
-    private static String directionLabel(@NonNull Context context, @NonNull DirectionInfo directionInfo) {
+    private static String directionLabel(
+            @NonNull NavigationTextResources textResources,
+            @NonNull DirectionInfo directionInfo
+    ) {
         return directionInfo.exitNumber > 0
-                ? context.getString(directionInfo.labelRes, directionInfo.exitNumber)
-                : context.getString(directionInfo.labelRes);
+                ? textResources.getString(directionInfo.labelRes, directionInfo.exitNumber)
+                : textResources.getString(directionInfo.labelRes);
     }
 
     @NonNull
