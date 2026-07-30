@@ -41,21 +41,7 @@ final class NavigationInputResolver {
             return null;
         }
 
-        List<LatLon> stopPoints = stopPointsInNavigationOrder(stops);
-
-        return new Result(
-                new NavigationRequest(
-                        profileSelection.routingMode,
-                        profileSelection.profileName,
-                        profileSelection.customProfile,
-                        profileSelection.profileParameters,
-                        destination.name,
-                        new LatLon(destination.lat, destination.lon),
-                        stopPoints
-                ),
-                destination,
-                stops
-        );
+        return fromResolvedPois(destination, stops, profileSelection);
     }
 
     static void rememberHistory(@NonNull PoiHistoryStore historyStore, @NonNull Result input) {
@@ -108,6 +94,29 @@ final class NavigationInputResolver {
             resolvedStops.add(stop);
         }
         return resolvedStops;
+    }
+
+    @NonNull
+    static Result fromResolvedPois(
+            @NonNull Poi destination,
+            @NonNull List<Poi> stops,
+            @NonNull ProfileSelection profileSelection
+    ) {
+        List<LatLon> stopPoints = stopPointsInNavigationOrder(stops);
+
+        return new Result(
+                new NavigationRequest(
+                        profileSelection.routingMode,
+                        profileSelection.profileName,
+                        profileSelection.customProfile,
+                        profileSelection.profileParameters,
+                        destination.name,
+                        new LatLon(destination.lat, destination.lon),
+                        stopPoints
+                ),
+                destination,
+                stops
+        );
     }
 
     @NonNull
