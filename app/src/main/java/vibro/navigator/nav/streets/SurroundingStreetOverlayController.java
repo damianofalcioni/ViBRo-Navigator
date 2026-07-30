@@ -13,14 +13,13 @@ import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
-import vibro.navigator.settings.AppCompassSettings;
 
 public final class SurroundingStreetOverlayController {
     private static final int MAX_DISPLAY_STREET_SEGMENTS = 2_000;
     private static final int MAX_LOAD_CHUNKS_PER_REQUEST = 64;
 
     @NonNull
-    private final Context appContext;
+    private final SurroundingStreetOverlayRuntime runtime;
     @NonNull
     private final TaskScheduler resultScheduler;
     @NonNull
@@ -35,8 +34,6 @@ public final class SurroundingStreetOverlayController {
     private final SurroundingStreetChunkPlanner chunkPlanner = new SurroundingStreetChunkPlanner();
     @NonNull
     private final SurroundingStreetOverlayCache overlayCache = new SurroundingStreetOverlayCache();
-    @NonNull
-    private final SurroundingStreetChunkLoader chunkLoader;
 
     @NonNull
     private CompassStreetOverlay overlay = CompassStreetOverlay.EMPTY;
@@ -58,11 +55,22 @@ public final class SurroundingStreetOverlayController {
             @NonNull SurroundingStreetRepository repository,
             @NonNull Runnable stateEmitter
     ) {
-        appContext = context.getApplicationContext();
+        runtime = SurroundingStreetOverlayRuntime.android(context, repository);
         this.resultScheduler = resultScheduler;
         this.elapsedRealtimeClock = elapsedRealtimeClock;
         this.stateEmitter = stateEmitter;
-        chunkLoader = new SurroundingStreetChunkLoader(appContext, repository);
+    }
+
+    SurroundingStreetOverlayController(
+            @NonNull TaskScheduler resultScheduler,
+            @NonNull ElapsedRealtimeClock elapsedRealtimeClock,
+            @NonNull SurroundingStreetOverlayRuntime runtime,
+            @NonNull Runnable stateEmitter
+    ) {
+        this.resultScheduler = resultScheduler;
+        this.elapsedRealtimeClock = elapsedRealtimeClock;
+        this.runtime = runtime;
+        this.stateEmitter = stateEmitter;
     }
 
     public void reset() {
@@ -89,7 +97,7 @@ public final class SurroundingStreetOverlayController {
         if (shutdown) {
             return;
         }
-        if (!AppCompassSettings.isSurroundingStreetsEnabled(appContext)) {
+        if (!runtime.isSurroundingStreetsEnabled()) {
             clearAll();
             return;
         }
@@ -109,7 +117,7 @@ public final class SurroundingStreetOverlayController {
 
     @NonNull
     public CompassStreetOverlay currentOverlay() {
-        return AppCompassSettings.isSurroundingStreetsEnabled(appContext) && viewportActive
+        return runtime.isSurroundingStreetsEnabled() && viewportActive
                 ? overlay
                 : CompassStreetOverlay.EMPTY;
     }
@@ -165,7 +173,7 @@ public final class SurroundingStreetOverlayController {
     }
 
     private boolean isReadyForLoading() {
-        return AppCompassSettings.isSurroundingStreetsEnabled(appContext)
+        return runtime.isSurroundingStreetsEnabled()
                 && viewportActive
                 && lastAcceptedLocation != null
                 && !activeSelection.isEmpty();
@@ -180,7 +188,7 @@ public final class SurroundingStreetOverlayController {
         int requestGeneration = ++generation;
         inFlight = true;
         executor.execute(() -> {
-            SurroundingStreetChunkLoadResult loaded = chunkLoader.load(keys);
+            SurroundingStreetChunkLoadResult loaded = runtime.load(keys);
             resultScheduler.post(() -> applyChunks(
                     requestGeneration,
                     requestLocation,

@@ -20,8 +20,16 @@ public final class NavigationManeuverVoiceLabelFormatter {
 
     @NonNull
     public static String format(@NonNull Context context, @NonNull Voice voice) {
-        String variantLabel = formatVariantLabel(context, voice.getName());
-        Locale locale = voice.getLocale();
+        return format(context, NavigationTextToSpeechVoiceDescriptor.from(voice));
+    }
+
+    @NonNull
+    static String format(
+            @NonNull Context context,
+            @NonNull NavigationTextToSpeechVoiceDescriptor voice
+    ) {
+        String variantLabel = formatVariantLabel(context, voice.name());
+        Locale locale = voice.locale();
         if (locale == null) {
             return variantLabel;
         }

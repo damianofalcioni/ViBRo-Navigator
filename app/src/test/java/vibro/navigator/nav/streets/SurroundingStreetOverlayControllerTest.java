@@ -3,16 +3,11 @@ package vibro.navigator.nav.streets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -29,26 +24,20 @@ import vibro.navigator.nav.compass.CompassStreetType;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
-import vibro.navigator.settings.AppCompassSettings;
 
-@RunWith(RobolectricTestRunner.class)
 public class SurroundingStreetOverlayControllerTest {
-    private final Context context = ApplicationProvider.getApplicationContext();
     private final MutableClock clock = new MutableClock();
-    private final CountingRepository repository = new CountingRepository();
+    private final CountingChunkLoader chunkLoader = new CountingChunkLoader();
     private CountDownLatch stateLatch;
     private SurroundingStreetOverlayController controller;
 
     @Before
     public void setUp() {
-        AppCompassSettings.setSurroundingStreetsEnabled(context, false);
-        AppCompassSettings.setSurroundingStreetsEnabled(context, true);
         stateLatch = new CountDownLatch(1);
         controller = new SurroundingStreetOverlayController(
-                context,
                 runnable -> runnable.run(),
                 clock,
-                repository,
+                new SurroundingStreetOverlayRuntime(chunkLoader, () -> true),
                 () -> stateLatch.countDown()
         );
     }
@@ -64,31 +53,31 @@ public class SurroundingStreetOverlayControllerTest {
         controller.onCompassViewport(compassState());
         assertStateEmitted();
 
-        int initialCalls = repository.calls;
+        int initialCalls = chunkLoader.calls;
         assertTrue(initialCalls > 1);
         assertEquals(initialCalls, controller.currentOverlay().segments.size());
 
         clock.nowMs = 10_000L;
         controller.onAcceptedLocation(location(48.2083d, 16.3739d));
 
-        assertEquals(initialCalls, repository.calls);
+        assertEquals(initialCalls, chunkLoader.calls);
         assertEquals(initialCalls, controller.currentOverlay().segments.size());
     }
 
     @Test
     public void speedBucketChangeFiltersCachedOverlayWithoutReloadingChunks() throws InterruptedException {
-        repository.streetType = CompassStreetType.FOOTWAY;
+        chunkLoader.streetType = CompassStreetType.FOOTWAY;
 
         controller.onAcceptedLocation(location(48.2082d, 16.3738d));
         controller.onCompassViewport(compassStateForSpeedKmh(20f));
         assertStateEmitted();
 
-        int initialCalls = repository.calls;
+        int initialCalls = chunkLoader.calls;
         assertEquals(initialCalls, controller.currentOverlay().segments.size());
 
         controller.onCompassViewport(compassStateForSpeedKmh(90f));
 
-        assertEquals(initialCalls, repository.calls);
+        assertEquals(initialCalls, chunkLoader.calls);
         assertTrue(controller.currentOverlay().isEmpty());
     }
 
@@ -101,7 +90,7 @@ public class SurroundingStreetOverlayControllerTest {
         assertStateEmitted();
 
         assertEquals(0, stateLatch.getCount());
-        assertTrue(repository.calls > 1);
+        assertTrue(chunkLoader.calls > 1);
     }
 
     private void assertStateEmitted() throws InterruptedException {
@@ -188,24 +177,29 @@ public class SurroundingStreetOverlayControllerTest {
         }
     }
 
-    private static final class CountingRepository implements SurroundingStreetRepository {
+    private static final class CountingChunkLoader implements SurroundingStreetOverlayRuntime.ChunkLoader {
         private int calls;
         private CompassStreetType streetType = CompassStreetType.OTHER;
 
         @NonNull
         @Override
-        public CompassStreetOverlay loadSurroundingStreets(
-                @NonNull Context context,
-                double latitude,
-                double longitude,
-                double radiusMeters,
-                int maxSegments
-        ) {
-            calls++;
-            return new CompassStreetOverlay(Collections.singletonList(new CompassStreetSegment(Arrays.asList(
-                    new LatLon(latitude, longitude),
-                    new LatLon(latitude + 0.0001d, longitude)
-            ), streetType)));
+        public SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
+            SurroundingStreetChunkLoadResult result = new SurroundingStreetChunkLoadResult();
+            for (SurroundingStreetChunkKey key : keys) {
+                LatLon center = key.center();
+                calls++;
+                result.put(key, overlayFor(center));
+            }
+            return result;
+        }
+
+        @NonNull
+        private CompassStreetOverlay overlayFor(@NonNull LatLon center) {
+            CompassStreetSegment segment = new CompassStreetSegment(Arrays.asList(
+                    new LatLon(center.lat, center.lon),
+                    new LatLon(center.lat + 0.0001d, center.lon)
+            ), streetType);
+            return new CompassStreetOverlay(Collections.singletonList(segment));
         }
     }
 }

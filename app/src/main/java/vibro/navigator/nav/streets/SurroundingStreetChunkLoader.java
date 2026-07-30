@@ -10,7 +10,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 
-final class SurroundingStreetChunkLoader {
+final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRuntime.ChunkLoader {
     private static final String TAG = "SurroundingStreets";
     private static final int MAX_STREET_SEGMENTS_PER_CHUNK = 450;
 
@@ -28,7 +28,8 @@ final class SurroundingStreetChunkLoader {
     }
 
     @NonNull
-    SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
+    @Override
+    public SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
         SurroundingStreetChunkLoadResult result = new SurroundingStreetChunkLoadResult();
         for (SurroundingStreetChunkKey key : keys) {
             result.put(key, loadChunk(key));

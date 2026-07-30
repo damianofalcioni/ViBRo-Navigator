@@ -14,6 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 final class NavigationTextToSpeechVoiceCatalog {
+    interface VoiceLabelFormatter {
+        @NonNull
+        String format(@NonNull NavigationTextToSpeechVoiceDescriptor voice);
+    }
+
     private NavigationTextToSpeechVoiceCatalog() {
     }
 
@@ -22,15 +27,26 @@ final class NavigationTextToSpeechVoiceCatalog {
             @NonNull Context context,
             @Nullable Set<Voice> voices
     ) {
+        return buildAvailableOptions(
+                voice -> NavigationManeuverVoiceLabelFormatter.format(context, voice),
+                descriptors(voices)
+        );
+    }
+
+    @NonNull
+    static List<NavigationVoiceOption> buildAvailableOptions(
+            @NonNull VoiceLabelFormatter labelFormatter,
+            @Nullable Iterable<NavigationTextToSpeechVoiceDescriptor> voices
+    ) {
         List<NavigationVoiceOption> options = new ArrayList<>();
         if (voices == null) {
             return options;
         }
-        for (Voice voice : voices) {
+        for (NavigationTextToSpeechVoiceDescriptor voice : voices) {
             if (NavigationTextToSpeechVoiceAvailability.isOfflineVoiceAvailable(voice)) {
                 options.add(new NavigationVoiceOption(
-                        voice.getName(),
-                        NavigationManeuverVoiceLabelFormatter.format(context, voice)
+                        voice.name(),
+                        labelFormatter.format(voice)
                 ));
             }
         }
@@ -41,6 +57,18 @@ final class NavigationTextToSpeechVoiceCatalog {
             }
         });
         return options;
+    }
+
+    @NonNull
+    private static List<NavigationTextToSpeechVoiceDescriptor> descriptors(@Nullable Set<Voice> voices) {
+        List<NavigationTextToSpeechVoiceDescriptor> descriptors = new ArrayList<>();
+        if (voices == null) {
+            return descriptors;
+        }
+        for (Voice voice : voices) {
+            descriptors.add(NavigationTextToSpeechVoiceDescriptor.from(voice));
+        }
+        return descriptors;
     }
 
     @Nullable
@@ -55,6 +83,22 @@ final class NavigationTextToSpeechVoiceCatalog {
         }
         for (Voice voice : voices) {
             if (voiceName.equals(voice.getName())) {
+                return voice;
+            }
+        }
+        return null;
+    }
+
+    @Nullable
+    static NavigationTextToSpeechVoiceDescriptor findVoiceDescriptor(
+            @Nullable Iterable<NavigationTextToSpeechVoiceDescriptor> voices,
+            @NonNull String voiceName
+    ) {
+        if (voices == null) {
+            return null;
+        }
+        for (NavigationTextToSpeechVoiceDescriptor voice : voices) {
+            if (voiceName.equals(voice.name())) {
                 return voice;
             }
         }
