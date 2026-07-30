@@ -4,32 +4,28 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.app.Application;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings.Target;
 import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.settings.AppThemeSettings;
+import vibro.navigator.testutil.SharedPreferencesTestContext;
 
-@RunWith(RobolectricTestRunner.class)
 public class ViBRoAutoCustomButtonControllerTest {
-    private Application context;
+    private Context context;
     private Host host;
     private ViBRoAutoCustomButtonController controller;
 
     @Before
     public void setUp() {
-        context = ApplicationProvider.getApplicationContext();
+        context = new SharedPreferencesTestContext();
         context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
                 .edit()
                 .clear()
