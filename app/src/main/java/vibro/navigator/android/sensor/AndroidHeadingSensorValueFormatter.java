@@ -16,12 +16,29 @@ final class AndroidHeadingSensorValueFormatter {
             long elapsedRealtimeMs,
             long nowElapsedRealtimeMs
     ) {
+        return describeRotationVectorValue(
+                rotationVector,
+                accuracy,
+                elapsedRealtimeMs,
+                nowElapsedRealtimeMs,
+                AndroidRotationVectorOrientation.SENSOR_MANAGER_MATH
+        );
+    }
+
+    @NonNull
+    static String describeRotationVectorValue(
+            @Nullable float[] rotationVector,
+            int accuracy,
+            long elapsedRealtimeMs,
+            long nowElapsedRealtimeMs,
+            @NonNull AndroidRotationVectorOrientation.RotationVectorMath rotationVectorMath
+    ) {
         if (rotationVector == null || elapsedRealtimeMs < 0L) {
             return "value=waiting for sample";
         }
 
         AndroidRotationVectorOrientation orientation =
-                AndroidRotationVectorOrientation.fromRotationVector(rotationVector);
+                AndroidRotationVectorOrientation.fromRotationVector(rotationVector, rotationVectorMath);
         long ageMs = Math.max(0L, nowElapsedRealtimeMs - elapsedRealtimeMs);
 
         return String.format(

@@ -43,12 +43,15 @@ public final class AndroidGeoCoordinatesViewIntent {
 
     @NonNull
     static String uriString(double lat, double lon, @Nullable String label) {
+        if (!LatLon.isValidCoordinate(lat, lon)) {
+            throw new IllegalArgumentException("Invalid geo coordinates lat=" + lat + " lon=" + lon);
+        }
         String coordinates = coordinates(lat, lon);
         String trimmedLabel = label == null ? "" : label.trim();
         if (trimmedLabel.isEmpty()) {
             return "geo:" + coordinates + "?q=" + coordinates;
         }
-        return "geo:" + coordinates + "?q=" + coordinates + "(" + Uri.encode(trimmedLabel) + ")";
+        return "geo:" + coordinates + "?q=" + coordinates + "(" + AndroidUriEncoding.encode(trimmedLabel) + ")";
     }
 
     @NonNull

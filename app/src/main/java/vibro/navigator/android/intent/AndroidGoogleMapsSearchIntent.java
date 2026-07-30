@@ -29,6 +29,6 @@ public final class AndroidGoogleMapsSearchIntent {
         if (trimmed.isEmpty()) {
             throw new IllegalArgumentException("Google Maps search query must not be blank");
         }
-        return "https://www.google.com/maps/search/?api=1&query=" + Uri.encode(trimmed);
+        return "https://www.google.com/maps/search/?api=1&query=" + AndroidUriEncoding.encode(trimmed);
     }
 }

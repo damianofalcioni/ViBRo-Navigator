@@ -6,6 +6,21 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 final class AndroidRotationVectorOrientation {
+    static final RotationVectorMath SENSOR_MANAGER_MATH = new RotationVectorMath() {
+        @Override
+        public void getRotationMatrixFromVector(
+                @NonNull float[] rotationMatrix,
+                @NonNull float[] rotationVector
+        ) {
+            SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
+        }
+
+        @Override
+        public void getOrientation(@NonNull float[] rotationMatrix, @NonNull float[] orientation) {
+            SensorManager.getOrientation(rotationMatrix, orientation);
+        }
+    };
+
     final double headingDegrees;
     final double pitchDegrees;
     final double rollDegrees;
@@ -26,10 +41,18 @@ final class AndroidRotationVectorOrientation {
 
     @NonNull
     static AndroidRotationVectorOrientation fromRotationVector(@NonNull float[] rotationVector) {
+        return fromRotationVector(rotationVector, SENSOR_MANAGER_MATH);
+    }
+
+    @NonNull
+    static AndroidRotationVectorOrientation fromRotationVector(
+            @NonNull float[] rotationVector,
+            @NonNull RotationVectorMath rotationVectorMath
+    ) {
         float[] rotationMatrix = new float[9];
-        SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector);
+        rotationVectorMath.getRotationMatrixFromVector(rotationMatrix, rotationVector);
         float[] orientation = new float[3];
-        SensorManager.getOrientation(rotationMatrix, orientation);
+        rotationVectorMath.getOrientation(rotationMatrix, orientation);
         return new AndroidRotationVectorOrientation(
                 (Math.toDegrees(orientation[0]) + 360.0) % 360.0,
                 Math.toDegrees(orientation[1]),
@@ -48,5 +71,14 @@ final class AndroidRotationVectorOrientation {
             return null;
         }
         return Math.toDegrees(headingAccuracyRadians);
+    }
+
+    interface RotationVectorMath {
+        void getRotationMatrixFromVector(
+                @NonNull float[] rotationMatrix,
+                @NonNull float[] rotationVector
+        );
+
+        void getOrientation(@NonNull float[] rotationMatrix, @NonNull float[] orientation);
     }
 }
