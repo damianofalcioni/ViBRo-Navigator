@@ -1,6 +1,7 @@
 package vibro.navigator.map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
@@ -37,5 +38,6 @@ public class MapPickerGeoPositionLauncherTest {
         assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
         assertEquals(Intent.ACTION_VIEW, actionView.getAction());
         assertEquals(GEO_URI, actionView.getDataString());
+        assertFalse(chooser.getBooleanExtra(Intent.EXTRA_AUTO_LAUNCH_SINGLE_CHOICE, true));
     }
 }
