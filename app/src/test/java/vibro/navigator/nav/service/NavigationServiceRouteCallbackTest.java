@@ -5,44 +5,40 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.session.NavigationSession;
-import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationServiceRouteCallbackTest {
     private static final long NOW_MS = 10_000L;
+    private static final NavigationTextResources TEXT_RESOURCES = TestNavigationTextResources.metric();
 
     @Test
     public void onRouteApplied_ignoresStaleRouteResultSideEffects() {
-        Context context = ApplicationProvider.getApplicationContext();
-        NavigationSession session = sessionWithPreparedRouteRequest(context);
+        NavigationSession session = sessionWithPreparedRouteRequest();
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
         CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
         CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
         CountingRunnable stateEmitter = new CountingRunnable();
         NavigationServiceRouteCallback callback = callback(
-                context,
                 session,
                 turnEvents,
                 fastLocationRequester,
@@ -60,14 +56,12 @@ public class NavigationServiceRouteCallbackTest {
 
     @Test
     public void onRouteApplied_requestsFastLocationUpdatesForCurrentRoute() {
-        Context context = ApplicationProvider.getApplicationContext();
-        NavigationSession session = sessionWithPreparedRouteRequest(context);
+        NavigationSession session = sessionWithPreparedRouteRequest();
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
         CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
         CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
         CountingRunnable stateEmitter = new CountingRunnable();
         NavigationServiceRouteCallback callback = callback(
-                context,
                 session,
                 turnEvents,
                 fastLocationRequester,
@@ -83,21 +77,20 @@ public class NavigationServiceRouteCallbackTest {
 
     @Test
     public void onSpeculativeRouteConfirmed_appliesDeferredRouteResult() {
-        Context context = ApplicationProvider.getApplicationContext();
-        NavigationSession session = sessionWithActiveRoute(context);
+        NavigationSession session = sessionWithActiveRoute();
         CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
         CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
         CountingRunnable stateEmitter = new CountingRunnable();
         NavigationServiceRouteCallback callback = callback(
-                context,
                 session,
                 turnEvents,
                 fastLocationRequester,
                 stateEmitter
         );
 
-        NavigationLocationUpdateResult tentative = session.onRawLocationChanged(
-                context,
+        NavigationLocationUpdateResult tentative = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TEXT_RESOURCES,
                 routeModeLocation(0.0003, 0.0, NOW_MS + 2_000L),
                 NOW_MS + 2_000L
         );
@@ -113,8 +106,9 @@ public class NavigationServiceRouteCallbackTest {
         assertEquals(0, fastLocationRequester.calls);
         assertEquals(1, stateEmitter.calls);
 
-        NavigationLocationUpdateResult confirmed = session.onRawLocationChanged(
-                context,
+        NavigationLocationUpdateResult confirmed = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TEXT_RESOURCES,
                 routeModeLocation(0.0003, 0.00005, NOW_MS + 3_000L),
                 NOW_MS + 3_000L
         );
@@ -131,13 +125,11 @@ public class NavigationServiceRouteCallbackTest {
 
     @Test
     public void onRouteFailure_ignoresStaleRouteFailureSideEffects() {
-        Context context = ApplicationProvider.getApplicationContext();
-        NavigationSession session = sessionWithPreparedRouteRequest(context);
+        NavigationSession session = sessionWithPreparedRouteRequest();
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
         CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
         CountingRunnable stateEmitter = new CountingRunnable();
         NavigationServiceRouteCallback callback = callback(
-                context,
                 session,
                 turnEvents,
                 new CountingFastLocationRequester(),
@@ -153,7 +145,7 @@ public class NavigationServiceRouteCallbackTest {
     }
 
     @NonNull
-    private static NavigationSession sessionWithPreparedRouteRequest(@NonNull Context context) {
+    private static NavigationSession sessionWithPreparedRouteRequest() {
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 "trekking",
@@ -161,13 +153,13 @@ public class NavigationServiceRouteCallbackTest {
                 new LatLon(48.2, 16.2),
                 Collections.emptyList()
         ));
-        session.start(context, NOW_MS);
-        session.onRawLocationChanged(context, location(), NOW_MS);
+        NavigationSessionResourceAdapter.start(session, TEXT_RESOURCES, NOW_MS);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, TEXT_RESOURCES, location(), NOW_MS);
         return session;
     }
 
     @NonNull
-    private static NavigationSession sessionWithActiveRoute(@NonNull Context context) {
+    private static NavigationSession sessionWithActiveRoute() {
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 "trekking",
@@ -175,23 +167,35 @@ public class NavigationServiceRouteCallbackTest {
                 new LatLon(0.0, 0.003),
                 Collections.emptyList()
         ));
-        session.start(context, NOW_MS);
-        session.onRawLocationChanged(context, routeModeLocation(0.0, 0.0, NOW_MS), NOW_MS);
+        NavigationSessionResourceAdapter.start(session, TEXT_RESOURCES, NOW_MS);
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TEXT_RESOURCES,
+                routeModeLocation(0.0, 0.0, NOW_MS),
+                NOW_MS
+        );
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
-        session.applyRouteResult(context, snapshot, routeLine(), NOW_MS, NOW_MS);
+        NavigationSessionResourceAdapter.applyRouteResult(
+                session,
+                TEXT_RESOURCES,
+                snapshot,
+                routeLine(),
+                NOW_MS,
+                NOW_MS
+        );
         return session;
     }
 
     @NonNull
     private static NavigationServiceRouteCallback callback(
-            @NonNull Context context,
             @NonNull NavigationSession session,
             @NonNull CountingTurnEventDispatcher turnEvents,
             @NonNull CountingFastLocationRequester fastLocationRequester,
             @NonNull CountingRunnable stateEmitter
     ) {
         return new NavigationServiceRouteCallback(
-                context,
+                TEXT_RESOURCES,
+                () -> false,
                 session,
                 NoOpNavigationOrientation.create(NOW_MS),
                 new NoOpForegroundController(),

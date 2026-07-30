@@ -1,24 +1,27 @@
 package vibro.navigator.nav.service;
 
-
-import vibro.navigator.nav.foreground.NavigationForegroundController;
-import vibro.navigator.nav.orientation.NavigationOrientationController;
-import vibro.navigator.nav.routing.NavigationRouteExecutor;
-import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
-import vibro.navigator.nav.routing.PendingRouteRecalculation;
-import vibro.navigator.nav.guidance.NavigationTurnEvent;
-import vibro.navigator.nav.guidance.NavigationRerouteNotice;
-import vibro.navigator.nav.session.NavigationSession;
-import vibro.navigator.nav.session.NavigationSessionSpeculativeRoutes;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.logging.AppLogger;
-
 import java.util.List;
+
+import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.foreground.NavigationForegroundController;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.NavigationTurnEvent;
+import vibro.navigator.nav.orientation.NavigationOrientationController;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.routing.NavigationRouteExecutor;
+import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.routing.PendingRouteRecalculation;
+import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
+import vibro.navigator.nav.session.NavigationSessionSpeculativeRoutes;
+import vibro.navigator.settings.AppNotificationSettings;
 
 public final class NavigationServiceRouteCallback implements NavigationRouteExecutor.Callback {
 
@@ -34,9 +37,16 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         long requestFastLocationUpdates();
     }
 
+    interface SingleInstructionModeProvider {
+        boolean isSingleInstructionModeEnabled();
+    }
+
     private static final String TAG = "NavigationService";
 
-    private final Context context;
+    @NonNull
+    private final NavigationTextResources textResources;
+    @NonNull
+    private final SingleInstructionModeProvider singleInstructionModeProvider;
     private final NavigationSession navigationSession;
     private final NavigationOrientationController orientationController;
     private final NavigationForegroundController foregroundController;
@@ -55,7 +65,32 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @NonNull Runnable stateEmitter,
             @NonNull RouteRecalculator routeRecalculator
     ) {
-        this.context = context;
+        this(
+                new AndroidNavigationTextResources(context),
+                () -> AppNotificationSettings.isSingleInstructionModeEnabled(context),
+                navigationSession,
+                orientationController,
+                foregroundController,
+                turnEventDispatcher,
+                routeAppliedLocationRequester,
+                stateEmitter,
+                routeRecalculator
+        );
+    }
+
+    NavigationServiceRouteCallback(
+            @NonNull NavigationTextResources textResources,
+            @NonNull SingleInstructionModeProvider singleInstructionModeProvider,
+            @NonNull NavigationSession navigationSession,
+            @NonNull NavigationOrientationController orientationController,
+            @NonNull NavigationForegroundController foregroundController,
+            @NonNull TurnEventDispatcher turnEventDispatcher,
+            @NonNull RouteAppliedLocationRequester routeAppliedLocationRequester,
+            @NonNull Runnable stateEmitter,
+            @NonNull RouteRecalculator routeRecalculator
+    ) {
+        this.textResources = textResources;
+        this.singleInstructionModeProvider = singleInstructionModeProvider;
         this.navigationSession = navigationSession;
         this.orientationController = orientationController;
         this.foregroundController = foregroundController;
@@ -92,7 +127,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             runQueuedRouteRecalculation("Retrying queued route recalculation after speculative request failed");
             return;
         }
-        if (!navigationSession.applyRouteFailure(context, snapshot, error)) {
+        if (!NavigationSessionResourceAdapter.applyRouteFailure(navigationSession, textResources, snapshot, error)) {
             return;
         }
         stateEmitter.run();
@@ -117,12 +152,14 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             long beganAt
     ) {
         long routeAppliedAtElapsedMs = routeAppliedLocationRequester.requestFastLocationUpdates();
-        turnEventDispatcher.dispatch(navigationSession.applyRouteResult(
-                context,
+        turnEventDispatcher.dispatch(NavigationSessionResourceAdapter.applyRouteResult(
+                navigationSession,
+                textResources,
                 snapshot,
                 newRoute,
                 beganAt,
-                routeAppliedAtElapsedMs
+                routeAppliedAtElapsedMs,
+                singleInstructionModeProvider.isSingleInstructionModeEnabled()
         ));
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
@@ -131,9 +168,11 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
 
     private void applyConfirmedSpeculativeRouteResult() {
         long routeAppliedAtElapsedMs = routeAppliedLocationRequester.requestFastLocationUpdates();
-        turnEventDispatcher.dispatch(navigationSession.speculativeRoutes().applyConfirmedRouteResult(
-                context,
-                routeAppliedAtElapsedMs
+        turnEventDispatcher.dispatch(NavigationSessionResourceAdapter.applyConfirmedSpeculativeRouteResult(
+                navigationSession,
+                textResources,
+                routeAppliedAtElapsedMs,
+                singleInstructionModeProvider.isSingleInstructionModeEnabled()
         ));
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
