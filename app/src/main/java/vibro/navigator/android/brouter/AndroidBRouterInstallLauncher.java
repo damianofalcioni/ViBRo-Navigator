@@ -13,55 +13,107 @@ import vibro.navigator.logging.AppLogger;
 public final class AndroidBRouterInstallLauncher {
 
     private static final String TAG = "BRouterInstall";
-    private static final Uri PLAY_STORE_APP_URI =
-            Uri.parse("market://details?id=" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
-    private static final Uri PLAY_STORE_WEB_URI =
-            Uri.parse("https://play.google.com/store/apps/details?id="
-                    + BRouterProfilesRepository.BROUTER_PACKAGE_NAME);
-    private static final Uri FDROID_WEB_URI =
-            Uri.parse("https://f-droid.org/packages/" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME + "/");
+    private static final String ACTION_VIEW = Intent.ACTION_VIEW;
+    private static final String PLAY_STORE_APP_URI =
+            "market://details?id=" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+    private static final String PLAY_STORE_WEB_URI =
+            "https://play.google.com/store/apps/details?id=" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+    private static final String FDROID_WEB_URI =
+            "https://f-droid.org/packages/" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME + "/";
 
     private AndroidBRouterInstallLauncher() {
     }
 
     public static boolean launchPlayStore(@NonNull Activity activity) {
+        return launchPlayStore(new ActivityInstallLauncher(activity));
+    }
+
+    static boolean launchPlayStore(@NonNull InstallLauncher launcher) {
         return launchFirstResolvable(
-                activity,
+                launcher,
                 "Play Store",
-                new Intent(Intent.ACTION_VIEW, PLAY_STORE_APP_URI),
-                new Intent(Intent.ACTION_VIEW, PLAY_STORE_WEB_URI)
+                new InstallTarget(ACTION_VIEW, PLAY_STORE_APP_URI),
+                new InstallTarget(ACTION_VIEW, PLAY_STORE_WEB_URI)
         );
     }
 
     public static boolean launchFdroid(@NonNull Activity activity) {
+        return launchFdroid(new ActivityInstallLauncher(activity));
+    }
+
+    static boolean launchFdroid(@NonNull InstallLauncher launcher) {
         return launchFirstResolvable(
-                activity,
+                launcher,
                 "F-Droid",
-                new Intent(Intent.ACTION_VIEW, FDROID_WEB_URI)
+                new InstallTarget(ACTION_VIEW, FDROID_WEB_URI)
         );
     }
 
     private static boolean launchFirstResolvable(
-            @NonNull Activity activity,
+            @NonNull InstallLauncher launcher,
             @NonNull String label,
-            @NonNull Intent... intents
+            @NonNull InstallTarget... targets
     ) {
-        for (Intent intent : intents) {
-            if (intent.resolveActivity(activity.getPackageManager()) == null) {
+        for (InstallTarget target : targets) {
+            if (!launcher.canResolve(target)) {
                 AppLogger.w(TAG, "No activity resolves " + label + " install intent data="
-                        + String.valueOf(intent.getData()));
+                        + target.uriString);
                 continue;
             }
-            try {
-                activity.startActivity(intent);
+            if (launcher.launch(target)) {
                 AppLogger.i(TAG, "Opened " + label + " install intent data="
-                        + String.valueOf(intent.getData()));
+                        + target.uriString);
                 return true;
-            } catch (ActivityNotFoundException | SecurityException e) {
-                AppLogger.w(TAG, "Failed to open " + label + " install intent data="
-                        + String.valueOf(intent.getData()), e);
             }
         }
         return false;
+    }
+
+    interface InstallLauncher {
+        boolean canResolve(@NonNull InstallTarget target);
+
+        boolean launch(@NonNull InstallTarget target);
+    }
+
+    static final class InstallTarget {
+        @NonNull
+        final String action;
+        @NonNull
+        final String uriString;
+
+        InstallTarget(@NonNull String action, @NonNull String uriString) {
+            this.action = action;
+            this.uriString = uriString;
+        }
+    }
+
+    private static final class ActivityInstallLauncher implements InstallLauncher {
+        @NonNull
+        private final Activity activity;
+
+        ActivityInstallLauncher(@NonNull Activity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public boolean canResolve(@NonNull InstallTarget target) {
+            return toIntent(target).resolveActivity(activity.getPackageManager()) != null;
+        }
+
+        @Override
+        public boolean launch(@NonNull InstallTarget target) {
+            try {
+                activity.startActivity(toIntent(target));
+                return true;
+            } catch (ActivityNotFoundException | SecurityException e) {
+                AppLogger.w(TAG, "Failed to open install intent data=" + target.uriString, e);
+                return false;
+            }
+        }
+
+        @NonNull
+        private static Intent toIntent(@NonNull InstallTarget target) {
+            return new Intent(target.action, Uri.parse(target.uriString));
+        }
     }
 }

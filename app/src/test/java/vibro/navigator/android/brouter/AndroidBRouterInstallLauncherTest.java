@@ -2,102 +2,89 @@ package vibro.navigator.android.brouter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.robolectric.Shadows.shadowOf;
 
-import android.app.Activity;
-import android.content.ComponentName;
-import android.content.Intent;
-import android.content.IntentFilter;
-import android.net.Uri;
+import androidx.annotation.NonNull;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.Robolectric;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.shadows.ShadowPackageManager;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
-@RunWith(RobolectricTestRunner.class)
 public class AndroidBRouterInstallLauncherTest {
+    private static final String ACTION_VIEW = "android.intent.action.VIEW";
+    private static final String MARKET_URI =
+            "market://details?id=" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+    private static final String PLAY_STORE_WEB_URI =
+            "https://play.google.com/store/apps/details?id="
+                    + BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+    private static final String FDROID_URI =
+            "https://f-droid.org/packages/" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME + "/";
 
     @Test
     public void launchPlayStore_usesMarketUriWhenResolvable() {
-        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        Intent marketIntent = new Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("market://details?id=" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME)
-        );
-        registerResolvableIntent(activity, marketIntent, "com.android.vending");
+        RecordingLauncher launcher = new RecordingLauncher().resolves(MARKET_URI);
 
-        assertTrue(AndroidBRouterInstallLauncher.launchPlayStore(activity));
+        assertTrue(AndroidBRouterInstallLauncher.launchPlayStore(launcher));
 
-        Intent startedIntent = shadowOf(activity).getNextStartedActivity();
-        assertEquals("market", startedIntent.getData().getScheme());
-        assertEquals(BRouterProfilesRepository.BROUTER_PACKAGE_NAME,
-                startedIntent.getData().getQueryParameter("id"));
+        assertEquals(ACTION_VIEW, launcher.launchedAction);
+        assertEquals(MARKET_URI, launcher.launchedUri);
     }
 
     @Test
     public void launchPlayStore_fallsBackToWebWhenMarketUriIsUnresolvable() {
-        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        Intent webIntent = new Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://play.google.com/store/apps/details?id="
-                        + BRouterProfilesRepository.BROUTER_PACKAGE_NAME)
-        );
-        registerResolvableIntent(activity, webIntent, "com.android.chrome");
+        RecordingLauncher launcher = new RecordingLauncher().resolves(PLAY_STORE_WEB_URI);
 
-        assertTrue(AndroidBRouterInstallLauncher.launchPlayStore(activity));
+        assertTrue(AndroidBRouterInstallLauncher.launchPlayStore(launcher));
 
-        Intent startedIntent = shadowOf(activity).getNextStartedActivity();
-        assertEquals("https", startedIntent.getData().getScheme());
-        assertEquals("play.google.com", startedIntent.getData().getHost());
-        assertEquals(BRouterProfilesRepository.BROUTER_PACKAGE_NAME,
-                startedIntent.getData().getQueryParameter("id"));
+        assertEquals(ACTION_VIEW, launcher.launchedAction);
+        assertEquals(PLAY_STORE_WEB_URI, launcher.launchedUri);
     }
 
     @Test
     public void launchFdroid_opensFdroidPackagePage() {
-        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
-        Intent fdroidIntent = new Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://f-droid.org/packages/" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME + "/")
-        );
-        registerResolvableIntent(activity, fdroidIntent, "org.mozilla.firefox");
+        RecordingLauncher launcher = new RecordingLauncher().resolves(FDROID_URI);
 
-        assertTrue(AndroidBRouterInstallLauncher.launchFdroid(activity));
+        assertTrue(AndroidBRouterInstallLauncher.launchFdroid(launcher));
 
-        Intent startedIntent = shadowOf(activity).getNextStartedActivity();
-        assertEquals("https", startedIntent.getData().getScheme());
-        assertEquals("f-droid.org", startedIntent.getData().getHost());
-        assertEquals("/packages/" + BRouterProfilesRepository.BROUTER_PACKAGE_NAME + "/",
-                startedIntent.getData().getPath());
+        assertEquals(ACTION_VIEW, launcher.launchedAction);
+        assertEquals(FDROID_URI, launcher.launchedUri);
     }
 
     @Test
     public void launchPlayStore_returnsFalseWhenNoStorePageCanBeOpened() {
-        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        RecordingLauncher launcher = new RecordingLauncher();
 
-        assertFalse(AndroidBRouterInstallLauncher.launchPlayStore(activity));
+        assertFalse(AndroidBRouterInstallLauncher.launchPlayStore(launcher));
 
-        assertEquals(null, shadowOf(activity).getNextStartedActivity());
+        assertNull(launcher.launchedUri);
     }
 
-    private static void registerResolvableIntent(Activity activity, Intent intent, String packageName) {
-        ShadowPackageManager shadowPackageManager = shadowOf(activity.getPackageManager());
-        ComponentName component = new ComponentName(packageName, packageName + ".StoreActivity");
-        shadowPackageManager.addActivityIfNotPresent(component);
-        shadowPackageManager.addIntentFilterForActivity(component, intentFilterFor(intent));
-    }
+    private static final class RecordingLauncher implements AndroidBRouterInstallLauncher.InstallLauncher {
+        @NonNull
+        private final Set<String> resolvableUris = new HashSet<>();
+        private String launchedAction;
+        private String launchedUri;
 
-    private static IntentFilter intentFilterFor(Intent intent) {
-        IntentFilter filter = new IntentFilter(intent.getAction());
-        filter.addCategory(Intent.CATEGORY_DEFAULT);
-        if (intent.getData() != null && intent.getData().getScheme() != null) {
-            filter.addDataScheme(intent.getData().getScheme());
+        @NonNull
+        RecordingLauncher resolves(@NonNull String uri) {
+            resolvableUris.add(uri);
+            return this;
         }
-        return filter;
+
+        @Override
+        public boolean canResolve(@NonNull AndroidBRouterInstallLauncher.InstallTarget target) {
+            return resolvableUris.contains(target.uriString);
+        }
+
+        @Override
+        public boolean launch(@NonNull AndroidBRouterInstallLauncher.InstallTarget target) {
+            launchedAction = target.action;
+            launchedUri = target.uriString;
+            return true;
+        }
     }
 }

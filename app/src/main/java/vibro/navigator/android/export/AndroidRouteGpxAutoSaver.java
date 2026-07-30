@@ -30,7 +30,11 @@ public final class AndroidRouteGpxAutoSaver {
 
     @NonNull
     static File save(@NonNull Context context, @NonNull String gpx, @NonNull Date now) throws IOException {
-        File dir = ensureGpxDir(context);
+        return saveToDirectory(ensureGpxDir(context), gpx, now);
+    }
+
+    @NonNull
+    static File saveToDirectory(@NonNull File dir, @NonNull String gpx, @NonNull Date now) throws IOException {
         File file = nextFile(dir, now);
         try (OutputStreamWriter writer = new OutputStreamWriter(
                 new FileOutputStream(file),

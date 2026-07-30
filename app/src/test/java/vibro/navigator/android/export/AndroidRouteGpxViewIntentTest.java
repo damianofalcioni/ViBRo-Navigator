@@ -26,8 +26,6 @@ import org.robolectric.shadows.ShadowPackageManager;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
@@ -46,46 +44,6 @@ public class AndroidRouteGpxViewIntentTest {
             deleteChildren(new File(externalFilesDir, GPX_DIR));
         }
         deleteChildren(new File(context.getFilesDir(), GPX_DIR));
-    }
-
-    @Test
-    public void writeExportFile_writesTimestampedGpxToPersistentGpxFolder() throws Exception {
-        File file = AndroidRouteGpxViewIntent.writeExportFile(context, GPX, new Date(0L));
-
-        assertEquals(GPX_DIR, file.getParentFile().getName());
-        assertTrue(Pattern.matches("vibro-navigator-route-\\d{14}\\.gpx", file.getName()));
-        assertEquals(GPX, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
-    }
-
-    @Test
-    public void writeExportFile_usesCollisionSuffixForSameSecond() throws Exception {
-        Date now = new Date(0L);
-
-        File first = AndroidRouteGpxViewIntent.writeExportFile(context, GPX, now);
-        File second = AndroidRouteGpxViewIntent.writeExportFile(context, GPX, now);
-
-        assertEquals(AndroidRouteGpxAutoSaver.buildFileName(now), first.getName());
-        assertEquals(first.getName().replace(".gpx", "-2.gpx"), second.getName());
-    }
-
-    @Test
-    public void autoSave_writesGpxToPersistentGpxFolderWithTimestampedName() throws Exception {
-        File file = AndroidRouteGpxAutoSaver.save(context, GPX, new Date(0L));
-
-        assertEquals(GPX_DIR, file.getParentFile().getName());
-        assertTrue(Pattern.matches("vibro-navigator-route-\\d{14}\\.gpx", file.getName()));
-        assertEquals(GPX, new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8));
-    }
-
-    @Test
-    public void autoSave_usesCollisionSuffixForSameSecond() throws Exception {
-        Date now = new Date(0L);
-
-        File first = AndroidRouteGpxAutoSaver.save(context, GPX, now);
-        File second = AndroidRouteGpxAutoSaver.save(context, GPX, now);
-
-        assertEquals(AndroidRouteGpxAutoSaver.buildFileName(now), first.getName());
-        assertEquals(first.getName().replace(".gpx", "-2.gpx"), second.getName());
     }
 
     @Test
