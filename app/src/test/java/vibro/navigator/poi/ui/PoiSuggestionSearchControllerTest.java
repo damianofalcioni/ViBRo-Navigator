@@ -4,15 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,8 +20,8 @@ import java.util.concurrent.TimeUnit;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.PoiHistoryStore;
+import vibro.navigator.testutil.InMemorySharedPreferences;
 
-@RunWith(RobolectricTestRunner.class)
 public class PoiSuggestionSearchControllerTest {
     private static final String QUERY_INITIAL = "museum";
     private static final String QUERY_UPDATED = "museumx";
@@ -34,16 +30,7 @@ public class PoiSuggestionSearchControllerTest {
     private static final String ONLINE_COFFEE = "Coffee Online";
     private static final String TEST_LOG_TAG = "PoiSuggestionSearchControllerTest";
 
-    private Context context;
-
-    @Before
-    public void setUp() {
-        context = ApplicationProvider.getApplicationContext();
-        context.getSharedPreferences("vibenavigator_poi_history", Context.MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit();
-    }
+    private final SharedPreferences preferences = new InMemorySharedPreferences();
 
     @Test
     public void scheduleSearch_discardsInFlightResultWhenQueryChangesBeforeNextDebounceRuns() {
@@ -52,7 +39,7 @@ public class PoiSuggestionSearchControllerTest {
         CapturingPresenter presenter = new CapturingPresenter();
         PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
                 scheduler,
-                new PoiHistoryStore(context),
+                new PoiHistoryStore(preferences),
                 (query, limit) -> Collections.singletonList(new Poi(query, 48.2082d, 16.3738d)),
                 TEST_LOG_TAG,
                 presenter,
@@ -76,7 +63,7 @@ public class PoiSuggestionSearchControllerTest {
         CapturingPresenter presenter = new CapturingPresenter();
         PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
                 scheduler,
-                new PoiHistoryStore(context),
+                new PoiHistoryStore(preferences),
                 (query, limit) -> Collections.singletonList(new Poi(query, 48.2082d, 16.3738d)),
                 TEST_LOG_TAG,
                 presenter,
@@ -98,7 +85,7 @@ public class PoiSuggestionSearchControllerTest {
         FakeScheduler scheduler = new FakeScheduler();
         CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
         CapturingPresenter presenter = new CapturingPresenter();
-        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        PoiHistoryStore historyStore = new PoiHistoryStore(preferences);
         historyStore.addOrPromote(new Poi(HISTORY_COFFEE, 48.2082d, 16.3738d));
         PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
                 scheduler,
@@ -132,7 +119,7 @@ public class PoiSuggestionSearchControllerTest {
         FakeScheduler scheduler = new FakeScheduler();
         CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
         CapturingPresenter presenter = new CapturingPresenter();
-        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        PoiHistoryStore historyStore = new PoiHistoryStore(preferences);
         historyStore.addOrPromote(new Poi(HISTORY_COFFEE, 48.2082d, 16.3738d));
         PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
                 scheduler,
@@ -157,7 +144,7 @@ public class PoiSuggestionSearchControllerTest {
         FakeScheduler scheduler = new FakeScheduler();
         CapturingSearchDispatcher dispatcher = new CapturingSearchDispatcher();
         CapturingPresenter presenter = new CapturingPresenter();
-        PoiHistoryStore historyStore = new PoiHistoryStore(context);
+        PoiHistoryStore historyStore = new PoiHistoryStore(preferences);
         historyStore.addOrPromote(new Poi(HISTORY_COFFEE, 48.2082d, 16.3738d));
         PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
                 scheduler,
@@ -186,7 +173,7 @@ public class PoiSuggestionSearchControllerTest {
         CapturingPresenter presenter = new CapturingPresenter();
         PoiSuggestionSearchController controller = new PoiSuggestionSearchController(
                 scheduler,
-                new PoiHistoryStore(context),
+                new PoiHistoryStore(preferences),
                 (query, limit) -> Collections.singletonList(new Poi(ONLINE_COFFEE, 48.2000d, 16.3600d)),
                 TEST_LOG_TAG,
                 presenter,

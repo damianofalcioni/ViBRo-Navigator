@@ -4,15 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,13 +19,14 @@ import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
+import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationOrientationControllerTest {
 
     private static final long START_MS = 1_000L;
@@ -53,7 +49,6 @@ public class NavigationOrientationControllerTest {
 
     @Test
     public void headingSampleUpdateSendsStationaryOrientationAfterLocationEvaluationWaitedForSensor() {
-        Context context = ApplicationProvider.getApplicationContext();
         MutableClock clock = new MutableClock(START_MS);
         FakeHeadingMonitor headingMonitor = new FakeHeadingMonitor();
         RecordingForegroundController foregroundController = new RecordingForegroundController();
@@ -64,7 +59,7 @@ public class NavigationOrientationControllerTest {
                 Runnable::run,
                 new PassiveCompassUiState()
         );
-        NavigationSession session = straightLineSession(context);
+        NavigationSession session = straightLineSession();
         controller.start();
 
         controller.maybeSendStationaryOrientationNotification(session, foregroundController);
@@ -76,7 +71,7 @@ public class NavigationOrientationControllerTest {
     }
 
     @NonNull
-    private static NavigationSession straightLineSession(@NonNull Context context) {
+    private static NavigationSession straightLineSession() {
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
                 NavigationRoutingMode.STRAIGHT_LINE,
@@ -85,8 +80,17 @@ public class NavigationOrientationControllerTest {
                 new LatLon(0.0, 0.001),
                 Collections.emptyList()
         ));
-        assertTrue(session.start(context, START_MS));
-        session.onRawLocationChanged(context, location(START_MS), START_MS);
+        assertTrue(NavigationSessionResourceAdapter.start(
+                session,
+                TestNavigationTextResources.metric(),
+                START_MS
+        ));
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TestNavigationTextResources.metric(),
+                location(START_MS),
+                START_MS
+        );
         return session;
     }
 

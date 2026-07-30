@@ -33,7 +33,11 @@ final class SavedRouteStore {
     private final SharedPreferences prefs;
 
     SavedRouteStore(@NonNull Context context) {
-        prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
+    }
+
+    SavedRouteStore(@NonNull SharedPreferences prefs) {
+        this.prefs = prefs;
     }
 
     @NonNull
@@ -65,7 +69,7 @@ final class SavedRouteStore {
     ) {
         List<SavedRoute> routes = list();
         SavedRoute route = new SavedRoute(
-                newRouteId(routes),
+                SavedRouteIds.newRouteId(routes),
                 name.trim(),
                 destination,
                 stops,
@@ -122,27 +126,6 @@ final class SavedRouteStore {
         } catch (JSONException e) {
             AppLogger.w(TAG, "Failed to serialize saved routes", e);
         }
-    }
-
-    @NonNull
-    private static String newRouteId(@NonNull List<SavedRoute> routes) {
-        String baseId = "route-" + System.currentTimeMillis();
-        String routeId = baseId;
-        int suffix = 2;
-        while (containsRouteId(routes, routeId)) {
-            routeId = baseId + "-" + suffix;
-            suffix++;
-        }
-        return routeId;
-    }
-
-    private static boolean containsRouteId(@NonNull List<SavedRoute> routes, @NonNull String routeId) {
-        for (SavedRoute route : routes) {
-            if (route.id.equals(routeId)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Nullable

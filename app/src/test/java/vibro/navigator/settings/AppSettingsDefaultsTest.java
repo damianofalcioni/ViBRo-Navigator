@@ -4,65 +4,44 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
+import android.content.SharedPreferences;
 
-import androidx.test.core.app.ApplicationProvider;
-
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-import vibro.navigator.logging.AppLogger;
+import vibro.navigator.testutil.InMemorySharedPreferences;
 
-@RunWith(RobolectricTestRunner.class)
 public class AppSettingsDefaultsTest {
-    private Context context;
-
-    @Before
-    public void setUp() {
-        context = ApplicationProvider.getApplicationContext();
-        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit();
-        context.getSharedPreferences("app_logging", Context.MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit();
-        AppLogger.init(context);
-    }
+    private final SharedPreferences preferences = new InMemorySharedPreferences();
 
     @Test
     public void freshInstallDefaultsMatchRequestedSettings() {
-        assertFalse(AppThemeSettings.isLightThemeEnabled(context));
-        assertFalse(AppSettings.isImperialUnitsEnabled(context));
-        assertTrue(AppNotificationSettings.areNavigationNotificationsEnabled(context));
-        assertTrue(AppSettings.isManeuverSpeechEnabled(context));
-        assertTrue(AppLocationSettings.isDynamicGpsFixIntervalEnabled(context));
-        assertFalse(AppNotificationSettings.isSingleInstructionModeEnabled(context));
-        assertTrue(AppNavigationCustomButtonSettings.isEnabled(context));
+        assertFalse(AppThemeSettings.isLightThemeEnabled(preferences));
+        assertFalse(AppSettingsPreferenceValues.isImperialUnitsEnabled(preferences));
+        assertTrue(AppNotificationSettings.areNavigationNotificationsEnabled(preferences));
+        assertTrue(AppSettingsPreferenceValues.isManeuverSpeechEnabled(preferences));
+        assertTrue(AppLocationSettings.isDynamicGpsFixIntervalEnabled(preferences));
+        assertFalse(AppNotificationSettings.isSingleInstructionModeEnabled(preferences));
+        assertTrue(AppNavigationCustomButtonSettings.isEnabled(preferences));
         assertEquals(
                 AppNavigationCustomButtonSettings.Target.LIGHT_THEME,
-                AppNavigationCustomButtonSettings.getTarget(context)
+                AppNavigationCustomButtonSettings.getTarget(preferences)
         );
-        assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(context));
-        assertTrue(AppAndroidAutoSettings.isIntegrationEnabled(context));
-        assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(context));
-        assertFalse(AppCompassSettings.isInstantZoomEnabled(context));
-        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(context));
-        assertTrue(AppSettings.isMapPoiCategoryFilterEnabled(context));
-        assertTrue(AppSpeechRecognitionSettings.isEnabled(context));
-        assertFalse(AppSettings.hasValidGooglePoiApiKey(context));
-        assertFalse(AppSettings.isGooglePoiSearchEnabled(context));
-        assertTrue(AppSettings.isFusedLocationEnabled(context));
-        assertFalse(AppLogger.isLoggingEnabled(context));
+        assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(preferences));
+        assertTrue(AppAndroidAutoSettings.isIntegrationEnabled(preferences));
+        assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(preferences));
+        assertFalse(AppCompassSettings.isInstantZoomEnabled(preferences));
+        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(preferences));
+        assertTrue(AppPoiCategoryPreferences.isMapPoiCategoryFilterEnabled(preferences));
+        assertTrue(AppSpeechRecognitionSettings.isEnabled(preferences));
+        assertFalse(AppSettingsPreferenceValues.hasValidGooglePoiApiKey(preferences));
+        assertFalse(AppSettingsPreferenceValues.isGooglePoiSearchEnabled(preferences));
+        assertTrue(AppSettingsPreferenceValues.isFusedLocationEnabled(preferences));
     }
 
     @Test
     public void explicitSpeechDirectionsDisabledValueStillWins() {
-        AppSettings.setManeuverSpeechEnabled(context, false);
+        AppSettingsPreferenceValues.setManeuverSpeechEnabled(preferences, false);
 
-        assertFalse(AppSettings.isManeuverSpeechEnabled(context));
+        assertFalse(AppSettingsPreferenceValues.isManeuverSpeechEnabled(preferences));
     }
 }

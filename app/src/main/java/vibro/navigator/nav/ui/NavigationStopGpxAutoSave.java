@@ -20,12 +20,30 @@ final class NavigationStopGpxAutoSave {
         String buildCurrentRouteGpx();
     }
 
+    interface RouteGpxSaver {
+        @NonNull
+        File save(@NonNull String gpx) throws IOException;
+    }
+
     private NavigationStopGpxAutoSave() {
     }
 
     @Nullable
     static File saveIfEnabled(@NonNull Context context, @NonNull RouteGpxSource source) {
-        if (!AppGpxSettings.isAutoSaveOnStopEnabled(context)) {
+        return saveIfEnabled(
+                AppGpxSettings.isAutoSaveOnStopEnabled(context),
+                source,
+                gpx -> AndroidRouteGpxAutoSaver.save(context, gpx)
+        );
+    }
+
+    @Nullable
+    static File saveIfEnabled(
+            boolean enabled,
+            @NonNull RouteGpxSource source,
+            @NonNull RouteGpxSaver saver
+    ) {
+        if (!enabled) {
             return null;
         }
         String gpx = source.buildCurrentRouteGpx();
@@ -34,7 +52,7 @@ final class NavigationStopGpxAutoSave {
             return null;
         }
         try {
-            File file = AndroidRouteGpxAutoSaver.save(context, gpx);
+            File file = saver.save(gpx);
             AppLogger.i(TAG, "Auto-saved route GPX path=" + file.getAbsolutePath());
             return file;
         } catch (IOException | RuntimeException e) {

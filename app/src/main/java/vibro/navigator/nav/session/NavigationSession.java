@@ -21,6 +21,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
 import java.util.Collections;
@@ -85,8 +86,13 @@ public final class NavigationSession {
 
     @Nullable
     public String buildCurrentRouteGpx(@NonNull Context context) {
+        return buildCurrentRouteGpx(new AndroidNavigationTextResources(context));
+    }
+
+    @Nullable
+    public String buildCurrentRouteGpx(@NonNull NavigationTextResources textResources) {
         return NavigationSessionRouteExporter.export(
-                context,
+                textResources,
                 components.routeState,
                 components.straightLineState,
                 components.locationState.getLastFilteredLocation(),

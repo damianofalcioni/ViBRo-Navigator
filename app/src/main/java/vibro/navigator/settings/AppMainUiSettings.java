@@ -1,6 +1,7 @@
 package vibro.navigator.settings;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
@@ -14,19 +15,32 @@ public final class AppMainUiSettings {
 
     @NonNull
     public static NavigationRoutingMode getRoutingMode(@NonNull Context context) {
-        return NavigationRoutingMode.fromSerializedName(
-                context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
-                        .getString(KEY_MAIN_UI_ROUTING_MODE, null)
-        );
+        return getRoutingMode(prefs(context));
+    }
+
+    @NonNull
+    static NavigationRoutingMode getRoutingMode(@NonNull SharedPreferences preferences) {
+        return NavigationRoutingMode.fromSerializedName(preferences.getString(KEY_MAIN_UI_ROUTING_MODE, null));
     }
 
     public static void setRoutingMode(
             @NonNull Context context,
             @NonNull NavigationRoutingMode routingMode
     ) {
-        context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE)
-                .edit()
+        setRoutingMode(prefs(context), routingMode);
+    }
+
+    static void setRoutingMode(
+            @NonNull SharedPreferences preferences,
+            @NonNull NavigationRoutingMode routingMode
+    ) {
+        preferences.edit()
                 .putString(KEY_MAIN_UI_ROUTING_MODE, routingMode.serializedName())
                 .apply();
+    }
+
+    @NonNull
+    private static SharedPreferences prefs(@NonNull Context context) {
+        return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE);
     }
 }

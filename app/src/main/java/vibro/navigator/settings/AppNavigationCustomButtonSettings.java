@@ -48,22 +48,39 @@ public final class AppNavigationCustomButtonSettings {
     }
 
     public static boolean isEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_NAVIGATION_CUSTOM_BUTTON_ENABLED, true);
+        return isEnabled(prefs(context));
+    }
+
+    static boolean isEnabled(@NonNull SharedPreferences preferences) {
+        return preferences.getBoolean(KEY_NAVIGATION_CUSTOM_BUTTON_ENABLED, true);
     }
 
     public static void setEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
+        setEnabled(prefs(context), enabled);
+    }
+
+    static void setEnabled(@NonNull SharedPreferences preferences, boolean enabled) {
+        preferences.edit()
                 .putBoolean(KEY_NAVIGATION_CUSTOM_BUTTON_ENABLED, enabled)
                 .apply();
     }
 
     @NonNull
     public static Target getTarget(@NonNull Context context) {
-        return Target.fromSerializedName(prefs(context).getString(KEY_NAVIGATION_CUSTOM_BUTTON_TARGET, null));
+        return getTarget(prefs(context));
+    }
+
+    @NonNull
+    static Target getTarget(@NonNull SharedPreferences preferences) {
+        return Target.fromSerializedName(preferences.getString(KEY_NAVIGATION_CUSTOM_BUTTON_TARGET, null));
     }
 
     public static void setTarget(@NonNull Context context, @NonNull Target target) {
-        prefs(context).edit()
+        setTarget(prefs(context), target);
+    }
+
+    static void setTarget(@NonNull SharedPreferences preferences, @NonNull Target target) {
+        preferences.edit()
                 .putString(KEY_NAVIGATION_CUSTOM_BUTTON_TARGET, target.serializedName())
                 .apply();
     }

@@ -5,14 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
-import androidx.test.core.app.ApplicationProvider;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +22,6 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
-@RunWith(RobolectricTestRunner.class)
 public class NavigationSessionGpxExportTest {
     private static final String DESTINATION = "Destination";
     private static final String GPX_ROUTE_POINT = "<rtept ";
@@ -42,7 +36,6 @@ public class NavigationSessionGpxExportTest {
 
     @Test
     public void buildCurrentRouteGpx_exportsStraightLinePointsAndStraightRouteOnly() {
-        Context androidContext = ApplicationProvider.getApplicationContext();
         NavigationTextResources textResources = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         LatLon stop = new LatLon(0.0, 0.001);
@@ -63,7 +56,7 @@ public class NavigationSessionGpxExportTest {
                 locationWithSpeedAndAltitude(0.0, 0.0, nowMs, 2f, 188.5),
                 nowMs
         );
-        String gpx = session.buildCurrentRouteGpx(androidContext);
+        String gpx = session.buildCurrentRouteGpx(textResources);
 
         assertNotNull(gpx);
         assertEquals(3, countOccurrences(gpx, GPX_ROUTE_POINT));
@@ -79,7 +72,6 @@ public class NavigationSessionGpxExportTest {
 
     @Test
     public void buildCurrentRouteGpx_exportsStraightLineAcceptedFixPathAsPassedTrack() {
-        Context androidContext = ApplicationProvider.getApplicationContext();
         NavigationTextResources textResources = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -104,7 +96,7 @@ public class NavigationSessionGpxExportTest {
                 2_000L
         );
 
-        String gpx = session.buildCurrentRouteGpx(androidContext);
+        String gpx = session.buildCurrentRouteGpx(textResources);
 
         assertNotNull(gpx);
         assertEquals(2, countOccurrences(gpx, "<trkseg>"));
@@ -115,7 +107,6 @@ public class NavigationSessionGpxExportTest {
 
     @Test
     public void buildCurrentRouteGpx_exportsPassedRouteHistoryAndAcceptedFixes() {
-        Context androidContext = ApplicationProvider.getApplicationContext();
         NavigationTextResources textResources = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -157,7 +148,7 @@ public class NavigationSessionGpxExportTest {
                 3_000L
         );
 
-        String gpx = session.buildCurrentRouteGpx(androidContext);
+        String gpx = session.buildCurrentRouteGpx(textResources);
 
         assertNotNull(gpx);
         assertEquals(3, countOccurrences(gpx, "<trkseg>"));

@@ -4,72 +4,57 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.content.Context;
+import android.content.SharedPreferences;
 
-import androidx.test.core.app.ApplicationProvider;
-
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import vibro.navigator.settings.AppNavigationCustomButtonSettings.Target;
+import vibro.navigator.testutil.InMemorySharedPreferences;
 
-@RunWith(RobolectricTestRunner.class)
 public class AppNavigationCustomButtonSettingsTest {
-    private Context context;
-
-    @Before
-    public void setUp() {
-        context = ApplicationProvider.getApplicationContext();
-        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit();
-    }
+    private final SharedPreferences preferences = new InMemorySharedPreferences();
 
     @Test
     public void defaultsToVisibleLightThemeButton() {
-        assertTrue(AppNavigationCustomButtonSettings.isEnabled(context));
-        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(context));
+        assertTrue(AppNavigationCustomButtonSettings.isEnabled(preferences));
+        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(preferences));
     }
 
     @Test
     public void persistsEnabledAndSelectedTarget() {
-        AppNavigationCustomButtonSettings.setEnabled(context, true);
-        AppNavigationCustomButtonSettings.setTarget(context, Target.SPEECH_DIRECTIONS);
+        AppNavigationCustomButtonSettings.setEnabled(preferences, true);
+        AppNavigationCustomButtonSettings.setTarget(preferences, Target.SPEECH_DIRECTIONS);
 
-        assertTrue(AppNavigationCustomButtonSettings.isEnabled(context));
-        assertEquals(Target.SPEECH_DIRECTIONS, AppNavigationCustomButtonSettings.getTarget(context));
+        assertTrue(AppNavigationCustomButtonSettings.isEnabled(preferences));
+        assertEquals(Target.SPEECH_DIRECTIONS, AppNavigationCustomButtonSettings.getTarget(preferences));
     }
 
     @Test
     public void unknownSavedTargetFallsBackToLightTheme() {
-        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
-                .edit()
+        preferences.edit()
                 .putString("navigation_custom_button_target", "unknown")
                 .commit();
 
-        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(context));
+        assertEquals(Target.LIGHT_THEME, AppNavigationCustomButtonSettings.getTarget(preferences));
     }
 
     @Test
     public void targetStateReadsAndWritesFullscreenRouteSetting() {
-        AppCompassSettings.setFullscreenRouteEnabled(context, false);
+        AppCompassSettings.setFullscreenRouteEnabled(preferences, false);
 
-        AppNavigationCustomButtonTargetState.setEnabled(context, Target.FULLSCREEN_ROUTE, true);
+        AppNavigationCustomButtonTargetState.setEnabled(preferences, Target.FULLSCREEN_ROUTE, true);
 
-        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(context));
-        assertTrue(AppNavigationCustomButtonTargetState.isEnabled(context, Target.FULLSCREEN_ROUTE));
+        assertTrue(AppCompassSettings.isFullscreenRouteEnabled(preferences));
+        assertTrue(AppNavigationCustomButtonTargetState.isEnabled(preferences, Target.FULLSCREEN_ROUTE));
     }
 
     @Test
     public void targetStateReadsAndWritesNavigationNotificationSetting() {
-        AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
+        AppNotificationSettings.setNavigationNotificationsEnabled(preferences, true);
 
-        AppNavigationCustomButtonTargetState.setEnabled(context, Target.NOTIFICATIONS, false);
+        AppNavigationCustomButtonTargetState.setEnabled(preferences, Target.NOTIFICATIONS, false);
 
-        assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(context));
-        assertFalse(AppNavigationCustomButtonTargetState.isEnabled(context, Target.NOTIFICATIONS));
+        assertFalse(AppNotificationSettings.areNavigationNotificationsEnabled(preferences));
+        assertFalse(AppNavigationCustomButtonTargetState.isEnabled(preferences, Target.NOTIFICATIONS));
     }
 }

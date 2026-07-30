@@ -4,39 +4,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import android.app.Application;
-import android.content.Context;
+import android.content.SharedPreferences;
 
-import androidx.test.core.app.ApplicationProvider;
-
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
 import java.util.List;
 
-@RunWith(RobolectricTestRunner.class)
+import vibro.navigator.testutil.InMemorySharedPreferences;
+
 public class PoiHistoryStoreTest {
     private static final String COFFEE = "Coffee";
     private static final String COFFEE_SPOT = "Coffee Spot";
     private static final String VIENNA_COORDINATES = "48.208200, 16.373800";
 
-    private Context context;
-
-    @Before
-    public void setUp() {
-        Application application = ApplicationProvider.getApplicationContext();
-        context = application;
-        context.getSharedPreferences("vibenavigator_poi_history", Context.MODE_PRIVATE)
-                .edit()
-                .clear()
-                .commit();
-    }
+    private final SharedPreferences preferences = new InMemorySharedPreferences();
 
     @Test
     public void rename_updatesMatchingStoredDestinationNameWithoutChangingCoordinates() {
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
         Poi renamed = new Poi(COFFEE_SPOT, 48.2082d, 16.3738d);
         store.addOrPromote(new Poi(COFFEE, 48.2082d, 16.3738d));
         store.addOrPromote(new Poi("Office", 48.2100d, 16.3700d));
@@ -54,7 +39,7 @@ public class PoiHistoryStoreTest {
 
     @Test
     public void rename_rejectsBlankNames() {
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
         store.addOrPromote(new Poi(COFFEE, 48.2082d, 16.3738d));
 
         boolean changed = store.rename(new Poi(COFFEE, 48.2082d, 16.3738d), "   ");
@@ -67,7 +52,7 @@ public class PoiHistoryStoreTest {
 
     @Test
     public void addOrPromote_sameCoordinatesKeepsNewDisplayName() {
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
         store.addOrPromote(new Poi(VIENNA_COORDINATES, 48.2082d, 16.3738d));
 
         store.addOrPromote(new Poi("Stephansplatz, Vienna", 48.2082d, 16.3738d));
@@ -81,7 +66,7 @@ public class PoiHistoryStoreTest {
 
     @Test
     public void addOrPromote_blankNameStoresCoordinateFallback() {
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
 
         store.addOrPromote(new Poi("", 48.2082d, 16.3738d));
 
@@ -94,7 +79,7 @@ public class PoiHistoryStoreTest {
 
     @Test
     public void search_returnsCaseInsensitiveMatchesInHistoryOrder() {
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
         store.addOrPromote(new Poi("Museum Quarter", 48.2030d, 16.3580d));
         store.addOrPromote(new Poi(COFFEE_SPOT, 48.2082d, 16.3738d));
         store.addOrPromote(new Poi("Office", 48.2100d, 16.3700d));
@@ -107,7 +92,7 @@ public class PoiHistoryStoreTest {
 
     @Test
     public void addOrPromote_ignoresInvalidCoordinates() {
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
 
         store.addOrPromote(new Poi("Invalid", 91.0d, 16.3738d));
 
@@ -116,14 +101,13 @@ public class PoiHistoryStoreTest {
 
     @Test
     public void list_ignoresStoredItemsWithInvalidCoordinates() {
-        context.getSharedPreferences("vibenavigator_poi_history", Context.MODE_PRIVATE)
-                .edit()
+        preferences.edit()
                 .putString("items", "["
                         + "{\"name\":\"Invalid\",\"lat\":91.0,\"lon\":16.3738},"
                         + "{\"name\":\"Coffee\",\"lat\":48.2082,\"lon\":16.3738}"
                         + "]")
                 .commit();
-        PoiHistoryStore store = new PoiHistoryStore(context);
+        PoiHistoryStore store = new PoiHistoryStore(preferences);
 
         List<Poi> items = store.list();
 

@@ -38,6 +38,18 @@ public class AppLoggerTest {
     }
 
     @Test
+    public void init_readsLoggingDisabledByDefault() {
+        context.getSharedPreferences("app_logging", Application.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit();
+
+        AppLogger.init(context);
+
+        assertFalse(AppLogger.isLoggingEnabled(context));
+    }
+
+    @Test
     public void enablingLoggingWritesSessionInfoAsFirstEntry() throws Exception {
         assertTrue(AppLogger.setLoggingEnabled(context, true));
 

@@ -28,7 +28,11 @@ public final class PoiHistoryStore {
     private final SharedPreferences prefs;
 
     public PoiHistoryStore(@NonNull Context context) {
-        prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        this(context.getSharedPreferences(PREFS, Context.MODE_PRIVATE));
+    }
+
+    public PoiHistoryStore(@NonNull SharedPreferences prefs) {
+        this.prefs = prefs;
     }
 
     @NonNull

@@ -12,11 +12,19 @@ public final class AppLocationSettings {
     }
 
     public static boolean isDynamicGpsFixIntervalEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_DYNAMIC_GPS_FIX_INTERVAL_ENABLED, true);
+        return isDynamicGpsFixIntervalEnabled(prefs(context));
+    }
+
+    static boolean isDynamicGpsFixIntervalEnabled(@NonNull SharedPreferences preferences) {
+        return preferences.getBoolean(KEY_DYNAMIC_GPS_FIX_INTERVAL_ENABLED, true);
     }
 
     public static void setDynamicGpsFixIntervalEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
+        setDynamicGpsFixIntervalEnabled(prefs(context), enabled);
+    }
+
+    static void setDynamicGpsFixIntervalEnabled(@NonNull SharedPreferences preferences, boolean enabled) {
+        preferences.edit()
                 .putBoolean(KEY_DYNAMIC_GPS_FIX_INTERVAL_ENABLED, enabled)
                 .apply();
     }

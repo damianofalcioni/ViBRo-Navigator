@@ -1,6 +1,7 @@
 package vibro.navigator.settings;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
@@ -35,8 +36,8 @@ public final class AppNavigationCustomButtonTargetState {
             ),
             new Entry(
                     Target.SPEECH_DIRECTIONS,
-                    AppSettings::isManeuverSpeechEnabled,
-                    AppSettings::setManeuverSpeechEnabled
+                    AppSettingsPreferenceValues::isManeuverSpeechEnabled,
+                    AppSettingsPreferenceValues::setManeuverSpeechEnabled
             )
     };
 
@@ -44,11 +45,19 @@ public final class AppNavigationCustomButtonTargetState {
     }
 
     public static boolean isEnabled(@NonNull Context context, @NonNull Target target) {
-        return entryFor(target).reader.isEnabled(context);
+        return isEnabled(prefs(context), target);
+    }
+
+    static boolean isEnabled(@NonNull SharedPreferences preferences, @NonNull Target target) {
+        return entryFor(target).reader.isEnabled(preferences);
     }
 
     public static void setEnabled(@NonNull Context context, @NonNull Target target, boolean enabled) {
-        entryFor(target).writer.setEnabled(context, enabled);
+        setEnabled(prefs(context), target, enabled);
+    }
+
+    static void setEnabled(@NonNull SharedPreferences preferences, @NonNull Target target, boolean enabled) {
+        entryFor(target).writer.setEnabled(preferences, enabled);
     }
 
     @NonNull
@@ -62,11 +71,16 @@ public final class AppNavigationCustomButtonTargetState {
     }
 
     private interface Reader {
-        boolean isEnabled(@NonNull Context context);
+        boolean isEnabled(@NonNull SharedPreferences preferences);
     }
 
     private interface Writer {
-        void setEnabled(@NonNull Context context, boolean enabled);
+        void setEnabled(@NonNull SharedPreferences preferences, boolean enabled);
+    }
+
+    @NonNull
+    private static SharedPreferences prefs(@NonNull Context context) {
+        return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE);
     }
 
     private static final class Entry {

@@ -17,24 +17,41 @@ public final class AppSpeechRecognitionSettings {
     }
 
     public static boolean isEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_ENABLED, true);
+        return isEnabled(prefs(context));
+    }
+
+    static boolean isEnabled(@NonNull SharedPreferences preferences) {
+        return preferences.getBoolean(KEY_ENABLED, true);
     }
 
     public static void setEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
+        setEnabled(prefs(context), enabled);
+    }
+
+    static void setEnabled(@NonNull SharedPreferences preferences, boolean enabled) {
+        preferences.edit()
                 .putBoolean(KEY_ENABLED, enabled)
                 .apply();
     }
 
     @NonNull
     public static String getLanguageTag(@NonNull Context context) {
-        String languageTag = prefs(context).getString(KEY_LANGUAGE_TAG, LANGUAGE_SYSTEM_DEFAULT);
+        return getLanguageTag(prefs(context));
+    }
+
+    @NonNull
+    static String getLanguageTag(@NonNull SharedPreferences preferences) {
+        String languageTag = preferences.getString(KEY_LANGUAGE_TAG, LANGUAGE_SYSTEM_DEFAULT);
         return normalizeLanguageTag(languageTag);
     }
 
     public static void setLanguageTag(@NonNull Context context, @NonNull String languageTag) {
+        setLanguageTag(prefs(context), languageTag);
+    }
+
+    static void setLanguageTag(@NonNull SharedPreferences preferences, @NonNull String languageTag) {
         String normalized = normalizeLanguageTag(languageTag);
-        SharedPreferences.Editor editor = prefs(context).edit();
+        SharedPreferences.Editor editor = preferences.edit();
         if (normalized.isEmpty()) {
             editor.remove(KEY_LANGUAGE_TAG);
         } else {

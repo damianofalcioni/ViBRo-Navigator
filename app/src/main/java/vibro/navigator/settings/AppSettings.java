@@ -5,33 +5,10 @@ import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class AppSettings {
     static final String PREFS = "vibro.navigator.settings";
-    private static final String KEY_USE_FUSED_LOCATION = "use_fused_location";
-    private static final String KEY_USE_IMPERIAL_UNITS = "use_imperial_units";
-    private static final String KEY_GOOGLE_POI_API_KEY = "google_poi_api_key";
-    private static final String KEY_GOOGLE_POI_API_KEY_VALID = "google_poi_api_key_valid";
-    private static final String KEY_GOOGLE_POI_SEARCH_ENABLED = "google_poi_search_enabled";
-    private static final String KEY_MANEUVER_SPEECH_ENABLED = "maneuver_speech_enabled";
-    private static final String KEY_MANEUVER_VOICE_NAME = "maneuver_voice_name";
-    private static final String KEY_MAP_POI_CATEGORY_FILTER_ENABLED = "map_poi_category_filter_enabled";
-    private static final String KEY_MAP_POI_CATEGORY_NAMES = "map_poi_category_names";
-    private static final String[] DEFAULT_MAP_POI_CATEGORY_NAMES = {
-            "Bicycle Repair Station",
-            "Drinking Water",
-            "Fuel",
-            "Hospital",
-            "Parking",
-            "Pharmacy",
-            "Police",
-            "Public Transport Stop Position",
-            "Supermarket Shop",
-            "Taxi",
-            "Toilets"
-    };
     public static final String MANEUVER_VOICE_DISABLED = "__disabled__";
     public static final String MANEUVER_VOICE_SYSTEM_DEFAULT = "__system_default__";
 
@@ -39,103 +16,61 @@ public final class AppSettings {
     }
 
     public static boolean isFusedLocationEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_USE_FUSED_LOCATION, true);
+        return AppSettingsPreferenceValues.isFusedLocationEnabled(prefs(context));
     }
 
     public static void setFusedLocationEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
-                .putBoolean(KEY_USE_FUSED_LOCATION, enabled)
-                .apply();
+        AppSettingsPreferenceValues.setFusedLocationEnabled(prefs(context), enabled);
     }
 
     public static boolean isImperialUnitsEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_USE_IMPERIAL_UNITS, false);
+        return AppSettingsPreferenceValues.isImperialUnitsEnabled(prefs(context));
     }
 
     public static void setImperialUnitsEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
-                .putBoolean(KEY_USE_IMPERIAL_UNITS, enabled)
-                .apply();
+        AppSettingsPreferenceValues.setImperialUnitsEnabled(prefs(context), enabled);
     }
 
     @NonNull
     public static String getGooglePoiApiKey(@NonNull Context context) {
-        String apiKey = prefs(context).getString(KEY_GOOGLE_POI_API_KEY, "");
-        return apiKey == null ? "" : apiKey;
+        return AppSettingsPreferenceValues.getGooglePoiApiKey(prefs(context));
     }
 
     public static void setGooglePoiApiKey(@NonNull Context context, @NonNull String apiKey) {
-        String trimmed = apiKey.trim();
-        SharedPreferences.Editor editor = prefs(context).edit();
-        if (trimmed.isEmpty()) {
-            editor.remove(KEY_GOOGLE_POI_API_KEY);
-            editor.remove(KEY_GOOGLE_POI_API_KEY_VALID);
-            editor.remove(KEY_GOOGLE_POI_SEARCH_ENABLED);
-        } else {
-            editor.putString(KEY_GOOGLE_POI_API_KEY, trimmed);
-            editor.putBoolean(KEY_GOOGLE_POI_API_KEY_VALID, false);
-            editor.putBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, false);
-        }
-        editor.apply();
+        AppSettingsPreferenceValues.setGooglePoiApiKey(prefs(context), apiKey);
     }
 
     public static void setValidatedGooglePoiApiKey(@NonNull Context context, @NonNull String apiKey) {
-        String trimmed = apiKey.trim();
-        boolean valid = !trimmed.isEmpty();
-        prefs(context).edit()
-                .putString(KEY_GOOGLE_POI_API_KEY, trimmed)
-                .putBoolean(KEY_GOOGLE_POI_API_KEY_VALID, valid)
-                .putBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, valid)
-                .apply();
+        AppSettingsPreferenceValues.setValidatedGooglePoiApiKey(prefs(context), apiKey);
     }
 
     public static boolean hasValidGooglePoiApiKey(@NonNull Context context) {
-        boolean storedValid = prefs(context).getBoolean(KEY_GOOGLE_POI_API_KEY_VALID, false);
-        return Boolean.logicalAnd(!getGooglePoiApiKey(context).trim().isEmpty(), storedValid);
+        return AppSettingsPreferenceValues.hasValidGooglePoiApiKey(prefs(context));
     }
 
     public static boolean isGooglePoiSearchEnabled(@NonNull Context context) {
-        return hasValidGooglePoiApiKey(context)
-                && prefs(context).getBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, true);
+        return AppSettingsPreferenceValues.isGooglePoiSearchEnabled(prefs(context));
     }
 
     public static void setGooglePoiSearchEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
-                .putBoolean(KEY_GOOGLE_POI_SEARCH_ENABLED, enabled && hasValidGooglePoiApiKey(context))
-                .apply();
+        AppSettingsPreferenceValues.setGooglePoiSearchEnabled(prefs(context), enabled);
     }
 
     @NonNull
     public static String getManeuverVoiceName(@NonNull Context context) {
-        String voiceName = prefs(context).getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_SYSTEM_DEFAULT);
-        return normalizeManeuverVoiceName(voiceName);
+        return AppSettingsPreferenceValues.getManeuverVoiceName(prefs(context));
     }
 
     public static void setManeuverVoiceName(@NonNull Context context, @NonNull String voiceName) {
-        String trimmed = voiceName.trim();
-        SharedPreferences.Editor editor = prefs(context).edit();
-        if (trimmed.isEmpty() || MANEUVER_VOICE_DISABLED.equals(trimmed)) {
-            editor.remove(KEY_MANEUVER_VOICE_NAME);
-            editor.putBoolean(KEY_MANEUVER_SPEECH_ENABLED, false);
-        } else {
-            editor.putString(KEY_MANEUVER_VOICE_NAME, trimmed);
-        }
-        editor.apply();
+        AppSettingsPreferenceValues.setManeuverVoiceName(prefs(context), voiceName);
     }
 
     public static boolean isManeuverSpeechEnabled(@NonNull Context context) {
-        SharedPreferences sharedPreferences = prefs(context);
-        if (sharedPreferences.contains(KEY_MANEUVER_SPEECH_ENABLED)) {
-            return sharedPreferences.getBoolean(KEY_MANEUVER_SPEECH_ENABLED, false);
-        }
-        String voiceName = sharedPreferences.getString(KEY_MANEUVER_VOICE_NAME, MANEUVER_VOICE_SYSTEM_DEFAULT);
-        return !MANEUVER_VOICE_DISABLED.equals(voiceName);
+        return AppSettingsPreferenceValues.isManeuverSpeechEnabled(prefs(context));
     }
 
     public static void setManeuverSpeechEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
-                .putBoolean(KEY_MANEUVER_SPEECH_ENABLED, enabled)
-                .apply();
+        AppSettingsPreferenceValues.setManeuverSpeechEnabled(prefs(context), enabled);
     }
 
     public static boolean isSystemDefaultManeuverVoice(@NonNull String voiceName) {
@@ -143,81 +78,41 @@ public final class AppSettings {
     }
 
     public static boolean isMapPoiCategoryFilterEnabled(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_MAP_POI_CATEGORY_FILTER_ENABLED, true);
+        return AppPoiCategoryPreferences.isMapPoiCategoryFilterEnabled(prefs(context));
     }
 
     public static void setMapPoiCategoryFilterEnabled(@NonNull Context context, boolean enabled) {
-        prefs(context).edit()
-                .putBoolean(KEY_MAP_POI_CATEGORY_FILTER_ENABLED, enabled)
-                .apply();
+        AppPoiCategoryPreferences.setMapPoiCategoryFilterEnabled(prefs(context), enabled);
     }
 
     @NonNull
     public static List<String> getMapPoiCategoryNames(@NonNull Context context) {
-        List<String> names = new ArrayList<>();
-        for (AppPoiCategorySetting setting : getMapPoiCategorySettings(context)) {
-            names.add(setting.name);
-        }
-        return names;
+        return AppPoiCategoryPreferences.getMapPoiCategoryNames(prefs(context));
     }
 
     @NonNull
     public static List<String> getEnabledMapPoiCategoryNames(@NonNull Context context) {
-        List<String> names = new ArrayList<>();
-        for (AppPoiCategorySetting setting : getMapPoiCategorySettings(context)) {
-            if (setting.enabled) {
-                names.add(setting.name);
-            }
-        }
-        return names;
+        return AppPoiCategoryPreferences.getEnabledMapPoiCategoryNames(prefs(context));
     }
 
     @NonNull
     public static List<AppPoiCategorySetting> getMapPoiCategorySettings(@NonNull Context context) {
-        String payload = prefs(context).getString(KEY_MAP_POI_CATEGORY_NAMES, null);
-        return AppPoiCategorySettingsJson.parseOrDefault(payload, defaultMapPoiCategorySettings());
+        return AppPoiCategoryPreferences.getMapPoiCategorySettings(prefs(context));
     }
 
     public static void setMapPoiCategorySettings(
             @NonNull Context context,
             @NonNull List<AppPoiCategorySetting> settings
     ) {
-        prefs(context).edit()
-                .putString(KEY_MAP_POI_CATEGORY_NAMES, AppPoiCategorySettingsJson.toJson(settings))
-                .apply();
+        AppPoiCategoryPreferences.setMapPoiCategorySettings(prefs(context), settings);
     }
 
     public static void setMapPoiCategoryNames(@NonNull Context context, @NonNull List<String> names) {
-        List<AppPoiCategorySetting> settings = new ArrayList<>();
-        for (String name : names) {
-            settings.add(new AppPoiCategorySetting(name, true));
-        }
-        setMapPoiCategorySettings(context, settings);
+        AppPoiCategoryPreferences.setMapPoiCategoryNames(prefs(context), names);
     }
 
     @NonNull
     private static SharedPreferences prefs(@NonNull Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
-    }
-
-    @NonNull
-    private static String normalizeManeuverVoiceName(String voiceName) {
-        if (voiceName == null) {
-            return MANEUVER_VOICE_SYSTEM_DEFAULT;
-        }
-        String trimmed = voiceName.trim();
-        if (trimmed.isEmpty() || MANEUVER_VOICE_DISABLED.equals(trimmed)) {
-            return MANEUVER_VOICE_SYSTEM_DEFAULT;
-        }
-        return trimmed;
-    }
-
-    @NonNull
-    private static List<AppPoiCategorySetting> defaultMapPoiCategorySettings() {
-        List<AppPoiCategorySetting> settings = new ArrayList<>();
-        for (String name : DEFAULT_MAP_POI_CATEGORY_NAMES) {
-            settings.add(new AppPoiCategorySetting(name, true));
-        }
-        return settings;
     }
 }
