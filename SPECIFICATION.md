@@ -94,7 +94,7 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 In `Route` mode, below the route-mode selector, the app must show an input field for searching a destination POI or coordinates.
 
 - The destination field must include an icon-only speech button inside the right edge of the text field
-- Pressing the speech button must first try Android's built-in speech recognition UI for dictated destination search text. If no recognizer UI activity is available but an Android speech recognition service is installed, the app must fall back to that service with an in-app listening prompt and request microphone permission only when that fallback needs it.
+- Pressing the speech button must first try Android's built-in speech recognition UI for dictated destination search text. If no recognizer UI activity is available but an Android speech recognition service is installed and has microphone access, the app must fall back to that service with an in-app listening prompt and request the app's microphone permission only when that fallback needs it.
 - A recognized speech result must populate the destination field as editable text and use the normal POI history/search suggestion flow rather than binding coordinates by itself
 - If speech recognition is unavailable, cancelled, fails to become ready, or returns no usable text, the current destination field value must remain unchanged and the app should show a short message when appropriate. When no recognizer activity or service is exposed by Android, or when a recognizer-looking service does not become ready after launch, the message must guide the user to enable a real Android voice-recognition provider such as the Google app.
 

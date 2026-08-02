@@ -1,5 +1,6 @@
 package vibro.navigator.android.speech;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -25,6 +26,8 @@ final class AndroidSpeechRecognitionAvailability {
     private static final String PACKAGE_ENABLED = "enabled";
     private static final String PACKAGE_DISABLED = "disabled";
     private static final String PACKAGE_MISSING = "missing";
+    private static final String MICROPHONE_GRANTED = "mic_granted";
+    private static final String MICROPHONE_DENIED = "mic_denied";
 
     @NonNull
     private final PackageManager packageManager;
@@ -47,7 +50,7 @@ final class AndroidSpeechRecognitionAvailability {
     ComponentName firstRecognitionService() {
         for (ResolveInfo info : recognitionServices()) {
             ComponentName componentName = serviceComponentName(info);
-            if (componentName != null) {
+            if (isServiceUsable(componentName)) {
                 return componentName;
             }
         }
@@ -73,6 +76,7 @@ final class AndroidSpeechRecognitionAvailability {
             return null;
         }
         return isPackageEnabled(distributionFallbackService.getPackageName())
+                && hasMicrophonePermission(distributionFallbackService.getPackageName())
                 ? distributionFallbackService
                 : null;
     }
@@ -121,7 +125,13 @@ final class AndroidSpeechRecognitionAvailability {
         ComponentName componentName = activity
                 ? activityComponentName(info)
                 : serviceComponentName(info);
-        return componentName == null ? "unknown" : componentName.flattenToShortString();
+        if (componentName == null) {
+            return "unknown";
+        }
+        if (activity) {
+            return componentName.flattenToShortString();
+        }
+        return componentName.flattenToShortString() + ":" + microphonePermissionState(componentName.getPackageName());
     }
 
     @Nullable
@@ -156,12 +166,32 @@ final class AndroidSpeechRecognitionAvailability {
         return PACKAGE_ENABLED.equals(packageState(packageName));
     }
 
+    private boolean isServiceUsable(@Nullable ComponentName componentName) {
+        return componentName != null && hasMicrophonePermission(componentName.getPackageName());
+    }
+
+    private boolean hasMicrophonePermission(@NonNull String packageName) {
+        return PackageManager.PERMISSION_GRANTED
+                == packageManager.checkPermission(Manifest.permission.RECORD_AUDIO, packageName);
+    }
+
+    @NonNull
+    private String microphonePermissionState(@NonNull String packageName) {
+        return hasMicrophonePermission(packageName) ? MICROPHONE_GRANTED : MICROPHONE_DENIED;
+    }
+
     @NonNull
     private String describeFallbackService() {
         if (distributionFallbackService == null) {
             return "none";
         }
+        String packageName = distributionFallbackService.getPackageName();
+        String state = packageState(packageName);
+        if (!PACKAGE_ENABLED.equals(state)) {
+            return distributionFallbackService.flattenToShortString() + ":" + state;
+        }
         return distributionFallbackService.flattenToShortString()
-                + ":" + packageState(distributionFallbackService.getPackageName());
+                + ":" + state
+                + ":" + microphonePermissionState(packageName);
     }
 }

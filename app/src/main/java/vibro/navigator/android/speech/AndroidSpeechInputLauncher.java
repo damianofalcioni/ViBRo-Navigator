@@ -8,7 +8,6 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.speech.SpeechRecognizer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -115,7 +114,7 @@ public final class AndroidSpeechInputLauncher implements SpeechInputLauncher {
             @NonNull Callback callback
     ) {
         ComponentName serviceComponent = availability.firstRecognitionService();
-        if (serviceComponent == null && !SpeechRecognizer.isRecognitionAvailable(activity)) {
+        if (serviceComponent == null) {
             AppLogger.w(TAG, "Speech recognizer service unavailable " + availability.describe());
             return StartMode.UNAVAILABLE;
         }

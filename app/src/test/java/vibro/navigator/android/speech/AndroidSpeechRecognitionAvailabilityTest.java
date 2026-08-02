@@ -6,6 +6,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.Manifest;
 import android.content.ComponentName;
 import android.content.IntentFilter;
 import android.content.pm.ApplicationInfo;
@@ -40,20 +41,33 @@ public class AndroidSpeechRecognitionAvailabilityTest {
     @Test
     public void firstRecognitionService_prefersQueriedService() {
         ComponentName queriedService = new ComponentName("com.example.default", "DefaultRecognitionService");
-        packageManager.addServiceIfNotPresent(queriedService);
-        packageManager.addIntentFilterForService(
-                queriedService,
-                intentFilterFor(RecognitionService.SERVICE_INTERFACE)
-        );
+        addRecognitionService(queriedService, true);
 
         assertEquals(queriedService, availabilityWithFallback().firstRecognitionService());
     }
 
     @Test
+    public void firstRecognitionService_skipsQueriedServiceWithoutMicrophonePermission() {
+        ComponentName deniedService = new ComponentName("com.example.denied", "DeniedRecognitionService");
+        ComponentName grantedService = new ComponentName("com.example.granted", "GrantedRecognitionService");
+        addRecognitionService(deniedService, false);
+        addRecognitionService(grantedService, true);
+
+        assertEquals(grantedService, availabilityWithFallback().firstRecognitionService());
+    }
+
+    @Test
     public void firstRecognitionService_usesEnabledDistributionFallbackWhenQueryIsEmpty() {
-        installPackage(PACKAGE_NAME, true);
+        installPackage(PACKAGE_NAME, true, true);
 
         assertEquals(fallbackService, availabilityWithFallback().firstRecognitionService());
+    }
+
+    @Test
+    public void firstRecognitionService_skipsEnabledDistributionFallbackWithoutMicrophonePermission() {
+        installPackage(PACKAGE_NAME, true, false);
+
+        assertNull(availabilityWithFallback().firstRecognitionService());
     }
 
     @Test
@@ -77,9 +91,16 @@ public class AndroidSpeechRecognitionAvailabilityTest {
 
     @Test
     public void hasRecognitionProvider_returnsTrueWhenFallbackServiceIsEnabled() {
-        installPackage(PACKAGE_NAME, true);
+        installPackage(PACKAGE_NAME, true, true);
 
         assertTrue(availabilityWithFallback().hasRecognitionProvider());
+    }
+
+    @Test
+    public void hasRecognitionProvider_returnsFalseWhenOnlyServiceHasNoMicrophonePermission() {
+        addRecognitionService(new ComponentName("com.example.denied", "DeniedRecognitionService"), false);
+
+        assertFalse(availabilityWithFallback().hasRecognitionProvider());
     }
 
     @Test
@@ -96,13 +117,37 @@ public class AndroidSpeechRecognitionAvailabilityTest {
     }
 
     private void installPackage(@NonNull String packageName, boolean enabled) {
+        installPackage(packageName, enabled, false);
+    }
+
+    private void installPackage(
+            @NonNull String packageName,
+            boolean enabled,
+            boolean microphonePermissionGranted
+    ) {
         PackageInfo packageInfo = new PackageInfo();
         packageInfo.packageName = packageName;
         ApplicationInfo applicationInfo = new ApplicationInfo();
         applicationInfo.packageName = packageName;
         applicationInfo.enabled = enabled;
         packageInfo.applicationInfo = applicationInfo;
+        if (microphonePermissionGranted) {
+            packageInfo.requestedPermissions = new String[]{Manifest.permission.RECORD_AUDIO};
+            packageInfo.requestedPermissionsFlags = new int[]{PackageInfo.REQUESTED_PERMISSION_GRANTED};
+        }
         packageManager.installPackage(packageInfo);
+    }
+
+    private void addRecognitionService(
+            @NonNull ComponentName service,
+            boolean microphonePermissionGranted
+    ) {
+        installPackage(service.getPackageName(), true, microphonePermissionGranted);
+        packageManager.addServiceIfNotPresent(service);
+        packageManager.addIntentFilterForService(
+                service,
+                intentFilterFor(RecognitionService.SERVICE_INTERFACE)
+        );
     }
 
     @NonNull
