@@ -7,6 +7,7 @@ import android.os.ParcelFileDescriptor;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,6 +25,10 @@ public final class AndroidDocumentReadFile {
     @Nullable
     public static BRouterSegmentReadFile open(@NonNull Context context, @NonNull Uri documentUri)
             throws IOException {
+        File file = AndroidExternalStorageDocumentFiles.fileFromUri(documentUri);
+        if (file != null) {
+            return file.isFile() && file.canRead() ? AndroidFileReadFile.open(file) : null;
+        }
         ParcelFileDescriptor descriptor = context.getContentResolver().openFileDescriptor(documentUri, "r");
         if (descriptor == null) {
             AppLogger.w(TAG, "Document file descriptor unavailable uri=" + documentUri);

@@ -30,6 +30,10 @@ final class AndroidDocumentTreeFileAccess {
         if (treeDocumentId == null) {
             return null;
         }
+        Uri directUri = AndroidExternalStorageDocumentFiles.childFileUri(context, treeDocumentId, displayName);
+        if (directUri != null) {
+            return directUri;
+        }
         return findChildDocumentUri(context, treeUri, treeDocumentId, displayName);
     }
 

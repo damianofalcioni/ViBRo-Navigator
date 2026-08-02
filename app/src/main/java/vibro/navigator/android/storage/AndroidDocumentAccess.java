@@ -142,6 +142,10 @@ public final class AndroidDocumentAccess {
         if (treeDocumentId == null) {
             return Collections.emptyList();
         }
+        List<String> directNames = AndroidExternalStorageDocumentFiles.childDisplayNames(context, treeDocumentId);
+        if (directNames != null) {
+            return directNames;
+        }
         Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocumentId);
         List<String> out = new ArrayList<>();
         try (Cursor cursor = context.getContentResolver().query(
@@ -181,10 +185,17 @@ public final class AndroidDocumentAccess {
 
     @Nullable
     public static String readText(@NonNull Context context, @NonNull Uri documentUri) {
+        if (AndroidExternalStorageDocumentFiles.isFileUri(documentUri)) {
+            return AndroidExternalStorageDocumentFiles.readText(documentUri);
+        }
         return AndroidDocumentTreeFileAccess.readText(context, documentUri);
     }
 
     public static boolean externalStorageDocumentExists(@NonNull Context context, @NonNull String documentId) {
+        if (AndroidExternalStorageDocumentFiles.directoryExists(context, documentId)) {
+            AppLogger.d(TAG, "Direct external storage document accessible documentId=" + documentId);
+            return true;
+        }
         Uri treeUri = buildExternalStorageTreeUri(documentId);
         Uri documentUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, documentId);
         try (Cursor cursor = context.getContentResolver().query(
