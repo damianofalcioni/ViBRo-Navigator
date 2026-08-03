@@ -10,11 +10,14 @@ Before opening the official F-Droid merge request, complete these steps:
    store-document URLs are live.
 3. Commit the current F-Droid prep changes.
 4. Create and push a release tag matching `versionName`, for example `v0.1.0`.
-5. Replace `REPLACE_WITH_RELEASE_TAG_OR_COMMIT` in
+5. Confirm the `F-Droid Readiness` workflow passes for that tag, or use the
+   `Submit F-Droid Metadata` workflow, which runs readiness automatically
+   before touching your `fdroiddata` fork.
+6. Replace `REPLACE_WITH_RELEASE_TAG_OR_COMMIT` in
    `fdroid/vibro.navigator.yml`.
-6. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
+7. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
    `metadata/vibro.navigator.yml`.
-7. Run the standard validation flow in the F-Droid build container:
+8. Run the standard validation flow in the F-Droid build container:
    - `fdroid readmeta`
    - `fdroid rewritemeta vibro.navigator`
    - `fdroid checkupdates --allow-dirty vibro.navigator`
@@ -30,6 +33,10 @@ Useful repository files already prepared upstream:
 
 Notes:
 
+- The `Build APK` workflow is the normal per-commit CI gate and requires the
+  Android signing secrets. The `F-Droid Readiness` workflow is reserved for
+  manual maintainer checks, pushed `v*` release tags, and the automatic
+  pre-submit gate in `Submit F-Droid Metadata`.
 - The Gradle build must run from the repository root, not `app/`, because the
   wrapper and `settings.gradle` live at the top level.
 - `local.properties` is excluded in the draft recipe because it is machine-
@@ -44,6 +51,7 @@ Notes:
 The `Submit F-Droid Metadata` workflow can automate the part that is safe to
 automate:
 
+- run the `F-Droid Readiness` gate for the requested `release_ref`
 - render the final `metadata/vibro.navigator.yml`
 - push it to your GitLab `fdroiddata` fork
 - create or reuse a merge request against `fdroid/fdroiddata`

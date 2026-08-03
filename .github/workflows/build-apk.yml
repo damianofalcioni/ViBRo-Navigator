@@ -1,6 +1,8 @@
 name: Build APK
 
 on:
+  push:
+  pull_request:
   release:
     types: [published]
   workflow_dispatch:

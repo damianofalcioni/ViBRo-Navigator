@@ -13,7 +13,16 @@ on:
         default: "vibro.navigator"
 
 jobs:
+  readiness:
+    uses: ./.github/workflows/fdroid-ready.yml
+    permissions:
+      contents: read
+    with:
+      release_ref: ${{ inputs.release_ref }}
+    secrets: inherit
+
   submit:
+    needs: readiness
     runs-on: ubuntu-latest
     permissions:
       contents: read

@@ -59,12 +59,12 @@ Verified commands from the repository root:
 - `.\gradlew.bat lintFdroidDebug`
 - `.\gradlew.bat lintGplayDebug`
 
-CI lives in `.github/workflows/build-apk.yml` and runs explicit `fdroid`/`gplay` unit tests plus both release APK builds.
+CI lives in `.github/workflows/build-apk.yml` and runs on pushes, pull requests, releases, and manual dispatch. It requires the Android signing secrets, runs explicit `fdroid`/`gplay` unit tests, and builds signed release APKs for both flavors.
 
 Distribution-related workflows:
 
-- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, explicit flavor lint/tests, and `assembleFdroidRelease` generation.
-- `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that renders `fdroid/vibro.navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
+- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, explicit flavor lint/tests, and `assembleFdroidRelease` generation. It is maintainer-triggered through manual dispatch, a pushed `v*` release tag, or the F-Droid submission workflow; it is not per-commit CI.
+- `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that first runs F-Droid readiness for the requested `release_ref`, then renders `fdroid/vibro.navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
 - `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
 
