@@ -6,6 +6,8 @@ import vibro.navigator.android.foreground.AndroidNavigationForegroundController;
 import vibro.navigator.android.foreground.AndroidScreenInteractivityMonitor;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
+import vibro.navigator.nav.voice.NavigationAlertSpeaker;
+import vibro.navigator.nav.voice.NavigationSpeechForegroundController;
 
 final class NavigationForegroundRuntime {
     @NonNull
@@ -29,18 +31,19 @@ final class NavigationForegroundRuntime {
             @NonNull NavigationService service,
             @NonNull NavigationServiceUiVisibility uiVisibility,
             @NonNull NavigationServiceLocationHandler locationHandler,
+            @NonNull NavigationAlertSpeaker speaker,
             @NonNull NavigationScreenInteractivityMonitor.Listener screenInteractivityListener
     ) {
-        NavigationForegroundController controller = new AndroidNavigationForegroundController(service);
+        NavigationForegroundController rawController = new AndroidNavigationForegroundController(service);
         NavigationScreenInteractivityMonitor screenInteractivityMonitor =
                 new AndroidScreenInteractivityMonitor(service, interactive -> {
                     screenInteractivityListener.onScreenInteractiveChanged(interactive);
                     uiVisibility.onScreenInteractiveChanged(interactive);
                     locationHandler.onScreenInteractiveChanged(interactive);
                 });
-        controller.ensureChannels();
+        rawController.ensureChannels();
         return new NavigationForegroundRuntime(
-                controller,
+                new NavigationSpeechForegroundController(rawController, speaker),
                 screenInteractivityMonitor,
                 screenInteractivityMonitor.start()
         );

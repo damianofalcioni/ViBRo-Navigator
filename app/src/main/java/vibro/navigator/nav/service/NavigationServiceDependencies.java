@@ -7,6 +7,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
+import vibro.navigator.nav.voice.NavigationManeuverSpeaker;
 
 final class NavigationServiceDependencies {
     @NonNull
@@ -37,11 +38,13 @@ final class NavigationServiceDependencies {
             @NonNull Runnable stateEmitter,
             @NonNull NavigationServiceRouteRecalculator routeRecalculator
     ) {
+        NavigationManeuverSpeaker maneuverSpeaker = new NavigationManeuverSpeaker(service);
         NavigationForegroundRuntime foreground =
                 NavigationForegroundRuntime.create(
                         service,
                         uiVisibility,
                         locationHandler,
+                        maneuverSpeaker,
                         interactive -> NavigationSessionResourceAdapter.recordScreenInteractive(
                                 navigationSession,
                                 interactive,
@@ -72,7 +75,8 @@ final class NavigationServiceDependencies {
                     return nowMs;
                 },
                 stateEmitter,
-                routeRecalculator
+                routeRecalculator,
+                maneuverSpeaker
         );
         return new NavigationServiceDependencies(foreground, tracking, routing);
     }

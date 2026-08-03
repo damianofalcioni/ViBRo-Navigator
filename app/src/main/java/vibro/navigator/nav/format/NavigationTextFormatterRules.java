@@ -94,7 +94,10 @@ final class NavigationTextFormatterRules {
     ) {
         return resources.getString(
                 R.string.format_startup_orientation_notification,
-                formatBearingDegrees(resources, decision.absoluteTurnDegrees()),
+                NavigationOrientationDegreeFormatter.formatRoundedTurnDegrees(
+                        resources,
+                        decision.absoluteTurnDegrees()
+                ),
                 resources.getString(decision.turnRight()
                         ? R.string.direction_side_right
                         : R.string.direction_side_left)

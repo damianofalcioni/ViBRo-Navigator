@@ -39,12 +39,12 @@ final class NavigationRoutingRuntime {
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull NavigationServiceRouteCallback.RouteAppliedLocationRequester routeAppliedLocationRequester,
             @NonNull Runnable stateEmitter,
-            @NonNull NavigationServiceRouteRecalculator routeRecalculator
+            @NonNull NavigationServiceRouteRecalculator routeRecalculator,
+            @NonNull NavigationManeuverSpeaker maneuverSpeaker
     ) {
         NavigationRouteExecutor executor = AndroidNavigationRouteExecutorFactory.create(service, uiScheduler);
-        NavigationManeuverSpeaker maneuverSpeaker = new NavigationManeuverSpeaker(service);
         NavigationTurnEventDispatcher turnEventDispatcher = new NavigationTurnEventDispatcher(
-                new NavigationServiceTurnNotificationSink(foregroundController, maneuverSpeaker)
+                new NavigationServiceTurnNotificationSink(foregroundController)
         );
         turnEvents.attachDispatcher(turnEventDispatcher);
         NavigationServiceRouteCallback callback = new NavigationServiceRouteCallback(

@@ -5,6 +5,9 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import vibro.navigator.nav.format.TestNavigationTextResources;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 
 public class NavigationManeuverSpeechFormatterTest {
@@ -63,5 +66,55 @@ public class NavigationManeuverSpeechFormatterTest {
         );
 
         assertEquals("destination reached", message);
+    }
+
+    @Test
+    public void formatStationaryOrientationSpeech_roundsTurnDegreesToNearestTen() {
+        String left = NavigationManeuverSpeechFormatter.formatStationaryOrientationSpeech(
+                RESOURCES,
+                new StationaryOrientationAdvisor.Decision(-42.0)
+        );
+        String right = NavigationManeuverSpeechFormatter.formatStationaryOrientationSpeech(
+                RESOURCES,
+                new StationaryOrientationAdvisor.Decision(36.0)
+        );
+
+        assertEquals("Turn 40 degrees left", left);
+        assertEquals("Turn 40 degrees right", right);
+    }
+
+    @Test
+    public void formatOffRouteSpeech_distinguishesRecalculationAndNoticeOnly() {
+        NavigationRerouteNotice notice = NavigationRerouteNotice.fromDecision(
+                new RouteDeviationPolicy().evaluate(25.0, 8f, 90.0, 90.0)
+        );
+
+        assertEquals(
+                "Off route. Recalculating",
+                NavigationManeuverSpeechFormatter.formatOffRouteSpeech(RESOURCES, notice)
+        );
+        assertEquals(
+                "Off route",
+                NavigationManeuverSpeechFormatter.formatOffRouteSpeech(RESOURCES, notice.asNotificationOnly())
+        );
+    }
+
+    @Test
+    public void formatOffRouteSpeech_readsNoticeOnlyBearingMismatchAsWrongDirection() {
+        NavigationRerouteNotice notice = NavigationRerouteNotice.fromDecision(
+                new RouteDeviationPolicy().evaluate(5.0, 5f, 90.0, 180.0)
+        ).asNotificationOnly();
+
+        assertEquals(
+                "Wrong direction. Turn back",
+                NavigationManeuverSpeechFormatter.formatOffRouteSpeech(RESOURCES, notice)
+        );
+    }
+
+    @Test
+    public void formatWrongDirectionSpeech_isModeNeutral() {
+        assertEquals("Wrong direction. Turn back", NavigationManeuverSpeechFormatter.formatWrongDirectionSpeech(
+                RESOURCES
+        ));
     }
 }

@@ -180,6 +180,9 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_notification_symbol_test_bearing_line, "%1$s bearing sample");
         strings.put(R.string.format_turn_notification, "%1$s %2$s - %3$s - %4$s");
         strings.put(R.string.format_turn_speech, "%1$s, %2$s");
+        strings.put(R.string.speech_off_route_recalculating, "Off route. Recalculating");
+        strings.put(R.string.speech_off_route, "Off route");
+        strings.put(R.string.speech_wrong_direction_turn_back, "Wrong direction. Turn back");
         strings.put(
                 R.string.format_off_route_off_track_notification,
                 "Off-track detected. Distance %1$s, threshold %2$s. Recalculating route."
@@ -209,6 +212,10 @@ public final class TestNavigationTextResources implements NavigationTextResource
     @NonNull
     private static Map<Integer, PluralStrings> buildPlurals() {
         Map<Integer, PluralStrings> plurals = new HashMap<>();
+        plurals.put(R.plurals.format_stationary_orientation_speech, new PluralStrings(
+                "Turn %1$d degree %2$s",
+                "Turn %1$d degrees %2$s"
+        ));
         plurals.put(R.plurals.format_time_speech_seconds, new PluralStrings("%1$d second", "%1$d seconds"));
         plurals.put(R.plurals.format_time_speech_minutes, new PluralStrings("%1$d minute", "%1$d minutes"));
         return plurals;

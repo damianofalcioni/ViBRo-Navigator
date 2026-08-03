@@ -168,7 +168,7 @@ public class NavigationTextFormatterTest {
                 new StationaryOrientationAdvisor.Decision(-42.0)
         );
 
-        assertEquals("Turn yourself 42° left to face the route.", message);
+        assertEquals("Turn yourself 40° left to face the route.", message);
     }
 
     @Test

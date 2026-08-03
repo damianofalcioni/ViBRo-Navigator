@@ -9,10 +9,12 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.settings.AppSettings;
 
-public final class NavigationManeuverSpeaker {
+public final class NavigationManeuverSpeaker implements NavigationAlertSpeaker {
     private static final String TAG = "NavManeuverSpeaker";
 
     @NonNull
@@ -37,14 +39,33 @@ public final class NavigationManeuverSpeaker {
         prepareEngineIfEnabled();
     }
 
+    @Override
     public void speakTurn(@NonNull VoiceHint hint, double timeSeconds) {
+        speakUtterance(NavigationManeuverSpeechFormatter.formatTurnSpeech(appContext, hint, timeSeconds));
+    }
+
+    @Override
+    public void speakStationaryOrientation(@NonNull StationaryOrientationAdvisor.Decision decision) {
+        speakUtterance(NavigationManeuverSpeechFormatter.formatStationaryOrientationSpeech(appContext, decision));
+    }
+
+    @Override
+    public void speakOffRoute(@NonNull NavigationRerouteNotice rerouteNotice) {
+        speakUtterance(NavigationManeuverSpeechFormatter.formatOffRouteSpeech(appContext, rerouteNotice));
+    }
+
+    @Override
+    public void speakWrongDirection() {
+        speakUtterance(NavigationManeuverSpeechFormatter.formatWrongDirectionSpeech(appContext));
+    }
+
+    private void speakUtterance(@NonNull String utterance) {
         if (!AppSettings.isManeuverSpeechEnabled(appContext)) {
             pendingUtterance = null;
             stop();
             releaseEngine();
             return;
         }
-        String utterance = NavigationManeuverSpeechFormatter.formatTurnSpeech(appContext, hint, timeSeconds);
         if (utterance.isEmpty()) {
             return;
         }

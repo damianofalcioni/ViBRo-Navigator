@@ -8,9 +8,13 @@ import java.util.Locale;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.nav.format.NavigationOrientationDegreeFormatter;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.VoiceHintMapper;
+import vibro.navigator.nav.guidance.NavigationRerouteNotice;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 
 public final class NavigationManeuverSpeechFormatter {
@@ -30,6 +34,27 @@ public final class NavigationManeuverSpeechFormatter {
     }
 
     @NonNull
+    public static String formatStationaryOrientationSpeech(
+            @NonNull Context context,
+            @NonNull StationaryOrientationAdvisor.Decision decision
+    ) {
+        return formatStationaryOrientationSpeech(new AndroidNavigationTextResources(context), decision);
+    }
+
+    @NonNull
+    public static String formatOffRouteSpeech(
+            @NonNull Context context,
+            @NonNull NavigationRerouteNotice rerouteNotice
+    ) {
+        return formatOffRouteSpeech(new AndroidNavigationTextResources(context), rerouteNotice);
+    }
+
+    @NonNull
+    public static String formatWrongDirectionSpeech(@NonNull Context context) {
+        return formatWrongDirectionSpeech(new AndroidNavigationTextResources(context));
+    }
+
+    @NonNull
     static String formatTurnSpeech(
             @NonNull NavigationTextResources resources,
             @NonNull VoiceHint hint,
@@ -45,6 +70,40 @@ public final class NavigationManeuverSpeechFormatter {
             return "";
         }
         return resources.getString(R.string.format_turn_speech, timeText, directionText);
+    }
+
+    @NonNull
+    static String formatStationaryOrientationSpeech(
+            @NonNull NavigationTextResources resources,
+            @NonNull StationaryOrientationAdvisor.Decision decision
+    ) {
+        int degrees = NavigationOrientationDegreeFormatter.roundedTurnDegrees(decision.absoluteTurnDegrees());
+        return resources.getQuantityString(
+                R.plurals.format_stationary_orientation_speech,
+                degrees,
+                degrees,
+                resources.getString(decision.turnRight()
+                        ? R.string.direction_side_right
+                        : R.string.direction_side_left)
+        );
+    }
+
+    @NonNull
+    static String formatOffRouteSpeech(
+            @NonNull NavigationTextResources resources,
+            @NonNull NavigationRerouteNotice rerouteNotice
+    ) {
+        if (isWrongDirectionNoticeOnly(rerouteNotice)) {
+            return formatWrongDirectionSpeech(resources);
+        }
+        return resources.getString(rerouteNotice.routeRecalculationExpected
+                ? R.string.speech_off_route_recalculating
+                : R.string.speech_off_route);
+    }
+
+    @NonNull
+    static String formatWrongDirectionSpeech(@NonNull NavigationTextResources resources) {
+        return resources.getString(R.string.speech_wrong_direction_turn_back);
     }
 
     @NonNull
@@ -89,5 +148,10 @@ public final class NavigationManeuverSpeechFormatter {
     private static boolean isReachedArrival(@NonNull VoiceHint hint) {
         return hint.command == ARRIVAL_COMMAND
                 || hint.command == INTERMEDIATE_ARRIVAL_COMMAND;
+    }
+
+    private static boolean isWrongDirectionNoticeOnly(@NonNull NavigationRerouteNotice rerouteNotice) {
+        return rerouteNotice.reason == RouteDeviationPolicy.Reason.BEARING_MISMATCH
+                && !rerouteNotice.routeRecalculationExpected;
     }
 }
