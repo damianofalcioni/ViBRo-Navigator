@@ -8,16 +8,20 @@ Before opening the official F-Droid merge request, complete these steps:
 1. Push the repository to a public GitHub URL.
 2. Enable GitHub Pages from the repository `docs/` folder so the public
    store-document URLs are live.
-3. Commit the current F-Droid prep changes.
-4. Create and push a release tag matching `versionName`, for example `v0.1.0`.
-5. Confirm the `F-Droid Readiness` workflow passes for that tag, or use the
+3. Prepare local release metadata without creating a commit or tag:
+   `.\gradlew.bat prepareRelease --release-version=0.1.0`.
+4. Review the console changelog summary, `CHANGELOG.md`, and
+   `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
+5. Commit the current F-Droid prep changes.
+6. Create and push a release tag matching `versionName`, for example `v0.1.0`.
+7. Confirm the `F-Droid Readiness` workflow passes for that tag, or use the
    `Submit F-Droid Metadata` workflow, which runs readiness automatically
    before touching your `fdroiddata` fork.
-6. Replace `REPLACE_WITH_RELEASE_TAG_OR_COMMIT` in
-   `fdroid/vibro.navigator.yml`.
-7. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
+8. Confirm `fdroid/vibro.navigator.yml` points at the release tag in its
+   `commit` field; `prepareRelease` writes this automatically.
+9. Copy `fdroid/vibro.navigator.yml` into your `fdroiddata` fork as
    `metadata/vibro.navigator.yml`.
-8. Run the standard validation flow in the F-Droid build container:
+10. Run the standard validation flow in the F-Droid build container:
    - `fdroid readmeta`
    - `fdroid rewritemeta vibro.navigator`
    - `fdroid checkupdates --allow-dirty vibro.navigator`

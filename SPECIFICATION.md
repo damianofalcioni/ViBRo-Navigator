@@ -840,6 +840,11 @@ The navigation UI must show the following in large text:
 - Android for Cars App Library dependencies and Android Auto manifest/resource declarations must be scoped to the `gplay` flavor only.
 - GitHub Actions and F-Droid metadata must build the `fdroid` flavor for F-Droid readiness and submission paths.
 - Upstream release automation may build both `fdroid` and `gplay` release APKs, with artifacts kept under their flavor-specific Gradle output paths.
+- The repository should provide a maintainer-local release-prep Gradle task
+  that updates Android/F-Droid version metadata and changelog files for a
+  requested semantic version without creating a commit or tag. The task should
+  summarize generated changelog additions in the console so maintainers can
+  review them before committing.
 - Upstream app-store metadata should be maintained in the source repository using the `fastlane/metadata/android/en-US/...` layout so F-Droid can reuse the app description, changelog, icon, and screenshots directly from upstream.
 - Public store-facing legal and disclosure documents must live under `docs/` so GitHub Pages can serve stable public URLs for the Privacy Policy, Terms of Service, local data-deletion instructions, and maintainer store-disclosure notes.
 - The repository should provide maintainer-facing submission documentation for official F-Droid inclusion. That documentation is an operator runbook for project maintainers and should not be treated as end-user product documentation.

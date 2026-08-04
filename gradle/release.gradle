@@ -1,0 +1,283 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.options.Option
+import org.gradle.work.DisableCachingByDefault
+
+@DisableCachingByDefault(because = "Mutates release metadata files in the working tree.")
+abstract class PrepareReleaseTask extends DefaultTask {
+    private String targetVersion
+    private String targetVersionCode
+    private String baseRef
+    private String releaseTag
+
+    @Option(option = "release-version", description = "Release version to prepare, for example 0.2.0.")
+    void setReleaseVersion(String targetVersion) {
+        this.targetVersion = targetVersion
+    }
+
+    @Internal
+    String getTargetVersion() {
+        targetVersion
+    }
+
+    @Option(option = "version-code", description = "Android versionCode to write. Defaults to the current versionCode plus one.")
+    void setTargetVersionCode(String targetVersionCode) {
+        this.targetVersionCode = targetVersionCode
+    }
+
+    @Internal
+    String getTargetVersionCode() {
+        targetVersionCode
+    }
+
+    @Option(option = "base-ref", description = "Git ref to use as changelog base. Defaults to the latest merged release tag.")
+    void setBaseRef(String baseRef) {
+        this.baseRef = baseRef
+    }
+
+    @Internal
+    String getBaseRef() {
+        baseRef
+    }
+
+    @Option(option = "tag", description = "Release tag to write in F-Droid metadata. Defaults to v<version>.")
+    void setReleaseTag(String releaseTag) {
+        this.releaseTag = releaseTag
+    }
+
+    @Internal
+    String getReleaseTag() {
+        releaseTag
+    }
+}
+
+def releaseAppBuildFile = layout.projectDirectory.file("app/build.gradle").asFile
+def releaseFdroidMetadataFile = layout.projectDirectory.file("fdroid/vibro.navigator.yml").asFile
+def releaseChangelogFile = layout.projectDirectory.file("CHANGELOG.md").asFile
+def releaseFastlaneChangelogDir = layout.projectDirectory.dir("fastlane/metadata/android/en-US/changelogs").asFile
+def releaseRepoDir = layout.projectDirectory.asFile
+
+def readUtf8 = { File file ->
+    file.getText("UTF-8")
+}
+
+def writeUtf8 = { File file, String text ->
+    file.parentFile?.mkdirs()
+    file.write(text, "UTF-8")
+}
+
+def firstGroup = { String text, String regex, String errorMessage ->
+    def matcher = java.util.regex.Pattern.compile(regex, java.util.regex.Pattern.MULTILINE).matcher(text)
+    if (!matcher.find()) {
+        throw new GradleException(errorMessage)
+    }
+    matcher.group(1)
+}
+
+def replaceExactlyOne = { File file, String regex, Closure<String> replacement ->
+    def pattern = java.util.regex.Pattern.compile(regex, java.util.regex.Pattern.MULTILINE)
+    def matcher = pattern.matcher(readUtf8(file))
+    def output = new StringBuffer()
+    def count = 0
+
+    while (matcher.find()) {
+        count++
+        matcher.appendReplacement(output, java.util.regex.Matcher.quoteReplacement(replacement(matcher).toString()))
+    }
+    matcher.appendTail(output)
+
+    if (count != 1) {
+        throw new GradleException("Expected exactly one match for ${regex} in ${file}, found ${count}.")
+    }
+
+    writeUtf8(file, output.toString())
+}
+
+def runReleaseGit = { File cwd, List<String> args ->
+    def command = ["git"] + args
+    def process = new ProcessBuilder(command)
+            .directory(cwd)
+            .redirectErrorStream(false)
+            .start()
+    def stdout = new ByteArrayOutputStream()
+    def stderr = new ByteArrayOutputStream()
+
+    process.consumeProcessOutput(stdout, stderr)
+    def exitCode = process.waitFor()
+    def output = stdout.toString("UTF-8").trim()
+    def error = stderr.toString("UTF-8").trim()
+
+    if (exitCode != 0) {
+        throw new GradleException("Command failed: ${command.join(' ')}\n${error}")
+    }
+
+    output
+}
+
+def releaseTagMatches = { String tagName ->
+    tagName ==~ /^v?\d+\.\d+\.\d+$/
+}
+
+def markdownReleaseSection = { String versionName, String today, String baseRef, List<String> messages ->
+    def baseLine = baseRef
+            ? "Changes since ${baseRef}."
+            : "Changes since repository start; no previous release tag was found."
+    def bulletLines = messages
+            ? messages.collect { "- ${it}" }.join("\n")
+            : "- No commits since the previous release."
+
+    "## ${versionName} - ${today}\n\n${baseLine}\n\n${bulletLines}\n\n"
+}
+
+def updateReleaseChangelog = { File changelogFile, String versionName, String section ->
+    if (!changelogFile.exists()) {
+        writeUtf8(changelogFile, "# Changelog\n\n${section}")
+        return
+    }
+
+    def text = readUtf8(changelogFile)
+    def quotedVersion = java.util.regex.Pattern.quote(versionName)
+    def sectionPattern = java.util.regex.Pattern.compile(
+            "(?ms)^## \\[?${quotedVersion}\\]? - \\d{4}-\\d{2}-\\d{2}\\R.*?(?=^## |\\z)"
+    )
+    def matcher = sectionPattern.matcher(text)
+
+    if (matcher.find()) {
+        def output = new StringBuffer()
+        matcher.appendReplacement(output, java.util.regex.Matcher.quoteReplacement(section))
+        matcher.appendTail(output)
+        writeUtf8(changelogFile, output.toString())
+        return
+    }
+
+    if (text.startsWith("# Changelog")) {
+        writeUtf8(changelogFile, text.replaceFirst(/\A# Changelog\s*/, "# Changelog\n\n${java.util.regex.Matcher.quoteReplacement(section)}"))
+    } else {
+        writeUtf8(changelogFile, "# Changelog\n\n${section}${text}")
+    }
+}
+
+tasks.register("prepareRelease", PrepareReleaseTask) {
+    group = "release"
+    description = "Updates local version metadata and changelogs. Usage: ./gradlew prepareRelease --release-version=0.2.0 [--version-code=2] [--base-ref=v0.1.0]"
+
+    doLast {
+        def releaseVersion = getTargetVersion()?.trim()
+        if (!releaseVersion) {
+            throw new GradleException("Missing release version. Run: ./gradlew prepareRelease --release-version=0.2.0")
+        }
+        if (!(releaseVersion ==~ /^\d+\.\d+\.\d+$/)) {
+            throw new GradleException("releaseVersion must use MAJOR.MINOR.PATCH format, for example 0.2.0.")
+        }
+
+        def appBuildText = readUtf8(releaseAppBuildFile)
+        def currentVersionName = firstGroup(
+                appBuildText,
+                /^\s*versionName\s*=\s*"([^"]+)"\s*$/,
+                "Unable to find versionName in ${releaseAppBuildFile}."
+        )
+        def currentVersionCode = firstGroup(
+                appBuildText,
+                /^\s*versionCode\s*=\s*(\d+)\s*$/,
+                "Unable to find versionCode in ${releaseAppBuildFile}."
+        ).toInteger()
+
+        def requestedVersionCode = getTargetVersionCode()?.trim()
+        if (requestedVersionCode && !(requestedVersionCode ==~ /^\d+$/)) {
+            throw new GradleException("releaseVersionCode must be a positive integer.")
+        }
+        def releaseVersionCode = requestedVersionCode
+                ? requestedVersionCode.toInteger()
+                : (currentVersionName == releaseVersion ? currentVersionCode : currentVersionCode + 1)
+
+        if (releaseVersionCode < 1) {
+            throw new GradleException("releaseVersionCode must be a positive integer.")
+        }
+        if (currentVersionName != releaseVersion && releaseVersionCode <= currentVersionCode) {
+            throw new GradleException("releaseVersionCode must be greater than current versionCode ${currentVersionCode}.")
+        }
+
+        def releaseTag = getReleaseTag()?.trim() ?: "v${releaseVersion}"
+        def excludedReleaseTags = [releaseVersion, "v${releaseVersion}", releaseTag] as Set
+        def explicitBaseRef = getBaseRef()?.trim()
+        def baseRef = explicitBaseRef
+        if (!baseRef) {
+            def tags = runReleaseGit(releaseRepoDir, ["tag", "--merged", "HEAD", "--sort=-creatordate"])
+                    .readLines()
+                    .collect { it.trim() }
+                    .findAll { releaseTagMatches(it) && !excludedReleaseTags.contains(it) }
+            baseRef = tags ? tags.first() : null
+        } else {
+            runReleaseGit(releaseRepoDir, ["rev-parse", "--verify", "${baseRef}^{commit}"])
+        }
+
+        def logArgs = baseRef
+                ? ["log", "${baseRef}..HEAD", "--format=%s"]
+                : ["log", "--format=%s"]
+        def commitMessages = runReleaseGit(releaseRepoDir, logArgs)
+                .readLines()
+                .collect { it.trim() }
+                .findAll { it }
+
+        replaceExactlyOne(
+                releaseAppBuildFile,
+                /^(\s*versionCode\s*=\s*)\d+(\s*)$/,
+                { matcher -> "${matcher.group(1)}${releaseVersionCode}${matcher.group(2)}" }
+        )
+        replaceExactlyOne(
+                releaseAppBuildFile,
+                /^(\s*versionName\s*=\s*)"[^"]+"(\s*)$/,
+                { matcher -> "${matcher.group(1)}\"${releaseVersion}\"${matcher.group(2)}" }
+        )
+
+        replaceExactlyOne(
+                releaseFdroidMetadataFile,
+                /^(\s*-\s*versionName:\s*)"[^"]+"(\s*)$/,
+                { matcher -> "${matcher.group(1)}\"${releaseVersion}\"${matcher.group(2)}" }
+        )
+        replaceExactlyOne(
+                releaseFdroidMetadataFile,
+                /^(\s*versionCode:\s*)\d+(\s*)$/,
+                { matcher -> "${matcher.group(1)}${releaseVersionCode}${matcher.group(2)}" }
+        )
+        replaceExactlyOne(
+                releaseFdroidMetadataFile,
+                /^(\s*commit:\s*).*(\s*)$/,
+                { matcher -> "${matcher.group(1)}${releaseTag}${matcher.group(2)}" }
+        )
+        replaceExactlyOne(
+                releaseFdroidMetadataFile,
+                /^(CurrentVersion:\s*)"[^"]+"(\s*)$/,
+                { matcher -> "${matcher.group(1)}\"${releaseVersion}\"${matcher.group(2)}" }
+        )
+        replaceExactlyOne(
+                releaseFdroidMetadataFile,
+                /^(CurrentVersionCode:\s*)\d+(\s*)$/,
+                { matcher -> "${matcher.group(1)}${releaseVersionCode}${matcher.group(2)}" }
+        )
+
+        def today = java.time.LocalDate.now().toString()
+        def markdownSection = markdownReleaseSection(releaseVersion, today, baseRef, commitMessages)
+        updateReleaseChangelog(releaseChangelogFile, releaseVersion, markdownSection)
+
+        def fastlaneChangelog = releaseFastlaneChangelogDir.toPath().resolve("${releaseVersionCode}.txt").toFile()
+        def fastlaneText = commitMessages
+                ? commitMessages.collect { "- ${it}" }.join("\n") + "\n"
+                : "No commits since the previous release.\n"
+        writeUtf8(fastlaneChangelog, fastlaneText)
+
+        logger.lifecycle("Prepared local release ${releaseVersion} (${releaseVersionCode}).")
+        logger.lifecycle("Previous release ref: ${baseRef ?: 'none found'}")
+        logger.lifecycle("Updated ${releaseAppBuildFile}, ${releaseFdroidMetadataFile}, ${releaseChangelogFile}, and ${fastlaneChangelog}.")
+        logger.lifecycle("")
+        logger.lifecycle("Review note: inspect CHANGELOG.md and ${fastlaneChangelog} before committing or tagging.")
+        logger.lifecycle("New changelog additions: ${commitMessages.size()} commit message(s) from ${baseRef ?: 'repository start'} to HEAD.")
+        commitMessages.take(20).each { message ->
+            logger.lifecycle(" - ${message}")
+        }
+        if (commitMessages.size() > 20) {
+            logger.lifecycle(" - ... ${commitMessages.size() - 20} more entry/entries")
+        }
+        logger.lifecycle("No commit or tag was created. Review the files, then commit and tag ${releaseTag} manually.")
+    }
+}
