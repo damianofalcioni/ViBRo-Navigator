@@ -19,6 +19,7 @@
     <string name="action_open_speech_directions_settings">Open speech directions settings</string>
     <string name="action_open_speech_recognition_settings">Open speech recognition settings</string>
     <string name="action_open_android_stt_settings">Open Android speech-to-text settings</string>
+    <string name="action_continue">Continue</string>
     <string name="action_enable_speech_recognition">Show speech recognition buttons</string>
     <string name="action_android_tts_settings_short">Android TTS</string>
     <string name="action_android_stt_settings_short">Android STT</string>
@@ -103,6 +104,7 @@
     <string name="msg_invalid_round_trip_direction">Enter a valid round trip direction</string>
     <string name="msg_round_trip_requires_brouter_profile">Select a BRouter profile for round trip mode</string>
     <string name="msg_brouter_not_found">BRouter is not installed</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter is required for surrounding streets.</string>
     <string name="title_brouter_not_found">BRouter required</string>
     <string name="title_stop_navigation_confirm">Stop navigation?</string>
     <string name="msg_brouter_install_prompt">BRouter is not installed. Open its app page in Play Store or F-Droid?</string>
@@ -135,6 +137,11 @@
     <string name="msg_poi_details_map_check_hint">Use the map to double-check that this is the intended location.</string>
     <string name="msg_poi_google_maps_search_info">Opens Google Maps with the text from this POI search field. After choosing a place in Google Maps, share that place and select ViBRo Navigator to bring the result back here.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
+    <string name="title_brouter_segments_storage_access">BRouter street storage</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Surrounding streets need access to BRouter segment files. On the next screen, select Android/media/btools.routingapp/brouter/segments4, tap Use this folder, then tap Allow.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">Storage access is needed to read BRouter profile files.</string>
+    <string name="title_brouter_profiles_storage_access">BRouter profile storage</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiles need access to the profiles2 folder. On the next screen, select Android/media/btools.routingapp/brouter/profiles2, tap Use this folder, then tap Allow.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>
@@ -445,9 +452,10 @@
     <string name="label_permission_notifications">Notifications</string>
     <string name="label_permission_battery">Battery optimization</string>
     <string name="label_permission_surrounding_street_storage">BRouter street storage</string>
+    <string name="label_permission_brouter_profile_storage">BRouter profile storage</string>
     <string name="permission_status_ok">OK</string>
     <string name="permission_status_needs_attention">KO</string>
-    <string name="format_about_permission_status_content_description">%1$s: %2$s. Opens settings.</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Tap to resolve.</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>
     <string name="label_sensor_network_provider">Network provider</string>

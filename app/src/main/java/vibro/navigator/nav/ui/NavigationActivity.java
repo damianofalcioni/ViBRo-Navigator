@@ -4,11 +4,8 @@ import vibro.navigator.R;
 
 
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
-import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
-import vibro.navigator.android.startup.AndroidNavigationPreflight;
-import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.android.window.AndroidNavigationLockScreenWindow;
 import vibro.navigator.dispatch.TaskScheduler;
@@ -16,13 +13,10 @@ import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.startup.NavigationStartupCoordinator;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
-import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -32,10 +26,6 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-
-import java.io.IOException;
 
 import vibro.navigator.logging.AppLogger;
 
@@ -51,13 +41,13 @@ public class NavigationActivity extends Activity {
     private boolean refreshLocationSettingsOnReconnect;
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
+    private final NavigationStartupSegmentsTreeAccess startupSegmentsTreeAccess =
+            new NavigationStartupSegmentsTreeAccess(this);
+    private NavigationActivityCommands commands;
     private NavigationActivityRenderer renderer;
     private NavigationActivityBackHandler backHandler;
     private final NavigationStartupCoordinator startupCoordinator =
-            new NavigationStartupCoordinator(
-                    new NavigationStartupHost(),
-                    () -> AndroidNavigationPreflight.inspect(NavigationActivity.this)
-            );
+            NavigationActivityStartupHost.createCoordinator(this);
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
@@ -112,6 +102,7 @@ public class NavigationActivity extends Activity {
                 AndroidElapsedRealtimeClock.INSTANCE,
                 () -> refreshLocationSettingsOnReconnect = true
         );
+        commands = new NavigationActivityCommands(this, () -> navBinder);
         render(NavStateComposer.waiting(this));
         configureControls();
 
@@ -122,76 +113,24 @@ public class NavigationActivity extends Activity {
         renderer.configureControls(new NavigationActivityRenderer.Controls() {
             @Override
             public void onBlockedRoad() {
-                addBlockedWaypointFromUi();
+                commands.addBlockedWaypointFromUi();
             }
 
             @Override
             public void onStopNavigation() {
-                showStopNavigationConfirmation();
+                commands.showStopNavigationConfirmation();
             }
 
             @Override
             public void onTogglePaused() {
-                togglePausedFromUi();
+                commands.togglePausedFromUi();
             }
 
             @Override
             public void onExportRoute() {
-                exportCurrentRouteFromUi();
+                commands.exportCurrentRouteFromUi();
             }
         });
-    }
-
-    private void addBlockedWaypointFromUi() {
-        if (navBinder != null) {
-            if (!navBinder.canAddBlockedWaypoint()) {
-                AppLogger.w(TAG, "Blocked-road button tapped while blocked-road rerouting is unavailable");
-                return;
-            }
-            AppLogger.i(TAG, "Blocked-road reroute requested from UI");
-            navBinder.addBlockedWaypoint();
-        } else {
-            AppLogger.w(TAG, "Blocked-road button tapped before service binding completed");
-        }
-    }
-
-    private void togglePausedFromUi() {
-        if (navBinder == null) {
-            AppLogger.w(TAG, "Pause/resume tapped before service binding completed");
-            return;
-        }
-        if (navBinder.isPaused()) {
-            AppLogger.i(TAG, "Resume navigation requested from UI");
-            navBinder.resume();
-        } else {
-            AppLogger.i(TAG, "Pause navigation requested from UI");
-            navBinder.pause();
-        }
-    }
-
-    private void exportCurrentRouteFromUi() {
-        if (navBinder == null) {
-            AppLogger.w(TAG, "Route export tapped before service binding completed");
-            showShortToast(R.string.msg_route_export_unavailable);
-            return;
-        }
-        String gpx = navBinder.buildCurrentRouteGpx();
-        if (gpx == null) {
-            AppLogger.w(TAG, "Route export requested without an active route");
-            showShortToast(R.string.msg_route_export_unavailable);
-            return;
-        }
-        AppLogger.dMultiline(TAG, "Generated route GPX XML", gpx);
-        try {
-            startActivity(AndroidRouteGpxViewIntent.createChooser(this, gpx));
-            AppLogger.i(TAG, "Route GPX chooser launched");
-        } catch (ActivityNotFoundException e) {
-            AppLogger.w(TAG, "No app can open exported GPX route", e);
-            showShortToast(R.string.msg_route_export_no_app);
-        } catch (IOException | RuntimeException e) {
-            AppLogger.w(TAG, "Failed to export current route as GPX", e);
-            showShortToast(R.string.msg_route_export_failed);
-        }
     }
 
     private void showShortToast(int messageResId) {
@@ -263,27 +202,13 @@ public class NavigationActivity extends Activity {
         renderer.render(state, navBinder);
     }
 
-    private void showStopNavigationConfirmation() {
-        new AlertDialog.Builder(this)
-                .setTitle(R.string.title_stop_navigation_confirm)
-                .setMessage(R.string.msg_stop_navigation_confirm)
-                .setPositiveButton(R.string.action_stop_navigation, (dialog, which) -> {
-                    if (navBinder != null) {
-                        AppLogger.i(TAG, "Stop navigation requested from UI");
-                        NavigationStopGpxAutoSave.saveIfEnabled(this, navBinder::buildCurrentRouteGpx);
-                        navBinder.stop();
-                    } else {
-                        AppLogger.w(TAG, "Stop navigation confirmed before service binding completed");
-                    }
-                    finish();
-                })
-                .setNegativeButton(android.R.string.cancel, null)
-                .show();
-    }
-
     private void ensureReadyThenStart() {
         if (!startupCoordinator.isAutoStartNavigation()) {
             AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
+        }
+        if (startupSegmentsTreeAccess.shouldRequest(startupCoordinator.isAutoStartNavigation())) {
+            startupSegmentsTreeAccess.startPicker(this::ensureReadyThenStart);
+            return;
         }
         startupCoordinator.ensureReadyThenStart();
     }
@@ -311,6 +236,17 @@ public class NavigationActivity extends Activity {
         startupCoordinator.onRequestPermissionsResult(requestCode);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (startupSegmentsTreeAccess.handleActivityResult(requestCode, resultCode, data, this::ensureReadyThenStart)) {
+            return;
+        }
+        if (renderer != null && renderer.customButtonUi().onActivityResult(requestCode, resultCode, data)) {
+            return;
+        }
+    }
+
     @SuppressWarnings("deprecation")
     private void runLegacyBackFallback() {
         super.onBackPressed();
@@ -330,124 +266,8 @@ public class NavigationActivity extends Activity {
         return AndroidNavigationRequestIntentContract.fromIntent(getIntent()).isComplete();
     }
 
-    private final class NavigationStartupHost implements NavigationStartupCoordinator.Host {
-        @NonNull
-        @Override
-        public NavigationRequest getNavigationRequest() {
-            return AndroidNavigationRequestIntentContract.fromIntent(getIntent());
-        }
-
-        @NonNull
-        @Override
-        public String getString(int messageResId) {
-            return NavigationActivity.this.getString(messageResId);
-        }
-
-        @Override
-        public void requestPermissions(@NonNull String[] permissions, int requestCode) {
-            ActivityCompat.requestPermissions(NavigationActivity.this, permissions, requestCode);
-        }
-
-        @Override
-        public void showPermissionRationale(@NonNull String message, @NonNull Runnable onContinue) {
-            new AlertDialog.Builder(NavigationActivity.this)
-                    .setTitle(R.string.msg_permission_required)
-                    .setMessage(message)
-                    .setPositiveButton(android.R.string.ok, (d, w) -> onContinue.run())
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-        }
-
-        @Override
-        public void showSettingsRedirectDialog(
-                int messageResId,
-                @NonNull NavigationStartupCoordinator.SettingsTarget settingsTarget,
-                @NonNull Runnable onCancel
-        ) {
-            new AlertDialog.Builder(NavigationActivity.this)
-                    .setTitle(R.string.msg_permission_required)
-                    .setMessage(messageResId)
-                    .setPositiveButton(R.string.action_open_settings, (d, w) -> openSettings(settingsTarget))
-                    .setNegativeButton(android.R.string.cancel, (d, w) -> onCancel.run())
-                    .setOnCancelListener(d -> onCancel.run())
-                    .show();
-        }
-
-        @Override
-        public void showBatteryOptimizationDialog(@NonNull Runnable onContinue) {
-            new AlertDialog.Builder(NavigationActivity.this)
-                    .setTitle(R.string.msg_permission_required)
-                    .setMessage(R.string.msg_battery_opt_rationale)
-                    .setPositiveButton(
-                            R.string.action_open_settings,
-                            (d, w) -> openBatteryOptimizationSettings(onContinue)
-                    )
-                    .setNegativeButton(android.R.string.cancel, (d, w) -> onContinue.run())
-                    .setOnCancelListener(d -> onContinue.run())
-                    .show();
-        }
-
-        @Override
-        public void startNavigationService(@NonNull NavigationRequest request) {
-            Intent start = new Intent(NavigationActivity.this, NavigationService.class);
-            start.setAction(NavigationService.ACTION_START);
-            AndroidNavigationRequestIntentContract.putInto(start, request);
-            AppLogger.i(TAG, "Starting foreground navigation service " + request.describe());
-            ContextCompat.startForegroundService(NavigationActivity.this, start);
-        }
-
-        @Override
-        public void cancelNavigationStartup() {
-            AppLogger.i(TAG, "Closing navigation screen after startup cancellation");
-            finish();
-        }
-
-        private void openSettings(@NonNull NavigationStartupCoordinator.SettingsTarget settingsTarget) {
-            switch (settingsTarget) {
-                case LOCATION:
-                    launchSettingsIntent(AndroidNavigationPreflight.newLocationSettingsIntent());
-                    return;
-                case NOTIFICATIONS:
-                    openNotificationSettings();
-                    return;
-                default:
-                    throw new IllegalArgumentException("Unsupported settings target=" + settingsTarget);
-            }
-        }
-
-        private void openNotificationSettings() {
-            Intent settingsIntent = AndroidNavigationPreflight.newNotificationSettingsIntent(NavigationActivity.this);
-            launchSettingsIntent(settingsIntent);
-        }
-
-        private void openBatteryOptimizationSettings(@NonNull Runnable onContinue) {
-            Intent settingsIntent = AndroidNavigationPreflight.newBatteryOptimizationRequestIntent(
-                    NavigationActivity.this
-            );
-            if (AndroidNavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
-                startupCoordinator.onSettingsOpened();
-                onContinue.run();
-                return;
-            }
-            Toast.makeText(
-                    NavigationActivity.this,
-                    R.string.msg_open_settings_failed,
-                    Toast.LENGTH_SHORT
-            ).show();
-            onContinue.run();
-        }
-
-        private void launchSettingsIntent(@NonNull Intent settingsIntent) {
-            if (AndroidNavigationSettingsLauncher.launch(NavigationActivity.this, settingsIntent)) {
-                startupCoordinator.onSettingsOpened();
-                return;
-            }
-            Toast.makeText(
-                    NavigationActivity.this,
-                    R.string.msg_open_settings_failed,
-                    Toast.LENGTH_SHORT
-            ).show();
-        }
+    void onStartupSettingsOpened() {
+        startupCoordinator.onSettingsOpened();
     }
 
     @NonNull

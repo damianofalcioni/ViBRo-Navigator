@@ -2,38 +2,57 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesTreeAccessPrompt;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
-import vibro.navigator.android.startup.AndroidNavigationSettingsLauncher;
+import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
+import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.nav.startup.NavigationPreflight;
 import vibro.navigator.settings.AppCompassSettings;
 
 final class AboutPermissionStatusRows {
+    static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3006;
+    static final int REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE = 3007;
+    static final int REQUEST_PROFILES_TREE = 3008;
+
+    private static final String TAG = "AboutDiagnostics";
 
     @NonNull
     private final Activity activity;
     @NonNull
-    private final PermissionRow locationPermissionRow;
+    private final AboutPermissionRow locationPermissionRow;
     @NonNull
-    private final PermissionRow locationServicesRow;
+    private final AboutPermissionRow locationServicesRow;
     @NonNull
-    private final PermissionRow notificationsRow;
+    private final AboutPermissionRow notificationsRow;
     @NonNull
-    private final PermissionRow batteryOptimizationRow;
+    private final AboutPermissionRow batteryOptimizationRow;
     @NonNull
-    private final PermissionRow surroundingStreetStorageRow;
+    private final AboutPermissionRow surroundingStreetStorageRow;
+    @NonNull
+    private final AboutPermissionRow profileStorageRow;
+    @NonNull
+    private final BRouterProfilesRepository profilesRepository =
+            AndroidBRouterProfilesRepositoryFactory.create();
+    @NonNull
+    private final BRouterSegmentsRepository segmentsRepository =
+            AndroidBRouterSegmentsRepositoryFactory.create();
+    private boolean waitingForSurroundingStreetSegmentsTree;
+    private boolean waitingForProfilesTree;
 
     AboutPermissionStatusRows(@NonNull Activity activity) {
         this.activity = activity;
-        locationPermissionRow = new PermissionRow(
+        locationPermissionRow = new AboutPermissionRow(
                 activity,
                 R.id.aboutPermissionLocationRow,
                 R.id.aboutPermissionLocationMark,
@@ -41,7 +60,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionLocationStatus,
                 AndroidNavigationPreflight::newAppDetailsSettingsIntent
         );
-        locationServicesRow = new PermissionRow(
+        locationServicesRow = new AboutPermissionRow(
                 activity,
                 R.id.aboutPermissionLocationServicesRow,
                 R.id.aboutPermissionLocationServicesMark,
@@ -49,7 +68,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionLocationServicesStatus,
                 ignored -> AndroidNavigationPreflight.newLocationSettingsIntent()
         );
-        notificationsRow = new PermissionRow(
+        notificationsRow = new AboutPermissionRow(
                 activity,
                 R.id.aboutPermissionNotificationsRow,
                 R.id.aboutPermissionNotificationsMark,
@@ -57,7 +76,7 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionNotificationsStatus,
                 AndroidNavigationPreflight::newNotificationSettingsIntent
         );
-        batteryOptimizationRow = new PermissionRow(
+        batteryOptimizationRow = new AboutPermissionRow(
                 activity,
                 R.id.aboutPermissionBatteryRow,
                 R.id.aboutPermissionBatteryMark,
@@ -65,13 +84,21 @@ final class AboutPermissionStatusRows {
                 R.id.aboutPermissionBatteryStatus,
                 AboutPermissionStatusRows::newBatteryOptimizationIntent
         );
-        surroundingStreetStorageRow = new PermissionRow(
+        surroundingStreetStorageRow = new AboutPermissionRow(
                 activity,
                 R.id.aboutPermissionSurroundingStreetStorageRow,
                 R.id.aboutPermissionSurroundingStreetStorageMark,
                 R.id.aboutPermissionSurroundingStreetStorageLabel,
                 R.id.aboutPermissionSurroundingStreetStorageStatus,
-                AndroidNavigationPreflight::newAppDetailsSettingsIntent
+                this::openSurroundingStreetStorageAccess
+        );
+        profileStorageRow = new AboutPermissionRow(
+                activity,
+                R.id.aboutPermissionProfileStorageRow,
+                R.id.aboutPermissionProfileStorageMark,
+                R.id.aboutPermissionProfileStorageLabel,
+                R.id.aboutPermissionProfileStorageStatus,
+                this::openProfileStorageAccess
         );
     }
 
@@ -82,6 +109,58 @@ final class AboutPermissionStatusRows {
         notificationsRow.render(status.hasNotificationAccess());
         renderBatteryOptimization(status);
         renderSurroundingStreetStorage();
+        renderProfileStorage();
+    }
+
+    boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode == REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
+            return onSurroundingStreetSegmentsTreeActivityResult(resultCode, data);
+        }
+        if (requestCode == REQUEST_PROFILES_TREE) {
+            return onProfilesTreeActivityResult(resultCode, data);
+        }
+        return false;
+    }
+
+    private boolean onSurroundingStreetSegmentsTreeActivityResult(int resultCode, @Nullable Intent data) {
+        if (!waitingForSurroundingStreetSegmentsTree) {
+            return true;
+        }
+        waitingForSurroundingStreetSegmentsTree = false;
+        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
+                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
+            segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
+        } else {
+            showSurroundingStreetStorageRequiredToast();
+        }
+        render();
+        return true;
+    }
+
+    private boolean onProfilesTreeActivityResult(int resultCode, @Nullable Intent data) {
+        if (!waitingForProfilesTree) {
+            return true;
+        }
+        waitingForProfilesTree = false;
+        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
+                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
+            profilesRepository.saveProfilesTreeUri(activity, data.getData());
+        } else {
+            showProfileStorageRequiredToast();
+        }
+        render();
+        return true;
+    }
+
+    boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+        if (requestCode != REQUEST_SURROUNDING_STREETS_STORAGE) {
+            return false;
+        }
+        if (!AndroidLegacyExternalStorageAccess.isReadPermissionGranted(grantResults)) {
+            showSurroundingStreetStorageRequiredToast();
+        }
+        render();
+        return true;
     }
 
     private void renderBatteryOptimization(@NonNull NavigationPreflight.Status status) {
@@ -102,87 +181,87 @@ final class AboutPermissionStatusRows {
     }
 
     private void renderSurroundingStreetStorage() {
-        boolean visible = AppCompassSettings.isSurroundingStreetsEnabled(activity)
-                && AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant();
+        if (!isBRouterInstalled()) {
+            surroundingStreetStorageRow.setVisible(false);
+            return;
+        }
+        boolean hasAccess = hasSurroundingStreetStorageAccess();
+        boolean visible = shouldShowSurroundingStreetStorageStatus();
         surroundingStreetStorageRow.setVisible(visible);
         if (visible) {
-            surroundingStreetStorageRow.render(AndroidLegacyExternalStorageAccess.hasReadPermission(activity));
+            surroundingStreetStorageRow.render(hasAccess);
         }
     }
 
-    private interface SettingsIntentFactory {
-        @NonNull
-        Intent create(@NonNull Activity activity);
+    private void renderProfileStorage() {
+        if (!isBRouterInstalled()) {
+            profileStorageRow.setVisible(false);
+            return;
+        }
+        profileStorageRow.setVisible(true);
+        profileStorageRow.render(profilesRepository.hasPersistedProfilesTreeAccess(activity));
     }
 
-    private static final class PermissionRow {
-
-        @NonNull
-        private final Activity activity;
-        @NonNull
-        private final View rowView;
-        @NonNull
-        private final View markerView;
-        @NonNull
-        private final TextView labelView;
-        @NonNull
-        private final TextView statusView;
-
-        PermissionRow(
-                @NonNull Activity activity,
-                int rowId,
-                int markerId,
-                int labelId,
-                int statusId,
-                @NonNull SettingsIntentFactory intentFactory
-        ) {
-            this.activity = activity;
-            rowView = activity.findViewById(rowId);
-            markerView = activity.findViewById(markerId);
-            labelView = activity.findViewById(labelId);
-            statusView = activity.findViewById(statusId);
-            rowView.setOnClickListener(v -> openSettings(intentFactory.create(activity)));
+    private boolean shouldShowSurroundingStreetStorageStatus() {
+        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
+            return AppCompassSettings.isSurroundingStreetsEnabled(activity);
         }
-
-        void render(boolean allowed) {
-            int statusResId = allowed
-                    ? R.string.permission_status_ok
-                    : R.string.permission_status_needs_attention;
-            int colorResId = allowed ? R.color.success : R.color.danger;
-            int markerResId = allowed
-                    ? R.drawable.bg_permission_status_ok
-                    : R.drawable.bg_permission_status_error;
-
-            renderStatus(statusResId, colorResId, markerResId);
-        }
-
-        void renderWarningKo() {
-            renderStatus(
-                    R.string.permission_status_needs_attention,
-                    R.color.warning,
-                    R.drawable.bg_permission_status_warning
-            );
-        }
-
-        private void renderStatus(int statusResId, int colorResId, int markerResId) {
-            markerView.setBackgroundResource(markerResId);
-            statusView.setText(statusResId);
-            statusView.setTextColor(ContextCompat.getColor(activity, colorResId));
-            rowView.setContentDescription(activity.getString(
-                    R.string.format_about_permission_status_content_description,
-                    labelView.getText(),
-                    statusView.getText()
-            ));
-        }
-
-        void setVisible(boolean visible) {
-            rowView.setVisibility(visible ? View.VISIBLE : View.GONE);
-        }
-
-        private void openSettings(@NonNull Intent intent) {
-            if (!AndroidNavigationSettingsLauncher.launch(activity, intent)) {
-                Toast.makeText(activity, R.string.msg_open_settings_failed, Toast.LENGTH_SHORT).show();
-            }
-        }
+        return true;
     }
+
+    private boolean hasSurroundingStreetStorageAccess() {
+        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
+            return AndroidLegacyExternalStorageAccess.hasReadPermission(activity);
+        }
+        return segmentsRepository.hasPersistedSegmentsTreeAccess(activity);
+    }
+
+    private void openSurroundingStreetStorageAccess() {
+        if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
+            AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_SURROUNDING_STREETS_STORAGE);
+            return;
+        }
+        AndroidBRouterSegmentsTreeAccessPrompt.show(
+                activity,
+                segmentsRepository,
+                REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
+                TAG,
+                () -> waitingForSurroundingStreetSegmentsTree = true,
+                () -> {
+                }
+        );
+    }
+
+    private void openProfileStorageAccess() {
+        AndroidBRouterProfilesTreeAccessPrompt.show(
+                activity,
+                profilesRepository,
+                REQUEST_PROFILES_TREE,
+                TAG,
+                () -> waitingForProfilesTree = true,
+                () -> {
+                }
+        );
+    }
+
+    private void showSurroundingStreetStorageRequiredToast() {
+        Toast.makeText(
+                activity,
+                R.string.msg_compass_surrounding_streets_storage_permission_required,
+                Toast.LENGTH_SHORT
+        ).show();
+    }
+
+    private boolean isBRouterInstalled() {
+        return profilesRepository.isBRouterInstalled(activity);
+    }
+
+    private void showProfileStorageRequiredToast() {
+        Toast.makeText(
+                activity,
+                R.string.msg_brouter_profiles_storage_permission_required,
+                Toast.LENGTH_SHORT
+        ).show();
+    }
+
 }

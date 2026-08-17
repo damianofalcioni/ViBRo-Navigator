@@ -1,14 +1,23 @@
 package vibro.navigator.about;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
+import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
@@ -22,6 +31,8 @@ import vibro.navigator.settings.AppThemeSettings;
 
 final class AboutSettingsSwitches {
     static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3001;
+    static final int REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE = 3003;
+    private static final String TAG = "AboutSettings";
 
     @NonNull
     private final Activity activity;
@@ -55,6 +66,12 @@ final class AboutSettingsSwitches {
     private final Runnable afterSettingApplied;
     @NonNull
     private final TaskScheduler settingsChangeScheduler = AndroidTaskScheduler.main();
+    @NonNull
+    private final BRouterProfilesRepository profilesRepository =
+            AndroidBRouterProfilesRepositoryFactory.create();
+    @NonNull
+    private final BRouterSegmentsRepository segmentsRepository =
+            AndroidBRouterSegmentsRepositoryFactory.create();
 
     private AboutDeferredBooleanSetting logEnabledSetting;
     private AboutDeferredBooleanSetting autoSaveGpxSetting;
@@ -69,6 +86,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting navigationNotificationsSetting;
     private AboutDeferredBooleanSetting singleInstructionModeSetting;
     private AboutDeferredBooleanSetting navigationCustomButtonSetting;
+    private boolean waitingForSurroundingStreetSegmentsTree;
 
     AboutSettingsSwitches(
             @NonNull Activity activity,
@@ -135,7 +153,7 @@ final class AboutSettingsSwitches {
         lightThemeSetting.render(lightThemeSwitch, AppThemeSettings.isLightThemeEnabled(activity));
         surroundingStreetsSetting.render(
                 surroundingStreetsSwitch,
-                AppCompassSettings.isSurroundingStreetsEnabled(activity)
+                storedSurroundingStreetsValue()
         );
         compassInstantZoomSetting.render(
                 compassInstantZoomSwitch,
@@ -184,6 +202,10 @@ final class AboutSettingsSwitches {
             return;
         }
         if (AndroidLegacyExternalStorageAccess.isReadPermissionGranted(grantResults)) {
+            if (!isBRouterInstalled()) {
+                denySurroundingStreetsBRouterMissing();
+                return;
+            }
             surroundingStreetsSetting.set(true);
             surroundingStreetsSetting.flush();
             render();
@@ -196,6 +218,39 @@ final class AboutSettingsSwitches {
                 R.string.msg_compass_surrounding_streets_storage_permission_required,
                 Toast.LENGTH_SHORT
         ).show();
+    }
+
+    boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (requestCode != REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
+            return false;
+        }
+        if (!waitingForSurroundingStreetSegmentsTree) {
+            return true;
+        }
+        waitingForSurroundingStreetSegmentsTree = false;
+        Uri uri = persistSegmentsTreeResultUri(resultCode, data);
+        if (uri == null) {
+            denySurroundingStreetsStorage();
+            return true;
+        }
+        if (!isBRouterInstalled()) {
+            denySurroundingStreetsBRouterMissing();
+            return true;
+        }
+        segmentsRepository.saveSegmentsTreeUri(activity, uri);
+        surroundingStreetsSetting.set(true);
+        surroundingStreetsSetting.flush();
+        render();
+        return true;
+    }
+
+    @Nullable
+    private Uri persistSegmentsTreeResultUri(int resultCode, @Nullable Intent data) {
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+            return null;
+        }
+        Uri uri = data.getData();
+        return AndroidDocumentAccess.persistReadPermission(activity, data, uri) ? uri : null;
     }
 
     private void configureLogEnabledSwitch() {
@@ -282,9 +337,13 @@ final class AboutSettingsSwitches {
         );
         surroundingStreetsSetting.render(
                 surroundingStreetsSwitch,
-                AppCompassSettings.isSurroundingStreetsEnabled(activity)
+                storedSurroundingStreetsValue()
         );
         surroundingStreetsSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked && !isBRouterInstalled()) {
+                denySurroundingStreetsBRouterMissing();
+                return;
+            }
             if (isChecked && AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(activity)) {
                 AndroidLegacyExternalStorageAccess.requestReadPermission(
                         activity,
@@ -292,8 +351,56 @@ final class AboutSettingsSwitches {
                 );
                 return;
             }
+            if (isChecked && shouldRequestSurroundingStreetSegmentsTree()) {
+                startSurroundingStreetSegmentsTreePicker();
+                return;
+            }
             surroundingStreetsSetting.set(isChecked);
         });
+    }
+
+    private boolean storedSurroundingStreetsValue() {
+        return AppCompassSettings.isSurroundingStreetsEnabled(activity) && isBRouterInstalled();
+    }
+
+    private boolean shouldRequestSurroundingStreetSegmentsTree() {
+        return !AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
+                && !segmentsRepository.hasPersistedSegmentsTreeAccess(activity);
+    }
+
+    private void startSurroundingStreetSegmentsTreePicker() {
+        AndroidBRouterSegmentsTreeAccessPrompt.show(
+                activity,
+                segmentsRepository,
+                REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE,
+                TAG,
+                () -> waitingForSurroundingStreetSegmentsTree = true,
+                this::denySurroundingStreetsStorage
+        );
+    }
+
+    private void denySurroundingStreetsBRouterMissing() {
+        AppCompassSettings.setSurroundingStreetsEnabled(activity, false);
+        render();
+        Toast.makeText(
+                activity,
+                R.string.msg_surrounding_streets_brouter_required,
+                Toast.LENGTH_SHORT
+        ).show();
+    }
+
+    private boolean isBRouterInstalled() {
+        return profilesRepository.isBRouterInstalled(activity);
+    }
+
+    private void denySurroundingStreetsStorage() {
+        AppCompassSettings.setSurroundingStreetsEnabled(activity, false);
+        render();
+        Toast.makeText(
+                activity,
+                R.string.msg_compass_surrounding_streets_storage_permission_required,
+                Toast.LENGTH_SHORT
+        ).show();
     }
 
     private void configureCompassInstantZoomSwitch() {
@@ -385,4 +492,5 @@ final class AboutSettingsSwitches {
             activity.recreate();
         }
     }
+
 }

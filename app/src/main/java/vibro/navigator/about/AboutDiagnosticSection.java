@@ -1,6 +1,7 @@
 package vibro.navigator.about;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.view.View;
 import android.widget.TextView;
 
@@ -56,6 +57,14 @@ final class AboutDiagnosticSection {
         permissionStatusRows.render();
         symbolTestButtons.show();
         sensorStatusBody.setText(sensorStatusFormatter().build(activity));
+    }
+
+    boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        return permissionStatusRows.onActivityResult(requestCode, resultCode, data);
+    }
+
+    boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
+        return permissionStatusRows.onRequestPermissionsResult(requestCode, grantResults);
     }
 
     void start() {

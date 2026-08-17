@@ -1,6 +1,7 @@
 package vibro.navigator.brouter;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
@@ -21,6 +22,8 @@ import vibro.navigator.nav.streets.SurroundingStreetRepository;
 
 public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
     private static final String TAG = "BRouterSegments";
+    private static final String PREFS = "vibenavigator_brouter";
+    private static final String KEY_SEGMENTS_TREE_URI = "segments_tree_uri";
 
     @NonNull
     private final BRouterSegmentDependencies dependencies;
@@ -42,6 +45,43 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
         segmentDirectories = new BRouterSegmentDirectories(
                 dependencies.documentAccess,
                 dependencies.storageVolumeAccess
+        );
+    }
+
+    @Nullable
+    public Uri getSegmentsTreeUri(@NonNull Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+        String raw = prefs.getString(KEY_SEGMENTS_TREE_URI, null);
+        if (raw == null || raw.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            return Uri.parse(raw);
+        } catch (Exception e) {
+            AppLogger.w(TAG, "Failed to parse saved BRouter segments tree URI raw=" + raw, e);
+            return null;
+        }
+    }
+
+    public void saveSegmentsTreeUri(@NonNull Context context, @NonNull Uri treeUri) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .edit()
+                .putString(KEY_SEGMENTS_TREE_URI, treeUri.toString())
+                .apply();
+        AppLogger.i(TAG, "Saved BRouter segments tree uri=" + treeUri);
+    }
+
+    public boolean hasPersistedSegmentsTreeAccess(@NonNull Context context) {
+        return hasPersistedReadPermission(context, getSegmentsTreeUri(context));
+    }
+
+    @Nullable
+    public Uri getSegmentsTreePickerInitialUri(@NonNull Context context) {
+        Uri savedTreeUri = getSegmentsTreeUri(context);
+        return segmentDirectories.getSegmentsTreePickerInitialUri(
+                context,
+                savedTreeUri,
+                hasPersistedReadPermission(context, savedTreeUri)
         );
     }
 
@@ -166,7 +206,12 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     @NonNull
     private List<Uri> discoveryTreeUris(@NonNull Context context) {
         if (discoveryTreeUris == null) {
-            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(context);
+            Uri savedTreeUri = getSegmentsTreeUri(context);
+            discoveryTreeUris = segmentDirectories.resolveSegmentsDiscoveryTreeUris(
+                    context,
+                    savedTreeUri,
+                    hasPersistedReadPermission(context, savedTreeUri)
+            );
         }
         return discoveryTreeUris;
     }
@@ -177,5 +222,9 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             discoveryDirectoryIds = segmentDirectories.getSegmentsDocumentIdCandidates(context);
         }
         return discoveryDirectoryIds;
+    }
+
+    private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
+        return dependencies.uriPermissionAccess.hasReadPermission(context, uri);
     }
 }

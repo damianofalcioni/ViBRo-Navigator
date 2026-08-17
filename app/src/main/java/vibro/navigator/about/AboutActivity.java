@@ -150,7 +150,15 @@ public class AboutActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         initializeSettingsSection();
-        databaseBackupActions.handleActivityResult(requestCode, resultCode, data);
+        AboutActivityResultHandlers.handleActivityResult(
+                settingsSwitches,
+                diagnosticSection,
+                databaseBackupActions,
+                requestCode,
+                resultCode,
+                data,
+                this::scheduleDiagnosticSectionRender
+        );
     }
 
     @Override
@@ -161,7 +169,13 @@ public class AboutActivity extends Activity {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         initializeSettingsSection();
-        settingsSwitches.onRequestPermissionsResult(requestCode, grantResults);
+        AboutActivityResultHandlers.handlePermissionResult(
+                settingsSwitches,
+                diagnosticSection,
+                requestCode,
+                grantResults,
+                this::scheduleDiagnosticSectionRender
+        );
     }
 
     private void scheduleDiagnosticSectionRender() {

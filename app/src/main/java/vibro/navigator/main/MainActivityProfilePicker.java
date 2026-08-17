@@ -17,7 +17,6 @@ import vibro.navigator.logging.AppLogger;
 final class MainActivityProfilePicker {
 
     private static final int REQ_PICK_CUSTOM_PROFILE = 1001;
-    private static final int REQ_PICK_CUSTOM_PROFILE_TREE = 1002;
     private static final String TAG = "MainProfilePicker";
 
     @NonNull
@@ -46,18 +45,7 @@ final class MainActivityProfilePicker {
     }
 
     void startCustomProfilePicker() {
-        if (!profilesRepository.hasPersistedProfilesTreeAccess(activity)) {
-            startProfilesTreePicker();
-            return;
-        }
         startCustomProfileDocumentPicker();
-    }
-
-    private void startProfilesTreePicker() {
-        Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
-        Intent intent = AndroidDocumentAccess.openDocumentTreeIntent(initialUri);
-        AppLogger.i(TAG, "Launching profiles tree picker initialUri=" + safe(initialUri));
-        activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE_TREE);
     }
 
     private void startCustomProfileDocumentPicker() {
@@ -68,36 +56,11 @@ final class MainActivityProfilePicker {
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQ_PICK_CUSTOM_PROFILE_TREE) {
-            handleProfilesTreePickerResult(resultCode, data);
-            return true;
-        }
         if (requestCode == REQ_PICK_CUSTOM_PROFILE) {
             handleCustomProfilePickerResult(resultCode, data);
             return true;
         }
         return false;
-    }
-
-    private void handleProfilesTreePickerResult(int resultCode, @Nullable Intent data) {
-        ProfileSpinnerController controller = requireProfileSpinnerController();
-        if (resultCode != Activity.RESULT_OK || data == null) {
-            controller.onCustomProfilePickerCancelled();
-            return;
-        }
-        Uri uri = data.getData();
-        if (uri == null) {
-            AppLogger.w(TAG, "Profiles tree picker returned without URI");
-            controller.onCustomProfilePickerCancelled();
-            return;
-        }
-        if (!AndroidDocumentAccess.persistReadPermission(activity, data, uri)) {
-            controller.onCustomProfilePickerCancelled();
-            return;
-        }
-        profilesRepository.saveProfilesTreeUri(activity, uri);
-        controller.refresh();
-        startCustomProfileDocumentPicker();
     }
 
     private void handleCustomProfilePickerResult(int resultCode, @Nullable Intent data) {

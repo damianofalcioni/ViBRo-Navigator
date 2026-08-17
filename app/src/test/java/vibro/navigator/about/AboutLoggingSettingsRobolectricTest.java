@@ -259,27 +259,21 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
         Switch fusedLocationSwitch = activity.findViewById(R.id.aboutFusedLocationSwitch);
-        Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
         Switch compassInstantZoomSwitch = activity.findViewById(R.id.aboutCompassInstantZoomSwitch);
 
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
-        assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         assertFalse(AppCompassSettings.isInstantZoomEnabled(activity));
 
         imperialUnitsSwitch.performClick();
-        surroundingStreetsSwitch.performClick();
         compassInstantZoomSwitch.performClick();
 
         assertTrue(imperialUnitsSwitch.isChecked());
-        assertTrue(surroundingStreetsSwitch.isChecked());
         assertTrue(compassInstantZoomSwitch.isChecked());
         assertFalse(AppSettings.isImperialUnitsEnabled(activity));
-        assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         assertFalse(AppCompassSettings.isInstantZoomEnabled(activity));
         idleDeferredSettingApply();
 
         assertTrue(AppSettings.isImperialUnitsEnabled(activity));
-        assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         assertTrue(AppCompassSettings.isInstantZoomEnabled(activity));
 
         if (!DistributionServices.supportsFusedLocation()) {

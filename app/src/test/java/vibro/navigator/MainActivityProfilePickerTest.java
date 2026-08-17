@@ -6,6 +6,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
 
@@ -24,7 +25,7 @@ public class MainActivityProfilePickerTest {
 
     @Test
     @Config(sdk = Build.VERSION_CODES.O)
-    public void startCustomProfilePicker_requestsProfilesTreeBeforeAndroid11WhenNoTreeGrantExists() {
+    public void startCustomProfilePicker_opensDocumentPickerBeforeAndroid11WhenNoTreeGrantExists() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         MainActivityProfilePicker picker = new MainActivityProfilePicker(
                 activity,
@@ -35,13 +36,13 @@ public class MainActivityProfilePickerTest {
 
         ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         Intent intent = started.intent;
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, intent.getAction());
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT, intent.getAction());
         assertTrue(intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
     }
 
     @Test
     @Config(sdk = Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    public void startCustomProfilePicker_requestsProfilesTreeOnAndroid11AndLaterWhenNoTreeGrantExists() {
+    public void startCustomProfilePicker_opensDocumentPickerOnAndroid11AndLaterWhenNoTreeGrantExists() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         MainActivityProfilePicker picker = new MainActivityProfilePicker(
                 activity,
@@ -52,7 +53,7 @@ public class MainActivityProfilePickerTest {
 
         ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         Intent intent = started.intent;
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, intent.getAction());
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT, intent.getAction());
         assertTrue(intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
     }
 
@@ -74,6 +75,8 @@ public class MainActivityProfilePickerTest {
     }
 
     private static final class TestProfilesRepository extends BRouterProfilesRepository {
+        private static final Uri INITIAL_URI = Uri.parse("content://test.documents/document/profiles2");
+
         private final boolean hasTreeGrant;
 
         private TestProfilesRepository(boolean hasTreeGrant) {
@@ -84,6 +87,11 @@ public class MainActivityProfilePickerTest {
         @Override
         public boolean hasPersistedProfilesTreeAccess(android.content.Context context) {
             return hasTreeGrant;
+        }
+
+        @Override
+        public Uri getCustomProfilePickerInitialUri(android.content.Context context) {
+            return INITIAL_URI;
         }
     }
 }

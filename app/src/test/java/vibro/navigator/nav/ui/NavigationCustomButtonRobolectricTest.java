@@ -2,12 +2,18 @@ package vibro.navigator.nav.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.app.AlertDialog;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
+import android.os.Build;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -20,11 +26,15 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowActivity.PermissionsRequest;
+import org.robolectric.shadows.ShadowPackageManager;
 import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
 
 import vibro.navigator.R;
+import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings.Target;
@@ -42,6 +52,7 @@ public class NavigationCustomButtonRobolectricTest {
         AppNavigationCustomButtonSettings.setTarget(context, Target.DYNAMIC_GPS_INTERVAL);
         AppCompassSettings.setSurroundingStreetsEnabled(context, false);
         AppNotificationSettings.setNavigationNotificationsEnabled(context, true);
+        context.getSharedPreferences("vibenavigator_brouter", Context.MODE_PRIVATE).edit().clear().commit();
         ShadowToast.reset();
     }
 
@@ -82,6 +93,7 @@ public class NavigationCustomButtonRobolectricTest {
     @Test
     @Config(sdk = 26)
     public void surroundingStreetsTargetEnablesAfterLegacyStorageGrant() {
+        installBRouterPackage();
         Application context = ApplicationProvider.getApplicationContext();
         AppNavigationCustomButtonSettings.setEnabled(context, true);
         AppNavigationCustomButtonSettings.setTarget(context, Target.SURROUNDING_STREETS);
@@ -104,6 +116,46 @@ public class NavigationCustomButtonRobolectricTest {
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
     }
 
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void surroundingStreetsTargetRequestsSegmentsTreeOnAndroid11() {
+        installBRouterPackage();
+        Application context = ApplicationProvider.getApplicationContext();
+        AppNavigationCustomButtonSettings.setEnabled(context, true);
+        AppNavigationCustomButtonSettings.setTarget(context, Target.SURROUNDING_STREETS);
+        TestNavigationActivity activity = activity();
+        View customButton = activity.findViewById(R.id.navigationCustomButton);
+
+        customButton.performClick();
+
+        continueFromBRouterPrompt(activity);
+
+        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
+        assertNotNull(started);
+        assertEquals(NavigationCustomButtonController.REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE, started.requestCode);
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
+        assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void surroundingStreetsTargetShowsBRouterRequiredToastWhenBRouterIsMissing() {
+        Application context = ApplicationProvider.getApplicationContext();
+        AppNavigationCustomButtonSettings.setEnabled(context, true);
+        AppNavigationCustomButtonSettings.setTarget(context, Target.SURROUNDING_STREETS);
+        TestNavigationActivity activity = activity();
+        View customButton = activity.findViewById(R.id.navigationCustomButton);
+
+        customButton.performClick();
+
+        assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+        assertNull(shadowOf(activity).getNextStartedActivityForResult());
+        assertEquals(
+                activity.getString(R.string.msg_surrounding_streets_brouter_required),
+                ShadowToast.getTextOfLatestToast()
+        );
+    }
+
     private static TestNavigationActivity activity() {
         Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
         intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
@@ -114,6 +166,26 @@ public class NavigationCustomButtonRobolectricTest {
 
     private static int imageResource(ImageButton button) {
         return ReflectionHelpers.getField(button, "mResource");
+    }
+
+    private static void continueFromBRouterPrompt(TestNavigationActivity activity) {
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        assertEquals(
+                activity.getString(R.string.action_continue),
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
+        );
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("segments4"));
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(android.os.Looper.getMainLooper()).idle();
+    }
+
+    private static void installBRouterPackage() {
+        Application context = ApplicationProvider.getApplicationContext();
+        ShadowPackageManager shadowPackageManager = shadowOf(context.getPackageManager());
+        PackageInfo packageInfo = new PackageInfo();
+        packageInfo.packageName = BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+        shadowPackageManager.installPackage(packageInfo);
     }
 
     public static class TestNavigationActivity extends NavigationActivity {

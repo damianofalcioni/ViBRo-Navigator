@@ -6,10 +6,13 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageInfo;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.View;
@@ -25,6 +28,8 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadow.api.Shadow;
+import org.robolectric.shadows.ShadowAlertDialog;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowPackageManager;
 import org.robolectric.shadows.ShadowPowerManager;
 
@@ -32,7 +37,9 @@ import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
+import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppCompassSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class AboutPermissionStatusRowsRobolectricTest {
@@ -41,6 +48,8 @@ public class AboutPermissionStatusRowsRobolectricTest {
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
         AppLogger.init(context);
+        context.getSharedPreferences("vibenavigator_brouter", Context.MODE_PRIVATE).edit().clear().commit();
+        AppCompassSettings.setSurroundingStreetsEnabled(context, false);
     }
 
     @Test
@@ -69,6 +78,7 @@ public class AboutPermissionStatusRowsRobolectricTest {
 
     @Test
     public void aboutPageShowsPermissionRowsBeforeSensorStatus() {
+        installBRouterPackage();
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
         LinearLayout diagnostics = activity.findViewById(R.id.aboutDiagnosticsSection);
@@ -100,6 +110,25 @@ public class AboutPermissionStatusRowsRobolectricTest {
                 R.id.aboutPermissionBatteryStatus,
                 R.string.label_permission_battery
         );
+        assertPermissionRow(
+                activity,
+                R.id.aboutPermissionProfileStorageLabel,
+                R.id.aboutPermissionProfileStorageStatus,
+                R.string.label_permission_brouter_profile_storage
+        );
+    }
+
+    @Test
+    public void brouterStorageRowsAreHiddenWhenBRouterIsMissing() {
+        Application context = ApplicationProvider.getApplicationContext();
+        AppCompassSettings.setSurroundingStreetsEnabled(context, true);
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
+
+        assertEquals(View.GONE, activity.findViewById(
+                R.id.aboutPermissionSurroundingStreetStorageRow
+        ).getVisibility());
+        assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionProfileStorageRow).getVisibility());
     }
 
     @Test
@@ -141,6 +170,31 @@ public class AboutPermissionStatusRowsRobolectricTest {
         assertEquals(ContextCompat.getColor(activity, R.color.warning), status.getCurrentTextColor());
         assertEquals(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS, batteryIntent.getAction());
         assertEquals("package:" + activity.getPackageName(), String.valueOf(batteryIntent.getData()));
+    }
+
+    @Test
+    public void profileStorageRowOpensInstructionPromptBeforeFolderPicker() {
+        installBRouterPackage();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
+
+        activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        assertEquals(
+                activity.getString(R.string.action_continue),
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
+        );
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("profiles2"));
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
+        assertNotNull(started);
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
+        assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_TREE, started.requestCode);
     }
 
     private static void assertPermissionRow(
@@ -189,5 +243,13 @@ public class AboutPermissionStatusRowsRobolectricTest {
             filter.addDataScheme(intent.getData().getScheme());
         }
         return filter;
+    }
+
+    private static void installBRouterPackage() {
+        Application context = ApplicationProvider.getApplicationContext();
+        ShadowPackageManager shadowPackageManager = shadowOf(context.getPackageManager());
+        PackageInfo packageInfo = new PackageInfo();
+        packageInfo.packageName = BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
+        shadowPackageManager.installPackage(packageInfo);
     }
 }

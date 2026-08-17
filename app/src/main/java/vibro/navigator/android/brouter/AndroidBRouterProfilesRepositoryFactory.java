@@ -1,7 +1,6 @@
 package vibro.navigator.android.brouter;
 
 import android.content.Context;
-import android.content.UriPermission;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -12,6 +11,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterProfileDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -36,15 +36,7 @@ public final class AndroidBRouterProfilesRepositoryFactory {
     }
 
     private static boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        if (uri == null) {
-            return false;
-        }
-        for (UriPermission permission : context.getContentResolver().getPersistedUriPermissions()) {
-            if (permission.isReadPermission() && uri.equals(permission.getUri())) {
-                return true;
-            }
-        }
-        return false;
+        return AndroidPersistedUriPermissions.hasReadPermission(context, uri);
     }
 
     private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {

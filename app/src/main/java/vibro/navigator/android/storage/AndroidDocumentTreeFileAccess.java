@@ -34,6 +34,12 @@ final class AndroidDocumentTreeFileAccess {
         if (directUri != null) {
             return directUri;
         }
+        if (AndroidDocumentAccess.isExternalStorageDocument(treeUri)
+                && !AndroidPersistedUriPermissions.hasReadPermission(context, treeUri)) {
+            AppLogger.d(TAG, "Skipping ungranted external storage tree child lookup treeUri=" + treeUri
+                    + " displayName=" + displayName);
+            return null;
+        }
         return findChildDocumentUri(context, treeUri, treeDocumentId, displayName);
     }
 

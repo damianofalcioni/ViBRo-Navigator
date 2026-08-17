@@ -148,6 +148,11 @@ final class NavigationActivityRenderer {
         return customButtonUi.onRequestPermissionsResult(requestCode, grantResults);
     }
 
+    @NonNull
+    NavigationCustomButtonUi customButtonUi() {
+        return customButtonUi;
+    }
+
     void renderLiveDetails() {
         renderGpsStatus();
         detailsDialogs.updateLiveDetails(currentState, currentBinder);

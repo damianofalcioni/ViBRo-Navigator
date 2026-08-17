@@ -1,10 +1,12 @@
 package vibro.navigator.nav.ui;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.dispatch.TaskScheduler;
@@ -53,5 +55,9 @@ final class NavigationCustomButtonUi {
 
     boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
         return controller.onRequestPermissionsResult(requestCode, grantResults);
+    }
+
+    boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        return controller.onActivityResult(requestCode, resultCode, data);
     }
 }

@@ -137,6 +137,7 @@ public class MainActivity extends Activity {
         MainActivitySpeechInputVisibility.render(poiInputActionCoordinator, controls);
 
         profileCoordinator.refresh(brouterInstalled);
+        profileCoordinator.requestProfilesTreeAccessAtStartupIfNeeded(savedInstanceState == null && brouterInstalled);
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
             return;
         }
