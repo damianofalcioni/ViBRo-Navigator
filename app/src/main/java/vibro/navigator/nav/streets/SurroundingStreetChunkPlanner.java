@@ -31,6 +31,27 @@ final class SurroundingStreetChunkPlanner {
         return viewportPolicy.shouldShow(compassState);
     }
 
+    boolean hasSameSelectionInputs(
+            @Nullable NavCompassState previous,
+            @NonNull NavCompassState current
+    ) {
+        return previous != null
+                && previous.routeGeometry() == current.routeGeometry()
+                && previous.passedRouteSamplePointCount() == current.passedRouteSamplePointCount()
+                && sameFloat(
+                        previous.radiusState.visibleRadiusMeters,
+                        current.radiusState.visibleRadiusMeters
+                )
+                && sameFloat(
+                        previous.radiusState.movingScaleVisibleRadiusMeters,
+                        current.radiusState.movingScaleVisibleRadiusMeters
+                )
+                && sameFloat(
+                        previous.displayMode.referenceSpeedMps,
+                        current.displayMode.referenceSpeedMps
+                );
+    }
+
     @NonNull
     SurroundingStreetChunkSelection select(
             @NonNull NavCompassState compassState,
@@ -169,6 +190,10 @@ final class SurroundingStreetChunkPlanner {
 
     private static boolean isPositiveFinite(float value) {
         return Float.isFinite(value) && value > 0f;
+    }
+
+    private static boolean sameFloat(float first, float second) {
+        return Float.floatToIntBits(first) == Float.floatToIntBits(second);
     }
 
     private static int routeStartIndex(@NonNull NavCompassState compassState) {

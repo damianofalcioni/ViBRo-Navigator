@@ -21,7 +21,7 @@ public final class AppLogger {
 
     @Nullable
     private static File logFile;
-    private static boolean loggingEnabled;
+    private static volatile boolean loggingEnabled;
 
     private AppLogger() {
     }
@@ -109,6 +109,9 @@ public final class AppLogger {
             @NonNull String message,
             @Nullable Throwable throwable
     ) {
+        if (!loggingEnabled) {
+            return;
+        }
         StringBuilder block = buildLogPrefix(level, tag, message);
         if (throwable != null) {
             StringWriter sw = new StringWriter();
@@ -126,6 +129,9 @@ public final class AppLogger {
             @NonNull String message,
             @NonNull String body
     ) {
+        if (!loggingEnabled) {
+            return;
+        }
         StringBuilder block = buildLogPrefix(level, tag, message)
                 .append(normalizeMultiline(body));
         if (!body.endsWith("\n") && !body.endsWith("\r")) {

@@ -2,9 +2,9 @@ package vibro.navigator.nav.service;
 
 import androidx.annotation.NonNull;
 
-import vibro.navigator.android.location.AndroidNavigationLocationRecoveryAlarm;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocationController;
+import vibro.navigator.nav.location.NavigationLocationRecoveryAlarm;
 import vibro.navigator.nav.location.NavigationLocationStallMonitor;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
@@ -17,19 +17,19 @@ final class NavigationServiceLocationRecovery {
     @NonNull
     private final NavigationLocationStallMonitor stallMonitor;
     @NonNull
-    private final AndroidNavigationLocationRecoveryAlarm alarm;
+    private final NavigationLocationRecoveryScheduler recoveryScheduler;
     @NonNull
     private final ElapsedRealtimeClock clock;
 
     NavigationServiceLocationRecovery(
             @NonNull NavigationLocationController locationController,
             @NonNull NavigationLocationStallMonitor stallMonitor,
-            @NonNull AndroidNavigationLocationRecoveryAlarm alarm,
+            @NonNull NavigationLocationRecoveryAlarm alarm,
             @NonNull ElapsedRealtimeClock clock
     ) {
         this.locationController = locationController;
         this.stallMonitor = stallMonitor;
-        this.alarm = alarm;
+        recoveryScheduler = new NavigationLocationRecoveryScheduler(alarm);
         this.clock = clock;
     }
 
@@ -48,6 +48,7 @@ final class NavigationServiceLocationRecovery {
     }
 
     void recoverIfStalled() {
+        recoveryScheduler.onAlarmTriggered();
         long nowMs = clock.elapsedRealtimeMs();
         long expectedIntervalMs = expectedIntervalMs();
         if (stallMonitor.shouldRecover(nowMs, expectedIntervalMs)) {
@@ -60,12 +61,12 @@ final class NavigationServiceLocationRecovery {
     }
 
     void stop() {
-        alarm.cancel();
+        recoveryScheduler.cancel();
         stallMonitor.reset();
     }
 
     private void scheduleNextCheck() {
-        alarm.schedule(stallMonitor.recoveryDeadlineMs(expectedIntervalMs()));
+        recoveryScheduler.schedule(stallMonitor.recoveryDeadlineMs(expectedIntervalMs()));
     }
 
     private long expectedIntervalMs() {

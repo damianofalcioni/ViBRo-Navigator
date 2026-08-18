@@ -41,11 +41,13 @@ public final class SurroundingStreetOverlayController {
     private SurroundingStreetChunkSelection activeSelection = SurroundingStreetChunkSelection.EMPTY;
     private NavigationLocation lastAcceptedLocation;
     private NavCompassState lastCompassState;
+    private NavCompassState lastSelectionCompassState;
     private NavigationLocation lastRefreshLocation;
     private long lastRefreshElapsedMs;
     private boolean inFlight;
     private int generation;
     private boolean viewportActive;
+    private boolean disabledViewportCleared = true;
     private boolean shutdown;
 
     public SurroundingStreetOverlayController(
@@ -80,6 +82,7 @@ public final class SurroundingStreetOverlayController {
         clearViewportState();
         lastAcceptedLocation = null;
         lastCompassState = null;
+        disabledViewportCleared = true;
         lastRefreshLocation = null;
         lastRefreshElapsedMs = 0L;
     }
@@ -98,21 +101,29 @@ public final class SurroundingStreetOverlayController {
             return;
         }
         if (!runtime.isSurroundingStreetsEnabled()) {
-            clearAll();
+            clearDisabledViewportOnce();
             return;
         }
+        disabledViewportCleared = false;
         if (!chunkPlanner.shouldShow(compassState)) {
-            clearViewportState();
+            clearViewportIfActive();
+            return;
+        }
+        lastCompassState = compassState;
+        if (viewportActive && chunkPlanner.hasSameSelectionInputs(
+                lastSelectionCompassState,
+                compassState
+        )) {
             return;
         }
         viewportActive = true;
-        lastCompassState = compassState;
+        lastSelectionCompassState = compassState;
         rebuildSelection();
         requestOverlayIfNeeded();
     }
 
     public void clearCompassViewport() {
-        clearViewportState();
+        clearViewportIfActive();
     }
 
     @NonNull
@@ -231,8 +242,24 @@ public final class SurroundingStreetOverlayController {
 
     private void clearViewportState() {
         viewportActive = false;
+        lastSelectionCompassState = null;
         activeSelection = SurroundingStreetChunkSelection.EMPTY;
         overlay = CompassStreetOverlay.EMPTY;
         overlayCache.resetSpeedBucket();
     }
+
+    private void clearViewportIfActive() {
+        if (viewportActive) {
+            clearViewportState();
+        }
+    }
+
+    private void clearDisabledViewportOnce() {
+        if (disabledViewportCleared) {
+            return;
+        }
+        clearAll();
+        disabledViewportCleared = true;
+    }
+
 }

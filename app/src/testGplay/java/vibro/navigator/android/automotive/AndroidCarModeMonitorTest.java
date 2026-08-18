@@ -21,13 +21,13 @@ public class AndroidCarModeMonitorTest {
     @Before
     public void setUp() {
         context = ApplicationProvider.getApplicationContext();
-        AndroidCarModeMonitor.unregisterExitReceiver();
+        AndroidCarModeMonitor.unregisterExitReceiver(context);
         AndroidCarModeMonitor.setActiveForTest(false);
     }
 
     @After
     public void tearDown() {
-        AndroidCarModeMonitor.unregisterExitReceiver();
+        AndroidCarModeMonitor.unregisterExitReceiver(context);
         AndroidCarModeMonitor.setActiveForTest(null);
     }
 
@@ -36,8 +36,8 @@ public class AndroidCarModeMonitorTest {
         AtomicInteger exitCallbacks = new AtomicInteger();
         AndroidCarModeMonitor.setActiveForTest(true);
 
-        AndroidCarModeMonitor.registerExitReceiver(context, exitCallbacks::incrementAndGet);
-        AndroidCarModeMonitor.dispatchExitForTest();
+        AndroidCarModeMonitor.registerExitReceiver(context, ignored -> exitCallbacks.incrementAndGet());
+        AndroidCarModeMonitor.dispatchExitForTest(context);
 
         assertEquals(1, exitCallbacks.get());
     }
@@ -46,8 +46,8 @@ public class AndroidCarModeMonitorTest {
     public void registerExitReceiverDoesNothingWhenCarModeIsInactive() {
         AtomicInteger exitCallbacks = new AtomicInteger();
 
-        AndroidCarModeMonitor.registerExitReceiver(context, exitCallbacks::incrementAndGet);
-        AndroidCarModeMonitor.dispatchExitForTest();
+        AndroidCarModeMonitor.registerExitReceiver(context, ignored -> exitCallbacks.incrementAndGet());
+        AndroidCarModeMonitor.dispatchExitForTest(context);
 
         assertEquals(0, exitCallbacks.get());
     }

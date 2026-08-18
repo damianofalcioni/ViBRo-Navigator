@@ -21,6 +21,8 @@ import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.model.NavState;
 
 final class NavigationActivityTextScaling {
+    private static final long NO_SPEED_LIMIT_KEY = Long.MIN_VALUE;
+
     private NavigationActivityTextScaling() {
     }
 
@@ -77,6 +79,21 @@ final class NavigationActivityTextScaling {
                 NavigationSpeedLimitFormatter.formatContentDescription(activity, state.routeStatus.speedLimit)
         );
         speedLimit.setVisibility(View.VISIBLE);
+    }
+
+    static long speedLimitRenderKey(@NonNull NavState state) {
+        if (state.routeStatus.speedLimit == null) {
+            return NO_SPEED_LIMIT_KEY;
+        }
+        return ((long) state.routeStatus.speedLimit.value << Integer.SIZE)
+                | (state.routeStatus.speedLimit.unit.ordinal() & 0xFFFFFFFFL);
+    }
+
+    static boolean isOverSpeedLimit(@Nullable NavState state) {
+        return state != null && NavigationSpeedLimitFormatter.isOverLimit(
+                state.gpsStatus.telemetry.speedMps,
+                state.routeStatus.speedLimit
+        );
     }
 
     @NonNull

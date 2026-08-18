@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -15,6 +17,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+
+import java.util.concurrent.atomic.AtomicInteger;
 
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.orientation.DisplayRotation;
@@ -67,6 +71,34 @@ public class MainActivityRoundTripDirectionControllerTest {
         fixture.controller.onRouteModeChanged(NavigationRoutingMode.STRAIGHT_LINE);
         assertFalse(fixture.monitor.started);
         assertFalse(fixture.compassView.isHeadingAccuracyOkForTest());
+    }
+
+    @Test
+    public void equalFormattedHeadingDoesNotRewriteDirectionField() {
+        Fixture fixture = Fixture.create();
+        AtomicInteger textChanges = new AtomicInteger();
+        fixture.directionEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence text, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence text, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable text) {
+                textChanges.incrementAndGet();
+            }
+        });
+        fixture.controller.onRouteModeChanged(NavigationRoutingMode.ROUND_TRIP);
+        fixture.controller.onResume();
+
+        fixture.monitor.emit(sample(44.6, 7.5, 1_000L));
+        fixture.monitor.emit(sample(44.7, 7.5, 1_000L));
+
+        assertEquals("45", fixture.directionEdit.getText().toString());
+        assertEquals(1, textChanges.get());
     }
 
     @NonNull

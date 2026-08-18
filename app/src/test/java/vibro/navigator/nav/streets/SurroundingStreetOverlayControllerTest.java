@@ -1,6 +1,7 @@
 package vibro.navigator.nav.streets;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import androidx.annotation.NonNull;
@@ -82,6 +83,18 @@ public class SurroundingStreetOverlayControllerTest {
     }
 
     @Test
+    public void headingOnlyViewportChangeReusesSelectionAndOverlay() throws InterruptedException {
+        controller.onAcceptedLocation(location(48.2082d, 16.3738d));
+        controller.onCompassViewport(compassState(1f, 0f));
+        assertStateEmitted();
+        CompassStreetOverlay initialOverlay = controller.currentOverlay();
+
+        controller.onCompassViewport(compassState(1f, 90f));
+
+        assertSame(initialOverlay, controller.currentOverlay());
+    }
+
+    @Test
     public void routeAheadPrefetchStartsAfterVisibleChunkLoad() throws InterruptedException {
         stateLatch = new CountDownLatch(2);
 
@@ -108,8 +121,12 @@ public class SurroundingStreetOverlayControllerTest {
     }
 
     private static NavCompassState compassState(float referenceSpeedMps) {
+        return compassState(referenceSpeedMps, 0f);
+    }
+
+    private static NavCompassState compassState(float referenceSpeedMps, float headingDegrees) {
         return NavCompassState.fromProjectedPoints(
-                0f,
+                headingDegrees,
                 null,
                 referenceSpeedMps,
                 120f,

@@ -21,6 +21,8 @@ final class NavigationBlockedRoadButton {
     private final Activity activity;
     @NonNull
     private final ImageButton button;
+    @Nullable
+    private Boolean lastEnabled;
 
     NavigationBlockedRoadButton(@NonNull Activity activity) {
         this.activity = activity;
@@ -35,6 +37,10 @@ final class NavigationBlockedRoadButton {
         boolean enabled = navBinder != null
                 && state.routeStatus.blockedRoadActionAvailable
                 && !state.pauseStatus.paused;
+        if (lastEnabled != null && lastEnabled == enabled) {
+            return;
+        }
+        lastEnabled = enabled;
         button.setEnabled(enabled);
         button.setAlpha(enabled ? BUTTON_ENABLED_ALPHA : BLOCKED_ROAD_DISABLED_ALPHA);
         if (enabled) {

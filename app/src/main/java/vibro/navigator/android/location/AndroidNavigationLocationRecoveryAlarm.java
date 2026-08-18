@@ -9,8 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.NavigationLocationRecoveryAlarm;
 
-public final class AndroidNavigationLocationRecoveryAlarm {
+public final class AndroidNavigationLocationRecoveryAlarm implements NavigationLocationRecoveryAlarm {
     private static final String TAG = "NavLocationRecovery";
     private static final int REQUEST_CODE = 7731;
 
@@ -35,9 +36,10 @@ public final class AndroidNavigationLocationRecoveryAlarm {
         );
     }
 
-    public void schedule(long triggerElapsedRealtimeMs) {
+    @Override
+    public boolean schedule(long triggerElapsedRealtimeMs) {
         if (alarmManager == null || triggerElapsedRealtimeMs < 0L) {
-            return;
+            return false;
         }
         try {
             alarmManager.setAndAllowWhileIdle(
@@ -45,11 +47,14 @@ public final class AndroidNavigationLocationRecoveryAlarm {
                     triggerElapsedRealtimeMs,
                     pendingIntent
             );
+            return true;
         } catch (RuntimeException error) {
             AppLogger.w(TAG, "Failed to schedule stale-location recovery", error);
+            return false;
         }
     }
 
+    @Override
     public void cancel() {
         if (alarmManager == null) {
             return;

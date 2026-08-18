@@ -1,5 +1,6 @@
 package vibro.navigator.main;
 
+import android.text.TextUtils;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -117,7 +118,10 @@ final class MainActivityRoundTripDirectionController {
         );
         compassView.setHeading(headingDegrees, headingAccuracyDegrees);
         if (headingDegrees != null && !directionEdit.hasFocus()) {
-            directionEdit.setText(RoundTripDirectionInput.formatHeadingDegrees(headingDegrees));
+            String formattedHeading = RoundTripDirectionInput.formatHeadingDegrees(headingDegrees);
+            if (!TextUtils.equals(directionEdit.getText(), formattedHeading)) {
+                directionEdit.setText(formattedHeading);
+            }
         }
     }
 }

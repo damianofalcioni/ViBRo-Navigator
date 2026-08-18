@@ -12,10 +12,12 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 public final class AndroidCarModeMonitor {
+    public interface ExitListener {
+        void onExit(@NonNull Context appContext);
+    }
+
     @Nullable
     private static BroadcastReceiver carModeExitReceiver;
-    @Nullable
-    private static Context carModeExitReceiverContext;
     @Nullable
     private static Boolean carModeActiveForTest;
 
@@ -34,7 +36,7 @@ public final class AndroidCarModeMonitor {
                 == Configuration.UI_MODE_TYPE_CAR;
     }
 
-    public static void registerExitReceiver(@NonNull Context context, @NonNull Runnable onExit) {
+    public static void registerExitReceiver(@NonNull Context context, @NonNull ExitListener listener) {
         Context appContext = context.getApplicationContext();
         if (!isActive(appContext) || carModeExitReceiver != null) {
             return;
@@ -43,27 +45,24 @@ public final class AndroidCarModeMonitor {
             @Override
             public void onReceive(Context receiverContext, Intent intent) {
                 if (UiModeManager.ACTION_EXIT_CAR_MODE.equals(intent.getAction())) {
-                    onExit.run();
+                    listener.onExit(receiverContext.getApplicationContext());
                 }
             }
         };
-        carModeExitReceiver = receiver;
-        carModeExitReceiverContext = appContext;
         ContextCompat.registerReceiver(
                 appContext,
                 receiver,
                 new IntentFilter(UiModeManager.ACTION_EXIT_CAR_MODE),
                 ContextCompat.RECEIVER_NOT_EXPORTED
         );
+        carModeExitReceiver = receiver;
     }
 
-    public static void unregisterExitReceiver() {
+    public static void unregisterExitReceiver(@NonNull Context context) {
         BroadcastReceiver receiver = carModeExitReceiver;
-        Context context = carModeExitReceiverContext;
         carModeExitReceiver = null;
-        carModeExitReceiverContext = null;
-        if (receiver != null && context != null) {
-            context.unregisterReceiver(receiver);
+        if (receiver != null) {
+            context.getApplicationContext().unregisterReceiver(receiver);
         }
     }
 
@@ -71,11 +70,13 @@ public final class AndroidCarModeMonitor {
         carModeActiveForTest = active;
     }
 
-    static void dispatchExitForTest() {
+    static void dispatchExitForTest(@NonNull Context context) {
         BroadcastReceiver receiver = carModeExitReceiver;
-        Context context = carModeExitReceiverContext;
-        if (receiver != null && context != null) {
-            receiver.onReceive(context, new Intent(UiModeManager.ACTION_EXIT_CAR_MODE));
+        if (receiver != null) {
+            receiver.onReceive(
+                    context.getApplicationContext(),
+                    new Intent(UiModeManager.ACTION_EXIT_CAR_MODE)
+            );
         }
     }
 }

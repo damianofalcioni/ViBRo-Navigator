@@ -23,7 +23,7 @@ public final class ViBRoCarAppComponent {
     public static void configure(@NonNull Context context, boolean enabled) {
         Context appContext = context.getApplicationContext();
         if (enabled) {
-            cancelPendingDisable();
+            cancelPendingDisable(appContext);
             setComponentEnabled(appContext, true);
             return;
         }
@@ -38,8 +38,8 @@ public final class ViBRoCarAppComponent {
         applyPendingDisableIfSafe(context.getApplicationContext());
     }
 
-    static void resetPendingDisableForTest() {
-        cancelPendingDisable();
+    static void resetPendingDisableForTest(@NonNull Context context) {
+        cancelPendingDisable(context.getApplicationContext());
         AndroidCarModeMonitor.setActiveForTest(null);
     }
 
@@ -72,17 +72,17 @@ public final class ViBRoCarAppComponent {
     }
 
     private static void disableNow(@NonNull Context appContext) {
-        cancelPendingDisable();
+        cancelPendingDisable(appContext);
         setComponentEnabled(appContext, false);
     }
 
-    private static void cancelPendingDisable() {
+    private static void cancelPendingDisable(@NonNull Context appContext) {
         disablePendingUntilHostDisconnect = false;
-        AndroidCarModeMonitor.unregisterExitReceiver();
+        AndroidCarModeMonitor.unregisterExitReceiver(appContext);
     }
 
     private static void registerCarModeExitReceiver(@NonNull Context appContext) {
-        AndroidCarModeMonitor.registerExitReceiver(appContext, () -> onCarModeExited(appContext));
+        AndroidCarModeMonitor.registerExitReceiver(appContext, ViBRoCarAppComponent::onCarModeExited);
     }
 
     private static void setComponentEnabled(@NonNull Context context, boolean enabled) {

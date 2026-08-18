@@ -26,7 +26,7 @@ public class ViBRoCarAppComponentGplayTest {
         context = ApplicationProvider.getApplicationContext();
         componentName = new ComponentName(context, ViBRoCarAppService.class);
         ViBRoCarAppService.clearActiveSessionsForTest();
-        ViBRoCarAppComponent.resetPendingDisableForTest();
+        ViBRoCarAppComponent.resetPendingDisableForTest(context);
         ViBRoCarAppComponent.setCarModeActiveForTest(false);
         DistributionServices.configureAndroidAutoIntegration(context, true);
     }
@@ -34,7 +34,7 @@ public class ViBRoCarAppComponentGplayTest {
     @After
     public void tearDown() {
         ViBRoCarAppService.clearActiveSessionsForTest();
-        ViBRoCarAppComponent.resetPendingDisableForTest();
+        ViBRoCarAppComponent.resetPendingDisableForTest(context);
     }
 
     @Test

@@ -8,6 +8,7 @@ import vibro.navigator.nav.service.NavigationServiceBinder;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import android.app.Activity;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -53,6 +54,13 @@ final class NavigationActivityRenderer {
     @Nullable
     private NavigationServiceBinder currentBinder;
     private String lastRenderedStateKey = "";
+    @Nullable
+    private String lastGpsStatusText;
+    @Nullable
+    private Boolean lastGpsOverLimit;
+    private long lastSpeedLimitKey;
+    private boolean speedLimitRendered;
+    private boolean customButtonRendered;
 
     NavigationActivityRenderer(
             @NonNull Activity activity,
@@ -127,13 +135,13 @@ final class NavigationActivityRenderer {
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
         currentState = state;
         currentBinder = navBinder;
-        next.setText(state.routeStatus.guidance.nextLine);
-        afterNext.setText(state.routeStatus.guidance.afterNextLine);
-        destination.setText(state.routeStatus.displayStatusBlock());
+        setTextIfChanged(next, state.routeStatus.guidance.nextLine);
+        setTextIfChanged(afterNext, state.routeStatus.guidance.afterNextLine);
+        setTextIfChanged(destination, state.routeStatus.displayStatusBlock());
         renderCompassState();
-        NavigationActivityTextScaling.renderSpeedLimit(activity, speedLimit, state);
+        renderSpeedLimitIfChanged(state);
         blockedRoadButton.render(state, navBinder);
-        customButtonUi.render();
+        renderCustomButtonIfNeeded();
         actionButtons.render(state, navBinder);
         renderLiveDetails();
         logRenderedStateIfChanged(state);
@@ -142,6 +150,7 @@ final class NavigationActivityRenderer {
     void refreshSettings() {
         renderCompassState();
         customButtonUi.render();
+        customButtonRendered = true;
     }
 
     boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
@@ -165,7 +174,39 @@ final class NavigationActivityRenderer {
                 detailsDialogs.gpsStatusLine(currentState),
                 nextEvaluationValue
         );
+        boolean overLimit = NavigationActivityTextScaling.isOverSpeedLimit(currentState);
+        if (TextUtils.equals(lastGpsStatusText, statusText)
+                && lastGpsOverLimit != null
+                && lastGpsOverLimit == overLimit) {
+            return;
+        }
+        lastGpsStatusText = statusText;
+        lastGpsOverLimit = overLimit;
         gpsStatus.setText(NavigationActivityTextScaling.styleGpsStatus(activity, statusText, currentState));
+    }
+
+    private void renderSpeedLimitIfChanged(@NonNull NavState state) {
+        long speedLimitKey = NavigationActivityTextScaling.speedLimitRenderKey(state);
+        if (speedLimitRendered && lastSpeedLimitKey == speedLimitKey) {
+            return;
+        }
+        speedLimitRendered = true;
+        lastSpeedLimitKey = speedLimitKey;
+        NavigationActivityTextScaling.renderSpeedLimit(activity, speedLimit, state);
+    }
+
+    private void renderCustomButtonIfNeeded() {
+        if (customButtonRendered) {
+            return;
+        }
+        customButtonUi.render();
+        customButtonRendered = true;
+    }
+
+    private static void setTextIfChanged(@NonNull TextView view, @NonNull CharSequence text) {
+        if (!TextUtils.equals(view.getText(), text)) {
+            view.setText(text);
+        }
     }
 
     void cancelPendingCompassTransition() {

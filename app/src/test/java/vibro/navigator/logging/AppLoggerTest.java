@@ -18,6 +18,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
 import java.io.File;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 
@@ -47,6 +48,15 @@ public class AppLoggerTest {
         AppLogger.init(context);
 
         assertFalse(AppLogger.isLoggingEnabled(context));
+    }
+
+    @Test
+    public void disabledLoggingDoesNotRenderThrowable() {
+        CountingThrowable throwable = new CountingThrowable();
+
+        AppLogger.w("AppLoggerTest", "disabled marker", throwable);
+
+        assertFalse(throwable.printed);
     }
 
     @Test
@@ -128,5 +138,14 @@ public class AppLoggerTest {
         assertTrue(line.contains("manufacturer="));
         assertTrue(line.contains("model="));
         assertTrue(line.contains("logFile="));
+    }
+
+    private static final class CountingThrowable extends Throwable {
+        private boolean printed;
+
+        @Override
+        public void printStackTrace(PrintWriter writer) {
+            printed = true;
+        }
     }
 }

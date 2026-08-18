@@ -32,6 +32,10 @@ final class NavigationCompassSurfaces {
     private final int[] fullscreenWindowLocation = new int[2];
     private final int[] anchorWindowLocation = new int[2];
     private final boolean fullscreenOverlaysForeground;
+    @NonNull
+    private final View.OnLayoutChangeListener centerLayoutListener =
+            (view, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom) ->
+                    updateFullscreenCenterY();
 
     @Nullable
     private View firstFullscreenCenterAnchor;
@@ -49,6 +53,7 @@ final class NavigationCompassSurfaces {
         compactCompass = activity.findViewById(R.id.navigationCompassView);
         fullscreenCompass = activity.findViewById(R.id.navigationFullscreenCompassView);
         fullscreenOverlaysForeground = fullscreenCompass.getParent() != compactCompass.getParent();
+        fullscreenCompass.addOnLayoutChangeListener(centerLayoutListener);
         foregroundPanels.add(directionsBlock);
         foregroundPanels.add(destination);
     }
@@ -58,8 +63,12 @@ final class NavigationCompassSurfaces {
     }
 
     void alignFullscreenCenterWith(@NonNull View firstAnchor, @NonNull View secondAnchor) {
+        removeCenterLayoutListener(firstFullscreenCenterAnchor);
+        removeCenterLayoutListener(secondFullscreenCenterAnchor);
         firstFullscreenCenterAnchor = firstAnchor;
         secondFullscreenCenterAnchor = secondAnchor;
+        firstAnchor.addOnLayoutChangeListener(centerLayoutListener);
+        secondAnchor.addOnLayoutChangeListener(centerLayoutListener);
     }
 
     void setOnClickListener(@NonNull View.OnClickListener listener) {
@@ -73,11 +82,9 @@ final class NavigationCompassSurfaces {
             @Nullable NavCompassState compassState
     ) {
         applyFullscreenRouteMode(fullscreenRouteMode);
-        updateFullscreenCenterY();
-        compactCompass.setNavigationPaused(navigationPaused);
-        fullscreenCompass.setNavigationPaused(navigationPaused);
-        compactCompass.setCompassState(compassState);
-        fullscreenCompass.setCompassState(compassState);
+        NavigationCompassView activeCompass = fullscreenRouteMode ? fullscreenCompass : compactCompass;
+        activeCompass.setNavigationPaused(navigationPaused);
+        activeCompass.setCompassState(compassState);
     }
 
     boolean fullscreenRouteModeEnabled() {
@@ -145,6 +152,12 @@ final class NavigationCompassSurfaces {
         return anchorWindowLocation[1]
                 - fullscreenWindowLocation[1]
                 + (anchor.getHeight() / 2f);
+    }
+
+    private void removeCenterLayoutListener(@Nullable View view) {
+        if (view != null) {
+            view.removeOnLayoutChangeListener(centerLayoutListener);
+        }
     }
 
     @NonNull

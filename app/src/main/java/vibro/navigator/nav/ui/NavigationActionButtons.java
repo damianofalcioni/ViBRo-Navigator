@@ -35,6 +35,10 @@ final class NavigationActionButtons {
     private final ImageButton pauseResume;
     @NonNull
     private final ImageButton stop;
+    @Nullable
+    private Boolean lastBinderAvailable;
+    @Nullable
+    private Boolean lastPaused;
 
     NavigationActionButtons(
             @NonNull Activity activity,
@@ -58,12 +62,20 @@ final class NavigationActionButtons {
     }
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
-        export.setEnabled(navBinder != null);
-        pauseResume.setEnabled(navBinder != null);
-        pauseResume.setImageResource(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause);
-        pauseResume.setContentDescription(activity.getString(
-                state.pauseStatus.paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
-        ));
+        boolean binderAvailable = navBinder != null;
+        if (lastBinderAvailable == null || lastBinderAvailable != binderAvailable) {
+            lastBinderAvailable = binderAvailable;
+            export.setEnabled(binderAvailable);
+            pauseResume.setEnabled(binderAvailable);
+        }
+        boolean paused = state.pauseStatus.paused;
+        if (lastPaused == null || lastPaused != paused) {
+            lastPaused = paused;
+            pauseResume.setImageResource(paused ? R.drawable.ic_play : R.drawable.ic_pause);
+            pauseResume.setContentDescription(activity.getString(
+                    paused ? R.string.action_resume_navigation : R.string.action_pause_navigation
+            ));
+        }
     }
 
     @NonNull
