@@ -5,13 +5,12 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.text.TextPaint;
 import android.text.TextUtils;
-import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
-import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.format.NavigationTripStatsFormatter;
 import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
 import vibro.navigator.nav.model.NavState;
@@ -58,25 +57,23 @@ final class ViBRoAutoDetailPanelPainter {
             float top,
             float width,
             float bottom,
-            @NonNull ViBRoAutoDetailPanel detailPanel
+            @NonNull ViBRoAutoDetailPanel detailPanel,
+            float scale
     ) {
         String[] lines = detailText(detailPanel, state).split("\\n");
-        textPaint.setTextSize(sp(DETAILS_TEXT_SIZE_SP));
+        textPaint.setTextSize(sp(DETAILS_TEXT_SIZE_SP, scale));
         textPaint.setTextAlign(Paint.Align.LEFT);
+        outlinePaint.setStrokeWidth(dp(1.2f, scale));
         Paint.FontMetrics metrics = textPaint.getFontMetrics();
-        float lineHeight = metrics.descent - metrics.ascent + dp(4f);
-        float padding = dp(DETAILS_PADDING_DP);
-        float actionTop = bottom - dp(ViBRoAutoButtonRow.BUTTON_SIZE_DP) - dp(14f);
+        float lineHeight = metrics.descent - metrics.ascent + dp(4f, scale);
+        float padding = dp(DETAILS_PADDING_DP, scale);
+        float actionTop = bottom - dp(ViBRoAutoButtonRow.BUTTON_SIZE_DP, scale) - dp(14f, scale);
         float maxPanelBottom = top + padding * 2f + lineHeight * (DETAILS_MAX_LINES + 1);
         float panelBottom = Math.max(top, Math.min(actionTop, maxPanelBottom));
         bounds.set(left, top, left + width, panelBottom);
-        canvas.drawRoundRect(bounds, dp(DETAILS_RADIUS_DP), dp(DETAILS_RADIUS_DP), fillPaint);
-        canvas.drawRoundRect(bounds, dp(DETAILS_RADIUS_DP), dp(DETAILS_RADIUS_DP), outlinePaint);
-        drawTitleAndLines(canvas, detailPanel, lines, left, top, width, panelBottom);
-    }
-
-    boolean contains(float x, float y) {
-        return bounds.contains(x, y);
+        canvas.drawRoundRect(bounds, dp(DETAILS_RADIUS_DP, scale), dp(DETAILS_RADIUS_DP, scale), fillPaint);
+        canvas.drawRoundRect(bounds, dp(DETAILS_RADIUS_DP, scale), dp(DETAILS_RADIUS_DP, scale), outlinePaint);
+        drawTitleAndLines(canvas, detailPanel, lines, left, top, width, panelBottom, scale);
     }
 
     void clearBounds() {
@@ -84,13 +81,13 @@ final class ViBRoAutoDetailPanelPainter {
     }
 
     private void initPaints() {
-        textPaint.setColor(ContextCompat.getColor(carContext, R.color.white));
+        textPaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroTextPrimaryColor));
         textPaint.setSubpixelText(true);
         fillPaint.setStyle(Paint.Style.FILL);
-        fillPaint.setColor(ContextCompat.getColor(carContext, R.color.surface_800));
+        fillPaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroSurfaceColor));
         outlinePaint.setStyle(Paint.Style.STROKE);
-        outlinePaint.setStrokeWidth(dp(1.2f));
-        outlinePaint.setColor(ContextCompat.getColor(carContext, R.color.outline));
+        outlinePaint.setStrokeWidth(dp(1.2f, 1f));
+        outlinePaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroOutlineColor));
     }
 
     private void drawTitleAndLines(
@@ -100,11 +97,12 @@ final class ViBRoAutoDetailPanelPainter {
             float left,
             float top,
             float width,
-            float bottom
+            float bottom,
+            float scale
     ) {
-        float padding = dp(DETAILS_PADDING_DP);
+        float padding = dp(DETAILS_PADDING_DP, scale);
         Paint.FontMetrics metrics = textPaint.getFontMetrics();
-        float lineHeight = metrics.descent - metrics.ascent + dp(4f);
+        float lineHeight = metrics.descent - metrics.ascent + dp(4f, scale);
         float baseline = top + padding - metrics.ascent;
         textPaint.setFakeBoldText(true);
         canvas.drawText(ellipsize(detailTitle(detailPanel), width - padding * 2f), left + padding, baseline, textPaint);
@@ -178,11 +176,11 @@ final class ViBRoAutoDetailPanelPainter {
         return ellipsized.toString();
     }
 
-    private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, carContext.getResources().getDisplayMetrics());
+    private float dp(float value, float scale) {
+        return ViBRoAutoRenderScale.dp(carContext, value, scale);
     }
 
-    private float sp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, carContext.getResources().getDisplayMetrics());
+    private float sp(float value, float scale) {
+        return ViBRoAutoRenderScale.sp(carContext, value, scale);
     }
 }

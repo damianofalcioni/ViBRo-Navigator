@@ -4,13 +4,12 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
-import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
-import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.model.NavState;
 
 final class ViBRoAutoButtonRow {
@@ -45,16 +44,16 @@ final class ViBRoAutoButtonRow {
         initPaints();
     }
 
-    void draw(@NonNull Canvas canvas, @NonNull NavState state, float left, float bottom, float width) {
-        float size = dp(BUTTON_SIZE_DP);
-        float gap = Math.max(dp(10f), (width - size * 3f) / 4f);
+    void draw(@NonNull Canvas canvas, @NonNull NavState state, float left, float bottom, float width, float scale) {
+        float size = buttonSizePx(scale);
+        float gap = Math.max(dp(10f, scale), (width - size * 3f) / 4f);
         float top = bottom - size;
         setButtonBounds(blockedButtonBounds, left + gap, top, size);
         setButtonBounds(stopButtonBounds, blockedButtonBounds.right + gap, top, size);
         setButtonBounds(pauseButtonBounds, stopButtonBounds.right + gap, top, size);
-        drawButton(canvas, blockedButtonBounds, blockedIcon, isBlockedRoadEnabled(state));
-        drawButton(canvas, stopButtonBounds, stopIcon, true);
-        drawButton(canvas, pauseButtonBounds, state.pauseStatus.paused ? playIcon : pauseIcon, true);
+        drawButton(canvas, blockedButtonBounds, blockedIcon, isBlockedRoadEnabled(state), scale);
+        drawButton(canvas, stopButtonBounds, stopIcon, true, scale);
+        drawButton(canvas, pauseButtonBounds, state.pauseStatus.paused ? playIcon : pauseIcon, true, scale);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
@@ -75,11 +74,15 @@ final class ViBRoAutoButtonRow {
 
     private void initPaints() {
         buttonFillPaint.setStyle(Paint.Style.FILL);
-        buttonFillPaint.setColor(ContextCompat.getColor(carContext, R.color.surface_800));
+        buttonFillPaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroSurfaceColor));
 
         buttonOutlinePaint.setStyle(Paint.Style.STROKE);
-        buttonOutlinePaint.setStrokeWidth(dp(BUTTON_OUTLINE_WIDTH_DP));
-        buttonOutlinePaint.setColor(ContextCompat.getColor(carContext, R.color.outline));
+        buttonOutlinePaint.setStrokeWidth(dp(BUTTON_OUTLINE_WIDTH_DP, 1f));
+        buttonOutlinePaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroOutlineColor));
+    }
+
+    float buttonSizePx(float scale) {
+        return dp(BUTTON_SIZE_DP, scale);
     }
 
     private void setButtonBounds(@NonNull RectF bounds, float left, float top, float size) {
@@ -90,33 +93,49 @@ final class ViBRoAutoButtonRow {
             @NonNull Canvas canvas,
             @NonNull RectF bounds,
             @NonNull Drawable icon,
-            boolean enabled
+            boolean enabled,
+            float scale
     ) {
-        buttonFillPaint.setColor(ContextCompat.getColor(
+        buttonOutlinePaint.setStrokeWidth(dp(BUTTON_OUTLINE_WIDTH_DP, scale));
+        buttonFillPaint.setColor(AndroidAppTheme.color(
                 carContext,
-                enabled ? R.color.surface_800 : R.color.gray_900
+                enabled ? R.attr.vibroSurfaceColor : R.attr.vibroSurfaceStrongColor
         ));
-        buttonOutlinePaint.setColor(ContextCompat.getColor(
+        buttonOutlinePaint.setColor(AndroidAppTheme.color(
                 carContext,
-                enabled ? R.color.outline : R.color.gray_700
+                enabled ? R.attr.vibroOutlineColor : R.attr.vibroTextSecondaryColor
         ));
         buttonFillPaint.setAlpha(enabled ? 255 : 140);
         buttonOutlinePaint.setAlpha(enabled ? 255 : 160);
         canvas.drawOval(bounds, buttonFillPaint);
         canvas.drawOval(bounds, buttonOutlinePaint);
-        drawIcon(canvas, bounds, icon, enabled);
+        drawIcon(canvas, bounds, icon, enabled, scale);
     }
 
-    private void drawIcon(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon, boolean enabled) {
-        int iconSize = Math.round(dp(BUTTON_ICON_SIZE_DP));
+    private void drawIcon(
+            @NonNull Canvas canvas,
+            @NonNull RectF bounds,
+            @NonNull Drawable icon,
+            boolean enabled,
+            float scale
+    ) {
+        int iconSize = Math.round(dp(BUTTON_ICON_SIZE_DP, scale));
         int iconLeft = Math.round(bounds.centerX() - iconSize / 2f);
         int iconTop = Math.round(bounds.centerY() - iconSize / 2f);
         icon.setBounds(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize);
-        icon.setTint(ContextCompat.getColor(carContext, enabled ? R.color.white : R.color.gray_700));
-        icon.setAlpha(enabled ? 255 : 230);
+        resetIconTint(icon);
+        if (!enabled) {
+            icon.setTint(AndroidAppTheme.color(carContext, R.attr.vibroTextSecondaryColor));
+        }
+        icon.setAlpha(enabled ? 255 : 115);
         icon.draw(canvas);
-        icon.setTint(ContextCompat.getColor(carContext, R.color.white));
+        resetIconTint(icon);
         icon.setAlpha(255);
+    }
+
+    private static void resetIconTint(@NonNull Drawable icon) {
+        icon.setTintList(null);
+        icon.clearColorFilter();
     }
 
     private static boolean isBlockedRoadEnabled(@NonNull NavState state) {
@@ -125,14 +144,14 @@ final class ViBRoAutoButtonRow {
 
     @NonNull
     private Drawable requireDrawable(int resId) {
-        Drawable drawable = ContextCompat.getDrawable(carContext, resId);
+        Drawable drawable = androidx.core.content.ContextCompat.getDrawable(carContext, resId);
         if (drawable == null) {
             throw new IllegalStateException("Missing drawable " + resId);
         }
         return drawable.mutate();
     }
 
-    private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, carContext.getResources().getDisplayMetrics());
+    private float dp(float value, float scale) {
+        return ViBRoAutoRenderScale.dp(carContext, value, scale);
     }
 }

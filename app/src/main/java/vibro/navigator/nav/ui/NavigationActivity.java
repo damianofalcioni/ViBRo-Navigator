@@ -17,12 +17,8 @@ import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.content.ComponentName;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -48,38 +44,80 @@ public class NavigationActivity extends Activity {
     private NavigationActivityBackHandler backHandler;
     private final NavigationStartupCoordinator startupCoordinator =
             NavigationActivityStartupHost.createCoordinator(this);
+    private final NavigationActivityStopMonitor stopMonitor = new NavigationActivityStopMonitor(
+            uiScheduler,
+            new NavigationActivityStopMonitor.Host() {
+                @Nullable
+                @Override
+                public NavigationServiceBinder currentBinder() {
+                    return navBinder;
+                }
+
+                @Override
+                public boolean isAutoStartNavigation() {
+                    return startupCoordinator.isAutoStartNavigation();
+                }
+
+                @Override
+                public boolean shouldResumeExistingNavigation() {
+                    return NavigationActivity.this.shouldResumeExistingNavigation();
+                }
+
+                @Override
+                public boolean isFinishing() {
+                    return NavigationActivity.this.isFinishing();
+                }
+
+                @Override
+                public void render(@NonNull NavState state) {
+                    NavigationActivity.this.render(state);
+                }
+
+                @Override
+                public void finish() {
+                    NavigationActivity.this.finish();
+                }
+            }
+    );
     private final Runnable countdownTicker = new Runnable() {
         @Override
         public void run() {
             renderer.renderLiveDetails();
+            stopMonitor.finishIfBoundServiceHasStopped();
             uiScheduler.postDelayed(this, 1000L);
         }
     };
 
-    private final NavigationService.Listener navListener = state -> uiScheduler.post(() -> render(state));
+    private final NavigationActivityServiceConnection connection = new NavigationActivityServiceConnection(
+            stopMonitor.listener(),
+            new NavigationActivityServiceConnection.Host() {
+                @Override
+                public void onBinderConnected(@NonNull NavigationServiceBinder binder) {
+                    navBinder = binder;
+                    bound = true;
+                }
 
-    private final ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            navBinder = (NavigationServiceBinder) service;
-            bound = true;
-            AppLogger.i(TAG, "NavigationService connected component=" + name);
-            navBinder.ensureForegroundNotification();
-            navBinder.setNavigationUiVisible(true);
-            navBinder.registerListener(navListener);
-            if (refreshLocationSettingsOnReconnect) {
-                refreshLocationSettingsOnReconnect = false;
-                navBinder.refreshLocationUpdateSettings();
+                @Override
+                public void onBinderDisconnected() {
+                    bound = false;
+                    navBinder = null;
+                }
+
+                @Override
+                public boolean finishIfBoundServiceHasStopped() {
+                    return stopMonitor.finishIfBoundServiceHasStopped();
+                }
+
+                @Override
+                public boolean consumeLocationSettingsRefreshRequest() {
+                    if (!refreshLocationSettingsOnReconnect) {
+                        return false;
+                    }
+                    refreshLocationSettingsOnReconnect = false;
+                    return true;
+                }
             }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            AppLogger.w(TAG, "NavigationService disconnected component=" + name);
-            bound = false;
-            navBinder = null;
-        }
-    };
+    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -133,10 +171,6 @@ public class NavigationActivity extends Activity {
         });
     }
 
-    private void showShortToast(int messageResId) {
-        Toast.makeText(this, messageResId, Toast.LENGTH_SHORT).show();
-    }
-
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
@@ -179,9 +213,7 @@ public class NavigationActivity extends Activity {
         if (bound) {
             try {
                 if (navBinder != null) {
-                    navBinder.setCompassStreetViewport(null);
-                    navBinder.setNavigationUiVisible(false);
-                    navBinder.unregisterListener(navListener);
+                    connection.detach(navBinder);
                 }
             } catch (Exception e) {
                 AppLogger.w(TAG, "Failed to unregister navigation listener", e);
@@ -226,12 +258,12 @@ public class NavigationActivity extends Activity {
         AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
         boolean customButtonHandled = renderer != null
                 && renderer.onRequestPermissionsResult(requestCode, grantResults);
-        if (!customButtonHandled && NavigationActivityPermissionResultHandler.disableSurroundingStreetsWhenStorageDenied(
-                this,
-                permissions,
-                grantResults
-        )) {
-            showShortToast(R.string.msg_compass_surrounding_streets_storage_permission_required);
+        if (!customButtonHandled) {
+            NavigationActivityPermissionResultHandler.disableSurroundingStreetsWhenStorageDeniedAndToast(
+                    this,
+                    permissions,
+                    grantResults
+            );
         }
         startupCoordinator.onRequestPermissionsResult(requestCode);
     }

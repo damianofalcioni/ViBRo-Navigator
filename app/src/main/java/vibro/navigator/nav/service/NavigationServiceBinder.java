@@ -32,9 +32,13 @@ public final class NavigationServiceBinder extends Binder {
 
         void setNavigationUiVisible(boolean visible);
 
+        void setCarNavigationUiVisible(boolean visible);
+
         void setCompassStreetViewport(@Nullable NavCompassState compassState);
 
         void refreshLocationUpdateSettings();
+
+        boolean isNavigationStarted();
 
         boolean isNavigationPaused();
 
@@ -84,12 +88,20 @@ public final class NavigationServiceBinder extends Binder {
         host.setNavigationUiVisible(visible);
     }
 
+    public void setCarNavigationUiVisible(boolean visible) {
+        host.setCarNavigationUiVisible(visible);
+    }
+
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
         host.setCompassStreetViewport(compassState);
     }
 
     public void refreshLocationUpdateSettings() {
         host.refreshLocationUpdateSettings();
+    }
+
+    public boolean isNavigationStarted() {
+        return host.isNavigationStarted();
     }
 
     public void unregisterListener(@NonNull NavigationService.Listener listener) {

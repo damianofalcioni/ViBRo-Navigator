@@ -39,11 +39,20 @@ public class AppLoggerGplayTest {
     public void sessionInfoIncludesGplayRuntimeDetails() throws Exception {
         installPackage(PLAY_SERVICES_PACKAGE, "26.1.12", 2_601_120L);
         installPackage(ANDROID_AUTO_PACKAGE, "15.0", 1_500L);
+        shadowOf(context.getPackageManager()).setInstallSourceInfo(
+                context.getPackageName(),
+                "com.android.vending",
+                "com.android.vending"
+        );
         AppAndroidAutoSettings.setIntegrationEnabled(context, false);
 
         assertTrue(AppLogger.setLoggingEnabled(context, true));
 
         String firstLine = firstLine(readLogContent());
+        assertTrue(firstLine.contains("debuggable="));
+        assertTrue(firstLine.contains("appInstallingPackage=com.android.vending"));
+        assertTrue(firstLine.contains("appInitiatingPackage=com.android.vending"));
+        assertTrue(firstLine.contains("appOriginatingPackage=unknown"));
         assertTrue(firstLine.contains("androidAutoSupported=true"));
         assertTrue(firstLine.contains("androidAutoIntegrationEnabled=false"));
         assertTrue(firstLine.contains("androidAutoServiceState="));

@@ -18,15 +18,18 @@ final class ViBRoAutoCompassPainter {
     private final NavigationCompassModeController compassModeController;
     private final NavigationCompassView compassView;
     private final ViBRoAutoCompassOverlayPainter overlayPainter;
+    private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
     private final RectF bounds = new RectF();
 
     ViBRoAutoCompassPainter(
             @NonNull CarContext carContext,
             @NonNull ViBRoAutoSurfaceRenderer.Controls controls,
+            @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         compassModeController = new NavigationCompassModeController(elapsedRealtimeClock);
         compassView = new NavigationCompassView(carContext);
+        this.compassStreetViewportSink = compassStreetViewportSink;
         overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
     }
 
@@ -38,10 +41,12 @@ final class ViBRoAutoCompassPainter {
             float width,
             float height,
             boolean fullscreenRouteMode,
-            @NonNull RectF overlayBounds
+            @NonNull RectF overlayBounds,
+            float scale
     ) {
         compassView.setFullscreenRouteModeEnabled(fullscreenRouteMode);
         NavCompassState compassState = compassModeController.resolve(state.routeStatus.compassState);
+        compassStreetViewportSink.onCompassStreetViewport(compassState);
         compassView.setNavigationPaused(state.pauseStatus.paused);
         compassView.setCompassState(compassState);
         int resolvedWidth = Math.max(1, Math.round(width));
@@ -54,10 +59,11 @@ final class ViBRoAutoCompassPainter {
         compassView.layout(0, 0, measuredWidth, measuredHeight);
         bounds.set(left, top, left + measuredWidth, top + measuredHeight);
         int saveCount = canvas.save();
+        canvas.clipRect(left, top, left + measuredWidth, top + measuredHeight);
         canvas.translate(left, top);
         compassView.draw(canvas);
         canvas.restoreToCount(saveCount);
-        overlayPainter.draw(canvas, state, overlayBounds);
+        overlayPainter.draw(canvas, state, overlayBounds, scale);
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {

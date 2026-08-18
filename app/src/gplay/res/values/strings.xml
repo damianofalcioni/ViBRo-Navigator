@@ -4,6 +4,4 @@
     <string name="auto_title">ViBRo Navigator</string>
     <string name="auto_no_active_navigation_title">No active navigation</string>
     <string name="auto_no_active_navigation_text">Start navigation on the phone to show guidance here.</string>
-    <string name="auto_open_phone">Open phone app</string>
-    <string name="auto_connecting">Connecting to navigation service.</string>
 </resources>

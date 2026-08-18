@@ -32,6 +32,9 @@ public class NavigationService extends Service {
 
     public interface Listener {
         void onState(@NonNull NavState state);
+
+        default void onNavigationStopped() {
+        }
     }
 
     public static final String ACTION_START = "vibro.navigator.action.START";
@@ -70,7 +73,7 @@ public class NavigationService extends Service {
             navigationSession,
             turnEvents,
             new NavigationServiceLocationRouteRecalculator(routeRecalculator),
-            uiVisibility::isScreenInteractive,
+            this::hasRunningNavigationSession,
             location -> {
                 if (runtime != null) {
                     runtime.onAcceptedLocation(location);
@@ -183,7 +186,7 @@ public class NavigationService extends Service {
         setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         runtime().requestLocationUpdates(STARTUP_LOCATION_UPDATE_INTERVAL_MS);
         runtime().locationRecovery.start();
-        requestCurrentLocationSeedsIfScreenInteractive();
+        requestCurrentLocationSeedsForActiveNavigation();
         runtime().startOrientation();
         emitState();
         NavigationRequest request = navigationSession.currentNavigationRequest();
@@ -210,17 +213,21 @@ public class NavigationService extends Service {
                 runtime().lastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS)
         );
         runtime().locationRecovery.start();
-        requestCurrentLocationSeedsIfScreenInteractive();
+        requestCurrentLocationSeedsForActiveNavigation();
         runtime().startOrientation();
         promoteToForeground();
         emitState();
         AppLogger.i(TAG, "Navigation resumed");
     }
 
-    private void requestCurrentLocationSeedsIfScreenInteractive() {
-        if (uiVisibility.isScreenInteractive()) {
+    private void requestCurrentLocationSeedsForActiveNavigation() {
+        if (hasRunningNavigationSession()) {
             runtime().requestCurrentLocationSeeds();
         }
+    }
+
+    private boolean hasRunningNavigationSession() {
+        return navigationSession.isStarted() && !navigationSession.isPaused();
     }
 
     private void stopNavigation() {
@@ -231,6 +238,7 @@ public class NavigationService extends Service {
         foregroundCoordinator.stopMonitoring();
         runtime().stopTrackingAndOrientation();
         runtime().stopManeuverSpeech();
+        stateBroadcaster.dispatchStopped();
         stateBroadcaster.clear();
         uiVisibility.onStateListenersChanged();
         runtime().stopForegroundService();

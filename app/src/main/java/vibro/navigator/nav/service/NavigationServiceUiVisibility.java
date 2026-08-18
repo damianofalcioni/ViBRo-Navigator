@@ -17,6 +17,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     private final Runnable compassStreetViewportClearer;
     private final DisplayActivityListener displayActivityListener;
     private boolean navigationUiVisible;
+    private boolean carNavigationUiVisible;
     private boolean screenInteractive = true;
     private boolean displayActive;
 
@@ -49,7 +50,18 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
         }
         navigationUiVisible = visible;
         onDisplayInputsChanged();
-        if (visible && screenInteractive) {
+        if (hasActiveNavigationDisplay()) {
+            stateRefresh.run();
+        }
+    }
+
+    public void setCarNavigationUiVisible(boolean visible) {
+        if (carNavigationUiVisible == visible) {
+            return;
+        }
+        carNavigationUiVisible = visible;
+        onDisplayInputsChanged();
+        if (hasActiveNavigationDisplay()) {
             stateRefresh.run();
         }
     }
@@ -60,7 +72,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
         }
         screenInteractive = interactive;
         onDisplayInputsChanged();
-        if (interactive && navigationUiVisible && stateBroadcaster.size() > 0) {
+        if (hasActiveNavigationDisplay() && stateBroadcaster.size() > 0) {
             stateRefresh.run();
         }
     }
@@ -73,8 +85,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     public boolean shouldDispatchCompassUi() {
         return NavigationOrientationController.shouldDispatchCompassUi(
                 navigationSession.hasActiveRoute(),
-                navigationUiVisible,
-                screenInteractive
+                hasActiveNavigationDisplay()
         );
     }
 
@@ -88,9 +99,12 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     }
 
     boolean canDispatchStateToUi() {
-        return navigationUiVisible
-                && screenInteractive
+        return hasActiveNavigationDisplay()
                 && stateBroadcaster.size() > 0;
+    }
+
+    boolean hasActiveNavigationDisplay() {
+        return carNavigationUiVisible || (navigationUiVisible && screenInteractive);
     }
 
     @Override

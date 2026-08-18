@@ -103,6 +103,11 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     }
 
     @Override
+    public void setCarNavigationUiVisible(boolean visible) {
+        uiVisibility.setCarNavigationUiVisible(visible);
+    }
+
+    @Override
     public void setCompassStreetViewport(@Nullable NavCompassState compassState) {
         compassStreetViewportSink.set(uiVisibility.canUseCompassStreetViewport() ? compassState : null);
     }
@@ -112,6 +117,11 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
         if (navigationSession.isStarted() && !navigationSession.isPaused()) {
             locationUpdateSettingsRefresher.run();
         }
+    }
+
+    @Override
+    public boolean isNavigationStarted() {
+        return navigationSession.isStarted();
     }
 
     @Override

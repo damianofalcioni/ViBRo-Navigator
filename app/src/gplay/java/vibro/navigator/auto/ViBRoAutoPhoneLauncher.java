@@ -6,14 +6,15 @@ import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
 
 import vibro.navigator.about.AboutActivity;
-import vibro.navigator.main.MainActivity;
+import vibro.navigator.nav.ui.NavigationActivity;
 
 final class ViBRoAutoPhoneLauncher {
     private ViBRoAutoPhoneLauncher() {
     }
 
-    static void openMain(@NonNull CarContext carContext) {
-        Intent intent = new Intent(carContext, MainActivity.class)
+    static void openNavigation(@NonNull CarContext carContext) {
+        Intent intent = new Intent(carContext, NavigationActivity.class)
+                .putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         carContext.startActivity(intent);
     }

@@ -1,10 +1,6 @@
 package vibro.navigator.auto;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -16,68 +12,39 @@ import androidx.car.app.model.Template;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
+import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.service.NavigationService;
 import vibro.navigator.nav.service.NavigationServiceBinder;
+import vibro.navigator.settings.AppThemeSettings;
 
 // Android Auto requires templates, so the active screen renders the phone landscape UI onto the car map surface.
 public final class ViBRoCarScreen extends Screen {
 
     private static final String TAG = "ViBRoCarScreen";
-    private static final long SURFACE_COUNTDOWN_TICK_MS = 1_000L;
+    private static final long NAVIGATION_SERVICE_ATTACH_RETRY_MS = 1_000L;
 
     private final CarContext carContext;
     private final ViBRoCarTemplates templates;
     private final ViBRoAutoCustomButtonController customButtonController;
+    private final ViBRoCarNavigationController navigationController;
     private TaskScheduler uiScheduler;
     private ViBRoAutoSurfaceRenderer surfaceRenderer;
     private final Runnable surfaceCountdownTicker = new Runnable() {
         @Override
         public void run() {
+            if (navigationController.ensureIntegrationEnabled()) {
+                navigationController.bind();
+            }
             surfaceRenderer.render();
-            uiScheduler.postDelayed(this, SURFACE_COUNTDOWN_TICK_MS);
+            uiScheduler.postDelayed(this, NAVIGATION_SERVICE_ATTACH_RETRY_MS);
         }
     };
 
-    private NavigationServiceBinder navBinder;
-    private boolean bound;
-    private boolean refreshLocationSettingsOnReconnect;
     @Nullable
     private NavState currentState;
-
-    private final NavigationService.Listener navListener = state -> {
-        currentState = state;
-        surfaceRenderer.setState(state);
-        invalidate();
-    };
-
-    private final ServiceConnection connection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            navBinder = (NavigationServiceBinder) service;
-            bound = true;
-            AppLogger.i(TAG, "NavigationService connected component=" + name);
-            navBinder.ensureForegroundNotification();
-            navBinder.registerListener(navListener);
-            if (refreshLocationSettingsOnReconnect) {
-                refreshLocationSettingsOnReconnect = false;
-                navBinder.refreshLocationUpdateSettings();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            AppLogger.w(TAG, "NavigationService disconnected component=" + name);
-            bound = false;
-            navBinder = null;
-            currentState = null;
-            surfaceRenderer.setState(null);
-            invalidate();
-        }
-    };
 
     public ViBRoCarScreen(@NonNull CarContext carContext) {
         this(carContext, AndroidTaskScheduler.main());
@@ -87,15 +54,24 @@ public final class ViBRoCarScreen extends Screen {
         super(carContext);
         this.carContext = carContext;
         this.uiScheduler = uiScheduler;
+        applyCarTheme();
+        navigationController = new ViBRoCarNavigationController(carContext, new CarNavigationHost());
         ViBRoAutoSurfaceControls controls = new ViBRoAutoSurfaceControls();
         templates = new ViBRoCarTemplates(carContext, controls);
-        surfaceRenderer = new ViBRoAutoSurfaceRenderer(carContext, controls, uiScheduler);
+        surfaceRenderer = new ViBRoAutoSurfaceRenderer(
+                carContext,
+                controls,
+                uiScheduler,
+                navigationController::setCompassStreetViewport
+        );
         customButtonController = new ViBRoAutoCustomButtonController(carContext, new AutoCustomButtonHost());
         getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
             public void onStart(@NonNull LifecycleOwner owner) {
                 carContext.getCarService(AppManager.class).setSurfaceCallback(surfaceRenderer);
-                bindNavigationService();
+                if (navigationController.ensureIntegrationEnabled()) {
+                    navigationController.bind();
+                }
                 uiScheduler.post(surfaceCountdownTicker);
             }
 
@@ -103,7 +79,7 @@ public final class ViBRoCarScreen extends Screen {
             public void onStop(@NonNull LifecycleOwner owner) {
                 uiScheduler.removeCallbacks(surfaceCountdownTicker);
                 surfaceRenderer.clearSurface();
-                unbindNavigationService();
+                navigationController.unbind();
             }
 
             @Override
@@ -122,6 +98,9 @@ public final class ViBRoCarScreen extends Screen {
     @Override
     @NonNull
     public Template onGetTemplate() {
+        if (!navigationController.ensureIntegrationEnabled()) {
+            return templates.build(null);
+        }
         NavState state = currentState;
         if (state != null) {
             surfaceRenderer.setState(state);
@@ -129,74 +108,8 @@ public final class ViBRoCarScreen extends Screen {
         return templates.build(state);
     }
 
-    private void bindNavigationService() {
-        if (bound) {
-            return;
-        }
-        AppLogger.i(TAG, "Binding NavigationService from Android Auto");
-        carContext.bindService(
-                new Intent(carContext, NavigationService.class),
-                connection,
-                Context.BIND_AUTO_CREATE
-        );
-    }
-
-    private void unbindNavigationService() {
-        if (!bound) {
-            return;
-        }
-        AppLogger.i(TAG, "Unbinding NavigationService from Android Auto");
-        try {
-            if (navBinder != null) {
-                navBinder.unregisterListener(navListener);
-            }
-            carContext.unbindService(connection);
-        } catch (Exception e) {
-            AppLogger.w(TAG, "Failed to unbind navigation service", e);
-        } finally {
-            bound = false;
-            navBinder = null;
-        }
-    }
-
-    private void addBlockedWaypoint() {
-        if (navBinder == null) {
-            AppLogger.w(TAG, "Blocked-road requested before service binding completed");
-            return;
-        }
-        if (!navBinder.canAddBlockedWaypoint()) {
-            AppLogger.w(TAG, "Blocked-road requested while blocked-road rerouting is unavailable");
-            return;
-        }
-        navBinder.addBlockedWaypoint();
-    }
-
-    private void togglePaused() {
-        if (navBinder == null) {
-            AppLogger.w(TAG, "Pause/resume requested before service binding completed");
-            return;
-        }
-        if (navBinder.isPaused()) {
-            navBinder.resume();
-        } else {
-            navBinder.pause();
-        }
-    }
-
-    private void stopNavigation() {
-        if (navBinder == null) {
-            AppLogger.w(TAG, "Stop requested before service binding completed");
-            return;
-        }
-        navBinder.stop();
-    }
-
-    private void exportCurrentRoute() {
-        ViBRoAutoRouteExporter.exportCurrentRoute(carContext, navBinder, this::showToast);
-    }
-
     private void openPhoneSettings() {
-        refreshLocationSettingsOnReconnect = true;
+        navigationController.requestLocationSettingsRefreshOnReconnect();
         ViBRoAutoPhoneLauncher.openSettings(carContext);
     }
 
@@ -205,7 +118,19 @@ public final class ViBRoCarScreen extends Screen {
     }
 
     private void openPhoneApp() {
-        ViBRoAutoPhoneLauncher.openMain(carContext);
+        navigationController.openPhoneNavigationIfActive();
+    }
+
+    private void applyCarTheme() {
+        carContext.setTheme(AppThemeSettings.isLightThemeEnabled(carContext)
+                ? R.style.Theme_ViBRoNavigator_Light
+                : R.style.Theme_ViBRoNavigator);
+    }
+
+    private void updateCurrentState(@Nullable NavState state) {
+        currentState = state;
+        surfaceRenderer.setState(state);
+        invalidate();
     }
 
     private final class ViBRoAutoSurfaceControls
@@ -217,27 +142,17 @@ public final class ViBRoCarScreen extends Screen {
 
         @Override
         public void onBlockedRoad() {
-            addBlockedWaypoint();
+            navigationController.addBlockedWaypoint();
         }
 
         @Override
         public void onStopNavigation() {
-            stopNavigation();
+            navigationController.stopNavigation();
         }
 
         @Override
         public void onTogglePaused() {
-            togglePaused();
-        }
-
-        @Override
-        public void onExportRoute() {
-            exportCurrentRoute();
-        }
-
-        @Override
-        public void onOpenSettings() {
-            openPhoneSettings();
+            navigationController.togglePaused();
         }
 
         @Override
@@ -248,7 +163,20 @@ public final class ViBRoCarScreen extends Screen {
         @Override
         @NonNull
         public String buildCurrentDirectionDetailsText() {
-            return ViBRoAutoDirectionDetailsText.build(carContext, navBinder);
+            return navigationController.buildCurrentDirectionDetailsText();
+        }
+    }
+
+    private final class CarNavigationHost implements ViBRoCarNavigationController.Host {
+        @Nullable
+        @Override
+        public NavState currentState() {
+            return currentState;
+        }
+
+        @Override
+        public void updateCurrentState(@Nullable NavState state) {
+            ViBRoCarScreen.this.updateCurrentState(state);
         }
     }
 
@@ -256,7 +184,7 @@ public final class ViBRoCarScreen extends Screen {
         @Nullable
         @Override
         public NavigationServiceBinder currentBinder() {
-            return navBinder;
+            return navigationController.currentBinder();
         }
 
         @Override
@@ -266,6 +194,7 @@ public final class ViBRoCarScreen extends Screen {
 
         @Override
         public void refreshSurfaceTheme() {
+            applyCarTheme();
             surfaceRenderer.refreshTheme();
             invalidate();
         }

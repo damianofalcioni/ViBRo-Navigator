@@ -93,7 +93,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     public void onScreenInteractiveChanged(boolean interactive) {
         NavigationLocationController controller = locationController;
-        if (!interactive && controller != null) {
+        if (!interactive && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed() && controller != null) {
             controller.cancelCurrentLocationSeeds();
         }
     }

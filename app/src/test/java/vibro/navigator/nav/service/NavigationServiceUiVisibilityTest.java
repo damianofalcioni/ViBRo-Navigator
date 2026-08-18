@@ -101,6 +101,80 @@ public class NavigationServiceUiVisibilityTest {
         assertEquals(1, displayActivity.calls);
     }
 
+    @Test
+    public void carNavigationUiDispatchesWhilePhoneScreenIsOff() {
+        NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
+        CountingRunnable stateRefresh = new CountingRunnable();
+        CountingRunnable viewportClearer = new CountingRunnable();
+        DisplayActivityRecorder displayActivity = new DisplayActivityRecorder();
+        NavigationServiceUiVisibility visibility = visibility(
+                broadcaster,
+                stateRefresh,
+                viewportClearer,
+                displayActivity
+        );
+        broadcaster.register(state -> {
+        });
+        visibility.onStateListenersChanged();
+        visibility.onScreenInteractiveChanged(false);
+
+        visibility.setCarNavigationUiVisible(true);
+
+        assertTrue(visibility.hasActiveNavigationDisplay());
+        assertTrue(visibility.canUseCompassStreetViewport());
+        assertTrue(visibility.canDispatchStateToUi());
+        assertTrue(displayActivity.active);
+        assertEquals(1, stateRefresh.calls);
+    }
+
+    @Test
+    public void screenOffWithoutCarNavigationUiKeepsBatteryDisplayGateClosed() {
+        NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
+        CountingRunnable stateRefresh = new CountingRunnable();
+        NavigationServiceUiVisibility visibility = visibility(
+                broadcaster,
+                stateRefresh,
+                new CountingRunnable()
+        );
+        broadcaster.register(state -> {
+        });
+        visibility.onStateListenersChanged();
+        visibility.setNavigationUiVisible(true);
+        stateRefresh.calls = 0;
+
+        visibility.onScreenInteractiveChanged(false);
+
+        assertFalse(visibility.hasActiveNavigationDisplay());
+        assertFalse(visibility.canDispatchStateToUi());
+        assertEquals(0, stateRefresh.calls);
+    }
+
+    @Test
+    public void disconnectingCarNavigationUiRestoresScreenOffDisplayGate() {
+        NavigationStateBroadcaster broadcaster = new NavigationStateBroadcaster();
+        CountingRunnable viewportClearer = new CountingRunnable();
+        DisplayActivityRecorder displayActivity = new DisplayActivityRecorder();
+        NavigationServiceUiVisibility visibility = visibility(
+                broadcaster,
+                new CountingRunnable(),
+                viewportClearer,
+                displayActivity
+        );
+        broadcaster.register(state -> {
+        });
+        visibility.onStateListenersChanged();
+        visibility.onScreenInteractiveChanged(false);
+        visibility.setCarNavigationUiVisible(true);
+
+        int priorViewportClears = viewportClearer.calls;
+        visibility.setCarNavigationUiVisible(false);
+
+        assertEquals(priorViewportClears + 1, viewportClearer.calls);
+        assertFalse(visibility.hasActiveNavigationDisplay());
+        assertFalse(visibility.canDispatchStateToUi());
+        assertFalse(displayActivity.active);
+    }
+
     private static NavigationServiceUiVisibility visibility(
             NavigationStateBroadcaster broadcaster,
             CountingRunnable stateRefresh,

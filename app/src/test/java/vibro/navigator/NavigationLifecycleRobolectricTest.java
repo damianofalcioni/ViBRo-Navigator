@@ -14,9 +14,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
 import android.content.ServiceConnection;
+import android.os.Looper;
 import android.view.WindowManager;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -32,6 +34,7 @@ import org.robolectric.android.controller.ServiceController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowService;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -65,6 +68,42 @@ public class NavigationLifecycleRobolectricTest {
 
         assertTrue(shadowOf(activity).getShowWhenLocked());
         assertTrue(shadowOf(activity).getTurnScreenOn());
+    }
+
+    @Test
+    public void navigationActivityFinishesWhenNavigationStopsExternally() throws Exception {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
+        intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+
+        ActivityController<TestNavigationActivity> controller =
+                Robolectric.buildActivity(TestNavigationActivity.class, intent).setup();
+        TestNavigationActivity activity = controller.get();
+
+        navigationListener(activity).onNavigationStopped();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(activity.isFinishing());
+    }
+
+    @Test
+    public void resumeExistingNavigationActivityFinishesWhenBoundServiceHasNoNavigation() throws Exception {
+        Intent intent = new Intent(ApplicationProvider.getApplicationContext(), TestNavigationActivity.class);
+        intent.putExtra(NavigationActivity.EXTRA_RESUME_EXISTING, true);
+
+        ActivityController<TestNavigationActivity> controller =
+                Robolectric.buildActivity(TestNavigationActivity.class, intent).setup();
+        TestNavigationActivity activity = controller.get();
+        NavigationService emptyService = Robolectric.buildService(NavigationService.class).create().get();
+        NavigationServiceBinder binder = (NavigationServiceBinder) emptyService.onBind(
+                new Intent(ApplicationProvider.getApplicationContext(), NavigationService.class)
+        );
+
+        navigationConnection(activity).onServiceConnected(
+                new ComponentName(activity, NavigationService.class),
+                binder
+        );
+
+        assertTrue(activity.isFinishing());
     }
 
     @Test
@@ -218,5 +257,31 @@ public class NavigationLifecycleRobolectricTest {
             return true;
         }
     }
-}
 
+    private static NavigationService.Listener navigationListener(NavigationActivity activity) throws Exception {
+        Object monitor = privateField(activity, "stopMonitor");
+        return (NavigationService.Listener) privateField(monitor, "listener");
+    }
+
+    private static ServiceConnection navigationConnection(NavigationActivity activity) throws Exception {
+        return (ServiceConnection) privateField(activity, "connection");
+    }
+
+    private static Object privateField(Object target, String name) throws Exception {
+        Field field = declaredField(target.getClass(), name);
+        field.setAccessible(true);
+        return field.get(target);
+    }
+
+    private static Field declaredField(Class<?> type, String name) throws NoSuchFieldException {
+        Class<?> current = type;
+        while (current != null) {
+            try {
+                return current.getDeclaredField(name);
+            } catch (NoSuchFieldException ignored) {
+                current = current.getSuperclass();
+            }
+        }
+        throw new NoSuchFieldException(name);
+    }
+}

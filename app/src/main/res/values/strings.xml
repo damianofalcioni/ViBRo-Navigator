@@ -430,7 +430,7 @@
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_navigation_custom_button_info">Shows an extra button in the navigation compass that toggles the selected setting while navigation is open.</string>
-    <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto.</string>
+    <string name="about_setting_android_auto_info">Lets compatible car displays show navigation through Android Auto. In real vehicles, Android Auto shows this type of app only when it is installed from a trusted source such as Google Play or Internal App Sharing.</string>
     <string name="about_setting_poi_categories_info">Chooses which places can appear on the map picker, such as fuel, parking, or toilets.</string>
     <string name="about_setting_speech_recognition_info">Shows microphone buttons for destination and stop voice input and chooses the requested recognition language. Android may use its default if the selected speech recognizer does not support the requested language.</string>
     <string name="about_setting_maneuver_voice_info">Reads upcoming direction prompts aloud using an Android voice.</string>

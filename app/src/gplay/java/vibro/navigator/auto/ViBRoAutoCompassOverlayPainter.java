@@ -5,7 +5,6 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,6 +12,7 @@ import androidx.car.app.CarContext;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.route.RouteSpeedLimit;
@@ -31,8 +31,6 @@ final class ViBRoAutoCompassOverlayPainter {
 
     private final CarContext carContext;
     private final ViBRoAutoSurfaceRenderer.Controls controls;
-    private final RectF exportButtonBounds = new RectF();
-    private final RectF settingsButtonBounds = new RectF();
     private final RectF customButtonBounds = new RectF();
     private final RectF speedLimitBounds = new RectF();
     private final Paint buttonFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -40,8 +38,6 @@ final class ViBRoAutoCompassOverlayPainter {
     private final Paint speedFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint speedStrokePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint speedTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Drawable exportIcon;
-    private final Drawable settingsIcon;
     @Nullable
     private Drawable customIcon;
     private int customIconResId;
@@ -53,30 +49,19 @@ final class ViBRoAutoCompassOverlayPainter {
     ) {
         this.carContext = carContext;
         this.controls = controls;
-        exportIcon = requireDrawable(R.drawable.ic_export);
-        settingsIcon = requireDrawable(R.drawable.ic_settings);
         initPaints();
     }
 
-    void draw(@NonNull Canvas canvas, @NonNull NavState state, @NonNull RectF compassBounds) {
-        float size = dp(CONTROL_SIZE_DP);
+    void draw(@NonNull Canvas canvas, @NonNull NavState state, @NonNull RectF compassBounds, float scale) {
+        float size = dp(CONTROL_SIZE_DP, scale);
+        buttonOutlinePaint.setStrokeWidth(dp(BUTTON_OUTLINE_WIDTH_DP, scale));
+        speedStrokePaint.setStrokeWidth(dp(SPEED_BADGE_STROKE_DP, scale));
+        speedTextPaint.setTextSize(sp(16f, scale));
         speedLimitBounds.set(
                 compassBounds.left,
                 compassBounds.top,
                 compassBounds.left + size,
                 compassBounds.top + size
-        );
-        settingsButtonBounds.set(
-                compassBounds.left,
-                compassBounds.bottom - size,
-                compassBounds.left + size,
-                compassBounds.bottom
-        );
-        exportButtonBounds.set(
-                compassBounds.right - size,
-                compassBounds.bottom - size,
-                compassBounds.right,
-                compassBounds.bottom
         );
         customButtonBounds.set(
                 compassBounds.right - size,
@@ -84,9 +69,7 @@ final class ViBRoAutoCompassOverlayPainter {
                 compassBounds.right,
                 compassBounds.top + size
         );
-        drawIconButton(canvas, settingsButtonBounds, settingsIcon);
-        drawIconButton(canvas, exportButtonBounds, exportIcon);
-        drawCustomButton(canvas, customButtonBounds);
+        drawCustomButton(canvas, customButtonBounds, scale);
         drawSpeedLimit(canvas, speedLimitBounds, state.routeStatus.speedLimit);
     }
 
@@ -95,58 +78,55 @@ final class ViBRoAutoCompassOverlayPainter {
             controls.onToggleCustomButton();
             return true;
         }
-        if (settingsButtonBounds.contains(x, y)) {
-            controls.onOpenSettings();
-            return true;
-        }
-        if (exportButtonBounds.contains(x, y)) {
-            controls.onExportRoute();
-            return true;
-        }
         return false;
     }
 
     private void initPaints() {
         buttonFillPaint.setStyle(Paint.Style.FILL);
-        buttonFillPaint.setColor(ContextCompat.getColor(carContext, R.color.surface_800));
+        buttonFillPaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroSurfaceColor));
 
         buttonOutlinePaint.setStyle(Paint.Style.STROKE);
-        buttonOutlinePaint.setStrokeWidth(dp(BUTTON_OUTLINE_WIDTH_DP));
-        buttonOutlinePaint.setColor(ContextCompat.getColor(carContext, R.color.outline));
+        buttonOutlinePaint.setStrokeWidth(dp(BUTTON_OUTLINE_WIDTH_DP, 1f));
+        buttonOutlinePaint.setColor(AndroidAppTheme.color(carContext, R.attr.vibroOutlineColor));
 
         speedFillPaint.setStyle(Paint.Style.FILL);
         speedFillPaint.setColor(ContextCompat.getColor(carContext, R.color.white));
 
         speedStrokePaint.setStyle(Paint.Style.STROKE);
-        speedStrokePaint.setStrokeWidth(dp(SPEED_BADGE_STROKE_DP));
+        speedStrokePaint.setStrokeWidth(dp(SPEED_BADGE_STROKE_DP, 1f));
         speedStrokePaint.setColor(ContextCompat.getColor(carContext, R.color.danger));
 
         speedTextPaint.setColor(ContextCompat.getColor(carContext, R.color.black));
         speedTextPaint.setTextAlign(Paint.Align.CENTER);
         speedTextPaint.setTypeface(Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD));
         speedTextPaint.setSubpixelText(true);
-        speedTextPaint.setTextSize(sp(16f));
+        speedTextPaint.setTextSize(sp(16f, 1f));
     }
 
-    private void drawIconButton(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon) {
-        float radius = dp(CONTROL_RADIUS_DP);
+    private void drawIconButton(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon, float scale) {
+        float radius = dp(CONTROL_RADIUS_DP, scale);
         canvas.drawRoundRect(bounds, radius, radius, buttonFillPaint);
         canvas.drawRoundRect(bounds, radius, radius, buttonOutlinePaint);
-        drawIcon(canvas, bounds, icon);
+        drawIcon(canvas, bounds, icon, scale);
     }
 
-    private void drawCustomButton(@NonNull Canvas canvas, @NonNull RectF bounds) {
+    private void drawCustomButton(@NonNull Canvas canvas, @NonNull RectF bounds, float scale) {
         customButtonVisible = AppNavigationCustomButtonSettings.isEnabled(carContext);
         if (!customButtonVisible) {
             return;
         }
         Target target = AppNavigationCustomButtonSettings.getTarget(carContext);
         boolean enabled = AppNavigationCustomButtonTargetState.isEnabled(carContext, target);
-        drawIconButton(canvas, bounds, customIcon(AppNavigationCustomButtonTargetResources.iconResId(target, enabled)));
+        drawIconButton(
+                canvas,
+                bounds,
+                customIcon(AppNavigationCustomButtonTargetResources.iconResId(target, enabled)),
+                scale
+        );
     }
 
-    private void drawIcon(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon) {
-        int iconSize = Math.round(dp(CONTROL_ICON_SIZE_DP));
+    private void drawIcon(@NonNull Canvas canvas, @NonNull RectF bounds, @NonNull Drawable icon, float scale) {
+        int iconSize = Math.round(dp(CONTROL_ICON_SIZE_DP, scale));
         int iconLeft = Math.round(bounds.centerX() - iconSize / 2f);
         int iconTop = Math.round(bounds.centerY() - iconSize / 2f);
         icon.setBounds(iconLeft, iconTop, iconLeft + iconSize, iconTop + iconSize);
@@ -190,11 +170,11 @@ final class ViBRoAutoCompassOverlayPainter {
         return customIcon;
     }
 
-    private float dp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, value, carContext.getResources().getDisplayMetrics());
+    private float dp(float value, float scale) {
+        return ViBRoAutoRenderScale.dp(carContext, value, scale);
     }
 
-    private float sp(float value) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, value, carContext.getResources().getDisplayMetrics());
+    private float sp(float value, float scale) {
+        return ViBRoAutoRenderScale.sp(carContext, value, scale);
     }
 }

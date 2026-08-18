@@ -38,4 +38,14 @@ public final class NavigationStateBroadcaster {
             }
         }
     }
+
+    public void dispatchStopped() {
+        for (NavigationService.Listener listener : new ArrayList<>(listeners)) {
+            try {
+                listener.onNavigationStopped();
+            } catch (Exception ignored) {
+                // Listener failures must not break navigation stop cleanup for other listeners.
+            }
+        }
+    }
 }

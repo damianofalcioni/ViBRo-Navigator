@@ -149,10 +149,17 @@ public final class NavigationOrientationController {
 
     public static boolean shouldDispatchCompassUi(
             boolean hasActiveRoute,
+            boolean navigationDisplayActive
+    ) {
+        return hasActiveRoute && navigationDisplayActive;
+    }
+
+    public static boolean shouldDispatchCompassUi(
+            boolean hasActiveRoute,
             boolean navigationUiVisible,
             boolean screenInteractive
     ) {
-        return hasActiveRoute && navigationUiVisible && screenInteractive;
+        return shouldDispatchCompassUi(hasActiveRoute, navigationUiVisible && screenInteractive);
     }
 
     public static boolean shouldEvaluateStationaryOrientation(

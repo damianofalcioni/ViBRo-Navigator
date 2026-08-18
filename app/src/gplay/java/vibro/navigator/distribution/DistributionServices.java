@@ -2,7 +2,6 @@ package vibro.navigator.distribution;
 
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -11,7 +10,7 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailabilityLight;
 
 import vibro.navigator.android.location.GplayFusedLocationClient;
-import vibro.navigator.auto.ViBRoCarAppService;
+import vibro.navigator.auto.ViBRoCarAppComponent;
 import vibro.navigator.nav.location.FusedLocationDiagnosticClient;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
 import vibro.navigator.nav.location.NavigationLocationListener;
@@ -48,21 +47,11 @@ public final class DistributionServices {
 
     @NonNull
     public static String androidAutoIntegrationComponentState(@NonNull Context context) {
-        ComponentName componentName = new ComponentName(context, ViBRoCarAppService.class);
-        int state = context.getPackageManager().getComponentEnabledSetting(componentName);
-        return componentEnabledStateName(state);
+        return ViBRoCarAppComponent.state(context);
     }
 
     public static void configureAndroidAutoIntegration(@NonNull Context context, boolean enabled) {
-        int state = enabled
-                ? PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
-                : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
-        ComponentName componentName = new ComponentName(context, ViBRoCarAppService.class);
-        context.getPackageManager().setComponentEnabledSetting(
-                componentName,
-                state,
-                PackageManager.DONT_KILL_APP
-        );
+        ViBRoCarAppComponent.configure(context, enabled);
     }
 
     @NonNull
@@ -115,24 +104,6 @@ public final class DistributionServices {
                 "com.google.android.googlequicksearchbox",
                 "com.google.android.voicesearch.serviceapi.GoogleRecognitionService"
         );
-    }
-
-    @NonNull
-    private static String componentEnabledStateName(int state) {
-        switch (state) {
-            case PackageManager.COMPONENT_ENABLED_STATE_DEFAULT:
-                return "default";
-            case PackageManager.COMPONENT_ENABLED_STATE_ENABLED:
-                return "enabled";
-            case PackageManager.COMPONENT_ENABLED_STATE_DISABLED:
-                return "disabled";
-            case PackageManager.COMPONENT_ENABLED_STATE_DISABLED_USER:
-                return "disabled_user";
-            case PackageManager.COMPONENT_ENABLED_STATE_DISABLED_UNTIL_USED:
-                return "disabled_until_used";
-            default:
-                return "unknown(" + state + ")";
-        }
     }
 
     @NonNull

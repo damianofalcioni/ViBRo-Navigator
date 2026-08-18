@@ -64,6 +64,9 @@ final class AppLogSessionInfo {
         append(out, "package", context.getPackageName());
         append(out, "flavor", BuildConfig.FLAVOR);
         append(out, "buildType", BuildConfig.BUILD_TYPE);
+        append(out, "debuggable",
+                (context.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0);
+        AppInstallSourceLogInfo.append(out, context);
         append(out, "targetSdk", context.getApplicationInfo().targetSdkVersion);
         append(out, "minSdk", minSdk(context));
     }

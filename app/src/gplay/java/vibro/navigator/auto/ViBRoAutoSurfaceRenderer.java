@@ -24,10 +24,6 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
 
         void onTogglePaused();
 
-        void onExportRoute();
-
-        void onOpenSettings();
-
         void onToggleCustomButton();
 
         @NonNull
@@ -40,6 +36,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private final TaskScheduler uiScheduler;
     private final CarContext carContext;
     private final Controls controls;
+    private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
     private ViBRoAutoSurfacePainter painter;
     private final Rect stableArea = new Rect();
     private final Runnable compassTransitionTicker = this::renderOnMainThread;
@@ -53,16 +50,26 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     ViBRoAutoSurfaceRenderer(
             @NonNull CarContext carContext,
             @NonNull Controls controls,
-            @NonNull TaskScheduler uiScheduler
+            @NonNull TaskScheduler uiScheduler,
+            @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink
     ) {
         this.carContext = carContext;
         this.controls = controls;
+        this.compassStreetViewportSink = compassStreetViewportSink;
         this.uiScheduler = uiScheduler;
-        painter = new ViBRoAutoSurfacePainter(carContext, controls, AndroidElapsedRealtimeClock.INSTANCE);
+        painter = new ViBRoAutoSurfacePainter(
+                carContext,
+                controls,
+                compassStreetViewportSink,
+                AndroidElapsedRealtimeClock.INSTANCE
+        );
     }
 
     void setState(@Nullable NavState state) {
         currentState = state;
+        if (state == null) {
+            compassStreetViewportSink.clearCompassStreetViewport();
+        }
         render();
     }
 
@@ -76,6 +83,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
 
     void clearSurface() {
         surfaceContainer = null;
+        compassStreetViewportSink.clearCompassStreetViewport();
         clearCompassCallbacks();
     }
 
@@ -87,7 +95,12 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
 
     void refreshTheme() {
         painter.dispose();
-        painter = new ViBRoAutoSurfacePainter(carContext, controls, AndroidElapsedRealtimeClock.INSTANCE);
+        painter = new ViBRoAutoSurfacePainter(
+                carContext,
+                controls,
+                compassStreetViewportSink,
+                AndroidElapsedRealtimeClock.INSTANCE
+        );
         render();
     }
 
@@ -111,7 +124,11 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     @Override
     public void onClick(float x, float y) {
         NavState state = currentState;
-        if (state != null && painter.handleClick(x, y, state)) {
+        boolean handled = state != null && painter.handleClick(x, y, state);
+        AppLogger.d(TAG, "Surface click x=" + x + " y=" + y
+                + " hasState=" + (state != null)
+                + " handled=" + handled);
+        if (handled) {
             renderOnMainThread();
         }
     }
