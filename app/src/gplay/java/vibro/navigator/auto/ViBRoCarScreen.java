@@ -128,9 +128,12 @@ public final class ViBRoCarScreen extends Screen {
     }
 
     private void updateCurrentState(@Nullable NavState state) {
+        boolean templateChanged = templates.requiresInvalidation(currentState, state);
         currentState = state;
         surfaceRenderer.setState(state);
-        invalidate();
+        if (templateChanged) {
+            invalidate();
+        }
     }
 
     private final class ViBRoAutoSurfaceControls

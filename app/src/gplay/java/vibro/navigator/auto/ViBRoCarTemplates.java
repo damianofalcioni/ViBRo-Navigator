@@ -32,13 +32,14 @@ final class ViBRoCarTemplates {
 
     @NonNull
     Template build(@Nullable NavState state) {
-        if (state == null) {
-            return buildNoActiveNavigationTemplate();
-        }
-        if (isNoActiveNavigation(state)) {
+        if (!usesNavigationTemplate(state)) {
             return buildNoActiveNavigationTemplate();
         }
         return buildNavigationTemplate();
+    }
+
+    boolean requiresInvalidation(@Nullable NavState previous, @Nullable NavState next) {
+        return usesNavigationTemplate(previous) != usesNavigationTemplate(next);
     }
 
     @NonNull
@@ -84,6 +85,10 @@ final class ViBRoCarTemplates {
                 && state.routeStatus.progress.destinationLine.trim().isEmpty()
                 && state.routeStatus.progress.stopProgressBlock.trim().isEmpty()
                 && state.routeStatus.progress.detailBlock.trim().isEmpty();
+    }
+
+    private boolean usesNavigationTemplate(@Nullable NavState state) {
+        return state != null && !isNoActiveNavigation(state);
     }
 
     @NonNull

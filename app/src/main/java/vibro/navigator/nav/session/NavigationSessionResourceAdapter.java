@@ -374,4 +374,18 @@ public final class NavigationSessionResourceAdapter {
                 stationaryFullRouteZoomEnabled
         );
     }
+
+    @NonNull
+    public static NavState withDisplayHeading(
+            @NonNull NavigationSession session,
+            @NonNull NavState base,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees
+    ) {
+        return session.components.stateBuilder.withDisplayHeading(
+                base,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees
+        );
+    }
 }

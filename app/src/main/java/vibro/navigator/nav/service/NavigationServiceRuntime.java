@@ -169,16 +169,11 @@ final class NavigationServiceRuntime {
         screenInteractivityMonitor.stop();
     }
 
-    void shutdownRouteExecutor() {
+    void shutdown() {
         routing.executor.shutdown();
-    }
-
-    void shutdownStreetOverlay() {
         streetOverlay.shutdown();
-    }
-
-    void shutdownManeuverSpeaker() {
         routing.maneuverSpeaker.shutdown();
+        batterySnapshotReader.stop();
     }
 
 }

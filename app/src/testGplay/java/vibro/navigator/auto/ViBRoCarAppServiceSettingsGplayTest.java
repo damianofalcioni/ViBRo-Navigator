@@ -133,6 +133,23 @@ public class ViBRoCarAppServiceSettingsGplayTest {
     }
 
     @Test
+    public void templateInvalidationOnlyTracksActiveNavigationTransitions() throws Exception {
+        ViBRoCarTemplates templates = new ViBRoCarTemplates(
+                testCarContext(),
+                () -> {
+                }
+        );
+        NavState active = activeNavigationState();
+        NavState anotherActive = activeNavigationState();
+        NavState noActive = noActiveNavigationState();
+
+        assertTrue(templates.requiresInvalidation(null, active));
+        assertFalse(templates.requiresInvalidation(active, anotherActive));
+        assertTrue(templates.requiresInvalidation(active, noActive));
+        assertFalse(templates.requiresInvalidation(noActive, null));
+    }
+
+    @Test
     public void compassOverlayIgnoresFormerSettingsAndExportButtonAreas() throws Exception {
         AppNavigationCustomButtonSettings.setEnabled(context, false);
         CarContext carContext = testCarContext();
@@ -170,6 +187,19 @@ public class ViBRoCarAppServiceSettingsGplayTest {
                         null
                 ),
                 new NavGpsStatus("0 km/h", NavState.NO_DEADLINE),
+                new NavPauseStatus(false)
+        );
+    }
+
+    @NonNull
+    private NavState noActiveNavigationState() {
+        return new NavState(
+                new NavRouteStatus(
+                        new NavGuidanceStatus(context.getString(R.string.nav_no_route), ""),
+                        new NavProgressStatus("", "", ""),
+                        null
+                ),
+                new NavGpsStatus("--", NavState.NO_DEADLINE),
                 new NavPauseStatus(false)
         );
     }

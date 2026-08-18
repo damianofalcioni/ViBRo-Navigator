@@ -12,6 +12,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.compass.NavCompassHeadingRefresh;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavStateTextFactory;
@@ -239,6 +240,38 @@ public final class NavStateComposer {
                         base.routeStatus.guidance,
                         base.routeStatus.progress,
                         compassState.withStreetOverlay(streetOverlay),
+                        base.routeStatus.speedLimit,
+                        base.routeStatus.blockedRoadActionAvailable
+                ),
+                base.gpsStatus,
+                base.pauseStatus,
+                base.tripStatus
+        );
+    }
+
+    @NonNull
+    public static NavState withCompassHeading(
+            @NonNull NavState base,
+            @Nullable Double headingDegrees,
+            @Nullable Float headingAccuracyDegrees
+    ) {
+        NavCompassState compassState = base.routeStatus.compassState;
+        if (compassState == null) {
+            return base;
+        }
+        NavCompassState updatedCompassState = NavCompassHeadingRefresh.apply(
+                compassState,
+                headingDegrees,
+                headingAccuracyDegrees
+        );
+        if (updatedCompassState == compassState) {
+            return base;
+        }
+        return new NavState(
+                new NavRouteStatus(
+                        base.routeStatus.guidance,
+                        base.routeStatus.progress,
+                        updatedCompassState,
                         base.routeStatus.speedLimit,
                         base.routeStatus.blockedRoadActionAvailable
                 ),

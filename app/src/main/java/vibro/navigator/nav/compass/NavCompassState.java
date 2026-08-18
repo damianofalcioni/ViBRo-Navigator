@@ -298,7 +298,15 @@ public final class NavCompassState {
             @NonNull NavCompassState source,
             @NonNull CompassStreetOverlay streetOverlay
     ) {
-        displayMode = source.displayMode;
+        this(source, source.displayMode, streetOverlay);
+    }
+
+    NavCompassState(
+            @NonNull NavCompassState source,
+            @NonNull CompassDisplayMode displayMode,
+            @NonNull CompassStreetOverlay streetOverlay
+    ) {
+        this.displayMode = displayMode;
         radiusState = source.radiusState;
         progressLabels = source.progressLabels;
         routeStartApproachProjection = source.routeStartApproachProjection;

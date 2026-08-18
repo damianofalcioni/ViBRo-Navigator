@@ -57,6 +57,7 @@ public class NavigationService extends Service {
                     navigationSession,
                     stateBroadcaster,
                     this::emitState,
+                    this::emitCompassState,
                     this::clearCompassStreetViewport,
                     this::setGnssStatusDisplayActive
             );
@@ -283,6 +284,7 @@ public class NavigationService extends Service {
         if (!uiVisibility.canDispatchStateToUi()) {
             return;
         }
+        var orientationCue = runtime().activeOrientationCue();
         NavState s = navigationSession.buildState(
                 this,
                 runtime().nextEvaluationDeadlineElapsedMs(),
@@ -290,10 +292,19 @@ public class NavigationService extends Service {
                 runtime().fixedSatelliteCount(),
                 runtime().displayHeadingDegrees(),
                 runtime().displayHeadingAccuracyDegrees(),
-                runtime().activeOrientationCue()
+                orientationCue
         );
         s = runtime().attachStreetOverlay(s);
-        stateBroadcaster.dispatch(s);
+        stateBroadcaster.dispatchStructural(s, orientationCue);
+    }
+
+    private void emitCompassState() {
+        stateBroadcaster.dispatchHeadingOrRefreshStructural(
+                navigationSession,
+                runtime,
+                uiVisibility.canDispatchStateToUi(),
+                this::emitState
+        );
     }
 
     @Override
@@ -302,9 +313,7 @@ public class NavigationService extends Service {
         stopNavigation();
         if (runtime != null) {
             runtime.stopScreenInteractivityMonitor();
-            runtime.shutdownStreetOverlay();
-            runtime.shutdownManeuverSpeaker();
-            runtime.shutdownRouteExecutor();
+            runtime.shutdown();
             runtime = null;
         }
         super.onDestroy();

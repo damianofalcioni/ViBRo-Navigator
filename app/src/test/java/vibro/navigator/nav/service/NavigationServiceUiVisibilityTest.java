@@ -175,6 +175,26 @@ public class NavigationServiceUiVisibilityTest {
         assertFalse(displayActivity.active);
     }
 
+    @Test
+    public void compassRefreshUsesLightweightStateCallback() {
+        CountingRunnable structuralRefresh = new CountingRunnable();
+        CountingRunnable compassRefresh = new CountingRunnable();
+        NavigationServiceUiVisibility visibility = new NavigationServiceUiVisibility(
+                new NavigationSession(),
+                new NavigationStateBroadcaster(),
+                structuralRefresh,
+                compassRefresh,
+                new CountingRunnable(),
+                active -> {
+                }
+        );
+
+        visibility.requestStateRefresh();
+
+        assertEquals(0, structuralRefresh.calls);
+        assertEquals(1, compassRefresh.calls);
+    }
+
     private static NavigationServiceUiVisibility visibility(
             NavigationStateBroadcaster broadcaster,
             CountingRunnable stateRefresh,

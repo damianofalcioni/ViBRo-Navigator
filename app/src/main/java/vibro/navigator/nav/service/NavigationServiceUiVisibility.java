@@ -14,6 +14,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
     private final NavigationSession navigationSession;
     private final NavigationStateBroadcaster stateBroadcaster;
     private final Runnable stateRefresh;
+    private final Runnable compassStateRefresh;
     private final Runnable compassStreetViewportClearer;
     private final DisplayActivityListener displayActivityListener;
     private boolean navigationUiVisible;
@@ -28,9 +29,28 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
             @NonNull Runnable compassStreetViewportClearer,
             @NonNull DisplayActivityListener displayActivityListener
     ) {
+        this(
+                navigationSession,
+                stateBroadcaster,
+                stateRefresh,
+                stateRefresh,
+                compassStreetViewportClearer,
+                displayActivityListener
+        );
+    }
+
+    public NavigationServiceUiVisibility(
+            @NonNull NavigationSession navigationSession,
+            @NonNull NavigationStateBroadcaster stateBroadcaster,
+            @NonNull Runnable stateRefresh,
+            @NonNull Runnable compassStateRefresh,
+            @NonNull Runnable compassStreetViewportClearer,
+            @NonNull DisplayActivityListener displayActivityListener
+    ) {
         this.navigationSession = navigationSession;
         this.stateBroadcaster = stateBroadcaster;
         this.stateRefresh = stateRefresh;
+        this.compassStateRefresh = compassStateRefresh;
         this.compassStreetViewportClearer = compassStreetViewportClearer;
         this.displayActivityListener = displayActivityListener;
     }
@@ -109,7 +129,7 @@ public final class NavigationServiceUiVisibility implements NavigationOrientatio
 
     @Override
     public void requestStateRefresh() {
-        stateRefresh.run();
+        compassStateRefresh.run();
     }
 
     private void onDisplayInputsChanged() {
