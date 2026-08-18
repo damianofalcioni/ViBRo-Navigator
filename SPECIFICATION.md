@@ -662,7 +662,7 @@ The navigation UI must show the following in large text:
 
 - Android Auto support must exist only in the Google Play flavor.
 - The F-Droid flavor and common source set must not include Android for Cars App Library dependencies, Android Auto manifest entries, or Auto-specific runtime classes.
-- The Google Play flavor must let the user enable or disable Android Auto integration from the about page Settings section; disabling it must disable the Android Auto service component, while the F-Droid flavor must not expose an enabled Android Auto setting.
+- The Google Play flavor must let the user enable or disable Android Auto integration from the about page Settings section; enabling it must explicitly enable the Android Auto service component and disabling it must explicitly disable that component when no Android Auto host is connected, while the F-Droid flavor must not expose an enabled Android Auto setting.
 - Android Auto must expose a `CarAppService` using `androidx.car.app.CarAppService` and declare the `androidx.car.app.category.NAVIGATION` car app category.
 - The Google Play flavor must declare the `template` capability through `automotive_app_desc.xml` so Android Auto can discover the app.
 - The Google Play flavor must declare the Android for Cars surface permission needed to draw the custom navigation surface.
@@ -682,7 +682,8 @@ The navigation UI must show the following in large text:
 - When no active navigation is available, the Android Auto screen must show a concise no-active-navigation state without a phone-launch action.
 - Android Auto UI state should bind to the existing `NavigationService`/`NavState` listener path rather than duplicating route calculation, location tracking, or guidance logic. While the Android Auto screen is open, it should keep trying to attach to an already-running navigation service so navigation started later from the phone appears on the car display without reconnecting Android Auto.
 - Android Auto controls must use the existing navigation binder/service actions for blocked-road, pause/resume, and stop, so phone and car surfaces stay consistent.
-- Turning Android Auto integration off from phone settings while a car session is active must immediately clear navigation from the Android Auto screen and stop rebinding to the navigation service. The component disable may be deferred until the active host session ends to avoid Android Auto host error screens; turning the setting back on before the session ends cancels the pending disable.
+- Turning Android Auto integration off from phone settings while a car session or system car mode is active must clear navigation from the Android Auto screen and stop rebinding to the navigation service. The component disable must be deferred until the active host session and car mode have ended to avoid Android Auto host error screens; turning the setting back on before then cancels the pending disable.
+- Android Auto launcher visibility is host-controlled after service component state changes, so the settings help text should make clear that some hosts refresh the app list only after Android Auto reconnects.
 - Android Auto text must come from flavor resources and must not be hardcoded in Java.
 
 ### 4.6 Background behavior
@@ -730,7 +731,7 @@ The navigation UI must show the following in large text:
 - The about page Settings section must show an Instant compass zoom switch that disables compass zoom animations so transitions between route overview and moving-scale views are immediate and is disabled by default
 - The about page Settings section must show a Fullscreen route switch that expands the route view and is enabled by default
 - The about page Settings section must show a disabled-by-default Zoom out when stationary switch under Compass that controls whether stationary navigation automatically changes from a remembered moving-scale route view to the full-route overview
-- The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component and is enabled by default; the F-Droid flavor must not expose an enabled Android Auto integration switch
+- The Google Play flavor must show an Android Auto integration switch in the about page Settings section that enables or disables the Android Auto service component, deferring the package-manager disable while an Android Auto host is connected, and is enabled by default; the F-Droid flavor must not expose an enabled Android Auto integration switch
 - The about page Settings section must show a single-row POI category filter setting with a `POI categories filter` label, an icon-only list button for editing category names, and a switch that enables or disables the map POI category filter
 - The POI categories filter editor must let the user manage multiple category-name fields, each with the placeholder `POI Category Name`, an item switch between the field and a trash remove button, plus a centered bordered `+` button that adds another field
 - Fresh installs must prefill the POI categories filter editor with commonly needed categories for driving, walking/running, and cycling: `Bicycle Repair Station`, `Drinking Water`, `Fuel`, `Hospital`, `Parking`, `Pharmacy`, `Police`, `Public Transport Stop Position`, `Supermarket Shop`, `Taxi`, and `Toilets`

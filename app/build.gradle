@@ -65,8 +65,8 @@ android {
         applicationId = "vibro.navigator"
         minSdk = 23
         targetSdk = 37
-        versionCode = 11
-        versionName = "0.1.11"
+        versionCode = 13
+        versionName = "0.1.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

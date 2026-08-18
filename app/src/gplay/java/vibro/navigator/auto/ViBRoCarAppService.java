@@ -12,7 +12,8 @@ import androidx.lifecycle.LifecycleOwner;
 import vibro.navigator.R;
 
 public final class ViBRoCarAppService extends CarAppService {
-    private static boolean activeSession;
+    private static boolean activeSessionForTest;
+    private static int activeSessionCount;
 
     @Override
     @NonNull
@@ -29,11 +30,11 @@ public final class ViBRoCarAppService extends CarAppService {
     @NonNull
     public Session onCreateSession() {
         Session session = new ViBRoCarSession();
-        activeSession = true;
+        activeSessionCount++;
         session.getLifecycle().addObserver(new DefaultLifecycleObserver() {
             @Override
             public void onDestroy(@NonNull LifecycleOwner owner) {
-                activeSession = false;
+                activeSessionCount = Math.max(0, activeSessionCount - 1);
                 ViBRoCarAppComponent.onSessionDestroyed(getApplicationContext());
             }
         });
@@ -41,10 +42,15 @@ public final class ViBRoCarAppService extends CarAppService {
     }
 
     static boolean hasActiveSession() {
-        return activeSession;
+        return activeSessionForTest || activeSessionCount > 0;
     }
 
     static void setActiveSessionForTest(boolean active) {
-        activeSession = active;
+        activeSessionForTest = active;
+    }
+
+    static void clearActiveSessionsForTest() {
+        activeSessionForTest = false;
+        activeSessionCount = 0;
     }
 }

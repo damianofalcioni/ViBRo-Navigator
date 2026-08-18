@@ -5,9 +5,12 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import vibro.navigator.android.automotive.AndroidCarModeMonitor;
 
 public final class ViBRoCarAppComponent {
-    private static boolean disablePendingAfterSession;
+    private static boolean disablePendingUntilHostDisconnect;
 
     private ViBRoCarAppComponent() {
     }
@@ -20,32 +23,71 @@ public final class ViBRoCarAppComponent {
     public static void configure(@NonNull Context context, boolean enabled) {
         Context appContext = context.getApplicationContext();
         if (enabled) {
-            disablePendingAfterSession = false;
+            cancelPendingDisable();
             setComponentEnabled(appContext, true);
             return;
         }
-        if (ViBRoCarAppService.hasActiveSession()) {
-            disablePendingAfterSession = true;
-            return;
-        }
-        setComponentEnabled(appContext, false);
+        requestDisable(appContext);
     }
 
     static void onSessionDestroyed(@NonNull Context context) {
-        if (!disablePendingAfterSession) {
-            return;
-        }
-        disablePendingAfterSession = false;
-        setComponentEnabled(context.getApplicationContext(), false);
+        applyPendingDisableIfSafe(context.getApplicationContext());
+    }
+
+    static void onCarModeExited(@NonNull Context context) {
+        applyPendingDisableIfSafe(context.getApplicationContext());
     }
 
     static void resetPendingDisableForTest() {
-        disablePendingAfterSession = false;
+        cancelPendingDisable();
+        AndroidCarModeMonitor.setActiveForTest(null);
+    }
+
+    static void setCarModeActiveForTest(@Nullable Boolean active) {
+        AndroidCarModeMonitor.setActiveForTest(active);
+    }
+
+    private static void requestDisable(@NonNull Context appContext) {
+        if (shouldDeferDisable(appContext)) {
+            disablePendingUntilHostDisconnect = true;
+            registerCarModeExitReceiver(appContext);
+            return;
+        }
+        disableNow(appContext);
+    }
+
+    private static void applyPendingDisableIfSafe(@NonNull Context appContext) {
+        if (!disablePendingUntilHostDisconnect) {
+            return;
+        }
+        if (shouldDeferDisable(appContext)) {
+            registerCarModeExitReceiver(appContext);
+            return;
+        }
+        disableNow(appContext);
+    }
+
+    private static boolean shouldDeferDisable(@NonNull Context context) {
+        return ViBRoCarAppService.hasActiveSession() || AndroidCarModeMonitor.isActive(context);
+    }
+
+    private static void disableNow(@NonNull Context appContext) {
+        cancelPendingDisable();
+        setComponentEnabled(appContext, false);
+    }
+
+    private static void cancelPendingDisable() {
+        disablePendingUntilHostDisconnect = false;
+        AndroidCarModeMonitor.unregisterExitReceiver();
+    }
+
+    private static void registerCarModeExitReceiver(@NonNull Context appContext) {
+        AndroidCarModeMonitor.registerExitReceiver(appContext, () -> onCarModeExited(appContext));
     }
 
     private static void setComponentEnabled(@NonNull Context context, boolean enabled) {
         int state = enabled
-                ? PackageManager.COMPONENT_ENABLED_STATE_DEFAULT
+                ? PackageManager.COMPONENT_ENABLED_STATE_ENABLED
                 : PackageManager.COMPONENT_ENABLED_STATE_DISABLED;
         packageManager(context).setComponentEnabledSetting(
                 componentName(context),

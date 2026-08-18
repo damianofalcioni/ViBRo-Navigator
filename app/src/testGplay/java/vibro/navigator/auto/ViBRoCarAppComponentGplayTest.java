@@ -25,14 +25,15 @@ public class ViBRoCarAppComponentGplayTest {
     public void setUp() {
         context = ApplicationProvider.getApplicationContext();
         componentName = new ComponentName(context, ViBRoCarAppService.class);
-        ViBRoCarAppService.setActiveSessionForTest(false);
+        ViBRoCarAppService.clearActiveSessionsForTest();
         ViBRoCarAppComponent.resetPendingDisableForTest();
+        ViBRoCarAppComponent.setCarModeActiveForTest(false);
         DistributionServices.configureAndroidAutoIntegration(context, true);
     }
 
     @After
     public void tearDown() {
-        ViBRoCarAppService.setActiveSessionForTest(false);
+        ViBRoCarAppService.clearActiveSessionsForTest();
         ViBRoCarAppComponent.resetPendingDisableForTest();
     }
 
@@ -49,7 +50,39 @@ public class ViBRoCarAppComponentGplayTest {
 
         DistributionServices.configureAndroidAutoIntegration(context, false);
 
-        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+
+        ViBRoCarAppService.setActiveSessionForTest(false);
+        ViBRoCarAppComponent.onSessionDestroyed(context);
+
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+    }
+
+    @Test
+    public void disablingWhileCarModeActiveDefersComponentDisableUntilCarModeExits() {
+        ViBRoCarAppComponent.setCarModeActiveForTest(true);
+
+        DistributionServices.configureAndroidAutoIntegration(context, false);
+
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+
+        ViBRoCarAppComponent.setCarModeActiveForTest(false);
+        ViBRoCarAppComponent.onCarModeExited(context);
+
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+    }
+
+    @Test
+    public void disablingWhileCarModeAndSessionActiveWaitsForBothToEnd() {
+        ViBRoCarAppService.setActiveSessionForTest(true);
+        ViBRoCarAppComponent.setCarModeActiveForTest(true);
+
+        DistributionServices.configureAndroidAutoIntegration(context, false);
+
+        ViBRoCarAppComponent.setCarModeActiveForTest(false);
+        ViBRoCarAppComponent.onCarModeExited(context);
+
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
 
         ViBRoCarAppService.setActiveSessionForTest(false);
         ViBRoCarAppComponent.onSessionDestroyed(context);
@@ -66,7 +99,19 @@ public class ViBRoCarAppComponentGplayTest {
         ViBRoCarAppService.setActiveSessionForTest(false);
         ViBRoCarAppComponent.onSessionDestroyed(context);
 
-        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_DEFAULT);
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+    }
+
+    @Test
+    public void reenablingBeforeCarModeExitsCancelsPendingDisable() {
+        ViBRoCarAppComponent.setCarModeActiveForTest(true);
+        DistributionServices.configureAndroidAutoIntegration(context, false);
+
+        DistributionServices.configureAndroidAutoIntegration(context, true);
+        ViBRoCarAppComponent.setCarModeActiveForTest(false);
+        ViBRoCarAppComponent.onCarModeExited(context);
+
+        assertComponentState(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
     }
 
     private void assertComponentState(int expectedState) {

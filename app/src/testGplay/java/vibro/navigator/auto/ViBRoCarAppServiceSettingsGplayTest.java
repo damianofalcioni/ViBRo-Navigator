@@ -56,6 +56,9 @@ public class ViBRoCarAppServiceSettingsGplayTest {
                 .clear()
                 .commit();
         componentName = new ComponentName(context, ViBRoCarAppService.class);
+        ViBRoCarAppService.clearActiveSessionsForTest();
+        ViBRoCarAppComponent.resetPendingDisableForTest();
+        ViBRoCarAppComponent.setCarModeActiveForTest(false);
         DistributionServices.configureAndroidAutoIntegration(context, true);
     }
 
@@ -76,7 +79,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         DistributionServices.configureAndroidAutoIntegration(context, true);
 
         assertEquals(
-                PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+                PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
                 context.getPackageManager().getComponentEnabledSetting(componentName)
         );
     }

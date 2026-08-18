@@ -1,0 +1,3 @@
+Android Auto component enablement now waits for active car sessions and car mode to end before disabling the service, avoiding host error screens.
+
+Clarifies Android Auto settings help text about host app-list refresh timing.
