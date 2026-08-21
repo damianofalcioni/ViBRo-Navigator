@@ -168,6 +168,46 @@ public class NavigationTurnStateTest {
     }
 
     @Test
+    public void evaluate_rampsUpdateIntervalUpWhenStartupWarmupEnds() {
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = routeWithDistantHint();
+        PolylineIndex polylineIndex = new PolylineIndex(route.track);
+        state.onRouteApplied(route, polylineIndex, Collections.emptyList(), location(0.0, 0.0), 1f, 5f);
+
+        NavigationTurnState.Progress duringWarmup = state.evaluate(
+                route,
+                polylineIndex,
+                0.0,
+                0,
+                1f,
+                1_000L,
+                10_000L
+        );
+        NavigationTurnState.Progress firstAfterWarmup = state.evaluate(
+                route,
+                polylineIndex,
+                0.0,
+                0,
+                1f,
+                10_001L,
+                10_000L
+        );
+        NavigationTurnState.Progress firstRampStep = state.evaluate(
+                route,
+                polylineIndex,
+                0.0,
+                0,
+                1f,
+                13_001L,
+                10_000L
+        );
+
+        assertEquals(3_000L, duringWarmup.suggestedUpdateIntervalMs);
+        assertEquals(3_000L, firstAfterWarmup.suggestedUpdateIntervalMs);
+        assertEquals(5_000L, firstRampStep.suggestedUpdateIntervalMs);
+    }
+
+    @Test
     public void evaluate_rampsUpdateIntervalUpAfterPassedTurn() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = routeWithTwoTurnHints();
@@ -305,6 +345,15 @@ public class NavigationTurnStateTest {
         assertEquals(NavigationTurnEvent.Type.IMMINENT, progress.turnEvents.get(0).type);
         assertEquals(Integer.valueOf(90), state.getActiveTurnManeuverDegrees());
         assertEquals(Integer.valueOf(1), state.getActiveTurnManeuverTrackIndex());
+    }
+
+    private static GeoJsonRoute routeWithDistantHint() {
+        return new GeoJsonRoute(
+                Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.01)),
+                Collections.singletonList(new VoiceHint(1, 2, 0, 0.0, 0)),
+                600.0,
+                1_110.0
+        );
     }
 
     private static GeoJsonRoute routeWithHint() {

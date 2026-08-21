@@ -181,9 +181,83 @@ public class NavigationSessionTest {
         assertFalse(result.isDropped());
         assertEquals(3_000L, result.getSuggestedUpdateIntervalMs());
     }
-
+    
     @Test
     public void onRawLocationChanged_keepsDynamicBucketAfterExpectedLongInterval() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        ));
+        long nowMs = 1_000L;
+        assertTrue(NavigationSessionResourceAdapter.start(session, context, nowMs));
+
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                nowMs
+        );
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
+        assertNotNull(snapshot);
+        NavigationSessionResourceAdapter.applyRouteResult(session, context, snapshot, routeWithoutHints(), nowMs);
+        NavigationLocationUpdateResult result = null;
+        long sampleTimeMs = nowMs;
+        for (int i = 1; i <= 6; i++) {
+            sampleTimeMs = nowMs + i * 3_000L;
+            result = NavigationSessionResourceAdapter.onRawLocationChanged(
+                    session,
+                    context,
+                    locationWithSpeed(0.0, i * 0.00001, sampleTimeMs, 2f),
+                    sampleTimeMs
+            );
+        }
+        assertNotNull(result);
+
+        long dynamicIntervalMs = result.getSuggestedUpdateIntervalMs();
+        boolean stableDynamicBucket = false;
+        for (int i = 0; i < 8; i++) {
+            sampleTimeMs += dynamicIntervalMs;
+            NavigationLocationUpdateResult nextResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+                    session,
+                    context,
+                    locationWithSpeed(0.0, 0.00007, sampleTimeMs, 2f),
+                    sampleTimeMs,
+                    dynamicIntervalMs
+            );
+            assertFalse(nextResult.isDropped());
+            long nextIntervalMs = nextResult.getSuggestedUpdateIntervalMs();
+            if (nextIntervalMs == dynamicIntervalMs) {
+                result = nextResult;
+                stableDynamicBucket = true;
+                break;
+            }
+            assertTrue(nextIntervalMs > dynamicIntervalMs);
+            dynamicIntervalMs = nextIntervalMs;
+            result = nextResult;
+        }
+        assertTrue(stableDynamicBucket);
+        assertNotNull(result);
+        assertTrue(dynamicIntervalMs > 3_000L);
+
+        long expectedLongIntervalTimeMs = sampleTimeMs + dynamicIntervalMs;
+        NavigationLocationUpdateResult longIntervalResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.00007, expectedLongIntervalTimeMs, 2f),
+                expectedLongIntervalTimeMs,
+                dynamicIntervalMs
+        );
+
+        assertFalse(longIntervalResult.isDropped());
+        assertEquals(dynamicIntervalMs, longIntervalResult.getSuggestedUpdateIntervalMs());
+    }
+
+    @Test
+    public void onRawLocationChanged_rampsDynamicBucketAfterStartupWarmup() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -211,20 +285,22 @@ public class NavigationSessionTest {
             );
         }
         assertNotNull(result);
-        long dynamicIntervalMs = result.getSuggestedUpdateIntervalMs();
-        assertTrue(dynamicIntervalMs > 3_000L);
+        long rampedIntervalMs = result.getSuggestedUpdateIntervalMs();
+        assertTrue(rampedIntervalMs >= 3_000L);
+        assertTrue(rampedIntervalMs <= 8_000L);
 
-        long expectedLongIntervalTimeMs = sampleTimeMs + dynamicIntervalMs;
-        NavigationLocationUpdateResult longIntervalResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+        long nextRampStepTimeMs = sampleTimeMs + rampedIntervalMs;
+        NavigationLocationUpdateResult nextRampStep = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.00007, expectedLongIntervalTimeMs, 2f),
-                expectedLongIntervalTimeMs,
-                dynamicIntervalMs
+                locationWithSpeed(0.0, 0.00007, nextRampStepTimeMs, 2f),
+                nextRampStepTimeMs,
+                rampedIntervalMs
         );
 
-        assertFalse(longIntervalResult.isDropped());
-        assertEquals(dynamicIntervalMs, longIntervalResult.getSuggestedUpdateIntervalMs());
+        assertFalse(nextRampStep.isDropped());
+        assertTrue(nextRampStep.getSuggestedUpdateIntervalMs() >= rampedIntervalMs);
+        assertTrue(nextRampStep.getSuggestedUpdateIntervalMs() <= 12_000L);
     }
 
     @Test
