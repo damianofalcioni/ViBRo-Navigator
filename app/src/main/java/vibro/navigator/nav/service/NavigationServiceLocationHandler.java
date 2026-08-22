@@ -57,11 +57,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private final Runnable stateEmitter;
     private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
     @Nullable
-    private NavigationLocationController locationController;
-    @Nullable
-    private NavigationOrientationController orientationController;
-    @Nullable
-    private NavigationForegroundController foregroundController;
+    private Controllers controllers;
 
     public NavigationServiceLocationHandler(
             @NonNull Context context,
@@ -86,23 +82,22 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             @NonNull NavigationOrientationController orientationController,
             @NonNull NavigationForegroundController foregroundController
     ) {
-        this.locationController = locationController;
-        this.orientationController = orientationController;
-        this.foregroundController = foregroundController;
+        controllers = new Controllers(locationController, orientationController, foregroundController);
     }
 
     public void onScreenInteractiveChanged(boolean interactive) {
-        NavigationLocationController controller = locationController;
-        if (!interactive && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed() && controller != null) {
-            controller.cancelCurrentLocationSeeds();
+        Controllers controllers = this.controllers;
+        if (!interactive && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed() && controllers != null) {
+            controllers.locationController.cancelCurrentLocationSeeds();
         }
     }
 
     public void seedStartupLocation(long nowMs) {
-        NavigationLocationController controller = locationController;
-        if (controller == null) {
+        Controllers controllers = this.controllers;
+        if (controllers == null) {
             return;
         }
+        NavigationLocationController controller = controllers.locationController;
         NavigationLocation seed = controller.getBestStartupLastKnownLocation(nowMs);
         if (seed != null) {
             AppLogger.i(TAG, "Using last known location as seed " + NavigationLocationFormatter.format(seed));
@@ -115,7 +110,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onLocationChanged(@NonNull NavigationLocation location) {
-        Controllers controllers = controllers();
+        Controllers controllers = this.controllers;
         if (controllers == null) {
             return;
         }
@@ -147,16 +142,6 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
                 controllers.foregroundController
         );
         stateEmitter.run();
-    }
-
-    @Nullable
-    private Controllers controllers() {
-        NavigationLocationController location = locationController;
-        NavigationOrientationController orientation = orientationController;
-        NavigationForegroundController foreground = foregroundController;
-        return location == null || orientation == null || foreground == null
-                ? null
-                : new Controllers(location, orientation, foreground);
     }
 
     private void applyRouteUpdateRequest(
@@ -220,10 +205,11 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onProviderEnabled(@NonNull String provider) {
-        NavigationLocationController controller = locationController;
-        if (controller == null) {
+        Controllers controllers = this.controllers;
+        if (controllers == null) {
             return;
         }
+        NavigationLocationController controller = controllers.locationController;
         if (navigationSession.isPaused()) {
             AppLogger.d(TAG, "Ignoring provider enabled while navigation is paused provider=" + provider);
             return;
@@ -240,10 +226,11 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onProviderDisabled(@NonNull String provider) {
-        NavigationLocationController controller = locationController;
-        if (controller == null) {
+        Controllers controllers = this.controllers;
+        if (controllers == null) {
             return;
         }
+        NavigationLocationController controller = controllers.locationController;
         if (navigationSession.isPaused()) {
             AppLogger.d(TAG, "Ignoring provider disabled while navigation is paused provider=" + provider);
             return;

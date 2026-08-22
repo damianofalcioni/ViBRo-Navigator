@@ -12,15 +12,10 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
-import vibro.navigator.nav.location.NavigationLocationController;
-import vibro.navigator.settings.AppCompassSettings;
-import vibro.navigator.settings.AppNotificationSettings;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.logging.AppLogger;
-import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 
@@ -29,12 +24,14 @@ import java.util.List;
 
 // Session coordinator: explicit state collaborators make navigation handoffs auditable without a generic facade.
 public final class NavigationSession {
-    private static final String TAG = "NavigationSession";
-
     final NavigationSessionComponents components = new NavigationSessionComponents();
     @NonNull
     private final NavigationSessionSpeculativeRoutes speculativeRoutes =
             new NavigationSessionSpeculativeRoutes(this);
+    @Nullable
+    Context textResourcesContext;
+    @Nullable
+    NavigationTextResources textResources;
     boolean started;
     boolean paused;
 
@@ -43,11 +40,11 @@ public final class NavigationSession {
 
     public void loadRequest(@NonNull NavigationRequest request) {
         currentRequest = request;
-        AppLogger.i(TAG, "Navigation request loaded " + request.describe());
+        NavigationSessionContextResources.logRequestLoaded(request);
     }
 
     public boolean start(@NonNull Context context, long nowMs) {
-        return NavigationSessionResourceAdapter.start(this, new AndroidNavigationTextResources(context), nowMs);
+        return NavigationSessionResourceAdapter.start(this, NavigationSessionContextResources.textResources(this, context), nowMs);
     }
 
     public void stop() {
@@ -86,7 +83,7 @@ public final class NavigationSession {
 
     @Nullable
     public String buildCurrentRouteGpx(@NonNull Context context) {
-        return buildCurrentRouteGpx(new AndroidNavigationTextResources(context));
+        return buildCurrentRouteGpx(NavigationSessionContextResources.textResources(this, context));
     }
 
     @Nullable
@@ -147,10 +144,10 @@ public final class NavigationSession {
     public NavigationLocationUpdateResult onRawLocationChanged(@NonNull Context context, @NonNull NavigationLocation location, long nowMs) {
         return NavigationSessionResourceAdapter.onRawLocationChanged(
                 this,
-                new AndroidNavigationTextResources(context),
+                NavigationSessionContextResources.textResources(this, context),
                 location,
                 nowMs,
-                NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS,
+                NavigationSessionContextResources.defaultLocationUpdateIntervalMs(),
                 isSingleInstructionModeEnabled(context)
         );
     }
@@ -164,7 +161,7 @@ public final class NavigationSession {
     ) {
         return NavigationSessionResourceAdapter.onRawLocationChanged(
                 this,
-                new AndroidNavigationTextResources(context),
+                NavigationSessionContextResources.textResources(this, context),
                 location,
                 nowMs,
                 expectedUpdateIntervalMs,
@@ -226,7 +223,7 @@ public final class NavigationSession {
     ) {
         return NavigationSessionResourceAdapter.applyRouteResult(
                 this,
-                new AndroidNavigationTextResources(context),
+                NavigationSessionContextResources.textResources(this, context),
                 snapshot,
                 newRoute,
                 beganAt,
@@ -251,7 +248,7 @@ public final class NavigationSession {
     ) {
         return NavigationSessionResourceAdapter.applyRouteFailure(
                 this,
-                new AndroidNavigationTextResources(context),
+                NavigationSessionContextResources.textResources(this, context),
                 snapshot,
                 error
         );
@@ -294,20 +291,20 @@ public final class NavigationSession {
     ) {
         return NavigationSessionResourceAdapter.buildState(
                 this,
-                new AndroidNavigationTextResources(context),
+                NavigationSessionContextResources.textResources(this, context),
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 fixedSatelliteCount,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 orientationCue,
-                !AppCompassSettings.isInstantZoomEnabled(context),
-                AppCompassSettings.isStationaryFullRouteZoomEnabled(context)
+                !NavigationSessionContextResources.isInstantZoomEnabled(context),
+                NavigationSessionContextResources.isStationaryFullRouteZoomEnabled(context)
         );
     }
 
     static boolean isSingleInstructionModeEnabled(@NonNull Context context) {
-        return AppNotificationSettings.isSingleInstructionModeEnabled(context);
+        return NavigationSessionContextResources.isSingleInstructionModeEnabled(context);
     }
 
 }

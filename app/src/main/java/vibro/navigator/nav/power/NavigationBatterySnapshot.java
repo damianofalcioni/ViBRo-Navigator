@@ -30,6 +30,10 @@ public final class NavigationBatterySnapshot {
     public boolean hasLevelPercent() {
         return levelPercent >= 0 && levelPercent <= 100;
     }
+    public boolean hasSameReading(@NonNull NavigationBatterySnapshot other) {
+        return chargeCounterMicroAmpHours == other.chargeCounterMicroAmpHours
+                && levelPercent == other.levelPercent;
+    }
 
     private static int cleanChargeCounter(int value) {
         return value > 0 ? value : UNKNOWN;

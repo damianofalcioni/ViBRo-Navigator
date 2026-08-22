@@ -58,6 +58,10 @@ public final class AppLogger {
         }
     }
 
+    public static boolean isLoggingEnabled() {
+        return loggingEnabled;
+    }
+
     public static boolean setLoggingEnabled(@NonNull Context context, boolean enabled) {
         Context appContext = context.getApplicationContext();
         synchronized (LOCK) {

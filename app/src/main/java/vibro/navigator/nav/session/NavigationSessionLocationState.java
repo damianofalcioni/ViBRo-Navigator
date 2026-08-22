@@ -11,11 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.kalman.LatLonKalmanFilter;
-import vibro.navigator.logging.AppLogger;
 
 public final class NavigationSessionLocationState {
 
-    private static final String TAG = "NavSessionLocation";
     private static final float MIN_RAW_BEARING_SPEED_MPS = 1.0f;
     private static final float MIN_COURSE_HEADING_DISPLAY_SPEED_MPS = 2.5f;
 
@@ -72,45 +70,41 @@ public final class NavigationSessionLocationState {
             long expectedUpdateIntervalMs
     ) {
         liveLocationCoordinator.remember(rawLocation);
-        NavigationLocation selected = liveLocationCoordinator.selectBestLiveLocation(nowMs);
-        if (selected == null) {
-            AppLogger.d(TAG, "Dropped NavigationLocation because no recent candidate is available raw="
-                    + formatLocation(rawLocation));
+        LiveLocationCoordinator.Selection selection = liveLocationCoordinator.selectBestLiveSelection(nowMs);
+        if (selection == null) {
+            NavigationLocationDebugLogger.droppedNoRecentCandidate(rawLocation);
             return Update.dropped();
         }
-        if (!liveLocationCoordinator.shouldDispatch(selected, nowMs, expectedUpdateIntervalMs)) {
-            AppLogger.d(TAG, "Dropped NavigationLocation because selected candidate is unchanged raw="
-                    + formatLocation(rawLocation)
-                    + " selected=" + formatLocation(selected));
+        NavigationLocation selected = selection.location;
+        if (!liveLocationCoordinator.shouldDispatch(selection, nowMs, expectedUpdateIntervalMs)) {
+            NavigationLocationDebugLogger.droppedUnchanged(rawLocation, selected);
             return Update.dropped();
         }
-        liveLocationCoordinator.markDispatched(selected, nowMs);
+        liveLocationCoordinator.markDispatched(selection, nowMs);
 
         boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs, expectedUpdateIntervalMs);
         if (reacquiringAfterLongGap) {
             kalman.reset();
             motionModel.reset();
-            AppLogger.i(TAG, "Reacquiring NavigationLocation after long accepted-fix gap raw="
-                    + formatLocation(selected)
-                    + " gapMs=" + reacquisitionTracker.gapMs(nowMs));
+            NavigationLocationDebugLogger.reacquiringAfterLongGap(
+                    selected,
+                    reacquisitionTracker.gapMs(nowMs)
+            );
         } else if (shouldResetStartupFilter(allowStartupFilterReset, selected, nowMs)) {
             kalman.reset();
             motionModel.reset();
-            AppLogger.i(TAG, "Resetting startup NavigationLocation filter after route-grade fix raw="
-                    + formatLocation(selected));
+            NavigationLocationDebugLogger.resettingStartupFilter(selected);
         }
         NavigationLocation filtered = kalman.update(selected);
         if (filtered == null) {
-            AppLogger.d(TAG, "Kalman filter dropped NavigationLocation " + formatLocation(selected));
+            NavigationLocationDebugLogger.kalmanDropped(selected);
             return Update.dropped();
         }
 
         motionModel.recordFilteredLocation(filtered);
         locationUpdateCount++;
         reacquisitionTracker.recordAccepted(nowMs);
-        AppLogger.d(TAG, "NavigationLocation update #" + locationUpdateCount
-                + " raw=" + formatLocation(selected)
-                + " filtered=" + formatLocation(filtered));
+        NavigationLocationDebugLogger.accepted(locationUpdateCount, selected, filtered);
         return Update.accepted(filtered, reacquiringAfterLongGap);
     }
 
@@ -232,31 +226,6 @@ public final class NavigationSessionLocationState {
             this.headingDegrees = headingDegrees;
             this.headingAccuracyDegrees = headingAccuracyDegrees;
         }
-    }
-
-    @NonNull
-    private static String formatLocation(@Nullable NavigationLocation location) {
-        if (location == null) {
-            return "null";
-        }
-        StringBuilder sb = new StringBuilder();
-        sb.append(location.getProvider())
-                .append("(")
-                .append(location.getLatitude())
-                .append(",")
-                .append(location.getLongitude())
-                .append(")");
-        if (location.hasAccuracy()) {
-            sb.append(" acc=").append(location.getAccuracy());
-        }
-        if (location.hasSpeed()) {
-            sb.append(" speed=").append(location.getSpeed());
-        }
-        if (location.hasBearing()) {
-            sb.append(" bearing=").append(location.getBearing());
-        }
-        sb.append(" time=").append(location.getTime());
-        return sb.toString();
     }
 
 }

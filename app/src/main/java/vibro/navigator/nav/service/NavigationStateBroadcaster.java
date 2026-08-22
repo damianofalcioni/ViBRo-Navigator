@@ -9,18 +9,15 @@ import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class NavigationStateBroadcaster {
 
-    private final List<NavigationService.Listener> listeners = new ArrayList<>();
+    private final CopyOnWriteArrayList<NavigationService.Listener> listeners = new CopyOnWriteArrayList<>();
     private final NavigationServiceStateCache stateCache = new NavigationServiceStateCache();
 
     public void register(@NonNull NavigationService.Listener listener) {
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
+        listeners.addIfAbsent(listener);
     }
 
     public void unregister(@NonNull NavigationService.Listener listener) {
@@ -37,7 +34,7 @@ public final class NavigationStateBroadcaster {
     }
 
     public void dispatch(@NonNull NavState state) {
-        for (NavigationService.Listener listener : new ArrayList<>(listeners)) {
+        for (NavigationService.Listener listener : listeners) {
             try {
                 listener.onState(state);
             } catch (Exception ignored) {
@@ -92,7 +89,7 @@ public final class NavigationStateBroadcaster {
     }
 
     public void dispatchStopped() {
-        for (NavigationService.Listener listener : new ArrayList<>(listeners)) {
+        for (NavigationService.Listener listener : listeners) {
             try {
                 listener.onNavigationStopped();
             } catch (Exception ignored) {

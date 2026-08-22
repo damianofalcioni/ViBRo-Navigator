@@ -111,10 +111,21 @@ public final class NavigationOrientationController {
             @NonNull NavigationSession navigationSession,
             @NonNull NavigationForegroundController foregroundController
     ) {
+        boolean hasActiveRoute = navigationSession.hasActiveRoute();
+        boolean routeCalculationInProgress = navigationSession.isRouteCalculationInProgress();
+        if (!shouldEvaluateStationaryOrientation(hasActiveRoute, routeCalculationInProgress)) {
+            stationaryOrientationNotifier.reset();
+            return;
+        }
+        boolean likelyStationary = navigationSession.isLikelyStationaryForOrientation();
+        if (!likelyStationary) {
+            stationaryOrientationNotifier.reset();
+            return;
+        }
         stationaryOrientationNotifier.maybeNotify(
-                navigationSession.hasActiveRoute(),
-                navigationSession.isRouteCalculationInProgress(),
-                navigationSession.isLikelyStationaryForOrientation(),
+                hasActiveRoute,
+                routeCalculationInProgress,
+                likelyStationary,
                 navigationSession.lastFilteredSpeedMps(),
                 navigationSession.currentRouteBearingDegrees(),
                 orientationMonitor.getLatestSample(),

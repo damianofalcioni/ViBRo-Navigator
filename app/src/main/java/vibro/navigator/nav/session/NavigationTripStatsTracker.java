@@ -1,8 +1,6 @@
 package vibro.navigator.nav.session;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavTripStatus;
@@ -17,8 +15,7 @@ final class NavigationTripStatsTracker {
     private long startedAtElapsedMs;
     private long lastAcceptedFixElapsedMs = NO_ACCEPTED_FIX;
     private long lastScreenTransitionElapsedMs = NO_SCREEN_TRANSITION;
-    @Nullable
-    private NavigationLocation lastLocation;
+    private final PreviousLocation lastLocation = new PreviousLocation();
     private double travelledDistanceMeters;
     private long movingDurationMs;
     private long stationaryDurationMs;
@@ -29,19 +26,15 @@ final class NavigationTripStatsTracker {
     private boolean activeMovingInterval;
     private boolean activeStationaryInterval;
     private boolean screenInteractive = true;
-    private boolean chargeCounterReliable;
-    private boolean levelPercentReliable;
     @NonNull
-    private NavigationBatterySnapshot initialBatterySnapshot = NavigationBatterySnapshot.unavailable();
-    @NonNull
-    private NavigationBatterySnapshot latestBatterySnapshot = NavigationBatterySnapshot.unavailable();
+    private final NavigationTripBatteryStats batteryStats = new NavigationTripBatteryStats();
 
     void reset() {
         started = false;
         startedAtElapsedMs = 0L;
         lastAcceptedFixElapsedMs = NO_ACCEPTED_FIX;
         lastScreenTransitionElapsedMs = NO_SCREEN_TRANSITION;
-        lastLocation = null;
+        lastLocation.reset();
         travelledDistanceMeters = 0.0;
         movingDurationMs = 0L;
         stationaryDurationMs = 0L;
@@ -52,10 +45,7 @@ final class NavigationTripStatsTracker {
         activeMovingInterval = false;
         activeStationaryInterval = false;
         screenInteractive = true;
-        chargeCounterReliable = false;
-        levelPercentReliable = false;
-        initialBatterySnapshot = NavigationBatterySnapshot.unavailable();
-        latestBatterySnapshot = NavigationBatterySnapshot.unavailable();
+        batteryStats.reset();
     }
 
     void start(long nowElapsedMs) {
@@ -72,10 +62,7 @@ final class NavigationTripStatsTracker {
         startedAtElapsedMs = nowElapsedMs;
         lastScreenTransitionElapsedMs = nowElapsedMs;
         this.screenInteractive = screenInteractive;
-        initialBatterySnapshot = batterySnapshot;
-        latestBatterySnapshot = batterySnapshot;
-        chargeCounterReliable = batterySnapshot.hasChargeCounter();
-        levelPercentReliable = batterySnapshot.hasLevelPercent();
+        batteryStats.start(batterySnapshot);
     }
 
     void recordAcceptedLocation(
@@ -99,7 +86,7 @@ final class NavigationTripStatsTracker {
         maxSpeedMps = maxSpeed(maxSpeedMps, displaySpeedMps);
         acceptedFixCount++;
         lastAcceptedFixElapsedMs = nowElapsedMs;
-        lastLocation = new NavigationLocation(location);
+        lastLocation.record(location);
         activeMovingInterval = !stationary;
         activeStationaryInterval = stationary;
     }
@@ -115,9 +102,7 @@ final class NavigationTripStatsTracker {
 
     void recordBatterySnapshot(@NonNull NavigationBatterySnapshot batterySnapshot) {
         if (started) {
-            chargeCounterReliable = chargeCounterReliable && batterySnapshot.hasChargeCounter();
-            levelPercentReliable = levelPercentReliable && batterySnapshot.hasLevelPercent();
-            latestBatterySnapshot = batterySnapshot;
+            batteryStats.recordSnapshot(batterySnapshot);
         }
     }
 
@@ -141,8 +126,8 @@ final class NavigationTripStatsTracker {
                 screenOffDurationMs,
                 lastScreenTransitionElapsedMs,
                 screenInteractive,
-                batteryUsedMilliAmpHours(),
-                batteryDropPercent()
+                batteryStats.batteryUsedMilliAmpHours(),
+                batteryStats.batteryDropPercent()
         );
     }
 
@@ -163,12 +148,12 @@ final class NavigationTripStatsTracker {
     }
 
     private double travelledDistanceMeters(@NonNull NavigationLocation location, boolean startNewSegment) {
-        if (startNewSegment || lastLocation == null) {
+        if (startNewSegment || !lastLocation.isAvailable()) {
             return 0.0;
         }
         double distanceMeters = GeoMath.distanceMeters(
-                lastLocation.getLatitude(),
-                lastLocation.getLongitude(),
+                lastLocation.latitude,
+                lastLocation.longitude,
                 location.getLatitude(),
                 location.getLongitude()
         );
@@ -197,22 +182,22 @@ final class NavigationTripStatsTracker {
         return Math.max(0L, nowElapsedMs - lastScreenTransitionElapsedMs);
     }
 
-    private float batteryUsedMilliAmpHours() {
-        if (!chargeCounterReliable || !initialBatterySnapshot.hasChargeCounter()
-                || !latestBatterySnapshot.hasChargeCounter()) {
-            return Float.NaN;
-        }
-        long usedMicroAmpHours = (long) initialBatterySnapshot.chargeCounterMicroAmpHours
-                - latestBatterySnapshot.chargeCounterMicroAmpHours;
-        return usedMicroAmpHours >= 0L ? usedMicroAmpHours / 1000f : Float.NaN;
-    }
+    private static final class PreviousLocation {
+        private double latitude = Double.NaN;
+        private double longitude = Double.NaN;
 
-    private int batteryDropPercent() {
-        if (!levelPercentReliable || !initialBatterySnapshot.hasLevelPercent()
-                || !latestBatterySnapshot.hasLevelPercent()) {
-            return NavTripStatus.UNKNOWN_BATTERY_DROP_PERCENT;
+        private void reset() {
+            latitude = Double.NaN;
+            longitude = Double.NaN;
         }
-        int drop = initialBatterySnapshot.levelPercent - latestBatterySnapshot.levelPercent;
-        return drop >= 0 ? drop : NavTripStatus.UNKNOWN_BATTERY_DROP_PERCENT;
+
+        private void record(@NonNull NavigationLocation location) {
+            latitude = location.getLatitude();
+            longitude = location.getLongitude();
+        }
+
+        private boolean isAvailable() {
+            return !Double.isNaN(latitude);
+        }
     }
 }

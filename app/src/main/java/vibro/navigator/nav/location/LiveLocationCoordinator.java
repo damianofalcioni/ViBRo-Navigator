@@ -6,6 +6,18 @@ import androidx.annotation.Nullable;
 public final class LiveLocationCoordinator {
     public static final String FUSED_PROVIDER = "fused";
 
+    public static final class Selection {
+        @NonNull
+        public final NavigationLocation location;
+        @NonNull
+        private final NavigationLocationFix fix;
+
+        private Selection(@NonNull NavigationLocation location, @NonNull NavigationLocationFix fix) {
+            this.location = location;
+            this.fix = fix;
+        }
+    }
+
     @Nullable
     private NavigationLocation latestGpsLocation;
     @Nullable
@@ -81,6 +93,16 @@ public final class LiveLocationCoordinator {
     }
 
     @Nullable
+    public Selection selectBestLiveSelection(long nowMs) {
+        NavigationLocationFix selectedFix = selectBestLiveFix(nowMs);
+        if (selectedFix == null) {
+            return null;
+        }
+        NavigationLocation selectedLocation = copyOf(locationFor(selectedFix));
+        return selectedLocation == null ? null : new Selection(selectedLocation, selectedFix);
+    }
+
+    @Nullable
     NavigationLocationFix selectBestLiveFix(long nowMs) {
         return LiveLocationPolicy.selectBestFix(latestGpsFix, latestNetworkFix, latestFusedFix, nowMs);
     }
@@ -99,11 +121,26 @@ public final class LiveLocationCoordinator {
             long nowMs,
             long expectedUpdateIntervalMs
     ) {
-        NavigationLocationFix fix = NavigationLocationFix.from(candidate);
+        return shouldDispatch(NavigationLocationFix.from(candidate), nowMs, expectedUpdateIntervalMs);
+    }
+
+    public boolean shouldDispatch(
+            @NonNull Selection candidate,
+            long nowMs,
+            long expectedUpdateIntervalMs
+    ) {
+        return shouldDispatch(candidate.fix, nowMs, expectedUpdateIntervalMs);
+    }
+
+    private boolean shouldDispatch(
+            @NonNull NavigationLocationFix candidate,
+            long nowMs,
+            long expectedUpdateIntervalMs
+    ) {
         long elapsedSinceLastDispatchMs = lastDispatchedAtMs < 0L ? -1L : nowMs - lastDispatchedAtMs;
         return LiveLocationPolicy.shouldDispatchForRequestedInterval(
                 lastDispatchedRawFix,
-                fix,
+                candidate,
                 elapsedSinceLastDispatchMs,
                 expectedUpdateIntervalMs
         );
@@ -119,6 +156,11 @@ public final class LiveLocationCoordinator {
 
     public void markDispatched(@NonNull NavigationLocation location, long nowMs) {
         markDispatched(location);
+        lastDispatchedAtMs = nowMs;
+    }
+
+    public void markDispatched(@NonNull Selection selection, long nowMs) {
+        markDispatched(selection.fix);
         lastDispatchedAtMs = nowMs;
     }
 
