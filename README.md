@@ -119,8 +119,8 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
    * Guidance is delivered through:
 
      * Vibrations
-     * Minimal turn instructions text
-     * Turn instructions notifications (smartband-friendly)
+     * Minimal turn instructions text and speech
+     * Smartband-friendly turn instructions notifications
 
 ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low, it delays instructions instead of risking incorrect directions.
 
@@ -157,8 +157,3 @@ ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low,
 MIT
 
 ---
-
-## 🚀 Vision
-
-ViBRo Navigator rethinks navigation:
-**no maps, no noise — just reliable, intuitive guidance you can feel.**
