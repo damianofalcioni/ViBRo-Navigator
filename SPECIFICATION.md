@@ -794,8 +794,10 @@ The navigation UI must show the following in large text:
 ### 6. Shared/opened coordinates and addresses
 
 - The app must support opening or sharing map coordinates or addresses into the app
-- Shared/opened coordinates or addresses must be set as the destination
-- Shared/opened coordinates must show the coordinates immediately, then replace the visible destination label with a concise reverse-geocoded address when an internet lookup succeeds. The stored destination coordinates must remain the original incoming coordinates.
+- Shared/opened coordinates or addresses must fill the destination only when its text is empty (ignoring whitespace). When the destination already contains text or a selected POI, preserve it and fill the first empty intermediate stop in displayed order; if every existing stop is filled, append and fill a new intermediate stop. Other filled stops must remain unchanged.
+- The same placement rule must apply after a shared short map link finishes resolving, using the current form values at that time.
+- Activity recreation must preserve the filled route without inserting an already applied incoming location again. A pending incoming location must be applied only after the destination and stops are restored.
+- Shared/opened coordinates must show the coordinates immediately in the chosen destination or stop field, then replace its visible label with a concise reverse-geocoded address when an internet lookup succeeds. The stored coordinates must remain the original incoming coordinates.
 - Incoming locations that resolve to valid coordinates must be saved into the same destination history list used by manual POI selection
 - The app must register as a target for at least these incoming Android formats:
   - `geo:` map intents

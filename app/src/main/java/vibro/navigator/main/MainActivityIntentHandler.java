@@ -30,6 +30,11 @@ import vibro.navigator.logging.AppLogger;
 
 final class MainActivityIntentHandler {
 
+    interface LocationTarget {
+        @NonNull
+        PoiInputController get();
+    }
+
     private static final String TAG = "MainIntentHandler";
     private static final ExecutorService SHORT_LINK_EXECUTOR = Executors.newSingleThreadExecutor();
 
@@ -104,6 +109,9 @@ final class MainActivityIntentHandler {
             @NonNull MainActivityRouteModeController routeModeController,
             @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
+        if (activity.isFinishing()) {
+            return;
+        }
         if (intent != null && MainActivityGpxImportController.importIfSupported(
                 activity,
                 intent,
@@ -117,7 +125,7 @@ final class MainActivityIntentHandler {
         handleIncomingLocation(
                 activity,
                 intent,
-                destinationController,
+                () -> MainActivityStopRowOperations.incomingLocationTarget(destinationController, stopController),
                 reverseGeocodeController
         );
     }
@@ -131,7 +139,7 @@ final class MainActivityIntentHandler {
         handleIncomingLocation(
                 context,
                 intent,
-                destinationController,
+                () -> destinationController,
                 reverseGeocodeController
         );
     }
@@ -139,11 +147,11 @@ final class MainActivityIntentHandler {
     private static void handleIncomingLocation(
             @NonNull Context context,
             @Nullable Intent intent,
-            @NonNull PoiInputController destinationController,
+            @NonNull LocationTarget targetController,
             @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
-        if (intent == null) {
-            AppLogger.d(TAG, "handleIncomingIntent ignored null intent");
+        if (intent == null || intent.getBooleanExtra(MainActivityIncomingLocationState.APPLIED, false)) {
+            AppLogger.d(TAG, "handleIncomingIntent ignored null or applied intent");
             return;
         }
         String query = IntentLocationParser.parseToQuery(
@@ -160,32 +168,31 @@ final class MainActivityIntentHandler {
             if (shortMapUrl != null) {
                 expandIncomingShortMapUrl(
                         context,
-                        intent.getAction(),
+                        intent,
                         shortMapUrl,
-                        destinationController,
+                        targetController,
                         reverseGeocodeController
                 );
                 return;
             }
-            if (Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_SEND.equals(intent.getAction())) {
-                Toast.makeText(context, R.string.msg_intent_unrecognized, Toast.LENGTH_SHORT).show();
-            }
+            showUnrecognizedIntent(context, intent);
             AppLogger.d(TAG, "No destination extracted from intent");
             return;
         }
         String trimmedQuery = query.trim();
         applyIncomingLocation(
-                destinationController,
+                targetController.get(),
                 reverseGeocodeController,
                 trimmedQuery
         );
+        intent.putExtra(MainActivityIncomingLocationState.APPLIED, true);
     }
 
     private static void expandIncomingShortMapUrl(
             @NonNull Context context,
-            @Nullable String action,
+            @NonNull Intent intent,
             @NonNull String shortMapUrl,
-            @NonNull PoiInputController destinationController,
+            @NonNull LocationTarget targetController,
             @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
         AppLogger.i(TAG, "Expanding incoming Google Maps short link=" + shortMapUrl);
@@ -193,9 +200,9 @@ final class MainActivityIntentHandler {
             String query = parseExpandedShortMapUrl(shortMapUrl);
             AndroidTaskScheduler.main().post(() -> applyResolvedShortMapUrl(
                     context,
-                    action,
+                    intent,
                     query,
-                    destinationController,
+                    targetController,
                     reverseGeocodeController
             ));
         });
@@ -216,42 +223,50 @@ final class MainActivityIntentHandler {
         }
     }
 
-    private static void applyResolvedShortMapUrl(
+    static void applyResolvedShortMapUrl(
             @NonNull Context context,
-            @Nullable String action,
+            @NonNull Intent intent,
             @Nullable String query,
-            @NonNull PoiInputController destinationController,
+            @NonNull LocationTarget targetController,
             @NonNull PoiReverseGeocodeController reverseGeocodeController
     ) {
+        if (context instanceof Activity && ((Activity) context).isDestroyed()) {
+            return;
+        }
         if (query == null || query.trim().isEmpty()) {
-            if (Intent.ACTION_VIEW.equals(action) || Intent.ACTION_SEND.equals(action)) {
-                Toast.makeText(context, R.string.msg_intent_unrecognized, Toast.LENGTH_SHORT).show();
-            }
+            showUnrecognizedIntent(context, intent);
             AppLogger.d(TAG, "No destination extracted from expanded Google Maps short link");
             return;
         }
         applyIncomingLocation(
-                destinationController,
+                targetController.get(),
                 reverseGeocodeController,
                 query.trim()
         );
+        intent.putExtra(MainActivityIncomingLocationState.APPLIED, true);
+    }
+
+    private static void showUnrecognizedIntent(@NonNull Context context, @NonNull Intent intent) {
+        if (Intent.ACTION_VIEW.equals(intent.getAction()) || Intent.ACTION_SEND.equals(intent.getAction())) {
+            Toast.makeText(context, R.string.msg_intent_unrecognized, Toast.LENGTH_SHORT).show();
+        }
     }
 
     private static void applyIncomingLocation(
-            @NonNull PoiInputController destinationController,
+            @NonNull PoiInputController targetController,
             @NonNull PoiReverseGeocodeController reverseGeocodeController,
             @NonNull String trimmedQuery
     ) {
         Poi parsedPoi = CoordinateParser.tryParse(trimmedQuery, trimmedQuery);
         if (parsedPoi != null) {
-            reverseGeocodeController.setPoiAndResolveAddress(destinationController, parsedPoi);
-            AppLogger.i(TAG, "Applied incoming destination POI=" + parsedPoi.displayLabel()
+            reverseGeocodeController.setPoiAndResolveAddress(targetController, parsedPoi);
+            AppLogger.i(TAG, "Applied incoming location POI=" + parsedPoi.displayLabel()
                     + " (" + parsedPoi.lat + "," + parsedPoi.lon + ")");
         } else {
-            destinationController.setText(trimmedQuery);
-            AppLogger.i(TAG, "Applied incoming destination query=" + trimmedQuery);
+            targetController.setText(trimmedQuery);
+            AppLogger.i(TAG, "Applied incoming location query=" + trimmedQuery);
         }
-        destinationController.getEditText().requestFocus();
+        targetController.getEditText().requestFocus();
     }
 
     @NonNull

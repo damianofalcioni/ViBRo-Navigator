@@ -138,9 +138,13 @@ public class MainActivity extends Activity {
 
         profileCoordinator.refresh(brouterInstalled);
         profileCoordinator.requestProfilesTreeAccessAtStartupIfNeeded(savedInstanceState == null && brouterInstalled);
-        if (MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent())) {
-            return;
-        }
+        MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent());
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        MainActivityIncomingLocationState.restore(savedInstanceState, getIntent());
         MainActivityIntentHandler.handleIncomingIntent(
                 this,
                 getIntent(),
@@ -217,6 +221,7 @@ public class MainActivity extends Activity {
         if (routeModeController != null) {
             routeModeController.saveState(outState);
         }
+        MainActivityIncomingLocationState.save(outState, getIntent());
     }
 
     @Override
