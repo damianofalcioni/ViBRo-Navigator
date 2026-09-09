@@ -61,7 +61,8 @@ final class NavigationSessionRouteExporter {
             @NonNull List<NavigationLocation> acceptedFixes,
             @NonNull NavigationRequest request
     ) {
-        GeoJsonRoute route = routeState.currentRoute();
+        NavigationRouteHistory history = routeState.historyForExport();
+        GeoJsonRoute route = history.remainingRoute();
         if (route == null || route.track.isEmpty()) {
             return null;
         }
@@ -70,9 +71,10 @@ final class NavigationSessionRouteExporter {
                 route,
                 routeState.remainingIntermediateStops(request.stops),
                 new NavigationRouteGpxExportHistory(
-                        routeState.passedRoutesForExport(),
-                        routeState.recalculationBridgeSegmentsForExport(),
-                        acceptedFixes
+                        history.passedRoutesSnapshot(),
+                        history.recalculationBridgeSegmentsSnapshot(),
+                        acceptedFixes,
+                        history.orderedSegmentsSnapshot()
                 )
         );
     }

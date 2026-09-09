@@ -144,7 +144,6 @@ final class NavigationRouteEvaluator {
         if (directGuidance != null) {
             return directGuidance;
         }
-        geometryState.rememberSegment(match);
         double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
         float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
                 filtered,
@@ -194,7 +193,8 @@ final class NavigationRouteEvaluator {
                 directionOfProgress,
                 expectedBearingDegrees,
                 actualBearingDegrees,
-                nowMs
+                nowMs,
+                filtered
         );
         if (deviationDecision.shouldRecalculateRoute()) {
             return NavigationRouteEvaluation.requestRecalculation(
@@ -360,6 +360,7 @@ final class NavigationRouteEvaluator {
             boolean singleInstructionMode,
             boolean stableOnRouteSample
     ) {
+        geometryState.rememberSegment(match);
         routeHistory.recordProgress(match);
         NavigationTurnState.Progress progress = turnState.evaluate(
                 geometryState.route(),

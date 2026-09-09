@@ -87,10 +87,16 @@ final class NavigationRouteBeelineState {
 
     @Nullable
     PolylineIndex.Match progressMatch() {
-        if (activeLeg == null || polylineIndex == null) {
+        // A leg can only activate after its route index has been installed.
+        if (activeLeg == null) {
             return null;
         }
         return matchAtStart(activeLeg);
+    }
+
+    @Nullable
+    PolylineIndex.Match targetMatch() {
+        return activeLeg == null ? null : matchAtTarget(activeLeg);
     }
 
     @NonNull

@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
@@ -22,6 +23,7 @@ import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import vibro.navigator.nav.session.NavigationSessionSpeculativeRoutes;
 import vibro.navigator.settings.AppNotificationSettings;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 public final class NavigationServiceRouteCallback implements NavigationRouteExecutor.Callback {
 
@@ -54,6 +56,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
     private final RouteAppliedLocationRequester routeAppliedLocationRequester;
     private final Runnable stateEmitter;
     private final RouteRecalculator routeRecalculator;
+    private final ElapsedRealtimeClock clock;
 
     public NavigationServiceRouteCallback(
             @NonNull Context context,
@@ -74,7 +77,8 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
                 turnEventDispatcher,
                 routeAppliedLocationRequester,
                 stateEmitter,
-                routeRecalculator
+                routeRecalculator,
+                AndroidElapsedRealtimeClock.INSTANCE
         );
     }
 
@@ -87,7 +91,8 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @NonNull TurnEventDispatcher turnEventDispatcher,
             @NonNull RouteAppliedLocationRequester routeAppliedLocationRequester,
             @NonNull Runnable stateEmitter,
-            @NonNull RouteRecalculator routeRecalculator
+            @NonNull RouteRecalculator routeRecalculator,
+            @NonNull ElapsedRealtimeClock clock
     ) {
         this.textResources = textResources;
         this.singleInstructionModeProvider = singleInstructionModeProvider;
@@ -98,6 +103,7 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         this.routeAppliedLocationRequester = routeAppliedLocationRequester;
         this.stateEmitter = stateEmitter;
         this.routeRecalculator = routeRecalculator;
+        this.clock = clock;
     }
 
     @Override
@@ -109,7 +115,8 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         if (!navigationSession.isCurrentRouteRequest(snapshot)) {
             return;
         }
-        if (navigationSession.speculativeRoutes().handleUnconfirmedRouteResult(snapshot, newRoute, beganAt)) {
+        if (navigationSession.speculativeRoutes().handleUnconfirmedRouteResult(snapshot, newRoute, beganAt,
+                clock.elapsedRealtimeMs())) {
             stateEmitter.run();
             runQueuedRouteRecalculation("Re-running queued route recalculation after speculative request finished");
             return;

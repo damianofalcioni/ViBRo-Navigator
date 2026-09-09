@@ -69,6 +69,10 @@ public final class NavigationRouteRequestManager {
         return routeCalculationInProgress;
     }
 
+    public boolean isVisibleRouteCalculationInProgress() {
+        return routeCalculationInProgress && activeRequestReason != NavigationRouteRecalculationReason.BEELINE_RECOVERY;
+    }
+
     public boolean cancelActiveSpeculativeRequest() {
         NavigationRouteRequestSpeculation.CancelResult cancellation =
                 speculation.cancel(routeCalculationInProgress, lastRerouteMs);

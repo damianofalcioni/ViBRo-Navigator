@@ -217,6 +217,13 @@ public final class CompassRouteGeometry {
         return beelineSegments;
     }
 
+    public CompassRouteGeometry withTravelHistory(double entryMeters,
+            List<List<LatLon>> passed, List<List<LatLon>> bridges) {
+        return new CompassRouteGeometry(CompassRouteHistoryClipper.pointsFrom(routeSamplePoints, entryMeters),
+                CompassRouteHistoryClipper.pointsFrom(fullRoutePoints, entryMeters), hintSamplePoints, intermediateSamplePoints,
+                passed, bridges, beelineTrackSegments);
+    }
+
     public int passedRoutePointCount(double alongTrackMeters) {
         return CompassRouteProgress.passedPointCount(routeSamplePoints, alongTrackMeters);
     }

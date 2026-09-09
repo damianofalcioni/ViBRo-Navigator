@@ -66,14 +66,19 @@ final class NavigationRouteGpxInstructionWriter {
             int hintPosition
     ) {
         LatLon point = route.track.get(hint.indexInTrack);
-        NavigationRouteGpxXmlWriter.appendPointStart(out, 1, TAG_WAYPOINT, point);
-        out.append(">").append(NavigationRouteGpxXmlWriter.LINE_END);
+        StringBuilder prefix = new StringBuilder();
+        NavigationRouteGpxXmlWriter.appendPointStart(prefix, 1, TAG_WAYPOINT, point);
+        prefix.append(">").append(NavigationRouteGpxXmlWriter.LINE_END);
         NavigationRouteGpxXmlWriter.appendSimpleElement(
-                out,
+                prefix,
                 2,
                 NavigationRouteGpxXmlWriter.TAG_NAME,
                 formatName(textResources, hint)
         );
+        if (out.indexOf(prefix.toString()) >= 0) {
+            return;
+        }
+        out.append(prefix);
         NavigationRouteGpxXmlWriter.appendSimpleElement(
                 out,
                 2,

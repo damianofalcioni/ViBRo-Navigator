@@ -3,20 +3,15 @@ package vibro.navigator.nav.session;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.util.Collections;
-
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 
 final class NavigationRouteDirectGuidanceEvaluator {
-    private static final String TAG = "NavSessionRoute";
     private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long DIRECT_GUIDANCE_INTERVAL_MS = 3_000L;
 
@@ -86,6 +81,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 speedMps,
                 likelyStationary,
                 trustedAccuracyMeters,
+                nowMs,
                 singleInstructionMode
         );
         return routeStartApproach != null
@@ -109,6 +105,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
             float speedMps,
             boolean likelyStationary,
             float trustedAccuracyMeters,
+            long nowMs,
             boolean singleInstructionMode
     ) {
         if (!directGuidanceState.isRouteStartApproachActive()) {
@@ -133,19 +130,9 @@ final class NavigationRouteDirectGuidanceEvaluator {
                     true
             );
         }
-        if (directGuidanceState.shouldRefreshRouteStart(filtered)) {
-            AppLogger.i(TAG, "Refreshing route-start approach after improved startup NavigationLocation");
-            return NavigationRouteEvaluation.requestRecalculation(
-                    null,
-                    NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH
-            );
-        }
         deviationHandler.clearDeviationEvidence();
-        return NavigationRouteEvaluation.keepRoute(
-                Collections.emptyList(),
-                DIRECT_GUIDANCE_INTERVAL_MS,
-                false
-        );
+        return directGuidanceState.recovery.evaluate(directGuidanceState.activeDirectTarget(),
+                filtered, likelyStationary, nowMs, directGuidanceState.shouldRefreshRouteStart(filtered));
     }
 
     @Nullable
@@ -169,17 +156,16 @@ final class NavigationRouteDirectGuidanceEvaluator {
         if (!directGuidanceState.isRouteBeelineActive()) {
             return null;
         }
+        routeHistory.startDirectLeg(filtered, directGuidanceState.activeRouteBeelineProgressMatch(),
+                directGuidanceState.activeRouteBeelineTargetMatch());
         PolylineIndex.Match completedMatch = directGuidanceState.completeRouteBeelineIfReached(
                 filtered,
                 reachedRadiusMeters
         );
         deviationHandler.clearDeviationEvidence();
         if (completedMatch == null) {
-            return NavigationRouteEvaluation.keepRoute(
-                    Collections.emptyList(),
-                    DIRECT_GUIDANCE_INTERVAL_MS,
-                    false
-            );
+            return directGuidanceState.recovery.evaluate(directGuidanceState.activeDirectTarget(),
+                    filtered, likelyStationary, nowMs, false);
         }
         rememberCompletedBeeline(completedMatch, nowMs);
         if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, completedMatch)) {

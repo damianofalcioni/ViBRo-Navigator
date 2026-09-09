@@ -18,6 +18,7 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 
 import java.util.List;
+import java.util.Objects;
 
 final class CompassDisplayMemory {
     private static final long NO_COMPASS_RADIUS_UPDATE_TIME_MS = -1L;
@@ -26,6 +27,7 @@ final class CompassDisplayMemory {
 
     @Nullable
     private CompassRouteGeometry routeGeometry;
+    private CompassRouteGeometry originalGeometry;
     @Nullable
     private Float lastVisibleRadiusMeters;
     @Nullable
@@ -42,14 +44,10 @@ final class CompassDisplayMemory {
     private long lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
     @NonNull
     final CompassRadiusTransition radiusTransition = new CompassRadiusTransition(1_000L);
-    @NonNull
-    private final CompassPassedRouteArchive passedRouteArchive = new CompassPassedRouteArchive();
-    private int lastActivePassedRouteSamplePointCount;
 
     void reset() {
         routeGeometry = null;
-        passedRouteArchive.reset();
-        lastActivePassedRouteSamplePointCount = 0;
+        originalGeometry = null;
         lastVisibleRadiusMeters = null;
         lastReliableMovingVisibleRadiusMeters = null;
         lastReliableMovingSpeedBucket = null;
@@ -62,38 +60,19 @@ final class CompassDisplayMemory {
     void onRouteApplied(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops,
-            @Nullable PolylineIndex.Match previousRouteMatch,
-            boolean appendDirectBridge
+            @NonNull List<LatLon> intermediateStops
     ) {
-        passedRouteArchive.archive(
-                routeGeometry,
-                previousRouteMatch,
-                lastActivePassedRouteSamplePointCount,
-                RouteRecalculationBridge.firstRoutePoint(route),
-                appendDirectBridge
-        );
         routeGeometry = CompassRouteGeometryFactory.build(
                 route,
                 polylineIndex,
-                intermediateStops,
-                passedRouteArchive.segments(),
-                passedRouteArchive.bridgeSegments()
+                intermediateStops
         );
-        lastActivePassedRouteSamplePointCount = 0;
+        originalGeometry = routeGeometry;
         lastVisibleRadiusMeters = null;
         clearTurnManeuverCue();
         lastSmoothedAccuracyMeters = Float.NaN;
         lastRadiusUpdateTimeMs = NO_COMPASS_RADIUS_UPDATE_TIME_MS;
         radiusTransition.reset();
-    }
-
-    void appendRecalculationBridgeSegment(@NonNull List<LatLon> segment) {
-        passedRouteArchive.appendBridge(segment);
-        routeGeometry = routeGeometry.withStoredRouteSegments(
-                passedRouteArchive.segments(),
-                passedRouteArchive.bridgeSegments()
-        );
     }
 
     void rememberSmoothedAccuracyMeters(float smoothedAccuracyMeters) {
@@ -142,6 +121,12 @@ final class CompassDisplayMemory {
         return nowMs - lastRadiusUpdateTimeMs;
     }
 
+    void synchronizeHistory(double entry, List<List<LatLon>> passed, List<List<LatLon>> bridges) {
+        if (originalGeometry != null) {
+            routeGeometry = originalGeometry.withTravelHistory(entry, passed, bridges);
+        }
+    }
+
     void rememberCompassState(
             @NonNull NavState state,
             long nowMs,
@@ -153,8 +138,6 @@ final class CompassDisplayMemory {
             return;
         }
         lastVisibleRadiusMeters = state.routeStatus.compassState.radiusState.visibleRadiusMeters;
-        lastActivePassedRouteSamplePointCount =
-                state.routeStatus.compassState.passedRouteSamplePointCount();
         lastRadiusUpdateTimeMs = nowMs;
         if (lastFiltered != null
                 && NavCompassStateFactory.hasReliableMovingSpeed(lastFiltered, speedMps, likelyStationary)) {
@@ -191,11 +174,7 @@ final class CompassDisplayMemory {
     ) {
         return activeTurnManeuverCue != null
                 && turnManeuverDegrees.equals(activeTurnManeuverDegrees)
-                && sameTrackIndex(turnManeuverTrackIndex, activeTurnManeuverTrackIndex);
-    }
-
-    private static boolean sameTrackIndex(@Nullable Integer first, @Nullable Integer second) {
-        return first == null ? second == null : first.equals(second);
+                && Objects.equals(turnManeuverTrackIndex, activeTurnManeuverTrackIndex);
     }
 
     private void clearTurnManeuverCue() {

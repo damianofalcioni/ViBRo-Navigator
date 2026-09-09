@@ -60,11 +60,11 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 0L
         );
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                location(0.0003, 0.0, 3_000L),
+                location(0.0003, 0.0, 8_000L),
                 5f,
                 5f,
                 90.0,
-                3_000L,
+                8_000L,
                 0L
         );
 
@@ -115,11 +115,11 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 80_000L
         );
         NavigationRouteEvaluation confirmedFollowUpEvaluation = state.evaluateLocation(
-                location(0.0003, 0.0, 22_000L),
+                location(0.0003, 0.0, 27_000L),
                 5f,
                 5f,
                 90.0,
-                22_000L,
+                27_000L,
                 80_000L
         );
 
@@ -231,7 +231,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
     }
 
     @Test
-    public void evaluateLocation_usesMedianAccuracyInsteadOfSingleGpsSpikeForOffTrackThreshold() {
+    public void evaluateLocation_keepsMedianCorridorButWaitsForUncertainFixes() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -271,9 +271,9 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
         );
 
         assertFalse(firstEvaluation.shouldRecalculateRoute());
-        assertTrue(secondEvaluation.shouldRecalculateRoute());
-        assertEquals(RouteDeviationPolicy.Reason.OFF_TRACK, secondEvaluation.rerouteNotice.reason);
-        assertEquals(13.0, secondEvaluation.rerouteNotice.offTrackThresholdMeters, 0.0);
+        assertFalse(secondEvaluation.shouldRecalculateRoute());
+        assertTrue(secondEvaluation.isRouteDeviationConfirmationPending());
+        assertNull(secondEvaluation.rerouteNotice);
     }
 
     @Test

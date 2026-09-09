@@ -13,7 +13,6 @@ import androidx.annotation.Nullable;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
-import vibro.navigator.nav.export.NavigationRouteGpxExportHistory;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 
@@ -24,9 +23,17 @@ public final class NavigationSessionRouteState {
 
     private final NavigationSessionRouteComponents components = new NavigationSessionRouteComponents();
     private boolean singleInstructionMode;
+    private long displayedHistoryRevision = -1;
 
     public void reset() {
         components.reset();
+        displayedHistoryRevision = -1;
+    }
+
+    void clearMotionEvidence() {
+        components.deviationHandler.clearDeviationEvidence();
+        components.progressTracker.reset();
+        components.directGuidance.state().clearMotionEvidence();
     }
 
     void setSingleInstructionMode(boolean singleInstructionMode) {
@@ -54,13 +61,12 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
-    public List<NavigationRouteGpxExportHistory.PassedRoute> passedRoutesForExport() {
-        return components.routeHistory.passedRoutesSnapshot();
+    NavigationRouteHistory historyForExport() {
+        return components.routeHistory;
     }
 
-    @NonNull
-    public List<List<LatLon>> recalculationBridgeSegmentsForExport() {
-        return components.routeHistory.recalculationBridgeSegmentsSnapshot();
+    NavigationBeelineRecoveryState beelineRecovery() {
+        return components.directGuidance.state().recovery;
     }
 
     @Nullable
@@ -131,7 +137,7 @@ public final class NavigationSessionRouteState {
             long fastChecksUntilMs,
             boolean reacquiringAfterLongGap
     ) {
-        return components.routeEvaluator.evaluateLocation(
+        NavigationRouteEvaluation evaluation = components.routeEvaluator.evaluateLocation(
                 filtered,
                 speedMps,
                 likelyStationary,
@@ -142,6 +148,8 @@ public final class NavigationSessionRouteState {
                 reacquiringAfterLongGap,
                 singleInstructionMode
         );
+        beelineRecovery().setTarget(components.directGuidance.activeTarget());
+        return evaluation;
     }
 
     @Nullable
@@ -163,15 +171,11 @@ public final class NavigationSessionRouteState {
             @NonNull NavigationRouteEvaluation evaluation,
             boolean routeCalculationInProgress
     ) {
-        List<LatLon> completed = components.routeHistory.recordRerouteFixPath(
+        components.routeHistory.recordRerouteFixPath(
                 filtered,
                 evaluation,
                 routeCalculationInProgress
         );
-        if (completed.size() < 2) {
-            return;
-        }
-        components.displayState.appendRecalculationBridgeSegment(completed);
     }
 
     @Nullable
@@ -282,6 +286,7 @@ public final class NavigationSessionRouteState {
             @NonNull NavigationDisplaySnapshot snapshot,
             boolean showNextManeuverCue
     ) {
+        synchronizeDisplayHistory();
         NavState state = components.displayState.buildState(
                 snapshot,
                 components.geometryState,
@@ -296,6 +301,15 @@ public final class NavigationSessionRouteState {
         );
         components.displayState.rememberRenderedState(state, snapshot);
         return state;
+    }
+
+    private void synchronizeDisplayHistory() {
+        if (displayedHistoryRevision != components.routeHistory.revision()) {
+            components.displayState.compassMemory.synchronizeHistory(components.routeHistory.entryMeters(),
+                    components.routeHistory.archivedSegmentsSnapshot(),
+                    components.routeHistory.recalculationBridgeSegmentsSnapshot());
+            displayedHistoryRevision = components.routeHistory.revision();
+        }
     }
 
     @NonNull

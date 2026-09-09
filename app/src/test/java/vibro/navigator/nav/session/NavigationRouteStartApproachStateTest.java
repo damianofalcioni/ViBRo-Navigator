@@ -202,8 +202,9 @@ public class NavigationRouteStartApproachStateTest {
                 0L
         );
 
-        assertTrue(evaluation.shouldRecalculateRoute());
-        assertEquals(NavigationRouteRecalculationReason.STARTUP_ROUTE_REFRESH, evaluation.recalculationReason);
+        assertFalse(evaluation.shouldRecalculateRoute());
+        assertTrue(evaluation.shouldSpeculativelyRecalculateRoute());
+        assertEquals(NavigationRouteRecalculationReason.BEELINE_RECOVERY, evaluation.recalculationReason);
     }
 
     @Test

@@ -295,7 +295,7 @@ final class NavigationSessionStateBuilder {
                 .blockedPoints(routeState.copyBlockedPoints())
                 .timing(nextEvaluationDeadlineElapsedMs, nowMs)
                 .routeCalculation(
-                        routeRequestManager.isRouteCalculationInProgress(),
+                        routeRequestManager.isVisibleRouteCalculationInProgress(),
                         routeRequestManager.getInProgressNotice(),
                         routeRequestManager.getLastRouteFailure()
                 )

@@ -67,6 +67,9 @@ final class NavigationRouteResultApplier {
                 !input.snapshot.isRoundTrip()
         );
         logRouteStartApproachIfNeeded(approachPlan);
+        if (approachPlan.active) {
+            routeHistory.startApproach(input.lastFiltered);
+        }
         boolean fixPathPending = routeHistory.hasPendingRerouteFixPath();
         PolylineIndex.Match previousRouteMatch = fixPathPending
                 ? routeHistory.lastActiveRouteMatch()
@@ -80,13 +83,14 @@ final class NavigationRouteResultApplier {
                 approachPlan.active
         );
         routeHistory.onRouteApplied(route, polylineIndex, previousRouteMatch, !fixPathPending);
+        if (!approachPlan.active && input.lastFiltered != null) {
+            routeHistory.initializeRouteStart(input.lastFiltered, geometryState.match(input.lastFiltered, accuracyMeters));
+        }
         displayState.onRouteApplied(
                 input.textResources,
                 route,
                 polylineIndex,
-                input.snapshot.intermediates,
-                previousRouteMatch,
-                !fixPathPending
+                input.snapshot.intermediates
         );
         intermediateArrivalTracker.onRouteApplied(input.snapshot.intermediates, route, polylineIndex);
         float initialSpeedMps = input.likelyStationary ? 0f : input.speedMps;

@@ -175,8 +175,8 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertEquals(2, geometry.archivedPassedRouteSegments().segmentCount());
         assertTrue(geometry.archivedPassedRouteSegments().samplePointCount(0) >= 2);
         assertTrue(geometry.archivedPassedRouteSegments().samplePointCount(1) >= 2);
-        assertEquals(1, geometry.recalculationBridgeSegments().segmentCount());
-        assertEquals(2, geometry.recalculationBridgeSegments().samplePointCount(0));
+        // Contiguous route replacements do not introduce an artificial backward connector.
+        assertEquals(0, geometry.recalculationBridgeSegments().segmentCount());
         assertTrue(navState.routeStatus.compassState.passedRoutePoints.size()
                 > navState.routeStatus.compassState.passedRouteSamplePointCount());
     }
@@ -199,6 +199,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         );
         NavigationLocation lastOnRoute = location(0.0, 0.001, 2_000L);
         NavigationLocation offRoute = location(0.001, 0.0015, 3_000L);
+        state.evaluateLocation(lastOnRoute, 5f, 5f, 90.0, 2_000L, 0L);
         state.recordRecalculationFixPath(
                 lastOnRoute,
                 NavigationRouteEvaluation.keepRoute(Collections.emptyList(), 3_000L, true),
@@ -225,6 +226,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 2_500L
         );
         NavigationLocation firstOnNewRoute = location(0.001, 0.0025, 4_000L);
+        state.evaluateLocation(firstOnNewRoute, 5f, 5f, 90.0, 4_000L, 0L);
         state.recordRecalculationFixPath(
                 firstOnNewRoute,
                 NavigationRouteEvaluation.keepRoute(Collections.emptyList(), 3_000L, true),
@@ -256,8 +258,8 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         assertEquals(0.001, geometry.recalculationBridgeSegments().samplePointAt(0, 0).lon, 0.0);
         assertEquals(0.001, geometry.recalculationBridgeSegments().samplePointAt(0, 1).lat, 0.0);
         assertEquals(0.0015, geometry.recalculationBridgeSegments().samplePointAt(0, 1).lon, 0.0);
-        assertEquals(1, state.recalculationBridgeSegmentsForExport().size());
-        assertEquals(3, state.recalculationBridgeSegmentsForExport().get(0).size());
+        assertEquals(1, state.historyForExport().recalculationBridgeSegmentsSnapshot().size());
+        assertEquals(3, state.historyForExport().recalculationBridgeSegmentsSnapshot().get(0).size());
     }
 
     @Test

@@ -55,6 +55,7 @@ final class NavigationRouteGpxFixWriter {
                 NavigationRouteGpxXmlWriter.TAG_TYPE,
                 TYPE_GPS_FIX
         );
+        NavigationRouteGpxFixDiagnostics.append(out, location);
         out.append("  </wpt>").append(NavigationRouteGpxXmlWriter.LINE_END);
     }
 

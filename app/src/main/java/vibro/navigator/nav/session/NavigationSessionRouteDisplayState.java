@@ -30,7 +30,7 @@ public final class NavigationSessionRouteDisplayState {
     @NonNull
     private List<NavTarget> targets = new ArrayList<>();
     @NonNull
-    private final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
+    final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
     public void reset() {
         targets = new ArrayList<>();
         compassMemory.reset();
@@ -46,29 +46,12 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops
     ) {
-        onRouteApplied(textResources, route, polylineIndex, intermediateStops, null, true);
-    }
-
-    public void onRouteApplied(
-            @NonNull NavigationTextResources textResources,
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops,
-            @Nullable PolylineIndex.Match previousRouteMatch,
-            boolean appendDirectBridge
-    ) {
         compassMemory.onRouteApplied(
                 route,
                 polylineIndex,
-                intermediateStops,
-                previousRouteMatch,
-                appendDirectBridge
+                intermediateStops
         );
         targets = buildTargets(textResources, intermediateStops, route.track.size(), polylineIndex);
-    }
-
-    void appendRecalculationBridgeSegment(@NonNull List<LatLon> segment) {
-        compassMemory.appendRecalculationBridgeSegment(segment);
     }
 
     @NonNull

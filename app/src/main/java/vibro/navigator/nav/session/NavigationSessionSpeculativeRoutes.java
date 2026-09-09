@@ -25,9 +25,11 @@ public final class NavigationSessionSpeculativeRoutes {
 
     @NonNull
     private final NavigationSession session;
+    private final NavigationBeelineRecoveryRequests recoveryRequests;
 
     NavigationSessionSpeculativeRoutes(@NonNull NavigationSession session) {
         this.session = session;
+        recoveryRequests = new NavigationBeelineRecoveryRequests(session);
     }
 
     @Nullable
@@ -36,6 +38,9 @@ public final class NavigationSessionSpeculativeRoutes {
             long nowMs,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
+        if (reason == NavigationRouteRecalculationReason.BEELINE_RECOVERY && !recoveryRequests.canPrepare(nowMs)) {
+            return null;
+        }
         NavigationRouteRequestSnapshot snapshot = session.components.routeRequestManager.prepare(
                 force,
                 nowMs,
@@ -48,14 +53,24 @@ public final class NavigationSessionSpeculativeRoutes {
                 true
         );
         session.components.speculativeRouteState.onRouteRequestPrepared(snapshot);
+        if (snapshot != null) {
+            recoveryRequests.clear();
+            if (reason == NavigationRouteRecalculationReason.BEELINE_RECOVERY) {
+                recoveryRequests.remember(snapshot, nowMs);
+            }
+        }
         return snapshot;
     }
 
     public boolean handleUnconfirmedRouteResult(
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull GeoJsonRoute newRoute,
-            long beganAt
+            long beganAt,
+            long nowMs
     ) {
+        if (recoveryRequests.isFor(snapshot)) {
+            return handleRecoveryResult(snapshot, newRoute, nowMs);
+        }
         return NavigationSessionResourceAdapter.handleUnconfirmedSpeculativeRouteResult(
                 session,
                 snapshot,
@@ -68,6 +83,9 @@ public final class NavigationSessionSpeculativeRoutes {
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
+        if (recoveryRequests.isFor(snapshot)) {
+            recoveryRequests.clear();
+        }
         return NavigationSessionResourceAdapter.ignoreUnconfirmedSpeculativeRouteFailure(
                 session,
                 snapshot,
@@ -77,16 +95,34 @@ public final class NavigationSessionSpeculativeRoutes {
 
     @NonNull
     public Confirmation confirmRecalculation() {
+        if (recoveryRequests.isActive()) {
+            cancelRecalculation();
+            return Confirmation.NONE;
+        }
         return session.components.speculativeRouteState.confirm();
     }
 
     public boolean cancelRecalculation() {
+        recoveryRequests.clear();
         boolean canceled = session.components.speculativeRouteState.cancelUnconfirmed();
         boolean requestCanceled = session.components.routeRequestManager.cancelActiveSpeculativeRequest();
         if (canceled || requestCanceled) {
             AppLogger.i(TAG, "Canceled unconfirmed speculative route recalculation");
         }
         return canceled || requestCanceled;
+    }
+
+    private boolean handleRecoveryResult(NavigationRouteRequestSnapshot snapshot, GeoJsonRoute route, long nowMs) {
+        boolean usable = recoveryRequests.accepts(snapshot, route, nowMs);
+        recoveryRequests.clear();
+        if (usable) {
+            AppLogger.i(TAG, "Applying usable speculative beeline recovery route");
+            return false;
+        }
+        session.components.routeRequestManager.onSpeculativeRouteFinished(snapshot, false);
+        session.components.speculativeRouteState.onRouteFailed(snapshot);
+        AppLogger.i(TAG, "Keeping current beeline after unsuitable or obsolete recovery result");
+        return true;
     }
 
     @NonNull

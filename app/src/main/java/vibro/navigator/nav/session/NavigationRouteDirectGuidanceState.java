@@ -10,6 +10,7 @@ import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.RouteStartApproach;
 
 final class NavigationRouteDirectGuidanceState {
+    final NavigationBeelineRecoveryState recovery = new NavigationBeelineRecoveryState();
     @NonNull
     private final RouteStartApproachState routeStartApproachState = new RouteStartApproachState();
     @NonNull
@@ -18,6 +19,7 @@ final class NavigationRouteDirectGuidanceState {
     void reset() {
         routeStartApproachState.reset();
         routeBeelineState.reset();
+        recovery.reset();
     }
 
     void applyRouteStartApproach(
@@ -26,6 +28,7 @@ final class NavigationRouteDirectGuidanceState {
             boolean allowStartupRefresh
     ) {
         routeStartApproachState.apply(plan, requestLocation, allowStartupRefresh);
+        recovery.onRouteApplied(allowStartupRefresh);
     }
 
     boolean isRouteStartApproachActive() {
@@ -41,6 +44,10 @@ final class NavigationRouteDirectGuidanceState {
 
     boolean shouldRefreshRouteStart(@NonNull NavigationLocation location) {
         return routeStartApproachState.shouldRefreshRouteStart(location);
+    }
+
+    void clearMotionEvidence() {
+        recovery.clearEvidence();
     }
 
     void clearRouteStartApproach() {
@@ -88,6 +95,11 @@ final class NavigationRouteDirectGuidanceState {
     @Nullable
     PolylineIndex.Match activeRouteBeelineProgressMatch() {
         return routeBeelineState.progressMatch();
+    }
+
+    @Nullable
+    PolylineIndex.Match activeRouteBeelineTargetMatch() {
+        return routeBeelineState.targetMatch();
     }
 
     @Nullable

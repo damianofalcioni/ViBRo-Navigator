@@ -151,7 +151,8 @@ public class NavigationSessionGpxExportTest {
         String gpx = session.buildCurrentRouteGpx(textResources);
 
         assertNotNull(gpx);
-        assertEquals(3, countOccurrences(gpx, "<trkseg>"));
+        // The untravelled old route is replaced by the recorded connector and remaining plan.
+        assertEquals(2, countOccurrences(gpx, "<trkseg>"));
         assertTrue(countOccurrences(gpx, GPX_TRACK_POINT) >= 5);
         assertEquals(5, countOccurrences(gpx, GPX_WAYPOINT));
         assertTrue(gpx.contains("Passed route"));

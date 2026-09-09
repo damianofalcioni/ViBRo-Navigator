@@ -58,6 +58,7 @@ public final class NavigationSession {
             return false;
         }
         paused = true;
+        components.routeState.clearMotionEvidence();
         return true;
     }
 
@@ -199,6 +200,8 @@ public final class NavigationSession {
             @Nullable String inProgressNotice,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
+        // A normal/explicit request supersedes any candidate for the previous beeline context.
+        components.routeState.beelineRecovery().clearEvidence();
         NavigationRouteRequestSnapshot snapshot = components.routeRequestManager.prepare(
                 force,
                 nowMs,

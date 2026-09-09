@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.location.NavigationLocation;
 
 public final class NavigationRouteDeviationHandler {
 
@@ -13,6 +14,7 @@ public final class NavigationRouteDeviationHandler {
     private final RouteDeviationPolicy routeDeviationPolicy = new RouteDeviationPolicy();
     private final NavigationDeviationConfirmation deviationConfirmation = new NavigationDeviationConfirmation();
     private final NavigationRouteProgressTracker progressTracker;
+    private final OffTrackEvidence offTrackEvidence = new OffTrackEvidence();
 
     public NavigationRouteDeviationHandler(@NonNull NavigationRouteProgressTracker progressTracker) {
         this.progressTracker = progressTracker;
@@ -20,6 +22,7 @@ public final class NavigationRouteDeviationHandler {
 
     public void clearDeviationEvidence() {
         deviationConfirmation.clear();
+        offTrackEvidence.clear();
     }
 
     @NonNull
@@ -31,6 +34,15 @@ public final class NavigationRouteDeviationHandler {
             @Nullable Double actualBearingDegrees,
             long nowMs
     ) {
+        return evaluate(match, smoothedAccuracyMeters, directionOfProgress, expectedBearingDegrees,
+                actualBearingDegrees, nowMs, null);
+    }
+
+    @NonNull
+    public Decision evaluate(PolylineIndex.Match match, double smoothedAccuracyMeters,
+            NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
+            double expectedBearingDegrees, @Nullable Double actualBearingDegrees, long nowMs,
+            @Nullable NavigationLocation location) {
         RouteDeviationPolicy.Decision deviationDecision = routeDeviationPolicy.evaluate(
                 match.distanceToTrackMeters,
                 smoothedAccuracyMeters,
@@ -49,20 +61,31 @@ public final class NavigationRouteDeviationHandler {
         }
 
         if (deviationDecision.reason == RouteDeviationPolicy.Reason.NONE) {
-            deviationConfirmation.clear();
+            clearDeviationEvidence();
             return Decision.continueOnRoute();
         }
 
-        if (!deviationConfirmation.isConfirmed(deviationDecision, nowMs)) {
+        boolean supported = supportsDeparture(deviationDecision, location, nowMs);
+        if (!deviationConfirmation.isConfirmed(deviationDecision, nowMs) || !supported) {
             logTentativeDeviation(deviationDecision, directionOfProgress, match);
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Decision.waitForDeviationConfirmation(deviationDecision.reason);
         }
 
         logConfirmedDeviation(deviationDecision, directionOfProgress, match, expectedBearingDegrees, actualBearingDegrees);
-        deviationConfirmation.clear();
+        clearDeviationEvidence();
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         return Decision.requestRouteRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
+    }
+
+    private boolean supportsDeparture(RouteDeviationPolicy.Decision decision,
+            @Nullable NavigationLocation location, long nowMs) {
+        if (decision.reason != RouteDeviationPolicy.Reason.OFF_TRACK || location == null) {
+            offTrackEvidence.clear();
+            return true;
+        }
+        return offTrackEvidence.supportsDeparture(location,
+                decision.distanceToTrackMeters - decision.offTrackThresholdMeters, nowMs);
     }
 
     @Nullable
@@ -78,13 +101,13 @@ public final class NavigationRouteDeviationHandler {
         if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.FORWARD) {
             AppLogger.i(TAG, "Ignoring bearing mismatch because along-track progress is forward delta="
                     + directionOfProgress.alongTrackDeltaMeters);
-            deviationConfirmation.clear();
+            clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Decision.keepCurrentRoute(true);
         }
         if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.UNKNOWN) {
             AppLogger.i(TAG, "Holding bearing mismatch until direction-of-progress is known");
-            deviationConfirmation.clear();
+            clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Decision.keepCurrentRoute(false);
         }

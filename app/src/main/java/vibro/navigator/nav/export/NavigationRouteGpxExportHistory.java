@@ -17,6 +17,7 @@ public final class NavigationRouteGpxExportHistory {
     public final List<List<LatLon>> recalculationBridgeSegments;
     @NonNull
     public final List<NavigationLocation> acceptedFixes;
+    public final List<List<LatLon>> orderedSegments;
 
     public NavigationRouteGpxExportHistory(
             @NonNull List<PassedRoute> passedRoutes,
@@ -30,9 +31,17 @@ public final class NavigationRouteGpxExportHistory {
             @NonNull List<List<LatLon>> recalculationBridgeSegments,
             @NonNull List<NavigationLocation> acceptedFixes
     ) {
+        this(passedRoutes, recalculationBridgeSegments, acceptedFixes, Collections.emptyList());
+    }
+
+    public NavigationRouteGpxExportHistory(
+            List<PassedRoute> passedRoutes, List<List<LatLon>> recalculationBridgeSegments,
+            List<NavigationLocation> acceptedFixes, List<List<LatLon>> orderedSegments
+    ) {
         this.passedRoutes = immutablePassedRoutes(passedRoutes);
         this.recalculationBridgeSegments = immutableNestedPoints(recalculationBridgeSegments);
         this.acceptedFixes = immutableLocationCopies(acceptedFixes);
+        this.orderedSegments = immutableNestedPoints(orderedSegments);
     }
 
     @NonNull

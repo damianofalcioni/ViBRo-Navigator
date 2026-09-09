@@ -14,6 +14,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.RouteSection;
 
 public final class NavigationRouteGpxExporter {
     public static final String GPX_MIME_TYPE = "application/gpx+xml";
@@ -48,7 +49,7 @@ public final class NavigationRouteGpxExporter {
         NavigationRouteGpxInstructionWriter.appendWaypoints(out, textResources, route);
         NavigationRouteGpxStopWriter.appendWaypoints(out, textResources, intermediateStops);
         NavigationRouteGpxFixWriter.appendWaypoints(out, textResources, history.acceptedFixes);
-        NavigationRouteGpxXmlWriter.appendRoute(out, resolvedRouteName, route);
+        NavigationRouteGpxXmlWriter.appendRoute(out, resolvedRouteName, journeyRoute(route, history));
         NavigationRouteGpxXmlWriter.appendTrackSegments(
                 out,
                 textResources.getString(R.string.gpx_passed_route_track_name),
@@ -128,6 +129,9 @@ public final class NavigationRouteGpxExporter {
 
     @NonNull
     private static List<List<LatLon>> passedSegments(@NonNull NavigationRouteGpxExportHistory history) {
+        if (!history.orderedSegments.isEmpty()) {
+            return history.orderedSegments;
+        }
         int segmentCount = history.passedRoutes.size() + history.recalculationBridgeSegments.size();
         List<List<LatLon>> segments = new ArrayList<>(segmentCount);
         for (int i = 0; i < history.passedRoutes.size(); i++) {
@@ -139,6 +143,19 @@ public final class NavigationRouteGpxExporter {
         }
         appendRemainingBridgeSegments(history, segments);
         return segments;
+    }
+
+    private static GeoJsonRoute journeyRoute(GeoJsonRoute route, NavigationRouteGpxExportHistory history) {
+        List<LatLon> points = new ArrayList<>();
+        for (List<LatLon> section : passedSegments(history)) {
+            for (LatLon point : section) {
+                RouteSection.appendDistinct(points, point);
+            }
+        }
+        for (LatLon point : route.track) {
+            RouteSection.appendDistinct(points, point);
+        }
+        return new GeoJsonRoute(points, Collections.emptyList(), Double.NaN, 0);
     }
 
     private static void appendRemainingBridgeSegments(

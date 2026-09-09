@@ -17,6 +17,7 @@ public final class NavigationRouteEvaluation {
     private static final long DEVIATION_CONFIRMATION_INTERVAL_MS = 1_000L;
 
     private final boolean shouldRecalculateRoute;
+    private final boolean requestBeelineRecovery;
     private final boolean stableOnRouteSample;
     private final long suggestedUpdateIntervalMs;
     @Nullable
@@ -40,6 +41,16 @@ public final class NavigationRouteEvaluation {
             @Nullable NavigationWrongDirectionNotice wrongDirectionNotice,
             @NonNull List<NavigationTurnEvent> turnEvents
     ) {
+        this(shouldRecalculateRoute, stableOnRouteSample, suggestedUpdateIntervalMs, recalculationReason,
+                pendingDeviationReason, rerouteNotice, wrongDirectionNotice, turnEvents, false);
+    }
+
+    private NavigationRouteEvaluation(boolean shouldRecalculateRoute, boolean stableOnRouteSample,
+            long suggestedUpdateIntervalMs, NavigationRouteRecalculationReason recalculationReason,
+            RouteDeviationPolicy.Reason pendingDeviationReason, NavigationRerouteNotice rerouteNotice,
+            NavigationWrongDirectionNotice wrongDirectionNotice, List<NavigationTurnEvent> turnEvents,
+            boolean requestBeelineRecovery) {
+        this.requestBeelineRecovery = requestBeelineRecovery;
         this.shouldRecalculateRoute = shouldRecalculateRoute;
         this.stableOnRouteSample = stableOnRouteSample;
         this.suggestedUpdateIntervalMs = suggestedUpdateIntervalMs;
@@ -153,13 +164,19 @@ public final class NavigationRouteEvaluation {
                 && recalculationReason == NavigationRouteRecalculationReason.ROUTE_DEVIATION;
     }
 
+    public static NavigationRouteEvaluation beelineRecovery(boolean request) {
+        return new NavigationRouteEvaluation(false, false, 3_000L,
+                NavigationRouteRecalculationReason.BEELINE_RECOVERY, null, null, null, Collections.emptyList(), request);
+    }
+
     public boolean shouldSpeculativelyRecalculateRoute() {
-        return isRouteDeviationConfirmationPending()
-                && pendingDeviationReason == RouteDeviationPolicy.Reason.OFF_TRACK;
+        return requestBeelineRecovery || (isRouteDeviationConfirmationPending()
+                && pendingDeviationReason == RouteDeviationPolicy.Reason.OFF_TRACK);
     }
 
     public boolean shouldCancelSpeculativeRouteRecalculation() {
         return !shouldRecalculateRoute
+                && recalculationReason != NavigationRouteRecalculationReason.BEELINE_RECOVERY
                 && pendingDeviationReason != RouteDeviationPolicy.Reason.OFF_TRACK;
     }
 

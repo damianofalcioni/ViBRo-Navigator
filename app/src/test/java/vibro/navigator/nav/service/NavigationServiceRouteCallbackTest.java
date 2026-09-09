@@ -203,7 +203,8 @@ public class NavigationServiceRouteCallbackTest {
                 fastLocationRequester,
                 stateEmitter,
                 pending -> {
-                }
+                },
+                () -> NOW_MS
         );
     }
 

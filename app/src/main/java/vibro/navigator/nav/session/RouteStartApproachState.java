@@ -72,4 +72,5 @@ final class RouteStartApproachState {
                 latestLocation
         );
     }
+
 }
