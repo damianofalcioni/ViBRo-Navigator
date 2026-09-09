@@ -14,6 +14,9 @@ final class NavigationRouteGpxXmlWriter {
     static final String TAG_TYPE = "type";
     static final String TAG_TIME = "time";
     static final String TAG_ELEVATION = "ele";
+    static final String TAG_TRACK = "trk";
+    static final String TAG_TRACK_SEGMENT = "trkseg";
+    static final String TAG_TRACK_POINT = "trkpt";
     static final String LINE_END = "\n";
 
     private static final String GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
@@ -58,12 +61,12 @@ final class NavigationRouteGpxXmlWriter {
             @NonNull String routeName,
             @NonNull GeoJsonRoute route
     ) {
-        out.append("  <trk>").append(LINE_END);
+        out.append("  <").append(TAG_TRACK).append(">").append(LINE_END);
         appendSimpleElement(out, 2, TAG_NAME, routeName);
-        out.append("    <trkseg>").append(LINE_END);
-        appendPointList(out, route.track, "trkpt", 3);
-        out.append("    </trkseg>").append(LINE_END);
-        out.append("  </trk>").append(LINE_END);
+        out.append("    <").append(TAG_TRACK_SEGMENT).append(">").append(LINE_END);
+        appendPointList(out, route.track, TAG_TRACK_POINT, 3);
+        out.append("    </").append(TAG_TRACK_SEGMENT).append(">").append(LINE_END);
+        out.append("  </").append(TAG_TRACK).append(">").append(LINE_END);
     }
 
     static void appendTrackSegments(
@@ -74,14 +77,14 @@ final class NavigationRouteGpxXmlWriter {
         if (segments.isEmpty()) {
             return;
         }
-        out.append("  <trk>").append(LINE_END);
+        out.append("  <").append(TAG_TRACK).append(">").append(LINE_END);
         appendSimpleElement(out, 2, TAG_NAME, trackName);
         for (List<LatLon> segment : segments) {
-            out.append("    <trkseg>").append(LINE_END);
-            appendPointList(out, segment, "trkpt", 3);
-            out.append("    </trkseg>").append(LINE_END);
+            out.append("    <").append(TAG_TRACK_SEGMENT).append(">").append(LINE_END);
+            appendPointList(out, segment, TAG_TRACK_POINT, 3);
+            out.append("    </").append(TAG_TRACK_SEGMENT).append(">").append(LINE_END);
         }
-        out.append("  </trk>").append(LINE_END);
+        out.append("  </").append(TAG_TRACK).append(">").append(LINE_END);
     }
 
     static void appendPointStart(
@@ -129,7 +132,7 @@ final class NavigationRouteGpxXmlWriter {
         }
     }
 
-    private static void appendIndent(@NonNull StringBuilder out, int indentLevel) {
+    static void appendIndent(@NonNull StringBuilder out, int indentLevel) {
         for (int i = 0; i < indentLevel; i++) {
             out.append("  ");
         }

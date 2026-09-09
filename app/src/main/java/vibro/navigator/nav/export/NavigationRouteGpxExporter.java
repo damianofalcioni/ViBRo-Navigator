@@ -12,7 +12,6 @@ import java.util.Locale;
 import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.format.NavigationTextResources;
-import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.RouteSection;
 
@@ -92,10 +91,10 @@ public final class NavigationRouteGpxExporter {
         NavigationRouteGpxStopWriter.appendDestinationWaypoint(out, textResources, destination);
         NavigationRouteGpxFixWriter.appendWaypoints(out, textResources, history.acceptedFixes);
         NavigationRouteGpxXmlWriter.appendRoute(out, resolvedRouteName, route);
-        NavigationRouteGpxXmlWriter.appendTrackSegments(
+        NavigationRouteGpxFixWriter.appendTrackSegment(
                 out,
                 textResources.getString(R.string.gpx_passed_route_track_name),
-                acceptedFixSegments(history)
+                history.acceptedFixes
         );
         NavigationRouteGpxXmlWriter.appendTrack(out, resolvedRouteName, route);
         NavigationRouteGpxXmlWriter.appendFooter(out);
@@ -165,26 +164,6 @@ public final class NavigationRouteGpxExporter {
         for (int i = history.passedRoutes.size(); i < history.recalculationBridgeSegments.size(); i++) {
             segments.add(history.recalculationBridgeSegments.get(i));
         }
-    }
-
-    @NonNull
-    private static List<List<LatLon>> acceptedFixSegments(@NonNull NavigationRouteGpxExportHistory history) {
-        List<LatLon> segment = acceptedFixSegment(history.acceptedFixes);
-        return segment.size() < 2 ? Collections.emptyList() : Collections.singletonList(segment);
-    }
-
-    @NonNull
-    private static List<LatLon> acceptedFixSegment(@NonNull List<NavigationLocation> acceptedFixes) {
-        if (acceptedFixes.size() < 2) {
-            return Collections.emptyList();
-        }
-        List<LatLon> segment = new ArrayList<>(acceptedFixes.size());
-        for (NavigationLocation location : acceptedFixes) {
-            if (Double.isFinite(location.getLatitude()) && Double.isFinite(location.getLongitude())) {
-                segment.add(new LatLon(location.getLatitude(), location.getLongitude()));
-            }
-        }
-        return segment;
     }
 
     @NonNull

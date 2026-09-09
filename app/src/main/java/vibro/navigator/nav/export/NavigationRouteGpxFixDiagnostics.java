@@ -1,28 +1,65 @@
 package vibro.navigator.nav.export;
 
+import androidx.annotation.NonNull;
+
 import vibro.navigator.nav.location.NavigationLocation;
 
 /** Provider uncertainty belongs to the source measurement; exported coordinates are filtered. */
 final class NavigationRouteGpxFixDiagnostics {
+    private static final String FIX_NAMESPACE = "urn:vibro:navigator:gpx:1";
+    private static final String TAG_PROVIDER = "provider";
+    private static final String TAG_ACCURACY_METERS = "accuracyMeters";
+    private static final String TAG_SPEED_MPS = "speedMps";
+    private static final String TAG_BEARING_DEGREES = "bearingDegrees";
+    private static final String TAG_BEARING_ACCURACY_DEGREES = "bearingAccuracyDegrees";
+    private static final int WAYPOINT_CHILD_INDENT = 2;
+
     private NavigationRouteGpxFixDiagnostics() {
     }
 
-    static void append(StringBuilder out, NavigationLocation location) {
-        out.append("    <extensions>\n      <fix xmlns=\"urn:vibro:navigator:gpx:1\">\n");
-        if (location.getProvider() != null) {
-            NavigationRouteGpxXmlWriter.appendSimpleElement(out, 4, "provider", location.getProvider());
-        }
-        appendMeasurement(out, "accuracyMeters", location.hasAccuracy(), location.getAccuracy());
-        appendMeasurement(out, "speedMps", location.hasSpeed(), location.getSpeed());
-        appendMeasurement(out, "bearingDegrees", location.hasBearing(), location.getBearing());
-        appendMeasurement(out, "bearingAccuracyDegrees", location.hasBearingAccuracy(),
-                location.getBearingAccuracyDegrees());
-        out.append("      </fix>\n    </extensions>\n");
+    static void append(@NonNull StringBuilder out, @NonNull NavigationLocation location) {
+        append(out, location, WAYPOINT_CHILD_INDENT);
     }
 
-    private static void appendMeasurement(StringBuilder out, String tag, boolean available, float value) {
+    static void append(@NonNull StringBuilder out, @NonNull NavigationLocation location, int indentLevel) {
+        NavigationRouteGpxXmlWriter.appendIndent(out, indentLevel);
+        out.append("<extensions>").append(NavigationRouteGpxXmlWriter.LINE_END);
+        NavigationRouteGpxXmlWriter.appendIndent(out, indentLevel + 1);
+        out.append("<fix xmlns=\"").append(FIX_NAMESPACE).append("\">")
+                .append(NavigationRouteGpxXmlWriter.LINE_END);
+        if (location.getProvider() != null) {
+            NavigationRouteGpxXmlWriter.appendSimpleElement(
+                    out,
+                    indentLevel + 2,
+                    TAG_PROVIDER,
+                    location.getProvider()
+            );
+        }
+        appendMeasurement(out, indentLevel, TAG_ACCURACY_METERS, location.hasAccuracy(), location.getAccuracy());
+        appendMeasurement(out, indentLevel, TAG_SPEED_MPS, location.hasSpeed(), location.getSpeed());
+        appendMeasurement(out, indentLevel, TAG_BEARING_DEGREES, location.hasBearing(), location.getBearing());
+        appendMeasurement(out, indentLevel, TAG_BEARING_ACCURACY_DEGREES, location.hasBearingAccuracy(),
+                location.getBearingAccuracyDegrees());
+        NavigationRouteGpxXmlWriter.appendIndent(out, indentLevel + 1);
+        out.append("</fix>").append(NavigationRouteGpxXmlWriter.LINE_END);
+        NavigationRouteGpxXmlWriter.appendIndent(out, indentLevel);
+        out.append("</extensions>").append(NavigationRouteGpxXmlWriter.LINE_END);
+    }
+
+    private static void appendMeasurement(
+            @NonNull StringBuilder out,
+            int baseIndentLevel,
+            @NonNull String tag,
+            boolean available,
+            float value
+    ) {
         if (available && Float.isFinite(value) && value >= 0) {
-            NavigationRouteGpxXmlWriter.appendSimpleElement(out, 4, tag, Float.toString(value));
+            NavigationRouteGpxXmlWriter.appendSimpleElement(
+                    out,
+                    baseIndentLevel + 2,
+                    tag,
+                    Float.toString(value)
+            );
         }
     }
 }

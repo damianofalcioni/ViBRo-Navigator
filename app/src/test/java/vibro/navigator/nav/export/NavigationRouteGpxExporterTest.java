@@ -26,6 +26,7 @@ import vibro.navigator.nav.route.VoiceHint;
 
 public class NavigationRouteGpxExporterTest {
     private static final String GPX_NAMESPACE = "http://www.topografix.com/GPX/1/1";
+    private static final String FIX_EXTENSION_NAMESPACE = "urn:vibro:navigator:gpx:1";
     private static final String TAG_WAYPOINT = "wpt";
     private static final String TAG_ROUTE_POINT = "rtept";
     private static final String TAG_TRACK_POINT = "trkpt";
@@ -33,6 +34,7 @@ public class NavigationRouteGpxExporterTest {
     private static final String TAG_NAME = "name";
     private static final String TAG_TYPE = "type";
     private static final String TAG_ELEVATION = "ele";
+    private static final String TAG_ACCURACY_METERS = "accuracyMeters";
     private static final String ATTR_LAT = "lat";
     private static final String ATTR_LON = "lon";
     private static final String TYPE_GPS_FIX = "vibro.navigator.gps-fix";
@@ -183,6 +185,7 @@ public class NavigationRouteGpxExporterTest {
         assertEquals("GPS fix 1", childText(gpsFix, TAG_NAME));
         assertEquals("188.5", childText(gpsFix, TAG_ELEVATION));
         assertEquals(FIRST_GPS_FIX_TIME, childText(gpsFix, "time"));
+        assertEquals("5.0", childText(gpsFix, FIX_EXTENSION_NAMESPACE, TAG_ACCURACY_METERS));
         assertEquals(0, countWaypointsByName(document, "Sharp right"));
     }
 
@@ -272,7 +275,7 @@ public class NavigationRouteGpxExporterTest {
                 Collections.emptyList(),
                 Arrays.asList(
                         location(48.0, 16.0, 1_000L),
-                        location(48.05, 16.05, 2_000L)
+                        location(48.05, 16.05, 2_000L, 7.5f)
                 )
         );
 
@@ -290,6 +293,20 @@ public class NavigationRouteGpxExporterTest {
         Element passedTrack = (Element) document.getElementsByTagNameNS(GPX_NAMESPACE, "trk").item(0);
         assertEquals(PASSED_ROUTE_NAME, childText(passedTrack, TAG_NAME));
         assertEquals(2, passedTrack.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).getLength());
+        assertEquals(2, passedTrack.getElementsByTagNameNS(
+                FIX_EXTENSION_NAMESPACE,
+                TAG_ACCURACY_METERS
+        ).getLength());
+        assertEquals("5.0", childText(
+                (Element) passedTrack.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).item(0),
+                FIX_EXTENSION_NAMESPACE,
+                TAG_ACCURACY_METERS
+        ));
+        assertEquals("7.5", childText(
+                (Element) passedTrack.getElementsByTagNameNS(GPX_NAMESPACE, TAG_TRACK_POINT).item(1),
+                FIX_EXTENSION_NAMESPACE,
+                TAG_ACCURACY_METERS
+        ));
     }
 
     @Test
@@ -382,16 +399,24 @@ public class NavigationRouteGpxExporterTest {
     }
 
     private static NavigationLocation location(double lat, double lon, long timeMs) {
+        return location(lat, lon, timeMs, 5f);
+    }
+
+    private static NavigationLocation location(double lat, double lon, long timeMs, float accuracyMeters) {
         NavigationLocation location = new NavigationLocation("gps");
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(timeMs);
-        location.setAccuracy(5f);
+        location.setAccuracy(accuracyMeters);
         return location;
     }
 
     private static String childText(Element parent, String name) {
-        return parent.getElementsByTagNameNS(GPX_NAMESPACE, name).item(0).getTextContent();
+        return childText(parent, GPX_NAMESPACE, name);
+    }
+
+    private static String childText(Element parent, String namespace, String name) {
+        return parent.getElementsByTagNameNS(namespace, name).item(0).getTextContent();
     }
 
     private static void assertPoint(

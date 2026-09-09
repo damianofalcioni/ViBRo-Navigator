@@ -19,6 +19,7 @@ final class NavigationRouteGpxFixWriter {
     private static final String TYPE_GPS_FIX = "vibro.navigator.gps-fix";
     private static final String GPX_TIME_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
+    private static final int TRACK_POINT_CHILD_INDENT = 4;
 
     private NavigationRouteGpxFixWriter() {
     }
@@ -59,9 +60,61 @@ final class NavigationRouteGpxFixWriter {
         out.append("  </wpt>").append(NavigationRouteGpxXmlWriter.LINE_END);
     }
 
+    static void appendTrackSegment(
+            @NonNull StringBuilder out,
+            @NonNull String trackName,
+            @NonNull List<NavigationLocation> acceptedFixes
+    ) {
+        if (validPointCount(acceptedFixes) < 2) {
+            return;
+        }
+        out.append("  <").append(NavigationRouteGpxXmlWriter.TAG_TRACK).append(">")
+                .append(NavigationRouteGpxXmlWriter.LINE_END);
+        NavigationRouteGpxXmlWriter.appendSimpleElement(out, 2, NavigationRouteGpxXmlWriter.TAG_NAME, trackName);
+        out.append("    <").append(NavigationRouteGpxXmlWriter.TAG_TRACK_SEGMENT).append(">")
+                .append(NavigationRouteGpxXmlWriter.LINE_END);
+        for (NavigationLocation location : acceptedFixes) {
+            appendTrackPoint(out, location);
+        }
+        out.append("    </").append(NavigationRouteGpxXmlWriter.TAG_TRACK_SEGMENT).append(">")
+                .append(NavigationRouteGpxXmlWriter.LINE_END);
+        out.append("  </").append(NavigationRouteGpxXmlWriter.TAG_TRACK).append(">")
+                .append(NavigationRouteGpxXmlWriter.LINE_END);
+    }
+
+    private static void appendTrackPoint(@NonNull StringBuilder out, @NonNull NavigationLocation location) {
+        if (!hasValidPoint(location)) {
+            return;
+        }
+        NavigationRouteGpxXmlWriter.appendPointStart(
+                out,
+                3,
+                NavigationRouteGpxXmlWriter.TAG_TRACK_POINT,
+                locationPoint(location)
+        );
+        out.append(">").append(NavigationRouteGpxXmlWriter.LINE_END);
+        NavigationRouteGpxFixDiagnostics.append(out, location, TRACK_POINT_CHILD_INDENT);
+        out.append("      </").append(NavigationRouteGpxXmlWriter.TAG_TRACK_POINT).append(">")
+                .append(NavigationRouteGpxXmlWriter.LINE_END);
+    }
+
     @NonNull
     private static LatLon locationPoint(@NonNull NavigationLocation location) {
         return new LatLon(location.getLatitude(), location.getLongitude());
+    }
+
+    private static int validPointCount(@NonNull List<NavigationLocation> locations) {
+        int count = 0;
+        for (NavigationLocation location : locations) {
+            if (hasValidPoint(location)) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    private static boolean hasValidPoint(@NonNull NavigationLocation location) {
+        return Double.isFinite(location.getLatitude()) && Double.isFinite(location.getLongitude());
     }
 
     private static void appendElevation(@NonNull StringBuilder out, @NonNull NavigationLocation location) {
