@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import vibro.navigator.geo.LatLon;
@@ -35,12 +34,20 @@ final class SurroundingStreetOverlayCache {
     private int cachedSegments;
     private int cachedPoints;
     private NavigationSpeedBucket activeSpeedBucket;
+    private final SurroundingStreetCacheRetention retention = new SurroundingStreetCacheRetention();
+    private final SurroundingStreetOverlaySnapshot snapshot = new SurroundingStreetOverlaySnapshot();
 
     void clear() {
         entries.clear();
+        snapshot.clear();
         cachedSegments = 0;
         cachedPoints = 0;
+        retention.clear();
         resetSpeedBucket();
+    }
+
+    void setDisplayKeys(@NonNull List<SurroundingStreetChunkKey> keys) {
+        retention.setDisplayKeys(keys);
     }
 
     void resetSpeedBucket() {
@@ -58,7 +65,7 @@ final class SurroundingStreetOverlayCache {
     ) {
         List<SurroundingStreetChunkKey> missing = new ArrayList<>();
         for (SurroundingStreetChunkKey key : keys) {
-            if (!contains(key)) {
+            if (!contains(key) && retention.canLoad(key)) {
                 missing.add(key);
             }
             if (missing.size() >= limit) {
@@ -69,6 +76,7 @@ final class SurroundingStreetOverlayCache {
     }
 
     void put(@NonNull SurroundingStreetChunkKey key, @NonNull CompassStreetOverlay overlay) {
+        snapshot.clear();
         removeExisting(key);
         Entry entry = Entry.from(overlay);
         entries.put(key, entry);
@@ -101,6 +109,10 @@ final class SurroundingStreetOverlayCache {
             int maxSegments,
             @NonNull NavigationSpeedBucket speedBucket
     ) {
+        CompassStreetOverlay cached = snapshot.find(keys, maxSegments, speedBucket);
+        if (cached != null) {
+            return cached;
+        }
         List<CompassStreetSegment> segments = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (SurroundingStreetChunkKey key : keys) {
@@ -109,7 +121,8 @@ final class SurroundingStreetOverlayCache {
                 break;
             }
         }
-        return segments.isEmpty() ? CompassStreetOverlay.EMPTY : new CompassStreetOverlay(segments);
+        return snapshot.save(keys, maxSegments, speedBucket,
+                segments.isEmpty() ? CompassStreetOverlay.EMPTY : new CompassStreetOverlay(segments));
     }
 
     private void addSegments(
@@ -146,8 +159,9 @@ final class SurroundingStreetOverlayCache {
 
     private void trimToBudget() {
         while (isOverBudget()) {
-            Map.Entry<SurroundingStreetChunkKey, Entry> eldest = entries.entrySet().iterator().next();
-            removeExisting(eldest.getKey());
+            SurroundingStreetChunkKey key = retention.evictionKey(entries.keySet());
+            removeExisting(key);
+            retention.recordEviction(key);
         }
     }
 

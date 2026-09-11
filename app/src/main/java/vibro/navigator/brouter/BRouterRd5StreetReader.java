@@ -21,10 +21,24 @@ final class BRouterRd5StreetReader {
     @NonNull
     private final long[] topIndex = new long[SUB_TILE_COUNT];
     private int divisor = OLD_DIVISOR;
+    private final BRouterDecodedStreetCache decodedCache;
+    private final String sourceKey;
+    private String cacheRevision;
 
     BRouterRd5StreetReader(@NonNull BRouterSegmentReadFile file, @NonNull String fileName) {
+        this(file, fileName, fileName, new BRouterDecodedStreetCache());
+    }
+
+    BRouterRd5StreetReader(
+            BRouterSegmentReadFile file,
+            String fileName,
+            String sourceKey,
+            BRouterDecodedStreetCache decodedCache
+    ) {
         this.file = file;
         this.fileName = fileName;
+        this.sourceKey = sourceKey;
+        this.decodedCache = decodedCache;
     }
 
     void read(
@@ -32,24 +46,31 @@ final class BRouterRd5StreetReader {
             int maxSegments,
             @NonNull List<CompassStreetSegment> out
     ) throws IOException {
+        BRouterStreetReadCancellation.check();
+        if (out.size() >= maxSegments) {
+            return;
+        }
+        BRouterStreetSegmentCollector collector = new BRouterStreetSegmentCollector(bounds, maxSegments - out.size());
         readTopIndex();
         int minLonDegree = bounds.minIntegerLon / BRouterSegmentTile.MICRO_DEGREES;
         int maxLonDegree = bounds.maxIntegerLon / BRouterSegmentTile.MICRO_DEGREES;
         int minLatDegree = bounds.minIntegerLat / BRouterSegmentTile.MICRO_DEGREES;
         int maxLatDegree = bounds.maxIntegerLat / BRouterSegmentTile.MICRO_DEGREES;
-        for (int lonDegree = minLonDegree; lonDegree <= maxLonDegree && out.size() < maxSegments; lonDegree++) {
-            for (int latDegree = minLatDegree; latDegree <= maxLatDegree && out.size() < maxSegments; latDegree++) {
+        for (int lonDegree = minLonDegree; lonDegree <= maxLonDegree; lonDegree++) {
+            for (int latDegree = minLatDegree; latDegree <= maxLatDegree; latDegree++) {
                 if (fileName.equals(BRouterSegmentTile.fileNameForIntegerDegrees(lonDegree, latDegree))) {
-                    readOneDegree(lonDegree, latDegree, bounds, maxSegments, out);
+                    readOneDegree(lonDegree, latDegree, bounds, collector);
                 }
             }
         }
+        collector.appendTo(out);
     }
 
     private void readTopIndex() throws IOException {
         byte[] header = new byte[TOP_INDEX_BYTES];
         file.readFully(0L, header, 0, header.length);
         int headerCrc = Rd5Crc.crc(header, 0, header.length);
+        cacheRevision = sourceKey + ":" + file.length() + ":" + headerCrc;
         Rd5ByteDataReader reader = new Rd5ByteDataReader(header);
         for (int i = 0; i < topIndex.length; i++) {
             topIndex[i] = reader.readLong() & 0xffffffffffffL;
@@ -70,6 +91,7 @@ final class BRouterRd5StreetReader {
         }
         byte[] footer = new byte[extraLength];
         file.readFully(footerPosition, footer, 0, footer.length);
+        cacheRevision += ":" + Rd5Crc.crc(footer, 0, footer.length);
         Rd5ByteDataReader reader = new Rd5ByteDataReader(footer);
         reader.readLong();
         int crcData = reader.readInt();
@@ -96,8 +118,7 @@ final class BRouterRd5StreetReader {
             int lonDegree,
             int latDegree,
             @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
+            @NonNull BRouterStreetSegmentCollector collector
     ) throws IOException {
         int lonMod = positiveMod(lonDegree, 5);
         int latMod = positiveMod(latDegree, 5);
@@ -114,10 +135,10 @@ final class BRouterRd5StreetReader {
         int maxLonIndex = Math.min(divisor * lonDegree + divisor - 1, bounds.maxIntegerLon / cellSize);
         int minLatIndex = Math.max(divisor * latDegree, bounds.minIntegerLat / cellSize);
         int maxLatIndex = Math.min(divisor * latDegree + divisor - 1, bounds.maxIntegerLat / cellSize);
-        for (int lonIndex = minLonIndex; lonIndex <= maxLonIndex && out.size() < maxSegments; lonIndex++) {
-            for (int latIndex = minLatIndex; latIndex <= maxLatIndex && out.size() < maxSegments; latIndex++) {
+        for (int lonIndex = minLonIndex; lonIndex <= maxLonIndex; lonIndex++) {
+            for (int latIndex = minLatIndex; latIndex <= maxLatIndex; latIndex++) {
                 readMicroCache(fileOffset, indexBytes, positions, lonDegree, latDegree,
-                        lonIndex, latIndex, bounds, maxSegments, out);
+                        lonIndex, latIndex, bounds, collector);
             }
         }
     }
@@ -143,8 +164,7 @@ final class BRouterRd5StreetReader {
             int lonIndex,
             int latIndex,
             @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
+            @NonNull BRouterStreetSegmentCollector collector
     ) throws IOException {
         int subIndex = (latIndex - divisor * latDegree) * divisor + (lonIndex - divisor * lonDegree);
         int start = subIndex == 0 ? indexBytes : positions[subIndex - 1];
@@ -153,11 +173,30 @@ final class BRouterRd5StreetReader {
         if (size <= 0) {
             return;
         }
+        readCell(fileOffset + start, size, lonIndex, latIndex, bounds, collector);
+    }
+
+    private void readCell(
+            long position, int size, int lonIndex, int latIndex,
+            BRouterSegmentBounds bounds, BRouterStreetSegmentCollector collector
+    ) throws IOException {
+        BRouterStreetReadCancellation.check();
+        String key = cacheRevision + ":" + position + ":" + size;
+        BRouterPackedStreetCell cached = decodedCache.get(key);
+        if (cached != null) {
+            cached.collect(bounds, collector);
+            return;
+        }
         byte[] data = new byte[size];
-        file.readFully(fileOffset + start, data, 0, data.length);
-        new BRouterRd5MicroCacheStreetDecoder(lonIndex, latIndex, divisor, bounds, maxSegments, out)
-                .decode(data);
+        file.readFully(position, data, 0, data.length);
         verifyChecksumIfNeeded(data);
+        BRouterPackedStreetCell.Builder packed = new BRouterPackedStreetCell.Builder(decodedCache.maxCellBytes());
+        new BRouterRd5MicroCacheStreetDecoder(lonIndex, latIndex, divisor, (points, type) -> {
+            collector.offer(points, type);
+            packed.offer(points, type);
+        }).decode(data);
+        BRouterStreetReadCancellation.check();
+        decodedCache.put(key, packed.build());
     }
 
     private static void verifyChecksumIfNeeded(@NonNull byte[] data) throws IOException {

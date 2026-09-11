@@ -5,8 +5,6 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
@@ -16,7 +14,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 public final class SurroundingStreetOverlayController {
     private static final int MAX_DISPLAY_STREET_SEGMENTS = 2_000;
-    private static final int MAX_LOAD_CHUNKS_PER_REQUEST = 64;
+    private static final int MAX_LOAD_CHUNKS_PER_REQUEST = 16;
 
     @NonNull
     private final SurroundingStreetOverlayRuntime runtime;
@@ -27,7 +25,7 @@ public final class SurroundingStreetOverlayController {
     @NonNull
     private final Runnable stateEmitter;
     @NonNull
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final SurroundingStreetLoadExecutor executor = new SurroundingStreetLoadExecutor();
     @NonNull
     private final SurroundingStreetRefreshPolicy refreshPolicy = new SurroundingStreetRefreshPolicy();
     @NonNull
@@ -78,6 +76,7 @@ public final class SurroundingStreetOverlayController {
     public void reset() {
         generation++;
         inFlight = false;
+        executor.cancel();
         overlayCache.clear();
         clearViewportState();
         lastAcceptedLocation = null;
@@ -136,14 +135,15 @@ public final class SurroundingStreetOverlayController {
     public void shutdown() {
         shutdown = true;
         generation++;
-        executor.shutdownNow();
+        executor.shutdown();
     }
 
     private void rebuildSelection() {
         if (!viewportActive || lastCompassState == null) {
             return;
         }
-        activeSelection = chunkPlanner.select(lastCompassState, lastAcceptedLocation);
+        activeSelection = chunkPlanner.selectDisplay(lastCompassState, lastAcceptedLocation);
+        overlayCache.setDisplayKeys(activeSelection.displayKeys);
         overlay = overlayCache.overlayFor(
                 activeSelection.displayKeys,
                 MAX_DISPLAY_STREET_SEGMENTS,
@@ -177,7 +177,7 @@ public final class SurroundingStreetOverlayController {
             return;
         }
         List<SurroundingStreetChunkKey> missing =
-                overlayCache.missing(activeSelection.prefetchKeys, MAX_LOAD_CHUNKS_PER_REQUEST);
+                overlayCache.missing(chunkPlanner.select(lastCompassState, location).prefetchKeys, MAX_LOAD_CHUNKS_PER_REQUEST);
         if (!missing.isEmpty()) {
             requestChunks(missing, nowElapsedMs, true);
         }
@@ -200,6 +200,9 @@ public final class SurroundingStreetOverlayController {
         inFlight = true;
         executor.execute(() -> {
             SurroundingStreetChunkLoadResult loaded = runtime.load(keys);
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
             resultScheduler.post(() -> applyChunks(
                     requestGeneration,
                     requestLocation,
@@ -234,6 +237,7 @@ public final class SurroundingStreetOverlayController {
     private void clearAll() {
         generation++;
         inFlight = false;
+        executor.cancel();
         overlayCache.clear();
         clearViewportState();
         lastRefreshLocation = null;
@@ -244,12 +248,16 @@ public final class SurroundingStreetOverlayController {
         viewportActive = false;
         lastSelectionCompassState = null;
         activeSelection = SurroundingStreetChunkSelection.EMPTY;
+        overlayCache.setDisplayKeys(activeSelection.displayKeys);
         overlay = CompassStreetOverlay.EMPTY;
         overlayCache.resetSpeedBucket();
     }
 
     private void clearViewportIfActive() {
         if (viewportActive) {
+            generation++;
+            inFlight = false;
+            executor.cancel();
             clearViewportState();
         }
     }

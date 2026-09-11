@@ -1,13 +1,11 @@
 package vibro.navigator.brouter;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.compass.CompassStreetType;
 
 // Adapted from BRouter btools.codec.MicroCache2 (MIT), emitting only forward geometry lines.
@@ -16,25 +14,18 @@ final class BRouterRd5MicroCacheStreetDecoder {
     private final int latBase;
     private final int cellSize;
     @NonNull
-    private final BRouterSegmentBounds bounds;
-    private final int maxSegments;
-    @NonNull
-    private final List<CompassStreetSegment> out;
+    private final BRouterStreetGeometrySink collector;
 
     BRouterRd5MicroCacheStreetDecoder(
             int lonIndex,
             int latIndex,
             int divisor,
-            @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
+            @NonNull BRouterStreetGeometrySink collector
     ) {
         cellSize = BRouterSegmentTile.MICRO_DEGREES / divisor;
         lonBase = lonIndex * cellSize;
         latBase = latIndex * cellSize;
-        this.bounds = bounds;
-        this.maxSegments = maxSegments;
-        this.out = out;
+        this.collector = collector;
     }
 
     void decode(@NonNull byte[] data) {
@@ -74,14 +65,15 @@ final class BRouterRd5MicroCacheStreetDecoder {
             @NonNull int[] lons,
             @NonNull int[] lats
     ) {
-        for (int nodeIndex = 0; nodeIndex < lons.length && out.size() < maxSegments; nodeIndex++) {
+        for (int nodeIndex = 0; nodeIndex < lons.length; nodeIndex++) {
+            BRouterStreetReadCancellation.check();
             int sourceLon = lons[nodeIndex];
             int sourceLat = lats[nodeIndex];
             skipNodeFeatures(context);
             nodeEleDiff.decodeSignedValue();
             nodeTagCoder.decodeTagValueSet();
             int linkCount = context.decodeNoisyNumber(1);
-            for (int linkIndex = 0; linkIndex < linkCount && out.size() < maxSegments; linkIndex++) {
+            for (int linkIndex = 0; linkIndex < linkCount; linkIndex++) {
                 decodeLink(
                         context,
                         wayTagCoder,
@@ -163,9 +155,7 @@ final class BRouterRd5MicroCacheStreetDecoder {
                 remainingLon,
                 remainingLat
         );
-        if (points.size() >= 2 && bounds.intersects(points)) {
-            out.add(new CompassStreetSegment(points, streetType));
-        }
+        collector.offer(points, streetType);
     }
 
     private void skipForwardGeometry(

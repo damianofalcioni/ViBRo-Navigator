@@ -3,6 +3,7 @@ package vibro.navigator.nav.streets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import androidx.annotation.NonNull;
 
@@ -106,6 +107,24 @@ public class SurroundingStreetOverlayControllerTest {
         assertTrue(chunkLoader.calls > 1);
     }
 
+    @Test
+    public void closingViewportInterruptsLoadAndReopeningCanLoadAgain() throws InterruptedException {
+        chunkLoader.block = true;
+        controller.onAcceptedLocation(location(48.2082d, 16.3738d));
+        controller.onCompassViewport(compassState());
+        assertTrue(chunkLoader.started.await(3, TimeUnit.SECONDS));
+
+        controller.clearCompassViewport();
+
+        assertTrue(chunkLoader.interrupted.await(3, TimeUnit.SECONDS));
+        assertTrue(controller.currentOverlay().isEmpty());
+        assertEquals(1, stateLatch.getCount());
+        chunkLoader.block = false;
+        controller.onCompassViewport(compassState());
+        assertStateEmitted();
+        assertFalse(controller.currentOverlay().isEmpty());
+    }
+
     private void assertStateEmitted() throws InterruptedException {
         if (!stateLatch.await(3, TimeUnit.SECONDS)) {
             throw new AssertionError("Street overlay state was not emitted");
@@ -197,17 +216,37 @@ public class SurroundingStreetOverlayControllerTest {
     private static final class CountingChunkLoader implements SurroundingStreetOverlayRuntime.ChunkLoader {
         private int calls;
         private CompassStreetType streetType = CompassStreetType.OTHER;
+        private volatile boolean block;
+        private final CountDownLatch started = new CountDownLatch(1);
+        private final CountDownLatch interrupted = new CountDownLatch(1);
 
         @NonNull
         @Override
         public SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
             SurroundingStreetChunkLoadResult result = new SurroundingStreetChunkLoadResult();
+            if (awaitCancellation()) {
+                return result;
+            }
             for (SurroundingStreetChunkKey key : keys) {
                 LatLon center = key.center();
                 calls++;
                 result.put(key, overlayFor(center));
             }
             return result;
+        }
+
+        private boolean awaitCancellation() {
+            if (!block) {
+                return false;
+            }
+            started.countDown();
+            try {
+                new CountDownLatch(1).await(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                interrupted.countDown();
+            }
+            return true;
         }
 
         @NonNull

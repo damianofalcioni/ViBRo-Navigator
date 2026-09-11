@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import java.util.List;
+import java.util.concurrent.CancellationException;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
@@ -12,7 +13,7 @@ import vibro.navigator.nav.compass.CompassStreetOverlay;
 
 final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRuntime.ChunkLoader {
     private static final String TAG = "SurroundingStreets";
-    private static final int MAX_STREET_SEGMENTS_PER_CHUNK = 450;
+    private static final int MAX_STREET_SEGMENTS_PER_CHUNK = 1_000;
 
     @NonNull
     private final Context appContext;
@@ -32,6 +33,9 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
     public SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
         SurroundingStreetChunkLoadResult result = new SurroundingStreetChunkLoadResult();
         for (SurroundingStreetChunkKey key : keys) {
+            if (Thread.currentThread().isInterrupted()) {
+                break;
+            }
             result.put(key, loadChunk(key));
         }
         return result;
@@ -48,6 +52,8 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
                     SurroundingStreetChunkKey.LOAD_RADIUS_METERS,
                     MAX_STREET_SEGMENTS_PER_CHUNK
             );
+        } catch (CancellationException e) {
+            throw e;
         } catch (RuntimeException e) {
             AppLogger.w(TAG, "Failed to load surrounding street chunk", e);
             return CompassStreetOverlay.EMPTY;

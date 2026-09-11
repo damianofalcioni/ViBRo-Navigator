@@ -39,6 +39,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     private List<Uri> discoveryTreeUris;
     @Nullable
     private List<String> discoveryDirectoryIds;
+    private final BRouterDecodedStreetCache decodedStreetCache = new BRouterDecodedStreetCache();
 
     public BRouterSegmentsRepository(@NonNull BRouterSegmentDependencies dependencies) {
         this.dependencies = dependencies;
@@ -123,8 +124,10 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
                 readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
                 return;
             }
-            new BRouterRd5StreetReader(readFile, fileName).read(bounds, maxSegments, out);
+            new BRouterRd5StreetReader(readFile, fileName, documentUri.toString(), decodedStreetCache)
+                    .read(bounds, maxSegments, out);
         } catch (IOException | RuntimeException e) {
+            BRouterStreetReadCancellation.check();
             AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
             readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
         }
@@ -177,9 +180,11 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             if (readFile == null) {
                 return false;
             }
-            new BRouterRd5StreetReader(readFile, fileName).read(bounds, maxSegments, out);
+            new BRouterRd5StreetReader(readFile, fileName, directoryId + "/" + fileName, decodedStreetCache)
+                    .read(bounds, maxSegments, out);
             return true;
         } catch (IOException | RuntimeException e) {
+            BRouterStreetReadCancellation.check();
             AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
             return false;
         }

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,17 @@ final class SurroundingStreetChunkPlanner {
         List<SurroundingStreetChunkKey> displayKeys = selectDisplayKeys(compassState, current);
         List<SurroundingStreetChunkKey> prefetchKeys = selectPrefetchKeys(compassState, current);
         return new SurroundingStreetChunkSelection(displayKeys, prefetchKeys);
+    }
+
+    @NonNull
+    SurroundingStreetChunkSelection selectDisplay(
+            @NonNull NavCompassState compassState,
+            @Nullable NavigationLocation location
+    ) {
+        LatLon current = currentPoint(location);
+        return current == null ? SurroundingStreetChunkSelection.EMPTY : new SurroundingStreetChunkSelection(
+                selectDisplayKeys(compassState, current), Collections.emptyList()
+        );
     }
 
     @NonNull

@@ -3,26 +3,24 @@ package vibro.navigator.nav.compass.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.android.theme.AndroidAppTheme;
-import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
-import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.compass.NavCompassState;
 
 final class NavigationCompassStreetRenderer {
     private static final float STREET_STROKE_WIDTH_DP = 1.2f;
     private static final int STREET_ALPHA = 180;
-    private static final float DRAW_PADDING_METERS = 24f;
 
     @NonNull
     private final Paint streetPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     @NonNull
-    private final NavigationRoutePathRenderer pathRenderer = new NavigationRoutePathRenderer();
+    private final NavigationStreetPathCache pathCache = new NavigationStreetPathCache();
     private boolean initialized;
 
     void draw(
@@ -38,13 +36,19 @@ final class NavigationCompassStreetRenderer {
                 || !state.displayMode.movingScaleActive
                 || state.streetOverlay.isEmpty()
                 || state.radiusState.visibleRadiusMeters <= 0f) {
+            pathCache.clear();
+            return;
+        }
+        if (!LatLon.isValidCoordinate(state.currentLatitude(), state.currentLongitude())) {
+            pathCache.clear();
             return;
         }
         ensureInitialized(context);
         float scale = routeRadius / state.radiusState.visibleRadiusMeters;
-        for (CompassStreetSegment segment : state.streetOverlay.segments) {
-            drawSegment(canvas, state, segment, cx, cy, scale, headingDegrees);
-        }
+        Path path = pathCache.pathFor(state.streetOverlay, state.currentLatitude(), state.currentLongitude(),
+                state.radiusState.visibleRadiusMeters, scale);
+        float boundsPixels = (state.radiusState.visibleRadiusMeters + NavigationStreetPathCache.DRAW_PADDING_METERS) * scale;
+        drawPath(canvas, path, cx, cy, boundsPixels, headingDegrees);
     }
 
     private void ensureInitialized(@NonNull Context context) {
@@ -60,44 +64,19 @@ final class NavigationCompassStreetRenderer {
         initialized = true;
     }
 
-    private void drawSegment(
-            @NonNull Canvas canvas,
-            @NonNull NavCompassState state,
-            @NonNull CompassStreetSegment segment,
-            float cx,
-            float cy,
-            float scale,
-            float headingDegrees
-    ) {
-        pathRenderer.drawProjectedRouteSegment(
-                canvas,
-                cx,
-                cy,
-                scale,
-                0,
-                segment.points.size(),
-                state.radiusState.visibleRadiusMeters,
-                DRAW_PADDING_METERS,
-                streetPaint,
-                (index, out) -> project(state, segment.points.get(index), headingDegrees, out)
-        );
-    }
-
-    private boolean project(
-            @NonNull NavCompassState state,
-            @NonNull LatLon point,
-            float headingDegrees,
-            @NonNull NavigationRoutePathRenderer.PlotPoint out
-    ) {
-        float eastMeters = (float) GeoMath.eastMeters(
-                state.currentLatitude(),
-                state.currentLongitude(),
-                point.lat,
-                point.lon
-        );
-        float northMeters = (float) GeoMath.northMeters(state.currentLatitude(), point.lat);
-        NavigationCompassRouteProjector.projectHeadingUp(eastMeters, northMeters, headingDegrees, out);
-        return true;
+    private void drawPath(Canvas canvas, Path path, float cx, float cy, float bounds, float heading) {
+        if (path.isEmpty()) {
+            return;
+        }
+        int saved = canvas.save();
+        try {
+            canvas.clipRect(cx - bounds, cy - bounds, cx + bounds, cy + bounds);
+            canvas.translate(cx, cy);
+            canvas.rotate(-heading);
+            canvas.drawPath(path, streetPaint);
+        } finally {
+            canvas.restoreToCount(saved);
+        }
     }
 
     Paint paintForTest(@NonNull Context context) {

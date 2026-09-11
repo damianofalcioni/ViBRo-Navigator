@@ -2,11 +2,13 @@ package vibro.navigator.nav.compass.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.TypedValue;
 
 import androidx.core.content.ContextCompat;
@@ -48,6 +50,49 @@ public class NavigationCompassStreetRendererTest {
 
         assertEquals(0, pathDrawCountAfterDraw(activity, renderer, compassState(false)));
         assertEquals(1, pathDrawCountAfterDraw(activity, renderer, compassState(true)));
+    }
+
+    @Test
+    public void headingChangesRotateOneCachedPathForAllStreets() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        NavigationCompassStreetRenderer renderer = new NavigationCompassStreetRenderer();
+        NavCompassState state = compassState(true).withStreetOverlay(new CompassStreetOverlay(
+                Collections.nCopies(1000, streetOverlay().segments.get(0))
+        ));
+        RecordingCanvas canvas = new RecordingCanvas();
+        renderer.draw(canvas, activity, state, 100f, 100f, 80f, 0f);
+        Path first = canvas.path;
+        assertEquals(1, canvas.draws);
+
+        renderer.draw(canvas, activity, state, 100f, 100f, 80f, 90f);
+
+        assertEquals(2, canvas.draws);
+        assertEquals(-90f, canvas.heading, 0f);
+        assertSame(first, canvas.path);
+        assertEquals(1.2f * activity.getResources().getDisplayMetrics().density, renderer.paintForTest(activity).getStrokeWidth(), 0.001f);
+    }
+
+    private static final class RecordingCanvas extends Canvas {
+        Path path;
+        int draws;
+        float heading;
+
+        RecordingCanvas() {
+            super(Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888));
+        }
+
+        @Override
+        public void rotate(float degrees) {
+            heading = degrees;
+            super.rotate(degrees);
+        }
+
+        @Override
+        public void drawPath(Path path, Paint paint) {
+            this.path = path;
+            draws++;
+            super.drawPath(path, paint);
+        }
     }
 
     private static int pathDrawCountAfterDraw(

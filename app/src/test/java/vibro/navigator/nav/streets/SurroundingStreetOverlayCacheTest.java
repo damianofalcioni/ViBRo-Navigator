@@ -3,6 +3,8 @@ package vibro.navigator.nav.streets;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertNotSame;
 
 import org.junit.Test;
 
@@ -17,6 +19,20 @@ import vibro.navigator.nav.policy.NavigationSpeedBucket;
 
 public class SurroundingStreetOverlayCacheTest {
     private final SurroundingStreetOverlayCache cache = new SurroundingStreetOverlayCache();
+
+    @Test
+    public void unchangedSelectionReusesOverlayAndUpdatedChunksInvalidateIt() {
+        SurroundingStreetChunkKey first = key(0d, 0d);
+        cache.put(first, overlay(segment(0d, 0d, 0.001d, 0d)));
+        CompassStreetOverlay original = cache.overlayFor(Collections.singletonList(first), 10);
+
+        assertSame(original, cache.overlayFor(Collections.singletonList(first), 10));
+
+        cache.put(first, overlay(segment(0d, 0d, 0.002d, 0d)));
+        assertNotSame(original, cache.overlayFor(Collections.singletonList(first), 10));
+        cache.clear();
+        assertTrue(cache.overlayFor(Collections.singletonList(first), 10).isEmpty());
+    }
 
     @Test
     public void missing_returnsOnlyUncachedKeysAndKeepsEmptyChunksCached() {
