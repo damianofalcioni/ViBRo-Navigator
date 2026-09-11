@@ -133,6 +133,38 @@ public class NavigationRouteRequestManagerTest {
     }
 
     @Test
+    public void speculativeDeviationRequestKeepsCalculationHiddenFromNavigationDisplay() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        NavigationRouteRequestSnapshot speculative = prepareSpeculative(manager, 10_000L);
+
+        assertNotNull(speculative);
+        assertTrue(manager.isRouteCalculationInProgress());
+        assertFalse(manager.isVisibleRouteCalculationInProgress());
+    }
+
+    @Test
+    public void confirmedDeviationRequestRemainsVisibleToNavigationDisplay() {
+        NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
+        manager.reset();
+
+        NavigationRouteRequestSnapshot confirmed = manager.prepare(
+                false,
+                10_000L,
+                navigationRequest(),
+                location(0.0, 0.0, 10_000L),
+                Collections.emptyList(),
+                null,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION
+        );
+
+        assertNotNull(confirmed);
+        assertTrue(manager.isRouteCalculationInProgress());
+        assertTrue(manager.isVisibleRouteCalculationInProgress());
+    }
+
+    @Test
     public void appliedDeferredSpeculativeRequestKeepsRerouteThrottle() {
         NavigationRouteRequestManager manager = new NavigationRouteRequestManager();
         manager.reset();

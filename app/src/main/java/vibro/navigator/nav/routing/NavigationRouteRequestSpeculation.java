@@ -36,6 +36,10 @@ final class NavigationRouteRequestSpeculation {
         }
     }
 
+    boolean isActiveRequestSpeculative() {
+        return activeRequestSpeculative;
+    }
+
     void onRequestCompleted() {
         activeRequestSpeculative = false;
         deferredThrottleActive = false;

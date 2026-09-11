@@ -36,6 +36,35 @@ public class NavigationBeelineRecoveryRequestsTest {
     }
 
     @Test
+    public void pendingSpeculativeDeviationKeepsCompassAndCurrentRouteVisible() {
+        NavigationSession session = session(Collections.emptyList());
+        GeoJsonRoute original = session.components.routeState.currentRoute();
+        NavigationRouteRequestSnapshot request = session.speculativeRoutes().prepareRequest(
+                true,
+                3_000,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION
+        );
+
+        assertNotNull(request);
+        assertTrue(request.speculative);
+        assertTrue(session.isRouteCalculationInProgress());
+        assertFalse(session.components.routeRequestManager.isVisibleRouteCalculationInProgress());
+
+        NavState display = NavigationSessionResourceAdapter.buildState(
+                session,
+                TestNavigationTextResources.metric(),
+                NavState.NO_DEADLINE,
+                4_000,
+                null,
+                null,
+                null
+        );
+
+        assertNotNull(display.routeStatus.compassState);
+        assertSame(original, session.components.routeState.currentRoute());
+    }
+
+    @Test
     public void usableResultReplacesBeelineAndPreservesAllRequestedStops() {
         NavigationSession session = session(Collections.singletonList(STOP));
         NavigationRouteRequestSnapshot request = prepare(session);

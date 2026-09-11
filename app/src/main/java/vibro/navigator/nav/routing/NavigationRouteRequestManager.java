@@ -70,7 +70,9 @@ public final class NavigationRouteRequestManager {
     }
 
     public boolean isVisibleRouteCalculationInProgress() {
-        return routeCalculationInProgress && activeRequestReason != NavigationRouteRecalculationReason.BEELINE_RECOVERY;
+        return routeCalculationInProgress
+                && !speculation.isActiveRequestSpeculative()
+                && activeRequestReason != NavigationRouteRecalculationReason.BEELINE_RECOVERY;
     }
 
     public boolean cancelActiveSpeculativeRequest() {
