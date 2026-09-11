@@ -105,7 +105,8 @@ you choose where files go and which apps receive shared files.
 ## Children
 
 ViBRo Navigator is a general navigation utility and is not designed specifically
-for children.
+for children. It is suitable for general family use and may be used by
+children.
 
 ## Changes
 
