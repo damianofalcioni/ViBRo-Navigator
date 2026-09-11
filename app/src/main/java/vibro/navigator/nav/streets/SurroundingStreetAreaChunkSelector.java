@@ -4,8 +4,8 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 import java.util.Set;
 
 import vibro.navigator.geo.LatLon;
@@ -23,45 +23,57 @@ final class SurroundingStreetAreaChunkSelector {
             return;
         }
         double selectionRadiusMeters = cacheRadiusMeters + SurroundingStreetChunkKey.LOAD_RADIUS_METERS;
-        List<KeyDistance> candidates = areaCandidates(center, selectionRadiusMeters);
-        Collections.sort(candidates, new Comparator<KeyDistance>() {
-            @Override
-            public int compare(KeyDistance left, KeyDistance right) {
-                return Double.compare(left.distanceMeters, right.distanceMeters);
-            }
-        });
-        addCandidates(candidates, keys, maxKeys);
+        int remaining = maxKeys - keys.size();
+        List<KeyDistance> selected = nearestCandidates(center, selectionRadiusMeters, keys, remaining);
+        Collections.sort(selected, (left, right) ->
+                Double.compare(left.distanceMeters, right.distanceMeters));
+        addCandidates(selected, keys, maxKeys);
     }
 
     @NonNull
-    private List<KeyDistance> areaCandidates(@NonNull LatLon center, double selectionRadiusMeters) {
+    private List<KeyDistance> nearestCandidates(
+            @NonNull LatLon center,
+            double selectionRadiusMeters,
+            @NonNull Set<SurroundingStreetChunkKey> keys,
+            int remaining
+    ) {
+        PriorityQueue<KeyDistance> nearest = new PriorityQueue<>(remaining, (left, right) ->
+                Double.compare(right.distanceMeters, left.distanceMeters));
         SurroundingStreetChunkKey centerKey = SurroundingStreetChunkKey.from(center);
         int latSpan = indexSpan(selectionRadiusMeters, METERS_PER_DEGREE);
         int lonSpan = indexSpan(selectionRadiusMeters, lonMetersPerDegree(center.lat));
-        List<KeyDistance> candidates = new ArrayList<>();
         for (int latOffset = -latSpan; latOffset <= latSpan; latOffset++) {
             for (int lonOffset = -lonSpan; lonOffset <= lonSpan; lonOffset++) {
-                addAreaCandidate(center, selectionRadiusMeters, centerKey, latOffset, lonOffset, candidates);
+                SurroundingStreetChunkKey key = SurroundingStreetChunkKey.fromIndexes(
+                        centerKey.latIndex() + latOffset,
+                        centerKey.lonIndex() + lonOffset
+                );
+                considerCandidate(center, selectionRadiusMeters, keys, key, remaining, nearest);
             }
         }
-        return candidates;
+        return new ArrayList<>(nearest);
     }
 
-    private void addAreaCandidate(
+    private void considerCandidate(
             @NonNull LatLon center,
             double selectionRadiusMeters,
-            @NonNull SurroundingStreetChunkKey centerKey,
-            int latOffset,
-            int lonOffset,
-            @NonNull List<KeyDistance> out
+            @NonNull Set<SurroundingStreetChunkKey> keys,
+            @NonNull SurroundingStreetChunkKey key,
+            int remaining,
+            @NonNull PriorityQueue<KeyDistance> nearest
     ) {
-        SurroundingStreetChunkKey key = SurroundingStreetChunkKey.fromIndexes(
-                centerKey.latIndex() + latOffset,
-                centerKey.lonIndex() + lonOffset
-        );
+        if (keys.contains(key)) {
+            return;
+        }
         double distanceMeters = key.distanceMetersTo(center);
-        if (distanceMeters <= selectionRadiusMeters) {
-            out.add(new KeyDistance(key, distanceMeters));
+        if (distanceMeters > selectionRadiusMeters) {
+            return;
+        }
+        if (nearest.size() < remaining) {
+            nearest.add(new KeyDistance(key, distanceMeters));
+        } else if (distanceMeters < nearest.peek().distanceMeters) {
+            nearest.poll();
+            nearest.add(new KeyDistance(key, distanceMeters));
         }
     }
 

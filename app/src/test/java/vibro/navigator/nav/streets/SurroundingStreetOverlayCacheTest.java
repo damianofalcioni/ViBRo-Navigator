@@ -62,6 +62,18 @@ public class SurroundingStreetOverlayCacheTest {
     }
 
     @Test
+    public void overlayFor_reusesSnapshotWhenSelectionOrderChanges() {
+        SurroundingStreetChunkKey first = key(0.0d, 0.0d);
+        SurroundingStreetChunkKey second = key(0.02d, 0.0d);
+        cache.put(first, overlay(segment(0.0d, 0.0d, 0.001d, 0.0d)));
+        cache.put(second, overlay(segment(0.02d, 0.0d, 0.021d, 0.0d)));
+
+        CompassStreetOverlay original = cache.overlayFor(Arrays.asList(first, second), 10);
+
+        assertSame(original, cache.overlayFor(Arrays.asList(second, first), 10));
+    }
+
+    @Test
     public void overlayFor_honorsDisplaySegmentLimit() {
         SurroundingStreetChunkKey first = key(0.0d, 0.0d);
         SurroundingStreetChunkKey second = key(0.02d, 0.0d);

@@ -31,6 +31,17 @@ public class BRouterDecodedStreetReaderTest {
     }
 
     @Test
+    public void neighboringQueryReusesMicrocacheIndexPositionsForSameRevision() throws IOException {
+        BRouterRd5MetadataCache metadata = new BRouterRd5MetadataCache();
+        read(cache, metadata, SOURCE, 360d, 1);
+        int indexReads = file.indexReads;
+
+        read(cache, metadata, SOURCE, 300d, 100);
+
+        assertEquals(indexReads, file.indexReads);
+    }
+
+    @Test
     public void replacementMapRevisionAndStorageSourceDoNotReuseOldCells() throws IOException {
         read(cache, SOURCE, 360d, 100);
         file.changeRevision(1L);
@@ -70,8 +81,18 @@ public class BRouterDecodedStreetReaderTest {
 
     private List<CompassStreetSegment> read(BRouterDecodedStreetCache cells, String source, double radius, int limit)
             throws IOException {
+        return read(cells, new BRouterRd5MetadataCache(), source, radius, limit);
+    }
+
+    private List<CompassStreetSegment> read(
+            BRouterDecodedStreetCache cells,
+            BRouterRd5MetadataCache metadata,
+            String source,
+            double radius,
+            int limit
+    ) throws IOException {
         List<CompassStreetSegment> out = new ArrayList<>();
-        new BRouterRd5StreetReader(file, "E15_N45.rd5", source, cells).read(
+        new BRouterRd5StreetReader(file, "E15_N45.rd5", source, cells, metadata).read(
                 BRouterSegmentBounds.around(48.18773346166013d, 16.38147556524725d, radius), limit, out
         );
         return out;

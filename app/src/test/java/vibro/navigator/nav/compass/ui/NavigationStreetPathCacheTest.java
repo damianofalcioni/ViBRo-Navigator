@@ -66,6 +66,20 @@ public class NavigationStreetPathCacheTest {
     }
 
     @Test
+    public void denseStreetGeometryIsReducedToVisiblePixelPrecision() {
+        NavigationStreetPathCache cache = new NavigationStreetPathCache();
+        java.util.ArrayList<LatLon> geoPoints = new java.util.ArrayList<>();
+        for (int i = 0; i <= 20; i++) {
+            geoPoints.add(new LatLon(i * 0.000001d, 0d));
+        }
+        CompassStreetOverlay streets = new CompassStreetOverlay(Collections.singletonList(
+                new CompassStreetSegment(geoPoints)
+        ));
+
+        assertTrue(points(cache.pathFor(streets, 0d, 0d, 100f, 1f)).size() < geoPoints.size());
+    }
+
+    @Test
     public void clearingCacheReleasesOldGeometry() {
         NavigationStreetPathCache cache = new NavigationStreetPathCache();
         CompassStreetOverlay streets = overlay(0d, 0.0005d);

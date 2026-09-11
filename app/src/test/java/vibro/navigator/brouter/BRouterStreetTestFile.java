@@ -19,6 +19,7 @@ final class BRouterStreetTestFile implements BRouterSegmentReadFile {
     private static final int INDEX_BYTES = 32 * 32 * 4;
     private final byte[] data;
     int cellReads;
+    int indexReads;
 
     BRouterStreetTestFile() {
         int dataEnd = HEADER_BYTES + INDEX_BYTES + SOUTH.length + NORTH.length;
@@ -49,6 +50,9 @@ final class BRouterStreetTestFile implements BRouterSegmentReadFile {
 
     @Override
     public void readFully(long position, byte[] buffer, int offset, int length) {
+        if (position == HEADER_BYTES && length == INDEX_BYTES) {
+            indexReads++;
+        }
         if (position >= HEADER_BYTES + INDEX_BYTES && position < data.length - 112) {
             cellReads++;
         }

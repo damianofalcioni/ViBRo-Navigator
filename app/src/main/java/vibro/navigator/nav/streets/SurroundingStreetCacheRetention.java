@@ -2,6 +2,7 @@ package vibro.navigator.nav.streets;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,16 +11,20 @@ import java.util.Set;
 final class SurroundingStreetCacheRetention {
     private static final int MAX_REMEMBERED_EVICTIONS = 256;
     private List<SurroundingStreetChunkKey> displayKeys = Collections.emptyList();
+    private Set<SurroundingStreetChunkKey> displayKeySet = Collections.emptySet();
     private final Set<SurroundingStreetChunkKey> budgetEvictions = new LinkedHashSet<>();
 
     void clear() {
         displayKeys = Collections.emptyList();
+        displayKeySet = Collections.emptySet();
         budgetEvictions.clear();
     }
 
     void setDisplayKeys(List<SurroundingStreetChunkKey> keys) {
-        if (!displayKeys.equals(keys)) {
+        Set<SurroundingStreetChunkKey> newKeySet = new HashSet<>(keys);
+        if (!displayKeySet.equals(newKeySet)) {
             displayKeys = new ArrayList<>(keys);
+            displayKeySet = newKeySet;
             budgetEvictions.clear();
         }
     }

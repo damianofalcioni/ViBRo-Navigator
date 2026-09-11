@@ -7,6 +7,7 @@ final class BRouterDecodedStreetCache {
     static final int MAX_BYTES = 4 * 1024 * 1024;
     private static final int MAX_CELLS = 8;
     private final LinkedHashMap<String, BRouterPackedStreetCell> cells = new LinkedHashMap<>(16, 0.75f, true);
+    private final BRouterRd5MetadataCache metadataCache = new BRouterRd5MetadataCache();
     private final int maxBytes;
     private int bytes;
 
@@ -20,6 +21,10 @@ final class BRouterDecodedStreetCache {
 
     int maxCellBytes() {
         return maxBytes;
+    }
+
+    BRouterRd5MetadataCache metadataCache() {
+        return metadataCache;
     }
 
     synchronized BRouterPackedStreetCell get(String key) {
