@@ -78,6 +78,32 @@ public final class NavigationRouteDeviationHandler {
         return Decision.requestRouteRecalculation(NavigationRerouteNotice.fromDecision(deviationDecision));
     }
 
+    @NonNull
+    public Decision evaluateOrHold(
+            @NonNull PolylineIndex.Match match,
+            double smoothedAccuracyMeters,
+            @NonNull NavigationRouteProgressTracker.DirectionAssessment directionOfProgress,
+            double expectedBearingDegrees,
+            @Nullable Double actualBearingDegrees,
+            long nowMs,
+            @Nullable NavigationLocation location,
+            boolean holdCurrentRoute
+    ) {
+        if (holdCurrentRoute) {
+            clearDeviationEvidence();
+            return Decision.keepCurrentRoute(false);
+        }
+        return evaluate(
+                match,
+                smoothedAccuracyMeters,
+                directionOfProgress,
+                expectedBearingDegrees,
+                actualBearingDegrees,
+                nowMs,
+                location
+        );
+    }
+
     private boolean supportsDeparture(RouteDeviationPolicy.Decision decision,
             @Nullable NavigationLocation location, long nowMs) {
         if (decision.reason != RouteDeviationPolicy.Reason.OFF_TRACK || location == null) {

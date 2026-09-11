@@ -172,7 +172,7 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @Test
-    public void brouterRouteStartApproachRefreshesWhenStartupFixSettlesAwayFromRequestedStart() {
+    public void brouterRouteStartApproachDoesNotRefreshWithoutConfirmedMovementAwayFromTarget() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -203,8 +203,73 @@ public class NavigationRouteStartApproachStateTest {
         );
 
         assertFalse(evaluation.shouldRecalculateRoute());
-        assertTrue(evaluation.shouldSpeculativelyRecalculateRoute());
+        assertFalse(evaluation.shouldSpeculativelyRecalculateRoute());
         assertEquals(NavigationRouteRecalculationReason.BEELINE_RECOVERY, evaluation.recalculationReason);
+    }
+
+    @Test
+    public void routeStartApproachUsesCurrentAccuracyWhenItOverlapsStreetThreshold() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                routeStartingAwayFromRequestedStart(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+        state.evaluateLocation(requestedStart, 1.4f, 3f, 90.0, 1_000L, 0L);
+
+        NavigationLocation overlappingFix = location(0.00027, 0.001, 2_000L, 40f);
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(
+                overlappingFix,
+                1.4f,
+                true,
+                40f,
+                90.0,
+                2_000L,
+                0L
+        );
+        NavState display = buildState(context, state, overlappingFix, 2_000L);
+
+        assertFalse(evaluation.shouldRecalculateRoute());
+        assertTrue(evaluation.isStableOnRouteSample());
+        assertFalse(display.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_beeline)
+        ));
+
+        NavigationRouteEvaluation stationaryFollowUp = state.evaluateLocation(
+                location(0.00027, 0.001, 12_000L, 3f),
+                0f,
+                true,
+                3f,
+                90.0,
+                12_000L,
+                0L
+        );
+        NavigationRouteEvaluation laterStationaryFollowUp = state.evaluateLocation(
+                location(0.00027, 0.001, 20_000L, 3f),
+                0f,
+                true,
+                3f,
+                90.0,
+                20_000L,
+                0L
+        );
+
+        assertFalse(stationaryFollowUp.shouldRecalculateRoute());
+        assertFalse(stationaryFollowUp.shouldSpeculativelyRecalculateRoute());
+        assertFalse(laterStationaryFollowUp.shouldRecalculateRoute());
+        assertFalse(laterStationaryFollowUp.shouldSpeculativelyRecalculateRoute());
     }
 
     @Test
@@ -387,11 +452,16 @@ public class NavigationRouteStartApproachStateTest {
 
     @NonNull
     private static NavigationLocation location(double lat, double lon, long timeMs) {
+        return location(lat, lon, timeMs, 3f);
+    }
+
+    @NonNull
+    private static NavigationLocation location(double lat, double lon, long timeMs, float accuracyMeters) {
         NavigationLocation location = new NavigationLocation("gps");
         location.setLatitude(lat);
         location.setLongitude(lon);
         location.setTime(timeMs);
-        location.setAccuracy(3f);
+        location.setAccuracy(accuracyMeters);
         return location;
     }
 }

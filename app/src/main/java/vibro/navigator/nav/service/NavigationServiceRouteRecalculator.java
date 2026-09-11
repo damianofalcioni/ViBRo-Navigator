@@ -88,7 +88,9 @@ final class NavigationServiceRouteRecalculator {
         if (snapshot == null) {
             return;
         }
-        stateEmitter.run();
+        if (reason != NavigationRouteRecalculationReason.BEELINE_RECOVERY) {
+            stateEmitter.run();
+        }
         runtimeProvider.runtime().requestRoute(snapshot);
     }
 

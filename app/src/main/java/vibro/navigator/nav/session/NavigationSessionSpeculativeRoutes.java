@@ -112,6 +112,11 @@ public final class NavigationSessionSpeculativeRoutes {
         return canceled || requestCanceled;
     }
 
+    /** Recovery requests are hidden background work until a road-backed result is accepted. */
+    public boolean isBackgroundRecoveryRequest(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        return recoveryRequests.isFor(snapshot);
+    }
+
     private boolean handleRecoveryResult(NavigationRouteRequestSnapshot snapshot, GeoJsonRoute route, long nowMs) {
         boolean usable = recoveryRequests.accepts(snapshot, route, nowMs);
         recoveryRequests.clear();

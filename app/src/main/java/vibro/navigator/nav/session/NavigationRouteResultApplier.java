@@ -61,11 +61,7 @@ final class NavigationRouteResultApplier {
                 accuracyMeters
         );
         GeoJsonRoute route = input.route;
-        directGuidanceState.applyRouteStartApproach(
-                approachPlan,
-                routeStartRequestLocation(input),
-                !input.snapshot.isRoundTrip()
-        );
+        directGuidanceState.applyRouteStartApproach(approachPlan, !input.snapshot.isRoundTrip());
         logRouteStartApproachIfNeeded(approachPlan);
         if (approachPlan.active) {
             routeHistory.startApproach(input.lastFiltered);
@@ -198,17 +194,6 @@ final class NavigationRouteResultApplier {
 
     private float accuracyOf(@Nullable NavigationLocation location) {
         return location != null && location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
-    }
-
-    @Nullable
-    private static NavigationLocation routeStartRequestLocation(@NonNull NavigationRouteResultInput input) {
-        if (input.lastFiltered == null) {
-            return null;
-        }
-        NavigationLocation requestLocation = new NavigationLocation(input.lastFiltered);
-        requestLocation.setLatitude(input.snapshot.start.lat);
-        requestLocation.setLongitude(input.snapshot.start.lon);
-        return requestLocation;
     }
 
     @Nullable

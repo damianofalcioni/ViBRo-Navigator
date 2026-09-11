@@ -30,13 +30,13 @@ public final class BeelineRecoveryTracker {
     }
 
     public boolean shouldRequest(LatLon target, NavigationLocation fix, boolean stationary,
-            long nowMs, boolean startupRefresh) {
+            long nowMs) {
         if (!hasUsableAccuracy(fix)) {
             resetEvidence();
             return false;
         }
         boolean diverging = observe(target, fix, stationary, nowMs);
-        return (startupRefresh || diverging) && canRetry(fix, nowMs);
+        return diverging && canRetry(fix, nowMs);
     }
 
     public void recordAttempt(NavigationLocation fix, long nowMs) {

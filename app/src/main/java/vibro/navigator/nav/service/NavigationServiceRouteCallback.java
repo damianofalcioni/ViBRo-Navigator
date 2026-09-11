@@ -115,9 +115,13 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         if (!navigationSession.isCurrentRouteRequest(snapshot)) {
             return;
         }
+        boolean backgroundRecovery = navigationSession.speculativeRoutes()
+                .isBackgroundRecoveryRequest(snapshot);
         if (navigationSession.speculativeRoutes().handleUnconfirmedRouteResult(snapshot, newRoute, beganAt,
                 clock.elapsedRealtimeMs())) {
-            stateEmitter.run();
+            if (!backgroundRecovery) {
+                stateEmitter.run();
+            }
             runQueuedRouteRecalculation("Re-running queued route recalculation after speculative request finished");
             return;
         }
@@ -129,8 +133,12 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Exception error
     ) {
+        boolean backgroundRecovery = navigationSession.speculativeRoutes()
+                .isBackgroundRecoveryRequest(snapshot);
         if (navigationSession.speculativeRoutes().ignoreUnconfirmedRouteFailure(snapshot, error)) {
-            stateEmitter.run();
+            if (!backgroundRecovery) {
+                stateEmitter.run();
+            }
             runQueuedRouteRecalculation("Retrying queued route recalculation after speculative request failed");
             return;
         }

@@ -15,20 +15,22 @@ final class NavigationRouteDirectGuidanceState {
     private final RouteStartApproachState routeStartApproachState = new RouteStartApproachState();
     @NonNull
     private final NavigationRouteBeelineState routeBeelineState = new NavigationRouteBeelineState();
+    private boolean routeStartApproachCompletionPending;
 
     void reset() {
         routeStartApproachState.reset();
         routeBeelineState.reset();
         recovery.reset();
+        routeStartApproachCompletionPending = false;
     }
 
     void applyRouteStartApproach(
             @NonNull RouteStartApproach.Plan plan,
-            @Nullable NavigationLocation requestLocation,
-            boolean allowStartupRefresh
+            boolean allowRecovery
     ) {
-        routeStartApproachState.apply(plan, requestLocation, allowStartupRefresh);
-        recovery.onRouteApplied(allowStartupRefresh);
+        routeStartApproachState.apply(plan);
+        routeStartApproachCompletionPending = false;
+        recovery.onRouteApplied(allowRecovery);
     }
 
     boolean isRouteStartApproachActive() {
@@ -42,16 +44,31 @@ final class NavigationRouteDirectGuidanceState {
         return routeStartApproachState.isReached(match, accuracyMeters);
     }
 
-    boolean shouldRefreshRouteStart(@NonNull NavigationLocation location) {
-        return routeStartApproachState.shouldRefreshRouteStart(location);
-    }
-
     void clearMotionEvidence() {
         recovery.clearEvidence();
     }
 
     void clearRouteStartApproach() {
+        if (!routeStartApproachState.isActive()) {
+            return;
+        }
         routeStartApproachState.reset();
+        routeStartApproachCompletionPending = true;
+        // Invalidate a recovery result that may already be in flight.  The
+        // route-start corridor has just been accepted, so it must not be
+        // allowed to replace the route after this transition.
+        recovery.clearEvidence();
+    }
+
+    boolean shouldHoldRouteDeviationWhileStationary(boolean likelyStationary) {
+        if (!routeStartApproachCompletionPending) {
+            return false;
+        }
+        if (!likelyStationary) {
+            routeStartApproachCompletionPending = false;
+            return false;
+        }
+        return true;
     }
 
     void onRouteApplied(@NonNull GeoJsonRoute route, @NonNull PolylineIndex polylineIndex) {

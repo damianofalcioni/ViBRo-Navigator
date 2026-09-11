@@ -64,12 +64,17 @@ final class NavigationRouteDirectGuidanceEvaluator {
         return directGuidanceState.isRouteBeelineActive();
     }
 
+    boolean shouldHoldRouteDeviationWhileStationary(boolean likelyStationary) {
+        return directGuidanceState.shouldHoldRouteDeviationWhileStationary(likelyStationary);
+    }
+
     @Nullable
     NavigationRouteEvaluation evaluateIfNeeded(
             @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match routeMatch,
             float speedMps,
             boolean likelyStationary,
+            float currentAccuracyMeters,
             float trustedAccuracyMeters,
             long nowMs,
             long fastChecksUntilMs,
@@ -80,6 +85,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 routeMatch,
                 speedMps,
                 likelyStationary,
+                currentAccuracyMeters,
                 trustedAccuracyMeters,
                 nowMs,
                 singleInstructionMode
@@ -104,6 +110,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
             @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
+            float currentAccuracyMeters,
             float trustedAccuracyMeters,
             long nowMs,
             boolean singleInstructionMode
@@ -111,7 +118,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         if (!directGuidanceState.isRouteStartApproachActive()) {
             return null;
         }
-        if (directGuidanceState.isRouteStartApproachReached(match, trustedAccuracyMeters)) {
+        if (directGuidanceState.isRouteStartApproachReached(match, currentAccuracyMeters)) {
             directGuidanceState.clearRouteStartApproach();
             geometryState.rememberSegment(match);
             routeHistory.recordProgress(match);
@@ -132,7 +139,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         }
         deviationHandler.clearDeviationEvidence();
         return directGuidanceState.recovery.evaluate(directGuidanceState.activeDirectTarget(),
-                filtered, likelyStationary, nowMs, directGuidanceState.shouldRefreshRouteStart(filtered));
+                filtered, likelyStationary, nowMs);
     }
 
     @Nullable
@@ -165,7 +172,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         deviationHandler.clearDeviationEvidence();
         if (completedMatch == null) {
             return directGuidanceState.recovery.evaluate(directGuidanceState.activeDirectTarget(),
-                    filtered, likelyStationary, nowMs, false);
+                    filtered, likelyStationary, nowMs);
         }
         rememberCompletedBeeline(completedMatch, nowMs);
         if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, completedMatch)) {

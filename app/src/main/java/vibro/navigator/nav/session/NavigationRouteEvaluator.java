@@ -136,6 +136,7 @@ final class NavigationRouteEvaluator {
                 match,
                 speedMps,
                 likelyStationary,
+                accuracyMeters,
                 trustedAccuracyMeters,
                 nowMs,
                 fastChecksUntilMs,
@@ -187,14 +188,15 @@ final class NavigationRouteEvaluator {
             );
         }
 
-        NavigationRouteDeviationHandler.Decision deviationDecision = deviationHandler.evaluate(
+        NavigationRouteDeviationHandler.Decision deviationDecision = deviationHandler.evaluateOrHold(
                 match,
                 smoothedAccuracyMeters,
                 directionOfProgress,
                 expectedBearingDegrees,
                 actualBearingDegrees,
                 nowMs,
-                filtered
+                filtered,
+                directGuidanceEvaluator.shouldHoldRouteDeviationWhileStationary(likelyStationary)
         );
         if (deviationDecision.shouldRecalculateRoute()) {
             return NavigationRouteEvaluation.requestRecalculation(

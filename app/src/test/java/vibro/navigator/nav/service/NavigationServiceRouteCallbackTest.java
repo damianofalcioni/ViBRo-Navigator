@@ -124,6 +124,43 @@ public class NavigationServiceRouteCallbackTest {
     }
 
     @Test
+    public void rejectedBackgroundBeelineRecoveryDoesNotEmitOrReplaceRoute() {
+        NavigationSession session = sessionWithActiveRouteStartApproach();
+        String originalGpx = session.buildCurrentRouteGpx(TEXT_RESOURCES);
+        NavigationRouteRequestSnapshot speculative = requireSnapshot(session.speculativeRoutes().prepareRequest(
+                false,
+                NOW_MS + 3_000L,
+                NavigationRouteRecalculationReason.BEELINE_RECOVERY
+        ));
+        CountingTurnEventDispatcher turnEvents = new CountingTurnEventDispatcher();
+        CountingFastLocationRequester fastLocationRequester = new CountingFastLocationRequester();
+        CountingRunnable stateEmitter = new CountingRunnable();
+        NavigationServiceRouteCallback callback = callback(
+                session,
+                turnEvents,
+                fastLocationRequester,
+                stateEmitter
+        );
+
+        callback.onRouteApplied(
+                speculative,
+                new GeoJsonRoute(
+                        Arrays.asList(new LatLon(0.0007, 0.0007), new LatLon(0.0, 0.003)),
+                        Collections.emptyList(),
+                        300.0,
+                        400.0
+                ),
+                NOW_MS + 3_000L
+        );
+
+        assertEquals(0, turnEvents.calls);
+        assertEquals(0, fastLocationRequester.calls);
+        assertEquals(0, stateEmitter.calls);
+        assertTrue(session.hasActiveRoute());
+        assertEquals(originalGpx, session.buildCurrentRouteGpx(TEXT_RESOURCES));
+    }
+
+    @Test
     public void onRouteFailure_ignoresStaleRouteFailureSideEffects() {
         NavigationSession session = sessionWithPreparedRouteRequest();
         NavigationRouteRequestSnapshot snapshot = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
@@ -204,8 +241,47 @@ public class NavigationServiceRouteCallbackTest {
                 stateEmitter,
                 pending -> {
                 },
-                () -> NOW_MS
+                () -> NOW_MS + 3_000L
         );
+    }
+
+    @NonNull
+    private static NavigationSession sessionWithActiveRouteStartApproach() {
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                "trekking",
+                "Destination",
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        ));
+        NavigationSessionResourceAdapter.start(session, TEXT_RESOURCES, NOW_MS);
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TEXT_RESOURCES,
+                routeModeLocation(0.0, 0.0, NOW_MS),
+                NOW_MS
+        );
+        NavigationRouteRequestSnapshot initial = requireSnapshot(session.prepareRouteRequest(true, NOW_MS));
+        NavigationSessionResourceAdapter.applyRouteResult(
+                session,
+                TEXT_RESOURCES,
+                initial,
+                new GeoJsonRoute(
+                        Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.003)),
+                        Collections.emptyList(),
+                        60.0,
+                        222.0
+                ),
+                NOW_MS,
+                NOW_MS
+        );
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TEXT_RESOURCES,
+                routeModeLocation(0.0, 0.0, NOW_MS + 1_000L),
+                NOW_MS + 1_000L
+        );
+        return session;
     }
 
     @NonNull

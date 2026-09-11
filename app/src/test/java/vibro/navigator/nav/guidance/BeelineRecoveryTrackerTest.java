@@ -52,7 +52,7 @@ public class BeelineRecoveryTrackerTest {
         BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
         observe(tracker, 100, 5, 1_000);
         observe(tracker, 135, 5, 4_000);
-        assertFalse(tracker.shouldRequest(TARGET, fix(135, 5), true, 7_000, false));
+        assertFalse(tracker.shouldRequest(TARGET, fix(135, 5), true, 7_000));
         assertFalse(observe(tracker, 135, 5, 10_000));
         assertFalse(observe(tracker, 200, 5, 25_000));
         tracker.resetEvidence();
@@ -61,16 +61,14 @@ public class BeelineRecoveryTrackerTest {
     }
 
     @Test
-    public void startupRefreshUsesTheSameAttemptThrottleEvenWhenStationary() {
+    public void stationaryFixDoesNotRequestRecovery() {
         BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
-        assertTrue(tracker.shouldRequest(TARGET, fix(100, 5), true, 1_000, true));
-        tracker.recordAttempt(fix(100, 5), 1_000);
-        assertFalse(tracker.shouldRequest(TARGET, fix(105, 5), true, 40_000, true));
-        assertTrue(tracker.shouldRequest(TARGET, fix(150, 5), true, 40_000, true));
+        assertFalse(tracker.shouldRequest(TARGET, fix(100, 5), true, 1_000));
+        assertFalse(tracker.shouldRequest(TARGET, fix(150, 5), true, 40_000));
     }
 
     private static boolean observe(BeelineRecoveryTracker tracker, double distance, float accuracy, long now) {
-        return tracker.shouldRequest(TARGET, fix(distance, accuracy), false, now, false);
+        return tracker.shouldRequest(TARGET, fix(distance, accuracy), false, now);
     }
 
     private static NavigationLocation fix(double distance, float accuracy) {
