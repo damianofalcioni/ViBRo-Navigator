@@ -131,7 +131,12 @@ final class NavigationRouteHistory {
         rerouteFixPath.startApproach(location);
     }
 
-    void startDirectLeg(NavigationLocation location, PolylineIndex.Match match, PolylineIndex.Match target) {
+    void startDirectLeg(
+            NavigationLocation location,
+            PolylineIndex.Match match,
+            PolylineIndex.Match target,
+            double reachedRadiusMeters
+    ) {
         if (target.alongTrackMeters != directLegEndMeters) {
             directLegEndMeters = target.alongTrackMeters;
             revision++;
@@ -139,8 +144,36 @@ final class NavigationRouteHistory {
         if (!rerouteFixPath.isActive()) {
             travelHistory.recordProgress(match);
             travelHistory.archiveActive();
-            startApproach(location);
+            departurePoint = null;
+            rerouteFixPath.startDirectLeg(
+                    location,
+                    travelHistory.progressPoint(),
+                    reachedRadiusMeters
+            );
         }
+    }
+
+    void skipDirectLegs(
+            PolylineIndex.Match travelledMatch,
+            PolylineIndex.Match completedTarget
+    ) {
+        directLegEndMeters = completedTarget.alongTrackMeters;
+        revision++;
+        travelHistory.recordProgress(travelledMatch);
+        travelHistory.archiveActive();
+        travelHistory.enterAt(completedTarget);
+        pendingMatch = completedTarget;
+    }
+
+    void startDirectLegFromCurrentFix(
+            NavigationLocation location,
+            PolylineIndex.Match target
+    ) {
+        directLegEndMeters = target.alongTrackMeters;
+        revision++;
+        travelHistory.archiveActive();
+        departurePoint = null;
+        rerouteFixPath.startDirectLegFromCurrentFix(location);
     }
 
     void initializeRouteStart(NavigationLocation location, PolylineIndex.Match match) {

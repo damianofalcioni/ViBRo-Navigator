@@ -111,7 +111,9 @@ final class NavigationRouteTravelHistory {
     @Nullable
     GeoJsonRoute remainingRoute(double minimumAlongMeters) {
         return activeRoute == null ? null : RouteSection.between(activeRoute,
-                Math.max(minimumAlongMeters, lastActiveMatch == null ? 0 : lastActiveMatch.alongTrackMeters),
+                Math.max(entryMeters,
+                        Math.max(minimumAlongMeters,
+                                lastActiveMatch == null ? 0 : lastActiveMatch.alongTrackMeters)),
                 activeIndex.totalLengthMeters());
     }
 

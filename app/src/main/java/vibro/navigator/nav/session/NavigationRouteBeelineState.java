@@ -144,14 +144,21 @@ final class NavigationRouteBeelineState {
             @NonNull NavigationLocation location,
             double reachedRadiusMeters
     ) {
-        if (distanceMeters(location, candidate.start) <= reachedRadiusMeters) {
-            return true;
-        }
         double startDistance = polylineIndex.distanceAtPointIndex(candidate.startTrackIndex);
         double targetDistance = polylineIndex.distanceAtPointIndex(candidate.targetTrackIndex);
-        return routeMatch.distanceToTrackMeters <= reachedRadiusMeters
-                && routeMatch.alongTrackMeters + reachedRadiusMeters >= startDistance
-                && routeMatch.alongTrackMeters <= targetDistance + reachedRadiusMeters;
+        boolean reachedIntermediateTarget = hasFollowingReturnLeg(candidate)
+                && distanceMeters(location, candidate.target) <= reachedRadiusMeters;
+        return (routeMatch.alongTrackMeters >= startDistance || reachedIntermediateTarget)
+                && (reachedIntermediateTarget
+                || distanceMeters(location, candidate.start) <= reachedRadiusMeters
+                || (routeMatch.distanceToTrackMeters <= reachedRadiusMeters
+                && routeMatch.alongTrackMeters <= targetDistance + reachedRadiusMeters));
+    }
+
+    private boolean hasFollowingReturnLeg(@NonNull Leg candidate) {
+        int followingIndex = nextLegIndex + 1;
+        return followingIndex < legs.size()
+                && legs.get(followingIndex).startTrackIndex == candidate.targetTrackIndex;
     }
 
     private void activateFollowingLeg(int completedTargetTrackIndex) {

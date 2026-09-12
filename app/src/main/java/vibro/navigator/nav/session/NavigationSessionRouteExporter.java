@@ -69,7 +69,7 @@ final class NavigationSessionRouteExporter {
         return NavigationRouteGpxExporter.export(
                 textResources,
                 route,
-                routeState.remainingIntermediateStops(request.stops),
+                request.stops,
                 new NavigationRouteGpxExportHistory(
                         history.passedRoutesSnapshot(),
                         history.recalculationBridgeSegmentsSnapshot(),

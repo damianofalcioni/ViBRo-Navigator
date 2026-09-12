@@ -155,6 +155,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
     ) {
         double reachedRadiusMeters =
                 NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(trustedAccuracyMeters);
+        boolean wasActive = directGuidanceState.isRouteBeelineActive();
         directGuidanceState.activateRouteBeelineIfReached(
                 routeMatch,
                 filtered,
@@ -163,9 +164,40 @@ final class NavigationRouteDirectGuidanceEvaluator {
         if (!directGuidanceState.isRouteBeelineActive()) {
             return null;
         }
-        routeHistory.startDirectLeg(filtered, directGuidanceState.activeRouteBeelineProgressMatch(),
-                directGuidanceState.activeRouteBeelineTargetMatch());
-        PolylineIndex.Match completedMatch = directGuidanceState.completeRouteBeelineIfReached(
+        PolylineIndex.Match routeBoundary =
+                directGuidanceState.activeRouteBeelineProgressMatch();
+        if (!wasActive) {
+            PolylineIndex.Match immediatelyCompleted = completeReachableBeelines(
+                    filtered,
+                    reachedRadiusMeters
+            );
+            if (immediatelyCompleted != null) {
+                rememberCompletedBeelineProgress(immediatelyCompleted, nowMs);
+                routeHistory.skipDirectLegs(
+                        travelledMatchBeforeDirectLeg(routeMatch, routeBoundary),
+                        immediatelyCompleted
+                );
+                startFollowingDirectLegFromCurrentFix(filtered);
+                deviationHandler.clearDeviationEvidence();
+                return evaluateAfterCompletedBeeline(
+                        immediatelyCompleted,
+                        filtered,
+                        speedMps,
+                        likelyStationary,
+                        trustedAccuracyMeters,
+                        nowMs,
+                        fastChecksUntilMs,
+                        singleInstructionMode
+                );
+            }
+        }
+        routeHistory.startDirectLeg(
+                filtered,
+                routeBoundary,
+                directGuidanceState.activeRouteBeelineTargetMatch(),
+                reachedRadiusMeters
+        );
+        PolylineIndex.Match completedMatch = completeReachableBeelines(
                 filtered,
                 reachedRadiusMeters
         );
@@ -175,6 +207,80 @@ final class NavigationRouteDirectGuidanceEvaluator {
                     filtered, likelyStationary, nowMs);
         }
         rememberCompletedBeeline(completedMatch, nowMs);
+        startFollowingDirectLeg(filtered, reachedRadiusMeters);
+        return evaluateAfterCompletedBeeline(
+                completedMatch,
+                filtered,
+                speedMps,
+                likelyStationary,
+                trustedAccuracyMeters,
+                nowMs,
+                fastChecksUntilMs,
+                singleInstructionMode
+        );
+    }
+
+    @Nullable
+    private PolylineIndex.Match completeReachableBeelines(
+            @NonNull NavigationLocation filtered,
+            double reachedRadiusMeters
+    ) {
+        PolylineIndex.Match completedMatch = null;
+        while (directGuidanceState.isRouteBeelineActive()) {
+            PolylineIndex.Match nextCompleted =
+                    directGuidanceState.completeRouteBeelineIfReached(
+                            filtered,
+                            reachedRadiusMeters
+                    );
+            if (nextCompleted == null) {
+                return completedMatch;
+            }
+            completedMatch = nextCompleted;
+        }
+        return completedMatch;
+    }
+
+    @NonNull
+    private static PolylineIndex.Match travelledMatchBeforeDirectLeg(
+            @NonNull PolylineIndex.Match routeMatch,
+            @NonNull PolylineIndex.Match routeBoundary
+    ) {
+        return routeMatch.alongTrackMeters <= routeBoundary.alongTrackMeters
+                ? routeMatch
+                : routeBoundary;
+    }
+
+    private void startFollowingDirectLegFromCurrentFix(
+            @NonNull NavigationLocation filtered
+    ) {
+        PolylineIndex.Match target = directGuidanceState.activeRouteBeelineTargetMatch();
+        if (target != null) {
+            routeHistory.startDirectLegFromCurrentFix(filtered, target);
+        }
+    }
+
+    private void startFollowingDirectLeg(
+            @NonNull NavigationLocation filtered,
+            double reachedRadiusMeters
+    ) {
+        PolylineIndex.Match progress = directGuidanceState.activeRouteBeelineProgressMatch();
+        PolylineIndex.Match target = directGuidanceState.activeRouteBeelineTargetMatch();
+        if (progress != null && target != null) {
+            routeHistory.startDirectLeg(filtered, progress, target, reachedRadiusMeters);
+        }
+    }
+
+    @NonNull
+    private NavigationRouteEvaluation evaluateAfterCompletedBeeline(
+            @NonNull PolylineIndex.Match completedMatch,
+            @NonNull NavigationLocation filtered,
+            float speedMps,
+            boolean likelyStationary,
+            float trustedAccuracyMeters,
+            long nowMs,
+            long fastChecksUntilMs,
+            boolean singleInstructionMode
+    ) {
         if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, completedMatch)) {
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
@@ -190,7 +296,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex),
                     DIRECT_GUIDANCE_INTERVAL_MS,
-                    true
+                    !directGuidanceState.isRouteBeelineActive()
             );
         }
         return keepCurrentRouteAfterCompletedBeeline(
@@ -203,9 +309,16 @@ final class NavigationRouteDirectGuidanceEvaluator {
     }
 
     private void rememberCompletedBeeline(@NonNull PolylineIndex.Match completedMatch, long nowMs) {
+        rememberCompletedBeelineProgress(completedMatch, nowMs);
+        routeHistory.recordProgress(completedMatch);
+    }
+
+    private void rememberCompletedBeelineProgress(
+            @NonNull PolylineIndex.Match completedMatch,
+            long nowMs
+    ) {
         geometryState.rememberSegment(completedMatch);
         progressTracker.rememberAlongTrackSample(completedMatch.alongTrackMeters, nowMs);
-        routeHistory.recordProgress(completedMatch);
     }
 
     @NonNull
@@ -230,7 +343,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         return NavigationRouteEvaluation.keepRoute(
                 progress.turnEvents,
                 progress.suggestedUpdateIntervalMs,
-                true
+                !directGuidanceState.isRouteBeelineActive()
         );
     }
 }

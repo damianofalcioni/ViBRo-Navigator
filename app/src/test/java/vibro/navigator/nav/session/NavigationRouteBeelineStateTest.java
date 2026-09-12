@@ -21,12 +21,92 @@ import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 public class NavigationRouteBeelineStateTest extends NavigationSessionRouteStateTestSupport {
     private static final LatLon STOP = new LatLon(0.001, 0.001);
     private static final LatLon DESTINATION_POINT = new LatLon(0.0, 0.003);
+
+    @Test
+    public void command16LegDoesNotActivateBeforeItsRouteStartWithinRadius() {
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        new LatLon(0.0, 0.002)
+                ),
+                Collections.singletonList(new VoiceHint(
+                        1,
+                        RouteStartApproach.BEELINE_COMMAND,
+                        0,
+                        111.0,
+                        0
+                )),
+                222.0,
+                60.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+        NavigationRouteBeelineState state = new NavigationRouteBeelineState();
+        state.onRouteApplied(route, index);
+
+        NavigationLocation beforeStart = location(0.0, 0.0009, 1_000L, 1f);
+        assertFalse(state.activateIfReached(
+                index.match(new LatLon(beforeStart.getLatitude(), beforeStart.getLongitude()), -1),
+                beforeStart,
+                20.0
+        ));
+
+        NavigationLocation atStart = location(0.0, 0.0011, 2_000L, 1f);
+        assertTrue(state.activateIfReached(
+                index.match(new LatLon(atStart.getLatitude(), atStart.getLongitude()), -1),
+                atStart,
+                20.0
+        ));
+    }
+
+    @Test
+    public void reachedShortIntermediateSpurDoesNotActivateInboundLegAfterPassingIt() {
+        LatLon routePoint = new LatLon(0.0, 0.001);
+        LatLon nearbyStop = new LatLon(0.00005, 0.001);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        routePoint,
+                        nearbyStop,
+                        routePoint,
+                        new LatLon(0.0, 0.002)
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, RouteStartApproach.BEELINE_COMMAND, 0, 6.0, 0),
+                        new VoiceHint(2, RouteStartApproach.BEELINE_COMMAND, 0, 6.0, 0)
+                ),
+                234.0,
+                120.0
+        );
+        PolylineIndex index = new PolylineIndex(route.track);
+        NavigationRouteBeelineState state = new NavigationRouteBeelineState();
+        state.onRouteApplied(route, index);
+
+        NavigationLocation reachedStopBeforeStart = location(0.0, 0.00095, 1_000L, 1f);
+        PolylineIndex.Match beforeStartMatch = index.match(
+                new LatLon(
+                        reachedStopBeforeStart.getLatitude(),
+                        reachedStopBeforeStart.getLongitude()
+                ),
+                -1
+        );
+        assertNotNull(beforeStartMatch);
+        assertTrue(beforeStartMatch.alongTrackMeters < index.distanceAtPointIndex(1));
+        assertTrue(state.activateIfReached(beforeStartMatch, reachedStopBeforeStart, 10.0));
+        assertNotNull(state.completeIfReached(reachedStopBeforeStart, 10.0));
+        assertTrue(state.isActive());
+
+        NavigationLocation continuedOnRoute = location(0.0, 0.00105, 2_000L, 1f);
+        assertNotNull(state.completeIfReached(continuedOnRoute, 10.0));
+        assertFalse(state.isActive());
+    }
 
     @Test
     public void intermediateBeelineAllowsAnyPathAndTargetsReturnLegAfterArrival() {

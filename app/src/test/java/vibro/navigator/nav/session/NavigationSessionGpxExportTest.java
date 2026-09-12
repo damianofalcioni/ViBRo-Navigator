@@ -162,6 +162,54 @@ public class NavigationSessionGpxExportTest {
         assertTrue(gpx.contains(FIRST_GPS_FIX_TIME));
     }
 
+    @Test
+    public void routeExportKeepsReachedIntermediateStopWaypoint() {
+        NavigationTextResources textResources = TestNavigationTextResources.metric();
+        NavigationSessionRouteState routeState = new NavigationSessionRouteState();
+        LatLon stop = new LatLon(0.0, 0.001);
+        LatLon destination = new LatLon(0.0, 0.002);
+        NavigationRequest request = new NavigationRequest(
+                "trekking",
+                DESTINATION,
+                destination,
+                Collections.singletonList(stop)
+        );
+        NavigationRouteRequestSnapshot snapshot = new NavigationRouteRequestSnapshot(
+                1,
+                1,
+                new LatLon(0.0, 0.0),
+                Collections.singletonList(stop),
+                destination,
+                "trekking",
+                null,
+                Collections.emptyList()
+        );
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(new LatLon(0.0, 0.0), stop, destination),
+                Collections.emptyList(),
+                60.0,
+                222.0
+        );
+        NavigationLocation start = locationWithSpeed(0.0, 0.0, 1_000L, 2f);
+        routeState.applyRouteResult(textResources, snapshot, route, start, 2f, 500L);
+        NavigationLocation reachedStop = locationWithSpeed(stop.lat, stop.lon, 4_000L, 2f);
+        routeState.evaluateLocation(reachedStop, 2f, 5f, 90.0, 4_000L, 0L);
+
+        assertTrue(routeState.remainingIntermediateStops(request.stops).isEmpty());
+        String gpx = NavigationSessionRouteExporter.export(
+                textResources,
+                routeState,
+                new StraightLineNavigationState(),
+                reachedStop,
+                Collections.emptyList(),
+                request
+        );
+
+        assertNotNull(gpx);
+        assertTrue(gpx.contains("<name>Stop 1</name>"));
+        assertTrue(gpx.contains(TYPE_STOP));
+    }
+
     @NonNull
     private static NavigationLocation locationWithSpeed(
             double lat,

@@ -3,6 +3,7 @@ package vibro.navigator.nav.session;
 import androidx.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
+import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
@@ -56,8 +57,37 @@ final class NavigationRerouteFixPath {
     }
 
     void startApproach(@Nullable NavigationLocation location) {
+        startPath(location, true);
+    }
+
+    void startDirectLeg(
+            @Nullable NavigationLocation location,
+            @Nullable LatLon routeBoundary,
+            double reachedRadiusMeters
+    ) {
+        boolean includeLastStableFix = lastStableRouteFix != null
+                && routeBoundary != null
+                && GeoMath.distanceMeters(
+                        lastStableRouteFix.getLatitude(),
+                        lastStableRouteFix.getLongitude(),
+                        routeBoundary.lat,
+                        routeBoundary.lon
+                ) <= reachedRadiusMeters;
+        startPath(location, includeLastStableFix);
+    }
+
+    void startDirectLegFromCurrentFix(@Nullable NavigationLocation location) {
+        startPath(location, false);
+    }
+
+    private void startPath(
+            @Nullable NavigationLocation location,
+            boolean includeLastStableFix
+    ) {
         if (!isActive() && location != null) {
-            seedStableFix();
+            if (includeLastStableFix) {
+                seedStableFix();
+            }
             activeFixes.add(location);
         }
         routeApplied = true;
