@@ -9,7 +9,9 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
@@ -69,6 +71,60 @@ public class SurroundingStreetCacheBudgetTest {
         cache.put(next, overlay);
         assertTrue(cache.contains(next));
         assertFalse(cache.contains(keys.get(0)));
+    }
+
+    @Test
+    public void reorderedDisplayKeysRefreshBudgetPriority() {
+        List<SurroundingStreetChunkKey> keys = keys(64);
+        CompassStreetOverlay overlay = denseOverlay(4);
+        cache.setDisplayKeys(keys);
+        for (int i = 0; i < 40; i++) {
+            cache.put(keys.get(i), overlay);
+        }
+
+        List<SurroundingStreetChunkKey> reordered = new ArrayList<>(keys);
+        Collections.reverse(reordered);
+        cache.setDisplayKeys(reordered);
+        for (SurroundingStreetChunkKey key : cache.missing(reordered, 64)) {
+            cache.put(key, overlay);
+        }
+
+        assertTrue(cache.contains(keys.get(63)));
+        assertTrue(cache.contains(keys.get(40)));
+        assertTrue(cache.contains(keys.get(24)));
+        assertFalse(cache.contains(keys.get(23)));
+        assertFalse(cache.contains(keys.get(0)));
+    }
+
+    @Test
+    public void reorderedDisplayKeysUpdateFarthestDisplayChunk() {
+        List<SurroundingStreetChunkKey> keys = keys(3);
+        SurroundingStreetCacheRetention retention = new SurroundingStreetCacheRetention();
+        Set<SurroundingStreetChunkKey> cached = new HashSet<>(keys);
+
+        retention.setDisplayKeys(keys);
+        assertEquals(keys.get(2), retention.evictionKey(cached));
+
+        List<SurroundingStreetChunkKey> reordered = Arrays.asList(
+                keys.get(2), keys.get(1), keys.get(0)
+        );
+        retention.setDisplayKeys(reordered);
+
+        assertEquals(keys.get(0), retention.evictionKey(cached));
+    }
+
+    @Test
+    public void reorderedDisplayKeysPreserveBudgetEvictionHistory() {
+        List<SurroundingStreetChunkKey> keys = keys(41);
+        load(keys, denseOverlay(4));
+        List<SurroundingStreetChunkKey> reordered = new ArrayList<>(keys);
+        Collections.reverse(reordered);
+
+        cache.setDisplayKeys(reordered);
+
+        assertFalse(cache.contains(keys.get(40)));
+        assertTrue(cache.missing(Collections.singletonList(keys.get(40)), 1).isEmpty());
+        assertTrue(cache.contains(keys.get(0)));
     }
 
     private void load(List<SurroundingStreetChunkKey> keys, CompassStreetOverlay overlay) {

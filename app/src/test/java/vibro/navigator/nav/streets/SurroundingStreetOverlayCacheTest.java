@@ -68,9 +68,31 @@ public class SurroundingStreetOverlayCacheTest {
         cache.put(first, overlay(segment(0.0d, 0.0d, 0.001d, 0.0d)));
         cache.put(second, overlay(segment(0.02d, 0.0d, 0.021d, 0.0d)));
 
+        cache.setDisplayKeys(Arrays.asList(first, second));
         CompassStreetOverlay original = cache.overlayFor(Arrays.asList(first, second), 10);
 
+        cache.setDisplayKeys(Arrays.asList(second, first));
         assertSame(original, cache.overlayFor(Arrays.asList(second, first), 10));
+    }
+
+    @Test
+    public void overlayFor_rebuildsWhenSelectedChunkSetChanges() {
+        SurroundingStreetChunkKey first = key(0.0d, 0.0d);
+        SurroundingStreetChunkKey second = key(0.02d, 0.0d);
+        SurroundingStreetChunkKey replacement = key(0.04d, 0.0d);
+        cache.put(first, overlay(segment(0.0d, 0.0d, 0.001d, 0.0d)));
+        cache.put(second, overlay(segment(0.02d, 0.0d, 0.021d, 0.0d)));
+
+        cache.setDisplayKeys(Arrays.asList(first, second));
+        CompassStreetOverlay original = cache.overlayFor(Arrays.asList(first, second), 10);
+
+        cache.setDisplayKeys(Arrays.asList(first, replacement));
+        CompassStreetOverlay changed = cache.overlayFor(Arrays.asList(first, replacement), 10);
+        assertNotSame(original, changed);
+        assertEquals(1, changed.segments.size());
+
+        cache.put(replacement, overlay(segment(0.04d, 0.0d, 0.041d, 0.0d)));
+        assertEquals(2, cache.overlayFor(Arrays.asList(first, replacement), 10).segments.size());
     }
 
     @Test

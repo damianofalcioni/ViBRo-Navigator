@@ -21,10 +21,14 @@ final class SurroundingStreetCacheRetention {
     }
 
     void setDisplayKeys(List<SurroundingStreetChunkKey> keys) {
-        Set<SurroundingStreetChunkKey> newKeySet = new HashSet<>(keys);
-        if (!displayKeySet.equals(newKeySet)) {
-            displayKeys = new ArrayList<>(keys);
-            displayKeySet = newKeySet;
+        if (displayKeys.equals(keys)) {
+            return;
+        }
+        boolean sameKeySet = displayKeySet.size() == keys.size()
+                && displayKeySet.containsAll(keys);
+        displayKeys = new ArrayList<>(keys);
+        if (!sameKeySet) {
+            displayKeySet = new HashSet<>(keys);
             budgetEvictions.clear();
         }
     }

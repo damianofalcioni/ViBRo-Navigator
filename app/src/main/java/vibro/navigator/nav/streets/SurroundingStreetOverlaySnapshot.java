@@ -16,7 +16,8 @@ final class SurroundingStreetOverlaySnapshot {
 
     CompassStreetOverlay find(Collection<SurroundingStreetChunkKey> requested, int maxSegments, NavigationSpeedBucket speed) {
         return keys != null
-                && keys.equals(new HashSet<>(requested))
+                && keys.size() == requested.size()
+                && keys.containsAll(requested)
                 && limit == maxSegments
                 && bucket == speed
                 ? overlay
