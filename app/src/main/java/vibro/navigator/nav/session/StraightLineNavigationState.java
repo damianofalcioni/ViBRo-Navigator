@@ -14,9 +14,6 @@ import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
-import vibro.navigator.nav.guidance.NavigationUpdateScheduler;
-import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
-import vibro.navigator.nav.guidance.StraightLineWrongDirectionDetector;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavPauseStatus;
@@ -30,9 +27,7 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 final class StraightLineNavigationState {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
 
-    private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
-    private final StraightLineWrongDirectionDetector wrongDirectionDetector =
-            new StraightLineWrongDirectionDetector();
+    private final StraightLineBeelineGuidance beelineGuidance = new StraightLineBeelineGuidance();
     private final CompassDisplayMemory compassMemory = new CompassDisplayMemory();
 
     private int nextStopIndex;
@@ -41,14 +36,14 @@ final class StraightLineNavigationState {
     void reset() {
         nextStopIndex = 0;
         destinationReached = false;
-        wrongDirectionDetector.reset();
+        beelineGuidance.reset();
         compassMemory.reset();
     }
 
     void onRequestStarted(@NonNull NavigationRequest request) {
         nextStopIndex = 0;
         destinationReached = request.destination == null;
-        wrongDirectionDetector.reset();
+        beelineGuidance.reset();
         compassMemory.reset();
     }
 
@@ -68,7 +63,7 @@ final class StraightLineNavigationState {
         }
         List<NavigationTurnEvent> turnEvents = advanceReachedStops(request, location, accuracyMeters);
         if (!turnEvents.isEmpty()) {
-            wrongDirectionDetector.reset();
+            beelineGuidance.reset();
         }
         if (nextStopIndex >= request.stops.size()
                 && StraightLineNavigationProgress.isWithinReachedRadius(
@@ -78,32 +73,24 @@ final class StraightLineNavigationState {
                 )) {
             destinationReached = true;
             turnEvents.addAll(NavigationArrivalTurnEvents.destinationArrival(nextStopIndex));
-            wrongDirectionDetector.reset();
+            beelineGuidance.reset();
             return keepDirectGuidance(turnEvents);
         }
         LatLon target = StraightLineNavigationProgress.nextTarget(request, false, nextStopIndex);
         if (target == null) {
             return keepDirectGuidance(turnEvents);
         }
-        double distanceToTargetMeters = StraightLineNavigationProgress.distanceMeters(location, target);
-        Double timeToTargetSeconds = StraightLineNavigationProgress.estimateSeconds(
-                distanceToTargetMeters,
+        return beelineGuidance.evaluate(
+                turnEvents,
+                target,
+                location,
                 speedMps,
-                likelyStationary
-        );
-        long suggestedUpdateIntervalMs = updateScheduler.suggestDirectTargetUpdateInterval(
-                nowMs,
-                fastChecksUntilMs,
-                timeToTargetSeconds
-        );
-        NavigationWrongDirectionNotice wrongDirectionNotice = wrongDirectionDetector.evaluate(
-                distanceToTargetMeters,
+                likelyStationary,
                 accuracyMeters,
-                speedMps,
-                targetBearingDegrees(location, target),
-                actualBearingDegrees
+                actualBearingDegrees,
+                nowMs,
+                fastChecksUntilMs
         );
-        return keepDirectGuidance(turnEvents, suggestedUpdateIntervalMs, wrongDirectionNotice);
     }
 
     @Nullable
@@ -188,6 +175,10 @@ final class StraightLineNavigationState {
         return nextStopIndex;
     }
 
+    void clearMotionEvidence() {
+        beelineGuidance.reset();
+    }
+
     @NonNull
     private List<NavigationTurnEvent> advanceReachedStops(
             @NonNull NavigationRequest request,
@@ -214,20 +205,10 @@ final class StraightLineNavigationState {
 
     @NonNull
     private static NavigationRouteEvaluation keepDirectGuidance(@NonNull List<NavigationTurnEvent> turnEvents) {
-        return keepDirectGuidance(turnEvents, NO_SUGGESTED_INTERVAL, null);
-    }
-
-    @NonNull
-    private static NavigationRouteEvaluation keepDirectGuidance(
-            @NonNull List<NavigationTurnEvent> turnEvents,
-            long suggestedUpdateIntervalMs,
-            @Nullable NavigationWrongDirectionNotice wrongDirectionNotice
-    ) {
         return NavigationRouteEvaluation.keepRoute(
                 turnEvents,
-                suggestedUpdateIntervalMs,
-                wrongDirectionNotice == null,
-                wrongDirectionNotice
+                NO_SUGGESTED_INTERVAL,
+                true
         );
     }
 
@@ -336,18 +317,6 @@ final class StraightLineNavigationState {
                         snapshot.textResources
                 ),
                 new NavPauseStatus(false)
-        );
-    }
-
-    private static double targetBearingDegrees(
-            @NonNull NavigationLocation location,
-            @NonNull LatLon target
-    ) {
-        return GeoMath.bearingDegrees(
-                location.getLatitude(),
-                location.getLongitude(),
-                target.lat,
-                target.lon
         );
     }
 

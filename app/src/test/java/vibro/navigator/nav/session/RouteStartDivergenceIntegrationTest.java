@@ -16,9 +16,13 @@ public class RouteStartDivergenceIntegrationTest {
     public void routeModeRequestsRecoveryAfterSustainedMovementAwayFromStart() {
         NavigationSessionRouteState state = startedState();
         assertFalse(evaluate(state, 0, 1_000).shouldSpeculativelyRecalculateRoute());
-        for (long now = 4_000; now < 16_000; now += 3_000) {
+        for (long now = 4_000; now < 13_000; now += 3_000) {
             assertFalse(evaluate(state, -0.002, now).shouldSpeculativelyRecalculateRoute());
         }
+        NavigationRouteEvaluation notification = evaluate(state, -0.002, 13_000);
+        assertEquals(1, notification.turnEvents.size());
+        assertEquals(16, notification.turnEvents.get(0).hint.command);
+        assertFalse(notification.shouldSpeculativelyRecalculateRoute());
         NavigationRouteEvaluation recovery = evaluate(state, -0.002, 16_000);
         assertFalse(recovery.shouldRecalculateRoute());
         assertTrue(recovery.shouldSpeculativelyRecalculateRoute());

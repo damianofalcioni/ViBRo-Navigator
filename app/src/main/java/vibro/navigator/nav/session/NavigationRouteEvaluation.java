@@ -164,9 +164,12 @@ public final class NavigationRouteEvaluation {
                 && recalculationReason == NavigationRouteRecalculationReason.ROUTE_DEVIATION;
     }
 
-    public static NavigationRouteEvaluation beelineRecovery(boolean request) {
+    public static NavigationRouteEvaluation beelineRecovery(
+            boolean request,
+            @NonNull List<NavigationTurnEvent> turnEvents
+    ) {
         return new NavigationRouteEvaluation(false, false, 3_000L,
-                NavigationRouteRecalculationReason.BEELINE_RECOVERY, null, null, null, Collections.emptyList(), request);
+                NavigationRouteRecalculationReason.BEELINE_RECOVERY, null, null, null, turnEvents, request);
     }
 
     public boolean shouldSpeculativelyRecalculateRoute() {

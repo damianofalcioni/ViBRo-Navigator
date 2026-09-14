@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.guidance.BeelineNotificationTracker;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
@@ -11,6 +12,7 @@ import vibro.navigator.nav.route.RouteStartApproach;
 
 final class NavigationRouteDirectGuidanceState {
     final NavigationBeelineRecoveryState recovery = new NavigationBeelineRecoveryState();
+    final BeelineNotificationTracker notifications = new BeelineNotificationTracker();
     @NonNull
     private final RouteStartApproachState routeStartApproachState = new RouteStartApproachState();
     @NonNull
@@ -21,6 +23,7 @@ final class NavigationRouteDirectGuidanceState {
         routeStartApproachState.reset();
         routeBeelineState.reset();
         recovery.reset();
+        notifications.reset();
         routeStartApproachCompletionPending = false;
     }
 
@@ -31,6 +34,7 @@ final class NavigationRouteDirectGuidanceState {
         routeStartApproachState.apply(plan);
         routeStartApproachCompletionPending = false;
         recovery.onRouteApplied(allowRecovery);
+        notifications.reset();
     }
 
     boolean isRouteStartApproachActive() {
@@ -46,6 +50,7 @@ final class NavigationRouteDirectGuidanceState {
 
     void clearMotionEvidence() {
         recovery.clearEvidence();
+        notifications.reset();
     }
 
     void clearRouteStartApproach() {

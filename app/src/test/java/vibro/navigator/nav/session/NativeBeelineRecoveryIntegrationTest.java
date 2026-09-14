@@ -36,8 +36,30 @@ public class NativeBeelineRecoveryIntegrationTest {
         NavigationSessionRouteState state = state(false, NavigationRoutingMode.ROUND_TRIP);
         for (int step = 0; step <= 20; step++) {
             NavigationRouteEvaluation evaluation = evaluate(state, step);
+            if (step == 4) {
+                assertEquals(1, evaluation.turnEvents.size());
+                assertEquals(16, evaluation.turnEvents.get(0).hint.command);
+            }
             assertFalse(evaluation.shouldSpeculativelyRecalculateRoute());
             assertFalse(evaluation.shouldRecalculateRoute());
+        }
+    }
+
+    @Test
+    public void intermediateAndFinalBeelinesRepeatTheDistanceNotification() {
+        for (boolean intermediate : new boolean[] {true, false}) {
+            NavigationSessionRouteState state = state(intermediate, NavigationRoutingMode.BROUTER);
+            evaluate(state, 0);
+            NavigationRouteEvaluation notification = null;
+            for (int step = 1; step <= 4; step++) {
+                notification = evaluate(state, step);
+            }
+
+            assertNotNull(notification);
+            assertEquals(1, notification.turnEvents.size());
+            assertEquals(16, notification.turnEvents.get(0).hint.command);
+            assertTrue(notification.turnEvents.get(0).distanceMeters > 111.0);
+            assertTrue(notification.turnEvents.get(0).timeSeconds > 0.0);
         }
     }
 

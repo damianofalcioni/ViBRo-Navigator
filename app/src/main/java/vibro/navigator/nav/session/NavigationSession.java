@@ -59,6 +59,7 @@ public final class NavigationSession {
         }
         paused = true;
         components.routeState.clearMotionEvidence();
+        components.straightLineState.clearMotionEvidence();
         return true;
     }
 

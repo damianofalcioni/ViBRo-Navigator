@@ -37,13 +37,12 @@ final class NavigationBeelineRecoveryState {
         }
     }
 
-    NavigationRouteEvaluation evaluate(LatLon activeTarget, NavigationLocation fix,
+    boolean shouldRequest(LatLon activeTarget, NavigationLocation fix,
             boolean stationary, long nowMs) {
         setTarget(activeTarget);
         lastObservationMs = nowMs;
-        boolean request = enabled && target != null
+        return enabled && target != null
                 && tracker.shouldRequest(target, fix, stationary, nowMs);
-        return NavigationRouteEvaluation.beelineRecovery(request);
     }
 
     long context() {

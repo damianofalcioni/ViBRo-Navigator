@@ -487,7 +487,7 @@ public class NavigationSessionTest {
     }
 
     @Test
-    public void straightLineModeUsesTargetDistanceForUpdateIntervalsAfterWarmup() {
+    public void straightLineModeCapsTargetPollingAtBeelineNotificationIntervalAfterWarmup() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -512,7 +512,44 @@ public class NavigationSessionTest {
         }
 
         assertNotNull(result);
-        assertEquals(60_000L, result.getSuggestedUpdateIntervalMs());
+        assertEquals(10_000L, result.getSuggestedUpdateIntervalMs());
+    }
+
+    @Test
+    public void straightLineModeRepeatsBeelineNotificationAfterDistanceGrowth() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.01),
+                Collections.emptyList()
+        ));
+        long nowMs = 1_000L;
+
+        assertTrue(NavigationSessionResourceAdapter.start(session, context, nowMs));
+        NavigationLocationUpdateResult baseline = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                nowMs
+        );
+        NavigationLocationUpdateResult notification = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, -0.001, nowMs + 10_000L, 2f),
+                nowMs + 10_000L,
+                10_000L,
+                false
+        );
+
+        assertTrue(baseline.turnEvents.isEmpty());
+        assertFalse(notification.shouldRecalculateRoute());
+        assertEquals(1, notification.turnEvents.size());
+        assertEquals(16, notification.turnEvents.get(0).hint.command);
+        assertTrue(notification.turnEvents.get(0).distanceMeters > 1_000.0);
+        assertTrue(notification.turnEvents.get(0).timeSeconds > 0.0);
     }
 
     @Test

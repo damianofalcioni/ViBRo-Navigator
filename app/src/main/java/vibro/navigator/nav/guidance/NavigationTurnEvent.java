@@ -2,6 +2,7 @@ package vibro.navigator.nav.guidance;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 public final class NavigationTurnEvent {
@@ -38,5 +39,11 @@ public final class NavigationTurnEvent {
     @NonNull
     public static NavigationTurnEvent initial(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
         return new NavigationTurnEvent(Type.INITIAL, hint, distanceMeters, timeSeconds);
+    }
+
+    @NonNull
+    public static NavigationTurnEvent beeline(double distanceMeters, double timeSeconds) {
+        VoiceHint hint = new VoiceHint(0, RouteStartApproach.BEELINE_COMMAND, 0, 0.0, 0);
+        return imminent(hint, distanceMeters, timeSeconds);
     }
 }

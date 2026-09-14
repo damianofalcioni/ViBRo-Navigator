@@ -3,13 +3,17 @@ package vibro.navigator.nav.session;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.Collections;
+
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.NavigationRouteDeviationHandler;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
+import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.RouteStartApproach;
 
 final class NavigationRouteDirectGuidanceEvaluator {
     private static final long NO_SUGGESTED_INTERVAL = -1L;
@@ -138,8 +142,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
             );
         }
         deviationHandler.clearDeviationEvidence();
-        return directGuidanceState.recovery.evaluate(directGuidanceState.activeDirectTarget(),
-                filtered, likelyStationary, nowMs);
+        return evaluateActiveBeeline(filtered, speedMps, likelyStationary, nowMs);
     }
 
     @Nullable
@@ -203,8 +206,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         );
         deviationHandler.clearDeviationEvidence();
         if (completedMatch == null) {
-            return directGuidanceState.recovery.evaluate(directGuidanceState.activeDirectTarget(),
-                    filtered, likelyStationary, nowMs);
+            return evaluateActiveBeeline(filtered, speedMps, likelyStationary, nowMs);
         }
         rememberCompletedBeeline(completedMatch, nowMs);
         startFollowingDirectLeg(filtered, reachedRadiusMeters);
@@ -217,6 +219,48 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode
+        );
+    }
+
+    @NonNull
+    private NavigationRouteEvaluation evaluateActiveBeeline(
+            @NonNull NavigationLocation filtered,
+            float speedMps,
+            boolean likelyStationary,
+            long nowMs
+    ) {
+        LatLon target = directGuidanceState.activeDirectTarget();
+        boolean requestRecovery = directGuidanceState.recovery.shouldRequest(
+                target,
+                filtered,
+                likelyStationary,
+                nowMs
+        );
+        if (target == null) {
+            return NavigationRouteEvaluation.beelineRecovery(
+                    requestRecovery,
+                    Collections.emptyList()
+            );
+        }
+        double distanceMeters = RouteStartApproach.distanceMeters(
+                new LatLon(filtered.getLatitude(), filtered.getLongitude()),
+                target
+        );
+        if (!directGuidanceState.notifications.shouldNotify(target, distanceMeters, nowMs)) {
+            return NavigationRouteEvaluation.beelineRecovery(
+                    requestRecovery,
+                    Collections.emptyList()
+            );
+        }
+        double timeSeconds = RouteStartApproach.estimateApproachTimeSeconds(
+                distanceMeters,
+                speedMps,
+                likelyStationary
+        );
+        NavigationTurnEvent event = NavigationTurnEvent.beeline(distanceMeters, timeSeconds);
+        return NavigationRouteEvaluation.beelineRecovery(
+                requestRecovery,
+                Collections.singletonList(event)
         );
     }
 
