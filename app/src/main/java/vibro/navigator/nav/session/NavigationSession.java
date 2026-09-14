@@ -5,7 +5,6 @@ import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
-import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -123,7 +122,7 @@ public final class NavigationSession {
     }
 
     public boolean canAddBlockedWaypoint() {
-        return started && !currentRequest.isStraightLine() && !currentRequest.isRoundTrip();
+        return components.blockedRoadAction.isAvailable(started, paused, currentRequest);
     }
 
     @Nullable
@@ -172,10 +171,14 @@ public final class NavigationSession {
     }
 
     @NonNull
-    public List<NogoPoint> addBlockedPointsAhead(long nowMs) {
-        return components.routeState.addBlockedPointsAhead(
+    public NavigationBlockedRoadActionResult performBlockedRoadAction(long nowMs) {
+        return components.blockedRoadAction.perform(
+                started,
+                paused,
+                currentRequest,
                 components.locationState.getLastFilteredLocation(),
-                nowMs
+                nowMs,
+                () -> speculativeRoutes.cancelRecalculation()
         );
     }
 

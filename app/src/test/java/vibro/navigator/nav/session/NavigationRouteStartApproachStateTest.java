@@ -94,6 +94,37 @@ public class NavigationRouteStartApproachStateTest {
     }
 
     @Test
+    public void blockedRoadActionSkipsRouteStartApproachToNextInstruction() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Collections.emptyList()
+        );
+        NavigationLocation requestedStart = location(0.0, 0.0, 1_000L);
+        state.applyRouteResult(
+                context,
+                snapshot(request, new LatLon(0.0, 0.0)),
+                routeStartingAwayFromRequestedStart(),
+                requestedStart,
+                1.4f,
+                500L
+        );
+
+        assertTrue(state.performBlockedRoadAction(requestedStart, 1_500L).isTargetSkipped());
+        NavState skippedState = buildState(context, state, requestedStart, 1_500L);
+        assertFalse(skippedState.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_beeline)
+        ));
+        assertTrue(skippedState.routeStatus.guidance.nextLine.contains(
+                context.getString(R.string.direction_turn_left)
+        ));
+        assertNull(skippedState.routeStatus.compassState.routeStartApproachProjection);
+    }
+
+    @Test
     public void brouterRouteStartApproachClearsWhenUserJoinsLaterRouteSegment() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

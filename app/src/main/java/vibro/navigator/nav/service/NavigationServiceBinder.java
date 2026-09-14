@@ -4,6 +4,7 @@ package vibro.navigator.nav.service;
 import vibro.navigator.nav.location.NavigationLocationFormatter;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.session.NavigationBlockedRoadActionResult;
 import android.os.Binder;
 
 import androidx.annotation.NonNull;
@@ -45,10 +46,10 @@ public final class NavigationServiceBinder extends Binder {
         @Nullable
         NavigationLocation getLastFilteredLocation();
 
-        @NonNull
-        List<NogoPoint> addBlockedPointsAhead();
-
         boolean canAddBlockedWaypoint();
+
+        @NonNull
+        NavigationBlockedRoadActionResult performBlockedRoadAction();
 
         @NonNull
         String getString(int resId);
@@ -118,16 +119,22 @@ public final class NavigationServiceBinder extends Binder {
             AppLogger.w(TAG, "Blocked waypoint requested while navigation is paused");
             return;
         }
+        NavigationBlockedRoadActionResult result = host.performBlockedRoadAction();
+        if (result.isTargetSkipped()) {
+            AppLogger.i(TAG, "Active beeline target skipped through blocked-road action");
+            host.emitState();
+            return;
+        }
         NavigationLocation currentLocation = host.getLastFilteredLocation();
         if (currentLocation == null) {
             AppLogger.w(TAG, "Blocked waypoint requested without a current filtered NavigationLocation");
             return;
         }
-        List<NogoPoint> added = host.addBlockedPointsAhead();
-        if (added.isEmpty()) {
+        if (!result.hasBlockedPoints()) {
             AppLogger.w(TAG, "Blocked-road reroute ignored because no route point ahead could be matched");
             return;
         }
+        List<NogoPoint> added = result.addedBlockedPoints;
         AppLogger.i(TAG, "Blocked-road points added added=" + formatNogoPoints(added)
                 + " location=" + NavigationLocationFormatter.format(currentLocation));
         host.requestBlockedRoadRouteRecalculation(host.getString(R.string.nav_route_notice_blocked_road_recalculating));

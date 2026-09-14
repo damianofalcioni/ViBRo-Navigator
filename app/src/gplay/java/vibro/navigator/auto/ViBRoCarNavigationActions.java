@@ -48,15 +48,11 @@ final class ViBRoCarNavigationActions {
         if (!binder.canAddBlockedWaypoint()) {
             AppLogger.w(
                     ViBRoCarNavigationController.TAG,
-                    "Blocked-road requested while blocked-road rerouting is unavailable"
+                    "Blocked-road requested while its current action is unavailable"
             );
             return;
         }
         binder.addBlockedWaypoint();
-        NavState state = host.currentState();
-        if (state != null) {
-            host.updateCurrentState(NavStateComposer.withBlockedRoadActionAvailable(state, false));
-        }
     }
 
     void togglePaused() {

@@ -18,6 +18,7 @@ final class NavigationRouteDirectGuidanceState {
     @NonNull
     private final NavigationRouteBeelineState routeBeelineState = new NavigationRouteBeelineState();
     private boolean routeStartApproachCompletionPending;
+    private boolean destinationManuallySkipped;
 
     void reset() {
         routeStartApproachState.reset();
@@ -25,6 +26,7 @@ final class NavigationRouteDirectGuidanceState {
         recovery.reset();
         notifications.reset();
         routeStartApproachCompletionPending = false;
+        destinationManuallySkipped = false;
     }
 
     void applyRouteStartApproach(
@@ -33,6 +35,7 @@ final class NavigationRouteDirectGuidanceState {
     ) {
         routeStartApproachState.apply(plan);
         routeStartApproachCompletionPending = false;
+        destinationManuallySkipped = false;
         recovery.onRouteApplied(allowRecovery);
         notifications.reset();
     }
@@ -63,6 +66,17 @@ final class NavigationRouteDirectGuidanceState {
         // route-start corridor has just been accepted, so it must not be
         // allowed to replace the route after this transition.
         recovery.clearEvidence();
+    }
+
+    boolean skipRouteStartApproach() {
+        if (!routeStartApproachState.isActive()) {
+            return false;
+        }
+        routeStartApproachState.reset();
+        routeStartApproachCompletionPending = false;
+        recovery.clearEvidence();
+        notifications.reset();
+        return true;
     }
 
     boolean shouldHoldRouteDeviationWhileStationary(boolean likelyStationary) {
@@ -98,6 +112,21 @@ final class NavigationRouteDirectGuidanceState {
             double reachedRadiusMeters
     ) {
         return routeBeelineState.completeIfReached(location, reachedRadiusMeters);
+    }
+
+    @Nullable
+    PolylineIndex.Match skipActiveRouteBeelineTarget(@Nullable NavigationLocation location) {
+        return location == null
+                ? null
+                : routeBeelineState.completeIfReached(location, Double.POSITIVE_INFINITY);
+    }
+
+    boolean isDestinationManuallySkipped() {
+        return destinationManuallySkipped;
+    }
+
+    void markDestinationManuallySkipped() {
+        destinationManuallySkipped = true;
     }
 
     @NonNull

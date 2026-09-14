@@ -19,6 +19,8 @@ final class NavigationRouteDirectGuidance {
             new NavigationRouteDirectGuidanceState();
     @NonNull
     private final NavigationRouteDirectGuidanceEvaluator evaluator;
+    @NonNull
+    private final NavigationBeelineTargetSkipper targetSkipper;
 
     NavigationRouteDirectGuidance(
             @NonNull NavigationRouteGeometryState geometryState,
@@ -36,6 +38,15 @@ final class NavigationRouteDirectGuidance {
                 progressTracker,
                 deviationHandler,
                 arrivalDetector,
+                intermediateArrivalTracker,
+                state,
+                routeHistory
+        );
+        targetSkipper = new NavigationBeelineTargetSkipper(
+                geometryState,
+                turnState,
+                progressTracker,
+                deviationHandler,
                 intermediateArrivalTracker,
                 state,
                 routeHistory
@@ -59,6 +70,10 @@ final class NavigationRouteDirectGuidance {
     @Nullable
     LatLon activeTarget() {
         return state.activeDirectTarget();
+    }
+
+    boolean skipActiveTarget(@Nullable NavigationLocation location, long nowMs) {
+        return targetSkipper.skipActiveTarget(location, nowMs);
     }
 
     @Nullable

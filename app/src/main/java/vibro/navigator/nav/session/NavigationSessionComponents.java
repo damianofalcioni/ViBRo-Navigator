@@ -14,6 +14,9 @@ final class NavigationSessionComponents {
     @NonNull
     final StraightLineNavigationState straightLineState = new StraightLineNavigationState();
     @NonNull
+    final NavigationBlockedRoadAction blockedRoadAction =
+            new NavigationBlockedRoadAction(routeState, straightLineState);
+    @NonNull
     final NavigationWarmupController warmupController = new NavigationWarmupController();
     @NonNull
     final NavigationRouteRequestManager routeRequestManager = new NavigationRouteRequestManager();

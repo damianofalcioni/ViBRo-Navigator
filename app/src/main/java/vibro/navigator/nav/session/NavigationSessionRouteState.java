@@ -3,15 +3,14 @@ package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.geo.LatLon;
-import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.NogoPoint;
-import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
@@ -42,6 +41,10 @@ public final class NavigationSessionRouteState {
 
     public boolean hasActiveRoute() {
         return components.geometryState.hasActiveRoute();
+    }
+
+    boolean isDestinationReached() {
+        return components.turnState.isDestinationReached();
     }
 
     @NonNull
@@ -193,22 +196,11 @@ public final class NavigationSessionRouteState {
     }
 
     @NonNull
-    public List<NavigationTurnEvent> applyRouteResult(
-            @NonNull Context context,
-            @NonNull NavigationRouteRequestSnapshot snapshot,
-            @NonNull GeoJsonRoute newRoute,
+    NavigationBlockedRoadActionResult performBlockedRoadAction(
             @Nullable NavigationLocation lastFiltered,
-            float speedMps,
-            long beganAt
+            long nowMs
     ) {
-        return applyRouteResult(
-                new AndroidNavigationTextResources(context),
-                snapshot,
-                newRoute,
-                lastFiltered,
-                speedMps,
-                beganAt
-        );
+        return components.blockedRoadAction.perform(lastFiltered, nowMs);
     }
 
     @NonNull
@@ -227,27 +219,6 @@ public final class NavigationSessionRouteState {
                 lastFiltered,
                 speedMps,
                 false,
-                beganAt
-        );
-    }
-
-    @NonNull
-    public List<NavigationTurnEvent> applyRouteResult(
-            @NonNull Context context,
-            @NonNull NavigationRouteRequestSnapshot snapshot,
-            @NonNull GeoJsonRoute newRoute,
-            @Nullable NavigationLocation lastFiltered,
-            float speedMps,
-            boolean likelyStationary,
-            long beganAt
-    ) {
-        return applyRouteResult(
-                new AndroidNavigationTextResources(context),
-                snapshot,
-                newRoute,
-                lastFiltered,
-                speedMps,
-                likelyStationary,
                 beganAt
         );
     }
@@ -299,6 +270,9 @@ public final class NavigationSessionRouteState {
                 ),
                 showNextManeuverCue
         );
+        if (components.turnState.isDestinationReached()) {
+            state = NavStateComposer.withBlockedRoadActionAvailable(state, false);
+        }
         components.displayState.rememberRenderedState(state, snapshot);
         return state;
     }
@@ -310,39 +284,6 @@ public final class NavigationSessionRouteState {
                     components.routeHistory.recalculationBridgeSegmentsSnapshot());
             displayedHistoryRevision = components.routeHistory.revision();
         }
-    }
-
-    @NonNull
-    NavState buildState(
-            @NonNull Context context,
-            @Nullable NavigationLocation lastFiltered,
-            float speedMps,
-            boolean likelyStationary,
-            float accuracyMeters,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Double headingDegrees,
-            @Nullable Float headingAccuracyDegrees,
-            long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
-            boolean routeCalculationInProgress,
-            @Nullable String routeCalculationNotice,
-            @Nullable Throwable lastRouteFailure
-    ) {
-        return buildState(
-                new AndroidNavigationTextResources(context),
-                lastFiltered,
-                speedMps,
-                likelyStationary,
-                accuracyMeters,
-                fixedSatelliteCount,
-                headingDegrees,
-                headingAccuracyDegrees,
-                nextEvaluationDeadlineElapsedMs,
-                nowMs,
-                routeCalculationInProgress,
-                routeCalculationNotice,
-                lastRouteFailure
-        );
     }
 
     @NonNull

@@ -624,6 +624,10 @@ The navigation UI must show the following in large text:
 - The blocked-road icon should use a simple no-go / forbidden-sign style glyph that remains legible at button size
 - The blocked-road button must live in the same bottom action row as the stop and pause/resume actions
 - The blocked-road action must be unavailable while navigation is paused so the app does not queue reroute changes against a suspended guidance session
+- In Route mode, while a route-start, native, or synthetic command `16` beeline is active, pressing the blocked-road button must skip that beeline target instead of adding a no-go point or recalculating for a blocked road. Guidance must advance immediately to the following beeline target or routed instruction.
+- In Straight Line mode, the blocked-road button must be available while a direct target is active. Pressing it must skip the current intermediate stop or final destination and immediately advance to the next direct target; skipping the final target must leave navigation in its terminal state.
+- A manually skipped target must not emit a false reached-arrival notification. A skipped intermediate stop must be removed from the remaining-stop plan used by later route recalculations, while remaining part of the original requested-stop history for export.
+- While the button will skip a beeline target, its accessibility description must identify the action as `Skip beeline target`; outside beeline guidance it retains the normal blocked-road description and behavior.
 
 ##### 4.5.4.1 Blocked no-go memory
 

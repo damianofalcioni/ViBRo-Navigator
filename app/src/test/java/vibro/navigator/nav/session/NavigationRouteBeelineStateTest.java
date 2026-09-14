@@ -199,6 +199,36 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
     }
 
     @Test
+    public void blockedRoadActionSkipsIntermediateTargetThenReturnTarget() {
+        NavigationTextResources textResources = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = requestWithStop();
+        state.applyRouteResult(
+                textResources,
+                snapshot(request),
+                routeWithIntermediateBeeline(),
+                location(0.0, 0.0, 1_000L, 3f),
+                1.4f,
+                500L
+        );
+        NavigationLocation atBeelineStart = location(0.0, 0.001, 2_000L, 3f);
+        state.evaluateLocation(atBeelineStart, 1.4f, 3f, 0.0, 2_000L, 0L);
+
+        assertTrue(state.performBlockedRoadAction(atBeelineStart, 3_000L).isTargetSkipped());
+        assertTrue(state.remainingIntermediateStops(request.stops).isEmpty());
+        NavState returnState = buildState(textResources, state, atBeelineStart, 3_000L);
+        assertTrue(returnState.routeStatus.guidance.nextLine.contains(
+                textResources.getString(R.string.direction_beeline)
+        ));
+
+        assertTrue(state.performBlockedRoadAction(atBeelineStart, 4_000L).isTargetSkipped());
+        NavState routedState = buildState(textResources, state, atBeelineStart, 4_000L);
+        assertTrue(routedState.routeStatus.guidance.nextLine.contains(
+                textResources.getString(R.string.direction_turn_left)
+        ));
+    }
+
+    @Test
     public void finalBeelineSuppressesDeviationUntilRequestedDestinationIsReached() {
         NavigationTextResources textResources = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
@@ -261,6 +291,62 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
         assertFalse(offPath.shouldRecalculateRoute());
         assertEquals(1, reached.turnEvents.size());
         assertEquals(100, reached.turnEvents.get(0).hint.command);
+    }
+
+    @Test
+    public void blockedRoadActionSkipsFinalBeelineAndKeepsTerminalState() {
+        NavigationTextResources textResources = TestNavigationTextResources.metric();
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(
+                TREKKING_PROFILE,
+                DESTINATION,
+                DESTINATION_POINT,
+                Collections.emptyList()
+        );
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        new LatLon(0.0, 0.0),
+                        new LatLon(0.0, 0.001),
+                        DESTINATION_POINT
+                ),
+                Collections.singletonList(new VoiceHint(
+                        1,
+                        RouteStartApproach.BEELINE_COMMAND,
+                        0,
+                        222.0,
+                        0
+                )),
+                180.0,
+                333.0
+        );
+        state.applyRouteResult(
+                textResources,
+                snapshot(request),
+                route,
+                location(0.0, 0.0, 1_000L, 3f),
+                1.4f,
+                500L
+        );
+        NavigationLocation atBeelineStart = location(0.0, 0.001, 2_000L, 3f);
+        state.evaluateLocation(atBeelineStart, 1.4f, 3f, 90.0, 2_000L, 0L);
+
+        assertTrue(state.performBlockedRoadAction(atBeelineStart, 3_000L).isTargetSkipped());
+        NavState terminalState = buildState(textResources, state, atBeelineStart, 3_000L);
+        assertTrue(terminalState.routeStatus.guidance.nextLine.contains(
+                textResources.getString(R.string.direction_arrive)
+        ));
+        assertFalse(terminalState.routeStatus.blockedRoadActionAvailable);
+
+        NavigationRouteEvaluation laterEvaluation = state.evaluateLocation(
+                location(0.001, 0.002, 4_000L, 3f),
+                1.4f,
+                3f,
+                270.0,
+                4_000L,
+                0L
+        );
+        assertFalse(laterEvaluation.shouldRecalculateRoute());
+        assertTrue(laterEvaluation.turnEvents.isEmpty());
     }
 
     @NonNull

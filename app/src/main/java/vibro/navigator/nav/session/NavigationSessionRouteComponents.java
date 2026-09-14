@@ -57,6 +57,9 @@ final class NavigationSessionRouteComponents {
             blockedRouteState
     );
     @NonNull
+    final NavigationRouteBlockedRoadAction blockedRoadAction =
+            new NavigationRouteBlockedRoadAction(directGuidance, blockedPointSelector);
+    @NonNull
     final NavigationRouteResultApplier routeResultApplier = new NavigationRouteResultApplier(
             geometryState,
             displayState,

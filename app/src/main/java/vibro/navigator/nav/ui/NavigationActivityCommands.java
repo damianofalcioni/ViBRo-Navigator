@@ -37,10 +37,10 @@ final class NavigationActivityCommands {
         NavigationServiceBinder binder = binderProvider.current();
         if (binder != null) {
             if (!binder.canAddBlockedWaypoint()) {
-                AppLogger.w(TAG, "Blocked-road button tapped while blocked-road rerouting is unavailable");
+                AppLogger.w(TAG, "Blocked-road button tapped while its current action is unavailable");
                 return;
             }
-            AppLogger.i(TAG, "Blocked-road reroute requested from UI");
+            AppLogger.i(TAG, "Blocked-road or beeline-skip action requested from UI");
             binder.addBlockedWaypoint();
         } else {
             AppLogger.w(TAG, "Blocked-road button tapped before service binding completed");

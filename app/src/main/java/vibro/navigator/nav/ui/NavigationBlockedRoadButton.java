@@ -23,6 +23,8 @@ final class NavigationBlockedRoadButton {
     private final ImageButton button;
     @Nullable
     private Boolean lastEnabled;
+    @Nullable
+    private Boolean lastSkipsBeelineTarget;
 
     NavigationBlockedRoadButton(@NonNull Activity activity) {
         this.activity = activity;
@@ -34,9 +36,22 @@ final class NavigationBlockedRoadButton {
     }
 
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
-        boolean enabled = navBinder != null
+        updateContentDescription(isBeelineTargetActive(state));
+        updateEnabled(navBinder != null
                 && state.routeStatus.blockedRoadActionAvailable
-                && !state.pauseStatus.paused;
+                && !state.pauseStatus.paused);
+    }
+
+    private void updateContentDescription(boolean skipsBeelineTarget) {
+        if (lastSkipsBeelineTarget == null || lastSkipsBeelineTarget != skipsBeelineTarget) {
+            lastSkipsBeelineTarget = skipsBeelineTarget;
+            button.setContentDescription(activity.getString(
+                    skipsBeelineTarget ? R.string.action_skip_beeline_target : R.string.action_blocked_road
+            ));
+        }
+    }
+
+    private void updateEnabled(boolean enabled) {
         if (lastEnabled != null && lastEnabled == enabled) {
             return;
         }
@@ -51,5 +66,14 @@ final class NavigationBlockedRoadButton {
                 AndroidAppTheme.color(activity, R.attr.vibroTextSecondaryColor),
                 PorterDuff.Mode.SRC_IN
         );
+    }
+
+    private static boolean isBeelineTargetActive(@NonNull NavState state) {
+        if (!state.routeStatus.blockedRoadActionAvailable
+                || state.routeStatus.compassState == null) {
+            return false;
+        }
+        return state.routeStatus.compassState.displayMode.straightLineMode
+                || state.routeStatus.compassState.routeStartApproachProjection != null;
     }
 }

@@ -352,8 +352,70 @@ public class NavigationSessionTest {
         assertNotNull(state.routeStatus.compassState.orientationCue);
         assertNull(state.routeStatus.compassState.routeStartApproachProjection);
         assertEquals(2, state.routeStatus.compassState.routeGeometry().intermediateSamplePointCount());
-        assertFalse(state.routeStatus.blockedRoadActionAvailable);
+        assertTrue(state.routeStatus.blockedRoadActionAvailable);
+        assertTrue(session.canAddBlockedWaypoint());
+    }
+
+    @Test
+    public void straightLineBlockedRoadActionSkipsEachTargetWithoutArrivalEvents() {
+        NavigationTextResources context = TestNavigationTextResources.metric();
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(
+                NavigationRoutingMode.STRAIGHT_LINE,
+                null,
+                DESTINATION,
+                new LatLon(0.0, 0.003),
+                Arrays.asList(new LatLon(0.0, 0.001), new LatLon(0.0, 0.002))
+        ));
+        long nowMs = 1_000L;
+
+        assertTrue(NavigationSessionResourceAdapter.start(session, context, nowMs));
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                nowMs
+        );
+
+        assertTrue(session.performBlockedRoadAction(nowMs + 1_000L).isTargetSkipped());
+        assertEquals(1, session.components.straightLineState.nextStopIndexForDisplay());
+        NavState afterFirstSkip = NavigationSessionResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 1_000L,
+                null,
+                0.0,
+                null
+        );
+        assertTrue(afterFirstSkip.routeStatus.progress.stopProgressBlock.contains(
+                context.getString(R.string.format_stop_label, 2)
+        ));
+        assertFalse(afterFirstSkip.routeStatus.progress.stopProgressBlock.contains(
+                context.getString(R.string.format_stop_label, 1)
+        ));
+
+        assertTrue(session.performBlockedRoadAction(nowMs + 2_000L).isTargetSkipped());
+        assertEquals(2, session.components.straightLineState.nextStopIndexForDisplay());
+        assertTrue(session.performBlockedRoadAction(nowMs + 3_000L).isTargetSkipped());
+        assertTrue(session.components.straightLineState.isDestinationReachedForDisplay());
         assertFalse(session.canAddBlockedWaypoint());
+        assertFalse(session.performBlockedRoadAction(nowMs + 4_000L).isTargetSkipped());
+
+        NavState terminalState = NavigationSessionResourceAdapter.buildState(
+                session,
+                context,
+                NavState.NO_DEADLINE,
+                nowMs + 3_000L,
+                null,
+                0.0,
+                null
+        );
+        assertFalse(terminalState.routeStatus.blockedRoadActionAvailable);
+        assertEquals(
+                context.getString(R.string.nav_destination_reached),
+                terminalState.routeStatus.progress.destinationLine
+        );
     }
 
     @Test

@@ -6,6 +6,7 @@ import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationBlockedRoadActionResult;
 import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -15,8 +16,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
-
-import vibro.navigator.brouter.NogoPoint;
 
 public final class NavigationServiceBinderHost implements NavigationServiceBinder.Host {
 
@@ -137,13 +136,14 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
 
     @Override
     @NonNull
-    public List<NogoPoint> addBlockedPointsAhead() {
-        return navigationSession.addBlockedPointsAhead(elapsedRealtimeClock.elapsedRealtimeMs());
+    public boolean canAddBlockedWaypoint() {
+        return navigationSession.canAddBlockedWaypoint();
     }
 
     @Override
-    public boolean canAddBlockedWaypoint() {
-        return navigationSession.canAddBlockedWaypoint();
+    @NonNull
+    public NavigationBlockedRoadActionResult performBlockedRoadAction() {
+        return navigationSession.performBlockedRoadAction(elapsedRealtimeClock.elapsedRealtimeMs());
     }
 
     @Override

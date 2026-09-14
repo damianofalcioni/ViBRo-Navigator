@@ -60,6 +60,19 @@ final class NavigationIntermediateArrivalTracker {
         return destination.trackIndex;
     }
 
+    @Nullable
+    Integer skipCurrentAtTrackIndex(int trackIndex) {
+        if (nextDestinationIndex >= destinations.size()) {
+            return null;
+        }
+        IntermediateDestination destination = destinations.get(nextDestinationIndex);
+        if (destination.trackIndex != trackIndex) {
+            return null;
+        }
+        nextDestinationIndex++;
+        return destination.trackIndex;
+    }
+
     @NonNull
     List<LatLon> remainingStops(@NonNull List<LatLon> fallbackStops) {
         if (!routeApplied) {

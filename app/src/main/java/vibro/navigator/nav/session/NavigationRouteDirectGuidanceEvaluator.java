@@ -72,6 +72,10 @@ final class NavigationRouteDirectGuidanceEvaluator {
         return directGuidanceState.shouldHoldRouteDeviationWhileStationary(likelyStationary);
     }
 
+    boolean isDestinationManuallySkipped() {
+        return directGuidanceState.isDestinationManuallySkipped();
+    }
+
     @Nullable
     NavigationRouteEvaluation evaluateIfNeeded(
             @NonNull NavigationLocation filtered,

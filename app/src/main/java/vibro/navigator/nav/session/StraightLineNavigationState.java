@@ -144,7 +144,9 @@ final class StraightLineNavigationState {
                                 ),
                                 ""
                         ),
-                        compassState
+                        compassState,
+                        null,
+                        hasActiveTarget(request)
                 ),
                 NavStateResourceComposer.buildGpsStatus(
                         snapshot.displaySpeedMps,
@@ -177,6 +179,27 @@ final class StraightLineNavigationState {
 
     void clearMotionEvidence() {
         beelineGuidance.reset();
+    }
+
+    boolean hasActiveTarget(@NonNull NavigationRequest request) {
+        return StraightLineNavigationProgress.nextTarget(
+                request,
+                destinationReached,
+                nextStopIndex
+        ) != null;
+    }
+
+    boolean skipActiveTarget(@NonNull NavigationRequest request) {
+        if (!hasActiveTarget(request)) {
+            return false;
+        }
+        if (nextStopIndex < request.stops.size()) {
+            nextStopIndex++;
+        } else {
+            destinationReached = true;
+        }
+        beelineGuidance.reset();
+        return true;
     }
 
     @NonNull

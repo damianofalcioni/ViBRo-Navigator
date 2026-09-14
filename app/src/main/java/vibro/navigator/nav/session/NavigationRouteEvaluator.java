@@ -78,6 +78,13 @@ final class NavigationRouteEvaluator {
             boolean reacquiringAfterLongGap,
             boolean singleInstructionMode
     ) {
+        if (directGuidanceEvaluator.isDestinationManuallySkipped()) {
+            return NavigationRouteEvaluation.keepRoute(
+                    Collections.emptyList(),
+                    NO_SUGGESTED_INTERVAL,
+                    true
+            );
+        }
         if (geometryState.isRouteUnavailable()) {
             return evaluateUnavailableRoute(filtered, accuracyMeters, nowMs);
         }
