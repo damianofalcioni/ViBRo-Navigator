@@ -42,7 +42,7 @@ final class NavigationRouteBeelineState {
         if (activeLeg != null || nextLegIndex >= legs.size() || polylineIndex == null) {
             return activeLeg != null;
         }
-        skipPassedLegs(routeMatch, reachedRadiusMeters);
+        skipPassedLegs(routeMatch, location, reachedRadiusMeters);
         if (nextLegIndex >= legs.size()) {
             return false;
         }
@@ -127,9 +127,16 @@ final class NavigationRouteBeelineState {
         );
     }
 
-    private void skipPassedLegs(@NonNull PolylineIndex.Match routeMatch, double reachedRadiusMeters) {
+    private void skipPassedLegs(
+            @NonNull PolylineIndex.Match routeMatch,
+            @NonNull NavigationLocation location,
+            double reachedRadiusMeters
+    ) {
         while (nextLegIndex < legs.size()) {
             Leg candidate = legs.get(nextLegIndex);
+            if (isAtLegStart(candidate, routeMatch, location, reachedRadiusMeters)) {
+                return;
+            }
             double targetDistance = polylineIndex.distanceAtPointIndex(candidate.targetTrackIndex);
             if (routeMatch.alongTrackMeters <= targetDistance + reachedRadiusMeters) {
                 return;
@@ -146,19 +153,16 @@ final class NavigationRouteBeelineState {
     ) {
         double startDistance = polylineIndex.distanceAtPointIndex(candidate.startTrackIndex);
         double targetDistance = polylineIndex.distanceAtPointIndex(candidate.targetTrackIndex);
-        boolean reachedIntermediateTarget = hasFollowingReturnLeg(candidate)
-                && distanceMeters(location, candidate.target) <= reachedRadiusMeters;
+        boolean reachedIntermediateTarget = legs.isReachedIntermediateTarget(
+                nextLegIndex,
+                distanceMeters(location, candidate.target),
+                reachedRadiusMeters
+        );
         return (routeMatch.alongTrackMeters >= startDistance || reachedIntermediateTarget)
                 && (reachedIntermediateTarget
                 || distanceMeters(location, candidate.start) <= reachedRadiusMeters
                 || (routeMatch.distanceToTrackMeters <= reachedRadiusMeters
                 && routeMatch.alongTrackMeters <= targetDistance + reachedRadiusMeters));
-    }
-
-    private boolean hasFollowingReturnLeg(@NonNull Leg candidate) {
-        int followingIndex = nextLegIndex + 1;
-        return followingIndex < legs.size()
-                && legs.get(followingIndex).startTrackIndex == candidate.targetTrackIndex;
     }
 
     private void activateFollowingLeg(int completedTargetTrackIndex) {

@@ -56,6 +56,17 @@ final class NavigationRouteBeelineLegs {
         return legs.get(index);
     }
 
+    boolean isReachedIntermediateTarget(
+            int legIndex,
+            double distanceToTargetMeters,
+            double reachedRadiusMeters
+    ) {
+        int followingIndex = legIndex + 1;
+        return distanceToTargetMeters <= reachedRadiusMeters
+                && followingIndex < legs.size()
+                && legs.get(followingIndex).startTrackIndex == legs.get(legIndex).targetTrackIndex;
+    }
+
     private static boolean isLegStart(@NonNull GeoJsonRoute route, @NonNull VoiceHint hint) {
         return hint.command == RouteStartApproach.BEELINE_COMMAND
                 && hint.indexInTrack >= 0

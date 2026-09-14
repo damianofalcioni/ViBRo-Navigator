@@ -5,8 +5,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.compass.CompassPassedRouteSegments;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
@@ -165,6 +167,127 @@ public class DirectLegTravelHistoryTest {
         assertFalse(passedTrack.contains("<trkpt lat=\"48.180594\" lon=\"16.378020\""));
         assertFalse(passedTrack.contains("<trkpt lat=\"48.180615\" lon=\"16.378129\""));
 
+    }
+
+    @Test
+    public void forwardProjectionNearSpurStartDoesNotArchiveSpurAsRoad() {
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        LatLon roadStart = new LatLon(0, 0);
+        LatLon spurStart = new LatLon(0, 0.001);
+        LatLon stop = new LatLon(0.0004, 0.001);
+        LatLon forwardProjection = new LatLon(0.00005, 0.00102);
+        LatLon destination = new LatLon(0.00005, 0.002);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(
+                        roadStart,
+                        spurStart,
+                        stop,
+                        spurStart,
+                        forwardProjection,
+                        destination
+                ),
+                Arrays.asList(
+                        new VoiceHint(1, 16, 0, 44, 0),
+                        new VoiceHint(2, 16, 0, 44, 0)
+                ),
+                120,
+                300
+        );
+        NavigationRequest request = new NavigationRequest(
+                ROUTING_PROFILE,
+                "Destination",
+                destination,
+                Collections.singletonList(stop)
+        );
+        state.applyRouteResult(
+                TestNavigationTextResources.metric(),
+                new NavigationRouteRequestSnapshot(
+                        1,
+                        1,
+                        roadStart,
+                        Collections.singletonList(stop),
+                        destination,
+                        ROUTING_PROFILE,
+                        null,
+                        Collections.emptyList()
+                ),
+                route,
+                fix(roadStart.lat, roadStart.lon, 1_000, 1),
+                3,
+                500
+        );
+
+        NavigationLocation projectedFix = fix(
+                forwardProjection.lat,
+                forwardProjection.lon,
+                4_000,
+                1
+        );
+        accept(state, projectedFix);
+        state.applyRouteResult(
+                TestNavigationTextResources.metric(),
+                new NavigationRouteRequestSnapshot(
+                        2,
+                        2,
+                        forwardProjection,
+                        Collections.emptyList(),
+                        destination,
+                        ROUTING_PROFILE,
+                        null,
+                        Collections.emptyList()
+                ),
+                new GeoJsonRoute(
+                        Arrays.asList(forwardProjection, destination),
+                        Collections.emptyList(),
+                        60,
+                        100
+                ),
+                projectedFix,
+                3,
+                4_500
+        );
+
+        NavigationRouteHistory history = state.historyForExport();
+        for (List<LatLon> section : history.archivedSegmentsSnapshot()) {
+            assertEquals(0, occurrenceCount(section, stop));
+        }
+
+        NavState navState = state.buildState(
+                TestNavigationTextResources.metric(),
+                projectedFix,
+                3,
+                false,
+                1,
+                null,
+                null,
+                null,
+                NavState.NO_DEADLINE,
+                5_000,
+                false,
+                null,
+                null
+        );
+        assertNotNull(navState.routeStatus.compassState);
+        assertEquals(
+                0,
+                occurrenceCount(
+                        navState.routeStatus.compassState.archivedPassedRouteSegments(),
+                        stop
+                )
+        );
+
+        String gpx = NavigationSessionRouteExporter.export(
+                TestNavigationTextResources.metric(),
+                state,
+                new StraightLineNavigationState(),
+                projectedFix,
+                Collections.singletonList(projectedFix),
+                request
+        );
+        assertNotNull(gpx);
+        String stopPoint = "<trkpt lat=\"0.000400\" lon=\"0.001000\"";
+        assertFalse(firstTrack(gpx).contains(stopPoint));
+        assertFalse(routeElement(gpx).contains("<rtept lat=\"0.000400\" lon=\"0.001000\""));
     }
 
     @Test
@@ -333,9 +456,35 @@ public class DirectLegTravelHistoryTest {
         return count;
     }
 
+    private static int occurrenceCount(
+            CompassPassedRouteSegments segments,
+            LatLon expected
+    ) {
+        int count = 0;
+        for (int segmentIndex = 0; segmentIndex < segments.segmentCount(); segmentIndex++) {
+            for (int pointIndex = 0;
+                    pointIndex < segments.samplePointCount(segmentIndex);
+                    pointIndex++) {
+                LatLon point = segments.samplePointAt(segmentIndex, pointIndex);
+                if (point != null
+                        && Math.abs(point.lat - expected.lat) <= COORDINATE_TOLERANCE
+                        && Math.abs(point.lon - expected.lon) <= COORDINATE_TOLERANCE) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
     private static String firstTrack(String gpx) {
         int start = gpx.indexOf("<trk>");
         int end = gpx.indexOf("</trk>", start);
+        return gpx.substring(start, end);
+    }
+
+    private static String routeElement(String gpx) {
+        int start = gpx.indexOf("<rte>");
+        int end = gpx.indexOf("</rte>", start);
         return gpx.substring(start, end);
     }
 
