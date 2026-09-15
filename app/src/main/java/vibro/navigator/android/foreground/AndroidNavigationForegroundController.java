@@ -38,9 +38,12 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @NonNull
     private final Service service;
+    @NonNull
+    private final TransientNotificationTimeout transientNotificationTimeout;
 
     public AndroidNavigationForegroundController(@NonNull Service service) {
         this.service = service;
+        this.transientNotificationTimeout = TransientNotificationTimeout.forService(service);
     }
 
     @Override
@@ -128,7 +131,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
             AppLogger.w(TAG, "NotificationManager unavailable, cannot send stationary orientation notification");
             return;
         }
-        notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
+        postTransientNotification(notificationManager, builder.build());
         AppLogger.i(TAG, "Sent stationary orientation notification message=" + message);
     }
 
@@ -173,7 +176,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
             AppLogger.w(TAG, "NotificationManager unavailable, cannot send alert notification");
             return;
         }
-        notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
+        postTransientNotification(notificationManager, builder.build());
     }
 
     @NonNull
@@ -255,10 +258,18 @@ public final class AndroidNavigationForegroundController implements NavigationFo
             AppLogger.w(TAG, "NotificationManager unavailable, cannot send turn notification");
             return;
         }
-        notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, builder.build());
+        postTransientNotification(notificationManager, builder.build());
         AppLogger.d(TAG, "Sent turn notification channel=" + channelId
                 + " notificationId=" + NavigationService.NOTIFICATION_ID_TURN
                 + " message=" + message);
+    }
+
+    private void postTransientNotification(
+            @NonNull NotificationManager notificationManager,
+            @NonNull Notification notification
+    ) {
+        notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, notification);
+        transientNotificationTimeout.schedule();
     }
 
     private static int foregroundServiceType() {
