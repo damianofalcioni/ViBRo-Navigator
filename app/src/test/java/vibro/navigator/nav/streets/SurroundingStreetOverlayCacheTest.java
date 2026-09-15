@@ -116,26 +116,37 @@ public class SurroundingStreetOverlayCacheTest {
                 segment(CompassStreetType.MOTORWAY, 0.003d),
                 segment(CompassStreetType.ELEVATOR, 0.004d),
                 segment(CompassStreetType.VIA_FERRATA, 0.005d),
-                segment(CompassStreetType.RACEWAY, 0.006d)
+                segment(CompassStreetType.RACEWAY, 0.006d),
+                segment(CompassStreetType.LIVING_STREET, 0.007d),
+                segment(CompassStreetType.TRACK, 0.008d),
+                segment(CompassStreetType.BRIDLEWAY, 0.009d),
+                segment(CompassStreetType.ROUTE_WALKING_CYCLING, 0.010d),
+                segment(CompassStreetType.RAILWAY, 0.011d)
         )));
 
-        assertEquals(7, cache.overlayFor(
+        assertEquals(12, cache.overlayFor(
                 Collections.singletonList(first),
-                10,
+                20,
                 NavigationSpeedBucket.LOW
         ).segments.size());
         assertTypes(
-                cache.overlayFor(Collections.singletonList(first), 10, NavigationSpeedBucket.MEDIUM),
+                cache.overlayFor(Collections.singletonList(first), 20, NavigationSpeedBucket.MEDIUM),
                 CompassStreetType.TERTIARY,
                 CompassStreetType.SECONDARY,
                 CompassStreetType.MOTORWAY,
-                CompassStreetType.RACEWAY
+                CompassStreetType.VIA_FERRATA,
+                CompassStreetType.RACEWAY,
+                CompassStreetType.BRIDLEWAY,
+                CompassStreetType.RAILWAY
         );
         assertTypes(
-                cache.overlayFor(Collections.singletonList(first), 10, NavigationSpeedBucket.HIGH),
+                cache.overlayFor(Collections.singletonList(first), 20, NavigationSpeedBucket.HIGH),
                 CompassStreetType.SECONDARY,
                 CompassStreetType.MOTORWAY,
-                CompassStreetType.RACEWAY
+                CompassStreetType.VIA_FERRATA,
+                CompassStreetType.RACEWAY,
+                CompassStreetType.BRIDLEWAY,
+                CompassStreetType.RAILWAY
         );
     }
 

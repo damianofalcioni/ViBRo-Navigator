@@ -26,6 +26,10 @@
         <item name="vibroCompassMarkColor">@color/white</item>
         <item name="vibroCompassCenterColor">@color/compass_center</item>
         <item name="vibroCompassPausedRingColor">@color/compass_paused_ring</item>
+        <item name="vibroCompassStreetHighwayColor">@color/compass_street_highway</item>
+        <item name="vibroCompassStreetNormalColor">@color/compass_street_normal</item>
+        <item name="vibroCompassStreetWalkingCyclingColor">@color/compass_street_walking_cycling</item>
+        <item name="vibroCompassStreetSpecialRoutingColor">@color/compass_street_special_routing</item>
     </style>
 
     <style name="Theme.ViBRoNavigatorLightBase" parent="@android:style/Theme.Material.Light.NoActionBar">
@@ -54,6 +58,10 @@
         <item name="vibroCompassMarkColor">@color/light_text_primary</item>
         <item name="vibroCompassCenterColor">@color/light_text_primary</item>
         <item name="vibroCompassPausedRingColor">@color/light_text_secondary</item>
+        <item name="vibroCompassStreetHighwayColor">@color/light_compass_street_highway</item>
+        <item name="vibroCompassStreetNormalColor">@color/light_compass_street_normal</item>
+        <item name="vibroCompassStreetWalkingCyclingColor">@color/light_compass_street_walking_cycling</item>
+        <item name="vibroCompassStreetSpecialRoutingColor">@color/light_compass_street_special_routing</item>
     </style>
 
     <style name="Theme.ViBRoNavigator.Light" parent="@style/Theme.ViBRoNavigatorLightBase">

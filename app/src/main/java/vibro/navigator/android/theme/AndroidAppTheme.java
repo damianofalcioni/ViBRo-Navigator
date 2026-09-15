@@ -34,7 +34,11 @@ public final class AndroidAppTheme {
             {R.attr.vibroCompassRingColor, R.color.compass_ring},
             {R.attr.vibroCompassMarkColor, R.color.white},
             {R.attr.vibroCompassCenterColor, R.color.compass_center},
-            {R.attr.vibroCompassPausedRingColor, R.color.compass_paused_ring}
+            {R.attr.vibroCompassPausedRingColor, R.color.compass_paused_ring},
+            {R.attr.vibroCompassStreetHighwayColor, R.color.compass_street_highway},
+            {R.attr.vibroCompassStreetNormalColor, R.color.compass_street_normal},
+            {R.attr.vibroCompassStreetWalkingCyclingColor, R.color.compass_street_walking_cycling},
+            {R.attr.vibroCompassStreetSpecialRoutingColor, R.color.compass_street_special_routing}
     };
 
     private AndroidAppTheme() {

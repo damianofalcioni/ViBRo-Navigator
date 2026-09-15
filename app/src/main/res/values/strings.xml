@@ -424,7 +424,7 @@
     <string name="about_setting_dynamic_gps_fix_interval_info">Saves battery by checking your location less often but still in a reliable way. Turn it off for continuous location updates.</string>
     <string name="about_setting_imperial_units_info">Shows distances and speeds in feet, miles, and mph instead of meters and km/h.</string>
     <string name="about_setting_light_theme_info">Switches the app from the default dark look to a light look.</string>
-    <string name="about_setting_compass_surrounding_streets_info">Shows nearby streets in the compass when local map data is available.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Shows nearby streets and other routing geometry in the compass when local map data is available.\n\nColor legend:\n■ — major roads and highways\n■ — normal streets\n■ — walking and cycling streets and routes\n■ — railways, waterways, ferries, ski/canoe/bus routes, bridleways, raceways, and via ferrata</string>
     <string name="about_setting_compass_instant_zoom_info">Skips the compass zoom animation so switching between route overview and moving-scale views is immediate.</string>
     <string name="about_setting_compass_stationary_full_route_zoom_info">Shows the full route in the compass when you are stationary. Turn it off to keep the last moving-scale zoom when stopped.</string>
     <string name="about_setting_compass_fullscreen_route_info">Expands the route compass view behind the full navigation screen while keeping controls and direction text visible in front.</string>

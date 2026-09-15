@@ -2,14 +2,27 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.RelativeSizeSpan;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.android.theme.AndroidThemedButtons;
 
 final class AboutSettingInfoButtons {
+    private static final String STREET_COLOR_SWATCH = "■";
+    private static final int[] STREET_COLOR_ATTRIBUTES = {
+            R.attr.vibroCompassStreetHighwayColor,
+            R.attr.vibroCompassStreetNormalColor,
+            R.attr.vibroCompassStreetWalkingCyclingColor,
+            R.attr.vibroCompassStreetSpecialRoutingColor
+    };
+
     @NonNull
     private final Activity activity;
 
@@ -105,8 +118,40 @@ final class AboutSettingInfoButtons {
     private void showInfo(int titleResId, int messageResId) {
         new AlertDialog.Builder(activity)
                 .setTitle(titleResId)
-                .setMessage(messageResId)
+                .setMessage(infoMessage(messageResId))
                 .setPositiveButton(android.R.string.ok, null)
                 .show();
+    }
+
+    @NonNull
+    private CharSequence infoMessage(int messageResId) {
+        CharSequence message = activity.getText(messageResId);
+        if (messageResId != R.string.about_setting_compass_surrounding_streets_info) {
+            return message;
+        }
+        SpannableString styledMessage = new SpannableString(message);
+        String messageText = message.toString();
+        int searchStart = 0;
+        for (int colorAttribute : STREET_COLOR_ATTRIBUTES) {
+            int swatchStart = messageText.indexOf(STREET_COLOR_SWATCH, searchStart);
+            if (swatchStart < 0) {
+                break;
+            }
+            int swatchEnd = swatchStart + STREET_COLOR_SWATCH.length();
+            styledMessage.setSpan(
+                    new ForegroundColorSpan(AndroidAppTheme.color(activity, colorAttribute)),
+                    swatchStart,
+                    swatchEnd,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            styledMessage.setSpan(
+                    new RelativeSizeSpan(1.25f),
+                    swatchStart,
+                    swatchEnd,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            searchStart = swatchEnd;
+        }
+        return styledMessage;
     }
 }

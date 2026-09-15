@@ -1,12 +1,15 @@
 package vibro.navigator.about;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 import static vibro.navigator.about.AboutDialogButtonStyleAssertions.assertBorderlessProfileInfoBackground;
 
 import android.app.AlertDialog;
 import android.app.Application;
 import android.os.Looper;
+import android.text.Spanned;
+import android.text.style.ForegroundColorSpan;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -23,10 +26,12 @@ import org.robolectric.shadows.ShadowAlertDialog;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 import vibro.navigator.settings.AppSettings;
+import vibro.navigator.settings.AppThemeSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class AboutSettingInfoButtonsRobolectricTest {
@@ -37,6 +42,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
         AppLogger.setLoggingEnabled(context, false);
         AppSettings.setGooglePoiApiKey(context, "");
         AppAndroidAutoSettings.setIntegrationEnabled(context, true);
+        AppThemeSettings.setLightThemeEnabled(context, false);
     }
 
     @Test
@@ -111,6 +117,19 @@ public class AboutSettingInfoButtonsRobolectricTest {
         assertEquals(activity.getString(R.string.about_setting_log_info), message.getText().toString());
     }
 
+    @Test
+    public void surroundingStreetsInfoShowsDarkThemeColorSwatches() {
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        assertSurroundingStreetSwatches(activity);
+    }
+
+    @Test
+    public void surroundingStreetsInfoShowsLightThemeColorSwatches() {
+        AppThemeSettings.setLightThemeEnabled(ApplicationProvider.getApplicationContext(), true);
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        assertSurroundingStreetSwatches(activity);
+    }
+
     private static void assertInfoButton(AboutActivity activity, int buttonId, int labelResId) {
         ImageButton button = activity.findViewById(buttonId);
         String label = activity.getString(labelResId);
@@ -120,6 +139,42 @@ public class AboutSettingInfoButtonsRobolectricTest {
                 button.getContentDescription().toString()
         );
         assertBorderlessProfileInfoBackground(activity, button);
+    }
+
+    private static void assertSurroundingStreetSwatches(AboutActivity activity) {
+        ImageButton infoButton = activity.findViewById(R.id.aboutCompassSurroundingStreetsInfoButton);
+        infoButton.performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(
+                AboutDeferredDialogAction.OPEN_DELAY_MS + 50,
+                TimeUnit.MILLISECONDS
+        );
+
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        TextView message = dialog.findViewById(android.R.id.message);
+        assertTrue(message.getText() instanceof Spanned);
+        Spanned legend = (Spanned) message.getText();
+        int[] expectedColorAttributes = {
+                R.attr.vibroCompassStreetHighwayColor,
+                R.attr.vibroCompassStreetNormalColor,
+                R.attr.vibroCompassStreetWalkingCyclingColor,
+                R.attr.vibroCompassStreetSpecialRoutingColor
+        };
+        int searchStart = 0;
+        for (int expectedColorAttribute : expectedColorAttributes) {
+            int swatchStart = legend.toString().indexOf("■", searchStart);
+            assertTrue(swatchStart >= 0);
+            ForegroundColorSpan[] colorSpans = legend.getSpans(
+                    swatchStart,
+                    swatchStart + 1,
+                    ForegroundColorSpan.class
+            );
+            assertEquals(1, colorSpans.length);
+            assertEquals(
+                    AndroidAppTheme.color(activity, expectedColorAttribute),
+                    colorSpans[0].getForegroundColor()
+            );
+            searchStart = swatchStart + 1;
+        }
     }
 
     private static void assertConditionalSettingRows(AboutActivity activity) {

@@ -16,6 +16,10 @@
     <color name="light_map_poi_panel">#F2FFFFFF</color>
     <color name="light_compass_surface">#FFFFFF</color>
     <color name="light_compass_ring">#CCD4DF</color>
+    <color name="light_compass_street_highway">#FF0069C2</color>
+    <color name="light_compass_street_normal">#FF7B1FA2</color>
+    <color name="light_compass_street_walking_cycling">#FF087A3C</color>
+    <color name="light_compass_street_special_routing">#FF616161</color>
     <color name="dark_selected_surface">#2C3744</color>
     <color name="dark_map_poi_panel">#E6151B22</color>
     <color name="danger">#FF5252</color>
@@ -32,4 +36,8 @@
     <color name="compass_blocked_area">#B71C1C</color>
     <color name="compass_route_passed">#80E14646</color>
     <color name="compass_center">#F8F8F8</color>
+    <color name="compass_street_highway">#CC4EA5FF</color>
+    <color name="compass_street_normal">#CCCE93D8</color>
+    <color name="compass_street_walking_cycling">#CC53D78C</color>
+    <color name="compass_street_special_routing">#CCBDBDBD</color>
 </resources>

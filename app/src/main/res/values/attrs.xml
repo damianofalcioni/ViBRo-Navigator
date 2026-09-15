@@ -18,6 +18,10 @@
     <attr name="vibroCompassMarkColor" format="color|reference" />
     <attr name="vibroCompassCenterColor" format="color|reference" />
     <attr name="vibroCompassPausedRingColor" format="color|reference" />
+    <attr name="vibroCompassStreetHighwayColor" format="color|reference" />
+    <attr name="vibroCompassStreetNormalColor" format="color|reference" />
+    <attr name="vibroCompassStreetWalkingCyclingColor" format="color|reference" />
+    <attr name="vibroCompassStreetSpecialRoutingColor" format="color|reference" />
 
     <declare-styleable name="NavigationCompassView">
         <attr name="vibroFullscreenRouteMode" format="boolean" />

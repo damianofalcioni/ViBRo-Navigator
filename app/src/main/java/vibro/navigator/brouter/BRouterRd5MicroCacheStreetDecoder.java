@@ -135,7 +135,7 @@ final class BRouterRd5MicroCacheStreetDecoder {
             remainingLon = externalLonDiff.decodeSignedValue();
             remainingLat = externalLatDiff.decodeSignedValue();
         }
-        CompassStreetType streetType = BRouterRd5HighwayTags.streetType(wayTagCoder.decodeTagValueSet());
+        CompassStreetType streetType = BRouterRd5StreetTags.streetType(wayTagCoder.decodeTagValueSet());
         if (reverse) {
             return;
         }

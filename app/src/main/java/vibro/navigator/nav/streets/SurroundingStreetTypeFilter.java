@@ -2,68 +2,23 @@ package vibro.navigator.nav.streets;
 
 import androidx.annotation.NonNull;
 
-import java.util.EnumSet;
-import java.util.Set;
-
+import vibro.navigator.nav.compass.CompassStreetCategory;
 import vibro.navigator.nav.compass.CompassStreetSegment;
-import vibro.navigator.nav.compass.CompassStreetType;
 import vibro.navigator.nav.policy.NavigationSpeedBucket;
 
 final class SurroundingStreetTypeFilter {
-    @NonNull
-    private static final Set<CompassStreetType> LOW_SPEED_TYPES = EnumSet.allOf(CompassStreetType.class);
-    @NonNull
-    private static final Set<CompassStreetType> MEDIUM_SPEED_TYPES = EnumSet.of(
-            CompassStreetType.MOTORWAY,
-            CompassStreetType.MOTORWAY_LINK,
-            CompassStreetType.TRUNK,
-            CompassStreetType.TRUNK_LINK,
-            CompassStreetType.PRIMARY,
-            CompassStreetType.PRIMARY_LINK,
-            CompassStreetType.SECONDARY,
-            CompassStreetType.SECONDARY_LINK,
-            CompassStreetType.TERTIARY,
-            CompassStreetType.TERTIARY_LINK,
-            CompassStreetType.UNCLASSIFIED,
-            CompassStreetType.RESIDENTIAL,
-            CompassStreetType.SERVICE,
-            CompassStreetType.ROAD,
-            CompassStreetType.BUSWAY,
-            CompassStreetType.REST_AREA,
-            CompassStreetType.SERVICES,
-            CompassStreetType.RACEWAY
-    );
-    @NonNull
-    private static final Set<CompassStreetType> HIGH_SPEED_TYPES = EnumSet.of(
-            CompassStreetType.MOTORWAY,
-            CompassStreetType.MOTORWAY_LINK,
-            CompassStreetType.TRUNK,
-            CompassStreetType.TRUNK_LINK,
-            CompassStreetType.PRIMARY,
-            CompassStreetType.PRIMARY_LINK,
-            CompassStreetType.SECONDARY,
-            CompassStreetType.SECONDARY_LINK,
-            CompassStreetType.REST_AREA,
-            CompassStreetType.SERVICES,
-            CompassStreetType.RACEWAY
-    );
-
     boolean isVisible(
             @NonNull CompassStreetSegment segment,
             @NonNull NavigationSpeedBucket bucket
     ) {
-        return visibleTypes(bucket).contains(segment.type);
-    }
-
-    @NonNull
-    private static Set<CompassStreetType> visibleTypes(@NonNull NavigationSpeedBucket bucket) {
         switch (bucket) {
             case LOW:
-                return LOW_SPEED_TYPES;
+                return true;
             case MEDIUM:
-                return MEDIUM_SPEED_TYPES;
+                return segment.type.category() != CompassStreetCategory.WALKING_CYCLING;
             case HIGH:
-                return HIGH_SPEED_TYPES;
+                return segment.type.category() == CompassStreetCategory.HIGHWAY
+                        || segment.type.category() == CompassStreetCategory.SPECIAL_ROUTING;
             default:
                 throw new IllegalArgumentException("Unknown surrounding street speed bucket: " + bucket);
         }

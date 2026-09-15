@@ -20,27 +20,76 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.shadows.ShadowCanvas;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
+import vibro.navigator.R;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.compass.CompassStreetCategory;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.compass.CompassStreetType;
 import vibro.navigator.nav.compass.NavCompassState;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassStreetRendererTest {
     @Test
-    public void surroundingStreetOverlayUsesEnabledSwitchColor() {
+    public void surroundingStreetOverlayUsesCategoryColorsInDarkTheme() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        activity.setTheme(R.style.Theme_ViBRoNavigator);
         NavigationCompassStreetRenderer renderer = new NavigationCompassStreetRenderer();
-        Paint streetPaint = renderer.paintForTest(activity);
 
-        assertEquals(platformThemeColor(activity, android.R.attr.colorControlActivated), streetPaint.getColor());
-        assertEquals(Paint.Style.STROKE, streetPaint.getStyle());
-        assertEquals(180, streetPaint.getAlpha());
-        assertNull(streetPaint.getPathEffect());
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.HIGHWAY),
+                platformThemeColor(activity, R.attr.vibroCompassStreetHighwayColor),
+                204
+        );
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.NORMAL),
+                platformThemeColor(activity, R.attr.vibroCompassStreetNormalColor),
+                204
+        );
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.WALKING_CYCLING),
+                platformThemeColor(activity, R.attr.vibroCompassStreetWalkingCyclingColor),
+                204
+        );
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.SPECIAL_ROUTING),
+                platformThemeColor(activity, R.attr.vibroCompassStreetSpecialRoutingColor),
+                204
+        );
+    }
+
+    @Test
+    public void surroundingStreetOverlayUsesStrongerCategoryColorsInLightTheme() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        activity.setTheme(R.style.Theme_ViBRoNavigator_Light);
+        NavigationCompassStreetRenderer renderer = new NavigationCompassStreetRenderer();
+
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.HIGHWAY),
+                platformThemeColor(activity, R.attr.vibroCompassStreetHighwayColor),
+                255
+        );
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.NORMAL),
+                platformThemeColor(activity, R.attr.vibroCompassStreetNormalColor),
+                255
+        );
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.WALKING_CYCLING),
+                platformThemeColor(activity, R.attr.vibroCompassStreetWalkingCyclingColor),
+                255
+        );
+        assertPaint(
+                renderer.paintForTest(activity, CompassStreetCategory.SPECIAL_ROUTING),
+                platformThemeColor(activity, R.attr.vibroCompassStreetSpecialRoutingColor),
+                255
+        );
     }
 
     @Test
@@ -61,19 +110,50 @@ public class NavigationCompassStreetRendererTest {
         ));
         RecordingCanvas canvas = new RecordingCanvas();
         renderer.draw(canvas, activity, state, 100f, 100f, 80f, 0f);
-        Path first = canvas.path;
+        Path first = canvas.paths.get(0);
         assertEquals(1, canvas.draws);
 
         renderer.draw(canvas, activity, state, 100f, 100f, 80f, 90f);
 
         assertEquals(2, canvas.draws);
         assertEquals(-90f, canvas.heading, 0f);
-        assertSame(first, canvas.path);
-        assertEquals(1.2f * activity.getResources().getDisplayMetrics().density, renderer.paintForTest(activity).getStrokeWidth(), 0.001f);
+        assertSame(first, canvas.paths.get(1));
+        assertEquals(
+                1.2f * activity.getResources().getDisplayMetrics().density,
+                renderer.paintForTest(activity, CompassStreetCategory.SPECIAL_ROUTING).getStrokeWidth(),
+                0.001f
+        );
+    }
+
+    @Test
+    public void drawsEachVisibleStreetCategoryOnceInBackgroundToForegroundOrder() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        activity.setTheme(R.style.Theme_ViBRoNavigator);
+        NavigationCompassStreetRenderer renderer = new NavigationCompassStreetRenderer();
+        NavCompassState state = compassState(true).withStreetOverlay(new CompassStreetOverlay(Arrays.asList(
+                streetSegment(CompassStreetType.MOTORWAY, 0d),
+                streetSegment(CompassStreetType.RESIDENTIAL, 0.0001d),
+                streetSegment(CompassStreetType.FOOTWAY, 0.0002d),
+                streetSegment(CompassStreetType.RAILWAY, 0.0003d)
+        )));
+        RecordingCanvas canvas = new RecordingCanvas();
+
+        renderer.draw(canvas, activity, state, 100f, 100f, 80f, 0f);
+
+        assertEquals(4, canvas.draws);
+        assertEquals(platformThemeColor(activity, R.attr.vibroCompassStreetSpecialRoutingColor),
+                canvas.colors.get(0).intValue());
+        assertEquals(platformThemeColor(activity, R.attr.vibroCompassStreetWalkingCyclingColor),
+                canvas.colors.get(1).intValue());
+        assertEquals(platformThemeColor(activity, R.attr.vibroCompassStreetNormalColor),
+                canvas.colors.get(2).intValue());
+        assertEquals(platformThemeColor(activity, R.attr.vibroCompassStreetHighwayColor),
+                canvas.colors.get(3).intValue());
     }
 
     private static final class RecordingCanvas extends Canvas {
-        Path path;
+        final List<Path> paths = new ArrayList<>();
+        final List<Integer> colors = new ArrayList<>();
         int draws;
         float heading;
 
@@ -89,7 +169,8 @@ public class NavigationCompassStreetRendererTest {
 
         @Override
         public void drawPath(Path path, Paint paint) {
-            this.path = path;
+            paths.add(path);
+            colors.add(paint.getColor());
             draws++;
             super.drawPath(path, paint);
         }
@@ -144,6 +225,20 @@ public class NavigationCompassStreetRendererTest {
                 new LatLon(0.0005, 0.0)
         ));
         return new CompassStreetOverlay(Collections.singletonList(streetSegment));
+    }
+
+    private static CompassStreetSegment streetSegment(CompassStreetType type, double longitude) {
+        return new CompassStreetSegment(Arrays.asList(
+                new LatLon(0.0, longitude),
+                new LatLon(0.0005, longitude)
+        ), type);
+    }
+
+    private static void assertPaint(Paint paint, int color, int alpha) {
+        assertEquals(color, paint.getColor());
+        assertEquals(alpha, paint.getAlpha());
+        assertEquals(Paint.Style.STROKE, paint.getStyle());
+        assertNull(paint.getPathEffect());
     }
 
     private static int platformThemeColor(Activity activity, int attrResId) {
