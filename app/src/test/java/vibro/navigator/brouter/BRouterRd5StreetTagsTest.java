@@ -41,16 +41,20 @@ public class BRouterRd5StreetTagsTest {
 
     @Test
     public void streetType_classifiesSelectedRoutesBeforeHighway() {
-        for (int routeValue : new int[]{2, 5, 7, 9}) {
-            assertEquals(CompassStreetType.SPECIAL_ROUTE, streetType(
+        int[] values = {2, 3, 4, 5, 6, 7, 9};
+        CompassStreetType[] types = {
+                CompassStreetType.ROUTE_FERRY,
+                CompassStreetType.ROUTE_HIKING_FOOT,
+                CompassStreetType.ROUTE_BICYCLE,
+                CompassStreetType.ROUTE_SKI_PISTE,
+                CompassStreetType.ROUTE_MTB,
+                CompassStreetType.ROUTE_CANOE,
+                CompassStreetType.ROUTE_BUS
+        };
+        for (int i = 0; i < values.length; i++) {
+            assertEquals(types[i], streetType(
                     BRouterRd5StreetTags.HIGHWAY_LOOKUP_INDEX, 10,
-                    BRouterRd5StreetTags.ROUTE_LOOKUP_INDEX, routeValue
-            ));
-        }
-        for (int routeValue : new int[]{3, 4, 6}) {
-            assertEquals(CompassStreetType.ROUTE_WALKING_CYCLING, streetType(
-                    BRouterRd5StreetTags.HIGHWAY_LOOKUP_INDEX, 10,
-                    BRouterRd5StreetTags.ROUTE_LOOKUP_INDEX, routeValue
+                    BRouterRd5StreetTags.ROUTE_LOOKUP_INDEX, values[i]
             ));
         }
     }

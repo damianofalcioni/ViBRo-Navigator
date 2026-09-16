@@ -353,15 +353,31 @@
         android:minHeight="48dp"
         android:orientation="horizontal">
 
-        <Switch
-            android:id="@+id/aboutCompassSurroundingStreetsSwitch"
+        <TextView
+            android:id="@+id/aboutCompassSurroundingStreetsLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:minHeight="48dp"
             android:text="@string/label_compass_surrounding_streets_enabled"
             android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutCompassSurroundingStreetsSettingsButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_configure_surrounding_street_types"
+            android:src="@drawable/ic_settings" />
+
+        <Switch
+            android:id="@+id/aboutCompassSurroundingStreetsSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/label_compass_surrounding_streets_enabled"
+            android:minHeight="48dp"
+            android:showText="false" />
 
         <ImageButton
             android:id="@+id/aboutCompassSurroundingStreetsInfoButton"

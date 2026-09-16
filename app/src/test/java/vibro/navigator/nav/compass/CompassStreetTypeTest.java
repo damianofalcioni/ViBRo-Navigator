@@ -31,8 +31,7 @@ public class CompassStreetTypeTest {
                 CompassStreetType.UNCLASSIFIED,
                 CompassStreetType.RESIDENTIAL,
                 CompassStreetType.SERVICE,
-                CompassStreetType.ROAD,
-                CompassStreetType.BUSWAY
+                CompassStreetType.ROAD
         );
         assertCategory(
                 CompassStreetCategory.WALKING_CYCLING,
@@ -46,17 +45,25 @@ public class CompassStreetTypeTest {
                 CompassStreetType.PLATFORM,
                 CompassStreetType.CORRIDOR,
                 CompassStreetType.ELEVATOR,
-                CompassStreetType.ROUTE_WALKING_CYCLING
+                CompassStreetType.ROUTE_WALKING_CYCLING,
+                CompassStreetType.ROUTE_HIKING_FOOT,
+                CompassStreetType.ROUTE_BICYCLE,
+                CompassStreetType.ROUTE_MTB
         );
         assertCategory(
                 CompassStreetCategory.SPECIAL_ROUTING,
                 CompassStreetType.BRIDLEWAY,
                 CompassStreetType.VIA_FERRATA,
                 CompassStreetType.RACEWAY,
+                CompassStreetType.BUSWAY,
                 CompassStreetType.OTHER,
                 CompassStreetType.RAILWAY,
                 CompassStreetType.WATERWAY,
-                CompassStreetType.SPECIAL_ROUTE
+                CompassStreetType.SPECIAL_ROUTE,
+                CompassStreetType.ROUTE_FERRY,
+                CompassStreetType.ROUTE_SKI_PISTE,
+                CompassStreetType.ROUTE_CANOE,
+                CompassStreetType.ROUTE_BUS
         );
     }
 

@@ -27,8 +27,9 @@ final class BRouterPackedStreetCell {
         while (offset < words.length) {
             BRouterStreetReadCancellation.check();
             int count = words[offset + 1];
-            if (intersects(offset, bounds)) {
-                sink.offer(points(offset + HEADER_WORDS, count), TYPES[words[offset]]);
+            CompassStreetType type = TYPES[words[offset]];
+            if (sink.accepts(type) && intersects(offset, bounds)) {
+                sink.offer(points(offset + HEADER_WORDS, count), type);
             }
             offset += HEADER_WORDS + count * 2;
         }

@@ -7,4 +7,8 @@ import vibro.navigator.nav.compass.CompassStreetType;
 
 interface BRouterStreetGeometrySink {
     void offer(List<LatLon> points, CompassStreetType type);
+
+    default boolean accepts(CompassStreetType type) {
+        return true;
+    }
 }

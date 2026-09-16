@@ -14,7 +14,6 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.policy.NavigationSpeedBucket;
-import vibro.navigator.nav.policy.NavigationSpeedBucketResolver;
 
 final class SurroundingStreetOverlayCache {
     private static final int MAX_CHUNKS = 240;
@@ -26,14 +25,10 @@ final class SurroundingStreetOverlayCache {
     @NonNull
     private final SurroundingStreetTypeFilter typeFilter = new SurroundingStreetTypeFilter();
     @NonNull
-    private final NavigationSpeedBucketResolver speedBucketResolver =
-            new NavigationSpeedBucketResolver();
-    @NonNull
     private final LinkedHashMap<SurroundingStreetChunkKey, Entry> entries =
             new LinkedHashMap<>(16, 0.75f, true);
     private int cachedSegments;
     private int cachedPoints;
-    private NavigationSpeedBucket activeSpeedBucket;
     private final SurroundingStreetCacheRetention retention = new SurroundingStreetCacheRetention();
     private final SurroundingStreetOverlaySnapshot snapshot = new SurroundingStreetOverlaySnapshot();
 
@@ -51,7 +46,7 @@ final class SurroundingStreetOverlayCache {
     }
 
     void resetSpeedBucket() {
-        activeSpeedBucket = null;
+        typeFilter.resetSpeedBucket();
     }
 
     boolean contains(@NonNull SurroundingStreetChunkKey key) {
@@ -99,8 +94,7 @@ final class SurroundingStreetOverlayCache {
             int maxSegments,
             float referenceSpeedMps
     ) {
-        activeSpeedBucket = speedBucketResolver.resolve(referenceSpeedMps, activeSpeedBucket);
-        return overlayFor(keys, maxSegments, activeSpeedBucket);
+        return overlayFor(keys, maxSegments, typeFilter.resolve(referenceSpeedMps));
     }
 
     @NonNull

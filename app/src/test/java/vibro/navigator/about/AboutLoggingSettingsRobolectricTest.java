@@ -144,6 +144,7 @@ public class AboutLoggingSettingsRobolectricTest {
         idleInitialDiagnosticRender();
         Switch logEnabledSwitch = activity.findViewById(R.id.aboutLogEnabledSwitch);
         Switch imperialUnitsSwitch = activity.findViewById(R.id.aboutImperialUnitsSwitch);
+        TextView surroundingStreetsLabel = activity.findViewById(R.id.aboutCompassSurroundingStreetsLabel);
         Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
         Switch compassInstantZoomSwitch = activity.findViewById(R.id.aboutCompassInstantZoomSwitch);
         Switch androidAutoSwitch = activity.findViewById(R.id.aboutAndroidAutoSwitch);
@@ -167,7 +168,7 @@ public class AboutLoggingSettingsRobolectricTest {
         assertFalse(imperialUnitsSwitch.isChecked());
         assertEquals(
                 activity.getString(R.string.label_compass_surrounding_streets_enabled),
-                surroundingStreetsSwitch.getText().toString()
+                surroundingStreetsLabel.getText().toString()
         );
         assertFalse(surroundingStreetsSwitch.isChecked());
         assertEquals(

@@ -7,21 +7,31 @@ import androidx.annotation.NonNull;
 import java.util.List;
 
 import vibro.navigator.settings.AppCompassSettings;
+import vibro.navigator.settings.AppCompassStreetTypeSettings;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 final class SurroundingStreetOverlayRuntime {
     interface ChunkLoader {
         @NonNull
-        SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys);
+        SurroundingStreetChunkLoadResult load(
+                @NonNull List<SurroundingStreetChunkKey> keys,
+                @NonNull CompassStreetVisibility visibility
+        );
     }
 
     interface Settings {
         boolean isSurroundingStreetsEnabled();
+
+        @NonNull
+        CompassStreetVisibility streetVisibility();
     }
 
     @NonNull
     private final ChunkLoader chunkLoader;
     @NonNull
     private final Settings settings;
+    @NonNull
+    private volatile CompassStreetVisibility activeVisibility = CompassStreetVisibility.all();
 
     SurroundingStreetOverlayRuntime(
             @NonNull ChunkLoader chunkLoader,
@@ -39,7 +49,17 @@ final class SurroundingStreetOverlayRuntime {
         Context appContext = context.getApplicationContext();
         return new SurroundingStreetOverlayRuntime(
                 new SurroundingStreetChunkLoader(appContext, repository),
-                () -> AppCompassSettings.isSurroundingStreetsEnabled(appContext)
+                new Settings() {
+                    @Override
+                    public boolean isSurroundingStreetsEnabled() {
+                        return AppCompassSettings.isSurroundingStreetsEnabled(appContext);
+                    }
+
+                    @Override
+                    public CompassStreetVisibility streetVisibility() {
+                        return AppCompassStreetTypeSettings.get(appContext);
+                    }
+                }
         );
     }
 
@@ -47,8 +67,16 @@ final class SurroundingStreetOverlayRuntime {
         return settings.isSurroundingStreetsEnabled();
     }
 
+    void refreshSelection(@NonNull Runnable onChanged) {
+        CompassStreetVisibility selected = settings.streetVisibility();
+        if (!activeVisibility.equals(selected)) {
+            activeVisibility = selected;
+            onChanged.run();
+        }
+    }
+
     @NonNull
     SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
-        return chunkLoader.load(keys);
+        return chunkLoader.load(keys, activeVisibility);
     }
 }

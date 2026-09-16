@@ -9,6 +9,7 @@ import java.util.PriorityQueue;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.compass.CompassStreetType;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 /** Keeps a bounded street sample spread across the requested area, independent of rd5 cell order. */
 final class BRouterStreetSegmentCollector implements BRouterStreetGeometrySink {
@@ -21,11 +22,21 @@ final class BRouterStreetSegmentCollector implements BRouterStreetGeometrySink {
     private final double centerLat;
     private final double centerLon;
     private final double lonScale;
+    private final CompassStreetVisibility visibility;
     private final List<PriorityQueue<Candidate>> buckets = new ArrayList<>();
     private int size;
 
     BRouterStreetSegmentCollector(BRouterSegmentBounds bounds, int limit) {
+        this(bounds, limit, CompassStreetVisibility.all());
+    }
+
+    BRouterStreetSegmentCollector(
+            BRouterSegmentBounds bounds,
+            int limit,
+            CompassStreetVisibility visibility
+    ) {
         this.bounds = bounds;
+        this.visibility = visibility;
         this.limit = Math.max(0, limit);
         centerLat = (bounds.minLat + bounds.maxLat) * 0.5d;
         centerLon = (bounds.minLon + bounds.maxLon) * 0.5d;
@@ -37,7 +48,7 @@ final class BRouterStreetSegmentCollector implements BRouterStreetGeometrySink {
 
     @Override
     public void offer(List<LatLon> points, CompassStreetType type) {
-        if (limit == 0 || points.size() < 2 || !bounds.intersects(points)) {
+        if (!accepts(type) || limit == 0 || points.size() < 2 || !bounds.intersects(points)) {
             return;
         }
         LatLon anchor = nearestPoint(points);
@@ -52,6 +63,11 @@ final class BRouterStreetSegmentCollector implements BRouterStreetGeometrySink {
             mostPopulatedBucket().poll();
             size--;
         }
+    }
+
+    @Override
+    public boolean accepts(CompassStreetType type) {
+        return visibility.isVisible(type);
     }
 
     void appendTo(List<CompassStreetSegment> out) {

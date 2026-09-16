@@ -8,9 +8,13 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.EnumSet;
 import java.util.concurrent.CancellationException;
 
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.compass.CompassStreetCategory;
+import vibro.navigator.nav.compass.CompassStreetType;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 public class BRouterDecodedStreetReaderTest {
     private static final String SOURCE = "source";
@@ -28,6 +32,19 @@ public class BRouterDecodedStreetReaderTest {
         assertEquals(32, warm.size());
         List<CompassStreetSegment> cold = read(new BRouterDecodedStreetCache(), SOURCE, 300d, 100);
         assertEquals(geometry(cold), geometry(warm));
+    }
+
+    @Test
+    public void selectedTypesFilterBeforeSamplingWhileCompleteCellsRemainReusable() throws IOException {
+        CompassStreetVisibility disabledNormal = new CompassStreetVisibility(
+                EnumSet.of(CompassStreetCategory.NORMAL),
+                EnumSet.noneOf(CompassStreetType.class)
+        );
+        assertEquals(0, read(cache, disabledNormal).size());
+        assertEquals(2, file.cellReads);
+
+        assertEquals(32, read(cache, CompassStreetVisibility.all()).size());
+        assertEquals(2, file.cellReads);
     }
 
     @Test
@@ -82,6 +99,20 @@ public class BRouterDecodedStreetReaderTest {
     private List<CompassStreetSegment> read(BRouterDecodedStreetCache cells, String source, double radius, int limit)
             throws IOException {
         return read(cells, new BRouterRd5MetadataCache(), source, radius, limit);
+    }
+
+    private List<CompassStreetSegment> read(
+            BRouterDecodedStreetCache cells,
+            CompassStreetVisibility visibility
+    ) throws IOException {
+        List<CompassStreetSegment> out = new ArrayList<>();
+        new BRouterRd5StreetReader(file, "E15_N45.rd5", SOURCE, cells).read(
+                BRouterSegmentBounds.around(48.18773346166013d, 16.38147556524725d, 360d),
+                100,
+                out,
+                visibility
+        );
+        return out;
     }
 
     private List<CompassStreetSegment> read(

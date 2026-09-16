@@ -10,6 +10,7 @@ import java.util.concurrent.CancellationException;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRuntime.ChunkLoader {
     private static final String TAG = "SurroundingStreets";
@@ -30,19 +31,25 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
 
     @NonNull
     @Override
-    public SurroundingStreetChunkLoadResult load(@NonNull List<SurroundingStreetChunkKey> keys) {
+    public SurroundingStreetChunkLoadResult load(
+            @NonNull List<SurroundingStreetChunkKey> keys,
+            @NonNull CompassStreetVisibility visibility
+    ) {
         SurroundingStreetChunkLoadResult result = new SurroundingStreetChunkLoadResult();
         for (SurroundingStreetChunkKey key : keys) {
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
-            result.put(key, loadChunk(key));
+            result.put(key, loadChunk(key, visibility));
         }
         return result;
     }
 
     @NonNull
-    private CompassStreetOverlay loadChunk(@NonNull SurroundingStreetChunkKey key) {
+    private CompassStreetOverlay loadChunk(
+            @NonNull SurroundingStreetChunkKey key,
+            @NonNull CompassStreetVisibility visibility
+    ) {
         LatLon center = key.center();
         try {
             return repository.loadSurroundingStreets(
@@ -50,7 +57,8 @@ final class SurroundingStreetChunkLoader implements SurroundingStreetOverlayRunt
                     center.lat,
                     center.lon,
                     SurroundingStreetChunkKey.LOAD_RADIUS_METERS,
-                    MAX_STREET_SEGMENTS_PER_CHUNK
+                    MAX_STREET_SEGMENTS_PER_CHUNK,
+                    visibility
             );
         } catch (CancellationException e) {
             throw e;

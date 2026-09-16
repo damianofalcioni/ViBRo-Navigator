@@ -17,6 +17,8 @@ import org.robolectric.RobolectricTestRunner;
 import java.io.IOException;
 import java.util.Collections;
 
+import vibro.navigator.nav.compass.CompassStreetVisibility;
+
 @RunWith(RobolectricTestRunner.class)
 public class BRouterSegmentsRepositoryTest {
     @Test
@@ -38,7 +40,7 @@ public class BRouterSegmentsRepositoryTest {
         BRouterSegmentsRepository repository = new BRouterSegmentsRepository(testDependencies.dependencies);
         repository.saveSegmentsTreeUri(activity, treeUri);
 
-        repository.loadSurroundingStreets(activity, 48.2d, 16.3d, 80d, 10);
+        repository.loadSurroundingStreets(activity, 48.2d, 16.3d, 80d, 10, CompassStreetVisibility.all());
 
         assertEquals(treeUri, testDependencies.documentAccess.firstChildTreeUri);
     }

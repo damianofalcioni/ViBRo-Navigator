@@ -7,7 +7,6 @@ import android.net.Uri;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.HashMap;
@@ -18,6 +17,7 @@ import java.util.Set;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 import vibro.navigator.nav.streets.SurroundingStreetRepository;
 
 public final class BRouterSegmentsRepository implements SurroundingStreetRepository {
@@ -32,14 +32,13 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     @NonNull
     private final Map<String, Uri> segmentFileUris = new HashMap<>();
     @NonNull
-    private final Map<String, String> segmentFileDirectoryIds = new HashMap<>();
-    @NonNull
     private final Set<String> missingSegmentFiles = new HashSet<>();
     @Nullable
     private List<Uri> discoveryTreeUris;
     @Nullable
     private List<String> discoveryDirectoryIds;
     private final BRouterDecodedStreetCache decodedStreetCache = new BRouterDecodedStreetCache();
+    private final BRouterStreetFileLoader streetFileLoader;
 
     public BRouterSegmentsRepository(@NonNull BRouterSegmentDependencies dependencies) {
         this.dependencies = dependencies;
@@ -47,6 +46,7 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
                 dependencies.documentAccess,
                 dependencies.storageVolumeAccess
         );
+        streetFileLoader = new BRouterStreetFileLoader(this, dependencies, decodedStreetCache);
     }
 
     @Nullable
@@ -93,7 +93,8 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             double latitude,
             double longitude,
             double radiusMeters,
-            int maxSegments
+            int maxSegments,
+            @NonNull CompassStreetVisibility visibility
     ) {
         BRouterSegmentBounds bounds = BRouterSegmentBounds.around(latitude, longitude, radiusMeters);
         List<CompassStreetSegment> segments = new ArrayList<>();
@@ -102,96 +103,13 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
             if (segments.size() >= maxSegments) {
                 break;
             }
-            readSegmentFile(context, fileName, bounds, maxSegments, segments);
+            streetFileLoader.read(context, fileName, bounds, maxSegments, visibility, segments);
         }
         return segments.isEmpty() ? CompassStreetOverlay.EMPTY : new CompassStreetOverlay(segments);
     }
 
-    private void readSegmentFile(
-            @NonNull Context context,
-            @NonNull String fileName,
-            @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
-    ) {
-        Uri documentUri = resolveSegmentFileUri(context, fileName);
-        if (documentUri == null) {
-            readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
-            return;
-        }
-        try (BRouterSegmentReadFile readFile = dependencies.documentAccess.openReadFile(context, documentUri)) {
-            if (readFile == null) {
-                readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
-                return;
-            }
-            new BRouterRd5StreetReader(readFile, fileName, documentUri.toString(), decodedStreetCache)
-                    .read(bounds, maxSegments, out);
-        } catch (IOException | RuntimeException e) {
-            BRouterStreetReadCancellation.check();
-            AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
-            readLocalSegmentFile(context, fileName, bounds, maxSegments, out);
-        }
-    }
-
-    private void readLocalSegmentFile(
-            @NonNull Context context,
-            @NonNull String fileName,
-            @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
-    ) {
-        if (!dependencies.fileAccess.canReadFiles(context)) {
-            return;
-        }
-        if (readCachedLocalSegmentFile(context, fileName, bounds, maxSegments, out)) {
-            return;
-        }
-        for (String directoryId : discoveryDirectoryIds(context)) {
-            if (readLocalSegmentFile(context, directoryId, fileName, bounds, maxSegments, out)) {
-                segmentFileDirectoryIds.put(fileName, directoryId);
-                return;
-            }
-        }
-        missingSegmentFiles.add(fileName);
-        AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
-    }
-
-    private boolean readCachedLocalSegmentFile(
-            @NonNull Context context,
-            @NonNull String fileName,
-            @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
-    ) {
-        String directoryId = segmentFileDirectoryIds.get(fileName);
-        return directoryId != null
-                && readLocalSegmentFile(context, directoryId, fileName, bounds, maxSegments, out);
-    }
-
-    private boolean readLocalSegmentFile(
-            @NonNull Context context,
-            @NonNull String directoryId,
-            @NonNull String fileName,
-            @NonNull BRouterSegmentBounds bounds,
-            int maxSegments,
-            @NonNull List<CompassStreetSegment> out
-    ) {
-        try (BRouterSegmentReadFile readFile = dependencies.fileAccess.openReadFile(context, directoryId, fileName)) {
-            if (readFile == null) {
-                return false;
-            }
-            new BRouterRd5StreetReader(readFile, fileName, directoryId + "/" + fileName, decodedStreetCache)
-                    .read(bounds, maxSegments, out);
-            return true;
-        } catch (IOException | RuntimeException e) {
-            BRouterStreetReadCancellation.check();
-            AppLogger.w(TAG, "Failed to read BRouter segment file=" + fileName, e);
-            return false;
-        }
-    }
-
     @Nullable
-    private Uri resolveSegmentFileUri(@NonNull Context context, @NonNull String fileName) {
+    Uri resolveSegmentFileUri(@NonNull Context context, @NonNull String fileName) {
         if (missingSegmentFiles.contains(fileName)) {
             return null;
         }
@@ -222,11 +140,16 @@ public final class BRouterSegmentsRepository implements SurroundingStreetReposit
     }
 
     @NonNull
-    private List<String> discoveryDirectoryIds(@NonNull Context context) {
+    List<String> discoveryDirectoryIds(@NonNull Context context) {
         if (discoveryDirectoryIds == null) {
             discoveryDirectoryIds = segmentDirectories.getSegmentsDocumentIdCandidates(context);
         }
         return discoveryDirectoryIds;
+    }
+
+    void recordMissingSegmentFile(@NonNull String fileName) {
+        missingSegmentFiles.add(fileName);
+        AppLogger.d(TAG, "BRouter segment file not found file=" + fileName);
     }
 
     private boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {

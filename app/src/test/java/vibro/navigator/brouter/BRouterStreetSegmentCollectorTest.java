@@ -8,10 +8,13 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.EnumSet;
 
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.compass.CompassStreetType;
+import vibro.navigator.nav.compass.CompassStreetCategory;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 public class BRouterStreetSegmentCollectorTest {
     @Test
@@ -61,6 +64,53 @@ public class BRouterStreetSegmentCollectorTest {
         BRouterStreetSegmentCollector empty = collector(0);
         addStreets(empty, 0d, 0d, 10);
         assertTrue(selected(empty).isEmpty());
+    }
+
+    @Test
+    public void offer_filtersTypesAndCategoriesBeforeSpatialSamplingBudget() {
+        CompassStreetVisibility selection = new CompassStreetVisibility(
+                EnumSet.of(CompassStreetCategory.NORMAL),
+                EnumSet.of(CompassStreetType.RAILWAY)
+        );
+        BRouterStreetSegmentCollector collector = new BRouterStreetSegmentCollector(
+                BRouterSegmentBounds.around(0d, 0d, 360d), 2, selection
+        );
+        List<LatLon> points = Arrays.asList(new LatLon(0d, 0d), new LatLon(0.0001d, 0d));
+        for (int i = 0; i < 100; i++) {
+            collector.offer(points, CompassStreetType.RESIDENTIAL);
+            collector.offer(points, CompassStreetType.RAILWAY);
+        }
+        collector.offer(points, CompassStreetType.WATERWAY);
+        collector.offer(points, CompassStreetType.ROUTE_FERRY);
+
+        List<CompassStreetSegment> selected = selected(collector);
+        assertEquals(2, selected.size());
+        assertTrue(selected.stream().anyMatch(segment -> segment.type == CompassStreetType.WATERWAY));
+        assertTrue(selected.stream().anyMatch(segment -> segment.type == CompassStreetType.ROUTE_FERRY));
+    }
+
+    @Test
+    public void offer_buswayFollowsSpecialCategoryAtExtraction() {
+        List<LatLon> points = Arrays.asList(new LatLon(0d, 0d), new LatLon(0.0001d, 0d));
+        BRouterStreetSegmentCollector normalOff = new BRouterStreetSegmentCollector(
+                BRouterSegmentBounds.around(0d, 0d, 360d), 2,
+                new CompassStreetVisibility(
+                        EnumSet.of(CompassStreetCategory.NORMAL),
+                        EnumSet.noneOf(CompassStreetType.class)
+                )
+        );
+        normalOff.offer(points, CompassStreetType.BUSWAY);
+        assertEquals(1, selected(normalOff).size());
+
+        BRouterStreetSegmentCollector specialOff = new BRouterStreetSegmentCollector(
+                BRouterSegmentBounds.around(0d, 0d, 360d), 2,
+                new CompassStreetVisibility(
+                        EnumSet.of(CompassStreetCategory.SPECIAL_ROUTING),
+                        EnumSet.noneOf(CompassStreetType.class)
+                )
+        );
+        specialOff.offer(points, CompassStreetType.BUSWAY);
+        assertTrue(selected(specialOff).isEmpty());
     }
 
     private static BRouterStreetSegmentCollector collector(int limit) {

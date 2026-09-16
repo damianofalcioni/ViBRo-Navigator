@@ -104,6 +104,7 @@ public final class SurroundingStreetOverlayController {
             return;
         }
         disabledViewportCleared = false;
+        runtime.refreshSelection(this::clearAll);
         if (!chunkPlanner.shouldShow(compassState)) {
             clearViewportIfActive();
             return;
@@ -139,7 +140,7 @@ public final class SurroundingStreetOverlayController {
     }
 
     private void rebuildSelection() {
-        if (!viewportActive || lastCompassState == null) {
+        if (!viewportActive) {
             return;
         }
         activeSelection = chunkPlanner.selectDisplay(lastCompassState, lastAcceptedLocation);

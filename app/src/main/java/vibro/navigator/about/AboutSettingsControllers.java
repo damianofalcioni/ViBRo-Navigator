@@ -21,6 +21,9 @@ final class AboutSettingsControllers {
     }
 
     void configure() {
+        new AboutSurroundingStreetTypes(activity).configure(
+                activity.findViewById(R.id.aboutCompassSurroundingStreetsSettingsButton)
+        );
         poiCategorySettings = new AboutPoiCategorySettings(
                 activity,
                 activity.findViewById(R.id.aboutPoiCategoriesButton),

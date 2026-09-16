@@ -121,10 +121,12 @@ public class SurroundingStreetOverlayCacheTest {
                 segment(CompassStreetType.TRACK, 0.008d),
                 segment(CompassStreetType.BRIDLEWAY, 0.009d),
                 segment(CompassStreetType.ROUTE_WALKING_CYCLING, 0.010d),
-                segment(CompassStreetType.RAILWAY, 0.011d)
+                segment(CompassStreetType.RAILWAY, 0.011d),
+                segment(CompassStreetType.BUSWAY, 0.012d),
+                segment(CompassStreetType.ROUTE_BUS, 0.013d)
         )));
 
-        assertEquals(12, cache.overlayFor(
+        assertEquals(14, cache.overlayFor(
                 Collections.singletonList(first),
                 20,
                 NavigationSpeedBucket.LOW
@@ -137,7 +139,9 @@ public class SurroundingStreetOverlayCacheTest {
                 CompassStreetType.VIA_FERRATA,
                 CompassStreetType.RACEWAY,
                 CompassStreetType.BRIDLEWAY,
-                CompassStreetType.RAILWAY
+                CompassStreetType.RAILWAY,
+                CompassStreetType.BUSWAY,
+                CompassStreetType.ROUTE_BUS
         );
         assertTypes(
                 cache.overlayFor(Collections.singletonList(first), 20, NavigationSpeedBucket.HIGH),
@@ -146,7 +150,9 @@ public class SurroundingStreetOverlayCacheTest {
                 CompassStreetType.VIA_FERRATA,
                 CompassStreetType.RACEWAY,
                 CompassStreetType.BRIDLEWAY,
-                CompassStreetType.RAILWAY
+                CompassStreetType.RAILWAY,
+                CompassStreetType.BUSWAY,
+                CompassStreetType.ROUTE_BUS
         );
     }
 

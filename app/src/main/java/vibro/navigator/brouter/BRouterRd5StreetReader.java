@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.List;
 
 import vibro.navigator.nav.compass.CompassStreetSegment;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 final class BRouterRd5StreetReader {
     @NonNull
@@ -47,11 +48,22 @@ final class BRouterRd5StreetReader {
             int maxSegments,
             @NonNull List<CompassStreetSegment> out
     ) throws IOException {
+        read(bounds, maxSegments, out, CompassStreetVisibility.all());
+    }
+
+    void read(
+            @NonNull BRouterSegmentBounds bounds,
+            int maxSegments,
+            @NonNull List<CompassStreetSegment> out,
+            @NonNull CompassStreetVisibility visibility
+    ) throws IOException {
         BRouterStreetReadCancellation.check();
         if (out.size() >= maxSegments) {
             return;
         }
-        BRouterStreetSegmentCollector collector = new BRouterStreetSegmentCollector(bounds, maxSegments - out.size());
+        BRouterStreetSegmentCollector collector = new BRouterStreetSegmentCollector(
+                bounds, maxSegments - out.size(), visibility
+        );
         indexReader.read();
         int minLonDegree = bounds.minIntegerLon / BRouterSegmentTile.MICRO_DEGREES;
         int maxLonDegree = bounds.maxIntegerLon / BRouterSegmentTile.MICRO_DEGREES;

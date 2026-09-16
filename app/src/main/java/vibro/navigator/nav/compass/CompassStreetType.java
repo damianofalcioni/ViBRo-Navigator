@@ -17,7 +17,7 @@ public enum CompassStreetType {
     SERVICE(CompassStreetCategory.NORMAL),
     TRACK(CompassStreetCategory.WALKING_CYCLING),
     ROAD(CompassStreetCategory.NORMAL),
-    BUSWAY(CompassStreetCategory.NORMAL),
+    BUSWAY(CompassStreetCategory.SPECIAL_ROUTING),
     PEDESTRIAN(CompassStreetCategory.WALKING_CYCLING),
     FOOTWAY(CompassStreetCategory.WALKING_CYCLING),
     PATH(CompassStreetCategory.WALKING_CYCLING),
@@ -35,7 +35,14 @@ public enum CompassStreetType {
     ROUTE_WALKING_CYCLING(CompassStreetCategory.WALKING_CYCLING),
     RAILWAY(CompassStreetCategory.SPECIAL_ROUTING),
     WATERWAY(CompassStreetCategory.SPECIAL_ROUTING),
-    SPECIAL_ROUTE(CompassStreetCategory.SPECIAL_ROUTING);
+    SPECIAL_ROUTE(CompassStreetCategory.SPECIAL_ROUTING),
+    ROUTE_FERRY(CompassStreetCategory.SPECIAL_ROUTING),
+    ROUTE_HIKING_FOOT(CompassStreetCategory.WALKING_CYCLING),
+    ROUTE_BICYCLE(CompassStreetCategory.WALKING_CYCLING),
+    ROUTE_SKI_PISTE(CompassStreetCategory.SPECIAL_ROUTING),
+    ROUTE_MTB(CompassStreetCategory.WALKING_CYCLING),
+    ROUTE_CANOE(CompassStreetCategory.SPECIAL_ROUTING),
+    ROUTE_BUS(CompassStreetCategory.SPECIAL_ROUTING);
 
     private final CompassStreetCategory category;
 

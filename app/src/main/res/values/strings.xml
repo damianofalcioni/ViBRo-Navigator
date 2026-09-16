@@ -391,6 +391,22 @@
     <string name="label_imperial_units_enabled">Imperial units (ft/mi/mph)</string>
     <string name="label_light_theme_enabled">Light Theme</string>
     <string name="label_compass_surrounding_streets_enabled">Surrounding streets</string>
+    <string name="action_configure_surrounding_street_types">Choose surrounding street types</string>
+    <string name="title_surrounding_street_types">Surrounding street types</string>
+    <string name="hint_surrounding_street_types">Category switches hide or show the whole color group without changing individual selections. Speed-based visibility still applies.</string>
+    <string name="street_category_highway">Major roads</string>
+    <string name="street_category_normal">Normal streets</string>
+    <string name="street_category_walking_cycling">Walking / Cycling</string>
+    <string name="street_category_special_routing">Special paths</string>
+    <string name="street_type_railway">railway=* (all)</string>
+    <string name="street_color_swatch">■</string>
+    <string name="street_type_waterway">waterway=* (all)</string>
+    <string name="street_type_other">Other / unknown routing geometry</string>
+    <string name="street_type_road">highway=road/yes</string>
+    <string name="street_type_route_hiking_foot">route=hiking/foot</string>
+    <string name="street_type_route_ski_piste">route=ski/piste</string>
+    <string name="format_street_highway_type">highway=%1$s</string>
+    <string name="format_street_route_type">route=%1$s</string>
     <string name="label_compass_instant_zoom_enabled">Instant compass zoom</string>
     <string name="label_compass_stationary_full_route_zoom_enabled">Automatic zoom out</string>
     <string name="label_compass_fullscreen_route_enabled">Fullscreen route</string>

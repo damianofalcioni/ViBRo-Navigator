@@ -5,8 +5,23 @@ import androidx.annotation.NonNull;
 import vibro.navigator.nav.compass.CompassStreetCategory;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 import vibro.navigator.nav.policy.NavigationSpeedBucket;
+import vibro.navigator.nav.policy.NavigationSpeedBucketResolver;
 
 final class SurroundingStreetTypeFilter {
+    @NonNull
+    private final NavigationSpeedBucketResolver speedBucketResolver = new NavigationSpeedBucketResolver();
+    private NavigationSpeedBucket activeSpeedBucket;
+
+    void resetSpeedBucket() {
+        activeSpeedBucket = null;
+    }
+
+    @NonNull
+    NavigationSpeedBucket resolve(float referenceSpeedMps) {
+        activeSpeedBucket = speedBucketResolver.resolve(referenceSpeedMps, activeSpeedBucket);
+        return activeSpeedBucket;
+    }
+
     boolean isVisible(
             @NonNull CompassStreetSegment segment,
             @NonNull NavigationSpeedBucket bucket

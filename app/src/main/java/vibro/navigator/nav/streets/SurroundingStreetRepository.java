@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.compass.CompassStreetOverlay;
+import vibro.navigator.nav.compass.CompassStreetVisibility;
 
 public interface SurroundingStreetRepository {
     @NonNull
@@ -13,6 +14,7 @@ public interface SurroundingStreetRepository {
             double latitude,
             double longitude,
             double radiusMeters,
-            int maxSegments
+            int maxSegments,
+            @NonNull CompassStreetVisibility visibility
     );
 }
