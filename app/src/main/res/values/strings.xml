@@ -398,15 +398,88 @@
     <string name="street_category_normal">Normal streets</string>
     <string name="street_category_walking_cycling">Walking / Cycling</string>
     <string name="street_category_special_routing">Special paths</string>
-    <string name="street_type_railway">railway=* (all)</string>
+    <!-- Keep OSM/BRouter tag values verbatim in translated descriptions. -->
+    <string name="street_type_motorway">Motorways</string>
+    <string name="street_type_motorway_info">High-speed roads with controlled access.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Motorway ramps</string>
+    <string name="street_type_motorway_link_info">Connections entering or leaving a motorway.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Trunk roads</string>
+    <string name="street_type_trunk_info">Major through roads below motorway level.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Trunk road links</string>
+    <string name="street_type_trunk_link_info">Connections entering or leaving a trunk road.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Primary roads</string>
+    <string name="street_type_primary_info">Important roads connecting towns and regions.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Primary road links</string>
+    <string name="street_type_primary_link_info">Connections entering or leaving a primary road.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Secondary roads</string>
+    <string name="street_type_secondary_info">Roads connecting smaller towns and areas.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Secondary road links</string>
+    <string name="street_type_secondary_link_info">Connections entering or leaving a secondary road.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Tertiary roads</string>
+    <string name="street_type_tertiary_info">Local roads linking nearby settlements or neighborhoods.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Tertiary road links</string>
+    <string name="street_type_tertiary_link_info">Connections entering or leaving a tertiary road.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Minor public roads</string>
+    <string name="street_type_unclassified_info">Public roads below tertiary level, often outside residential areas.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Residential streets</string>
+    <string name="street_type_residential_info">Streets mainly serving homes.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Shared residential streets</string>
+    <string name="street_type_living_street_info">Low-speed streets where walking and other uses share the space.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Access roads</string>
+    <string name="street_type_service_info">Roads providing access to buildings, parking, or facilities.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Tracks</string>
+    <string name="street_type_track_info">Tracks mainly used for agricultural or forestry access.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Unspecified roads</string>
+    <string name="street_type_road_info">Roads whose precise type is unknown.\n\nOSM/BRouter: highway=road or highway=yes.</string>
+    <string name="street_type_busway">Busways</string>
+    <string name="street_type_busway_info">Roads primarily designated for buses.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Pedestrian streets</string>
+    <string name="street_type_pedestrian_info">Streets or areas mainly designated for people on foot.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Footways</string>
+    <string name="street_type_footway_info">Paths designated for walking.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Paths</string>
+    <string name="street_type_path_info">General-use paths that may serve walking, cycling, or other non-motor traffic.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Cycleways</string>
+    <string name="street_type_cycleway_info">Paths designated for cycling.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Bridleways</string>
+    <string name="street_type_bridleway_info">Paths designated for horse riding.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Steps</string>
+    <string name="street_type_steps_info">Stairways along a route.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Transit platforms</string>
+    <string name="street_type_platform_info">Walkable platforms at public transport stops.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Indoor corridors</string>
+    <string name="street_type_corridor_info">Passageways inside buildings.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Roadside rest areas</string>
+    <string name="street_type_rest_area_info">Road access within rest areas.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Roadside services</string>
+    <string name="street_type_services_info">Road access within service areas.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Elevators</string>
+    <string name="street_type_elevator_info">Elevator connections between walkable levels.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Via ferrata routes</string>
+    <string name="street_type_via_ferrata_info">Protected climbing routes with fixed aids.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Race tracks</string>
+    <string name="street_type_raceway_info">Road courses intended for racing.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Railways</string>
+    <string name="street_type_railway_info">All railway geometry in local BRouter segments.\n\nOSM/BRouter: railway=*.</string>
     <string name="street_color_swatch">■</string>
-    <string name="street_type_waterway">waterway=* (all)</string>
-    <string name="street_type_other">Other / unknown routing geometry</string>
-    <string name="street_type_road">highway=road/yes</string>
-    <string name="street_type_route_hiking_foot">route=hiking/foot</string>
-    <string name="street_type_route_ski_piste">route=ski/piste</string>
-    <string name="format_street_highway_type">highway=%1$s</string>
-    <string name="format_street_route_type">route=%1$s</string>
+    <string name="street_type_waterway">Waterways</string>
+    <string name="street_type_waterway_info">All waterway geometry in local BRouter segments.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Other route geometry</string>
+    <string name="street_type_other_info">Geometry without a recognized street or supported route type.\n\nOSM/BRouter: no recognized highway=*, railway=*, waterway=*, or supported route=* value.</string>
+    <string name="street_type_route_ferry">Ferry routes</string>
+    <string name="street_type_route_ferry_info">Routes carried by a ferry.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Walking routes</string>
+    <string name="street_type_route_hiking_foot_info">Marked routes for hiking or walking.\n\nOSM/BRouter: route=hiking or route=foot.</string>
+    <string name="street_type_route_bicycle">Cycling routes</string>
+    <string name="street_type_route_bicycle_info">Marked routes for cycling.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Ski/pistes routes</string>
+    <string name="street_type_route_ski_piste_info">Ski routes and pistes for other activities, such as sledding or hiking. BRouter stores both tags as one value, so they share this switch.\n\nOSM/BRouter: route=ski or route=piste.</string>
+    <string name="street_type_route_mtb">Mountain bike routes</string>
+    <string name="street_type_route_mtb_info">Marked routes for mountain biking.\n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Canoe routes</string>
+    <string name="street_type_route_canoe_info">Marked routes for canoeing.\n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Bus routes</string>
+    <string name="street_type_route_bus_info">Bus route geometry in local BRouter segments.\n\nOSM/BRouter: route=bus.</string>
     <string name="label_compass_instant_zoom_enabled">Instant compass zoom</string>
     <string name="label_compass_stationary_full_route_zoom_enabled">Automatic zoom out</string>
     <string name="label_compass_fullscreen_route_enabled">Fullscreen route</string>

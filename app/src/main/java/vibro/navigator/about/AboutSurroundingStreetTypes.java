@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
@@ -110,10 +111,16 @@ final class AboutSurroundingStreetTypes {
                 if (type.category() != category || !selectable(type) || displayRank(type) != rank) {
                     continue;
                 }
-                Switch leaf = streetSwitch(AboutStreetTypeLabels.typeLabel(activity, type), saved.isTypeEnabled(type));
+                String label = AboutStreetTypeLabels.typeLabel(activity, type);
+                Switch leaf = streetSwitch(label, saved.isTypeEnabled(type));
                 leaf.setTag(type.name());
-                leaf.setPadding(dp(24), 0, 0, 0);
-                content.addView(leaf, new LinearLayout.LayoutParams(-1, dp(44)));
+                LinearLayout row = new LinearLayout(activity);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setMinimumHeight(dp(48));
+                row.setPadding(dp(16), 0, 0, 0);
+                row.addView(leaf, new LinearLayout.LayoutParams(0, -2, 1f));
+                row.addView(infoButton(type, label), new LinearLayout.LayoutParams(dp(44), dp(44)));
+                content.addView(row, new LinearLayout.LayoutParams(-1, -2));
                 types[type.ordinal()] = leaf;
             }
         }
@@ -136,7 +143,22 @@ final class AboutSurroundingStreetTypes {
         control.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         control.setChecked(checked);
         control.setShowText(false);
+        control.setMinHeight(dp(48));
         return control;
+    }
+
+    private ImageButton infoButton(@NonNull CompassStreetType type, @NonNull String label) {
+        ImageButton button = new ImageButton(activity, null, 0, R.style.Widget_ViBRoNavigator_InfoButton);
+        button.setContentDescription(activity.getString(
+                R.string.format_about_setting_info_content_description, label
+        ));
+        button.setTag(type.name() + "_INFO");
+        button.setOnClickListener(view -> new AlertDialog.Builder(activity)
+                .setTitle(label)
+                .setMessage(AboutStreetTypeLabels.typeDescription(activity, type))
+                .setPositiveButton(android.R.string.ok, null)
+                .show());
+        return button;
     }
 
     private void save(

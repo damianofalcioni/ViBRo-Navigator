@@ -87,7 +87,7 @@ public class AboutSurroundingStreetTypesRobolectricTest {
                 CompassStreetType.LIVING_STREET);
         assertRoutesBeforeHighways(dialog, content, CompassStreetCategory.SPECIAL_ROUTING,
                 CompassStreetType.BUSWAY);
-        int otherIndex = content.indexOfChild(findSwitch(dialog, CompassStreetType.OTHER.name()));
+        int otherIndex = content.indexOfChild(rowOf(dialog, CompassStreetType.OTHER));
         assertEquals(content.getChildCount() - 1, otherIndex);
     }
 
@@ -97,15 +97,19 @@ public class AboutSurroundingStreetTypesRobolectricTest {
             CompassStreetCategory category,
             CompassStreetType firstHighway
     ) {
-        int highwayIndex = content.indexOfChild(findSwitch(dialog, firstHighway.name()));
+        int highwayIndex = content.indexOfChild(rowOf(dialog, firstHighway));
         int headingIndex = content.indexOfChild((View) findSwitch(dialog, category.name()).getParent());
         for (CompassStreetType type : CompassStreetType.values()) {
             if (type.category() == category && type.name().startsWith("ROUTE_")
                     && type != CompassStreetType.ROUTE_WALKING_CYCLING) {
-                int routeIndex = content.indexOfChild(findSwitch(dialog, type.name()));
+                int routeIndex = content.indexOfChild(rowOf(dialog, type));
                 assertTrue(type.name(), routeIndex > headingIndex && routeIndex < highwayIndex);
             }
         }
+    }
+
+    private static View rowOf(AlertDialog dialog, CompassStreetType type) {
+        return (View) findSwitch(dialog, type.name()).getParent();
     }
 
     @Test
@@ -162,4 +166,5 @@ public class AboutSurroundingStreetTypesRobolectricTest {
         }
         return null;
     }
+
 }
