@@ -774,7 +774,10 @@ The navigation UI must show the following in large text:
 - In the F-Droid flavor, the Use fused location switch must be disabled and must not enable Google functionality
 - In the Google Play flavor, disabling Use fused location must force the legacy platform GPS/network provider path even when Google Play Services is available
 - The about page Settings section must show a Dynamic GPS fix interval switch that is enabled by default; disabling it must force active navigation location fix requests to 1-second intervals instead of the dynamic buckets
-- The app must write its log file only when the Log enabled setting is switched on
+- The app must write its detailed session log file only when the Log enabled setting is switched on
+- The app must always record uncaught Java crashes regardless of the Log enabled setting. With logging enabled, append them to the current session log; with logging disabled, create a standard timestamped log file only when an anomaly occurs, with the usual system-details entry first
+- When the app next starts, it must record a previously active navigation session that ended without a clean stop. On Android 11 and later it should include the system-reported process exit reason when available; otherwise it must label the cause as unknown rather than attribute it to battery optimization or another app
+- On Android 11 and later, the app should also record system-reported crash, native crash, ANR, and other clearly abnormal process exits even when navigation was not active. Forced kills cannot be logged at the moment of termination
 - The Auto-save GPX on stop, Instant compass zoom, and Zoom out when stationary settings must persist across app launches and be included in database backup/export with other app settings
 - The Log enabled setting must persist across app launches
 - When Log enabled is already on at app startup, the app must create a fresh log file for that app session before startup logging begins

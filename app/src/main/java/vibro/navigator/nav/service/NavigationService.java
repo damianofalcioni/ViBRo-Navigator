@@ -19,6 +19,7 @@ import android.os.IBinder;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.logging.AppExitDiagnostics;
 
 // Android service shell: explicit collaborators keep lifecycle ownership visible and behavior isolated in helpers.
 public class NavigationService extends Service {
@@ -184,6 +185,8 @@ public class NavigationService extends Service {
             return;
         }
 
+        AppExitDiagnostics.navigationStarted(this);
+
         setGnssStatusDisplayActive(uiVisibility.canDispatchStateToUi());
         runtime().requestLocationUpdates(STARTUP_LOCATION_UPDATE_INTERVAL_MS);
         runtime().locationRecovery.start();
@@ -232,6 +235,7 @@ public class NavigationService extends Service {
     }
 
     private void stopNavigation() {
+        AppExitDiagnostics.navigationStopped(this);
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
         navigationSession.stop();

@@ -8,6 +8,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.distribution.DistributionServices;
+import vibro.navigator.logging.AppExitDiagnostics;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppAndroidAutoSettings;
 
@@ -22,6 +23,8 @@ public final class ViBRoNavigatorApp extends Application {
     public void onCreate() {
         super.onCreate();
         AppLogger.init(this);
+        installCrashLogging();
+        AppExitDiagnostics.onProcessStart(this);
         DistributionServices.configureAndroidAutoIntegration(
                 this,
                 AppAndroidAutoSettings.isIntegrationEnabled(this)
@@ -29,7 +32,6 @@ public final class ViBRoNavigatorApp extends Application {
         AppLogger.i(TAG, "Application started version=" + BuildConfig.VERSION_NAME
                 + " logFile=" + AppLogger.getLogFilePath(this));
         installActivityLifecycleLogging();
-        installCrashLogging();
     }
 
     @Override
@@ -47,12 +49,15 @@ public final class ViBRoNavigatorApp extends Application {
     private void installCrashLogging() {
         previousUncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            AppLogger.e(TAG, "Uncaught exception on thread=" + thread.getName(), throwable);
-            if (previousUncaughtExceptionHandler != null) {
-                previousUncaughtExceptionHandler.uncaughtException(thread, throwable);
-            } else {
-                android.os.Process.killProcess(android.os.Process.myPid());
-                System.exit(10);
+            try {
+                AppLogger.anomaly(this, TAG, "Uncaught exception on thread=" + thread.getName(), throwable);
+            } finally {
+                if (previousUncaughtExceptionHandler != null) {
+                    previousUncaughtExceptionHandler.uncaughtException(thread, throwable);
+                } else {
+                    android.os.Process.killProcess(android.os.Process.myPid());
+                    System.exit(10);
+                }
             }
         });
     }

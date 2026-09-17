@@ -1,6 +1,7 @@
 package vibro.navigator.logging;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
@@ -27,6 +28,8 @@ import vibro.navigator.brouter.BRouterProfilesRepository;
 
 @RunWith(RobolectricTestRunner.class)
 public class AppLoggerTest {
+    private static final String TEST_TAG = "AppLoggerTest";
+    private static final String SYSTEM_INFO = "Log session system info";
 
     private Application context;
 
@@ -54,9 +57,64 @@ public class AppLoggerTest {
     public void disabledLoggingDoesNotRenderThrowable() {
         CountingThrowable throwable = new CountingThrowable();
 
-        AppLogger.w("AppLoggerTest", "disabled marker", throwable);
+        AppLogger.w(TEST_TAG, "disabled marker", throwable);
 
         assertFalse(throwable.printed);
+    }
+
+    @Test
+    public void anomalyIsWrittenWithLoggingDisabled() throws Exception {
+        AppLogger.anomaly(context, TEST_TAG, "forced termination discovered", new IllegalStateException("boom"));
+
+        File anomalyFile = new File(AppLogger.getLogFilePath(context));
+        String content = readLogContent();
+        assertTrue(anomalyFile.getName().matches("vibro-navigator-log-\\d{14}(?:-\\d+)?\\.txt"));
+        assertSessionInfo(firstLine(content));
+        assertTrue(content.indexOf(SYSTEM_INFO) < content.indexOf("forced termination discovered"));
+        assertTrue(content.contains("ERROR/AppLoggerTest"));
+        assertTrue(content.contains("forced termination discovered"));
+        assertTrue(content.contains("IllegalStateException: boom"));
+        assertFalse(AppLogger.isLoggingEnabled(context));
+    }
+
+    @Test
+    public void disabledLoggingReusesAnomalyLogWithinSession() throws Exception {
+        AppLogger.anomaly(context, TEST_TAG, "first anomaly", null);
+        String firstPath = AppLogger.getLogFilePath(context);
+
+        AppLogger.anomaly(context, TEST_TAG, "second anomaly", null);
+        AppLogger.i(TEST_TAG, "ordinary message while disabled");
+
+        assertEquals(firstPath, AppLogger.getLogFilePath(context));
+        String content = readLogContent();
+        assertEquals(1, content.split(SYSTEM_INFO, -1).length - 1);
+        assertTrue(content.contains("first anomaly"));
+        assertTrue(content.contains("second anomaly"));
+        assertFalse(content.contains("ordinary message while disabled"));
+    }
+
+    @Test
+    public void anomalyAlsoAppearsInEnabledSessionLog() throws Exception {
+        assertTrue(AppLogger.setLoggingEnabled(context, true));
+        String sessionPath = AppLogger.getLogFilePath(context);
+
+        AppLogger.anomaly(context, TEST_TAG, "session anomaly", null);
+
+        assertEquals(sessionPath, AppLogger.getLogFilePath(context));
+        assertSessionInfo(firstLine(readLogContent()));
+        assertTrue(readLogContent().contains("session anomaly"));
+    }
+
+    @Test
+    public void anomalyAfterDisablingDetailedLogsStartsFreshFile() throws Exception {
+        assertTrue(AppLogger.setLoggingEnabled(context, true));
+        String detailedPath = AppLogger.getLogFilePath(context);
+        assertTrue(AppLogger.setLoggingEnabled(context, false));
+
+        AppLogger.anomaly(context, TEST_TAG, "later anomaly", null);
+
+        assertNotEquals(detailedPath, AppLogger.getLogFilePath(context));
+        assertSessionInfo(firstLine(readLogContent()));
     }
 
     @Test
@@ -69,14 +127,14 @@ public class AppLoggerTest {
         assertTrue(firstLine.contains("INFO/AppLogger"));
         assertSessionInfo(firstLine);
         assertTrue(content.contains("Logging enabled"));
-        assertTrue(content.indexOf("Log session system info") < content.indexOf("Logging enabled"));
+        assertTrue(content.indexOf(SYSTEM_INFO) < content.indexOf("Logging enabled"));
     }
 
     @Test
     public void startupWithEnabledLoggingWritesFreshSessionInfoFirst() throws Exception {
         assertTrue(AppLogger.setLoggingEnabled(context, true));
         String firstPath = AppLogger.getLogFilePath(context);
-        AppLogger.i("AppLoggerTest", "first session marker");
+        AppLogger.i(TEST_TAG, "first session marker");
 
         AppLogger.init(context);
 
@@ -119,7 +177,7 @@ public class AppLoggerTest {
     }
 
     private static void assertSessionInfo(String line) {
-        assertTrue(line.contains("Log session system info"));
+        assertTrue(line.contains(SYSTEM_INFO));
         assertTrue(line.contains("androidVersion=" + Build.VERSION.RELEASE));
         assertTrue(line.contains("androidSdk=" + Build.VERSION.SDK_INT));
         assertTrue(line.contains("appVersion=" + BuildConfig.VERSION_NAME));

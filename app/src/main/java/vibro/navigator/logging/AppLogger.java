@@ -14,7 +14,7 @@ import java.util.Locale;
 
 public final class AppLogger {
 
-    private static final String TAG = "AppLogger";
+    static final String TAG = "AppLogger";
     private static final Object LOCK = new Object();
     private static final String PREFS_NAME = "app_logging";
     private static final String KEY_LOG_ENABLED = "log_enabled";
@@ -32,8 +32,7 @@ public final class AppLogger {
             loggingEnabled = readLogEnabled(appContext);
             logFile = null;
             if (loggingEnabled) {
-                ensureLogFileLocked(appContext, true);
-                writeSessionInfoLocked(appContext);
+                logFile = AppLogFiles.startSession(appContext);
             }
         }
     }
@@ -43,7 +42,7 @@ public final class AppLogger {
         synchronized (LOCK) {
             Context appContext = context.getApplicationContext();
             if (loggingEnabled) {
-                ensureLogFileLocked(appContext, false);
+                logFile = AppLogFiles.ensureLogFile(appContext, logFile, false);
             }
             if (logFile != null) {
                 return logFile.getAbsolutePath();
@@ -71,8 +70,7 @@ public final class AppLogger {
             writeLogEnabled(appContext, enabled);
             loggingEnabled = enabled;
             if (loggingEnabled) {
-                ensureLogFileLocked(appContext, true);
-                writeSessionInfoLocked(appContext);
+                logFile = AppLogFiles.startSession(appContext);
             } else {
                 logFile = null;
             }
@@ -107,6 +105,25 @@ public final class AppLogger {
         write("ERROR", tag, message, throwable);
     }
 
+    public static void anomaly(
+            @NonNull Context context,
+            @NonNull String tag,
+            @NonNull String message,
+            @Nullable Throwable throwable
+    ) {
+        synchronized (LOCK) {
+            Context appContext = context.getApplicationContext();
+            if (logFile == null) {
+                logFile = AppLogFiles.startSession(appContext);
+            }
+            StringBuilder block = buildLogPrefix("ERROR", tag, message);
+            appendThrowable(block, throwable);
+            if (logFile != null) {
+                AppLogFiles.appendBlock(logFile, block);
+            }
+        }
+    }
+
     private static void write(
             @NonNull String level,
             @NonNull String tag,
@@ -117,14 +134,19 @@ public final class AppLogger {
             return;
         }
         StringBuilder block = buildLogPrefix(level, tag, message);
-        if (throwable != null) {
-            StringWriter sw = new StringWriter();
-            PrintWriter pw = new PrintWriter(sw);
-            throwable.printStackTrace(pw);
-            pw.flush();
-            block.append(sw);
-        }
+        appendThrowable(block, throwable);
         appendBlock(block);
+    }
+
+    private static void appendThrowable(@NonNull StringBuilder block, @Nullable Throwable throwable) {
+        if (throwable == null) {
+            return;
+        }
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        throwable.printStackTrace(pw);
+        pw.flush();
+        block.append(sw);
     }
 
     private static void writeMultiline(
@@ -145,7 +167,7 @@ public final class AppLogger {
     }
 
     @NonNull
-    private static StringBuilder buildLogPrefix(
+    static StringBuilder buildLogPrefix(
             @NonNull String level,
             @NonNull String tag,
             @NonNull String message
@@ -164,26 +186,10 @@ public final class AppLogger {
     }
 
     private static void appendBlock(@NonNull CharSequence block) {
-        File target = currentLogFile();
-        if (target == null) {
-            return;
-        }
-
         synchronized (LOCK) {
-            if (logFile == null) {
-                return;
+            if (loggingEnabled && logFile != null) {
+                AppLogFiles.appendBlock(logFile, block);
             }
-            AppLogFiles.appendBlock(logFile, block);
-        }
-    }
-
-    @Nullable
-    private static File currentLogFile() {
-        synchronized (LOCK) {
-            if (!loggingEnabled) {
-                return null;
-            }
-            return logFile;
         }
     }
 
@@ -200,20 +206,6 @@ public final class AppLogger {
     @NonNull
     private static String normalizeMultiline(@NonNull String message) {
         return message.replace("\r\n", "\n").replace('\r', '\n');
-    }
-
-    private static void ensureLogFileLocked(@NonNull Context context, boolean forceRefresh) {
-        logFile = AppLogFiles.ensureLogFile(context, logFile, forceRefresh);
-    }
-
-    private static void writeSessionInfoLocked(@NonNull Context context) {
-        if (logFile != null) {
-            AppLogFiles.appendBlock(logFile, buildLogPrefix(
-                    "INFO",
-                    TAG,
-                    AppLogSessionInfo.format(context, logFile)
-            ));
-        }
     }
 
     private static boolean readLogEnabled(@NonNull Context context) {

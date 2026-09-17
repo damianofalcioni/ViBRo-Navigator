@@ -507,7 +507,7 @@
     <string name="hint_google_poi_api_key">Optional Google Maps key</string>
     <string name="format_about_setting_info_content_description">Show help for %1$s</string>
     <string name="format_action_toggle_custom_button_setting">Toggle %1$s (%2$s)</string>
-    <string name="about_setting_log_info">Keeps a log that can help diagnose problems. Leave this off unless you need to share details for support.</string>
+    <string name="about_setting_log_info">Keeps a detailed behavior log that can help diagnose problems. Leave this off unless you need to share details for support. Crashes and unexpected navigation stops still create a timestamped log with system details when this switch is off. A forced stop can only be reported after the app starts again; the exact cause may be unavailable.</string>
     <string name="about_setting_auto_save_gpx_info">Saves the active route as a GPX file when you stop navigation with the Stop button.</string>
     <string name="about_setting_fused_location_info">Uses Google location when available. This can improve location updates on some phones.</string>
     <string name="about_setting_dynamic_gps_fix_interval_info">Saves battery by checking your location less often but still in a reliable way. Turn it off for continuous location updates.</string>

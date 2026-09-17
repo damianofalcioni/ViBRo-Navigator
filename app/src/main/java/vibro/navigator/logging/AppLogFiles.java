@@ -46,6 +46,19 @@ final class AppLogFiles {
         return target;
     }
 
+    @Nullable
+    static File startSession(@NonNull Context context) {
+        File file = ensureLogFile(context, null, true);
+        if (file != null) {
+            appendBlock(file, AppLogger.buildLogPrefix(
+                    "INFO",
+                    AppLogger.TAG,
+                    AppLogSessionInfo.format(context, file)
+            ));
+        }
+        return file;
+    }
+
     static void appendBlock(@NonNull File file, @NonNull CharSequence block) {
         AppLogFileMaintenance.appendBlock(file, block);
     }

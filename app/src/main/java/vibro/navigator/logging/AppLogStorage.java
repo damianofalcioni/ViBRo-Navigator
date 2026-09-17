@@ -28,8 +28,20 @@ final class AppLogStorage {
 
     @Nullable
     static File ensureLogDir(@NonNull Context context) {
-        File dir = resolveLogDir(context);
-        return !dir.exists() && !dir.mkdirs() && !dir.exists() ? null : dir;
+        try {
+            File dir = resolveLogDir(context);
+            if (ensureDirectory(dir)) {
+                return dir;
+            }
+        } catch (RuntimeException ignored) {
+            // Removable storage can disappear while the app is running.
+        }
+        File internalDir = new File(AndroidAppStorageDirs.internalFilesDir(context), LOG_DIR);
+        return ensureDirectory(internalDir) ? internalDir : null;
+    }
+
+    private static boolean ensureDirectory(@NonNull File dir) {
+        return dir.exists() || dir.mkdirs() || dir.exists();
     }
 
     @NonNull
