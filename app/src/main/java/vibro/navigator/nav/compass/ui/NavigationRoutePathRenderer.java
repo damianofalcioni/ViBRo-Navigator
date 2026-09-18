@@ -13,6 +13,7 @@ final class NavigationRoutePathRenderer {
     private final PlotPoint routeSegmentEndPoint = new PlotPoint();
     private final PlotPoint previousPathEndPoint = new PlotPoint();
     private final RouteDrawingMath.ClippedSegment clippedSegment = new RouteDrawingMath.ClippedSegment();
+    private final NavigationRoutePathCache pathCache = new NavigationRoutePathCache();
 
     void drawProjectedRouteSegment(
             @NonNull Canvas canvas,
@@ -23,9 +24,20 @@ final class NavigationRoutePathRenderer {
             int endIndex,
             float visibleRadiusMeters,
             float drawPaddingMeters,
+            @NonNull Object sourceIdentity,
+            int sourceSlot,
+            float headingDegrees,
             @NonNull Paint strokePaint,
             @NonNull ProjectedRoutePointSource pointSource
     ) {
+        NavigationRoutePathCache.Entry cached = pathCache.find(
+                sourceIdentity, sourceSlot, startIndex, endIndex,
+                cx, cy, scale, visibleRadiusMeters, drawPaddingMeters, headingDegrees
+        );
+        if (cached != null) {
+            cached.draw(canvas, strokePaint);
+            return;
+        }
         routePath.reset();
         boolean havePrevious = false;
         boolean activeSubpath = false;
@@ -56,6 +68,7 @@ final class NavigationRoutePathRenderer {
         if (hasVisibleSegment) {
             canvas.drawPath(routePath, strokePaint);
         }
+        pathCache.remember(sourceIdentity, sourceSlot, startIndex, endIndex, routePath, hasVisibleSegment);
     }
 
     private boolean appendVisibleSegmentIfNearVisibleArea(

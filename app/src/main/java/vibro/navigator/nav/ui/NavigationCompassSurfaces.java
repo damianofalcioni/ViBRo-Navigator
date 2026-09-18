@@ -79,11 +79,13 @@ final class NavigationCompassSurfaces {
     void render(
             boolean fullscreenRouteMode,
             boolean navigationPaused,
+            float perspectiveProgress,
             @Nullable NavCompassState compassState
     ) {
         applyFullscreenRouteMode(fullscreenRouteMode);
         NavigationCompassView activeCompass = fullscreenRouteMode ? fullscreenCompass : compactCompass;
         activeCompass.setNavigationPaused(navigationPaused);
+        activeCompass.setPerspectiveProgress(perspectiveProgress);
         activeCompass.setCompassState(compassState);
     }
 

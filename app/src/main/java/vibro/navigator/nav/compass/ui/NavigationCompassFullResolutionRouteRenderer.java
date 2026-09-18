@@ -12,6 +12,8 @@ import vibro.navigator.nav.compass.NavCompassState;
 import java.util.List;
 
 final class NavigationCompassFullResolutionRouteRenderer {
+    private static final int SAMPLED_ROUTE_SOURCE = 1;
+    private static final int FULL_ROUTE_SOURCE = 2;
     @NonNull
     private final Paint routePaint;
     @NonNull
@@ -326,6 +328,9 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 endIndex,
                 state.radiusState.visibleRadiusMeters,
                 resolveRouteDrawPaddingMeters(state),
+                state,
+                SAMPLED_ROUTE_SOURCE,
+                headingDegrees,
                 paint,
                 (index, out) -> projectSampledPoint(state, index, headingDegrees, out)
         );
@@ -353,6 +358,9 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 points.size(),
                 state.radiusState.visibleRadiusMeters,
                 resolveRouteDrawPaddingMeters(state),
+                points,
+                0,
+                headingDegrees,
                 paint,
                 (index, out) -> projectProjectedPoint(points.get(index), headingDegrees, out)
         );
@@ -381,6 +389,9 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 endIndex,
                 state.radiusState.visibleRadiusMeters,
                 resolveRouteDrawPaddingMeters(state),
+                state,
+                FULL_ROUTE_SOURCE,
+                headingDegrees,
                 paint,
                 (index, out) -> projectPoint(state, index, headingDegrees, out)
         );

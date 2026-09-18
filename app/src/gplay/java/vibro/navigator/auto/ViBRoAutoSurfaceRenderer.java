@@ -31,8 +31,6 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     }
 
     private static final String TAG = "ViBRoAutoSurface";
-    private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
-
     private final TaskScheduler uiScheduler;
     private final CarContext carContext;
     private final Controls controls;
@@ -160,11 +158,11 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private void scheduleCompassTransitionIfNeeded() {
         clearCompassCallbacks();
         if (painter.isCompassTransitionInProgress()) {
-            uiScheduler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
+            uiScheduler.postAnimationFrame(compassTransitionTicker);
         }
     }
 
     private void clearCompassCallbacks() {
-        uiScheduler.removeCallbacks(compassTransitionTicker);
+        uiScheduler.cancelAnimationFrame(compassTransitionTicker);
     }
 }

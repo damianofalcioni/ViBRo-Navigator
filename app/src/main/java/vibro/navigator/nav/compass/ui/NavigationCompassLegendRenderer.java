@@ -16,11 +16,56 @@ final class NavigationCompassLegendRenderer {
     private final RectF arcBounds = new RectF();
     private final NavigationRoutePathRenderer.PlotPoint rightAnchor = new NavigationRoutePathRenderer.PlotPoint();
     private final NavigationRoutePathRenderer.PlotPoint leftAnchor = new NavigationRoutePathRenderer.PlotPoint();
+    private final float[] perspectiveAnchor = new float[2];
+
+    void drawPerspective(
+            @NonNull Canvas canvas,
+            @NonNull Context context,
+            @Nullable NavCompassState compassState,
+            @NonNull NavigationCompassPerspective perspective,
+            float cx,
+            float cy,
+            float radius,
+            float visibleRadiusMeters,
+            @NonNull float[] ringScales,
+            float outerDistanceRingScale,
+            float labelOffsetPx,
+            @NonNull Paint rightPaint,
+            @NonNull Paint leftPaint
+    ) {
+        if (compassState == null || visibleRadiusMeters <= 0f) {
+            return;
+        }
+        Paint.FontMetrics fontMetrics = rightPaint.getFontMetrics();
+        float baselineOffset = -(fontMetrics.ascent + fontMetrics.descent) / 2f;
+        float labelHeight = fontMetrics.descent - fontMetrics.ascent;
+        perspective.mapPoint(cx, cy - radius, perspectiveAnchor);
+        float minimumLabelY = perspectiveAnchor[1] + labelHeight / 2f + labelOffsetPx;
+        for (float ringScale : ringScales) {
+            perspective.mapPoint(cx, cy - radius * ringScale, perspectiveAnchor);
+            float labelY = Math.max(perspectiveAnchor[1], minimumLabelY);
+            minimumLabelY = labelY + labelHeight + labelOffsetPx;
+            float distanceMeters = visibleRadiusMeters * ringScale / outerDistanceRingScale;
+            canvas.drawText(
+                    formatDistanceLabel(context, distanceMeters),
+                    perspectiveAnchor[0] + labelOffsetPx,
+                    labelY + baselineOffset,
+                    rightPaint
+            );
+            canvas.drawText(
+                    formatRingTimeLabel(context, compassState, distanceMeters),
+                    perspectiveAnchor[0] - labelOffsetPx,
+                    labelY + baselineOffset,
+                    leftPaint
+            );
+        }
+    }
 
     void draw(
             @NonNull Canvas canvas,
             @NonNull Context context,
             @Nullable NavCompassState compassState,
+            float visibleRadiusMeters,
             float cx,
             float cy,
             float radius,
@@ -34,7 +79,7 @@ final class NavigationCompassLegendRenderer {
             @NonNull Paint headingAccuracyGuidePaint,
             boolean showHeadingAccuracy
     ) {
-        if (compassState == null || compassState.radiusState.visibleRadiusMeters <= 0f) {
+        if (compassState == null || visibleRadiusMeters <= 0f) {
             return;
         }
 
@@ -49,6 +94,7 @@ final class NavigationCompassLegendRenderer {
                     canvas,
                     context,
                     compassState,
+                    visibleRadiusMeters,
                     cx,
                     cy,
                     radius,
@@ -90,16 +136,22 @@ final class NavigationCompassLegendRenderer {
             float ringScale,
             float outerDistanceRingScale
     ) {
-        if (compassState == null || compassState.radiusState.visibleRadiusMeters <= 0f) {
+        float radiusMeters = visibleRadiusMeters(compassState);
+        if (radiusMeters <= 0f) {
             return 0f;
         }
-        return compassState.radiusState.visibleRadiusMeters * (ringScale / outerDistanceRingScale);
+        return radiusMeters * (ringScale / outerDistanceRingScale);
+    }
+
+    static float visibleRadiusMeters(@Nullable NavCompassState compassState) {
+        return compassState == null ? 0f : compassState.radiusState.visibleRadiusMeters;
     }
 
     private void drawLegendRow(
             @NonNull Canvas canvas,
             @NonNull Context context,
             @NonNull NavCompassState compassState,
+            float visibleRadiusMeters,
             float cx,
             float cy,
             float radius,
@@ -115,11 +167,7 @@ final class NavigationCompassLegendRenderer {
             @NonNull Paint headingAccuracyGuidePaint
     ) {
         float y = cy - radius * ringScale;
-        float ringDistanceMeters = resolveLegendRingDistanceMeters(
-                compassState,
-                ringScale,
-                outerDistanceRingScale
-        );
+        float ringDistanceMeters = visibleRadiusMeters * ringScale / outerDistanceRingScale;
         String distanceLabel = formatDistanceLabel(context, ringDistanceMeters);
         String secondsLabel = formatRingTimeLabel(context, compassState, ringDistanceMeters);
         if (visibleHeadingAccuracyDegrees != null) {

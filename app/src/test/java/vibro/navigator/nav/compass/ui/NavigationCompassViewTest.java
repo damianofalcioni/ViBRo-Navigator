@@ -253,7 +253,7 @@ public class NavigationCompassViewTest {
         );
         assertEquals(
                 ContextCompat.getColor(activity, R.color.light_text_primary),
-                paint(compassView, "majorTickPaint").getColor()
+                paint(compassView, "cardinalPaint").getColor()
         );
         assertEquals(
                 ContextCompat.getColor(activity, R.color.light_text_primary),

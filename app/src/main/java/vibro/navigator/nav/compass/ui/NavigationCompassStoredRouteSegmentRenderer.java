@@ -103,6 +103,9 @@ final class NavigationCompassStoredRouteSegmentRenderer {
                 pointCount,
                 state.radiusState.visibleRadiusMeters,
                 drawPaddingMeters,
+                state,
+                segmentIndex,
+                headingDegrees,
                 strokePaint,
                 (i, out) -> projectSegmentPoint(state, segments, segmentIndex, i, headingDegrees, out)
         );

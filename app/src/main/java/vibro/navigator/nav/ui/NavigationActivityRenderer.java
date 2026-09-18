@@ -31,8 +31,6 @@ final class NavigationActivityRenderer {
     }
 
     private static final String TAG = "NavigationActivity";
-    private static final long COMPASS_TRANSITION_FRAME_DELAY_MS = 16L;
-
     private final Activity activity;
     private final TaskScheduler uiScheduler;
     private final NavigationCompassModeController compassModeController;
@@ -210,7 +208,7 @@ final class NavigationActivityRenderer {
     }
 
     void cancelPendingCompassTransition() {
-        uiScheduler.removeCallbacks(compassTransitionTicker);
+        uiScheduler.cancelAnimationFrame(compassTransitionTicker);
     }
 
     void dismissDetailsDialogs() {
@@ -225,13 +223,18 @@ final class NavigationActivityRenderer {
                 compassState,
                 compassZoomAnimationEnabled()
         );
-        compassSurfaces.render(fullscreenRouteMode, navigationPaused, displayedCompassState);
+        compassSurfaces.render(
+                fullscreenRouteMode,
+                navigationPaused,
+                compassModeController.perspectiveProgress(),
+                displayedCompassState
+        );
         if (currentBinder != null) {
             currentBinder.setCompassStreetViewport(displayedCompassState);
         }
         cancelPendingCompassTransition();
         if (compassModeController.isTransitionInProgress()) {
-            uiScheduler.postDelayed(compassTransitionTicker, COMPASS_TRANSITION_FRAME_DELAY_MS);
+            uiScheduler.postAnimationFrame(compassTransitionTicker);
         }
     }
 

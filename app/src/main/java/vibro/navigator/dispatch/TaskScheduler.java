@@ -9,6 +9,14 @@ public interface TaskScheduler {
         post(runnable);
     }
 
+    default void postAnimationFrame(@NonNull Runnable runnable) {
+        postDelayed(runnable, 16L);
+    }
+
+    default void cancelAnimationFrame(@NonNull Runnable runnable) {
+        removeCallbacks(runnable);
+    }
+
     default void removeCallbacks(@NonNull Runnable runnable) {
     }
 }

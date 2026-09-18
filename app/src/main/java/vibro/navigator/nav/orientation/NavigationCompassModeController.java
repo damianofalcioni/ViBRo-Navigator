@@ -1,8 +1,8 @@
 package vibro.navigator.nav.orientation;
 
 
+import vibro.navigator.nav.compass.CompassPerspectiveScale;
 import vibro.navigator.nav.compass.NavCompassState;
-import vibro.navigator.nav.compass.NavCompassStateFactory;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 import androidx.annotation.NonNull;
@@ -10,19 +10,43 @@ import androidx.annotation.Nullable;
 
 public final class NavigationCompassModeController {
 
+    private enum ViewMode {
+        FULL_ROUTE,
+        MOVING_2D,
+        PERSPECTIVE_3D,
+        MOVING_2D_AFTER_PERSPECTIVE;
+
+        private static final ViewMode[] CYCLE = values();
+
+        boolean usesMovingScale() {
+            return this != FULL_ROUTE;
+        }
+
+        ViewMode next() {
+            return CYCLE[(ordinal() + 1) % CYCLE.length];
+        }
+    }
+
     private static final long NO_EXPIRY = -1L;
-    private static final long NO_UPDATE_TIME = -1L;
     private static final long MOVING_FULL_ROUTE_RESTORE_DELAY_MS = 5_000L;
-    private static final float TARGET_TOLERANCE_RATIO = 0.002f;
-    private static final float TARGET_TOLERANCE_METERS = 0.5f;
 
     @Nullable
-    private Boolean overrideMovingScaleView;
-    private long overrideExpiryElapsedMs = NO_EXPIRY;
-    private boolean radiusTransitionActive;
+    private ViewMode overrideMode;
+    private ViewMode displayedMode = ViewMode.FULL_ROUTE;
     @Nullable
-    private Float lastResolvedVisibleRadiusMeters;
-    private long lastRadiusTransitionUpdateElapsedMs = NO_UPDATE_TIME;
+    private NavCompassState cachedAutomaticState;
+    private boolean cachedMovingScale;
+    @Nullable
+    private NavCompassState cachedModeState;
+    @Nullable
+    private NavCompassState cachedPerspectiveBaseState;
+    @Nullable
+    private NavCompassState cachedPerspectiveState;
+    private long overrideExpiryElapsedMs = NO_EXPIRY;
+    private final NavigationCompassUiRadiusTransition radiusTransition =
+            new NavigationCompassUiRadiusTransition();
+    private final NavigationCompassPerspectiveTransition perspectiveTransition =
+            new NavigationCompassPerspectiveTransition();
     @NonNull
     private final ElapsedRealtimeClock elapsedRealtimeClock;
 
@@ -50,20 +74,22 @@ public final class NavigationCompassModeController {
         if (automaticState == null) {
             return;
         }
-        boolean automaticMovingScaleView = automaticState.displayMode.movingScaleActive;
-        boolean displayedMovingScaleView = resolveDisplayedMode(
-                automaticMovingScaleView,
+        ViewMode automaticMode = automaticMode(automaticState);
+        ViewMode currentMode = resolveDisplayedMode(
+                automaticMode,
                 nowElapsedMs,
                 animateRadiusTransition
         );
-        boolean targetMovingScaleView = !displayedMovingScaleView;
-        startRadiusTransition(nowElapsedMs, animateRadiusTransition);
-        if (targetMovingScaleView == automaticMovingScaleView) {
+        ViewMode targetMode = currentMode.next();
+        perspectiveTransition.start(targetMode == ViewMode.PERSPECTIVE_3D, nowElapsedMs);
+        startRadiusTransitionIfScaleChanges(currentMode, targetMode, nowElapsedMs, animateRadiusTransition);
+        displayedMode = targetMode;
+        if (targetMode == automaticMode) {
             clearOverride();
             return;
         }
-        overrideMovingScaleView = targetMovingScaleView;
-        overrideExpiryElapsedMs = automaticMovingScaleView && !targetMovingScaleView
+        overrideMode = targetMode;
+        overrideExpiryElapsedMs = automaticMode.usesMovingScale() && targetMode == ViewMode.FULL_ROUTE
                 ? nowElapsedMs + MOVING_FULL_ROUTE_RESTORE_DELAY_MS
                 : NO_EXPIRY;
     }
@@ -93,127 +119,135 @@ public final class NavigationCompassModeController {
             clear();
             return null;
         }
-        boolean automaticMovingScaleView = automaticState.displayMode.movingScaleActive;
-        Boolean displayedMovingScaleView = resolveOverrideMode(
-                automaticMovingScaleView,
+        ViewMode automaticMode = automaticMode(automaticState);
+        displayedMode = resolveDisplayedMode(
+                automaticMode,
                 nowElapsedMs,
                 animateRadiusTransition
         );
-        NavCompassState targetState = displayedMovingScaleView == null
-                ? automaticState
-                : automaticState.withDisplayMode(displayedMovingScaleView);
-        return resolveTransitionedState(
+        perspectiveTransition.advance(nowElapsedMs);
+        NavCompassState targetState = targetState(automaticState, automaticMode);
+        NavCompassState baseState = radiusTransition.resolve(
                 automaticState,
                 targetState,
                 nowElapsedMs,
                 animateRadiusTransition
         );
+        float progress = perspectiveTransition.progress();
+        NavCompassState displayedState = baseState;
+        if (progress > 0f) {
+            displayedState = perspectiveState(baseState);
+        }
+        return displayedState;
     }
 
     public boolean isTransitionInProgress() {
-        return radiusTransitionActive;
+        return radiusTransition.isActive() || perspectiveTransition.isActive();
     }
 
-    private boolean resolveDisplayedMode(
-            boolean automaticMovingScaleView,
+    public boolean isPerspectiveViewEnabled() {
+        return displayedMode == ViewMode.PERSPECTIVE_3D;
+    }
+
+    public float perspectiveProgress() {
+        return perspectiveTransition.progress();
+    }
+
+    @NonNull
+    private NavCompassState targetState(
+            @NonNull NavCompassState automaticState,
+            @NonNull ViewMode automaticMode
+    ) {
+        if (displayedMode == automaticMode) {
+            return automaticState;
+        }
+        boolean movingScale = displayedMode.usesMovingScale();
+        if (cachedAutomaticState != automaticState || cachedMovingScale != movingScale) {
+            cachedAutomaticState = automaticState;
+            cachedMovingScale = movingScale;
+            cachedModeState = automaticState.withDisplayMode(movingScale);
+        }
+        return cachedModeState;
+    }
+
+    @NonNull
+    private NavCompassState perspectiveState(@NonNull NavCompassState baseState) {
+        if (cachedPerspectiveBaseState != baseState) {
+            cachedPerspectiveBaseState = baseState;
+            cachedPerspectiveState = baseState.withDisplayMode(
+                    baseState.displayMode.movingScaleActive,
+                    baseState.radiusState.visibleRadiusMeters
+                            * CompassPerspectiveScale.maximumViewportMultiplier()
+            );
+        }
+        return cachedPerspectiveState;
+    }
+
+    private void startRadiusTransitionIfScaleChanges(
+            @NonNull ViewMode currentMode,
+            @NonNull ViewMode targetMode,
+            long nowElapsedMs,
+            boolean animate
+    ) {
+        if (currentMode.usesMovingScale() == targetMode.usesMovingScale()) {
+            return;
+        }
+        radiusTransition.start(nowElapsedMs, animate);
+    }
+
+    @NonNull
+    private static ViewMode automaticMode(@NonNull NavCompassState state) {
+        return state.displayMode.movingScaleActive ? ViewMode.MOVING_2D : ViewMode.FULL_ROUTE;
+    }
+
+    @NonNull
+    private ViewMode resolveDisplayedMode(
+            @NonNull ViewMode automaticMode,
             long nowElapsedMs,
             boolean animateRadiusTransition
     ) {
-        Boolean overrideMode = resolveOverrideMode(
-                automaticMovingScaleView,
+        ViewMode activeOverride = resolveOverrideMode(
+                automaticMode,
                 nowElapsedMs,
                 animateRadiusTransition
         );
-        return overrideMode != null ? overrideMode : automaticMovingScaleView;
+        return activeOverride != null ? activeOverride : automaticMode;
     }
 
     @Nullable
-    private Boolean resolveOverrideMode(
-            boolean automaticMovingScaleView,
+    private ViewMode resolveOverrideMode(
+            @NonNull ViewMode automaticMode,
             long nowElapsedMs,
             boolean animateRadiusTransition
     ) {
-        if (overrideMovingScaleView == null) {
+        if (overrideMode == null) {
             return null;
         }
         if (overrideExpiryElapsedMs != NO_EXPIRY && nowElapsedMs >= overrideExpiryElapsedMs) {
             clearOverride();
-            startRadiusTransition(nowElapsedMs, animateRadiusTransition);
+            radiusTransition.start(nowElapsedMs, animateRadiusTransition);
             return null;
         }
-        if (overrideMovingScaleView == automaticMovingScaleView) {
+        if (overrideMode == automaticMode) {
             clearOverride();
             return null;
         }
-        return overrideMovingScaleView;
-    }
-
-    @NonNull
-    private NavCompassState resolveTransitionedState(
-            @NonNull NavCompassState automaticState,
-            @NonNull NavCompassState targetState,
-            long nowElapsedMs,
-            boolean animateRadiusTransition
-    ) {
-        if (!animateRadiusTransition) {
-            radiusTransitionActive = false;
-            rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
-            return targetState;
-        }
-        if (!radiusTransitionActive) {
-            rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
-            return targetState;
-        }
-
-        float previousRadiusMeters = lastResolvedVisibleRadiusMeters != null
-                ? lastResolvedVisibleRadiusMeters
-                : automaticState.radiusState.visibleRadiusMeters;
-        long deltaMs = lastRadiusTransitionUpdateElapsedMs == NO_UPDATE_TIME
-                ? 0L
-                : Math.max(0L, nowElapsedMs - lastRadiusTransitionUpdateElapsedMs);
-        float resolvedRadiusMeters = deltaMs <= 0L
-                ? previousRadiusMeters
-                : NavCompassStateFactory.smoothVisibleRadiusMeters(
-                        targetState.radiusState.visibleRadiusMeters,
-                        previousRadiusMeters,
-                        deltaMs
-                );
-        if (isAtTarget(resolvedRadiusMeters, targetState.radiusState.visibleRadiusMeters)) {
-            radiusTransitionActive = false;
-            rememberResolvedRadius(targetState.radiusState.visibleRadiusMeters, nowElapsedMs);
-            return targetState;
-        }
-        rememberResolvedRadius(resolvedRadiusMeters, nowElapsedMs);
-        return targetState.withDisplayMode(targetState.displayMode.movingScaleActive, resolvedRadiusMeters);
-    }
-
-    private void startRadiusTransition(long nowElapsedMs, boolean animateRadiusTransition) {
-        radiusTransitionActive = animateRadiusTransition;
-        lastRadiusTransitionUpdateElapsedMs = nowElapsedMs;
-    }
-
-    private void rememberResolvedRadius(float visibleRadiusMeters, long nowElapsedMs) {
-        lastResolvedVisibleRadiusMeters = visibleRadiusMeters;
-        lastRadiusTransitionUpdateElapsedMs = nowElapsedMs;
-    }
-
-    private static boolean isAtTarget(float resolvedRadiusMeters, float targetRadiusMeters) {
-        float toleranceMeters = Math.max(
-                TARGET_TOLERANCE_METERS,
-                Math.abs(targetRadiusMeters) * TARGET_TOLERANCE_RATIO
-        );
-        return Math.abs(resolvedRadiusMeters - targetRadiusMeters) <= toleranceMeters;
+        return overrideMode;
     }
 
     private void clear() {
         clearOverride();
-        radiusTransitionActive = false;
-        lastResolvedVisibleRadiusMeters = null;
-        lastRadiusTransitionUpdateElapsedMs = NO_UPDATE_TIME;
+        displayedMode = ViewMode.FULL_ROUTE;
+        cachedAutomaticState = null;
+        cachedModeState = null;
+        cachedPerspectiveBaseState = null;
+        cachedPerspectiveState = null;
+        radiusTransition.reset();
+        perspectiveTransition.reset();
     }
 
     private void clearOverride() {
-        overrideMovingScaleView = null;
+        overrideMode = null;
         overrideExpiryElapsedMs = NO_EXPIRY;
     }
 }

@@ -20,6 +20,7 @@ final class ViBRoAutoCompassPainter {
     private final ViBRoAutoCompassOverlayPainter overlayPainter;
     private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
     private final RectF bounds = new RectF();
+    private Boolean lastFullscreenRouteMode;
 
     ViBRoAutoCompassPainter(
             @NonNull CarContext carContext,
@@ -44,8 +45,12 @@ final class ViBRoAutoCompassPainter {
             @NonNull RectF overlayBounds,
             float scale
     ) {
-        compassView.setFullscreenRouteModeEnabled(fullscreenRouteMode);
+        if (lastFullscreenRouteMode == null || lastFullscreenRouteMode != fullscreenRouteMode) {
+            compassView.setFullscreenRouteModeEnabled(fullscreenRouteMode);
+            lastFullscreenRouteMode = fullscreenRouteMode;
+        }
         NavCompassState compassState = compassModeController.resolve(state.routeStatus.compassState);
+        compassView.setPerspectiveProgress(compassModeController.perspectiveProgress());
         compassStreetViewportSink.onCompassStreetViewport(compassState);
         compassView.setNavigationPaused(state.pauseStatus.paused);
         compassView.setCompassState(compassState);

@@ -75,6 +75,21 @@ public class NavigationCompassFullscreenModeTest {
     }
 
     @Test
+    public void portraitPerspectiveFullscreenKeepsOneDistanceTimePair() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        assertEquals(2, fullscreenCompassTextDrawCount(activity, 300, 500, true));
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    public void landscapePerspectiveFullscreenKeepsOneDistanceTimePair() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        assertEquals(2, fullscreenCompassTextDrawCount(activity, 500, 300, true));
+    }
+
+    @Test
     public void fullscreenGeometryKeepsCueBoundedAndRouteExpanded() {
         NavigationCompassFullscreenMode mode = new NavigationCompassFullscreenMode();
 
@@ -93,9 +108,14 @@ public class NavigationCompassFullscreenModeTest {
     }
 
     private static int fullscreenCompassTextDrawCount(Activity activity, int width, int height) {
+        return fullscreenCompassTextDrawCount(activity, width, height, false);
+    }
+
+    private static int fullscreenCompassTextDrawCount(Activity activity, int width, int height, boolean perspective) {
         NavigationCompassView compassView = new NavigationCompassView(activity);
         Canvas canvas = new Canvas(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
         compassView.setFullscreenRouteModeEnabled(true);
+        compassView.setPerspectiveProgress(perspective ? 1f : 0f);
         compassView.setCompassState(compassState());
         compassView.layout(0, 0, width, height);
 

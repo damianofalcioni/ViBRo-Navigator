@@ -2,10 +2,12 @@ package vibro.navigator.nav.orientation;
 
 
 import vibro.navigator.nav.compass.CompassRouteGeometry;
+import vibro.navigator.nav.compass.CompassPerspectiveScale;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassStateFactory;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -14,11 +16,13 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.compass.CompassStreetOverlay;
+import vibro.navigator.nav.compass.CompassStreetSegment;
 
 public class NavigationCompassModeControllerTest {
 
     @Test
-    public void tapWhileStationarySmoothlyTogglesBetweenFullRouteAndMovingScaleView() {
+    public void stationaryTapsCycleThroughFullRoute2d3d2dAndFullRoute() {
         NavigationCompassModeController controller = newController();
         NavCompassState automaticState = stationaryState();
 
@@ -29,10 +33,18 @@ public class NavigationCompassModeControllerTest {
         controller.resolve(automaticState, 7_000L);
         NavCompassState settledMovingScaleState = controller.resolve(automaticState, 12_000L);
         controller.onCompassTapped(automaticState, 12_000L);
-        NavCompassState immediateRestoredState = controller.resolve(automaticState, 12_000L);
-        NavCompassState midRestoredState = controller.resolve(automaticState, 13_000L);
-        controller.resolve(automaticState, 18_000L);
-        NavCompassState settledRestoredState = controller.resolve(automaticState, 23_000L);
+        NavCompassState perspectiveState = controller.resolve(automaticState, 12_000L);
+        boolean perspectiveEnabled = controller.isPerspectiveViewEnabled();
+        boolean perspectiveTransitioning = controller.isTransitionInProgress();
+        NavCompassState settledPerspectiveState = controller.resolve(automaticState, 12_320L);
+        controller.onCompassTapped(automaticState, 13_000L);
+        NavCompassState immediateSecond2dState = controller.resolve(automaticState, 13_000L);
+        NavCompassState settledSecond2dState = controller.resolve(automaticState, 13_320L);
+        controller.onCompassTapped(automaticState, 14_000L);
+        NavCompassState immediateRestoredState = controller.resolve(automaticState, 14_000L);
+        NavCompassState midRestoredState = controller.resolve(automaticState, 15_000L);
+        controller.resolve(automaticState, 19_000L);
+        NavCompassState settledRestoredState = controller.resolve(automaticState, 24_000L);
 
         assertFalse(initialState.displayMode.movingScaleActive);
         assertEquals(2_000f, initialState.radiusState.visibleRadiusMeters, 0.01f);
@@ -46,6 +58,18 @@ public class NavigationCompassModeControllerTest {
         );
         assertTrue(settledMovingScaleState.displayMode.movingScaleActive);
         assertEquals(300f, settledMovingScaleState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(perspectiveEnabled);
+        assertTrue(perspectiveTransitioning);
+        assertTrue(perspectiveState.displayMode.movingScaleActive);
+        assertEquals(300f, perspectiveState.radiusState.visibleRadiusMeters, 0.01f);
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(),
+                settledPerspectiveState.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(controller.isPerspectiveViewEnabled());
+        assertTrue(immediateSecond2dState.displayMode.movingScaleActive);
+        assertEquals(settledPerspectiveState.radiusState.visibleRadiusMeters,
+                immediateSecond2dState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(settledSecond2dState.displayMode.movingScaleActive);
+        assertEquals(300f, settledSecond2dState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(immediateRestoredState.displayMode.movingScaleActive);
         assertEquals(300f, immediateRestoredState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(midRestoredState.displayMode.movingScaleActive);
@@ -59,18 +83,29 @@ public class NavigationCompassModeControllerTest {
     }
 
     @Test
-    public void tapWhileMovingShowsFullRouteTemporarilyThenSmoothlyRestoresMovingScaleView() {
+    public void movingTapsShow3dSecond2dThenTemporaryFullRouteAndRestore2d() {
         NavigationCompassModeController controller = newController();
         NavCompassState automaticState = movingState();
 
         controller.onCompassTapped(automaticState, 1_000L);
-        NavCompassState immediateFullRouteState = controller.resolve(automaticState, 1_000L);
-        NavCompassState beforeExpiryState = controller.resolve(automaticState, 5_999L);
-        NavCompassState restoreStartState = controller.resolve(automaticState, 6_000L);
-        NavCompassState restoringState = controller.resolve(automaticState, 7_000L);
-        controller.resolve(automaticState, 12_000L);
-        NavCompassState restoredState = controller.resolve(automaticState, 17_000L);
+        NavCompassState perspectiveState = controller.resolve(automaticState, 1_000L);
+        boolean perspectiveEnabled = controller.isPerspectiveViewEnabled();
+        controller.resolve(automaticState, 1_320L);
+        controller.onCompassTapped(automaticState, 2_000L);
+        NavCompassState second2dState = controller.resolve(automaticState, 2_320L);
+        controller.onCompassTapped(automaticState, 3_000L);
+        NavCompassState immediateFullRouteState = controller.resolve(automaticState, 3_000L);
+        NavCompassState beforeExpiryState = controller.resolve(automaticState, 7_999L);
+        NavCompassState restoreStartState = controller.resolve(automaticState, 8_000L);
+        NavCompassState restoringState = controller.resolve(automaticState, 9_000L);
+        controller.resolve(automaticState, 14_000L);
+        NavCompassState restoredState = controller.resolve(automaticState, 19_000L);
 
+        assertTrue(perspectiveEnabled);
+        assertTrue(perspectiveState.displayMode.movingScaleActive);
+        assertEquals(300f, perspectiveState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(second2dState.displayMode.movingScaleActive);
+        assertEquals(300f, second2dState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(immediateFullRouteState.displayMode.movingScaleActive);
         assertEquals(300f, immediateFullRouteState.radiusState.visibleRadiusMeters, 0.01f);
         assertFalse(beforeExpiryState.displayMode.movingScaleActive);
@@ -87,16 +122,20 @@ public class NavigationCompassModeControllerTest {
     }
 
     @Test
-    public void secondTapWhileMovingClearsTemporaryFullRouteOverrideWithSmoothRadiusRestore() {
+    public void tapAfterSecond2dShowsTemporaryFullRouteAndNextTapRestoresMovingView() {
         NavigationCompassModeController controller = newController();
         NavCompassState automaticState = movingState();
 
         controller.onCompassTapped(automaticState, 1_000L);
-        NavCompassState temporaryFullRouteState = controller.resolve(automaticState, 1_500L);
+        controller.resolve(automaticState, 1_320L);
         controller.onCompassTapped(automaticState, 2_000L);
-        NavCompassState restoreStartState = controller.resolve(automaticState, 2_000L);
-        controller.resolve(automaticState, 7_000L);
-        NavCompassState restoredState = controller.resolve(automaticState, 12_000L);
+        controller.resolve(automaticState, 2_320L);
+        controller.onCompassTapped(automaticState, 3_000L);
+        NavCompassState temporaryFullRouteState = controller.resolve(automaticState, 3_500L);
+        controller.onCompassTapped(automaticState, 4_000L);
+        NavCompassState restoreStartState = controller.resolve(automaticState, 4_000L);
+        controller.resolve(automaticState, 9_000L);
+        NavCompassState restoredState = controller.resolve(automaticState, 14_000L);
 
         assertFalse(temporaryFullRouteState.displayMode.movingScaleActive);
         assertTrue(temporaryFullRouteState.radiusState.visibleRadiusMeters > 300f);
@@ -108,7 +147,7 @@ public class NavigationCompassModeControllerTest {
     }
 
     @Test
-    public void manualStationaryMovingScaleOverrideClearsOnceAutomaticMovingViewMatchesIt() {
+    public void manualStationary2dOverrideClearsOnceAutomaticMovingViewMatchesIt() {
         NavigationCompassModeController controller = newController();
 
         controller.onCompassTapped(stationaryState(), 1_000L);
@@ -116,6 +155,103 @@ public class NavigationCompassModeControllerTest {
 
         assertTrue(resolvedState.displayMode.movingScaleActive);
         assertEquals(300f, resolvedState.radiusState.visibleRadiusMeters, 0.01f);
+    }
+
+    @Test
+    public void perspectiveModePersistsAcrossAutomaticScaleChangesUntilTapped() {
+        NavigationCompassModeController controller = newController();
+
+        controller.onCompassTapped(movingState(), 1_000L);
+        controller.resolve(movingState(), 1_000L);
+        NavCompassState stationaryPerspective = controller.resolve(stationaryState(), 2_000L);
+
+        assertTrue(controller.isPerspectiveViewEnabled());
+        assertTrue(stationaryPerspective.displayMode.movingScaleActive);
+        controller.onCompassTapped(stationaryState(), 3_000L);
+        NavCompassState second2d = controller.resolve(stationaryState(), 3_000L);
+        assertFalse(controller.isPerspectiveViewEnabled());
+        assertTrue(second2d.displayMode.movingScaleActive);
+        controller.resolve(stationaryState(), 3_320L);
+        controller.onCompassTapped(stationaryState(), 4_000L);
+        NavCompassState fullRoute = controller.resolve(stationaryState(), 4_000L);
+        assertFalse(fullRoute.displayMode.movingScaleActive);
+    }
+
+    @Test
+    public void perspectiveOverrideRetainsLoadedSurroundingStreets() {
+        NavigationCompassModeController controller = newController();
+        CompassStreetOverlay streets = new CompassStreetOverlay(Collections.singletonList(
+                new CompassStreetSegment(Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.001, 0.0)))
+        ));
+        NavCompassState automaticState = stationaryState().withStreetOverlay(streets);
+
+        controller.onCompassTapped(automaticState, 1_000L);
+        controller.resolve(automaticState, 1_000L);
+        controller.onCompassTapped(automaticState, 2_000L);
+        NavCompassState perspectiveState = controller.resolve(automaticState, 2_320L);
+
+        assertTrue(perspectiveState.displayMode.movingScaleActive);
+        assertSame(streets, perspectiveState.streetOverlay);
+    }
+
+    @Test
+    public void perspectiveTiltAnimatesQuicklyAndReversesOnNextTap() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automaticState = movingState();
+
+        controller.resolve(automaticState, 1_000L);
+        controller.onCompassTapped(automaticState, 1_000L);
+        NavCompassState initialState = controller.resolve(automaticState, 1_000L);
+        float initial = controller.perspectiveProgress();
+        NavCompassState halfwayState = controller.resolve(automaticState, 1_160L);
+        float halfway = controller.perspectiveProgress();
+        NavCompassState settledState = controller.resolve(automaticState, 1_320L);
+        float settled = controller.perspectiveProgress();
+        boolean transitionFinished = !controller.isTransitionInProgress();
+
+        controller.onCompassTapped(automaticState, 1_320L);
+        NavCompassState immediateSecond2d = controller.resolve(automaticState, 1_320L);
+        controller.resolve(automaticState, 1_480L);
+        float reversing = controller.perspectiveProgress();
+        controller.resolve(automaticState, 1_640L);
+
+        assertEquals(0f, initial, 0.001f);
+        assertEquals(300f, initialState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(halfway > 0f && halfway < 1f);
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(),
+                halfwayState.radiusState.visibleRadiusMeters, 0.01f);
+        assertSame(halfwayState, settledState);
+        assertEquals(1f, settled, 0.001f);
+        assertEquals(300f * CompassPerspectiveScale.viewportMultiplier(1f),
+                settledState.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(transitionFinished);
+        assertTrue(immediateSecond2d.displayMode.movingScaleActive);
+        assertEquals(settledState.radiusState.visibleRadiusMeters,
+                immediateSecond2d.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(reversing > 0f && reversing < 1f);
+        assertEquals(0f, controller.perspectiveProgress(), 0.001f);
+    }
+
+    @Test
+    public void rapidTapsKeepTheSecond2dStepAndAvoidAnExtraZoomJump() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automaticState = movingState();
+
+        controller.resolve(automaticState, 1_000L);
+        controller.onCompassTapped(automaticState, 1_000L);
+        controller.resolve(automaticState, 1_160L);
+        float partialTilt = controller.perspectiveProgress();
+        controller.onCompassTapped(automaticState, 1_160L);
+        NavCompassState second2d = controller.resolve(automaticState, 1_160L);
+        controller.onCompassTapped(automaticState, 1_160L);
+        NavCompassState fullRoute = controller.resolve(automaticState, 1_160L);
+
+        assertTrue(partialTilt > 0f && partialTilt < 1f);
+        assertTrue(second2d.displayMode.movingScaleActive);
+        assertFalse(fullRoute.displayMode.movingScaleActive);
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(),
+                fullRoute.radiusState.visibleRadiusMeters, 0.01f);
+        assertEquals(partialTilt, controller.perspectiveProgress(), 0.001f);
     }
 
     @Test
