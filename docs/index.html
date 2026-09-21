@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="Lightweight, offline-first Android GPS navigation with vibration-based guidance, powered by BRouter.">
+  <meta property="og:title" content="ViBRo Navigator">
+  <meta property="og:description" content="Offline-first navigation with vibration guidance, BRouter routing, a map-free compass view and a cyberpunk-inspired visual identity.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png">
+  <title>ViBRo Navigator</title>
+  <link rel="icon" href="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png">
+  <link rel="preload" as="image" href="assets/hero-cyberpunk-background.jpg" media="(prefers-color-scheme: dark)">
+  <link rel="preload" as="image" href="assets/hero-cyberpunk-background-light.jpg" media="(prefers-color-scheme: light)">
+  <link rel="stylesheet" href="styles.css">
+  <script src="index.js" defer></script>
+</head>
+<body>
+  <input class="theme-toggle-input" type="checkbox" id="theme-toggle" aria-label="Toggle light and dark theme">
+  <div class="site-root">
+  <nav class="topbar" id="top" aria-label="Main navigation">
+    <div class="topbar-inner">
+      <a class="brand" href="./">
+        <img class="brand-logo" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="42" height="42">
+        <span><strong>ViBRo</strong> Navigator</span>
+      </a>
+
+      <div class="topbar-actions">
+        <label class="theme-switch" for="theme-toggle" title="Toggle light and dark theme">
+          <span class="theme-switch-icon theme-switch-icon-moon" aria-hidden="true">☾</span>
+          <span class="theme-switch-track" aria-hidden="true">
+            <span class="theme-switch-knob"></span>
+          </span>
+          <span class="theme-switch-icon theme-switch-icon-sun" aria-hidden="true">☀</span>
+          <span class="sr-only">Toggle light and dark theme</span>
+        </label>
+
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-expanded="false"
+          aria-controls="primary-navigation"
+          aria-label="Open navigation menu">
+          <span class="menu-toggle-line"></span>
+          <span class="menu-toggle-line"></span>
+          <span class="menu-toggle-line"></span>
+        </button>
+      </div>
+
+      <div class="toplinks" id="primary-navigation">
+        <a href="#screenshots">Screenshots</a>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">Navigation</a>
+        <a href="#download">Download</a>
+        <a href="CHANGELOG/">Changelog</a>
+        <a href="https://github.com/damianofalcioni/ViBRo-Navigator">GitHub ↗</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <picture class="hero-theme-picture" aria-hidden="true">
+        <source
+          data-theme-source
+          media="(prefers-color-scheme: light)"
+          srcset="assets/hero-cyberpunk-background-light.jpg">
+        <img
+          class="hero-bg-image"
+          src="assets/hero-cyberpunk-background.jpg"
+          alt=""
+          width="1916"
+          height="821"
+          fetchpriority="high">
+      </picture>
+
+      <div class="hero-side hero-side-left" aria-hidden="true">EXPLORE<br>OFFLINE</div>
+      <div class="hero-side hero-side-right" aria-hidden="true">YOUR WAY<br>ANYWHERE</div>
+
+      <div class="hero-content" style="width:min(900px, calc(100% - 40px)); margin:0 auto;">
+        <div class="hero-title-row" style="min-width:0;">
+          <img class="hero-icon" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="68" height="68" decoding="async">
+          <h1 style="font-size:clamp(3rem, 6vw, 5.6rem); letter-spacing:-0.05em; line-height:0.96;"><span class="vibro-word">ViBRo</span> Navigator</h1>
+        </div>
+        <p class="hero-subtitle" style="text-align:center; margin-left:auto; margin-right:auto;">Offline and truly lightweight GPS navigator with minimal on-screen, voice, and vibration guidance</p>
+        <p class="hero-tagline" style="text-align:center; margin-left:auto; margin-right:auto;">ROADS <span>•</span> TRAILS <span>•</span> CITIES <span>•</span> BEYOND</p>
+
+        <div class="hero-downloads" id="download">
+          <a class="store-button play" href="https://play.google.com/store/apps/details?id=vibro.navigator" aria-label="Get ViBRo Navigator on Google Play">
+            <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" decoding="async">
+          </a>
+          <a class="store-button fdroid" href="https://f-droid.org/packages/vibro.navigator/" aria-label="Get ViBRo Navigator on F-Droid">
+            <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" decoding="async">
+          </a>
+          <a class="store-button github-release" href="https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest" aria-label="Open the latest ViBRo Navigator GitHub release">
+            <img
+              src="https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&amp;logo=github&amp;logoColor=white"
+              alt="Download from GitHub Releases"
+              decoding="async">
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <section class="screenshots-section" id="screenshots">
+      <div class="section-heading screenshot-heading">
+        <div>
+          <div class="section-kicker">Real app. Real navigation.</div>
+          <h2>Screenshots</h2>
+        </div>
+        <a class="screenshot-theme-hint" href="#top" aria-label="Go to the theme switch at the top of the page">
+          <span class="theme-hint-icons" aria-hidden="true">
+            <span>☾</span>
+            <span class="theme-hint-arrow">↟</span>
+            <span>☀</span>
+          </span>
+          <span>Switch the site theme above to see the app screenshots in <span id="screenshot-theme-word" class="theme-mode-word" aria-live="polite">light</span> mode.</span>
+        </a>
+      </div>
+
+      <div class="showcase-grid screenshot-only-grid">
+        <figure class="screenshot-only">
+          <picture class="screenshot-theme-picture">
+            <source
+              data-theme-source
+              media="(prefers-color-scheme: light)"
+              srcset="assets/screenshot-1-light-placeholder.jpg">
+            <img
+              src="assets/screenshot-1-dark-placeholder.jpg"
+              alt="Placeholder screenshot 1 for ViBRo Navigator"
+              width="1080"
+              height="1920"
+              loading="lazy"
+              decoding="async">
+          </picture>
+        </figure>
+
+        <figure class="screenshot-only">
+          <picture class="screenshot-theme-picture">
+            <source
+              data-theme-source
+              media="(prefers-color-scheme: light)"
+              srcset="assets/screenshot-2-light-placeholder.jpg">
+            <img
+              src="assets/screenshot-2-dark-placeholder.jpg"
+              alt="Placeholder screenshot 2 for ViBRo Navigator"
+              width="1080"
+              height="1920"
+              loading="lazy"
+              decoding="async">
+          </picture>
+        </figure>
+
+        <figure class="screenshot-only">
+          <picture class="screenshot-theme-picture">
+            <source
+              data-theme-source
+              media="(prefers-color-scheme: light)"
+              srcset="assets/screenshot-3-light-placeholder.jpg">
+            <img
+              src="assets/screenshot-3-dark-placeholder.jpg"
+              alt="Placeholder screenshot 3 for ViBRo Navigator"
+              width="1080"
+              height="1920"
+              loading="lazy"
+              decoding="async">
+          </picture>
+        </figure>
+
+        <figure class="screenshot-only">
+          <picture class="screenshot-theme-picture">
+            <source
+              data-theme-source
+              media="(prefers-color-scheme: light)"
+              srcset="assets/screenshot-4-light-placeholder.jpg">
+            <img
+              src="assets/screenshot-4-dark-placeholder.jpg"
+              alt="Placeholder screenshot 4 for ViBRo Navigator"
+              width="1080"
+              height="1920"
+              loading="lazy"
+              decoding="async">
+          </picture>
+        </figure>
+      </div>
+
+      <div class="section-divider"><span>SAME ROADS. A QUIETER WAY.</span></div>
+    </section>
+
+    <section class="content-shell">
+      <div class="quick-facts" aria-label="Project highlights">
+        <div class="fact"><strong>Offline routing</strong><span>BRouter-powered</span></div>
+        <div class="fact"><strong>~400 KB</strong><span>F-Droid APK</span></div>
+        <div class="fact"><strong>Android 6+</strong><span>min SDK 23</span></div>
+        <div class="fact"><strong>Pure Java</strong><span>minimal dependencies</span></div>
+      </div>
+
+      <section class="section-block" id="features">
+        <div class="section-heading">
+          <div class="section-kicker">Designed to stay out of the way</div>
+          <h2>Navigation without living inside a map.</h2>
+          <p>It is designed for map-free navigation, delivering directions through vibrations and minimal on-screen and voice guidance, enabling distraction-free and screen-off usage. ViBRo Navigator focuses on the information you need to keep moving: direction, timing, distance and confidence—without rendering a conventional full-screen map.</p>
+        </div>
+
+        <div class="cards">
+          <article class="card">
+            <div class="card-icon purple">〰</div>
+            <h3>Vibration-based guidance</h3>
+            <p>Different vibration patterns distinguish right turns, left turns and other instructions. Minimal voice guidance is kept aligned with the navigation notifications, while notifications are designed to work well with smartwatches and smartbands.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon blue">◎</div>
+            <h3>Map-free compass view</h3>
+            <p>See the route direction relative to your position, with surrounding streets extracted directly from downloaded BRouter segments—without a full map renderer.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon green">⌁</div>
+            <h3>Offline-first routing</h3>
+            <p>BRouter handles route calculation and turn generation offline. Internet access is needed only for destination searches that rely on online services.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon green">▰</div>
+            <h3>Battery-conscious</h3>
+            <p>GPS fix acquisition adapts dynamically to the remaining distance to the next instruction, reducing needless high-frequency location work. Navigation is also optimized for screen-off use: when the display is off, unnecessary rendering and processing are avoided to prolong battery life.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon blue">⌖</div>
+            <h3>Smart destination input</h3>
+            <p>Use history-first suggestions, OpenStreetMap search, speech input, map selection, Google Maps redirect search, or coordinates shared from another app.</p>
+          </article>
+          <article class="card">
+            <div class="card-icon red">↝</div>
+            <h3>Practical trip controls</h3>
+            <p>Add intermediate stops, export GPX data, pause navigation and reroute around a blocked street while keeping background navigation active.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block" id="how-it-works">
+        <div class="section-heading">
+          <div class="section-kicker">Three ways to navigate</div>
+          <h2>Pick the mode that matches the trip.</h2>
+          <p>BRouter is used when a real route is needed; straight-line mode stays available even without BRouter installed.</p>
+        </div>
+
+        <div class="mode-grid">
+          <article class="mode red">
+            <div class="mode-label">01 · Route</div>
+            <h3>Turn-by-turn</h3>
+            <p>Choose a BRouter profile, enter a destination, optionally add intermediate stops, then follow vibration, text and voice guidance along the calculated route.</p>
+          </article>
+          <article class="mode purple">
+            <div class="mode-label">02 · Round Trip</div>
+            <h3>Circular routes</h3>
+            <p>Plan a circular BRouter route from your current location using a target distance and direction—useful when the journey itself is the destination.</p>
+          </article>
+          <article class="mode blue">
+            <div class="mode-label">03 · Straight Line</div>
+            <h3>Point and go</h3>
+            <p>Navigate toward the next stop or destination using compass direction, straight-line distance and ETA. No BRouter installation is required.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block innovations">
+        <div class="section-heading">
+          <div class="section-kicker">Small ideas with real impact</div>
+          <h2>Built around confidence, timing and efficiency.</h2>
+        </div>
+
+        <div class="innovation-list">
+          <div class="innovation"><b>01</b><div><strong>Dynamic GPS fix acquisition</strong><span>Location polling adapts to the remaining distance to the next direction point.</span></div></div>
+          <div class="innovation"><b>02</b><div><strong>Time-based turn timing</strong><span>Maneuver notifications are triggered from estimated time-to-turn using current speed.</span></div></div>
+          <div class="innovation"><b>03</b><div><strong>BRouter-segment street rendering</strong><span>Nearby streets come from already-downloaded routing segments, so no separate OSM dataset is needed.</span></div></div>
+          <div class="innovation"><b>04</b><div><strong>Smartband-friendly notifications</strong><span>Non-permanent notifications and simple Unicode instructions are designed to render reliably on wearables.</span></div></div>
+          <div class="innovation"><b>05</b><div><strong>Recognizable vibration categories</strong><span>Three patterns make left, right and other instruction classes easier to identify without looking at the phone.</span></div></div>
+          <div class="innovation"><b>06</b><div><strong>Initial turn orientation</strong><span>At route start, ViBRo tells you how much to rotate to face the route direction.</span></div></div>
+        </div>
+      </section>
+
+
+      <section class="section-block support-section" id="support">
+        <div class="section-heading">
+          <div class="section-kicker">Keep ViBRo moving</div>
+          <h2>Support the development.</h2>
+          <p>If ViBRo Navigator is useful to you, you can support continued development directly through GitHub Sponsors or by buying the Google Play version.</p>
+        </div>
+
+        <div class="support-grid">
+          <article class="card support-card">
+            <div class="support-card-copy">
+              <div class="support-card-label">Open-source development</div>
+              <h3>GitHub Sponsors</h3>
+              <p>Support ongoing development directly through GitHub Sponsors.</p>
+            </div>
+
+            <a
+              class="store-button sponsor-button"
+              href="https://github.com/sponsors/damianofalcioni"
+              aria-label="Sponsor ViBRo Navigator development on GitHub">
+              <img
+                src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&amp;logo=GitHub-Sponsors&amp;logoColor=EA4AAA"
+                alt="Sponsor on GitHub"
+                loading="lazy"
+                decoding="async">
+            </a>
+          </article>
+
+          <article class="card support-card">
+            <div class="support-card-copy">
+              <div class="support-card-label">Support + Google integrations</div>
+              <h3>Google Play version</h3>
+              <p>Buying the Play Store version supports development and additionally includes:</p>
+              <ul class="support-features">
+                <li>Automatic updates through Google Play</li>
+                <li>Google Fused Location Provider</li>
+                <li>Android Auto integration</li>
+                <li>Optional Google services for POI search when you provide your own API key</li>
+              </ul>
+            </div>
+
+            <a
+              class="store-button play support-play-button"
+              href="https://play.google.com/store/apps/details?id=vibro.navigator"
+              aria-label="Get the ViBRo Navigator Google Play version">
+              <img
+                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                alt="Get it on Google Play"
+                loading="lazy"
+                decoding="async">
+            </a>
+          </article>
+        </div>
+      </section>
+
+      <footer class="legal" id="docs">
+        <span class="legal-title">Legal &amp; store documents</span>
+        <nav class="legal-links" aria-label="Legal and store documents">
+          <a href="privacy-policy/">Privacy Policy</a>
+          <a href="terms-of-service/">Terms of Service</a>
+          <a href="data-deletion/">Data Deletion &amp; Local Data Removal</a>
+          <a href="store-disclosures/">Store Disclosure Notes</a>
+        </nav>
+      </footer>
+
+      <div class="site-footer">
+        <span>ViBRo Navigator · MIT licensed</span>
+        <span>Lightweight · offline-first · battery-efficient</span>
+      </div>
+    </section>
+  </main>
+
+  </div>
+  <script>
+    (() => {
+      const toggle = document.querySelector('.menu-toggle');
+      const nav = document.getElementById('primary-navigation');
+      if (!toggle || !nav) return;
+
+      const closeMenu = () => {
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Open navigation menu');
+        nav.classList.remove('is-open');
+      };
+
+      const openMenu = () => {
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Close navigation menu');
+        nav.classList.add('is-open');
+      };
+
+      toggle.addEventListener('click', () => {
+        if (toggle.getAttribute('aria-expanded') === 'true') {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+
+      nav.addEventListener('click', (event) => {
+        if (event.target.closest('a')) closeMenu();
+      });
+
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+          closeMenu();
+          toggle.focus();
+        }
+      });
+
+      document.addEventListener('click', (event) => {
+        if (
+          toggle.getAttribute('aria-expanded') === 'true' &&
+          !nav.contains(event.target) &&
+          !toggle.contains(event.target)
+        ) {
+          closeMenu();
+        }
+      });
+
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 700) closeMenu();
+      });
+    })();
+  </script>
+
+</body>
+</html>

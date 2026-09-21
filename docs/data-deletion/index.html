@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Instructions for deleting ViBRo Navigator local app data and understanding what data can be removed when no user account is used.">
+  <meta name="theme-color" content="#121212">
+  <meta name="robots" content="index,follow">
+  <title>Data Deletion and Local Data Removal · ViBRo Navigator</title>
+  <link rel="icon" href="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png">
+  <link rel="stylesheet" href="../styles.css">
+  <script src="../index.js" defer></script>
+</head>
+<body class="doc-page">
+  <input class="theme-toggle-input" type="checkbox" id="theme-toggle" aria-label="Toggle light and dark theme">
+  <div class="site-root doc-site-root">
+  <div class="doc-shell">
+    <nav class="doc-topbar" aria-label="Document navigation">
+      <a class="brand" href="../">
+        <img class="brand-logo" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="40" height="40">
+        <span>ViBRo Navigator</span>
+      </a>
+      <div class="doc-actions">
+        <div class="doc-nav">
+        <a href="../">Home</a>
+        <a href="../CHANGELOG/">Changelog</a>
+        <a href="https://github.com/damianofalcioni/ViBRo-Navigator">GitHub ↗</a>
+      </div>
+      </div>
+    </nav>
+
+    <main class="doc-card">
+      <div class="doc-kicker">Legal document</div>
+      <article class="markdown-body">
+<h1>Data Deletion and Local Data Removal</h1>
+<p>Last updated: 2026-06-26</p>
+<p>ViBRo Navigator does not provide user accounts and does not operate a developer-hosted user-data server. There is no app account to delete.</p>
+<p>This page explains how to remove local data created by the app.</p>
+<h2>Delete all local app data</h2>
+<p>Use Android system settings:</p>
+<ol><li>Open Android Settings.</li><li>Open Apps.</li><li>Select ViBRo Navigator.</li><li>Open Storage.</li><li>Choose Clear storage or Clear data.</li></ol>
+<p>You can also uninstall the app to remove app-managed local data.</p>
+<h2>Delete individual app data</h2>
+<p>Inside ViBRo Navigator, you can remove:</p>
+<ul><li>POI history entries from the destination or stop suggestion list.</li><li>Saved routes from the saved-route restore dialog.</li><li>The optional Google Maps API key by opening the Google Maps API key setting</li></ul>
+<p>and saving an empty value.</p>
+<ul><li>Optional logging by turning Log enabled off in the About page.</li></ul>
+<h2>Delete exported files</h2>
+<p>Database backups, GPX route exports, and files shared with another app are created only when you explicitly export or share them. They are stored wherever you or the receiving app chose to save them. Delete those files from that location if you no longer want to keep them.</p>
+<h2>Delete optional logs</h2>
+<p>Optional logs are local files created only when Log enabled is on. They can be removed by clearing app storage, uninstalling the app, or deleting the app&#x27;s log files from Android app-specific storage where your file manager allows access.</p>
+<h2>Requests</h2>
+<p>Because ViBRo Navigator has no accounts and no developer-hosted user-data server, most deletion is performed directly on your device. Questions can be submitted through:</p>
+<p><a href="https://github.com/damianofalcioni/ViBRo-Navigator/issues/new">https://github.com/damianofalcioni/ViBRo-Navigator/issues/new</a></p>
+      </article>
+    </main>
+
+    <footer class="doc-footer">
+      <span></span>
+      <a href="../#docs">Legal &amp; store documents</a>
+    </footer>
+  </div>
+  </div>
+</body>
+</html>
