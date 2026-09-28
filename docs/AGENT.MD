@@ -1,6 +1,6 @@
 # ViBRo Navigator Website – Agent Notes
 
-This file defines the current constraints for the static ViBRo Navigator website.
+This file defines the current constraints for the static ViBRo Navigator website, living under the `/docs` folder of the ViBRo Navigator project.
 Treat them as the source of truth unless the user explicitly changes a decision.
 
 ## Project
@@ -234,16 +234,16 @@ Section:
 - use `<picture>` with dark `<img>` fallback and light `<source data-theme-source>`
 
 Current placeholder assets:
-- `assets/screenshot-1-dark-placeholder.jpg`
-- `assets/screenshot-1-light-placeholder.jpg`
-- `assets/screenshot-2-dark-placeholder.jpg`
-- `assets/screenshot-2-light-placeholder.jpg`
-- `assets/screenshot-3-dark-placeholder.jpg`
-- `assets/screenshot-3-light-placeholder.jpg`
-- `assets/screenshot-4-dark-placeholder.jpg`
-- `assets/screenshot-4-light-placeholder.jpg`
+- `assets/screenshot-1-dark-placeholder.webp`
+- `assets/screenshot-1-light-placeholder.webp`
+- `assets/screenshot-2-dark-placeholder.webp`
+- `assets/screenshot-2-light-placeholder.webp`
+- `assets/screenshot-3-dark-placeholder.webp`
+- `assets/screenshot-3-light-placeholder.webp`
+- `assets/screenshot-4-dark-placeholder.webp`
+- `assets/screenshot-4-light-placeholder.webp`
 
-These are temporary JPEGs. Real screenshots may replace them later without changing the four-slot/themed-`<picture>` structure; keep an appropriately sized mobile candidate when real screenshots are added.
+These are temporary webp. Real screenshots may replace them later without changing the four-slot/themed-`<picture>` structure; keep an appropriately sized mobile candidate when real screenshots are added.
 Do not keep obsolete screenshot assets once they are no longer referenced by the gallery.
 
 ### Screenshot theme hint
@@ -384,7 +384,6 @@ Keep:
 - `<picture>` for light/dark hero and screenshot variants
 - only one initial themed image selected per visual
 - `source[data-theme-source]` synchronized by `index.js`
-- responsive `320w`, `432w`, and `1080w` JPEG candidates for screenshot placeholders
 - lazy loading, async decoding, and low fetch priority for screenshots
 - explicit image dimensions for store/support badges
 - intrinsic screenshot dimensions / 9:16 reserved ratio
