@@ -4,26 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#05070b">
-  <meta name="description" content="Lightweight, offline-first Android GPS navigation with vibration-based guidance, powered by BRouter.">
+  <meta name="description" content="Offline and truly lightweight Android GPS navigator with minimal on-screen, voice, and vibration guidance.">
   <meta property="og:title" content="ViBRo Navigator">
-  <meta property="og:description" content="Offline-first navigation with vibration guidance, BRouter routing, a map-free compass view and a cyberpunk-inspired visual identity.">
+  <meta property="og:description" content="Offline and truly lightweight Android GPS navigator with minimal on-screen, voice, and vibration guidance.">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png">
   <title>ViBRo Navigator</title>
   <link rel="icon" href="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png">
-  <link rel="preload" as="image" href="assets/hero-cyberpunk-background.jpg" media="(prefers-color-scheme: dark)">
-  <link rel="preload" as="image" href="assets/hero-cyberpunk-background-light.jpg" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="styles.css">
-  <script src="index.js" defer></script>
+  <link rel="preload" as="image" type="image/webp" href="assets/hero-cyberpunk-background.webp" media="(prefers-color-scheme: dark)" fetchpriority="high">
+  <link rel="preload" as="image" type="image/webp" href="assets/hero-cyberpunk-background-light.webp" media="(prefers-color-scheme: light)" fetchpriority="high">
+  <link rel="stylesheet" href="styles.min.css?v=102">
+  <script src="index.js?v=101" defer></script>
 </head>
-<body>
+<body id="top">
   <input class="theme-toggle-input" type="checkbox" id="theme-toggle" aria-label="Toggle light and dark theme">
   <div class="site-root">
-  <nav class="topbar" id="top" aria-label="Main navigation">
+  <nav class="topbar" aria-label="Main navigation">
     <div class="topbar-inner">
       <a class="brand" href="./">
-        <img class="brand-logo" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="42" height="42">
-        <span><strong>ViBRo</strong> Navigator</span>
+        <img class="brand-logo" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="42" height="42" decoding="async" fetchpriority="low">
+        <span><strong>ViBRo </strong>Navigator</span>
       </a>
 
       <div class="topbar-actions">
@@ -33,7 +33,6 @@
             <span class="theme-switch-knob"></span>
           </span>
           <span class="theme-switch-icon theme-switch-icon-sun" aria-hidden="true">☀</span>
-          <span class="sr-only">Toggle light and dark theme</span>
         </label>
 
         <button
@@ -64,11 +63,19 @@
       <picture class="hero-theme-picture" aria-hidden="true">
         <source
           data-theme-source
+          data-theme="light"
+          type="image/webp"
           media="(prefers-color-scheme: light)"
-          srcset="assets/hero-cyberpunk-background-light.jpg">
+          srcset="assets/hero-cyberpunk-background-light.webp">
+        <source
+          data-theme-source
+          data-theme="dark"
+          type="image/webp"
+          media="(prefers-color-scheme: dark)"
+          srcset="assets/hero-cyberpunk-background.webp">
         <img
           class="hero-bg-image"
-          src="assets/hero-cyberpunk-background.jpg"
+          src="assets/hero-cyberpunk-background.webp"
           alt=""
           width="1916"
           height="821"
@@ -80,24 +87,27 @@
 
       <div class="hero-content" style="width:min(900px, calc(100% - 40px)); margin:0 auto;">
         <div class="hero-title-row" style="min-width:0;">
-          <img class="hero-icon" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="68" height="68" decoding="async">
-          <h1 style="font-size:clamp(3rem, 6vw, 5.6rem); letter-spacing:-0.05em; line-height:0.96;"><span class="vibro-word">ViBRo</span> Navigator</h1>
+          <img class="hero-icon" src="https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png" alt="" width="68" height="68" decoding="async" fetchpriority="low">
+          <h1 style="letter-spacing:-0.05em; line-height:0.96;"><span class="vibro-word">ViBRo</span> Navigator</h1>
         </div>
         <p class="hero-subtitle" style="text-align:center; margin-left:auto; margin-right:auto;">Offline and truly lightweight GPS navigator with minimal on-screen, voice, and vibration guidance</p>
         <p class="hero-tagline" style="text-align:center; margin-left:auto; margin-right:auto;">ROADS <span>•</span> TRAILS <span>•</span> CITIES <span>•</span> BEYOND</p>
 
         <div class="hero-downloads" id="download">
           <a class="store-button play" href="https://play.google.com/store/apps/details?id=vibro.navigator" aria-label="Get ViBRo Navigator on Google Play">
-            <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" decoding="async">
+            <img src="assets/google-play-badge-400.png" srcset="assets/google-play-badge-400.png 400w, assets/google-play-badge.png 646w" sizes="200px" alt="Get it on Google Play" width="646" height="250" decoding="async" fetchpriority="low">
           </a>
           <a class="store-button fdroid" href="https://f-droid.org/packages/vibro.navigator/" aria-label="Get ViBRo Navigator on F-Droid">
-            <img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png" alt="Get it on F-Droid" decoding="async">
+            <img src="assets/fdroid-badge-400.png" srcset="assets/fdroid-badge-400.png 400w, assets/fdroid-badge.png 646w" sizes="174px" alt="Get it on F-Droid" width="646" height="250" decoding="async" fetchpriority="low">
           </a>
           <a class="store-button github-release" href="https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest" aria-label="Open the latest ViBRo Navigator GitHub release">
             <img
-              src="https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&amp;logo=github&amp;logoColor=white"
+              src="assets/github-releases-badge.svg"
               alt="Download from GitHub Releases"
-              decoding="async">
+              width="203"
+              height="32"
+              decoding="async"
+              fetchpriority="low">
           </a>
         </div>
       </div>
@@ -109,7 +119,7 @@
           <div class="section-kicker">Real app. Real navigation.</div>
           <h2>Screenshots</h2>
         </div>
-        <a class="screenshot-theme-hint" href="#top" aria-label="Go to the theme switch at the top of the page">
+        <a class="screenshot-theme-hint" href="#top">
           <span class="theme-hint-icons" aria-hidden="true">
             <span>☾</span>
             <span class="theme-hint-arrow">↟</span>
@@ -124,15 +134,18 @@
           <picture class="screenshot-theme-picture">
             <source
               data-theme-source
+              data-theme="light"
+              type="image/webp"
               media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-1-light-placeholder.jpg">
+              srcset="assets/screenshot-1-light-placeholder.webp">
             <img
-              src="assets/screenshot-1-dark-placeholder.jpg"
+              src="assets/screenshot-1-dark-placeholder.webp"
               alt="Placeholder screenshot 1 for ViBRo Navigator"
-              width="1080"
-              height="1920"
+              width="360"
+              height="640"
               loading="lazy"
-              decoding="async">
+              decoding="async"
+              fetchpriority="low">
           </picture>
         </figure>
 
@@ -140,15 +153,18 @@
           <picture class="screenshot-theme-picture">
             <source
               data-theme-source
+              data-theme="light"
+              type="image/webp"
               media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-2-light-placeholder.jpg">
+              srcset="assets/screenshot-2-light-placeholder.webp">
             <img
-              src="assets/screenshot-2-dark-placeholder.jpg"
+              src="assets/screenshot-2-dark-placeholder.webp"
               alt="Placeholder screenshot 2 for ViBRo Navigator"
-              width="1080"
-              height="1920"
+              width="360"
+              height="640"
               loading="lazy"
-              decoding="async">
+              decoding="async"
+              fetchpriority="low">
           </picture>
         </figure>
 
@@ -156,15 +172,18 @@
           <picture class="screenshot-theme-picture">
             <source
               data-theme-source
+              data-theme="light"
+              type="image/webp"
               media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-3-light-placeholder.jpg">
+              srcset="assets/screenshot-3-light-placeholder.webp">
             <img
-              src="assets/screenshot-3-dark-placeholder.jpg"
+              src="assets/screenshot-3-dark-placeholder.webp"
               alt="Placeholder screenshot 3 for ViBRo Navigator"
-              width="1080"
-              height="1920"
+              width="360"
+              height="640"
               loading="lazy"
-              decoding="async">
+              decoding="async"
+              fetchpriority="low">
           </picture>
         </figure>
 
@@ -172,15 +191,18 @@
           <picture class="screenshot-theme-picture">
             <source
               data-theme-source
+              data-theme="light"
+              type="image/webp"
               media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-4-light-placeholder.jpg">
+              srcset="assets/screenshot-4-light-placeholder.webp">
             <img
-              src="assets/screenshot-4-dark-placeholder.jpg"
+              src="assets/screenshot-4-dark-placeholder.webp"
               alt="Placeholder screenshot 4 for ViBRo Navigator"
-              width="1080"
-              height="1920"
+              width="360"
+              height="640"
               loading="lazy"
-              decoding="async">
+              decoding="async"
+              fetchpriority="low">
           </picture>
         </figure>
       </div>
@@ -200,38 +222,62 @@
         <div class="section-heading">
           <div class="section-kicker">Designed to stay out of the way</div>
           <h2>Navigation without living inside a map.</h2>
-          <p>It is designed for map-free navigation, delivering directions through vibrations and minimal on-screen and voice guidance, enabling distraction-free and screen-off usage. ViBRo Navigator focuses on the information you need to keep moving: direction, timing, distance and confidence—without rendering a conventional full-screen map.</p>
+          <p>It is designed for map-free navigation, delivering directions through vibrations and minimal on-screen and voice guidance, enabling distraction-free and screen-off usage.</p>
         </div>
 
         <div class="cards">
           <article class="card">
-            <div class="card-icon purple">〰</div>
-            <h3>Vibration-based guidance</h3>
+            <div class="feature-card-heading">
+              <div class="card-icon purple"><svg class="feature-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="4" width="8" height="16" rx="2"/>
+  <path d="M11 17.5h2"/>
+  <path d="M5.5 9.5 4 12l1.5 2.5"/>
+  <path d="M18.5 9.5 20 12l-1.5 2.5"/></svg></div>
+              <h3>Vibration-based guidance</h3>
+            </div>
             <p>Different vibration patterns distinguish right turns, left turns and other instructions. Minimal voice guidance is kept aligned with the navigation notifications, while notifications are designed to work well with smartwatches and smartbands.</p>
           </article>
           <article class="card">
-            <div class="card-icon blue">◎</div>
-            <h3>Map-free compass view</h3>
+            <div class="feature-card-heading">
+              <div class="card-icon blue"><svg class="feature-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7.5"/>
+  <path d="M15.5 7.5 13.3 13.3 8.5 16.5 10.7 10.7Z"/></svg></div>
+              <h3>Map-free compass view</h3>
+            </div>
             <p>See the route direction relative to your position, with surrounding streets extracted directly from downloaded BRouter segments—without a full map renderer.</p>
           </article>
           <article class="card">
-            <div class="card-icon green">⌁</div>
-            <h3>Offline-first routing</h3>
+            <div class="feature-card-heading">
+              <div class="card-icon green"><svg class="feature-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9.5a10 10 0 0 1 14 0"/>
+  <path d="M8 13a6 6 0 0 1 8 0"/>
+  <circle cx="12" cy="17.5" r="0.95" fill="currentColor" stroke="none"/>
+  <path d="M5 5 19 19"/></svg></div>
+              <h3>Offline-first routing</h3>
+            </div>
             <p>BRouter handles route calculation and turn generation offline. Internet access is needed only for destination searches that rely on online services.</p>
           </article>
           <article class="card">
-            <div class="card-icon green">▰</div>
-            <h3>Battery-conscious</h3>
+            <div class="feature-card-heading">
+              <div class="card-icon green"><svg class="feature-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h10.5l2 2v4l-2 2H5z" fill="currentColor" stroke="none"/>
+  <path d="M17.5 10h1.8v4h-1.8" fill="currentColor" stroke="none"/></svg></div>
+              <h3>Battery-conscious</h3>
+            </div>
             <p>GPS fix acquisition adapts dynamically to the remaining distance to the next instruction, reducing needless high-frequency location work. Navigation is also optimized for screen-off use: when the display is off, unnecessary rendering and processing are avoided to prolong battery life.</p>
           </article>
           <article class="card">
-            <div class="card-icon blue">⌖</div>
-            <h3>Smart destination input</h3>
+            <div class="feature-card-heading">
+              <div class="card-icon blue"><svg class="feature-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="m12 4 8 8-8 8-8-8z"/>
+  <circle cx="12" cy="12" r="2.4"/></svg></div>
+              <h3>Smart destination input</h3>
+            </div>
             <p>Use history-first suggestions, OpenStreetMap search, speech input, map selection, Google Maps redirect search, or coordinates shared from another app.</p>
           </article>
           <article class="card">
-            <div class="card-icon red">↝</div>
-            <h3>Practical trip controls</h3>
+            <div class="feature-card-heading">
+              <div class="card-icon red"><svg class="feature-svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h2M11 8h8"/>
+  <path d="m9 6 2 2-2 2-2-2z"/>
+  <path d="M5 16h8M17 16h2"/>
+  <path d="m15 14 2 2-2 2-2-2z"/></svg></div>
+              <h3>Practical trip controls</h3>
+            </div>
             <p>Add intermediate stops, export GPX data, pause navigation and reroute around a blocked street while keeping background navigation active.</p>
           </article>
         </div>
@@ -300,8 +346,10 @@
               href="https://github.com/sponsors/damianofalcioni"
               aria-label="Sponsor ViBRo Navigator development on GitHub">
               <img
-                src="https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&amp;logo=GitHub-Sponsors&amp;logoColor=EA4AAA"
+                src="assets/github-sponsor-badge.svg"
                 alt="Sponsor on GitHub"
+                width="133"
+                height="35"
                 loading="lazy"
                 decoding="async">
             </a>
@@ -325,10 +373,15 @@
               href="https://play.google.com/store/apps/details?id=vibro.navigator"
               aria-label="Get the ViBRo Navigator Google Play version">
               <img
-                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                src="assets/google-play-badge-400.png"
+                srcset="assets/google-play-badge-400.png 400w, assets/google-play-badge.png 646w"
+                sizes="200px"
                 alt="Get it on Google Play"
+                width="646"
+                height="250"
                 loading="lazy"
-                decoding="async">
+                decoding="async"
+                fetchpriority="low">
             </a>
           </article>
         </div>

@@ -1,6 +1,6 @@
 (() => {
   const input = document.getElementById('theme-toggle');
-  const control = document.querySelector('.theme-switch[for="theme-toggle"]');
+  const control = document.querySelector('.theme-switch');
   if (!input) return;
 
   const CONSENT_COOKIE = 'vibro_cookie_consent';
@@ -34,13 +34,22 @@
   const checkedForTheme = (theme) => theme !== (systemIsLight() ? 'light' : 'dark');
 
   const syncThemePictures = () => {
-    const useLight = effectiveTheme() === 'light';
+    const activeTheme = effectiveTheme();
     document.querySelectorAll('source[data-theme-source]').forEach((source) => {
-      source.media = useLight ? 'all' : 'not all';
+      const sourceTheme = source.dataset.theme || 'light';
+      if (sourceTheme !== activeTheme) {
+        source.media = 'not all';
+        return;
+      }
+
+      if (source.dataset.viewport === 'mobile') {
+        source.media = '(max-width: 700px)';
+      } else if (source.dataset.viewport === 'desktop') {
+        source.media = '(min-width: 701px)';
+      } else {
+        source.media = 'all';
+      }
     });
-  };
-  const syncAria = () => {
-    if (control) control.setAttribute('aria-checked', String(input.checked));
   };
 
   const setScreenshotThemeWord = () => {
@@ -119,7 +128,6 @@
 
     window.setTimeout(() => {
       input.checked = !input.checked;
-      syncAria();
       flipScreenshotThemeWord();
       syncThemePictures();
       persistThemeIfAllowed();
@@ -131,13 +139,7 @@
     }, duration + 40);
   };
 
-  if (control) {
-    control.setAttribute('role', 'switch');
-    control.setAttribute('tabindex', '0');
-  }
-
   applySavedTheme();
-  syncAria();
   setScreenshotThemeWord();
   syncThemePictures();
   createCookiePanel();
@@ -147,14 +149,13 @@
       event.preventDefault();
       toggleTheme();
     });
-
-    control.addEventListener('keydown', (event) => {
-      if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        toggleTheme();
-      }
-    });
   }
+
+  input.addEventListener('change', () => {
+    setScreenshotThemeWord();
+    syncThemePictures();
+    persistThemeIfAllowed();
+  });
 
   if (window.matchMedia) {
     const media = window.matchMedia('(prefers-color-scheme: light)');
@@ -162,7 +163,6 @@
       const saved = readCookie(THEME_COOKIE);
       if (consent() === 'all' && (saved === 'light' || saved === 'dark')) {
         input.checked = checkedForTheme(saved);
-        syncAria();
       }
       setScreenshotThemeWord();
       syncThemePictures();

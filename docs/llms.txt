@@ -1,0 +1,29 @@
+# ViBRo Navigator
+
+> Lightweight, offline-first Android GPS navigation with minimal on-screen, voice, and vibration guidance, powered by BRouter.
+
+ViBRo Navigator is an Android navigation app designed for roads, trails, cities, and other routes. It emphasizes offline operation, vibration-based guidance, a map-free compass view, and a lightweight interface.
+
+## Site
+
+- [Homepage](./): Product overview, screenshots, features, navigation details, and downloads.
+- [Changelog](CHANGELOG/): Release history and notable changes.
+- [Privacy Policy](privacy-policy/): Privacy information.
+- [Terms of Service](terms-of-service/): Terms governing use of the app and services.
+- [Store Disclosures](store-disclosures/): App-store disclosures and related information.
+- [Data Deletion](data-deletion/): Instructions and information about data deletion.
+
+## Source and downloads
+
+- [GitHub repository](https://github.com/damianofalcioni/ViBRo-Navigator): Source code, documentation, issues, and development history.
+- [Latest GitHub release](https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest): Latest release artifacts.
+- [Google Play](https://play.google.com/store/apps/details?id=vibro.navigator): Google Play distribution page.
+- [F-Droid](https://f-droid.org/packages/vibro.navigator/): F-Droid distribution page.
+
+## Key characteristics
+
+- Android GPS navigation.
+- Offline-first routing using BRouter.
+- Vibration, voice, and minimal on-screen guidance.
+- Map-free compass-oriented navigation view.
+- Open-source project hosted on GitHub.

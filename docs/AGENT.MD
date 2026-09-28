@@ -61,7 +61,22 @@ Mobile:
 
 Theme switch:
 - visible only on the homepage
-- legal pages and changelog still follow the system theme or saved preference without showing a switch
+- the actual semantic control is `#theme-toggle`, a checkbox with an accessible label; keep it keyboard-focusable on the homepage
+- the visible switch is a `<label for="theme-toggle">` with no ARIA switch role; this preserves native click/tap behavior even if JavaScript is unavailable or stale
+- `index.js` enhances the native control with the sunrise/sunset transition, image synchronization, and preference persistence, but basic theme switching must not depend on JavaScript
+- keep the top-bar action layer above adjacent content and the visible switch explicitly hit-testable (`pointer-events: auto`, `touch-action: manipulation`)
+- when shared CSS/JS behavior changes, update the cache-busting query used by public HTML pages so new markup cannot run against stale cached assets
+- sticky top bar uses a fully opaque theme background with no backdrop blur/translucency, so scrolling content cannot show through behind the navigation
+- on desktop, the primary navigation links share the top-bar surface directly; do not give `.toplinks` a separate card/gradient background or shadow
+- the homepage document root provides the `#top` fragment target used by the screenshot theme hint; keep that target separate from the sticky navigation element
+- legal pages and changelog have no visible switch, so their hidden theme-state checkbox remains `aria-hidden` / out of the tab order
+
+Self-hosted badges:
+- keep badge images local under `docs/assets/`
+- current files: `google-play-badge.png`, `fdroid-badge.png`, `github-releases-badge.svg`, `github-sponsor-badge.svg`
+- `github-releases-badge.svg` and `github-sponsor-badge.svg` are user-supplied badge assets; preserve these files verbatim rather than regenerating approximations.
+- links may remain external, but badge image `src` values must stay local
+- do not reintroduce remote `img.shields.io`, `play.google.com` badge-image, or `fdroid.gitlab.io` badge-image URLs
 
 ## Theme system
 
@@ -133,22 +148,27 @@ Core dark palette is based around:
 
 The light theme must remain recognizably the same design system.
 
+Light-mode feature, navigation-mode, innovation, and support cards use a broad, soft outer shadow so the transition into the page background is gradual rather than looking clipped. Keep the blur radius generous and the opacity restrained. Do not apply paint containment to these desktop sections because it clips the outer shadow; the `content-visibility` Lighthouse optimization is mobile-only.
+
 ## Hero
 
 Live banner assets:
-- dark: `docs/assets/hero-cyberpunk-background.jpg`
-- light: `docs/assets/hero-cyberpunk-background-light.jpg`
+- primary dark: `docs/assets/hero-cyberpunk-background.webp`
+- primary light: `docs/assets/hero-cyberpunk-background-light.webp`
 
 Reference/source PNGs:
 - `docs/assets/hero-cyberpunk-background.png`
 - `docs/assets/hero-cyberpunk-background-light.png`
 
 Rules:
-- site loads the optimized JPEGs
+- use the same wide banner asset on desktop and mobile; do not create a separate mobile crop
+- site loads high-quality, full-resolution self-hosted WebP variants first, with the wide JPEGs as fallbacks
 - keep the PNGs as source/reference assets
-- regenerate JPEGs from PNGs, not from older JPEGs
-- full-width cover image
+- regenerate WebP/JPEG delivery assets from the PNG sources, not from older compressed files
+- full-width cover image with centered `object-position`
+- dark and light themes both use the intended synthetic hero overlay for text legibility and visual treatment
 - no baked-in text
+- hero title, subtitle, tagline, and download buttons stay vertically centered within the banner
 
 Hero logo:
 `https://github.com/damianofalcioni/ViBRo-Navigator/raw/main/fastlane/metadata/android/en-US/images/icon.png`
@@ -195,9 +215,9 @@ Links:
 - GitHub Releases
 
 Badges:
-- Play: `https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png`
-- F-Droid: `https://fdroid.gitlab.io/artwork/badge/get-it-on.png`
-- GitHub: `https://img.shields.io/badge/GitHub-Releases-181717?style=for-the-badge&logo=github&logoColor=white`
+- Play: `docs/assets/google-play-badge.png`
+- F-Droid: `docs/assets/fdroid-badge.png`
+- GitHub Releases: `docs/assets/github-releases-badge.svg`
 
 Do not put visible outer boxes around these badges. Keep only clean spacing and subtle hover movement.
 The GitHub Releases shield is visually denser than the store badges, so keep it smaller (`32px` image height, max-width about `82%`) to balance the row.
@@ -223,7 +243,7 @@ Current placeholder assets:
 - `docs/assets/screenshot-4-dark-placeholder.jpg`
 - `docs/assets/screenshot-4-light-placeholder.jpg`
 
-These are temporary JPEGs. Real screenshots may replace them later without changing the four-slot/themed-`<picture>` structure.
+These are temporary JPEGs. Real screenshots may replace them later without changing the four-slot/themed-`<picture>` structure; keep an appropriately sized mobile candidate when real screenshots are added.
 Do not keep obsolete screenshot assets once they are no longer referenced by the gallery.
 
 ### Screenshot theme hint
@@ -289,7 +309,7 @@ Keep `Support the development` above the legal/footer area.
 
 GitHub Sponsors:
 - destination: `https://github.com/sponsors/damianofalcioni`
-- badge: `https://img.shields.io/badge/Sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=EA4AAA`
+- badge: `docs/assets/github-sponsor-badge.svg`
 
 Google Play:
 - destination: `https://play.google.com/store/apps/details?id=vibro.navigator`
@@ -356,17 +376,26 @@ Also ensure:
 ## Performance / Lighthouse
 
 Keep:
+- `docs/styles.css` is the readable source; public pages load the generated `docs/styles.min.css` delivery file.
+- the homepage loads `styles.min.css` as a normal render-blocking stylesheet. This avoids post-first-paint restyling/CLS and the associated main-thread layout task.
 - unique `<meta name="description">` on every public HTML page
-- media-qualified preload for the system-matching hero JPEG
+- media-qualified, `fetchpriority="high"` preloads for the system-matching full-width hero WebP
+- use the same wide hero image on desktop and mobile
 - `<picture>` for light/dark hero and screenshot variants
 - only one initial themed image selected per visual
 - `source[data-theme-source]` synchronized by `index.js`
-- lazy loading and async decoding for screenshots
+- responsive `320w`, `432w`, and `1080w` JPEG candidates for screenshot placeholders
+- lazy loading, async decoding, and low fetch priority for screenshots
+- explicit image dimensions for store/support badges
 - intrinsic screenshot dimensions / 9:16 reserved ratio
-- hero intrinsic dimensions and `fetchpriority="high"`
-- below-the-fold support badges lazy-loaded
+- below-the-fold homepage sections use `content-visibility: auto` with intrinsic-size estimates
+- below-the-fold support badges stay lazy-loaded
+- hero/store image requests below the LCP hero use low fetch priority where appropriate.
 
 Do not use two simultaneously present hidden `<img>` elements for light/dark variants.
+
+All badge images are self-hosted locally, so badge requests should not trigger third-party-cookie findings.
+GitHub Pages controls cache response headers, so its short cache TTL cannot be fixed from files under `docs/`.
 
 A real Lighthouse score depends on the deployed site, external asset origins, network/browser conditions, and Lighthouse version.
 
@@ -377,3 +406,19 @@ For each requested site revision:
 - provide the full ZIP
 - provide a patch from the previous version
 - preserve unrelated files and content
+- On phone widths, the hero app icon is positioned independently from the heading so it does not shift the `ViBRo Navigator` title off center. The heading occupies the full hero-content width, is center-aligned, and uses symmetric side padding to avoid colliding with the icon.
+- Desktop hero is intentionally shorter than before (`560px` above 900px and `545px` from 701–900px), cropping a little more from the top and bottom of the shared wide banner while keeping the hero content vertically centered. Mobile remains content-height driven.
+- Desktop/tablet hero is intentionally much shorter to crop substantially more of the wide banner at the top and bottom while keeping the image centered: 420px above 900px and 430px from 701–900px. Mobile hero sizing remains content-driven.
+- Desktop/tablet hero cropping is implemented by clipping a v81-sized image box, not by rescaling the banner: the visible hero stays short, while `.hero-bg-image` keeps a 610px virtual height above 900px and 590px at 701–900px, centered vertically. This preserves the v81 image zoom and removes only top/bottom content. Mobile continues to use its content-driven sizing.
+- Desktop/tablet hero keeps the v81 image zoom (610px image box above 900px, 590px at 701–900px) but now restores half of the previous vertical crop: the visible hero window is 515px on desktop and 510px on 701–900px widths. Mobile remains content-driven.
+- Screenshot placeholders are intentionally simplified to one self-hosted 360px-wide WebP per screenshot/theme (dark and light), used for both desktop and mobile. There are no responsive screenshot variants and no `srcset`/`sizes` complexity for placeholders.
+- Hero banners are served in WebP on the homepage (dark and light). PNG originals remain in `docs/assets/` as reference assets; JPG banner derivatives are no longer part of the delivered package.
+- On mobile (`max-width: 700px`), the dark hero theme intentionally has no synthetic `::before`/`::after` banner overlay. Mobile light mode keeps the existing overlay, and desktop/tablet keep overlays in both themes.
+- Hero overlays are enabled in both dark and light themes on desktop and mobile. Compared with the previous stronger treatment, the dark overlay is intentionally lighter (10%/20%/56% vertical black opacity with subtler side/radial color) so more banner detail remains visible; the light overlay is also slightly reduced.
+- Feature cards use custom inline SVG line icons instead of Unicode/emoji. The six icons are vibration, compass, Wi-Fi-off/offline, battery, destination target, and trip controls. Artwork is intentionally sparse: 24×24 viewBox, 1.65px rounded strokes, simple geometry, and very few intersections. Vibration uses an unmistakable phone outline, the compass uses a circle around the original NE↔SW directional rhomboid, offline uses a small filled circle beneath the Wi-Fi arcs plus slash, and the battery is a solid filled green silhouette with no internal lightning mark. The 42px icon tile has clipped corners for a restrained cyberpunk look. Standalone source copies live in `docs/assets/feature-icons/`.
+- Feature-icon previews must set CSS `color` to the same accent as the stroke, because filled details such as the Offline Wi-Fi bottom circle use `fill="currentColor"`. Setting only `stroke` makes those fills render with the default text color instead.
+- Feature-card headings place the custom SVG icon and the feature title on the same horizontal row; the descriptive paragraph remains below.
+- On phone widths (<=700px), the duplicate hero app icon beside the `ViBRo Navigator` heading is hidden because the navigation bar already shows the app icon. The navigation-bar icon remains visible; desktop/tablet hero icon behavior is unchanged.
+
+- v98 Lighthouse cleanup: homepage CSS is render-blocking to eliminate the reported screenshot-section CLS and post-FCP restyle cost; each screenshot/theme remains a single 360×640 WebP asset with matching intrinsic dimensions, with no responsive screenshot variants added.
+- v103 crawler metadata: `docs/robots.txt` explicitly allows public crawling, and `docs/llms.txt` provides a concise machine-readable project/site index using portable relative links for site pages plus canonical external project/download links.
