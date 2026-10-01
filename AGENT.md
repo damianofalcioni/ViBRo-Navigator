@@ -2,6 +2,17 @@
 
 Primary product requirements live in `SPECIFICATION.md` at the repository root. On the first implementation-oriented interaction in this repository, read `SPECIFICATION.md` before making changes. Use this guide together with that specification, and treat `SPECIFICATION.md` as the source of truth when implementation details or feature expectations are unclear.
 
+For work in `docs/` or `docs-tools/`, also read `docs/AGENT.MD` and `docs-tools/README.md`. They own the website constraints and development-tooling workflow; `SPECIFICATION.md` remains the source of truth for app behavior described by the site.
+
+## Website and documentation tooling
+
+- `docs/` is the published static GitHub Pages site, including the homepage, changelog, legal pages, and local assets. Preserve `.nojekyll` and the runtime-dependency-free site.
+- `docs-tools/` contains development-only Node.js lint, minification, and regression tooling. Keep dependencies, caches, and logs outside published `docs/`; preserve the pinned dependency versions in `package.json`. Use Node.js 20.19 or newer. This checkout has no `package-lock.json`: when dependencies are absent, run `npm install --package-lock=false` from `docs-tools/`, using `--cache .npm-cache` if needed. Use `npm ci` only if a lockfile is supplied later; do not add a lockfile or `.gitattributes` as part of routine website alignment.
+- Author shared CSS and JavaScript in `docs/styles.css` and `docs/index.js`; generate `styles.min.css` and `index.min.js` with the applicable `npm run build:css`, `npm run build:js`, or `npm run build` command. Never edit generated assets by hand. Preserve generated output line endings so exact synchronization checks pass.
+- Run `npm run check` from `docs-tools/` after website or tooling changes. It runs CSS/JavaScript lint, generated-asset synchronization checks, and regression tests. These are the applicable checks for website-only changes; Android flavor tests, lint, and phone installation apply when Android code or distribution behavior also changes.
+- When a delivered CSS or JavaScript asset changes, bump its cache query consistently across all six public HTML pages. Keep legal content and unrelated website content intact unless the user requests changes, and follow `docs/AGENT.MD` for visual and interaction constraints.
+- Website design and tooling changes belong in the website guidance. Update `SPECIFICATION.md` only when app behavior, product requirements, or distribution expectations change; keep public app claims aligned with it.
+
 ## Project rules
 
 - When implementing a user request, do not stop at the narrowest change that merely appears to work. Implement the most correct solution for the product and architecture, accounting for realistic edge cases, failure modes, lifecycle states, flavor boundaries, and existing contracts before closing the task.
