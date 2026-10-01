@@ -207,6 +207,13 @@ html[data-theme="light"] .site-root {
   gap: 18px;
 }
 
+/* Homepage fragment targets clear the sticky bar and leave a
+ * small gap. The desktop bar is 71px tall; the mobile bar is shorter. */
+.section-block,
+.hero-downloads {
+  scroll-margin-top: 88px;
+}
+
 .brand {
   display: inline-flex;
   align-items: center;
@@ -348,8 +355,9 @@ html[data-theme="light"] .toplinks {
     linear-gradient(90deg, rgba(177,71,255,.08), transparent 20%, transparent 80%, rgba(54,167,255,.08));
   --hero-wordmark-gradient: linear-gradient(90deg, #effaff 0%, #50c9ff 30%, #a86bff 67%, #e44dff 100%);
 
+  /* Crop artwork without letting fragment navigation scroll the hero itself. */
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   display: grid;
   place-items: center;
   isolation: isolate;
@@ -621,7 +629,12 @@ html[data-theme="light"] .hero-tagline {
 }
 
 .screenshots-section {
-  padding: 42px 0 28px;
+  --screenshots-top-padding: 42px;
+
+  padding: var(--screenshots-top-padding) 0 28px;
+
+  /* Align the heading with unpadded fragment targets at every breakpoint. */
+  scroll-margin-top: calc(88px - var(--screenshots-top-padding));
 }
 
 .section-kicker {
@@ -1570,7 +1583,7 @@ html[data-theme="light"] .cookie-consent {
     width: min(100% - 22px, var(--homepage-content-max-width));
   }
 
-  .screenshots-section { padding-top: 30px; }
+  .screenshots-section { --screenshots-top-padding: 30px; }
 
   .showcase-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

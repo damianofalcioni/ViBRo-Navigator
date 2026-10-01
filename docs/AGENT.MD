@@ -5,7 +5,7 @@ Treat them as the source of truth unless the user explicitly changes a decision.
 
 Last packaged revision: **v173**. Routine workspace edits do not require a new package revision.
 
-Current shared asset queries: CSS **v=178**, JavaScript **v=178** across all six public HTML pages. Public pages load `styles.min.css` and `index.min.js`. Keep current guidance here; use Git history for superseded revision notes.
+Current shared asset queries: CSS **v=182**, JavaScript **v=178** across all six public HTML pages. Public pages load `styles.min.css` and `index.min.js`. Keep current guidance here; use Git history for superseded revision notes.
 
 ## Project
 
@@ -166,6 +166,7 @@ Rules:
 - keep the PNGs as source/reference assets
 - regenerate WebP delivery assets from the PNG sources, not from older compressed files
 - full-width cover image with centered `object-position`
+- clip hero artwork with `overflow: clip` so the Download fragment scrolls the page without scrolling inside the banner and separating its artwork from its overlays
 - desktop/tablet dark and light themes use the intended synthetic hero overlay for text legibility and visual treatment; on mobile, dark mode intentionally shows the banner without that overlay while light mode keeps it
 - no baked-in text
 - hero title, subtitle, tagline, and download buttons stay vertically centered within the banner
