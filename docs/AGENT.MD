@@ -1,7 +1,11 @@
 # ViBRo Navigator Website – Agent Notes
 
-This file defines the current constraints for the static ViBRo Navigator website, living under the `/docs` folder of the ViBRo Navigator project.
+This file defines the current constraints for the static ViBRo Navigator website in `docs/`, the directory containing this file. Development tooling lives in the repository-level sibling `docs-tools/`.
 Treat them as the source of truth unless the user explicitly changes a decision.
+
+Last packaged revision: **v173**. Routine workspace edits do not require a new package revision.
+
+Current shared asset queries: CSS **v=178**, JavaScript **v=178** across all six public HTML pages. Public pages load `styles.min.css` and `index.min.js`. Keep current guidance here; use Git history for superseded revision notes.
 
 ## Project
 
@@ -14,19 +18,19 @@ Treat them as the source of truth unless the user explicitly changes a decision.
 
 ## Architecture
 
-- Static HTML/CSS site.
+- Static HTML/CSS site rooted in this directory.
 - Keep `.nojekyll`.
 - Do not add Jekyll, `_config.yml`, a Markdown runtime renderer, or a build generator unless explicitly requested.
 - Published legal and changelog content is maintained directly in HTML.
 - Shared CSS: `styles.css`.
-- Shared theme/cookie logic: `index.js`.
-- Keep JavaScript small and dependency-free. It currently handles:
-  - sunrise/sunset theme transition
+- Shared theme/cookie/navigation source: `index.js`; public pages load generated `index.min.js` synchronously in the head.
+- Keep published JavaScript small and dependency-free. Development-only lint/build tooling lives in the sibling `../docs-tools/` directory and must not be referenced by public pages. The published JavaScript currently handles:
+  - immediate manual light/dark CSS interpolation
   - theme preference persistence
   - cookie consent
-  - themed `<picture>` source synchronization
   - the screenshot light/dark hint word
-- The homepage also contains the minimal mobile-navigation behavior.
+  - homepage mobile navigation
+- Shared `index.js` also owns the homepage mobile-navigation behavior, guarded on the presence of its controls.
 - Preserve accessibility, responsive behavior, and Lighthouse-oriented performance.
 
 ## Homepage structure
@@ -61,20 +65,21 @@ Mobile:
 
 Theme switch:
 - visible only on the homepage
-- the actual semantic control is `#theme-toggle`, a checkbox with an accessible label; keep it keyboard-focusable on the homepage
-- the visible switch is a `<label for="theme-toggle">` with no ARIA switch role; this preserves native click/tap behavior even if JavaScript is unavailable or stale
-- `index.js` enhances the native control with the sunrise/sunset transition, image synchronization, and preference persistence, but basic theme switching must not depend on JavaScript
+- the visible `.theme-switch` is a native `<button type="button">` with an accessible label and `aria-pressed`; keep it keyboard-focusable on the homepage
+- `index.js` owns the manual theme state by updating `<html data-theme>` and persists the preference only when cookie consent allows it
 - keep the top-bar action layer above adjacent content and the visible switch explicitly hit-testable (`pointer-events: auto`, `touch-action: manipulation`)
 - when shared CSS/JS behavior changes, update the cache-busting query used by public HTML pages so new markup cannot run against stale cached assets
 - sticky top bar uses a fully opaque theme background with no backdrop blur/translucency, so scrolling content cannot show through behind the navigation
 - on desktop, the primary navigation links share the top-bar surface directly; do not give `.toplinks` a separate card/gradient background or shadow
+- the visible theme switch uses directly interpolated `background-color`, border, shadow, and color states; do not theme it with background gradients or component-specific transition durations
 - the homepage document root provides the `#top` fragment target used by the screenshot theme hint; keep that target separate from the sticky navigation element
-- legal pages and changelog have no visible switch, so their hidden theme-state checkbox remains `aria-hidden` / out of the tab order
+- legal pages and changelog have no visible switch; they still inherit the effective theme from `<html data-theme>`
 
 Self-hosted badges:
 - keep badge images local under `assets/`
-- current files: `google-play-badge.png`, `fdroid-badge.png`, `github-releases-badge.svg`, `github-sponsor-badge.svg`
-- `github-releases-badge.svg` and `github-sponsor-badge.svg` are user-supplied badge assets; preserve these files verbatim rather than regenerating approximations.
+- current files: `google-play-badge.png`, `fdroid-badge.png`, `github-apk-badge.png`, `github-sponsor-badge.svg`
+- preserve the supplied GitHub APK and Sponsors badge assets verbatim rather than regenerating approximations
+- use the single Play and F-Droid assets everywhere; do not reintroduce `-400.png` derivatives or badge `srcset`/`sizes` variants
 - links may remain external, but badge image `src` values must stay local
 - do not reintroduce remote `img.shields.io`, `play.google.com` badge-image, or `fdroid.gitlab.io` badge-image URLs
 
@@ -84,13 +89,8 @@ Self-hosted badges:
 - Default to `prefers-color-scheme`.
 - A manual homepage switch overrides the effective theme.
 - Respect `prefers-reduced-motion`.
-- Avoid many per-element theme animations; use the single page-level solar transition.
-
-Transition direction:
-- light → dark: warm yellow → dark orange → dark blue → dark theme
-- dark → light: dark blue → dark orange → warm yellow → light theme
-- transition duration is about 1.65 seconds
-- overlay is viewport-fixed and localized near the right side of the hero logo
+- Do not use the browser View Transition API for theme switching; its root snapshot/raster preparation caused a visible startup delay on this long page.
+- The manual theme switch follows the user-provided Moonwalk v3 demo directly: the effective theme is stored on `<html data-theme>`, clicking adds the temporary `transition` class to `<html>`, changes the theme state immediately in the same task, and removes the class after 1 second. Under `prefers-reduced-motion: no-preference`, `html.transition`, every descendant, and their pseudo-elements receive `transition: all 250ms !important` with zero delay. Do not add special midpoint text swaps, foreground delays, forced layout/style flushes, or a separate page-background opacity layer. The page and framed surfaces use directly interpolated `background-color`; theme-dependent hero and screenshot artwork remains layered and crossfades through opacity on the same 250 ms window. Reduced-motion users receive an immediate switch.
 
 ### Theme persistence
 
@@ -148,13 +148,13 @@ Core dark palette is based around:
 
 The light theme must remain recognizably the same design system.
 
-Light-mode feature, navigation-mode, innovation, and support cards use a broad, soft outer shadow so the transition into the page background is gradual rather than looking clipped. Keep the blur radius generous and the opacity restrained. Do not apply paint containment to these desktop sections because it clips the outer shadow; the `content-visibility` Lighthouse optimization is mobile-only.
+Light-mode feature, navigation-mode, and innovation cards use a broad, soft outer shadow so the transition into the page background is gradual rather than looking clipped; their dark-mode counterparts intentionally have no outer shadow. Keep the blur radius generous and the opacity restrained. Do not apply `content-visibility`/paint containment to these card sections, including on mobile, because it clips their outer shadows; the current mobile optimization is limited to the legal/footer area.
 
 ## Hero
 
 Live banner assets:
-- primary dark: `assets/hero-cyberpunk-background.webp`
-- primary light: `assets/hero-cyberpunk-background-light.webp`
+- dark: `assets/hero-cyberpunk-background.webp`
+- light: `assets/hero-cyberpunk-background-light.webp`
 
 Reference/source PNGs:
 - `assets/hero-cyberpunk-background.png`
@@ -162,16 +162,18 @@ Reference/source PNGs:
 
 Rules:
 - use the same wide banner asset on desktop and mobile; do not create a separate mobile crop
-- site loads high-quality, full-resolution self-hosted WebP variants first, with the wide JPEGs as fallbacks
+- deliver the self-hosted full-resolution WebP variants; there are no JPEG hero derivatives in the current package
 - keep the PNGs as source/reference assets
-- regenerate WebP/JPEG delivery assets from the PNG sources, not from older compressed files
+- regenerate WebP delivery assets from the PNG sources, not from older compressed files
 - full-width cover image with centered `object-position`
-- dark and light themes both use the intended synthetic hero overlay for text legibility and visual treatment
+- desktop/tablet dark and light themes use the intended synthetic hero overlay for text legibility and visual treatment; on mobile, dark mode intentionally shows the banner without that overlay while light mode keeps it
 - no baked-in text
 - hero title, subtitle, tagline, and download buttons stay vertically centered within the banner
 
-Hero logo:
+Logo asset:
 `assets/icon.png`
+
+Use this self-hosted image for the favicon, top-navigation logo, hero logo, and homepage Open Graph image. Do not reintroduce a remote GitHub icon URL.
 
 Both the top-navigation logo and hero logo:
 - have no visible outer box
@@ -195,6 +197,8 @@ Subtitle:
 - centered
 - desktop max width around 540 px
 - visually narrower than the main title
+- keep `line-height: 1.55` and all layout metrics identical between themes
+- light-mode text uses `#0d1e35`; dark-mode text uses `#d6dfef`
 - light mode uses subtle translucent blur
 - no visible border or shadow
 
@@ -206,6 +210,10 @@ Tagline:
 - light mode may use subtle translucent blur
 - no visible border or shadow
 - use color contrast instead of text shadow
+- keep typography, padding, and layout metrics identical between themes
+- desktop uses `.80rem` font size and `1.24rem` line-height; mobile uses `10px` and `16px`
+- keep the centered text-hugging `width: fit-content`, `max-width: calc(100% - 28px)` container on mobile
+- render the light pill with `::before` and `inset: -6px -12px -7px` at both desktop and mobile widths, so its paint does not change layout
 
 ### Hero downloads
 
@@ -217,12 +225,10 @@ Links:
 Badges:
 - Play: `assets/google-play-badge.png`
 - F-Droid: `assets/fdroid-badge.png`
-- GitHub Releases: `assets/github-releases-badge.svg`
+- GitHub Releases: `assets/github-apk-badge.png` (alt text: `Get APK from GitHub`)
 
 Do not put visible outer boxes around these badges. Keep only clean spacing and subtle hover movement.
-The GitHub Releases shield is visually denser than the store badges, so keep it smaller (`32px` image height, max-width about `82%`) to balance the row.
-On desktop, its slot uses `16px` left padding so the visible gap between F-Droid and GitHub matches the Google Play/F-Droid spacing more closely.
-On the single-column mobile layout, keep Play and F-Droid unshifted and use `16px` top plus `48px` left/right padding on the GitHub Releases slot. Do not use percentage side padding here because it makes the GitHub badge too small on phones.
+All three download images have intrinsic dimensions `646×250` and share the `--store-badge-width: 160px` display width with automatic height. Their slots use zero padding. Desktop uses three columns with space between; mobile uses one centered column with a `14px` gap. Keep the GitHub badge geometry aligned with the store badges rather than restoring the removed SVG shield's special sizing/padding.
 
 ## Screenshots
 
@@ -231,7 +237,7 @@ Section:
 - title: `Screenshots`
 - four compact screenshot slots
 - 4 columns on desktop, 2 on mobile
-- use `<picture>` with dark `<img>` fallback and light `<source data-theme-source>`
+- keep dark and light screenshot images layered inside `.screenshot-theme-picture`; the two layers crossfade with opacity on the same 250 ms timeline as the page background and framed surfaces
 
 Current placeholder assets:
 - `assets/screenshot-1-dark-placeholder.webp`
@@ -243,7 +249,7 @@ Current placeholder assets:
 - `assets/screenshot-4-dark-placeholder.webp`
 - `assets/screenshot-4-light-placeholder.webp`
 
-These are temporary webp. Real screenshots may replace them later without changing the four-slot/themed-`<picture>` structure; keep an appropriately sized mobile candidate when real screenshots are added.
+These are temporary 360×640 WebPs. Each screenshot/theme currently uses one asset for both desktop and mobile; there are no responsive placeholder variants or `srcset`/`sizes` candidates. Both theme images are present as layered `<img>` elements so a manual theme change can crossfade the artwork with CSS opacity on exactly the same 250 ms timeline as the page background and screenshot frame. Real screenshots may replace these assets later without changing the four-slot structure.
 Do not keep obsolete screenshot assets once they are no longer referenced by the gallery.
 
 ### Screenshot theme hint
@@ -260,6 +266,8 @@ The hint:
 
 ### Quick facts
 
+- keep the `.quick-facts` grid background transparent; the translucent `.fact` cells must composite directly over the page so their theme fade follows the same visual path as the other cards
+- do not add per-cell theme shadows or a changing parent fill behind the four cells
 - Offline routing / BRouter-powered
 - ~400 KB / F-Droid APK
 - Android 6+ / min SDK 23
@@ -376,48 +384,103 @@ Also ensure:
 ## Performance / Lighthouse
 
 Keep:
-- `styles.css` is the readable source; public pages load the generated `styles.min.css` delivery file.
+- `styles.css` is the readable source; public pages load the generated, actually minified `styles.min.css` delivery file. Keep `styles.min.css` comment-free and whitespace-minified rather than copying the readable source verbatim.
+- CSS delivery parity is maintained by `../docs-tools/minify-css.mjs` using pinned development-only CSS parsing/generation: from `docs-tools/`, run `npm run build:css` after editing `styles.css`, and use `npm run check:css-build` to verify that `styles.min.css` is current. No build dependency is loaded by public pages.
+- JavaScript delivery parity is maintained by `../docs-tools/minify-js.mjs` using pinned development-only esbuild: run `npm run build:js` after editing `index.js`, and `npm run check:js-build` to verify `index.min.js`. Preserve the ES5 target and synchronous head loading for early theme restoration.
 - the homepage loads `styles.min.css` as a normal render-blocking stylesheet. This avoids post-first-paint restyling/CLS and the associated main-thread layout task.
 - unique `<meta name="description">` on every public HTML page
+- homepage `<meta name="description">` and `og:description` both use exactly: `Offline and truly lightweight Android GPS navigator with minimal on-screen, voice, and vibration guidance.`
 - media-qualified, `fetchpriority="high"` preloads for the system-matching full-width hero WebP
 - use the same wide hero image on desktop and mobile
-- `<picture>` for light/dark hero and screenshot variants
-- only one initial themed image selected per visual
-- `source[data-theme-source]` synchronized by `index.js`
+- dark/light hero and screenshot artwork layers crossfade with CSS opacity on the same 250 ms manual-theme timeline as the page background; no JavaScript artwork timer is used
+- screenshots remain lazy-loaded; the two hero theme assets are present in the DOM and the system-matching hero asset is promoted by the media-qualified preload so the initial LCP path stays prioritized
+- one 360×640 WebP per screenshot/theme placeholder, with no responsive placeholder variants
 - lazy loading, async decoding, and low fetch priority for screenshots
 - explicit image dimensions for store/support badges
 - intrinsic screenshot dimensions / 9:16 reserved ratio
-- below-the-fold homepage sections use `content-visibility: auto` with intrinsic-size estimates
+- on mobile only, `content-visibility: auto` is limited to the legal/footer area; do not apply it to card sections because paint containment clips their broad shadows
 - below-the-fold support badges stay lazy-loaded
 - hero/store image requests below the LCP hero use low fetch priority where appropriate.
 
-Do not use two simultaneously present hidden `<img>` elements for light/dark variants.
+For the hero and screenshot gallery, keep the paired dark/light `<img>` layers because synchronized opacity interpolation is required for the manual theme transition. Do not add further duplicate theme layers elsewhere without a specific transition need.
 
 All badge images are self-hosted locally, so badge requests should not trigger third-party-cookie findings.
-GitHub Pages controls cache response headers, so its short cache TTL cannot be fixed from files under `docs/`.
+GitHub Pages controls cache response headers, so its short cache TTL cannot be fixed from files in this directory.
 
 A real Lighthouse score depends on the deployed site, external asset origins, network/browser conditions, and Lighthouse version.
 
 ## Delivery
 
-For each requested site revision:
-- increment the version
-- provide the full ZIP
-- provide a patch from the previous version
+For each requested site change:
+- edit the existing workspace files directly
+- do not automatically generate ZIP archives, patch files, checksums, or release notes
+- do not create or maintain a `deliverables/` folder
+- create packages or release artifacts and increment the package revision only when the user explicitly requests them
 - preserve unrelated files and content
-- On phone widths, the hero app icon is positioned independently from the heading so it does not shift the `ViBRo Navigator` title off center. The heading occupies the full hero-content width, is center-aligned, and uses symmetric side padding to avoid colliding with the icon.
-- Desktop hero is intentionally shorter than before (`560px` above 900px and `545px` from 701–900px), cropping a little more from the top and bottom of the shared wide banner while keeping the hero content vertically centered. Mobile remains content-height driven.
-- Desktop/tablet hero is intentionally much shorter to crop substantially more of the wide banner at the top and bottom while keeping the image centered: 420px above 900px and 430px from 701–900px. Mobile hero sizing remains content-driven.
-- Desktop/tablet hero cropping is implemented by clipping a v81-sized image box, not by rescaling the banner: the visible hero stays short, while `.hero-bg-image` keeps a 610px virtual height above 900px and 590px at 701–900px, centered vertically. This preserves the v81 image zoom and removes only top/bottom content. Mobile continues to use its content-driven sizing.
-- Desktop/tablet hero keeps the v81 image zoom (610px image box above 900px, 590px at 701–900px) but now restores half of the previous vertical crop: the visible hero window is 515px on desktop and 510px on 701–900px widths. Mobile remains content-driven.
-- Screenshot placeholders are intentionally simplified to one self-hosted 360px-wide WebP per screenshot/theme (dark and light), used for both desktop and mobile. There are no responsive screenshot variants and no `srcset`/`sizes` complexity for placeholders.
-- Hero banners are served in WebP on the homepage (dark and light). PNG originals remain in `assets/` as reference assets; JPG banner derivatives are no longer part of the delivered package.
-- On mobile (`max-width: 700px`), the dark hero theme intentionally has no synthetic `::before`/`::after` banner overlay. Mobile light mode keeps the existing overlay, and desktop/tablet keep overlays in both themes.
-- Hero overlays are enabled in both dark and light themes on desktop and mobile. Compared with the previous stronger treatment, the dark overlay is intentionally lighter (10%/20%/56% vertical black opacity with subtler side/radial color) so more banner detail remains visible; the light overlay is also slightly reduced.
-- Feature cards use custom inline SVG line icons instead of Unicode/emoji. The six icons are vibration, compass, Wi-Fi-off/offline, battery, destination target, and trip controls. Artwork is intentionally sparse: 24×24 viewBox, 1.65px rounded strokes, simple geometry, and very few intersections. Vibration uses an unmistakable phone outline, the compass uses a circle around the original NE↔SW directional rhomboid, offline uses a small filled circle beneath the Wi-Fi arcs plus slash, and the battery is a solid filled green silhouette with no internal lightning mark. The 42px icon tile has clipped corners for a restrained cyberpunk look. Standalone source copies live in `assets/feature-icons/`.
-- Feature-icon previews must set CSS `color` to the same accent as the stroke, because filled details such as the Offline Wi-Fi bottom circle use `fill="currentColor"`. Setting only `stroke` makes those fills render with the default text color instead.
-- Feature-card headings place the custom SVG icon and the feature title on the same horizontal row; the descriptive paragraph remains below.
-- On phone widths (<=700px), the duplicate hero app icon beside the `ViBRo Navigator` heading is hidden because the navigation bar already shows the app icon. The navigation-bar icon remains visible; desktop/tablet hero icon behavior is unchanged.
+- bump the public HTML CSS/JS cache-busting query only when delivered `styles.min.css` or `index.min.js` actually changes
 
-- v98 Lighthouse cleanup: homepage CSS is render-blocking to eliminate the reported screenshot-section CLS and post-FCP restyle cost; each screenshot/theme remains a single 360×640 WebP asset with matching intrinsic dimensions, with no responsive screenshot variants added.
-- v103 crawler metadata: `robots.txt` explicitly allows public crawling, and `llms.txt` provides a concise machine-readable project/site index using portable relative links for site pages plus canonical external project/download links.
+Current implementation details to preserve:
+- on phone widths (`<=700px`), the duplicate hero app icon beside `ViBRo Navigator` is hidden because the navigation bar already shows the app icon; the heading remains centered across the full hero-content width
+- desktop (`>900px`) uses a 515px visible hero with a centered 610px-tall `.hero-bg-image`; tablet (`701–900px`) uses a 510px visible hero with a centered 590px-tall image; mobile hero height is content-driven
+- mobile dark mode shows the hero banner without the synthetic `::before`/`::after` overlay; mobile light mode keeps the light overlay; desktop/tablet keep overlays for both themes
+- screenshot placeholders are one self-hosted 360×640 WebP per screenshot/theme, used for both desktop and mobile, with no responsive placeholder variants
+- hero delivery uses the dark/light WebPs; PNG originals remain only as source/reference assets
+- feature cards use custom inline SVG line icons; standalone source copies live under `assets/feature-icons/`; filled details use `currentColor`, so previews must set CSS `color` as well as stroke styling
+- feature-card headings place the SVG icon and title on one row, with the descriptive paragraph below
+- `robots.txt` explicitly allows public crawling and `llms.txt` provides the concise machine-readable project/site index
+
+## CSS ownership and maintenance
+
+Keep the stylesheet's section map and token-ownership comments current. Update canonical component rules in place; do not append revision-stamped overrides or a final catch-all text-color block.
+
+- `:root` owns foundational page values (`--bg`, `--text`, `--muted`, `--line`), shared primitives, artwork opacity, and theme-switch knob position. `html[data-theme="light"]` supplies their light overrides.
+- `.site-root` owns shared semantic surfaces, controls, navigation/document text, borders, shadows, and badge filters. Keep dark/default values in its base rule and only light differences in its light override. Do not duplicate foundational page values on shells.
+- `.doc-site-root` owns document-specific coordinated state. Components own their local `--doc-*`, `--theme-hint-*`, `--cookie-*`, `--mobile-nav-*`, hero, menu-button, and tagline state as applicable.
+- Use direct `html[data-theme="light"]` component qualifiers without a redundant `.site-root` ancestor. Keep dark/default presentation in base rules and only genuine light differences in theme rules. Preserve specificity-neutral `:where(...)` scopes and higher-specificity interaction rules where the cascade needs them.
+- Inherit text colors where appropriate. Mode headings explicitly use `--text` and mode copy uses `--muted` because the mode's accent color also drives `currentColor` rails and labels.
+- Keep screenshot frame surface, border, and shadow on `.screenshot-theme-picture`, rather than its images. Scope badge-link styling to hero/support contexts; do not restore a generic glass button layer.
+- Shared primitives represent stable ownership: `--font-mono`, `--label-accent`, `--page-background-images`, `--homepage-content-max-width` (1180px), and `--store-badge-width` (160px). The page backdrop is theme-independent while `--bg` supplies its theme-dependent base.
+- Group structural rules only for intentionally coupled components. Hero/frame minimum heights, collection-grid gutters (15px), and card/mode radii (17px) share geometry; component-specific exceptions stay local. Do not create a generic spacing/radius system from repeated numbers or alias variables that add no meaning.
+- Keep shared responsive overrides in the existing broad-to-narrow 1120/900/700/450/360px blocks. Hero crop queries stay with the hero. Avoid duplicate breakpoint restatements.
+- Preserve intentional WebKit compatibility declarations. Keep `!important` limited to reduced-motion enforcement and the global theme transition. Selector-order lint exceptions must retain local explanations; do not replace them with a blanket disable.
+
+The theme-switch knob consumes `--theme-switch-knob-x` through `translateX`: dark/default is `0px` toward the moon; light is `18px` toward the sun. Its movement follows the existing global transition and immediate reduced-motion behavior.
+
+Paired hero/screenshot artwork uses `cubic-bezier(.35, 0, .25, 1)` opacity interpolation within the same 250ms, zero-delay theme window. Keep this timing compensation without adding artwork timers or a second transition mechanism.
+
+## JavaScript ownership and compatibility
+
+All published interaction is authored in dependency-free `index.js` and delivered through generated `index.min.js`; the homepage has no inline script. `initThemeControls`, `initCookieConsent`, and guarded `initNavigation` own separate responsibilities.
+
+- Restore the effective theme synchronously in the head, then initialize DOM controls at DOM readiness (or immediately if ready).
+- Treat malformed cookie encoding and unknown consent values as absent. Restore saved themes only with accepted consent. Remembered consent avoids creating an unused panel.
+- Use ES5 syntax for published scripts; development tools/tests use modern Node.js.
+- Support modern and legacy media-query listeners. Navigation uses resize only when media listeners are unavailable.
+- Keep navigation ARIA/class state in one writer, use parent-walking link detection, and preserve the legacy Escape-key fallback. Escape restores focus only when closing an open menu.
+- JavaScript owns interaction state; CSS owns layout and paint. Do not add browser-side CSS processing.
+
+## Development tooling and required validation
+
+Development tooling stays in the sibling `../docs-tools/`, outside published `docs/`. Keep its pinned development dependencies and `package-lock.json`; install with `npm ci`. `node_modules/`, `.npm-cache/`, and logs are ignored. The public site remains runtime-dependency-free.
+
+`minify-css.mjs` uses pinned development-only `css-tree` parsing/generation without restructuring rules or optimizing declaration values. Preserve selector whitespace, quoted strings, custom properties, and CSS math; parse errors fail the build. Do not restore the removed Python minifier.
+
+`minify-js.mjs` uses pinned development-only esbuild to minify the classic script with an ES5 target, without bundling, source maps, or runtime dependencies. Public pages load only `index.min.js`; keep `index.js` readable as its source.
+
+Repository `.gitattributes` keeps generated `docs/styles.min.css` and `docs/index.min.js` at LF line endings for exact source/build checks across operating systems. Preserve these rules; newline normalization alone does not need an asset cache-version bump.
+
+`lint-js.mjs` uses the repository as ESLint's base, checks all external scripts and any inline HTML scripts, and fails on errors or warnings, including ignored-file warnings. The current tree has one authored script and its generated delivery file, with zero inline scripts. Core ESLint rules enforce ES5 syntax and correctness on both scripts; only generated `docs/index.min.js` is exempt from the six source maintainability limits.
+
+`../docs-tools/README.md` documents the commands, current enforced limits, and regression coverage. Keep that guide aligned with the configs. Preserve cohesive responsibilities rather than packing declarations or fragmenting functions to pass limits.
+
+Future agents must run the applicable tooling after authored CSS or JavaScript changes, including small edits:
+
+- After CSS changes, run `npm run build:css`, then `npm run lint:css` and `npm run check:css-build` from `docs-tools/`. Prefer `npm run build:css` followed by `npm run check`.
+- After `index.js` changes, run `npm run build:js` followed by `npm run check`. Inline script changes require `npm run lint:js`; prefer `npm run check`.
+- After both CSS and JavaScript changes, run `npm run build` followed by `npm run check`.
+- After tooling/config/test changes, run the applicable build if output changes, then `npm run check`.
+- Never edit generated `docs/styles.min.css` or `docs/index.min.js` by hand. Bump each shared asset's cache query consistently only when its delivered content changes.
+- If dependencies are absent, run `npm ci` first; keep any writable npm cache outside `docs/`.
+- If required checks fail to execute, report the environment limitation and do not claim they passed.
+
+The regression suite covers lint coverage, CSS syntax equivalence, JavaScript minification and source/build synchronization, shared asset versions, and theme/cookie/navigation behavior against both authored and delivered scripts. Preserve DOM-readiness and legacy media-API coverage. DOM stubs do not verify browser/device rendering or Lighthouse results; those require separate checks.

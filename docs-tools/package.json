@@ -1,0 +1,28 @@
+{
+  "name": "vibro-docs-tools",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "build": "npm run build:css && npm run build:js",
+    "build:css": "node minify-css.mjs",
+    "check:css-build": "node minify-css.mjs --check",
+    "build:js": "node minify-js.mjs",
+    "check:js-build": "node minify-js.mjs --check",
+    "lint:css": "stylelint \"../docs/styles.css\" --config stylelint.config.mjs",
+    "lint:js": "node lint-js.mjs",
+    "lint": "npm run lint:css && npm run lint:js",
+    "test": "node --test tests/*.test.mjs",
+    "check": "npm run lint && npm run check:css-build && npm run check:js-build && npm test"
+  },
+  "devDependencies": {
+    "@projectwallace/stylelint-plugin": "0.7.0",
+    "css-tree": "3.2.1",
+    "esbuild": "0.28.2",
+    "eslint": "10.11.0",
+    "stylelint": "17.15.0",
+    "stylelint-config-standard": "40.0.0"
+  }
+}

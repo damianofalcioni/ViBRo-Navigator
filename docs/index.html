@@ -13,27 +13,26 @@
   <link rel="icon" href="assets/icon.png">
   <link rel="preload" as="image" type="image/webp" href="assets/hero-cyberpunk-background.webp" media="(prefers-color-scheme: dark)" fetchpriority="high">
   <link rel="preload" as="image" type="image/webp" href="assets/hero-cyberpunk-background-light.webp" media="(prefers-color-scheme: light)" fetchpriority="high">
-  <link rel="stylesheet" href="styles.min.css?v=102">
-  <script src="index.js?v=101" defer></script>
+  <link rel="stylesheet" href="styles.min.css?v=178">
+  <script src="index.min.js?v=178"></script>
 </head>
 <body id="top">
-  <input class="theme-toggle-input" type="checkbox" id="theme-toggle" aria-label="Toggle light and dark theme">
   <div class="site-root">
   <nav class="topbar" aria-label="Main navigation">
     <div class="topbar-inner">
       <a class="brand" href="./">
-        <img class="brand-logo" src="assets/icon.png" alt="Logo" width="42" height="42" decoding="async" fetchpriority="low">
+        <img class="brand-logo" src="assets/icon.png" alt="" width="42" height="42" decoding="async" fetchpriority="low">
         <span><strong>ViBRo</strong> Navigator</span>
       </a>
 
       <div class="topbar-actions">
-        <label class="theme-switch" for="theme-toggle" title="Toggle light and dark theme">
+        <button class="theme-switch" type="button" aria-label="Toggle light and dark theme" aria-pressed="false" title="Toggle light and dark theme">
           <span class="theme-switch-icon theme-switch-icon-moon" aria-hidden="true">☾</span>
           <span class="theme-switch-track" aria-hidden="true">
             <span class="theme-switch-knob"></span>
           </span>
           <span class="theme-switch-icon theme-switch-icon-sun" aria-hidden="true">☀</span>
-        </label>
+        </button>
 
         <button
           class="menu-toggle"
@@ -60,52 +59,48 @@
 
   <main>
     <header class="hero">
-      <picture class="hero-theme-picture" aria-hidden="true">
-        <source
-          data-theme-source
-          data-theme="light"
-          type="image/webp"
-          media="(prefers-color-scheme: light)"
-          srcset="assets/hero-cyberpunk-background-light.webp">
-        <source
-          data-theme-source
-          data-theme="dark"
-          type="image/webp"
-          media="(prefers-color-scheme: dark)"
-          srcset="assets/hero-cyberpunk-background.webp">
+      <div class="hero-theme-picture" aria-hidden="true">
         <img
-          class="hero-bg-image"
+          class="hero-bg-image theme-artwork theme-artwork-dark"
           src="assets/hero-cyberpunk-background.webp"
           alt=""
           width="1916"
           height="821"
           fetchpriority="high">
-      </picture>
+        <img
+          class="hero-bg-image theme-artwork theme-artwork-light"
+          src="assets/hero-cyberpunk-background-light.webp"
+          alt=""
+          width="1916"
+          height="821"
+          decoding="async"
+          fetchpriority="low">
+      </div>
 
       <div class="hero-side hero-side-left" aria-hidden="true">EXPLORE<br>OFFLINE</div>
       <div class="hero-side hero-side-right" aria-hidden="true">YOUR WAY<br>ANYWHERE</div>
 
-      <div class="hero-content" style="width:min(900px, calc(100% - 40px)); margin:0 auto;">
-        <div class="hero-title-row" style="min-width:0;">
+      <div class="hero-content">
+        <div class="hero-title-row">
           <img class="hero-icon" src="assets/icon.png" alt="" width="68" height="68" decoding="async" fetchpriority="low">
-          <h1 style="letter-spacing:-0.05em; line-height:0.96;"><span class="vibro-word">ViBRo</span> Navigator</h1>
+          <h1><span class="vibro-word">ViBRo</span> Navigator</h1>
         </div>
-        <p class="hero-subtitle" style="text-align:center; margin-left:auto; margin-right:auto;">Offline and truly lightweight GPS navigator with minimal on-screen, voice, and vibration guidance</p>
-        <p class="hero-tagline" style="text-align:center; margin-left:auto; margin-right:auto;">ROADS <span>•</span> TRAILS <span>•</span> CITIES <span>•</span> BEYOND</p>
+        <p class="hero-subtitle">Offline and truly lightweight GPS navigator with minimal on-screen, voice, and vibration guidance</p>
+        <p class="hero-tagline">ROADS <span>•</span> TRAILS <span>•</span> CITIES <span>•</span> BEYOND</p>
 
         <div class="hero-downloads" id="download">
           <a class="store-button play" href="https://play.google.com/store/apps/details?id=vibro.navigator" aria-label="Get ViBRo Navigator on Google Play">
-            <img src="assets/google-play-badge-400.png" srcset="assets/google-play-badge-400.png 400w, assets/google-play-badge.png 646w" sizes="200px" alt="Get it on Google Play" width="646" height="250" decoding="async" fetchpriority="low">
+            <img src="assets/google-play-badge.png" alt="Get it on Google Play" width="646" height="250" decoding="async" fetchpriority="low">
           </a>
           <a class="store-button fdroid" href="https://f-droid.org/packages/vibro.navigator/" aria-label="Get ViBRo Navigator on F-Droid">
-            <img src="assets/fdroid-badge-400.png" srcset="assets/fdroid-badge-400.png 400w, assets/fdroid-badge.png 646w" sizes="174px" alt="Get it on F-Droid" width="646" height="250" decoding="async" fetchpriority="low">
+            <img src="assets/fdroid-badge.png" alt="Get it on F-Droid" width="646" height="250" decoding="async" fetchpriority="low">
           </a>
           <a class="store-button github-release" href="https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest" aria-label="Open the latest ViBRo Navigator GitHub release">
             <img
-              src="assets/github-releases-badge.svg"
-              alt="Download from GitHub Releases"
-              width="203"
-              height="32"
+              src="assets/github-apk-badge.png"
+              alt="Get APK from GitHub"
+              width="646"
+              height="250"
               decoding="async"
               fetchpriority="low">
           </a>
@@ -131,14 +126,9 @@
 
       <div class="showcase-grid screenshot-only-grid">
         <figure class="screenshot-only">
-          <picture class="screenshot-theme-picture">
-            <source
-              data-theme-source
-              data-theme="light"
-              type="image/webp"
-              media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-1-light-placeholder.webp">
+          <div class="screenshot-theme-picture">
             <img
+              class="theme-artwork theme-artwork-dark"
               src="assets/screenshot-1-dark-placeholder.webp"
               alt="Placeholder screenshot 1 for ViBRo Navigator"
               width="360"
@@ -146,18 +136,23 @@
               loading="lazy"
               decoding="async"
               fetchpriority="low">
-          </picture>
+            <img
+              class="theme-artwork theme-artwork-light"
+              src="assets/screenshot-1-light-placeholder.webp"
+              alt=""
+              aria-hidden="true"
+              width="360"
+              height="640"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low">
+          </div>
         </figure>
 
         <figure class="screenshot-only">
-          <picture class="screenshot-theme-picture">
-            <source
-              data-theme-source
-              data-theme="light"
-              type="image/webp"
-              media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-2-light-placeholder.webp">
+          <div class="screenshot-theme-picture">
             <img
+              class="theme-artwork theme-artwork-dark"
               src="assets/screenshot-2-dark-placeholder.webp"
               alt="Placeholder screenshot 2 for ViBRo Navigator"
               width="360"
@@ -165,18 +160,23 @@
               loading="lazy"
               decoding="async"
               fetchpriority="low">
-          </picture>
+            <img
+              class="theme-artwork theme-artwork-light"
+              src="assets/screenshot-2-light-placeholder.webp"
+              alt=""
+              aria-hidden="true"
+              width="360"
+              height="640"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low">
+          </div>
         </figure>
 
         <figure class="screenshot-only">
-          <picture class="screenshot-theme-picture">
-            <source
-              data-theme-source
-              data-theme="light"
-              type="image/webp"
-              media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-3-light-placeholder.webp">
+          <div class="screenshot-theme-picture">
             <img
+              class="theme-artwork theme-artwork-dark"
               src="assets/screenshot-3-dark-placeholder.webp"
               alt="Placeholder screenshot 3 for ViBRo Navigator"
               width="360"
@@ -184,18 +184,23 @@
               loading="lazy"
               decoding="async"
               fetchpriority="low">
-          </picture>
+            <img
+              class="theme-artwork theme-artwork-light"
+              src="assets/screenshot-3-light-placeholder.webp"
+              alt=""
+              aria-hidden="true"
+              width="360"
+              height="640"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low">
+          </div>
         </figure>
 
         <figure class="screenshot-only">
-          <picture class="screenshot-theme-picture">
-            <source
-              data-theme-source
-              data-theme="light"
-              type="image/webp"
-              media="(prefers-color-scheme: light)"
-              srcset="assets/screenshot-4-light-placeholder.webp">
+          <div class="screenshot-theme-picture">
             <img
+              class="theme-artwork theme-artwork-dark"
               src="assets/screenshot-4-dark-placeholder.webp"
               alt="Placeholder screenshot 4 for ViBRo Navigator"
               width="360"
@@ -203,7 +208,17 @@
               loading="lazy"
               decoding="async"
               fetchpriority="low">
-          </picture>
+            <img
+              class="theme-artwork theme-artwork-light"
+              src="assets/screenshot-4-light-placeholder.webp"
+              alt=""
+              aria-hidden="true"
+              width="360"
+              height="640"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low">
+          </div>
         </figure>
       </div>
 
@@ -373,9 +388,7 @@
               href="https://play.google.com/store/apps/details?id=vibro.navigator"
               aria-label="Get the ViBRo Navigator Google Play version">
               <img
-                src="assets/google-play-badge-400.png"
-                srcset="assets/google-play-badge-400.png 400w, assets/google-play-badge.png 646w"
-                sizes="200px"
+                src="assets/google-play-badge.png"
                 alt="Get it on Google Play"
                 width="646"
                 height="250"
@@ -405,58 +418,5 @@
   </main>
 
   </div>
-  <script>
-    (() => {
-      const toggle = document.querySelector('.menu-toggle');
-      const nav = document.getElementById('primary-navigation');
-      if (!toggle || !nav) return;
-
-      const closeMenu = () => {
-        toggle.setAttribute('aria-expanded', 'false');
-        toggle.setAttribute('aria-label', 'Open navigation menu');
-        nav.classList.remove('is-open');
-      };
-
-      const openMenu = () => {
-        toggle.setAttribute('aria-expanded', 'true');
-        toggle.setAttribute('aria-label', 'Close navigation menu');
-        nav.classList.add('is-open');
-      };
-
-      toggle.addEventListener('click', () => {
-        if (toggle.getAttribute('aria-expanded') === 'true') {
-          closeMenu();
-        } else {
-          openMenu();
-        }
-      });
-
-      nav.addEventListener('click', (event) => {
-        if (event.target.closest('a')) closeMenu();
-      });
-
-      document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-          closeMenu();
-          toggle.focus();
-        }
-      });
-
-      document.addEventListener('click', (event) => {
-        if (
-          toggle.getAttribute('aria-expanded') === 'true' &&
-          !nav.contains(event.target) &&
-          !toggle.contains(event.target)
-        ) {
-          closeMenu();
-        }
-      });
-
-      window.addEventListener('resize', () => {
-        if (window.innerWidth > 700) closeMenu();
-      });
-    })();
-  </script>
-
 </body>
 </html>
