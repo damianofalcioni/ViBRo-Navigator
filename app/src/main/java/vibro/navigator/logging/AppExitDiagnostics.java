@@ -1,5 +1,6 @@
 package vibro.navigator.logging;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Process;
@@ -28,6 +29,8 @@ public final class AppExitDiagnostics {
         onProcessStart(context, Process.myPid(), System.currentTimeMillis(), AndroidProcessExitReader::findPrevious);
     }
 
+    // Keep process/navigation markers durable before returning, even if the process is terminated immediately afterward.
+    @SuppressLint("ApplySharedPref")
     static void onProcessStart(
             @NonNull Context context,
             int currentPid,
@@ -85,6 +88,7 @@ public final class AppExitDiagnostics {
                 : null;
     }
 
+    @SuppressLint("ApplySharedPref")
     public static void navigationStarted(@NonNull Context context) {
         preferences(context).edit()
                 .putBoolean(KEY_NAVIGATION_ACTIVE, true)
@@ -92,6 +96,7 @@ public final class AppExitDiagnostics {
                 .commit();
     }
 
+    @SuppressLint("ApplySharedPref")
     public static void navigationStopped(@NonNull Context context) {
         preferences(context).edit()
                 .putBoolean(KEY_NAVIGATION_ACTIVE, false)
