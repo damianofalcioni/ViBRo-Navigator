@@ -24,6 +24,7 @@ import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.CompassPerspectiveScale;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.format.NavigationTextFormatter;
 
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassFullscreenRingTest {
@@ -51,6 +52,40 @@ public class NavigationCompassFullscreenRingTest {
         assertProjectedLabels(500, 300, false);
     }
 
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void portraitTiltLowersCenterWithoutLengtheningArrow() {
+        assertArrowAndCenter(300, 500, true);
+    }
+
+    @Test
+    @Config(qualifiers = "land")
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void landscapeTiltLowersCenterWithoutLengtheningArrow() {
+        assertArrowAndCenter(500, 300, false);
+    }
+
+    private static void assertArrowAndCenter(int width, int height, boolean portrait) {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        float arrowLength = headingRadius(width, height, portrait);
+        int previousCenterY = 0;
+        for (float progress : new float[] {0f, 0.25f, 0.5f, 1f}) {
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+            view(activity, width, height, progress).draw(new Canvas(bitmap));
+            int centerY = Math.round(height - 88f + centerOffset(width, height, progress));
+            assertEquals("Position marker follows the lowered route origin",
+                    activity.getColor(R.color.compass_center), bitmap.getPixel(width / 2, centerY));
+            int arrowTipY = 0;
+            while (Color.alpha(bitmap.getPixel(width / 2, arrowTipY)) == 0) {
+                arrowTipY++;
+            }
+            assertEquals("Screen arrow length stays constant throughout tilt", arrowLength,
+                    centerY - arrowTipY, 2f);
+            assertTrue("Center moves down as the view tilts", centerY > previousCenterY);
+            previousCenterY = centerY;
+        }
+    }
+
     private static void assertRingPixels(int width, int height, boolean portrait) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         for (int theme : new int[] {R.style.Theme_ViBRoNavigator, R.style.Theme_ViBRoNavigator_Light}) {
@@ -60,7 +95,7 @@ public class NavigationCompassFullscreenRingTest {
                 view(activity, width, height, progress).draw(new Canvas(bitmap));
                 float cy = height - 88f;
                 float radius = headingRadius(width, height, portrait)
-                        * CompassPerspectiveScale.viewportMultiplier(progress) * 0.91f;
+                        * guideScale(width, height, portrait, progress) * 0.91f;
                 float[] point = new float[2];
                 projection(width, height, progress).mapPoint(width / 2f + radius * 0.5f,
                         cy - radius * (float) Math.sin(Math.toRadians(60f)), point);
@@ -84,15 +119,18 @@ public class NavigationCompassFullscreenRingTest {
         for (float progress : new float[] {0f, 0.25f, 0.5f, 1f}) {
             Canvas canvas = new Canvas(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
             NavigationCompassView view = view(activity, width, height, progress);
-            view.setCompassState(NavCompassState.fromProjectedPoints(
-                    0f, null, 1f, 80f, 0f,
-                    Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
-                    0f, 0f, false));
+            view.setCompassState(legendState(progress));
             view.draw(canvas);
             ShadowCanvas drawing = Shadows.shadowOf(canvas);
             assertEquals(!portrait && progress == 0f ? 6 : 2, drawing.getTextHistoryCount());
             float radius = headingRadius(width, height, portrait)
-                    * CompassPerspectiveScale.viewportMultiplier(progress) * 0.91f;
+                    * guideScale(width, height, portrait, progress) * 0.91f;
+            float distance = 80f * guideScale(width, height, portrait, progress) * 0.91f
+                    * headingRadius(width, height, portrait) / (height - 104f);
+            assertEquals(NavigationTextFormatter.formatDistance(activity, distance),
+                    drawing.getDrawnTextEvent(0).text);
+            assertEquals(NavigationTextFormatter.formatTimeSeconds(activity, Math.round(distance)),
+                    drawing.getDrawnTextEvent(1).text);
             for (int index = 0; index < 2; index++) {
                 float side = index == 0 ? 1f : -1f;
                 float[] anchor = new float[2];
@@ -114,6 +152,14 @@ public class NavigationCompassFullscreenRingTest {
         return view;
     }
 
+    private static NavCompassState legendState(float progress) {
+        float visibleRadius = progress == 0f ? 80f : 80f * CompassPerspectiveScale.maximumViewportMultiplier();
+        return NavCompassState.fromProjectedPoints(
+                0f, null, 1f, visibleRadius, 0f,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(),
+                0f, 0f, false);
+    }
+
     private static float headingRadius(int width, int height, boolean portrait) {
         float cy = height - 88f;
         return portrait ? Math.min(width / 2f, cy) - 10f : cy - 16f;
@@ -122,8 +168,19 @@ public class NavigationCompassFullscreenRingTest {
     private static NavigationCompassPerspective projection(int width, int height, float progress) {
         NavigationCompassPerspective projection = new NavigationCompassPerspective();
         projection.configure(width / 2f, height - 88f,
-                (height - 104f) * CompassPerspectiveScale.maximumViewportMultiplier(), progress);
+                (height - 104f) * CompassPerspectiveScale.maximumViewportMultiplier(), progress,
+                centerOffset(width, height, progress));
         return projection;
+    }
+
+    private static float centerOffset(int width, int height, float progress) {
+        return (Math.min(width / 2f, height - 88f) - 10f) * 0.91f * 0.32f * progress;
+    }
+
+    private static float guideScale(int width, int height, boolean portrait, float progress) {
+        float sourceRadius = (height - 104f) * CompassPerspectiveScale.maximumViewportMultiplier();
+        return 1f / (CompassPerspectiveScale.verticalScale(progress)
+                - CompassPerspectiveScale.depth(progress) * headingRadius(width, height, portrait) / sourceRadius);
     }
 
     private static int strongestPixel(Bitmap bitmap, float[] point) {

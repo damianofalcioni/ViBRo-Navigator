@@ -111,28 +111,28 @@ public class NavigationCompassPerspectiveTest {
     }
 
     @Test
-    public void perspectiveRouteAndStreetsReachTopEdgeInCompactAndFullscreenViews() {
+    public void perspectiveRouteAndStreetsReachForwardEdgeInCompactAndFullscreenViews() {
         float visibleRadius = 100f * CompassPerspectiveScale.viewportMultiplier(1f);
         NavCompassState streetState = stateWithStreetOverlay().withDisplayMode(true, visibleRadius);
         NavCompassState routeState = stateWithForwardRoute(visibleRadius, true);
         NavCompassState emptyRouteState = stateWithForwardRoute(visibleRadius, false);
 
-        assertTopEdgePixelsDiffer(streetState.withStreetOverlay(CompassStreetOverlay.EMPTY), streetState,
+        assertForwardEdgePixelsDiffer(streetState.withStreetOverlay(CompassStreetOverlay.EMPTY), streetState,
                 300, 300, false);
-        assertTopEdgePixelsDiffer(emptyRouteState, routeState, 300, 300, false);
-        assertTopEdgePixelsDiffer(streetState.withStreetOverlay(CompassStreetOverlay.EMPTY), streetState,
+        assertForwardEdgePixelsDiffer(emptyRouteState, routeState, 300, 300, false);
+        assertForwardEdgePixelsDiffer(streetState.withStreetOverlay(CompassStreetOverlay.EMPTY), streetState,
                 300, 500, true);
-        assertTopEdgePixelsDiffer(emptyRouteState, routeState, 300, 500, true);
+        assertForwardEdgePixelsDiffer(emptyRouteState, routeState, 300, 500, true);
     }
 
     @Test
     @Config(qualifiers = "land")
-    public void perspectiveRouteAndStreetsReachTopEdgeInLandscapeFullscreenView() {
+    public void perspectiveRouteAndStreetsReachForwardEdgeInLandscapeFullscreenView() {
         float visibleRadius = 100f * CompassPerspectiveScale.viewportMultiplier(1f);
         NavCompassState streetState = stateWithStreetOverlay().withDisplayMode(true, visibleRadius);
-        assertTopEdgePixelsDiffer(streetState.withStreetOverlay(CompassStreetOverlay.EMPTY), streetState,
+        assertForwardEdgePixelsDiffer(streetState.withStreetOverlay(CompassStreetOverlay.EMPTY), streetState,
                 500, 300, true);
-        assertTopEdgePixelsDiffer(stateWithForwardRoute(visibleRadius, false),
+        assertForwardEdgePixelsDiffer(stateWithForwardRoute(visibleRadius, false),
                 stateWithForwardRoute(visibleRadius, true), 500, 300, true);
     }
 
@@ -218,7 +218,7 @@ public class NavigationCompassPerspectiveTest {
         assertTrue("Street pixels=" + differentPixels, differentPixels > 20);
     }
 
-    private static void assertTopEdgePixelsDiffer(
+    private static void assertForwardEdgePixelsDiffer(
             NavCompassState without,
             NavCompassState with,
             int width,
@@ -227,15 +227,19 @@ public class NavigationCompassPerspectiveTest {
     ) {
         Bitmap emptyBitmap = drawState(without, width, height, fullscreen);
         Bitmap filledBitmap = drawState(with, width, height, fullscreen);
+        float cy = fullscreen ? height - 88f : height / 2f;
+        float markerRadius = Math.min(width / 2f, cy) - 10f;
+        float routeRadius = fullscreen ? cy - 16f : markerRadius * 0.91f;
+        int forwardEdgeY = Math.round(cy - routeRadius + markerRadius * 0.91f * 0.32f);
         int differentPixels = 0;
-        for (int y = 18; y < 48; y++) {
+        for (int y = forwardEdgeY - 5; y < forwardEdgeY + 25; y++) {
             for (int x = 0; x < width; x++) {
                 if (emptyBitmap.getPixel(x, y) != filledBitmap.getPixel(x, y)) {
                     differentPixels++;
                 }
             }
         }
-        assertTrue("Top-edge geometry pixels=" + differentPixels, differentPixels > 3);
+        assertTrue("Forward-edge geometry pixels=" + differentPixels, differentPixels > 3);
     }
 
     private static NavCompassState stateWithForwardRoute(float visibleRadius, boolean includeRoute) {

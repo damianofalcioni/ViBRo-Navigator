@@ -35,7 +35,7 @@ public class NavigationCompassPerspectiveRingTest {
 
         // The outer guide crosses this area inside the dial, away from the labels and arrow.
         assertTrue(hasRingPixels(bitmap, activity.getColor(R.color.compass_surface)));
-        assertEquals(activity.getColor(R.color.compass_center), bitmap.getPixel(150, 173));
+        assertEquals(activity.getColor(R.color.compass_center), bitmap.getPixel(150, 191));
     }
 
     @Test
@@ -75,7 +75,7 @@ public class NavigationCompassPerspectiveRingTest {
         ShadowCanvas projected = Shadows.shadowOf(perspectiveCanvas);
         ShadowCanvas flat = Shadows.shadowOf(flatCanvas);
         NavigationCompassPerspective perspective = new NavigationCompassPerspective();
-        perspective.configure(150f, 150f, 127.4f * scale, 1f, 127.4f * 0.18f);
+        perspective.configure(150f, 150f, 127.4f * scale, 1f, 127.4f * 0.32f);
         assertEquals(flat.getTextHistoryCount(), projected.getTextHistoryCount());
         assertEquals(flat.getArcPaintHistoryCount(), projected.getArcPaintHistoryCount());
         for (int index = 4; index < flat.getTextHistoryCount(); index++) {
@@ -117,7 +117,7 @@ public class NavigationCompassPerspectiveRingTest {
     }
 
     private static boolean hasRingPixels(Bitmap bitmap, int surfaceColor) {
-        for (int y = 47; y < 53; y++) {
+        for (int y = 65; y < 71; y++) {
             for (int x = 205; x < 211; x++) {
                 if (bitmap.getPixel(x, y) != surfaceColor) {
                     return true;

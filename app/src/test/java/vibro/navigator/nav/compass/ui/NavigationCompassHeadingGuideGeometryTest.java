@@ -19,23 +19,33 @@ public class NavigationCompassHeadingGuideGeometryTest {
     @Test
     public void arrowHeadMatchesOrientationCueMarkerGeometry() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        for (float progress : new float[] {0f, 0.25f, 0.5f, 1f}) {
+            assertArrowGeometry(activity, progress);
+        }
+    }
+
+    private static void assertArrowGeometry(Activity activity, float progress) {
         NavigationCompassView compassView = new NavigationCompassView(activity);
         int sizePx = 300;
         Canvas canvas = new Canvas(Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888));
         compassView.layout(0, 0, sizePx, sizePx);
+        compassView.setPerspectiveProgress(progress);
 
         compassView.draw(canvas);
 
         ShadowCanvas shadowCanvas = Shadows.shadowOf(canvas);
         int lineCount = shadowCanvas.getLinePaintHistoryCount();
+        ShadowCanvas.LinePaintHistoryEvent shaft = shadowCanvas.getDrawnLine(lineCount - 3);
         ShadowCanvas.LinePaintHistoryEvent leftEdge = shadowCanvas.getDrawnLine(lineCount - 2);
         ShadowCanvas.LinePaintHistoryEvent rightEdge = shadowCanvas.getDrawnLine(lineCount - 1);
         float center = sizePx / 2f;
         float tipY = dp(activity, 10f);
         float baseY = tipY + dp(activity, NavigationCompassOrientationCueRenderer.MARKER_HEIGHT_DP);
         float halfWidth = dp(activity, NavigationCompassOrientationCueRenderer.MARKER_WIDTH_DP) / 2f;
+        float centerYOffset = (center - dp(activity, 10f)) * 0.91f * 0.32f * progress;
 
         assertEquals(1f, NavigationCompassView.HEADING_GUIDE_ARROW_TIP_SCALE, 0.01f);
+        assertEdge(shaft, center, center + centerYOffset, center, tipY);
         assertEdge(leftEdge, center, tipY, center - halfWidth, baseY);
         assertEdge(rightEdge, center, tipY, center + halfWidth, baseY);
     }

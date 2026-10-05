@@ -26,8 +26,8 @@ public class NavigationCompassPerspectiveLabelVisibilityTest {
         Bitmap bitmap = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
         compassView(activity, 30f).draw(new Canvas(bitmap));
 
-        assertTrue("Visible outer distance label", labelPixels(bitmap, 265, 295, 52, 72) > 15);
-        assertTrue("Visible outer 60s label", labelPixels(bitmap, 5, 35, 52, 72) > 15);
+        assertTrue("Visible outer distance label", labelPixels(bitmap, 265, 295, 70, 90) > 15);
+        assertTrue("Visible outer 60s label", labelPixels(bitmap, 5, 35, 70, 90) > 15);
     }
 
     @Test
@@ -38,8 +38,8 @@ public class NavigationCompassPerspectiveLabelVisibilityTest {
         canvas.clipRect(0, 0, 300, 300);
         compassView(activity, 85f).draw(canvas);
 
-        assertTrue("Distance label inside compass view", labelPixels(bitmap, 280, 300, 156, 170) > 10);
-        assertTrue("Time label inside compass view", labelPixels(bitmap, 0, 25, 156, 170) > 10);
+        assertTrue("Distance label inside compass view", labelPixels(bitmap, 280, 300, 174, 188) > 10);
+        assertTrue("Time label inside compass view", labelPixels(bitmap, 0, 25, 174, 188) > 10);
     }
 
     private static NavigationCompassView compassView(Activity activity, float accuracy) {
