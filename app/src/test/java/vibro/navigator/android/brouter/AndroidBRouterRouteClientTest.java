@@ -14,8 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
+import vibro.navigator.brouter.BRouterProfileParameterValues;
 import vibro.navigator.brouter.BRouterRouteRequest;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.geo.LatLon;
@@ -65,13 +67,33 @@ public class AndroidBRouterRouteClientTest {
                 Collections.emptyList(),
                 new LatLon(48.2, 16.2),
                 PROFILE_TREKKING,
-                "avoid_path=1&uphillcost=90",
+                BRouterProfileParameterValues.toExtraParams(Map.of("avoid_path", "1", "uphillcost", "1e+3")),
                 Collections.emptyList()
         );
 
         AndroidBRouterRouteParameterValues params = AndroidBRouterRouteParameterValues.build(request);
 
-        assertEquals("avoid_path=1&uphillcost=90", params.getString(EXTRA_PARAMS));
+        assertEquals("avoid_path=1&uphillcost=1e%2B3", params.getString(EXTRA_PARAMS));
+    }
+
+    @Test
+    public void buildRouteParams_preservesEncodedOverridesOnCustomRoundTrip() {
+        BRouterRouteRequest request = BRouterRouteRequest.roundTrip(
+                new LatLon(48.0, 16.0),
+                PROFILE_TREKKING,
+                true,
+                BRouterProfileParameterValues.toExtraParams(Collections.singletonMap("custom", "50% +")),
+                Collections.emptyList(),
+                15_000,
+                123
+        );
+
+        AndroidBRouterRouteParameterValues params =
+                AndroidBRouterRouteParameterValues.build(request, CUSTOM_PROFILE_TEXT);
+
+        assertEquals("custom=50%25+%2B", params.getString(EXTRA_PARAMS));
+        assertEquals(CUSTOM_PROFILE_TEXT, params.getString("remoteProfile"));
+        assertEquals(4, params.getInt("engineMode"));
     }
 
     @Test

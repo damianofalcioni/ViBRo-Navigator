@@ -3,6 +3,8 @@ package vibro.navigator.brouter;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -43,13 +45,27 @@ public final class BRouterProfileParameterValues {
         if (out.length() > 0) {
             out.append('&');
         }
-        out.append(key).append('=').append(value);
+        out.append(encode(key)).append('=').append(encode(value));
+    }
+
+    public static boolean containsExtraParamsSeparator(@NonNull String value) {
+        // BRouter URL-decodes the entire string before splitting on these separators.
+        return value.indexOf('?') >= 0 || value.indexOf('&') >= 0 || value.indexOf('=') >= 0;
     }
 
     private static boolean isUsableExtraParamPart(@Nullable String value) {
         return value != null
                 && !value.trim().isEmpty()
-                && value.indexOf('&') < 0
-                && value.indexOf('=') < 0;
+                && !containsExtraParamsSeparator(value);
+    }
+
+    @NonNull
+    private static String encode(@NonNull String value) {
+        try {
+            // The Charset overload is unavailable on older supported Android versions.
+            return URLEncoder.encode(value, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 encoding unavailable", e);
+        }
     }
 }

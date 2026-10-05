@@ -18,6 +18,7 @@ import java.util.List;
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterProfileParameter;
 import vibro.navigator.brouter.BRouterProfileParameterOption;
+import vibro.navigator.brouter.BRouterProfileParameterValues;
 
 interface ProfileParameterValueInput {
     int INPUT_WIDTH_DP = 164;
@@ -132,7 +133,7 @@ final class TextParameterInput implements ProfileParameterValueInput {
         if (number && !isNumber(value)) {
             return reject(context, R.string.msg_profile_parameter_invalid_number);
         }
-        if (!number && (value.contains("&") || value.contains("="))) {
+        if (!number && BRouterProfileParameterValues.containsExtraParamsSeparator(value)) {
             return reject(context, R.string.msg_profile_parameter_invalid_text);
         }
         input.setError(null);

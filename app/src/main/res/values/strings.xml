@@ -133,7 +133,7 @@
     <string name="msg_profile_parameters_saved">Profile settings saved.</string>
     <string name="msg_profile_parameters_reset">Profile settings reset to profile defaults.</string>
     <string name="msg_profile_parameter_invalid_number">Enter a valid number.</string>
-    <string name="msg_profile_parameter_invalid_text">Values cannot contain &amp; or =.</string>
+    <string name="msg_profile_parameter_invalid_text">Values cannot contain ?, &amp;, or =.</string>
     <string name="msg_poi_details_unavailable">No extra details available.</string>
     <string name="msg_poi_details_map_check_hint">Use the map to double-check that this is the intended location.</string>
     <string name="msg_poi_google_maps_search_info">Opens Google Maps with the text from this POI search field. After choosing a place in Google Maps, share that place and select ViBRo Navigator to bring the result back here.</string>
