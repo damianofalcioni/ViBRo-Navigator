@@ -15,7 +15,6 @@ import vibro.navigator.nav.kalman.LatLonKalmanFilter;
 public final class NavigationSessionLocationState {
 
     private static final float MIN_RAW_BEARING_SPEED_MPS = 1.0f;
-    private static final float MIN_COURSE_HEADING_DISPLAY_SPEED_MPS = 2.5f;
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
@@ -129,21 +128,18 @@ public final class NavigationSessionLocationState {
     }
 
     @Nullable
-    public HeadingEstimate preferredCompassHeading(@NonNull NavigationLocation location, boolean likelyStationary) {
+    public HeadingEstimate preferredLocationHeading(@NonNull NavigationLocation location, boolean likelyStationary) {
         if (likelyStationary) {
             return null;
         }
-        if (speedMps(location) < MIN_COURSE_HEADING_DISPLAY_SPEED_MPS) {
-            return null;
-        }
-        Double gpsBearingDegrees = bearingTrustPolicy.trustedBearingDegrees(location, speedMps(location));
+        Double gpsBearingDegrees = bearingTrustPolicy.trustedDisplayBearingDegrees(location, speedMps(location));
         if (gpsBearingDegrees != null) {
             return new HeadingEstimate(gpsBearingDegrees, bearingTrustPolicy.currentBearingAccuracyDegrees(location));
         }
-        Double movementBearingDegrees = motionModel.movementBearingDegrees(location);
-        return movementBearingDegrees == null
+        NavigationLocationMotionModel.Course course = motionModel.displayMovementCourse(location);
+        return course == null || course.accuracyDegrees > 25f
                 ? null
-                : new HeadingEstimate(movementBearingDegrees, null);
+                : new HeadingEstimate(course.headingDegrees, course.accuracyDegrees);
     }
 
     @Nullable

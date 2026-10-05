@@ -245,14 +245,16 @@ final class NavigationSessionStateBuilder {
     NavState withDisplayHeading(
             @NonNull NavState base,
             @Nullable Double displayHeadingDegrees,
-            @Nullable Float displayHeadingAccuracyDegrees
+            @Nullable Float displayHeadingAccuracyDegrees,
+            long nowMs
     ) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         NavigationSessionHeadingResolver.Selection heading = headingResolver.selectHeading(
                 lastFiltered,
                 locationState.isLikelyStationary(),
                 displayHeadingDegrees,
-                displayHeadingAccuracyDegrees
+                displayHeadingAccuracyDegrees,
+                nowMs
         );
         return NavStateComposer.withCompassHeading(
                 base,
@@ -285,7 +287,8 @@ final class NavigationSessionStateBuilder {
                 lastFiltered,
                 likelyStationary,
                 displayHeadingDegrees,
-                displayHeadingAccuracyDegrees
+                displayHeadingAccuracyDegrees,
+                nowMs
         );
         return NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)

@@ -198,7 +198,7 @@ public class NavigationSessionTest {
         NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.0, nowMs, 2f),
+                locationWithBearing(0.0, 0.0, nowMs, 2f, 90f),
                 nowMs
         );
         NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
@@ -211,7 +211,7 @@ public class NavigationSessionTest {
             result = NavigationSessionResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithSpeed(0.0, i * 0.00001, sampleTimeMs, 2f),
+                    locationWithBearing(0.0, i * 0.00001, sampleTimeMs, 2f, 90f),
                     sampleTimeMs
             );
         }
@@ -224,7 +224,7 @@ public class NavigationSessionTest {
             NavigationLocationUpdateResult nextResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithSpeed(0.0, 0.00007, sampleTimeMs, 2f),
+                    locationWithBearing(0.0, 0.00007, sampleTimeMs, 2f, 90f),
                     sampleTimeMs,
                     dynamicIntervalMs
             );
@@ -247,7 +247,7 @@ public class NavigationSessionTest {
         NavigationLocationUpdateResult longIntervalResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.00007, expectedLongIntervalTimeMs, 2f),
+                locationWithBearing(0.0, 0.00007, expectedLongIntervalTimeMs, 2f, 90f),
                 expectedLongIntervalTimeMs,
                 dynamicIntervalMs
         );
@@ -568,7 +568,7 @@ public class NavigationSessionTest {
             result = NavigationSessionResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithSpeed(0.0, i * 0.00001, sampleTimeMs, 2f),
+                    locationWithBearing(0.0, i * 0.00001, sampleTimeMs, 2f, 90f),
                     sampleTimeMs
             );
         }

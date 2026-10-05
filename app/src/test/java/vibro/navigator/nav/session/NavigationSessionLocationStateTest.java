@@ -19,9 +19,9 @@ public class NavigationSessionLocationStateTest {
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
         onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.10f));
-        onRawLocationChanged(state, location(baseTimeMs + 1_000L, 48.2082060, 16.3738000, 0.12f));
-        onRawLocationChanged(state, location(baseTimeMs + 2_000L, 48.2082120, 16.3738000, 0.08f));
-        onRawLocationChanged(state, location(baseTimeMs + 3_000L, 48.2082180, 16.3738000, 0.09f));
+        onRawLocationChanged(state, location(baseTimeMs + 1_000L, 48.2084000, 16.3738000, 0.12f));
+        onRawLocationChanged(state, location(baseTimeMs + 2_000L, 48.2086000, 16.3738000, 0.08f));
+        onRawLocationChanged(state, location(baseTimeMs + 3_000L, 48.2088000, 16.3738000, 0.09f));
 
         assertFalse(state.isLikelyStationary());
     }
@@ -88,7 +88,7 @@ public class NavigationSessionLocationStateTest {
     }
 
     @Test
-    public void preferredCompassHeading_keepsCompassSensorAtWalkingSpeed() {
+    public void preferredLocationHeading_usesAccurateLocationBearingAtWalkingSpeed() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
@@ -99,13 +99,15 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
-                state.preferredCompassHeading(accepted.getFilteredLocation(), false);
+                state.preferredLocationHeading(accepted.getFilteredLocation(), false);
 
-        assertNull(headingEstimate);
+        assertNotNull(headingEstimate);
+        assertEquals(84.0, headingEstimate.headingDegrees, 0.0);
+        assertEquals(12f, headingEstimate.headingAccuracyDegrees, 0f);
     }
 
     @Test
-    public void preferredCompassHeading_prefersTrustedGpsBearingWhileMovingFast() {
+    public void preferredLocationHeading_prefersTrustedGpsBearingWhileMovingFast() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
@@ -116,7 +118,7 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
-                state.preferredCompassHeading(accepted.getFilteredLocation(), false);
+                state.preferredLocationHeading(accepted.getFilteredLocation(), false);
 
         assertNotNull(headingEstimate);
         assertEquals(84.0, headingEstimate.headingDegrees, 0.0);
@@ -124,26 +126,27 @@ public class NavigationSessionLocationStateTest {
     }
 
     @Test
-    public void preferredCompassHeading_fallsBackToMovementCourseWhenGpsBearingAccuracyIsLow() {
+    public void preferredLocationHeading_fallsBackToMovementCourseWhenGpsBearingAccuracyIsLow() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 4_000L;
 
         onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2082600, 16.3738000, 3.0f);
+        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2088000, 16.3738000, 3.0f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(40f);
         NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
-                state.preferredCompassHeading(accepted.getFilteredLocation(), false);
+                state.preferredLocationHeading(accepted.getFilteredLocation(), false);
 
         assertNotNull(headingEstimate);
         assertEquals(0.0, headingEstimate.headingDegrees, 15.0);
-        assertNull(headingEstimate.headingAccuracyDegrees);
+        assertNotNull(headingEstimate.headingAccuracyDegrees);
+        assertTrue(headingEstimate.headingAccuracyDegrees <= 25f);
     }
 
     @Test
-    public void preferredCompassHeading_ignoresMovingSourcesWhileStationary() {
+    public void preferredLocationHeading_ignoresMovingSourcesWhileStationary() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
         long baseTimeMs = System.currentTimeMillis() - 3_000L;
 
@@ -154,7 +157,7 @@ public class NavigationSessionLocationStateTest {
         NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
 
         NavigationSessionLocationState.HeadingEstimate headingEstimate =
-                state.preferredCompassHeading(accepted.getFilteredLocation(), true);
+                state.preferredLocationHeading(accepted.getFilteredLocation(), true);
 
         assertNull(headingEstimate);
     }

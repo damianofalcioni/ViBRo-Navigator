@@ -59,6 +59,7 @@ final class NavigationSessionComponents {
     void reset(long nowMs) {
         locationEvaluator.reset();
         locationState.reset();
+        headingResolver.reset();
         routeState.reset();
         straightLineState.reset();
         warmupController.reset(nowMs);

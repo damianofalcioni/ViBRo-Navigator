@@ -9,13 +9,25 @@ final class NavigationGpsBearingTrustPolicy {
     private static final float MIN_TRUSTED_GPS_BEARING_SPEED_MPS = 0.8f;
     private static final float MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS = 2.5f;
     private static final float MAX_TRUSTED_GPS_BEARING_ACCURACY_DEGREES = 25f;
+    private static final float MIN_DISPLAY_BEARING_SPEED_MPS = 0.35f;
 
     @Nullable
     Double trustedBearingDegrees(@NonNull NavigationLocation location, float speedMps) {
-        if (!location.hasBearing()) {
+        return trustedBearingDegrees(location, speedMps, MIN_TRUSTED_GPS_BEARING_SPEED_MPS);
+    }
+
+    @Nullable
+    Double trustedDisplayBearingDegrees(@NonNull NavigationLocation location, float speedMps) {
+        // Display course can follow slow movement; reroute evidence keeps its stricter speed gate.
+        return trustedBearingDegrees(location, speedMps, MIN_DISPLAY_BEARING_SPEED_MPS);
+    }
+
+    @Nullable
+    private Double trustedBearingDegrees(@NonNull NavigationLocation location, float speedMps, float minimumSpeedMps) {
+        if (!hasUsableBearing(location)) {
             return null;
         }
-        if (!Float.isFinite(speedMps) || speedMps < MIN_TRUSTED_GPS_BEARING_SPEED_MPS) {
+        if (!Float.isFinite(speedMps) || speedMps < minimumSpeedMps) {
             return null;
         }
         if (location.hasBearingAccuracy()) {
@@ -24,6 +36,10 @@ final class NavigationGpsBearingTrustPolicy {
         return speedMps >= MIN_GPS_BEARING_SPEED_WITHOUT_ACCURACY_MPS
                 ? (double) location.getBearing()
                 : null;
+    }
+
+    private static boolean hasUsableBearing(NavigationLocation location) {
+        return location.hasBearing() && Float.isFinite(location.getBearing());
     }
 
     @Nullable

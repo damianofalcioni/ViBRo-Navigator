@@ -48,6 +48,9 @@ public final class AndroidLocationConverter {
         if (location.hasSpeed()) {
             out.setSpeed(location.speed());
         }
+        if (location.hasSpeedAccuracy()) {
+            out.setSpeedAccuracyMetersPerSecond(location.speedAccuracyMetersPerSecond());
+        }
         if (location.hasBearing()) {
             out.setBearing(location.bearing());
         }
@@ -79,6 +82,10 @@ public final class AndroidLocationConverter {
         boolean hasSpeed();
 
         float speed();
+
+        boolean hasSpeedAccuracy();
+
+        float speedAccuracyMetersPerSecond();
 
         boolean hasBearing();
 
@@ -151,6 +158,19 @@ public final class AndroidLocationConverter {
         @Override
         public float speed() {
             return location.getSpeed();
+        }
+
+        @Override
+        public boolean hasSpeedAccuracy() {
+            return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && location.hasSpeedAccuracy();
+        }
+
+        @Override
+        public float speedAccuracyMetersPerSecond() {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                return location.getSpeedAccuracyMetersPerSecond();
+            }
+            return 0f;
         }
 
         @Override

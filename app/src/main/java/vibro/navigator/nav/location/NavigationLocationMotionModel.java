@@ -16,6 +16,8 @@ public final class NavigationLocationMotionModel {
     private static final double MIN_MOVEMENT_BEARING_DISTANCE_METERS = 3.0;
 
     private final ArrayDeque<NavigationLocation> recentFilteredLocations = new ArrayDeque<>();
+    private final NavigationDisplayCourseHistory displayCourseHistory = new NavigationDisplayCourseHistory();
+    private final NavigationStationarityTracker stationarityTracker = new NavigationStationarityTracker();
 
     @Nullable
     private NavigationLocation lastFiltered;
@@ -26,6 +28,8 @@ public final class NavigationLocationMotionModel {
         lastFiltered = null;
         previousFiltered = null;
         recentFilteredLocations.clear();
+        displayCourseHistory.reset();
+        stationarityTracker.reset();
     }
 
     @Nullable
@@ -37,10 +41,16 @@ public final class NavigationLocationMotionModel {
         previousFiltered = lastFiltered;
         lastFiltered = filtered;
         recentFilteredLocations.addLast(new NavigationLocation(filtered));
+        displayCourseHistory.record(filtered);
         pruneRecentFilteredLocations(filtered.getElapsedRealtimeOrTimeMs());
+        stationarityTracker.record(filtered, previousFiltered, isStationaryCandidate());
     }
 
     public boolean isLikelyStationary() {
+        return stationarityTracker.isStationary();
+    }
+
+    private boolean isStationaryCandidate() {
         if (lastFiltered == null) {
             return false;
         }
@@ -59,7 +69,7 @@ public final class NavigationLocationMotionModel {
 
     public float speedMps(@NonNull NavigationLocation location) {
         pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
-        if (hasStationaryRecentMotionEvidence()) {
+        if (isLikelyStationary()) {
             return 0f;
         }
         return reportedOrFallbackSpeedMps(location);
@@ -70,7 +80,7 @@ public final class NavigationLocationMotionModel {
         return NavigationDisplaySpeedResolver.resolve(
                 location,
                 previousFiltered,
-                hasStationaryRecentMotionEvidence(),
+                isLikelyStationary(),
                 reportedOrFallbackSpeedMps(location)
         );
     }
@@ -99,7 +109,27 @@ public final class NavigationLocationMotionModel {
     @Nullable
     public Double movementBearingDegrees(@NonNull NavigationLocation location) {
         pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
-        for (NavigationLocation sample : recentFilteredLocations) {
+        return movementBearingDegrees(location, recentFilteredLocations);
+    }
+
+    @Nullable
+    public Course displayMovementCourse(@NonNull NavigationLocation location) {
+        return displayCourseHistory.estimate(location);
+    }
+
+    public static final class Course {
+        public final double headingDegrees;
+        public final float accuracyDegrees;
+
+        Course(double headingDegrees, float accuracyDegrees) {
+            this.headingDegrees = headingDegrees;
+            this.accuracyDegrees = accuracyDegrees;
+        }
+    }
+
+    @Nullable
+    private Double movementBearingDegrees(NavigationLocation location, ArrayDeque<NavigationLocation> samples) {
+        for (NavigationLocation sample : samples) {
             long elapsedMs = location.getElapsedRealtimeOrTimeMs() - sample.getElapsedRealtimeOrTimeMs();
             if (elapsedMs < MIN_MOVEMENT_BEARING_ELAPSED_MS) {
                 continue;
@@ -153,4 +183,5 @@ public final class NavigationLocationMotionModel {
             recentFilteredLocations.removeFirst();
         }
     }
+
 }

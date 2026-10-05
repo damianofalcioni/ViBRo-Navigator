@@ -70,7 +70,8 @@ public final class NavigationStateBroadcaster {
                 navigationSession,
                 cachedState,
                 runtime.displayHeadingDegrees(),
-                runtime.displayHeadingAccuracyDegrees()
+                runtime.displayHeadingAccuracyDegrees(),
+                runtime.elapsedRealtimeMs()
         );
         stateCache.storeHeadingState(state);
         dispatch(state);

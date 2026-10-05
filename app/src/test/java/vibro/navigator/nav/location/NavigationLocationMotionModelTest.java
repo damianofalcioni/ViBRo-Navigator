@@ -2,6 +2,7 @@ package vibro.navigator.nav.location;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class NavigationLocationMotionModelTest {
     @Test
     public void displaySpeedMps_usesLowReportedSpeedWithAccuracyAwareMovementEvidence() {
         NavigationLocationMotionModel model = new NavigationLocationMotionModel();
-        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000);
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000, 1.2f);
         NavigationLocation second = location(4_000L, 4_000L, 48.2082540, 16.3738000, 1.2f);
         first.setAccuracy(5f);
         second.setAccuracy(5f);
@@ -129,6 +130,69 @@ public class NavigationLocationMotionModelTest {
 
         assertTrue(model.displaySpeedMps(second) > 3.5f);
         assertTrue(model.displaySpeedMps(second) < 4.5f);
+    }
+
+    @Test
+    public void displayMovementBearingAccumulatesSlowMovementWithoutChangingRerouteCourse() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation last = null;
+        for (int second = 0; second <= 8; second++) {
+            last = location(second * 1_000L, second * 1_000L, 48.2082 + second * 0.0000045, 16.3738, 0.5f);
+            last.setAccuracy(0.5f);
+            model.recordFilteredLocation(last);
+        }
+        assertNull(model.movementBearingDegrees(last));
+        assertEquals(0.0, model.displayMovementCourse(last).headingDegrees, 1.0);
+    }
+
+    @Test
+    public void displayMovementBearingExpiresAndResets() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        model.recordFilteredLocation(location(1_000L, 1_000L, 48.2082, 16.3738));
+        NavigationLocation last = location(92_000L, 92_000L, 48.2083, 16.3738);
+        model.recordFilteredLocation(last);
+        assertNull(model.displayMovementCourse(last));
+        model.recordFilteredLocation(location(94_000L, 94_000L, 48.2084, 16.3738));
+        model.reset();
+        assertNull(model.displayMovementCourse(last));
+    }
+
+    @Test
+    public void sixtySecondDisplacementIsRetainedAsUncertainRatherThanCurrentCourse() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        model.recordFilteredLocation(location(1_000L, 1_000L, 48.2082, 16.3738));
+        NavigationLocation last = location(61_000L, 61_000L, 48.2092, 16.3738);
+        model.recordFilteredLocation(last);
+        NavigationLocationMotionModel.Course course = model.displayMovementCourse(last);
+        assertNotNull(course);
+        assertEquals(0.0, course.headingDegrees, 1.0);
+        assertEquals(90f, course.accuracyDegrees, 0f);
+    }
+
+    @Test
+    public void displayCourseRejectsDisplacementWithinPositionUncertainty() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation first = location(1_000L, 1_000L, 48.2082, 16.3738);
+        NavigationLocation last = location(4_000L, 4_000L, 48.20826, 16.3738);
+        first.setAccuracy(10f);
+        last.setAccuracy(10f);
+        model.recordFilteredLocation(first);
+        model.recordFilteredLocation(last);
+        assertNull(model.displayMovementCourse(last));
+    }
+
+    @Test
+    public void displayCoursePrefersAnAccurateRecentSpanOverNoisyShorterAndOlderSpans() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        model.recordFilteredLocation(location(1_000L, 1_000L, 48.2082, 16.3738));
+        model.recordFilteredLocation(location(55_000L, 55_000L, 48.2092, 16.3738));
+        model.recordFilteredLocation(location(59_000L, 59_000L, 48.20936, 16.3738));
+        NavigationLocation last = location(61_000L, 61_000L, 48.2095, 16.3738);
+        model.recordFilteredLocation(last);
+        NavigationLocationMotionModel.Course course = model.displayMovementCourse(last);
+        assertNotNull(course);
+        assertTrue(course.accuracyDegrees < 25f);
+        assertTrue(course.accuracyDegrees > 0f);
     }
 
     private static NavigationLocation location(

@@ -380,12 +380,14 @@ public final class NavigationSessionResourceAdapter {
             @NonNull NavigationSession session,
             @NonNull NavState base,
             @Nullable Double displayHeadingDegrees,
-            @Nullable Float displayHeadingAccuracyDegrees
+            @Nullable Float displayHeadingAccuracyDegrees,
+            long nowMs
     ) {
         return session.components.stateBuilder.withDisplayHeading(
                 base,
                 displayHeadingDegrees,
-                displayHeadingAccuracyDegrees
+                displayHeadingAccuracyDegrees,
+                nowMs
         );
     }
 }

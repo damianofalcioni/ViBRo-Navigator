@@ -20,6 +20,8 @@ public final class NavigationLocation {
     private boolean hasAccuracy;
     private float speed;
     private boolean hasSpeed;
+    private float speedAccuracyMetersPerSecond;
+    private boolean hasSpeedAccuracy;
     private float bearing;
     private boolean hasBearing;
     private float bearingAccuracyDegrees;
@@ -41,6 +43,8 @@ public final class NavigationLocation {
         hasAccuracy = source.hasAccuracy;
         speed = source.speed;
         hasSpeed = source.hasSpeed;
+        speedAccuracyMetersPerSecond = source.speedAccuracyMetersPerSecond;
+        hasSpeedAccuracy = source.hasSpeedAccuracy;
         bearing = source.bearing;
         hasBearing = source.hasBearing;
         bearingAccuracyDegrees = source.bearingAccuracyDegrees;
@@ -127,6 +131,19 @@ public final class NavigationLocation {
     public void setSpeed(float speed) {
         this.speed = speed;
         hasSpeed = true;
+    }
+
+    public boolean hasSpeedAccuracy() {
+        return hasSpeedAccuracy;
+    }
+
+    public float getSpeedAccuracyMetersPerSecond() {
+        return speedAccuracyMetersPerSecond;
+    }
+
+    public void setSpeedAccuracyMetersPerSecond(float accuracy) {
+        speedAccuracyMetersPerSecond = accuracy;
+        hasSpeedAccuracy = true;
     }
 
     public boolean hasBearing() {

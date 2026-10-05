@@ -17,15 +17,16 @@ public class AndroidLocationConverterTest {
     @Test
     public void toNavigationLocation_copiesCoreAndOptionalFields() {
         TestLocationSnapshot snapshot = new TestLocationSnapshot(GPS_PROVIDER)
-                .time(1234L)
-                .elapsedRealtimeMs(5678L)
                 .latitude(48.2082)
                 .longitude(16.3738)
                 .accuracy(4.5f)
                 .altitude(188.0)
                 .speed(1.25f)
+                .speedAccuracyMetersPerSecond(0.15f)
                 .bearing(91.0f)
                 .bearingAccuracyDegrees(7.5f);
+        snapshot.time = 1234L;
+        snapshot.elapsedRealtimeNanos = TimeUnit.MILLISECONDS.toNanos(5678L);
 
         NavigationLocation location = AndroidLocationConverter.fromSnapshot(snapshot);
 
@@ -40,6 +41,11 @@ public class AndroidLocationConverterTest {
         assertEquals(188.0, location.getAltitude(), 0.0);
         assertTrue(location.hasSpeed());
         assertEquals(1.25f, location.getSpeed(), 0.0f);
+        assertTrue(location.hasSpeedAccuracy());
+        assertEquals(0.15f, location.getSpeedAccuracyMetersPerSecond(), 0.0f);
+        NavigationLocation copy = new NavigationLocation(location);
+        assertTrue(copy.hasSpeedAccuracy());
+        assertEquals(0.15f, copy.getSpeedAccuracyMetersPerSecond(), 0.0f);
         assertTrue(location.hasBearing());
         assertEquals(91.0f, location.getBearing(), 0.0f);
         assertTrue(location.hasBearingAccuracy());
@@ -58,6 +64,7 @@ public class AndroidLocationConverterTest {
         assertFalse(location.hasAccuracy());
         assertFalse(location.hasAltitude());
         assertFalse(location.hasSpeed());
+        assertFalse(location.hasSpeedAccuracy());
         assertFalse(location.hasBearing());
         assertFalse(location.hasBearingAccuracy());
     }
@@ -79,6 +86,8 @@ public class AndroidLocationConverterTest {
         private double altitude;
         private boolean hasSpeed;
         private float speed;
+        private boolean hasSpeedAccuracy;
+        private float speedAccuracyMetersPerSecond;
         private boolean hasBearing;
         private float bearing;
         private boolean hasBearingAccuracy;
@@ -86,16 +95,6 @@ public class AndroidLocationConverterTest {
 
         private TestLocationSnapshot(String provider) {
             this.provider = provider;
-        }
-
-        private TestLocationSnapshot time(long time) {
-            this.time = time;
-            return this;
-        }
-
-        private TestLocationSnapshot elapsedRealtimeMs(long elapsedRealtimeMs) {
-            elapsedRealtimeNanos = TimeUnit.MILLISECONDS.toNanos(elapsedRealtimeMs);
-            return this;
         }
 
         private TestLocationSnapshot latitude(double latitude) {
@@ -129,6 +128,12 @@ public class AndroidLocationConverterTest {
         private TestLocationSnapshot bearing(float bearing) {
             this.bearing = bearing;
             hasBearing = true;
+            return this;
+        }
+
+        private TestLocationSnapshot speedAccuracyMetersPerSecond(float accuracy) {
+            speedAccuracyMetersPerSecond = accuracy;
+            hasSpeedAccuracy = true;
             return this;
         }
 
@@ -191,6 +196,16 @@ public class AndroidLocationConverterTest {
         @Override
         public float speed() {
             return speed;
+        }
+
+        @Override
+        public boolean hasSpeedAccuracy() {
+            return hasSpeedAccuracy;
+        }
+
+        @Override
+        public float speedAccuracyMetersPerSecond() {
+            return speedAccuracyMetersPerSecond;
         }
 
         @Override
