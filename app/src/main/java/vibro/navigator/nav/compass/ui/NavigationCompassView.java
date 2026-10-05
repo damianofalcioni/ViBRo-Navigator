@@ -307,6 +307,7 @@ public final class NavigationCompassView extends View {
 
         routeRenderer.drawRouteLayer(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
+        canvas.drawCircle(cx, cy, headingGuideRadius * OUTER_DISTANCE_RING_SCALE, ringPaint);
         drawHeadingGuide(canvas, cx, cy, headingGuideRadius);
         drawDistanceLegend(
                 canvas,
@@ -387,7 +388,7 @@ public final class NavigationCompassView extends View {
             legendRenderer.drawLabels(canvas, getContext(), compassState, visibleRadiusMeters, cx, cy,
                     radius, DISTANCE_RING_SCALES, OUTER_DISTANCE_RING_SCALE, dp(DISTANCE_MARK_WIDTH_DP),
                     dp(DISTANCE_LABEL_OFFSET_DP), accuracyDegrees,
-                    distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight());
+                    distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight(), false);
         }
 
         void drawFullscreen(
@@ -414,17 +415,9 @@ public final class NavigationCompassView extends View {
                     routeRadius,
                     markerRadius
             );
-            drawProjectedHeadingGuides(canvas, cx, cy, headingGuideRadius * visibleScale, 0f);
-            drawDistanceLegend(
-                    canvas,
-                    cx,
-                    cy,
-                    headingGuideRadius,
-                    FARTHEST_DISTANCE_RING_SCALE,
+            drawFullscreenReferences(canvas, cx, cy, headingGuideRadius * visibleScale,
                     fullscreenMode.resolveLegendOuterScale(routeRadius, headingGuideRadius),
-                    false,
-                    perspectiveVisibleRadiusMeters(visibleScale)
-            );
+                    perspectiveVisibleRadiusMeters(visibleScale));
             drawCurrentPositionMarker(canvas, cx, cy, markerRadius);
             orientationCueRenderer.draw(
                     canvas,
@@ -435,6 +428,25 @@ public final class NavigationCompassView extends View {
                     markerRadius * FULLSCREEN_ORIENTATION_CUE_RADIUS_SCALE,
                     headingDegrees
             );
+        }
+
+        private void drawFullscreenReferences(
+                @NonNull Canvas canvas, float cx, float cy, float radius,
+                float outerDistanceRingScale, float visibleRadiusMeters
+        ) {
+            int saveCount = canvas.save();
+            perspective.concat(canvas);
+            canvas.drawCircle(cx, cy, radius * OUTER_DISTANCE_RING_SCALE, ringPaint);
+            drawHeadingGuide(canvas, cx, cy, radius);
+            if (visibleRadiusMeters > 0f) {
+                legendRenderer.drawReferences(canvas, cx, cy, radius, FARTHEST_DISTANCE_RING_SCALE,
+                        dp(DISTANCE_MARK_WIDTH_DP), null, distanceMarkPaint, headingAccuracyGuidePaint);
+            }
+            canvas.restoreToCount(saveCount);
+            legendRenderer.drawLabels(canvas, getContext(), compassState, visibleRadiusMeters, cx, cy,
+                    radius, FARTHEST_DISTANCE_RING_SCALE, outerDistanceRingScale,
+                    dp(DISTANCE_MARK_WIDTH_DP), dp(DISTANCE_LABEL_OFFSET_DP), null,
+                    distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight(), true);
         }
 
         private void drawPerspectivePlane(
@@ -561,7 +573,8 @@ public final class NavigationCompassView extends View {
                 distanceLegendRightPaint,
                 distanceLegendLeftPaint,
                 headingAccuracyGuidePaint,
-                showHeadingAccuracy
+                showHeadingAccuracy,
+                fullscreenMode.isEnabled()
         );
     }
 

@@ -35,7 +35,8 @@ final class NavigationCompassLegendRenderer {
             @NonNull Paint distanceLegendRightPaint,
             @NonNull Paint distanceLegendLeftPaint,
             @NonNull Paint headingAccuracyGuidePaint,
-            boolean showHeadingAccuracy
+            boolean showHeadingAccuracy,
+            boolean labelsAboveReference
     ) {
         if (compassState == null || visibleRadiusMeters <= 0f) {
             return;
@@ -49,7 +50,7 @@ final class NavigationCompassLegendRenderer {
         drawLabels(canvas, context, compassState, visibleRadiusMeters, cx, cy, radius, ringScales,
                 outerDistanceRingScale, distanceMarkWidthPx, distanceLabelOffsetPx,
                 visibleHeadingAccuracyDegrees, distanceLegendRightPaint, distanceLegendLeftPaint, null,
-                canvas.getWidth(), canvas.getHeight());
+                canvas.getWidth(), canvas.getHeight(), labelsAboveReference);
     }
 
     void drawReferences(
@@ -73,7 +74,8 @@ final class NavigationCompassLegendRenderer {
             float visibleRadiusMeters, float cx, float cy, float radius, @NonNull float[] ringScales,
             float outerDistanceRingScale, float markWidthPx, float labelOffsetPx,
             @Nullable Float accuracyDegrees, @NonNull Paint rightPaint, @NonNull Paint leftPaint,
-            @Nullable NavigationCompassPerspective perspective, float viewportWidth, float viewportHeight
+            @Nullable NavigationCompassPerspective perspective, float viewportWidth, float viewportHeight,
+            boolean labelsAboveReference
     ) {
         if (compassState == null || visibleRadiusMeters <= 0f) {
             return;
@@ -84,9 +86,10 @@ final class NavigationCompassLegendRenderer {
             resolveRingAnchors(cx, cy, radius * ringScale, markWidthPx, accuracyDegrees);
             float distanceMeters = visibleRadiusMeters * ringScale / outerDistanceRingScale;
             drawLabel(canvas, perspective, rightAnchor, labelOffsetPx,
-                    formatDistanceLabel(context, distanceMeters), rightPaint, fontMetrics);
+                    formatDistanceLabel(context, distanceMeters), rightPaint, fontMetrics, labelsAboveReference);
             drawLabel(canvas, perspective, leftAnchor, -labelOffsetPx,
-                    formatRingTimeLabel(context, compassState, distanceMeters), leftPaint, fontMetrics);
+                    formatRingTimeLabel(context, compassState, distanceMeters), leftPaint, fontMetrics,
+                    labelsAboveReference);
         }
     }
 
@@ -103,7 +106,8 @@ final class NavigationCompassLegendRenderer {
     private void drawLabel(
             @NonNull Canvas canvas, @Nullable NavigationCompassPerspective perspective,
             @NonNull NavigationRoutePathRenderer.PlotPoint anchor, float offsetPx,
-            @NonNull String text, @NonNull Paint paint, @NonNull Paint.FontMetrics fontMetrics
+            @NonNull String text, @NonNull Paint paint, @NonNull Paint.FontMetrics fontMetrics,
+            boolean labelsAboveReference
     ) {
         float x = anchor.x;
         float y = anchor.y;
@@ -113,8 +117,10 @@ final class NavigationCompassLegendRenderer {
             y = projectedAnchor[1];
         }
         x += offsetPx;
-        y -= (fontMetrics.ascent + fontMetrics.descent) / 2f;
-        if (perspective != null) {
+        y -= labelsAboveReference
+                ? fontMetrics.descent + Math.abs(offsetPx)
+                : (fontMetrics.ascent + fontMetrics.descent) / 2f;
+        if (perspective != null || labelsAboveReference) {
             float textWidth = paint.measureText(text);
             float minimumX = paint.getTextAlign() == Paint.Align.RIGHT ? textWidth : 0f;
             float maximumX = paint.getTextAlign() == Paint.Align.LEFT ? labelBounds.right - textWidth : labelBounds.right;
