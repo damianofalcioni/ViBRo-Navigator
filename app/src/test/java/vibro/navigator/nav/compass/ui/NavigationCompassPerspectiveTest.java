@@ -66,6 +66,23 @@ public class NavigationCompassPerspectiveTest {
     }
 
     @Test
+    public void loweredPerspectiveCenterMovesForwardRingInsideDialThroughoutTilt() {
+        NavigationCompassPerspective perspective = new NavigationCompassPerspective();
+        float[] point = new float[2];
+        float sourceRadius = 100f * CompassPerspectiveScale.maximumViewportMultiplier();
+
+        for (float progress : new float[] {0f, 0.5f, 1f}) {
+            float offset = 18f * progress;
+            assertTrue(perspective.configure(150f, 150f, sourceRadius, progress, offset));
+            perspective.mapPoint(150f, 150f, point);
+            assertEquals(150f + offset, point[1], 0.01f);
+            perspective.mapPoint(150f,
+                    150f - 100f * CompassPerspectiveScale.viewportMultiplier(progress), point);
+            assertEquals(50f + offset, point[1], 0.01f);
+        }
+    }
+
+    @Test
     public void perspectiveRendersInCompactAndFullscreenPortraitViews() {
         assertPerspectiveDraws(300, 300, false);
         assertPerspectiveDraws(300, 500, true);
@@ -120,7 +137,7 @@ public class NavigationCompassPerspectiveTest {
     }
 
     @Test
-    public void projectedHeadingAccuracyLinesStayInsideCompactCompass() {
+    public void projectedAccuracyLabelsCanExtendOverOuterCompassRing() {
         float visibleRadius = 100f * CompassPerspectiveScale.viewportMultiplier(1f);
         NavCompassState withoutAccuracy = stateWithHeadingAccuracy(visibleRadius, null);
         NavCompassState withAccuracy = stateWithHeadingAccuracy(visibleRadius, 20f);
@@ -128,7 +145,7 @@ public class NavigationCompassPerspectiveTest {
         Bitmap with = drawState(withAccuracy, 300, 300, false);
 
         assertTrue(countDifferentPixels(without, with) > 20);
-        assertEquals(0, countDifferentPixelsOutsideCompass(without, with));
+        assertTrue(countDifferentPixelsOutsideCompass(without, with) > 20);
     }
 
     private static int countDifferentPixelsOutsideCompass(Bitmap without, Bitmap with) {

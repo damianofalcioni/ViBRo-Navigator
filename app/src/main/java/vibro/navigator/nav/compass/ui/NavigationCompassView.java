@@ -327,6 +327,7 @@ public final class NavigationCompassView extends View {
     }
 
     private final class PerspectiveRenderer {
+        private static final float COMPACT_CENTER_OFFSET_SCALE = 0.18f;
         private final NavigationCompassPerspective perspective = new NavigationCompassPerspective();
 
         void drawCompact(@NonNull Canvas canvas, float cx, float cy, float headingDegrees) {
@@ -335,6 +336,7 @@ public final class NavigationCompassView extends View {
             float sourceScale = CompassPerspectiveScale.maximumViewportMultiplier();
             float visibleScale = CompassPerspectiveScale.viewportMultiplier(perspectiveProgress);
             float sourceRouteRadius = routeRadius * sourceScale;
+            float centerYOffset = routeRadius * COMPACT_CENTER_OFFSET_SCALE * perspectiveProgress;
             canvas.drawCircle(cx, cy, radius, surfacePaint);
             calibrationRing.draw(
                     canvas,
@@ -355,7 +357,7 @@ public final class NavigationCompassView extends View {
                     pausedRingPaint
             );
             outerRingRenderer.draw(canvas, cx, cy, radius, outerCompassLayerRadius(radius), headingDegrees);
-            if (perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress)) {
+            if (perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress, centerYOffset)) {
                 int saveCount = canvas.save();
                 compassClipPath.reset();
                 compassClipPath.addCircle(cx, cy, routeRadius, Path.Direction.CW);
@@ -365,23 +367,27 @@ public final class NavigationCompassView extends View {
                 canvas.restoreToCount(saveCount);
                 orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, radius, headingDegrees);
                 drawProjectedHeadingGuides(canvas, cx, cy, radius * visibleScale, routeRadius);
-                legendRenderer.drawPerspective(
-                        canvas,
-                        getContext(),
-                        compassState,
-                        perspective,
-                        cx,
-                        cy,
-                        radius * visibleScale,
-                        perspectiveVisibleRadiusMeters(visibleScale),
-                        DISTANCE_RING_SCALES,
-                        OUTER_DISTANCE_RING_SCALE,
-                        dp(DISTANCE_LABEL_OFFSET_DP),
-                        distanceLegendRightPaint,
-                        distanceLegendLeftPaint
-                );
+                drawCompactLegend(canvas, cx, cy, radius * visibleScale,
+                        perspectiveVisibleRadiusMeters(visibleScale));
             }
-            drawCurrentPositionMarker(canvas, cx, cy, radius);
+            drawCurrentPositionMarker(canvas, cx, cy + centerYOffset, radius);
+        }
+
+        private void drawCompactLegend(Canvas canvas, float cx, float cy, float radius, float visibleRadiusMeters) {
+            if (compassState == null || visibleRadiusMeters <= 0f) {
+                return;
+            }
+            Float accuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
+            int saveCount = canvas.save();
+            canvas.clipPath(compassClipPath);
+            perspective.concat(canvas);
+            legendRenderer.drawReferences(canvas, cx, cy, radius, DISTANCE_RING_SCALES,
+                    dp(DISTANCE_MARK_WIDTH_DP), accuracyDegrees, distanceMarkPaint, headingAccuracyGuidePaint);
+            canvas.restoreToCount(saveCount);
+            legendRenderer.drawLabels(canvas, getContext(), compassState, visibleRadiusMeters, cx, cy,
+                    radius, DISTANCE_RING_SCALES, OUTER_DISTANCE_RING_SCALE, dp(DISTANCE_MARK_WIDTH_DP),
+                    dp(DISTANCE_LABEL_OFFSET_DP), accuracyDegrees,
+                    distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight());
         }
 
         void drawFullscreen(
