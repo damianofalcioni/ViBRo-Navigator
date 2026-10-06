@@ -4,7 +4,6 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.util.TypedValue;
 
 import androidx.annotation.NonNull;
@@ -28,7 +27,7 @@ final class NavigationCompassStreetRenderer {
     @NonNull
     private final Paint specialRoutingPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     @NonNull
-    private final NavigationStreetPathCache pathCache = new NavigationStreetPathCache();
+    private final NavigationStreetGeometryCache geometryCache = new NavigationStreetGeometryCache();
     private boolean initialized;
 
     void draw(
@@ -44,16 +43,16 @@ final class NavigationCompassStreetRenderer {
                 || !state.displayMode.movingScaleActive
                 || state.streetOverlay.isEmpty()
                 || state.radiusState.visibleRadiusMeters <= 0f) {
-            pathCache.clear();
+            geometryCache.clear();
             return;
         }
         if (!LatLon.isValidCoordinate(state.currentLatitude(), state.currentLongitude())) {
-            pathCache.clear();
+            geometryCache.clear();
             return;
         }
         ensureInitialized(context);
         float scale = routeRadius / state.radiusState.visibleRadiusMeters;
-        NavigationStreetPaths paths = pathCache.pathsFor(
+        NavigationStreetBatches batches = geometryCache.batchesFor(
                 state.streetOverlay,
                 state.currentLatitude(),
                 state.currentLongitude(),
@@ -61,9 +60,9 @@ final class NavigationCompassStreetRenderer {
                 scale
         );
         float boundsPixels = (
-                state.radiusState.visibleRadiusMeters + NavigationStreetPathCache.DRAW_PADDING_METERS
+                state.radiusState.visibleRadiusMeters + NavigationStreetGeometryCache.DRAW_PADDING_METERS
         ) * scale;
-        drawPaths(canvas, paths, cx, cy, boundsPixels, headingDegrees);
+        drawBatches(canvas, batches, cx, cy, boundsPixels, headingDegrees);
     }
 
     private void ensureInitialized(@NonNull Context context) {
@@ -87,9 +86,9 @@ final class NavigationCompassStreetRenderer {
         paint.setAlpha(Color.alpha(color));
     }
 
-    private void drawPaths(
+    private void drawBatches(
             Canvas canvas,
-            NavigationStreetPaths paths,
+            NavigationStreetBatches batches,
             float cx,
             float cy,
             float bounds,
@@ -100,18 +99,12 @@ final class NavigationCompassStreetRenderer {
             canvas.clipRect(cx - bounds, cy - bounds, cx + bounds, cy + bounds);
             canvas.translate(cx, cy);
             canvas.rotate(-heading);
-            drawPath(canvas, paths.pathFor(CompassStreetCategory.SPECIAL_ROUTING), specialRoutingPaint);
-            drawPath(canvas, paths.pathFor(CompassStreetCategory.WALKING_CYCLING), walkingCyclingPaint);
-            drawPath(canvas, paths.pathFor(CompassStreetCategory.NORMAL), normalPaint);
-            drawPath(canvas, paths.pathFor(CompassStreetCategory.HIGHWAY), highwayPaint);
+            batches.draw(canvas, CompassStreetCategory.SPECIAL_ROUTING, specialRoutingPaint);
+            batches.draw(canvas, CompassStreetCategory.WALKING_CYCLING, walkingCyclingPaint);
+            batches.draw(canvas, CompassStreetCategory.NORMAL, normalPaint);
+            batches.draw(canvas, CompassStreetCategory.HIGHWAY, highwayPaint);
         } finally {
             canvas.restoreToCount(saved);
-        }
-    }
-
-    private static void drawPath(Canvas canvas, Path path, Paint paint) {
-        if (!path.isEmpty()) {
-            canvas.drawPath(path, paint);
         }
     }
 

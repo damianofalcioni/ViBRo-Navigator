@@ -1,16 +1,14 @@
 package vibro.navigator.nav.compass.ui;
 
-import android.graphics.Path;
-
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 
 /** Builds north-up pixel geometry once; heading changes are handled by the canvas transform. */
-final class NavigationStreetPathBuilder {
+final class NavigationStreetGeometryBuilder {
     private static final float MIN_RENDERED_POINT_DISTANCE_PIXELS = 0.75f;
     private static final float MIN_RENDERED_POINT_DISTANCE_SQUARED =
             MIN_RENDERED_POINT_DISTANCE_PIXELS * MIN_RENDERED_POINT_DISTANCE_PIXELS;
-    private final Path path;
+    private final NavigationStreetGeometry geometry;
     private final double latitude;
     private final double longitude;
     private final double eastMetersPerDegree;
@@ -25,8 +23,11 @@ final class NavigationStreetPathBuilder {
     private float currentX;
     private float currentY;
 
-    NavigationStreetPathBuilder(Path path, double latitude, double longitude, float radius, float padding, float scale) {
-        this.path = path;
+    NavigationStreetGeometryBuilder(
+            NavigationStreetGeometry geometry, double latitude, double longitude,
+            float radius, float padding, float scale
+    ) {
+        this.geometry = geometry;
         this.latitude = latitude;
         this.longitude = longitude;
         this.radius = radius;
@@ -72,7 +73,7 @@ final class NavigationStreetPathBuilder {
         float y = -clipped.startY * scale;
         if (!active || x != currentX || y != currentY) {
             flushPendingPoint();
-            path.moveTo(x, y);
+            geometry.moveTo(x, y);
             lastX = x;
             lastY = y;
             active = true;
@@ -80,7 +81,7 @@ final class NavigationStreetPathBuilder {
         currentX = clipped.endX * scale;
         currentY = -clipped.endY * scale;
         if (distanceSquared(currentX, currentY, lastX, lastY) >= MIN_RENDERED_POINT_DISTANCE_SQUARED) {
-            path.lineTo(currentX, currentY);
+            geometry.lineTo(currentX, currentY);
             lastX = currentX;
             lastY = currentY;
             hasPendingPoint = false;
@@ -94,7 +95,7 @@ final class NavigationStreetPathBuilder {
             return;
         }
         if (distanceSquared(currentX, currentY, lastX, lastY) > 0f) {
-            path.lineTo(currentX, currentY);
+            geometry.lineTo(currentX, currentY);
             lastX = currentX;
             lastY = currentY;
         }

@@ -8,7 +8,6 @@ import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.util.TypedValue;
 
 import androidx.core.content.ContextCompat;
@@ -17,8 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
-import org.robolectric.Shadows;
-import org.robolectric.shadows.ShadowCanvas;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -97,12 +94,12 @@ public class NavigationCompassStreetRendererTest {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassStreetRenderer renderer = new NavigationCompassStreetRenderer();
 
-        assertEquals(0, pathDrawCountAfterDraw(activity, renderer, compassState(false)));
-        assertEquals(1, pathDrawCountAfterDraw(activity, renderer, compassState(true)));
+        assertEquals(0, batchDrawCountAfterDraw(activity, renderer, compassState(false)));
+        assertEquals(1, batchDrawCountAfterDraw(activity, renderer, compassState(true)));
     }
 
     @Test
-    public void headingChangesRotateOneCachedPathForAllStreets() {
+    public void headingChangesRotateOneCachedBatchForAllStreets() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         NavigationCompassStreetRenderer renderer = new NavigationCompassStreetRenderer();
         NavCompassState state = compassState(true).withStreetOverlay(new CompassStreetOverlay(
@@ -110,14 +107,14 @@ public class NavigationCompassStreetRendererTest {
         ));
         RecordingCanvas canvas = new RecordingCanvas();
         renderer.draw(canvas, activity, state, 100f, 100f, 80f, 0f);
-        Path first = canvas.paths.get(0);
+        float[] first = canvas.batches.get(0);
         assertEquals(1, canvas.draws);
 
         renderer.draw(canvas, activity, state, 100f, 100f, 80f, 90f);
 
         assertEquals(2, canvas.draws);
         assertEquals(-90f, canvas.heading, 0f);
-        assertSame(first, canvas.paths.get(1));
+        assertSame(first, canvas.batches.get(1));
         assertEquals(
                 1.2f * activity.getResources().getDisplayMetrics().density,
                 renderer.paintForTest(activity, CompassStreetCategory.SPECIAL_ROUTING).getStrokeWidth(),
@@ -152,7 +149,7 @@ public class NavigationCompassStreetRendererTest {
     }
 
     private static final class RecordingCanvas extends Canvas {
-        final List<Path> paths = new ArrayList<>();
+        final List<float[]> batches = new ArrayList<>();
         final List<Integer> colors = new ArrayList<>();
         int draws;
         float heading;
@@ -168,23 +165,22 @@ public class NavigationCompassStreetRendererTest {
         }
 
         @Override
-        public void drawPath(Path path, Paint paint) {
-            paths.add(path);
+        public void drawLines(float[] points, int offset, int count, Paint paint) {
+            batches.add(points);
             colors.add(paint.getColor());
             draws++;
-            super.drawPath(path, paint);
+            super.drawLines(points, offset, count, paint);
         }
     }
 
-    private static int pathDrawCountAfterDraw(
+    private static int batchDrawCountAfterDraw(
             Activity activity,
             NavigationCompassStreetRenderer renderer,
             NavCompassState state
     ) {
-        Canvas canvas = new Canvas(Bitmap.createBitmap(200, 200, Bitmap.Config.ARGB_8888));
+        RecordingCanvas canvas = new RecordingCanvas();
         renderer.draw(canvas, activity, state, 100f, 100f, 80f, 0f);
-        ShadowCanvas shadowCanvas = Shadows.shadowOf(canvas);
-        return shadowCanvas.getPathPaintHistoryCount();
+        return canvas.draws;
     }
 
     private static NavCompassState compassState(boolean movingScaleActive) {
@@ -238,6 +234,7 @@ public class NavigationCompassStreetRendererTest {
         assertEquals(color, paint.getColor());
         assertEquals(alpha, paint.getAlpha());
         assertEquals(Paint.Style.STROKE, paint.getStyle());
+        assertEquals(Paint.Cap.ROUND, paint.getStrokeCap());
         assertNull(paint.getPathEffect());
     }
 

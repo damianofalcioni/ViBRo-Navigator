@@ -1,21 +1,19 @@
 package vibro.navigator.nav.compass.ui;
 
-import android.graphics.Path;
-
 import vibro.navigator.nav.compass.CompassStreetCategory;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
 
-final class NavigationStreetPathCache {
+final class NavigationStreetGeometryCache {
     static final float DRAW_PADDING_METERS = 24f;
-    private NavigationStreetPaths paths = new NavigationStreetPaths();
+    private NavigationStreetBatches batches = new NavigationStreetBatches();
     private CompassStreetOverlay overlay;
     private double latitude;
     private double longitude;
     private float radius;
     private float scale;
 
-    NavigationStreetPaths pathsFor(
+    NavigationStreetBatches batchesFor(
             CompassStreetOverlay streets,
             double lat,
             double lon,
@@ -23,41 +21,40 @@ final class NavigationStreetPathCache {
             float pixelsPerMeter
     ) {
         if (matches(streets, lat, lon, visibleRadius, pixelsPerMeter)) {
-            return paths;
+            return batches;
         }
         overlay = streets;
         latitude = lat;
         longitude = lon;
         radius = visibleRadius;
         scale = pixelsPerMeter;
-        paths = new NavigationStreetPaths();
-        NavigationStreetPathBuilder[] builders = buildersFor(paths, lat, lon, visibleRadius, pixelsPerMeter);
+        batches = new NavigationStreetBatches();
+        NavigationStreetGeometryBuilder[] builders = buildersFor(batches, lat, lon, visibleRadius, pixelsPerMeter);
         for (CompassStreetSegment segment : streets.segments) {
             builders[segment.type.category().ordinal()].append(segment);
         }
-        return paths;
+        return batches;
     }
 
     void clear() {
         if (overlay != null) {
             overlay = null;
-            paths = new NavigationStreetPaths();
+            batches = new NavigationStreetBatches();
         }
     }
 
-    private static NavigationStreetPathBuilder[] buildersFor(
-            NavigationStreetPaths paths,
+    private static NavigationStreetGeometryBuilder[] buildersFor(
+            NavigationStreetBatches batches,
             double lat,
             double lon,
             float visibleRadius,
             float pixelsPerMeter
     ) {
         CompassStreetCategory[] categories = CompassStreetCategory.values();
-        NavigationStreetPathBuilder[] builders = new NavigationStreetPathBuilder[categories.length];
+        NavigationStreetGeometryBuilder[] builders = new NavigationStreetGeometryBuilder[categories.length];
         for (CompassStreetCategory category : categories) {
-            Path path = paths.pathFor(category);
-            builders[category.ordinal()] = new NavigationStreetPathBuilder(
-                    path,
+            builders[category.ordinal()] = new NavigationStreetGeometryBuilder(
+                    batches.geometryFor(category),
                     lat,
                     lon,
                     visibleRadius,
