@@ -48,14 +48,15 @@ public class MainActivityWelcomeScreenTest {
     private static final String SHARED_ADDRESS = "Cafe Central";
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         Application context = ApplicationProvider.getApplicationContext();
         context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE).edit().clear().commit();
         context.getSharedPreferences("vibenavigator_brouter", Context.MODE_PRIVATE).edit().clear().commit();
+        setInstallTimes(1_000L, 1_000L);
     }
 
     @Test
-    public void welcomePrecedesInstallPromptAndCompletionSurvivesNextOpen() {
+    public void welcomePrecedesInstallPromptAndCompletionSurvivesUpdate() throws Exception {
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             MainActivity activity = controller.get();
             Dialog welcome = welcomeDialog();
@@ -70,9 +71,31 @@ public class MainActivityWelcomeScreenTest {
             assertEquals(activity.getString(R.string.msg_brouter_install_prompt),
                     String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()));
         }
+        setInstallTimes(1_000L, 2_000L);
         try (ActivityController<MainActivity> reopened = Robolectric.buildActivity(MainActivity.class).setup()) {
             assertTrue(AppMainUiSettings.isWelcomeCompleted(reopened.get()));
             assertNull(ShadowDialog.getLatestDialog().findViewById(R.id.welcomeContinueButton));
+        }
+    }
+
+    @Test
+    public void updateWithoutCompletionFlagSkipsWelcomeAndAppliesIncomingDestination() throws Exception {
+        Application context = ApplicationProvider.getApplicationContext();
+        assertFalse(context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
+                .contains("welcome_completed"));
+        setInstallTimes(1_000L, 2_000L);
+
+        try (ActivityController<MainActivity> controller =
+                     Robolectric.buildActivity(MainActivity.class, sharedAddress()).setup()) {
+            assertNull(ShadowDialog.getLatestDialog().findViewById(R.id.welcomeContinueButton));
+            assertEquals(SHARED_ADDRESS, destination(controller.get()));
+            assertTrue(context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
+                    .getBoolean("welcome_completed", false));
+            assertEquals(controller.get().getString(R.string.msg_brouter_install_prompt),
+                    String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()));
+            controller.recreate();
+            assertEquals(SHARED_ADDRESS, destination(controller.get()));
+            assertEquals(0, ((LinearLayout) controller.get().findViewById(R.id.stopsContainer)).getChildCount());
         }
     }
 
@@ -195,6 +218,14 @@ public class MainActivityWelcomeScreenTest {
             assertNull(scroll.findViewById(R.id.welcomeContinueButton));
             assertTrue(welcome.findViewById(R.id.welcomeContinueButton).isEnabled());
         }
+    }
+
+    private static void setInstallTimes(long firstInstallTime, long lastUpdateTime) throws Exception {
+        Application context = ApplicationProvider.getApplicationContext();
+        PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+        info.firstInstallTime = firstInstallTime;
+        info.lastUpdateTime = lastUpdateTime;
+        shadowOf(context.getPackageManager()).installPackage(info);
     }
 
     private static Dialog welcomeDialog() {

@@ -2,6 +2,8 @@ package vibro.navigator.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
@@ -15,7 +17,24 @@ public final class AppMainUiSettings {
     }
 
     public static boolean isWelcomeCompleted(@NonNull Context context) {
-        return prefs(context).getBoolean(KEY_WELCOME_COMPLETED, false);
+        if (prefs(context).getBoolean(KEY_WELCOME_COMPLETED, false)) {
+            return true;
+        }
+        // Older releases have no completion flag. Updates should not introduce onboarding.
+        if (isUpdatedInstall(context)) {
+            completeWelcome(context);
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean isUpdatedInstall(@NonNull Context context) {
+        try {
+            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
+            return info.lastUpdateTime > info.firstInstallTime;
+        } catch (PackageManager.NameNotFoundException ignored) {
+            return false;
+        }
     }
 
     public static void completeWelcome(@NonNull Context context) {

@@ -108,7 +108,7 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 
 ## 🧭 How It Works
 
-On first open, a short welcome explains trip planning and previews BRouter installation/data downloads, folder access, and the permissions requested when you start navigation.
+On first open after a fresh install, a short welcome explains trip planning and previews BRouter installation/data downloads, folder access, and the permissions requested when you start navigation. App updates skip this welcome, including updates from older versions without a welcome-completed flag.
 
 1. Select a working mode between Route, Round Trip, and Straight Line.
 2. Select any available **routing profile** from BRouter, including custom profiles (not available in Straight Line mode).
