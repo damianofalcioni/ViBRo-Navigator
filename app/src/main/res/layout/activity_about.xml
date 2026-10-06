@@ -48,6 +48,22 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/aboutPlayStoreLink"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:drawableStart="@drawable/ic_star"
+                android:drawablePadding="8dp"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="44dp"
+                android:text="@string/about_play_store_link"
+                android:textColor="?android:attr/textColorLink"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <TextView
                 android:id="@+id/aboutSourceCodeLink"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

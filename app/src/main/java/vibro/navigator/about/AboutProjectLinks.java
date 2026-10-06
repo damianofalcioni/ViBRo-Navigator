@@ -5,16 +5,19 @@ import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.net.Uri;
+import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
+import vibro.navigator.BuildConfig;
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
 
 final class AboutProjectLinks {
     private static final String TAG = "AboutProjectLinks";
+    private static final String PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=vibro.navigator";
     private static final String SOURCE_CODE_URL = "https://github.com/damianofalcioni/ViBRo-Navigator";
     private static final String ISSUE_URL = "https://github.com/damianofalcioni/ViBRo-Navigator/issues/new";
     private static final String PAGES_BASE_URL = "https://damianofalcioni.github.io/ViBRo-Navigator";
@@ -27,6 +30,10 @@ final class AboutProjectLinks {
     static void configure(@NonNull Activity activity) {
         TextView credits = activity.findViewById(R.id.aboutCredits);
         ColorStateList linkColors = credits.getLinkTextColors();
+        if ("gplay".equals(BuildConfig.FLAVOR)) {
+            activity.findViewById(R.id.aboutPlayStoreLink).setVisibility(View.VISIBLE);
+            configureLink(activity, R.id.aboutPlayStoreLink, linkColors, PLAY_STORE_URL);
+        }
         configureLink(activity, R.id.aboutSourceCodeLink, linkColors, SOURCE_CODE_URL);
         configureLink(activity, R.id.aboutReportIssueLink, linkColors, ISSUE_URL);
         configureLink(activity, R.id.aboutPrivacyPolicyLink, linkColors, PRIVACY_POLICY_URL);
