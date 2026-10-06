@@ -80,7 +80,8 @@ public class NavigationCompassPerspectiveRingTest {
         ShadowCanvas projected = Shadows.shadowOf(perspectiveCanvas);
         ShadowCanvas flat = Shadows.shadowOf(flatCanvas);
         NavigationCompassPerspective perspective = new NavigationCompassPerspective();
-        perspective.configure(150f, 150f, 127.4f * scale, 1f, 127.4f * 0.32f);
+        perspective.configure(150f, 150f, 127.4f * CompassPerspectiveScale.maximumViewportMultiplier(),
+                1f, 127.4f * 0.32f);
         assertEquals(8, flat.getTextHistoryCount());
         assertEquals(accuracy == null ? 0 : 2, flat.getArcPaintHistoryCount());
         assertEquals(flat.getTextHistoryCount(), projected.getTextHistoryCount());

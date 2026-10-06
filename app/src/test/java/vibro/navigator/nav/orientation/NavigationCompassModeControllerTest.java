@@ -222,7 +222,7 @@ public class NavigationCompassModeControllerTest {
                 halfwayState.radiusState.visibleRadiusMeters, 0.01f);
         assertSame(halfwayState, settledState);
         assertEquals(1f, settled, 0.001f);
-        assertEquals(300f * CompassPerspectiveScale.viewportMultiplier(1f),
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(),
                 settledState.radiusState.visibleRadiusMeters, 0.01f);
         assertTrue(transitionFinished);
         assertTrue(immediateSecond2d.displayMode.movingScaleActive);

@@ -190,11 +190,17 @@ public final class NavigationCompassView extends View {
     }
 
     public void setPerspectiveProgress(float progress) {
-        float bounded = Float.isFinite(progress) ? Math.max(0f, Math.min(1f, progress)) : 0f;
+        float bounded = CompassPerspectiveScale.clampProgress(progress);
         if (perspectiveProgress != bounded) {
             perspectiveProgress = bounded;
             invalidate();
         }
+    }
+
+    @Override
+    public boolean performClick() {
+        // Keep the same view-cycle action available to touch and accessibility services.
+        return super.performClick();
     }
 
     boolean isNavigationPausedForTest() {
@@ -420,8 +426,9 @@ public final class NavigationCompassView extends View {
                     routeRadius,
                     markerRadius
             );
-            float centerYOffset = Math.min(markerRadius * OUTER_COMPASS_LAYER_INNER_SCALE * CENTER_OFFSET_SCALE,
-                    Math.max(0f, height - cy - dp(10f))) * perspectiveProgress;
+            float centerYOffset = Math.min(
+                    markerRadius * OUTER_COMPASS_LAYER_INNER_SCALE * CENTER_OFFSET_SCALE * perspectiveProgress,
+                    Math.max(0f, height - cy - dp(10f)));
             if (!perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress, centerYOffset)) {
                 return;
             }

@@ -12,6 +12,8 @@ import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.ui.NavigationCompassView;
+import vibro.navigator.nav.compass.ui.NavigationCompassTouchListener;
+import vibro.navigator.nav.orientation.NavigationCompassGestureState;
 import vibro.navigator.settings.AppCompassSettings;
 
 final class NavigationCompassSurfaces {
@@ -27,6 +29,7 @@ final class NavigationCompassSurfaces {
     private final NavigationCompassView compactCompass;
     @NonNull
     private final NavigationCompassView fullscreenCompass;
+    private final NavigationCompassGestureState gestureState = new NavigationCompassGestureState();
     @NonNull
     private final ForegroundPanelList foregroundPanels = new ForegroundPanelList();
     private final int[] fullscreenWindowLocation = new int[2];
@@ -74,6 +77,20 @@ final class NavigationCompassSurfaces {
     void setOnClickListener(@NonNull View.OnClickListener listener) {
         compactCompass.setOnClickListener(listener);
         fullscreenCompass.setOnClickListener(listener);
+    }
+
+    void configureGestures(@NonNull Runnable redraw) {
+        compactCompass.setOnTouchListener(new NavigationCompassTouchListener(compactCompass, gestureState, redraw));
+        fullscreenCompass.setOnTouchListener(new NavigationCompassTouchListener(fullscreenCompass, gestureState, redraw));
+    }
+
+    @Nullable
+    NavCompassState applyGestures(@Nullable NavCompassState state, boolean perspectiveViewEnabled) {
+        return gestureState.apply(state, perspectiveViewEnabled);
+    }
+
+    float perspectiveProgress(float transitionProgress) {
+        return gestureState.perspectiveProgress(transitionProgress);
     }
 
     void render(
