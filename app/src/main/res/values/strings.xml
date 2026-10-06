@@ -2,6 +2,16 @@
 <resources>
     <string name="app_name">ViBRo Navigator</string>
 
+    <string name="welcome_title">Welcome to ViBRo</string>
+    <string name="welcome_intro">Navigate with vibrations, spoken directions, and a simple compass — even with the screen off.</string>
+    <string name="welcome_how_to_title">Plan your first trip</string>
+    <string name="welcome_how_to_body">Choose a mode and routing profile. Search for a destination or pick it on the map, add stops with +, then tap the green play button. Round Trip uses a distance and direction instead.</string>
+    <string name="welcome_setup_title">What happens next</string>
+    <string name="welcome_brouter_body">If BRouter is missing, we’ll offer install links. Open BRouter and download routing data for your area. We may ask you to select its profiles2 folder for custom profiles. Straight Line mode needs no BRouter and points directly to your destination, without road routing.</string>
+    <string name="welcome_permissions_body">When navigation starts, we’ll ask for location and notification access if needed. Enable device location and allow notifications for guidance. We’ll recommend a battery optimization exemption for reliable navigation with the screen off; you can skip it.</string>
+    <string name="welcome_optional_access_body">On older Android versions, reading BRouter data for nearby streets may need storage permission. Microphone access may be requested if you use voice search.</string>
+    <string name="welcome_settings_body">Search and map tiles need internet; BRouter routing works offline after downloading data. Tap the logo on the main screen for settings and access status.</string>
+
     <string name="action_about">About</string>
     <string name="action_start_navigation">Start navigation</string>
     <string name="action_pause_navigation">Pause navigation</string>

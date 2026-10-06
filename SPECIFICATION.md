@@ -36,6 +36,15 @@ The app must show a main UI implemented as an Android `Activity`.
 
 The main UI must include a navigation-mode selector at the top, with the BRouter profile selector directly below it when a BRouter-backed mode is active.
 
+#### 1.0 First-open welcome
+
+- Before setup prompts or incoming route actions, show a full-screen welcome explaining map-free guidance, mode/profile selection, destination/map picking, stops, and the green play button.
+- Briefly preview BRouter installation and regional routing-data downloads, `profiles2` folder access, location and notification access at navigation startup, the optional battery optimization exemption, and conditional legacy storage/microphone access.
+- Explain that Straight Line mode works without BRouter, online search/map tiles need internet, and the main-screen logo opens settings/access diagnostics.
+- Keep the text scrollable and Continue reachable in portrait, landscape, and with larger system fonts; follow the selected dark/light theme.
+- Persist completion only after Continue. Closing before completion must show the welcome on the next open, and activity recreation must retain the welcome and its scroll position. After completion, resume normal setup and preserve any incoming destination or GPX intent. Subsequent opens skip the welcome.
+- Notification taps must still resume an existing navigation session immediately while the welcome is open.
+
 #### 1.1 Routing profiles
 
 - The BRouter profile selector items must include BRouter profile names plus a single custom-profile entry

@@ -7,6 +7,9 @@ import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
+import androidx.test.core.app.ApplicationProvider;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
@@ -14,11 +17,17 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
 
 import vibro.navigator.R;
+import vibro.navigator.settings.AppMainUiSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityIncomingLocationLifecycleTest {
     private static final String DESTINATION = "Existing destination";
     private static final String SHARED_ADDRESS = "Cafe Central";
+
+    @Before
+    public void setUp() {
+        AppMainUiSettings.completeWelcome(ApplicationProvider.getApplicationContext());
+    }
 
     @Test
     public void newIntentPreservesDestinationAndRecreationDoesNotDuplicateStop() {

@@ -85,9 +85,6 @@ public class MainActivity extends Activity {
             roundTripDirectionController.onRouteModeChanged(mode);
         });
         AppLogger.i(TAG, "BRouter installed=" + brouterInstalled);
-        if (!brouterInstalled && savedInstanceState == null) {
-            MainActivityBRouterInstallPrompt.show(this);
-        }
 
         historyStore = new PoiHistoryStore(this);
         PoiSearchClient searchClient = PoiSearchClients.createDefault(this);
@@ -137,7 +134,6 @@ public class MainActivity extends Activity {
         MainActivitySpeechInputVisibility.render(poiInputActionCoordinator, controls);
 
         profileCoordinator.refresh(brouterInstalled);
-        profileCoordinator.requestProfilesTreeAccessAtStartupIfNeeded(savedInstanceState == null && brouterInstalled);
         MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent());
     }
 
@@ -145,14 +141,15 @@ public class MainActivity extends Activity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         MainActivityIncomingLocationState.restore(savedInstanceState, getIntent());
-        MainActivityIntentHandler.handleIncomingIntent(
-                this,
-                getIntent(),
-                destinationController,
-                stopController,
-                routeModeController,
-                reverseGeocodeController
-        );
+        MainActivityProfileCoordinator.startup(profileCoordinator, savedInstanceState,
+                () -> MainActivityIntentHandler.handleIncomingIntent(
+                        this,
+                        getIntent(),
+                        destinationController,
+                        stopController,
+                        routeModeController,
+                        reverseGeocodeController
+                ));
     }
 
     @Override
@@ -164,7 +161,8 @@ public class MainActivity extends Activity {
             finish();
             return;
         }
-        if (MainActivityIntentHandler.handleOpenNavigationIntent(this, intent)) {
+        if (MainActivityIntentHandler.handleOpenNavigationIntent(this, intent)
+                || MainActivityProfileCoordinator.isWelcomeShowing(profileCoordinator)) {
             return;
         }
         if (routeModeController != null) {
@@ -212,6 +210,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        MainActivityProfileCoordinator.saveWelcomeState(profileCoordinator, outState);
         if (destinationController != null) {
             MainActivityDestinationState.save(outState, destinationController);
         }
@@ -236,6 +235,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        MainActivityProfileCoordinator.disposeWelcome(profileCoordinator);
         MainActivityPoiInputActionCoordinator.dispose(poiInputActionCoordinator);
         if (destinationController != null) {
             destinationController.dispose();

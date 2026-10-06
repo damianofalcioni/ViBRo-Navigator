@@ -9,8 +9,17 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 
 public final class AppMainUiSettings {
     private static final String KEY_MAIN_UI_ROUTING_MODE = "main_ui_routing_mode";
+    private static final String KEY_WELCOME_COMPLETED = "welcome_completed";
 
     private AppMainUiSettings() {
+    }
+
+    public static boolean isWelcomeCompleted(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_WELCOME_COMPLETED, false);
+    }
+
+    public static void completeWelcome(@NonNull Context context) {
+        prefs(context).edit().putBoolean(KEY_WELCOME_COMPLETED, true).apply();
     }
 
     @NonNull

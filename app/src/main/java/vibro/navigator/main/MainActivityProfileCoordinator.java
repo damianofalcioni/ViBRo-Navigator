@@ -2,6 +2,7 @@ package vibro.navigator.main;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -29,6 +30,7 @@ final class MainActivityProfileCoordinator {
     @NonNull
     private final ProfileParameterSettingsController profileParameterSettingsController;
     private boolean waitingForStartupProfilesTree;
+    private MainActivityWelcomeScreen welcomeScreen;
 
     private MainActivityProfileCoordinator(
             @NonNull MainActivity activity,
@@ -86,6 +88,53 @@ final class MainActivityProfileCoordinator {
             profilePicker.refreshProfiles();
         } else {
             profileSpinnerController.refresh();
+        }
+    }
+
+    // Welcome and BRouter setup share one startup gate so prompts cannot cover the introduction.
+    static void startup(
+            @Nullable MainActivityProfileCoordinator coordinator,
+            @Nullable Bundle savedInstanceState,
+            @NonNull Runnable onReady
+    ) {
+        if (coordinator == null) {
+            return;
+        }
+        coordinator.welcomeScreen = MainActivityWelcomeScreen.showIfNeeded(
+                coordinator.activity, savedInstanceState, () -> {
+                    coordinator.showStartupPrompt(true);
+                    onReady.run();
+                });
+        if (coordinator.welcomeScreen == null) {
+            coordinator.showStartupPrompt(savedInstanceState == null);
+            onReady.run();
+        }
+    }
+
+    private void showStartupPrompt(boolean enabled) {
+        if (!enabled) {
+            return;
+        }
+        if (isBRouterInstalled()) {
+            requestProfilesTreeAccessAtStartupIfNeeded(true);
+        } else {
+            MainActivityBRouterInstallPrompt.show(activity);
+        }
+    }
+
+    static boolean isWelcomeShowing(@Nullable MainActivityProfileCoordinator coordinator) {
+        return coordinator != null && coordinator.welcomeScreen != null && coordinator.welcomeScreen.isShowing();
+    }
+
+    static void saveWelcomeState(@Nullable MainActivityProfileCoordinator coordinator, @NonNull Bundle outState) {
+        if (coordinator != null && coordinator.welcomeScreen != null) {
+            coordinator.welcomeScreen.saveState(outState);
+        }
+    }
+
+    static void disposeWelcome(@Nullable MainActivityProfileCoordinator coordinator) {
+        if (coordinator != null && coordinator.welcomeScreen != null) {
+            coordinator.welcomeScreen.dispose();
         }
     }
 

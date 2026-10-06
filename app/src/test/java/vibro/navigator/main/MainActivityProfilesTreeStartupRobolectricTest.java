@@ -28,6 +28,7 @@ import org.robolectric.shadows.ShadowPackageManager;
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.settings.AppMainUiSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class MainActivityProfilesTreeStartupRobolectricTest {
@@ -37,6 +38,7 @@ public class MainActivityProfilesTreeStartupRobolectricTest {
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
         AppLogger.init(context);
+        AppMainUiSettings.completeWelcome(context);
         context.getSharedPreferences(PREFS_BROUTER, Context.MODE_PRIVATE).edit().clear().commit();
         installBRouterPackage(context);
     }

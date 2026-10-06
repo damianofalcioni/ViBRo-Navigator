@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/vibroBackgroundColor"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:id="@+id/welcomeScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <ImageView
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:importantForAccessibility="no"
+                android:src="@drawable/ic_logo_in_app" />
+
+            <TextView
+                android:id="@+id/welcomeTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/welcome_title"
+                android:textColor="?attr/vibroTextPrimaryColor"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_intro" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Heading"
+                android:text="@string/welcome_how_to_title" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_how_to_body" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Heading"
+                android:text="@string/welcome_setup_title" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_brouter_body" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_permissions_body" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_optional_access_body" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_settings_body" />
+        </LinearLayout>
+    </ScrollView>
+
+    <Button
+        android:id="@+id/welcomeContinueButton"
+        style="@style/Widget.ViBRoNavigator.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="16dp"
+        android:text="@string/action_continue" />
+</LinearLayout>
