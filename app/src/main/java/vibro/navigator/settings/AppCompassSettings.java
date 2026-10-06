@@ -14,6 +14,8 @@ public final class AppCompassSettings {
             "compass_stationary_full_route_zoom_enabled";
     private static final String KEY_COMPASS_FULLSCREEN_ROUTE_ENABLED =
             "compass_fullscreen_route_enabled";
+    private static final String KEY_COMPASS_DISTANCE_CIRCLES_ENABLED =
+            "compass_distance_circles_enabled";
 
     private AppCompassSettings() {
     }
@@ -93,5 +95,13 @@ public final class AppCompassSettings {
     @NonNull
     private static SharedPreferences prefs(@NonNull Context context) {
         return context.getSharedPreferences(AppSettings.PREFS, Context.MODE_PRIVATE);
+    }
+
+    public static boolean isDistanceCirclesEnabled(@NonNull Context context) {
+        return prefs(context).getBoolean(KEY_COMPASS_DISTANCE_CIRCLES_ENABLED, true);
+    }
+
+    public static void setDistanceCirclesEnabled(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_COMPASS_DISTANCE_CIRCLES_ENABLED, enabled).apply();
     }
 }

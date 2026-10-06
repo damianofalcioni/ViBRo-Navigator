@@ -77,6 +77,7 @@ public class AboutActivity extends Activity {
         Switch compassStationaryFullRouteZoomSwitch =
                 findViewById(R.id.aboutCompassStationaryFullRouteZoomSwitch);
         Switch compassFullscreenRouteSwitch = findViewById(R.id.aboutCompassFullscreenRouteSwitch);
+        Switch compassDistanceCirclesSwitch = findViewById(R.id.aboutCompassDistanceCirclesSwitch);
         Switch navigationNotificationsSwitch = findViewById(R.id.aboutNavigationNotificationsSwitch);
         Switch singleInstructionModeSwitch = findViewById(R.id.aboutSingleInstructionModeSwitch);
         Switch navigationCustomButtonSwitch = findViewById(R.id.aboutNavigationCustomButtonSwitch);
@@ -94,6 +95,7 @@ public class AboutActivity extends Activity {
                 compassInstantZoomSwitch,
                 compassStationaryFullRouteZoomSwitch,
                 compassFullscreenRouteSwitch,
+                compassDistanceCirclesSwitch,
                 navigationNotificationsSwitch,
                 singleInstructionModeSwitch,
                 navigationCustomButtonSwitch,

@@ -137,7 +137,7 @@ public class NavigationCompassPerspectiveTest {
     }
 
     @Test
-    public void projectedAccuracyLabelsCanExtendOverOuterCompassRing() {
+    public void headingAccuracyChangesGuidesWithoutMovingLabelsOutsideCompass() {
         float visibleRadius = 100f * CompassPerspectiveScale.viewportMultiplier(1f);
         NavCompassState withoutAccuracy = stateWithHeadingAccuracy(visibleRadius, null);
         NavCompassState withAccuracy = stateWithHeadingAccuracy(visibleRadius, 20f);
@@ -145,7 +145,7 @@ public class NavigationCompassPerspectiveTest {
         Bitmap with = drawState(withAccuracy, 300, 300, false);
 
         assertTrue(countDifferentPixels(without, with) > 20);
-        assertTrue(countDifferentPixelsOutsideCompass(without, with) > 20);
+        assertEquals(0, countDifferentPixelsOutsideCompass(without, with));
     }
 
     private static int countDifferentPixelsOutsideCompass(Bitmap without, Bitmap with) {

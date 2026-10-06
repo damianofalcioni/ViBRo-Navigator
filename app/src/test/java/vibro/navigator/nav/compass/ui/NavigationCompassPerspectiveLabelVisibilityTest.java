@@ -21,25 +21,25 @@ import vibro.navigator.nav.compass.NavCompassState;
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
 public class NavigationCompassPerspectiveLabelVisibilityTest {
     @Test
-    public void sixtySecondLabelsRemainVisibleBeyondCompassOuterRing() {
+    public void sixtySecondLabelsRemainVisibleBesideCentralArrow() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Bitmap bitmap = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
         compassView(activity, 30f).draw(new Canvas(bitmap));
 
-        assertTrue("Visible outer distance label", labelPixels(bitmap, 265, 295, 70, 90) > 15);
-        assertTrue("Visible outer 60s label", labelPixels(bitmap, 5, 35, 70, 90) > 15);
+        assertTrue("Visible outer distance label above arc", labelPixels(bitmap, 155, 200, 45, 60) > 15);
+        assertTrue("Visible outer 60s label above arc", labelPixels(bitmap, 100, 145, 45, 60) > 15);
     }
 
     @Test
-    public void wideAccuracyLabelsFitCompassBoundsOnLargerDrawingSurface() {
+    public void wideAccuracyKeepsLabelsBesideCentralArrowOnLargerDrawingSurface() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         Bitmap bitmap = Bitmap.createBitmap(600, 300, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.clipRect(0, 0, 300, 300);
         compassView(activity, 85f).draw(canvas);
 
-        assertTrue("Distance label inside compass view", labelPixels(bitmap, 280, 300, 174, 188) > 10);
-        assertTrue("Time label inside compass view", labelPixels(bitmap, 0, 25, 174, 188) > 10);
+        assertTrue("Distance label above arc", labelPixels(bitmap, 155, 200, 45, 60) > 10);
+        assertTrue("Time label above arc", labelPixels(bitmap, 100, 145, 45, 60) > 10);
     }
 
     private static NavigationCompassView compassView(Activity activity, float accuracy) {

@@ -18,16 +18,18 @@ import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.android.theme.AndroidAppTheme;
+import vibro.navigator.settings.AppCompassSettings;
 
 public final class NavigationCompassView extends View {
 
     private static final int DEFAULT_SIZE_DP = 280;
     private static final float OUTER_DISTANCE_RING_SCALE = 0.91f;
-    private static final float[] DISTANCE_RING_SCALES = new float[]{OUTER_DISTANCE_RING_SCALE, 0.61f, 0.30f};
+    private static final float[] DISTANCE_RING_SCALES =
+            new float[]{OUTER_DISTANCE_RING_SCALE, OUTER_DISTANCE_RING_SCALE / 2f};
+    private static final float[] FULLSCREEN_LEGEND_RING_SCALES =
+            new float[]{OUTER_DISTANCE_RING_SCALE, 0.61f, 0.30f};
     private static final float[] FARTHEST_DISTANCE_RING_SCALE = new float[]{OUTER_DISTANCE_RING_SCALE};
     private static final float CENTER_MARKER_DOT_RADIUS_SCALE = 0.02f;
-    private static final float HEADING_GUIDE_ARROW_WIDTH_DP = NavigationCompassOrientationCueRenderer.MARKER_WIDTH_DP;
-    private static final float HEADING_GUIDE_ARROW_HEIGHT_DP = NavigationCompassOrientationCueRenderer.MARKER_HEIGHT_DP;
     private static final float HEADING_ACCURACY_GUIDE_MIN_VISIBLE_DEGREES = 5f;
     private static final float HEADING_ACCURACY_GUIDE_MAX_DEGREES = 85f;
     static final float OUTER_COMPASS_LAYER_INNER_SCALE = OUTER_DISTANCE_RING_SCALE;
@@ -45,6 +47,7 @@ public final class NavigationCompassView extends View {
     private NavCompassState compassState;
     private boolean navigationPaused;
     private float perspectiveProgress;
+    private boolean distanceCirclesEnabled;
 
     private final Paint surfacePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -57,6 +60,7 @@ public final class NavigationCompassView extends View {
     private final Paint centerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headingGuidePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint headingAccuracyGuidePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private NavigationCompassHeadingGuideRenderer headingGuideRenderer;
     private final Paint distanceMarkPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceLegendRightPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint distanceLegendLeftPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -137,15 +141,15 @@ public final class NavigationCompassView extends View {
         headingGuidePaint.setStrokeWidth(dp(1.2f));
         headingGuidePaint.setStrokeCap(Paint.Cap.ROUND);
         headingGuidePaint.setStrokeJoin(Paint.Join.ROUND);
-        headingGuidePaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
-        headingGuidePaint.setAlpha(128);
+        headingGuidePaint.setColor(ringPaint.getColor());
 
         headingAccuracyGuidePaint.setStyle(Paint.Style.STROKE);
         headingAccuracyGuidePaint.setStrokeWidth(dp(1.2f));
         headingAccuracyGuidePaint.setStrokeCap(Paint.Cap.ROUND);
         headingAccuracyGuidePaint.setStrokeJoin(Paint.Join.ROUND);
-        headingAccuracyGuidePaint.setColor(AndroidAppTheme.color(getContext(), R.attr.vibroCompassMarkColor));
-        headingAccuracyGuidePaint.setAlpha(128);
+        headingAccuracyGuidePaint.setColor(ringPaint.getColor());
+        headingGuideRenderer = new NavigationCompassHeadingGuideRenderer(
+                getContext(), headingGuidePaint, headingAccuracyGuidePaint);
 
         distanceMarkPaint.setStyle(Paint.Style.STROKE);
         distanceMarkPaint.setStrokeWidth(dp(1.2f));
@@ -215,6 +219,8 @@ public final class NavigationCompassView extends View {
     @Override
     protected void onDraw(@NonNull Canvas canvas) {
         super.onDraw(canvas);
+        distanceCirclesEnabled = AppCompassSettings.isDistanceCirclesEnabled(getContext());
+        headingGuideRenderer.setEnabled(distanceCirclesEnabled);
 
         float width = getWidth();
         float height = getHeight();
@@ -276,8 +282,8 @@ public final class NavigationCompassView extends View {
         canvas.restoreToCount(saveCount);
 
         orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, radius, headingDegrees);
-        drawHeadingGuide(canvas, cx, cy, radius);
-        drawHeadingAccuracyGuides(canvas, cx, cy, radius);
+        headingGuideRenderer.drawArrow(canvas, cx, cy, radius);
+        headingGuideRenderer.drawAccuracy(canvas, cx, cy, radius, resolvedVisibleHeadingAccuracyDegrees());
         drawCurrentPositionMarker(canvas, cx, cy, radius);
         drawDistanceLegend(canvas, cx, cy, radius, DISTANCE_RING_SCALES,
                 OUTER_DISTANCE_RING_SCALE, true,
@@ -307,8 +313,11 @@ public final class NavigationCompassView extends View {
 
         routeRenderer.drawRouteLayer(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
         routeRenderer.drawDestinationPoint(canvas, getContext(), compassState, cx, cy, routeRadius, headingDegrees);
-        canvas.drawCircle(cx, cy, headingGuideRadius * OUTER_DISTANCE_RING_SCALE, ringPaint);
-        drawHeadingGuide(canvas, cx, cy, headingGuideRadius);
+        if (distanceCirclesEnabled) {
+            canvas.drawCircle(cx, cy, headingGuideRadius * OUTER_DISTANCE_RING_SCALE, ringPaint);
+        }
+        headingGuideRenderer.drawArrow(canvas, cx, cy, headingGuideRadius);
+        headingGuideRenderer.drawAccuracy(canvas, cx, cy, headingGuideRadius, resolvedVisibleHeadingAccuracyDegrees());
         drawDistanceLegend(
                 canvas,
                 cx,
@@ -316,11 +325,11 @@ public final class NavigationCompassView extends View {
                 headingGuideRadius,
                 fullscreenMode.resolveLegendRingScales(
                         portraitOrientation,
-                        DISTANCE_RING_SCALES,
+                        FULLSCREEN_LEGEND_RING_SCALES,
                         FARTHEST_DISTANCE_RING_SCALE
                 ),
                 legendOuterScale,
-                false,
+                true,
                 NavigationCompassLegendRenderer.visibleRadiusMeters(compassState)
         );
         drawCurrentPositionMarker(canvas, cx, cy, markerRadius);
@@ -367,7 +376,7 @@ public final class NavigationCompassView extends View {
                         radius * visibleScale, headingDegrees);
                 canvas.restoreToCount(saveCount);
                 orientationCueRenderer.draw(canvas, getContext(), compassState, cx, cy, radius, headingDegrees);
-                drawHeadingGuide(canvas, cx, cy + centerYOffset, radius + centerYOffset);
+                headingGuideRenderer.drawArrow(canvas, cx, cy + centerYOffset, radius + centerYOffset);
                 drawProjectedHeadingAccuracyGuides(canvas, cx, cy, radius * visibleScale, routeRadius);
                 drawCompactLegend(canvas, cx, cy, radius * visibleScale,
                         perspectiveVisibleRadiusMeters(visibleScale));
@@ -376,7 +385,7 @@ public final class NavigationCompassView extends View {
         }
 
         private void drawCompactLegend(Canvas canvas, float cx, float cy, float radius, float visibleRadiusMeters) {
-            if (compassState == null || visibleRadiusMeters <= 0f) {
+            if (!distanceCirclesEnabled || compassState == null || visibleRadiusMeters <= 0f) {
                 return;
             }
             Float accuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
@@ -388,8 +397,8 @@ public final class NavigationCompassView extends View {
             canvas.restoreToCount(saveCount);
             legendRenderer.drawLabels(canvas, getContext(), compassState, visibleRadiusMeters, cx, cy,
                     radius, DISTANCE_RING_SCALES, OUTER_DISTANCE_RING_SCALE, dp(DISTANCE_MARK_WIDTH_DP),
-                    dp(DISTANCE_LABEL_OFFSET_DP), accuracyDegrees,
-                    distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight(), false);
+                    dp(DISTANCE_LABEL_OFFSET_DP),
+                    distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight(), true);
         }
 
         void drawFullscreen(
@@ -439,18 +448,23 @@ public final class NavigationCompassView extends View {
                 @NonNull Canvas canvas, float cx, float cy, float radius,
                 float outerDistanceRingScale, float visibleRadiusMeters
         ) {
+            if (!distanceCirclesEnabled) {
+                return;
+            }
+            Float accuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
             int saveCount = canvas.save();
             perspective.concat(canvas);
             canvas.drawCircle(cx, cy, radius * OUTER_DISTANCE_RING_SCALE, ringPaint);
-            drawHeadingGuide(canvas, cx, cy, radius);
+            headingGuideRenderer.drawArrow(canvas, cx, cy, radius);
+            headingGuideRenderer.drawAccuracy(canvas, cx, cy, radius, resolvedVisibleHeadingAccuracyDegrees());
             if (visibleRadiusMeters > 0f) {
                 legendRenderer.drawReferences(canvas, cx, cy, radius, FARTHEST_DISTANCE_RING_SCALE,
-                        dp(DISTANCE_MARK_WIDTH_DP), null, distanceMarkPaint, headingAccuracyGuidePaint);
+                        dp(DISTANCE_MARK_WIDTH_DP), accuracyDegrees, distanceMarkPaint, headingAccuracyGuidePaint);
             }
             canvas.restoreToCount(saveCount);
             legendRenderer.drawLabels(canvas, getContext(), compassState, visibleRadiusMeters, cx, cy,
                     radius, FARTHEST_DISTANCE_RING_SCALE, outerDistanceRingScale,
-                    dp(DISTANCE_MARK_WIDTH_DP), dp(DISTANCE_LABEL_OFFSET_DP), null,
+                    dp(DISTANCE_MARK_WIDTH_DP), dp(DISTANCE_LABEL_OFFSET_DP),
                     distanceLegendRightPaint, distanceLegendLeftPaint, perspective, getWidth(), getHeight(), true);
         }
 
@@ -490,13 +504,16 @@ public final class NavigationCompassView extends View {
                 compassClipPath.addCircle(cx, cy, accuracyClipRadius, Path.Direction.CW);
                 canvas.clipPath(compassClipPath);
                 perspective.concat(canvas);
-                drawHeadingAccuracyGuides(canvas, cx, cy, sourceRadius);
+                headingGuideRenderer.drawAccuracy(canvas, cx, cy, sourceRadius, resolvedVisibleHeadingAccuracyDegrees());
                 canvas.restoreToCount(saveCount);
             }
         }
     }
 
     private void drawDistanceRings(@NonNull Canvas canvas, float cx, float cy, float radius) {
+        if (!distanceCirclesEnabled) {
+            return;
+        }
         for (float ringScale : DISTANCE_RING_SCALES) {
             canvas.drawCircle(cx, cy, radius * ringScale, ringPaint);
         }
@@ -504,43 +521,6 @@ public final class NavigationCompassView extends View {
 
     float outerCompassLayerRadius(float radius) {
         return radius * OUTER_COMPASS_LAYER_RADIUS_SCALE;
-    }
-
-    private void drawHeadingGuide(@NonNull Canvas canvas, float cx, float cy, float radius) {
-        float arrowTipY = cy - radius * HEADING_GUIDE_ARROW_TIP_SCALE;
-        float arrowHalfWidth = dp(HEADING_GUIDE_ARROW_WIDTH_DP) / 2f;
-        float arrowBaseRadius = Math.max(
-                radius * OUTER_COMPASS_LAYER_INNER_SCALE,
-                radius - dp(HEADING_GUIDE_ARROW_HEIGHT_DP)
-        );
-        float arrowBaseY = cy - arrowBaseRadius;
-
-        canvas.drawLine(cx, cy, cx, arrowTipY, headingGuidePaint);
-        canvas.drawLine(cx, arrowTipY, cx - arrowHalfWidth, arrowBaseY, headingGuidePaint);
-        canvas.drawLine(cx, arrowTipY, cx + arrowHalfWidth, arrowBaseY, headingGuidePaint);
-    }
-
-    private void drawHeadingAccuracyGuides(@NonNull Canvas canvas, float cx, float cy, float radius) {
-        Float visibleHeadingAccuracyDegrees = resolvedVisibleHeadingAccuracyDegrees();
-        if (visibleHeadingAccuracyDegrees == null) {
-            return;
-        }
-        drawHeadingAccuracyGuideLine(canvas, cx, cy, radius, -90f - visibleHeadingAccuracyDegrees);
-        drawHeadingAccuracyGuideLine(canvas, cx, cy, radius, -90f + visibleHeadingAccuracyDegrees);
-    }
-
-    private void drawHeadingAccuracyGuideLine(
-            @NonNull Canvas canvas,
-            float cx,
-            float cy,
-            float radius,
-            float angleDegrees
-    ) {
-        double radians = Math.toRadians(angleDegrees);
-        float guideRadius = radius * DISTANCE_RING_SCALES[0];
-        float endX = cx + (float) Math.cos(radians) * guideRadius;
-        float endY = cy + (float) Math.sin(radians) * guideRadius;
-        canvas.drawLine(cx, cy, endX, endY, headingAccuracyGuidePaint);
     }
 
     private void drawCurrentPositionMarker(@NonNull Canvas canvas, float cx, float cy, float radius) {
@@ -558,6 +538,9 @@ public final class NavigationCompassView extends View {
             boolean showHeadingAccuracy,
             float visibleRadiusMeters
     ) {
+        if (!distanceCirclesEnabled) {
+            return;
+        }
         legendRenderer.draw(
                 canvas,
                 getContext(),
@@ -575,7 +558,7 @@ public final class NavigationCompassView extends View {
                 distanceLegendLeftPaint,
                 headingAccuracyGuidePaint,
                 showHeadingAccuracy,
-                fullscreenMode.isEnabled()
+                true
         );
     }
 

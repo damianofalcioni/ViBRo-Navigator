@@ -57,6 +57,8 @@ final class AboutSettingsSwitches {
     @NonNull
     private final Switch compassFullscreenRouteSwitch;
     @NonNull
+    private final Switch compassDistanceCirclesSwitch;
+    @NonNull
     private final Switch navigationNotificationsSwitch;
     @NonNull
     private final Switch singleInstructionModeSwitch;
@@ -83,6 +85,7 @@ final class AboutSettingsSwitches {
     private AboutDeferredBooleanSetting compassInstantZoomSetting;
     private AboutDeferredBooleanSetting compassStationaryFullRouteZoomSetting;
     private AboutDeferredBooleanSetting compassFullscreenRouteSetting;
+    private AboutDeferredBooleanSetting compassDistanceCirclesSetting;
     private AboutDeferredBooleanSetting navigationNotificationsSetting;
     private AboutDeferredBooleanSetting singleInstructionModeSetting;
     private AboutDeferredBooleanSetting navigationCustomButtonSetting;
@@ -100,6 +103,7 @@ final class AboutSettingsSwitches {
             @NonNull Switch compassInstantZoomSwitch,
             @NonNull Switch compassStationaryFullRouteZoomSwitch,
             @NonNull Switch compassFullscreenRouteSwitch,
+            @NonNull Switch compassDistanceCirclesSwitch,
             @NonNull Switch navigationNotificationsSwitch,
             @NonNull Switch singleInstructionModeSwitch,
             @NonNull Switch navigationCustomButtonSwitch,
@@ -116,6 +120,7 @@ final class AboutSettingsSwitches {
         this.compassInstantZoomSwitch = compassInstantZoomSwitch;
         this.compassStationaryFullRouteZoomSwitch = compassStationaryFullRouteZoomSwitch;
         this.compassFullscreenRouteSwitch = compassFullscreenRouteSwitch;
+        this.compassDistanceCirclesSwitch = compassDistanceCirclesSwitch;
         this.navigationNotificationsSwitch = navigationNotificationsSwitch;
         this.singleInstructionModeSwitch = singleInstructionModeSwitch;
         this.navigationCustomButtonSwitch = navigationCustomButtonSwitch;
@@ -132,7 +137,7 @@ final class AboutSettingsSwitches {
         configureSurroundingStreetsSwitch();
         configureCompassInstantZoomSwitch();
         configureCompassStationaryFullRouteZoomSwitch();
-        configureCompassFullscreenRouteSwitch();
+        configureCompassDisplaySwitches();
         configureNavigationNotificationsSwitch();
         configureSingleInstructionModeSwitch();
         configureNavigationCustomButtonSwitch();
@@ -167,6 +172,10 @@ final class AboutSettingsSwitches {
                 compassFullscreenRouteSwitch,
                 AppCompassSettings.isFullscreenRouteEnabled(activity)
         );
+        compassDistanceCirclesSetting.render(
+                compassDistanceCirclesSwitch,
+                AppCompassSettings.isDistanceCirclesEnabled(activity)
+        );
         navigationNotificationsSetting.render(
                 navigationNotificationsSwitch,
                 AppNotificationSettings.areNavigationNotificationsEnabled(activity)
@@ -192,6 +201,7 @@ final class AboutSettingsSwitches {
         compassInstantZoomSetting.flush(false);
         compassStationaryFullRouteZoomSetting.flush(false);
         compassFullscreenRouteSetting.flush(false);
+        compassDistanceCirclesSetting.flush(false);
         navigationNotificationsSetting.flush(false);
         singleInstructionModeSetting.flush(false);
         navigationCustomButtonSetting.flush(false);
@@ -431,7 +441,7 @@ final class AboutSettingsSwitches {
                 compassStationaryFullRouteZoomSetting.set(isChecked));
     }
 
-    private void configureCompassFullscreenRouteSwitch() {
+    private void configureCompassDisplaySwitches() {
         compassFullscreenRouteSetting = new AboutDeferredBooleanSetting(
                 settingsChangeScheduler,
                 enabled -> AppCompassSettings.setFullscreenRouteEnabled(activity, enabled),
@@ -443,6 +453,17 @@ final class AboutSettingsSwitches {
         );
         compassFullscreenRouteSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
                 compassFullscreenRouteSetting.set(isChecked));
+        compassDistanceCirclesSetting = new AboutDeferredBooleanSetting(
+                settingsChangeScheduler,
+                enabled -> AppCompassSettings.setDistanceCirclesEnabled(activity, enabled),
+                afterSettingApplied
+        );
+        compassDistanceCirclesSetting.render(
+                compassDistanceCirclesSwitch,
+                AppCompassSettings.isDistanceCirclesEnabled(activity)
+        );
+        compassDistanceCirclesSwitch.setOnCheckedChangeListener((buttonView, isChecked) ->
+                compassDistanceCirclesSetting.set(isChecked));
     }
 
     private void configureNavigationNotificationsSwitch() {

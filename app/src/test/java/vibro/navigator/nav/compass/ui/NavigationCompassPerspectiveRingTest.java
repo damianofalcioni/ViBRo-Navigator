@@ -52,6 +52,11 @@ public class NavigationCompassPerspectiveRingTest {
                         Shadows.shadowOf(canvas).getDrawnTextEvent(5).text);
                 assertEquals(NavigationTextFormatter.formatDistance(activity, expandedDistance),
                         Shadows.shadowOf(canvas).getDrawnTextEvent(4).text);
+                assertEquals(8, Shadows.shadowOf(canvas).getTextHistoryCount());
+                assertEquals(NavigationTextFormatter.formatTimeSeconds(activity, Math.round(expandedDistance / 2f)),
+                        Shadows.shadowOf(canvas).getDrawnTextEvent(7).text);
+                assertEquals(NavigationTextFormatter.formatDistance(activity, expandedDistance / 2f),
+                        Shadows.shadowOf(canvas).getDrawnTextEvent(6).text);
             }
         }
     }
@@ -76,6 +81,8 @@ public class NavigationCompassPerspectiveRingTest {
         ShadowCanvas flat = Shadows.shadowOf(flatCanvas);
         NavigationCompassPerspective perspective = new NavigationCompassPerspective();
         perspective.configure(150f, 150f, 127.4f * scale, 1f, 127.4f * 0.32f);
+        assertEquals(8, flat.getTextHistoryCount());
+        assertEquals(accuracy == null ? 0 : 2, flat.getArcPaintHistoryCount());
         assertEquals(flat.getTextHistoryCount(), projected.getTextHistoryCount());
         assertEquals(flat.getArcPaintHistoryCount(), projected.getArcPaintHistoryCount());
         for (int index = 4; index < flat.getTextHistoryCount(); index++) {
@@ -90,7 +97,7 @@ public class NavigationCompassPerspectiveRingTest {
             float flatCenter, NavigationCompassPerspective perspective
     ) {
         Paint.FontMetrics metrics = flat.paint.getFontMetrics();
-        float baselineOffset = -(metrics.ascent + metrics.descent) / 2f;
+        float baselineOffset = -metrics.descent - 6f;
         float labelOffset = flat.paint.getTextAlign() == Paint.Align.LEFT ? 6f : -6f;
         float[] anchor = new float[2];
         perspective.mapPoint(flat.x - flatCenter + 150f - labelOffset,

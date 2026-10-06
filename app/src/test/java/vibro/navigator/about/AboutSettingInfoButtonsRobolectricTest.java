@@ -81,6 +81,11 @@ public class AboutSettingInfoButtonsRobolectricTest {
         );
         assertInfoButton(
                 activity,
+                R.id.aboutCompassDistanceCirclesInfoButton,
+                R.string.label_compass_distance_circles_enabled
+        );
+        assertInfoButton(
+                activity,
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled
         );
