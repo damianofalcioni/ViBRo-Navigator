@@ -47,6 +47,8 @@ public class MainActivityProfilesTreeStartupRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void onCreate_whenProfilesTreeGrantMissing_showsInstructionPromptBeforeFolderPicker() {
         MainActivity activity = Robolectric.buildActivity(MainActivity.class).setup().get();
+        shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                java.util.concurrent.TimeUnit.MILLISECONDS);
 
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);

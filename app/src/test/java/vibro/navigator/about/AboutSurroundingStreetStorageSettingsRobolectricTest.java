@@ -206,6 +206,8 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     }
 
     private static void continueFromBRouterPrompt(AboutActivity activity) {
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                java.util.concurrent.TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);
         assertEquals(

@@ -4,11 +4,13 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.view.ViewConfiguration;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.logging.AppLogger;
@@ -26,12 +28,29 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
+        AndroidTaskScheduler.main().postDelayed(() -> {
+            if (!activity.isFinishing() && !activity.isDestroyed()) {
+                showNow(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel);
+            }
+        }, ViewConfiguration.getPressedStateDuration());
+    }
+
+    private static void showNow(
+            @NonNull Activity activity,
+            @NonNull BRouterSegmentsRepository segmentsRepository,
+            int requestCode,
+            @NonNull String logTag,
+            @NonNull Runnable beforeLaunch,
+            @NonNull Runnable onCancel
+    ) {
+        Uri initialUri = segmentsRepository.getSegmentsTreePickerInitialUri(activity);
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_segments_storage_access)
-                .setMessage(R.string.msg_brouter_segments_storage_access_prompt)
+                .setMessage(activity.getString(R.string.msg_brouter_segments_storage_access_prompt,
+                        AndroidBRouterStorageInstructions.folderPath(initialUri, "segments4")))
                 .setPositiveButton(R.string.action_continue, (dialog, which) -> launchPicker(
                         activity,
-                        segmentsRepository,
+                        initialUri,
                         requestCode,
                         logTag,
                         beforeLaunch
@@ -43,12 +62,11 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
 
     private static void launchPicker(
             @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository,
+            @Nullable Uri initialUri,
             int requestCode,
             @NonNull String logTag,
             @NonNull Runnable beforeLaunch
     ) {
-        Uri initialUri = segmentsRepository.getSegmentsTreePickerInitialUri(activity);
         Intent intent = AndroidDocumentAccess.openDocumentTreeIntent(initialUri);
         beforeLaunch.run();
         AppLogger.i(logTag, "Launching BRouter segments tree picker initialUri=" + safe(initialUri));

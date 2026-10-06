@@ -149,10 +149,10 @@
     <string name="msg_poi_google_maps_search_info">Opens Google Maps with the text from this POI search field. After choosing a place in Google Maps, share that place and select ViBRo Navigator to bring the result back here.</string>
     <string name="msg_compass_surrounding_streets_storage_permission_required">Storage access is needed to read local BRouter streets.</string>
     <string name="title_brouter_segments_storage_access">BRouter street storage</string>
-    <string name="msg_brouter_segments_storage_access_prompt">Surrounding streets need access to BRouter segment files. On the next screen, select Android/media/btools.routingapp/brouter/segments4, tap Use this folder, then tap Allow.</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Surrounding streets need access to the BRouter segments4 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .rd5 files.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Storage access is needed to read BRouter profile files.</string>
     <string name="title_brouter_profiles_storage_access">BRouter profile storage</string>
-    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiles need access to the profiles2 folder. On the next screen, select Android/media/btools.routingapp/brouter/profiles2, tap Use this folder, then tap Allow.</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiles need access to the profiles2 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .brf profiles.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>
     <string name="msg_map_location_unavailable">Current location is unavailable.</string>

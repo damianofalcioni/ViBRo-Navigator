@@ -13,6 +13,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageInfo;
+import android.os.Build;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.View;
@@ -27,11 +28,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadow.api.Shadow;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowPackageManager;
 import org.robolectric.shadows.ShadowPowerManager;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.concurrent.TimeUnit;
 
@@ -179,6 +182,8 @@ public class AboutPermissionStatusRowsRobolectricTest {
         idleInitialDiagnosticRender();
 
         activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+        shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                TimeUnit.MILLISECONDS);
 
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);
@@ -194,7 +199,54 @@ public class AboutPermissionStatusRowsRobolectricTest {
         ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
         assertNotNull(started);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, started.intent.getAction());
-        assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_TREE, started.requestCode);
+        assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE, started.requestCode);
+    }
+
+    @Test
+    @Config(sdk = {Build.VERSION_CODES.O, Build.VERSION_CODES.P})
+    public void legacyProfileStorageRequestsSharedPermissionAndUpdatesBothRows() {
+        installBRouterPackage();
+        AppCompassSettings.setSurroundingStreetsEnabled(ApplicationProvider.getApplicationContext(), true);
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
+        activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+
+        ShadowActivity.PermissionsRequest request = shadowOf(activity).getLastRequestedPermission();
+        assertNotNull(request);
+        assertEquals(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE, request.requestCode);
+        assertEquals("android.permission.READ_EXTERNAL_STORAGE", request.requestedPermissions[0]);
+        assertNull(ShadowAlertDialog.getLatestAlertDialog());
+        assertNoFolderPicker(activity);
+
+        shadowOf((Application) activity.getApplicationContext()).grantPermissions(request.requestedPermissions);
+        activity.onRequestPermissionsResult(request.requestCode, request.requestedPermissions, new int[]{0});
+
+        assertEquals(activity.getString(R.string.permission_status_ok),
+                ((TextView) activity.findViewById(R.id.aboutPermissionProfileStorageStatus)).getText().toString());
+        assertEquals(activity.getString(R.string.permission_status_ok),
+                ((TextView) activity.findViewById(R.id.aboutPermissionSurroundingStreetStorageStatus)).getText().toString());
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.O)
+    public void legacyProfileStorageDenialKeepsKoAndShowsProfileExplanation() {
+        installBRouterPackage();
+        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
+        idleInitialDiagnosticRender();
+        activity.findViewById(R.id.aboutPermissionProfileStorageRow).performClick();
+        activity.onRequestPermissionsResult(AboutPermissionStatusRows.REQUEST_PROFILES_STORAGE,
+                new String[]{"android.permission.READ_EXTERNAL_STORAGE"}, new int[0]);
+
+        assertEquals(activity.getString(R.string.permission_status_needs_attention),
+                ((TextView) activity.findViewById(R.id.aboutPermissionProfileStorageStatus)).getText().toString());
+        assertEquals(activity.getString(R.string.msg_brouter_profiles_storage_permission_required),
+                ShadowToast.getTextOfLatestToast());
+        assertNoFolderPicker(activity);
+    }
+
+    private static void assertNoFolderPicker(AboutActivity activity) {
+        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
+        assertTrue(started == null || !Intent.ACTION_OPEN_DOCUMENT_TREE.equals(started.intent.getAction()));
     }
 
     private static void assertPermissionRow(

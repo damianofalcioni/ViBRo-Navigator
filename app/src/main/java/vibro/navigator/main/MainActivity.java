@@ -182,6 +182,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
+        MainActivityProfileCoordinator.refresh(profileCoordinator);
         if (routeModeController != null) {
             routeModeController.updateDistanceUnitText();
         }
@@ -312,6 +313,9 @@ public class MainActivity extends Activity {
             @NonNull int[] grantResults
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (MainActivityProfileCoordinator.handlePermissionResult(profileCoordinator, requestCode, grantResults)) {
+            return;
+        }
         boolean handled = MainActivityPoiInputActionCoordinator.handleRequestPermissionsResult(
                 poiInputActionCoordinator,
                 requestCode,

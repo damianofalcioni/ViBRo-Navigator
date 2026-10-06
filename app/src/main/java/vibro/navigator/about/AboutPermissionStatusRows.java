@@ -11,7 +11,7 @@ import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
-import vibro.navigator.android.brouter.AndroidBRouterProfilesTreeAccessPrompt;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -23,7 +23,7 @@ import vibro.navigator.settings.AppCompassSettings;
 final class AboutPermissionStatusRows {
     static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3006;
     static final int REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE = 3007;
-    static final int REQUEST_PROFILES_TREE = 3008;
+    static final int REQUEST_PROFILES_STORAGE = 3008;
 
     private static final String TAG = "AboutDiagnostics";
 
@@ -116,7 +116,7 @@ final class AboutPermissionStatusRows {
         if (requestCode == REQUEST_SURROUNDING_STREETS_SEGMENTS_TREE) {
             return onSurroundingStreetSegmentsTreeActivityResult(resultCode, data);
         }
-        if (requestCode == REQUEST_PROFILES_TREE) {
+        if (requestCode == REQUEST_PROFILES_STORAGE) {
             return onProfilesTreeActivityResult(resultCode, data);
         }
         return false;
@@ -131,7 +131,7 @@ final class AboutPermissionStatusRows {
                 && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
             segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
         } else {
-            showSurroundingStreetStorageRequiredToast();
+            showStorageRequiredToast(R.string.msg_compass_surrounding_streets_storage_permission_required);
         }
         render();
         return true;
@@ -146,18 +146,20 @@ final class AboutPermissionStatusRows {
                 && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
             profilesRepository.saveProfilesTreeUri(activity, data.getData());
         } else {
-            showProfileStorageRequiredToast();
+            showStorageRequiredToast(R.string.msg_brouter_profiles_storage_permission_required);
         }
         render();
         return true;
     }
 
     boolean onRequestPermissionsResult(int requestCode, @NonNull int[] grantResults) {
-        if (requestCode != REQUEST_SURROUNDING_STREETS_STORAGE) {
+        if (requestCode != REQUEST_SURROUNDING_STREETS_STORAGE && requestCode != REQUEST_PROFILES_STORAGE) {
             return false;
         }
         if (!AndroidLegacyExternalStorageAccess.isReadPermissionGranted(grantResults)) {
-            showSurroundingStreetStorageRequiredToast();
+            showStorageRequiredToast(requestCode == REQUEST_PROFILES_STORAGE
+                    ? R.string.msg_brouter_profiles_storage_permission_required
+                    : R.string.msg_compass_surrounding_streets_storage_permission_required);
         }
         render();
         return true;
@@ -194,12 +196,8 @@ final class AboutPermissionStatusRows {
     }
 
     private void renderProfileStorage() {
-        if (!isBRouterInstalled()) {
-            profileStorageRow.setVisible(false);
-            return;
-        }
-        profileStorageRow.setVisible(true);
-        profileStorageRow.render(profilesRepository.hasPersistedProfilesTreeAccess(activity));
+        profileStorageRow.setVisible(isBRouterInstalled());
+        profileStorageRow.render(AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository));
     }
 
     private boolean shouldShowSurroundingStreetStorageStatus() {
@@ -233,10 +231,10 @@ final class AboutPermissionStatusRows {
     }
 
     private void openProfileStorageAccess() {
-        AndroidBRouterProfilesTreeAccessPrompt.show(
+        AndroidBRouterProfilesStorageAccess.request(
                 activity,
                 profilesRepository,
-                REQUEST_PROFILES_TREE,
+                REQUEST_PROFILES_STORAGE,
                 TAG,
                 () -> waitingForProfilesTree = true,
                 () -> {
@@ -244,24 +242,16 @@ final class AboutPermissionStatusRows {
         );
     }
 
-    private void showSurroundingStreetStorageRequiredToast() {
+    private void showStorageRequiredToast(int messageId) {
         Toast.makeText(
                 activity,
-                R.string.msg_compass_surrounding_streets_storage_permission_required,
+                messageId,
                 Toast.LENGTH_SHORT
         ).show();
     }
 
     private boolean isBRouterInstalled() {
         return profilesRepository.isBRouterInstalled(activity);
-    }
-
-    private void showProfileStorageRequiredToast() {
-        Toast.makeText(
-                activity,
-                R.string.msg_brouter_profiles_storage_permission_required,
-                Toast.LENGTH_SHORT
-        ).show();
     }
 
 }

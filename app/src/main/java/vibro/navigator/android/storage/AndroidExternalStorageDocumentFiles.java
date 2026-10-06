@@ -100,6 +100,9 @@ final class AndroidExternalStorageDocumentFiles {
 
     @Nullable
     private static File readableDirectory(@NonNull Context context, @NonNull String documentId) {
+        if (AndroidLegacyExternalStorageAccess.shouldRequestReadPermission(context)) {
+            return null;
+        }
         File directory = fileForDocumentId(context, documentId);
         return directory != null && directory.isDirectory() && directory.canRead() ? directory : null;
     }

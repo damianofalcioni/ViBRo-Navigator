@@ -169,6 +169,8 @@ public class NavigationCustomButtonRobolectricTest {
     }
 
     private static void continueFromBRouterPrompt(TestNavigationActivity activity) {
+        shadowOf(android.os.Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                java.util.concurrent.TimeUnit.MILLISECONDS);
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);
         assertEquals(

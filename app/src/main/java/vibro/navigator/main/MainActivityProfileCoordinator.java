@@ -9,14 +9,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
-import vibro.navigator.android.brouter.AndroidBRouterProfilesTreeAccessPrompt;
+import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 
 final class MainActivityProfileCoordinator {
-    private static final int REQUEST_STARTUP_PROFILES_TREE = 1003;
+    private static final int REQUEST_STARTUP_PROFILES_STORAGE = 1003;
     private static final String TAG = "MainProfileCoordinator";
 
     @NonNull
@@ -91,6 +92,12 @@ final class MainActivityProfileCoordinator {
         }
     }
 
+    static void refresh(@Nullable MainActivityProfileCoordinator coordinator) {
+        if (coordinator != null) {
+            coordinator.refresh(coordinator.isBRouterInstalled());
+        }
+    }
+
     // Welcome and BRouter setup share one startup gate so prompts cannot cover the introduction.
     static void startup(
             @Nullable MainActivityProfileCoordinator coordinator,
@@ -116,7 +123,7 @@ final class MainActivityProfileCoordinator {
             return;
         }
         if (isBRouterInstalled()) {
-            requestProfilesTreeAccessAtStartupIfNeeded(true);
+            requestProfilesStorageAccessAtStartupIfNeeded(true);
         } else {
             MainActivityBRouterInstallPrompt.show(activity);
         }
@@ -138,16 +145,16 @@ final class MainActivityProfileCoordinator {
         }
     }
 
-    void requestProfilesTreeAccessAtStartupIfNeeded(boolean startupPromptEnabled) {
+    void requestProfilesStorageAccessAtStartupIfNeeded(boolean startupPromptEnabled) {
         if (!startupPromptEnabled
                 || !profilesRepository.isBRouterInstalled(activity)
-                || profilesRepository.hasPersistedProfilesTreeAccess(activity)) {
+                || AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)) {
             return;
         }
-        AndroidBRouterProfilesTreeAccessPrompt.show(
+        AndroidBRouterProfilesStorageAccess.request(
                 activity,
                 profilesRepository,
-                REQUEST_STARTUP_PROFILES_TREE,
+                REQUEST_STARTUP_PROFILES_STORAGE,
                 TAG,
                 () -> waitingForStartupProfilesTree = true,
                 () -> {
@@ -165,11 +172,31 @@ final class MainActivityProfileCoordinator {
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQUEST_STARTUP_PROFILES_TREE) {
+        if (requestCode == REQUEST_STARTUP_PROFILES_STORAGE) {
             handleStartupProfilesTreeResult(resultCode, data);
             return true;
         }
         return profilePicker.handleActivityResult(requestCode, resultCode, data);
+    }
+
+    static boolean handlePermissionResult(
+            @Nullable MainActivityProfileCoordinator coordinator,
+            int requestCode,
+            @NonNull int[] grantResults
+    ) {
+        return coordinator != null && coordinator.handleLegacyStorageResult(requestCode, grantResults);
+    }
+
+    private boolean handleLegacyStorageResult(int requestCode, @NonNull int[] grantResults) {
+        if (requestCode != REQUEST_STARTUP_PROFILES_STORAGE) {
+            return false;
+        }
+        if (AndroidLegacyExternalStorageAccess.isReadPermissionGranted(grantResults)) {
+            profilePicker.refreshProfiles();
+        } else {
+            showStorageRequiredToast();
+        }
+        return true;
     }
 
     private void handleStartupProfilesTreeResult(int resultCode, @Nullable Intent data) {
@@ -183,6 +210,10 @@ final class MainActivityProfileCoordinator {
             profilePicker.refreshProfiles();
             return;
         }
+        showStorageRequiredToast();
+    }
+
+    private void showStorageRequiredToast() {
         Toast.makeText(
                 activity,
                 R.string.msg_brouter_profiles_storage_permission_required,

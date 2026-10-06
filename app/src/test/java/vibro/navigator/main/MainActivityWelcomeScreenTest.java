@@ -86,6 +86,8 @@ public class MainActivityWelcomeScreenTest {
             Dialog welcome = welcomeDialog();
             assertNull(ShadowAlertDialog.getLatestAlertDialog());
             continueWelcome(welcome);
+            shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
+                    TimeUnit.MILLISECONDS);
             AlertDialog accessPrompt = ShadowAlertDialog.getLatestAlertDialog();
             assertNotNull(accessPrompt);
             assertTrue(String.valueOf(shadowOf(accessPrompt).getMessage()).contains("profiles2"));
