@@ -64,7 +64,7 @@ final class AboutDatabaseBackupActions {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
                 .addCategory(Intent.CATEGORY_OPENABLE)
                 .setType(AppDataBackup.MIME_TYPE)
-                .putExtra(Intent.EXTRA_TITLE, AppDataBackup.DEFAULT_FILE_NAME);
+                .putExtra(Intent.EXTRA_TITLE, AppDataBackup.defaultFileName());
         activity.startActivityForResult(intent, REQ_EXPORT_DATABASE);
     }
 

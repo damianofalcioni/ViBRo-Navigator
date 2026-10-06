@@ -9,14 +9,22 @@ import vibro.navigator.logging.AppLogger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public final class AppDataBackup {
 
     public static final String MIME_TYPE = "application/json";
-    public static final String DEFAULT_FILE_NAME = "vibro-navigator-backup.json";
 
     private AppDataBackup() {
+    }
+
+    @NonNull
+    public static String defaultFileName() {
+        String timestamp = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+        return "vibro-navigator-backup-" + timestamp + ".json";
     }
 
     @NonNull
