@@ -34,7 +34,9 @@ public final class NavigationSessionHeadingResolver {
             boolean likelyStationary,
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees,
-            long nowMs
+            long nowMs,
+            @Nullable Double routeHeadingDegrees,
+            boolean beelineGuidance
     ) {
         if (!movementStarted) {
             selectStartupHeading(displayHeadingDegrees, displayHeadingAccuracyDegrees);
@@ -45,7 +47,8 @@ public final class NavigationSessionHeadingResolver {
         if (!likelyStationary) {
             movementStarted = true;
             stationaryCompassGate.reset();
-            lastHeading = selectMovingHeading(lastFiltered, nowMs);
+            lastHeading = selectMovingHeading(lastFiltered, nowMs, routeHeadingDegrees, beelineGuidance,
+                    displayHeadingDegrees, displayHeadingAccuracyDegrees);
         } else if (movementStarted) {
             lastHeading = selectStationaryHeading(displayHeadingDegrees, displayHeadingAccuracyDegrees, nowMs);
         }
@@ -72,15 +75,40 @@ public final class NavigationSessionHeadingResolver {
     }
 
     @NonNull
-    private Selection selectMovingHeading(@NonNull NavigationLocation location, long nowMs) {
-        long ageMs = nowMs - location.getElapsedRealtimeOrTimeMs();
-        Selection locationHeading = ageMs >= 0L && ageMs <= MAX_LIVE_TRAVEL_HEADING_AGE_MS
-                ? selectLocationHeading(location) : Selection.none();
-        if (locationHeading.hasHeading()) {
-            lastTravelHeading = locationHeading;
-            return locationHeading;
+    private Selection selectMovingHeading(
+            @NonNull NavigationLocation location,
+            long nowMs,
+            @Nullable Double routeHeadingDegrees,
+            boolean beelineGuidance,
+            @Nullable Double compassHeadingDegrees,
+            @Nullable Float compassAccuracyDegrees
+    ) {
+        Selection travelHeading = selectTravelHeading(location, nowMs, routeHeadingDegrees, beelineGuidance);
+        if (travelHeading.hasHeading()) {
+            lastTravelHeading = travelHeading;
+            return travelHeading;
+        }
+        if (StationaryCompassHeadingGate.isUsable(compassHeadingDegrees, compassAccuracyDegrees)) {
+            return new Selection(compassHeadingDegrees, compassAccuracyDegrees);
         }
         return uncertain(lastTravelHeading.hasHeading() ? lastTravelHeading : lastHeading);
+    }
+
+    @NonNull
+    private Selection selectTravelHeading(
+            @NonNull NavigationLocation location,
+            long nowMs,
+            @Nullable Double routeHeadingDegrees,
+            boolean beelineGuidance
+    ) {
+        if (!beelineGuidance) {
+            // Route direction comes from geometry, so it has no sensor accuracy cone.
+            return routeHeadingDegrees != null && Double.isFinite(routeHeadingDegrees)
+                    ? new Selection(routeHeadingDegrees, 0f) : Selection.none();
+        }
+        long ageMs = nowMs - location.getElapsedRealtimeOrTimeMs();
+        return ageMs >= 0L && ageMs <= MAX_LIVE_TRAVEL_HEADING_AGE_MS
+                ? selectLocationHeading(location) : Selection.none();
     }
 
     @NonNull
@@ -97,10 +125,9 @@ public final class NavigationSessionHeadingResolver {
         if (locationHeading == null) {
             return Selection.none();
         }
-        return new Selection(
-                locationHeading.headingDegrees,
-                locationHeading.headingAccuracyDegrees
-        );
+        return StationaryCompassHeadingGate.isUsable(locationHeading.headingDegrees, locationHeading.headingAccuracyDegrees)
+                ? new Selection(locationHeading.headingDegrees, locationHeading.headingAccuracyDegrees)
+                : Selection.none();
     }
 
     public static final class Selection {

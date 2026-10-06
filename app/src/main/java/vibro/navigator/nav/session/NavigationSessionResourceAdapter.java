@@ -385,6 +385,7 @@ public final class NavigationSessionResourceAdapter {
     ) {
         return session.components.stateBuilder.withDisplayHeading(
                 base,
+                session.currentRequest,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 nowMs

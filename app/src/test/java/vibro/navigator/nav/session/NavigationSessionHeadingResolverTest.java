@@ -16,102 +16,101 @@ public class NavigationSessionHeadingResolverTest {
     @Test
     public void slowMovementUsesAccurateLocationBearingAndItsAccuracy() {
         NavigationLocation location = movingLocation(0.4f, 84f);
-        NavigationSessionHeadingResolver.Selection heading = resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
+        NavigationSessionHeadingResolver.Selection heading = selectHeading(location, false, 180.0, 5f, 1_000L);
         assertEquals(84.0, heading.headingDegrees, 0.0);
         assertEquals(12f, heading.headingAccuracyDegrees, 0f);
     }
 
     @Test
-    public void movingWithoutReliableCourseFreezesStartupCompassWithoutFollowingIt() {
+    public void movingWithoutReliableCourseFollowsLiveCompass() {
         NavigationLocation location = movingLocation(1.2f, 84f);
         location.setBearingAccuracyDegrees(40f);
-        assertEquals(180.0, resolver.selectHeading(location, false, 180.0, 5f, 1_000L).headingDegrees, 0.0);
-        NavigationSessionHeadingResolver.Selection held = resolver.selectHeading(location, false, 210.0, 5f, 2_000L);
-        assertEquals(180.0, held.headingDegrees, 0.0);
-        assertEquals(90f, held.headingAccuracyDegrees, 0f);
+        assertEquals(180.0, selectHeading(location, false, 180.0, 5f, 1_000L).headingDegrees, 0.0);
+        NavigationSessionHeadingResolver.Selection held = selectHeading(location, false, 210.0, 5f, 2_000L);
+        assertEquals(210.0, held.headingDegrees, 0.0);
+        assertEquals(5f, held.headingAccuracyDegrees, 0f);
     }
 
     @Test
-    public void movingWithoutNewCourseHoldsLastTravelHeading() {
+    public void movingWithoutNewCourseFallsBackToCompass() {
         NavigationLocation location = movingLocation(1.2f, 84f);
-        resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
         location.setBearingAccuracyDegrees(40f);
-        assertEquals(84.0, resolver.selectHeading(location, false, 210.0, 5f, 2_000L).headingDegrees, 0.0);
+        assertEquals(210.0, selectHeading(location, false, 210.0, 5f, 2_000L).headingDegrees, 0.0);
     }
 
     @Test
     public void stoppingWithDifferentCompassHeadingDoesNotRotateDisplay() {
         NavigationLocation location = movingLocation(15f, 84f);
-        resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
-        assertEquals(84.0, resolver.selectHeading(location, true, 180.0, 5f, 2_000L).headingDegrees, 0.0);
-        assertEquals(84.0, resolver.selectHeading(location, true, 185.0, 5f, 3_000L).headingDegrees, 0.0);
-        assertEquals(84.0, resolver.selectHeading(location, true, 180.0, 5f, 4_000L).headingDegrees, 0.0);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
+        assertEquals(84.0, selectHeading(location, true, 180.0, 5f, 2_000L).headingDegrees, 0.0);
+        assertEquals(84.0, selectHeading(location, true, 185.0, 5f, 3_000L).headingDegrees, 0.0);
+        assertEquals(84.0, selectHeading(location, true, 180.0, 5f, 4_000L).headingDegrees, 0.0);
     }
 
     @Test
     public void substantialTurnDuringStopThenResumingUsesTravelHeadingAgain() {
         NavigationLocation location = movingLocation(15f, 84f);
-        resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
-        resolver.selectHeading(location, true, 180.0, 5f, 2_000L);
-        resolver.selectHeading(location, true, 220.0, 5f, 3_000L);
-        assertEquals(220.0, resolver.selectHeading(location, true, 220.0, 5f, 4_000L).headingDegrees, 0.0);
-        location.setBearingAccuracyDegrees(40f);
-        assertEquals(84.0, resolver.selectHeading(location, false, 220.0, 5f, 5_000L).headingDegrees, 0.0);
-        assertEquals(84.0, resolver.selectHeading(location, true, 260.0, 5f, 6_000L).headingDegrees, 0.0);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
+        selectHeading(location, true, 180.0, 5f, 2_000L);
+        selectHeading(location, true, 220.0, 5f, 3_000L);
+        assertEquals(220.0, selectHeading(location, true, 220.0, 5f, 4_000L).headingDegrees, 0.0);
+        assertEquals(84.0, selectHeading(location, false, 220.0, 5f, 5_000L).headingDegrees, 0.0);
+        assertEquals(84.0, selectHeading(location, true, 260.0, 5f, 6_000L).headingDegrees, 0.0);
     }
 
     @Test
     public void resetDoesNotLeakHeadingIntoNextSession() {
         NavigationLocation location = movingLocation(15f, 84f);
-        resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
         resolver.reset();
-        assertEquals(180.0, resolver.selectHeading(location, true, 180.0, 5f, 2_000L).headingDegrees, 0.0);
+        assertEquals(180.0, selectHeading(location, true, 180.0, 5f, 2_000L).headingDegrees, 0.0);
     }
 
     @Test
     public void waitingForLocationUsesLiveStartupCompass() {
-        assertEquals(180.0, resolver.selectHeading(null, false, 180.0, 5f, 1_000L).headingDegrees, 0.0);
-        assertEquals(185.0, resolver.selectHeading(null, false, 185.0, 5f, 1_100L).headingDegrees, 0.0);
+        assertEquals(180.0, selectHeading(null, false, 180.0, 5f, 1_000L).headingDegrees, 0.0);
+        assertEquals(185.0, selectHeading(null, false, 185.0, 5f, 1_100L).headingDegrees, 0.0);
     }
 
     @Test
     public void stationaryStartupTracksSmallCompassTurnsImmediately() {
         NavigationLocation location = movingLocation(0f, 0f);
-        assertEquals(180.0, resolver.selectHeading(location, true, 180.0, 5f, 1_000L).headingDegrees, 0.0);
-        assertEquals(185.0, resolver.selectHeading(location, true, 185.0, 5f, 1_100L).headingDegrees, 0.0);
+        assertEquals(180.0, selectHeading(location, true, 180.0, 5f, 1_000L).headingDegrees, 0.0);
+        assertEquals(185.0, selectHeading(location, true, 185.0, 5f, 1_100L).headingDegrees, 0.0);
     }
 
     @Test
     public void stationaryCompassBecomesContinuousAfterActivationAndResumesAfterPoorAccuracy() {
         NavigationLocation location = movingLocation(15f, 84f);
-        resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
-        resolver.selectHeading(location, true, 180.0, 5f, 2_000L);
-        resolver.selectHeading(location, true, 220.0, 5f, 3_000L);
-        resolver.selectHeading(location, true, 220.0, 5f, 4_000L);
-        assertEquals(225.0, resolver.selectHeading(location, true, 225.0, 5f, 4_100L).headingDegrees, 0.0);
-        NavigationSessionHeadingResolver.Selection poor = resolver.selectHeading(location, true, 240.0, 40f, 4_200L);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
+        selectHeading(location, true, 180.0, 5f, 2_000L);
+        selectHeading(location, true, 220.0, 5f, 3_000L);
+        selectHeading(location, true, 220.0, 5f, 4_000L);
+        assertEquals(225.0, selectHeading(location, true, 225.0, 5f, 4_100L).headingDegrees, 0.0);
+        NavigationSessionHeadingResolver.Selection poor = selectHeading(location, true, 240.0, 40f, 4_200L);
         assertEquals(225.0, poor.headingDegrees, 0.0);
         assertEquals(90f, poor.headingAccuracyDegrees, 0f);
-        assertEquals(230.0, resolver.selectHeading(location, true, 230.0, 5f, 4_300L).headingDegrees, 0.0);
+        assertEquals(230.0, selectHeading(location, true, 230.0, 5f, 4_300L).headingDegrees, 0.0);
     }
 
     @Test
-    public void oldMovingFixLosesConfidenceAndNextAccurateFixRestoresIt() {
+    public void oldMovingFixFallsBackToCompassAndNextAccurateFixRestoresCourse() {
         NavigationLocation location = movingLocation(15f, 84f);
-        resolver.selectHeading(location, false, 180.0, 5f, 1_000L);
-        NavigationSessionHeadingResolver.Selection held = resolver.selectHeading(location, false, 210.0, 5f, 60_000L);
-        assertEquals(84.0, held.headingDegrees, 0.0);
-        assertEquals(90f, held.headingAccuracyDegrees, 0f);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
+        NavigationSessionHeadingResolver.Selection held = selectHeading(location, false, 210.0, 5f, 60_000L);
+        assertEquals(210.0, held.headingDegrees, 0.0);
+        assertEquals(5f, held.headingAccuracyDegrees, 0f);
         location.setTime(61_000L, 61_000L);
         location.setBearing(100f);
-        NavigationSessionHeadingResolver.Selection fresh = resolver.selectHeading(location, false, 210.0, 5f, 61_000L);
+        NavigationSessionHeadingResolver.Selection fresh = selectHeading(location, false, 210.0, 5f, 61_000L);
         assertEquals(100.0, fresh.headingDegrees, 0.0);
         assertEquals(12f, fresh.headingAccuracyDegrees, 0f);
     }
 
     @Test
     public void unusableStartupCompassLeavesHeadingUnknown() {
-        assertNull(resolver.selectHeading(null, false, 180.0, 40f, 1_000L).headingDegrees);
+        assertNull(selectHeading(null, false, 180.0, 40f, 1_000L).headingDegrees);
     }
 
     @Test
@@ -146,8 +145,32 @@ public class NavigationSessionHeadingResolverTest {
         assertEquals(185.0, selectCurrent(185.0, 61_000L).headingDegrees, 0.0);
     }
 
+    @Test
+    public void unknownBearingAccuracyFallsBackToCompassEvenAtHighSpeed() {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setTime(1_000L, 1_000L);
+        location.setSpeed(15f);
+        location.setBearing(84f);
+        assertEquals(180.0, selectHeading(location, false, 180.0, 5f, 1_000L).headingDegrees, 0.0);
+    }
+
+    @Test
+    public void unusableCompassAndCourseHoldLastTravelHeadingWithUncertainty() {
+        NavigationLocation location = movingLocation(15f, 84f);
+        selectHeading(location, false, 180.0, 5f, 1_000L);
+        location.setBearingAccuracyDegrees(40f);
+        NavigationSessionHeadingResolver.Selection held = selectHeading(location, false, 210.0, 40f, 2_000L);
+        assertEquals(84.0, held.headingDegrees, 0.0);
+        assertEquals(90f, held.headingAccuracyDegrees, 0f);
+    }
+
+    private NavigationSessionHeadingResolver.Selection selectHeading(NavigationLocation location,
+            boolean stationary, Double compassDegrees, Float compassAccuracy, long nowMs) {
+        return resolver.selectHeading(location, stationary, compassDegrees, compassAccuracy, nowMs, null, true);
+    }
+
     private NavigationSessionHeadingResolver.Selection selectCurrent(double compassDegrees, long nowMs) {
-        return resolver.selectHeading(locationState.getLastFilteredLocation(), locationState.isLikelyStationary(),
+        return selectHeading(locationState.getLastFilteredLocation(), locationState.isLikelyStationary(),
                 compassDegrees, 5f, nowMs);
     }
 

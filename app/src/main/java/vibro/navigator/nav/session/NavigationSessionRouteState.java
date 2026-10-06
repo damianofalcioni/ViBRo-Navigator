@@ -43,6 +43,10 @@ public final class NavigationSessionRouteState {
         return components.geometryState.hasActiveRoute();
     }
 
+    boolean isBeelineGuidanceActive() {
+        return components.directGuidance.activeTarget() != null;
+    }
+
     boolean isDestinationReached() {
         return components.turnState.isDestinationReached();
     }

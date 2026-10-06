@@ -1,0 +1,164 @@
+package vibro.navigator.nav.session;
+
+import org.junit.Test;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.TestNavigationTextResources;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class NavigationSessionRouteHeadingTest {
+    @Test
+    public void routedNavigationAndHeadingRefreshUseRouteInsteadOfGpsOrCompass() {
+        for (NavigationRoutingMode mode : new NavigationRoutingMode[] {
+                NavigationRoutingMode.BROUTER, NavigationRoutingMode.ROUND_TRIP}) {
+            NavigationSession session = session(mode);
+            applyRoute(session, new LatLon(0, 0), false);
+            NavState state = build(session, 180.0, 1_000L);
+            assertHeading(state, 90f);
+            assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, state, 220.0, 5f, 2_000L), 90f);
+            // Route geometry still supplies the heading between infrequent GPS fixes.
+            assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, state, 240.0, 5f, 60_000L), 90f);
+        }
+    }
+
+    @Test
+    public void straightLineNavigationUsesAccurateGpsThenLiveCompassWhenAccuracyDegrades() {
+        NavigationSession session = session(NavigationRoutingMode.STRAIGHT_LINE);
+        NavState state = build(session, 180.0, 1_000L);
+        assertHeading(state, 84f);
+        session.getLastFilteredLocation().setBearingAccuracyDegrees(40f);
+        assertHeading(build(session, 200.0, 2_000L), 200f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, state, 220.0, 5f, 2_100L), 220f);
+    }
+
+    @Test
+    public void routeStartApproachUsesGpsAndCompassInsteadOfTheRouteSegment() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        applyRoute(session, new LatLon(0, 0.001), false);
+        assertTrue(session.components.routeState.isBeelineGuidanceActive());
+        assertHeading(build(session, 180.0, 1_000L), 84f);
+        session.getLastFilteredLocation().setBearingAccuracyDegrees(40f);
+        NavState state = build(session, 200.0, 2_000L);
+        assertHeading(state, 200f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, state, 220.0, 5f, 2_100L), 220f);
+    }
+
+    @Test
+    public void nativeBeelineUsesGpsAndCompassThenReturnsToRouteHeadingAtItsTarget() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        applyRoute(session, new LatLon(0, 0), true);
+        evaluateRoute(session, 1_000L);
+        assertTrue(session.components.routeState.isBeelineGuidanceActive());
+        assertHeading(build(session, 180.0, 1_000L), 84f);
+        session.getLastFilteredLocation().setBearingAccuracyDegrees(40f);
+        assertHeading(build(session, 200.0, 2_000L), 200f);
+
+        NavigationLocation reached = fix(61_000L);
+        reached.setLongitude(0.001);
+        accept(session, reached);
+        evaluateRoute(session, 61_000L);
+        assertFalse(session.components.routeState.isBeelineGuidanceActive());
+        assertHeading(build(session, 220.0, 61_000L), 0f);
+    }
+
+    @Test
+    public void stoppingOnRouteRetainsHeadingUntilTheExistingCompassTurnGateActivates() {
+        NavigationSessionHeadingResolver resolver = new NavigationSessionHeadingResolver(
+                new NavigationSessionLocationState());
+        NavigationLocation location = fix(1_000L);
+        assertEquals(90.0, resolver.selectHeading(location, false, 180.0, 5f,
+                1_000L, 90.0, false).headingDegrees, 0.0);
+        assertEquals(90.0, resolver.selectHeading(location, true, 180.0, 5f,
+                2_000L, 0.0, false).headingDegrees, 0.0);
+        resolver.selectHeading(location, true, 220.0, 5f, 3_000L, 0.0, false);
+        assertEquals(220.0, resolver.selectHeading(location, true, 220.0, 5f,
+                4_000L, 0.0, false).headingDegrees, 0.0);
+        assertEquals(225.0, resolver.selectHeading(location, true, 225.0, 5f,
+                4_100L, 0.0, false).headingDegrees, 0.0);
+        assertEquals(0.0, resolver.selectHeading(location, false, 225.0, 5f,
+                5_000L, 0.0, false).headingDegrees, 0.0);
+    }
+
+    @Test
+    public void missingOrInvalidRouteHeadingUsesCompassWithoutTakingGpsHeading() {
+        NavigationSessionHeadingResolver resolver = new NavigationSessionHeadingResolver(
+                new NavigationSessionLocationState());
+        NavigationLocation location = fix(1_000L);
+        assertEquals(180.0, resolver.selectHeading(location, false, 180.0, 5f,
+                1_000L, null, false).headingDegrees, 0.0);
+        assertEquals(220.0, resolver.selectHeading(location, false, 220.0, 5f,
+                2_000L, Double.NaN, false).headingDegrees, 0.0);
+    }
+
+    private static NavigationSession session(NavigationRoutingMode mode) {
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(mode, "trekking", null, "Destination",
+                new LatLon(0.003, 0.001), Collections.emptyList(),
+                mode == NavigationRoutingMode.ROUND_TRIP ? 1_000 : 0));
+        assertTrue(NavigationSessionResourceAdapter.start(session, TestNavigationTextResources.metric(), 1_000L));
+        accept(session, fix(1_000L));
+        return session;
+    }
+
+    private static void accept(NavigationSession session, NavigationLocation location) {
+        assertFalse(session.components.locationState.onRawLocationChanged(
+                location, location.getTime(), false).isDropped());
+        assertFalse(session.components.locationState.isLikelyStationary());
+    }
+
+    private static void applyRoute(NavigationSession session, LatLon start, boolean beeline) {
+        NavigationRouteRequestSnapshot request = new NavigationRouteRequestSnapshot(1, 1,
+                session.currentRequest.routingMode, new LatLon(0, 0), Collections.emptyList(),
+                session.currentRequest.destination, "trekking", null, Collections.emptyList(), 1_000);
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(start, new LatLon(0, 0.001), new LatLon(0.003, 0.001)),
+                beeline ? Collections.singletonList(new VoiceHint(0, 16, 0, 111, 0))
+                        : Collections.emptyList(), 200, 444);
+        session.components.routeState.applyRouteResult(TestNavigationTextResources.metric(), request,
+                route, session.getLastFilteredLocation(), 3f, false, 1_000L);
+    }
+
+    private static void evaluateRoute(NavigationSession session, long nowMs) {
+        session.components.routeState.evaluateLocation(session.getLastFilteredLocation(),
+                3f, false, 5f, 84.0, nowMs, 0L);
+    }
+
+    private static NavState build(NavigationSession session, double compassHeading, long nowMs) {
+        return NavigationSessionResourceAdapter.buildState(session, TestNavigationTextResources.metric(),
+                NavState.NO_DEADLINE, nowMs, null, compassHeading, 5f);
+    }
+
+    private static void assertHeading(NavState state, float expectedHeading) {
+        assertEquals(expectedHeading, state.routeStatus.compassState.displayMode.headingDegrees, 0.1f);
+    }
+
+    private static NavigationLocation fix(long nowMs) {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setTime(nowMs, nowMs);
+        location.setLatitude(0);
+        location.setLongitude(0);
+        location.setAccuracy(5f);
+        location.setSpeed(3f);
+        location.setSpeedAccuracyMetersPerSecond(0.1f);
+        location.setBearing(84f);
+        location.setBearingAccuracyDegrees(12f);
+        return location;
+    }
+}

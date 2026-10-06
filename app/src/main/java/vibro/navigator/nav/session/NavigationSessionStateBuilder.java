@@ -213,6 +213,7 @@ final class NavigationSessionStateBuilder {
     ) {
         NavigationDisplaySnapshot snapshot = buildSnapshot(
                 textResources,
+                currentRequest,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
                 fixedSatelliteCount,
@@ -244,12 +245,14 @@ final class NavigationSessionStateBuilder {
     @NonNull
     NavState withDisplayHeading(
             @NonNull NavState base,
+            @NonNull NavigationRequest currentRequest,
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees,
             long nowMs
     ) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
-        NavigationSessionHeadingResolver.Selection heading = headingResolver.selectHeading(
+        NavigationSessionHeadingResolver.Selection heading = selectHeading(
+                currentRequest,
                 lastFiltered,
                 locationState.isLikelyStationary(),
                 displayHeadingDegrees,
@@ -266,6 +269,7 @@ final class NavigationSessionStateBuilder {
     @NonNull
     private NavigationDisplaySnapshot buildSnapshot(
             @NonNull NavigationTextResources textResources,
+            @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
             @Nullable Integer fixedSatelliteCount,
@@ -283,7 +287,8 @@ final class NavigationSessionStateBuilder {
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
                 : Float.MAX_VALUE;
-        NavigationSessionHeadingResolver.Selection heading = headingResolver.selectHeading(
+        NavigationSessionHeadingResolver.Selection heading = selectHeading(
+                currentRequest,
                 lastFiltered,
                 likelyStationary,
                 displayHeadingDegrees,
@@ -305,5 +310,26 @@ final class NavigationSessionStateBuilder {
                 .compassZoomAnimationEnabled(compassZoomAnimationEnabled)
                 .stationaryFullRouteZoomEnabled(stationaryFullRouteZoomEnabled)
                 .build();
+    }
+
+    @NonNull
+    private NavigationSessionHeadingResolver.Selection selectHeading(
+            @NonNull NavigationRequest currentRequest,
+            @Nullable NavigationLocation lastFiltered,
+            boolean likelyStationary,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            long nowMs
+    ) {
+        boolean beelineGuidance = currentRequest.isStraightLine() || routeState.isBeelineGuidanceActive();
+        return headingResolver.selectHeading(
+                lastFiltered,
+                likelyStationary,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                nowMs,
+                beelineGuidance ? null : routeState.currentSegmentBearingDegrees(lastFiltered),
+                beelineGuidance
+        );
     }
 }
