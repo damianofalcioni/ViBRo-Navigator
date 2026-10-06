@@ -55,9 +55,13 @@ final class ViBRoCarTemplates {
 
     @NonNull
     private Template buildNavigationTemplate() {
-        return new NavigationTemplate.Builder()
-                .setActionStrip(buildNavigationActionStrip())
-                .build();
+        NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
+                .setActionStrip(buildNavigationActionStrip());
+        if (carContext.getCarAppApiLevel() >= 2) {
+            // Required by the host before it delivers scroll, pinch, or double-tap zoom.
+            builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
+        }
+        return builder.build();
     }
 
     @NonNull

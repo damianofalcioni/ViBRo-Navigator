@@ -102,6 +102,18 @@ final class ViBRoAutoSurfacePainter {
         drawPortraitFallback(canvas, state, left, top, width, height, padding, fullscreenRouteMode, layoutScale);
     }
 
+    boolean handleScroll(float distanceX, float distanceY, @NonNull NavState state) {
+        return compassPainter.handleScroll(distanceX, distanceY, state);
+    }
+
+    boolean handleScale(float focusX, float focusY, float factor, @NonNull NavState state) {
+        return compassPainter.handleScale(focusX, focusY, factor, state);
+    }
+
+    void resetCompass() {
+        compassPainter.reset();
+    }
+
     private void drawLandscape(
             @NonNull Canvas canvas,
             @NonNull NavState state,

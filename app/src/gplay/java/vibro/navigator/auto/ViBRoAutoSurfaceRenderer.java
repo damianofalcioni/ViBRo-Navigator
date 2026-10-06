@@ -66,6 +66,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     void setState(@Nullable NavState state) {
         currentState = state;
         if (state == null) {
+            painter.resetCompass();
             compassStreetViewportSink.clearCompassStreetViewport();
         }
         render();
@@ -81,6 +82,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
 
     void clearSurface() {
         surfaceContainer = null;
+        painter.resetCompass();
         compassStreetViewportSink.clearCompassStreetViewport();
         clearCompassCallbacks();
     }
@@ -128,6 +130,22 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
                 + " handled=" + handled);
         if (handled) {
             renderOnMainThread();
+        }
+    }
+
+    @Override
+    public void onScroll(float distanceX, float distanceY) {
+        NavState state = currentState;
+        if (surfaceContainer != null && state != null && painter.handleScroll(distanceX, distanceY, state)) {
+            render();
+        }
+    }
+
+    @Override
+    public void onScale(float focusX, float focusY, float scaleFactor) {
+        NavState state = currentState;
+        if (surfaceContainer != null && state != null && painter.handleScale(focusX, focusY, scaleFactor, state)) {
+            render();
         }
     }
 

@@ -3,6 +3,8 @@ package vibro.navigator.auto;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import android.app.Application;
 import android.content.Context;
@@ -25,10 +27,14 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 import java.util.Collections;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.nav.compass.CompassPerspectiveScale;
+import vibro.navigator.settings.AppCompassSettings;
+import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGuidanceStatus;
 import vibro.navigator.nav.model.NavPauseStatus;
@@ -43,6 +49,7 @@ public class ViBRoAutoStreetViewportGplayTest {
     @Before
     public void setUp() {
         context = ApplicationProvider.getApplicationContext();
+        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE).edit().clear().commit();
     }
 
     @Test
@@ -98,6 +105,146 @@ public class ViBRoAutoStreetViewportGplayTest {
 
         assertNull(streetViewportSink.lastCompassStreetViewport);
         assertEquals(2, streetViewportSink.compassStreetViewportUpdates);
+    }
+
+    @Test
+    public void hostScaleUpdatesPublishedViewportAndResetsWithNavigation() throws Exception {
+        PainterFixture fixture = painterFixture();
+        assertTrue(fixture.painter.handleScale(120f, 120f, 2f, fixture.state));
+        fixture.draw();
+        assertEquals(150f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
+        assertFalse(fixture.painter.handleScale(120f, 120f, 2f, fixture.state));
+        fixture.painter.reset();
+        fixture.draw();
+        assertEquals(300f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0f);
+        assertTrue(fixture.painter.handleScale(-1f, -1f, 0.5f, fixture.state));
+        fixture.draw();
+        assertEquals(600f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0f);
+    }
+
+    @Test
+    public void hostScaleRejectsOutsideFocusAndOverview() throws Exception {
+        PainterFixture fixture = painterFixture();
+        assertFalse(fixture.painter.handleScale(400f, 120f, 2f, fixture.state));
+        fixture.painter.handleScroll(-100f, 0f, fixture.state);
+        fixture.draw();
+        assertFalse(fixture.viewport.lastCompassStreetViewport.displayMode.movingScaleActive);
+        fixture.timeMs += 400L;
+        assertFalse(fixture.painter.handleScale(120f, 120f, 2f, fixture.state));
+    }
+
+    @Test
+    public void horizontalScrollCyclesForwardAndBackwardWithTheShared3dViewport() throws Exception {
+        PainterFixture fixture = painterFixture();
+        assertTrue(fixture.painter.handleScroll(100f, 0f, fixture.state));
+        fixture.timeMs += 400L;
+        fixture.draw();
+        float perspectiveRadius = 300f * CompassPerspectiveScale.maximumViewportMultiplier();
+        assertEquals(perspectiveRadius, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
+        assertTrue(fixture.painter.handleScroll(-100f, 0f, fixture.state));
+        fixture.timeMs += 400L;
+        fixture.draw();
+        assertEquals(300f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
+    }
+
+    @Test
+    public void verticalScrollTiltsOnly3dAndReusesThePreparedViewport() throws Exception {
+        PainterFixture fixture = painterFixture();
+        assertFalse(fixture.painter.handleScroll(0f, -100f, fixture.state));
+        fixture.timeMs += 400L;
+        fixture.painter.handleClick(120f, 120f, fixture.state);
+        fixture.timeMs += 400L;
+        fixture.draw();
+        NavCompassState perspective = fixture.viewport.lastCompassStreetViewport;
+        assertTrue(fixture.painter.handleScroll(0f, -100f, fixture.state));
+        fixture.draw();
+        assertSame(perspective, fixture.viewport.lastCompassStreetViewport);
+        assertEquals(0.375f, fixture.perspectiveProgress(), 0.001f);
+        fixture.timeMs += 400L;
+        assertTrue(fixture.painter.handleScroll(0f, 200f, fixture.state));
+        fixture.draw();
+        assertEquals(1.25f, fixture.perspectiveProgress(), 0.001f);
+    }
+
+    @Test
+    public void releaseClickCannotCycleAfterScalingAndSwipeIsConsumed() throws Exception {
+        PainterFixture fixture = painterFixture();
+        fixture.painter.handleScale(120f, 120f, 2f, fixture.state);
+        fixture.painter.handleClick(120f, 120f, fixture.state);
+        fixture.draw();
+        assertEquals(150f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
+        assertEquals(0f, fixture.perspectiveProgress(), 0f);
+        fixture.timeMs += 400L;
+        assertTrue(fixture.painter.handleScroll(100f, 0f, fixture.state));
+        assertFalse(fixture.painter.handleScroll(100f, 0f, fixture.state));
+        fixture.timeMs += 400L;
+        fixture.draw();
+        assertEquals(1f, fixture.perspectiveProgress(), 0f);
+    }
+
+    @Test
+    public void instantZoomSettingAppliesToAutoViewSwitches() throws Exception {
+        PainterFixture fixture = painterFixture();
+        AppCompassSettings.setInstantZoomEnabled(context, true);
+        fixture.painter.handleScroll(-100f, 0f, fixture.state);
+        fixture.draw();
+        assertFalse(fixture.painter.isTransitionInProgress());
+        assertFalse(fixture.viewport.lastCompassStreetViewport.displayMode.movingScaleActive);
+    }
+
+    @Test
+    public void scaleOnCustomButtonDoesNotZoomOrInvokeTheControl() throws Exception {
+        AppNavigationCustomButtonSettings.setEnabled(context, true);
+        PainterFixture fixture = painterFixture();
+        assertFalse(fixture.painter.handleScale(220f, 20f, 2f, fixture.state));
+        fixture.draw();
+        assertEquals(300f, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0f);
+    }
+
+    @Test
+    public void destroyedOrInactiveSurfaceIgnoresHostGestures() throws Exception {
+        RecordingStreetViewportSink viewport = new RecordingStreetViewportSink();
+        ViBRoAutoSurfaceRenderer renderer = new ViBRoAutoSurfaceRenderer(testCarContext(),
+                new RecordingAutoControls(), Runnable::run, viewport);
+        renderer.setState(activeNavigationState(movingCompassState()));
+        renderer.onScroll(100f, 0f);
+        renderer.onScale(-1f, -1f, 2f);
+        assertEquals(0, viewport.compassStreetViewportUpdates);
+        renderer.setState(null);
+        renderer.onScroll(100f, 0f);
+        renderer.onScale(-1f, -1f, 2f);
+        assertEquals(1, viewport.compassStreetViewportUpdates);
+    }
+
+    private PainterFixture painterFixture() throws Exception {
+        CarContext carContext = testCarContext();
+        carContext.setTheme(R.style.Theme_ViBRoNavigator);
+        PainterFixture fixture = new PainterFixture();
+        fixture.painter = new ViBRoAutoCompassPainter(carContext, new RecordingAutoControls(),
+                fixture.viewport, () -> fixture.timeMs);
+        fixture.draw();
+        return fixture;
+    }
+
+    private static final class PainterFixture {
+        private final RecordingStreetViewportSink viewport = new RecordingStreetViewportSink();
+        private final NavState state = activeNavigationState(movingCompassState());
+        private final Canvas canvas = new Canvas(Bitmap.createBitmap(240, 240, Bitmap.Config.ARGB_8888));
+        private long timeMs = 1_000L;
+        private ViBRoAutoCompassPainter painter;
+
+        void draw() {
+            painter.draw(canvas, state, 0f, 0f, 240f, 240f, false, new RectF(0f, 0f, 240f, 240f), 1f);
+        }
+
+        float perspectiveProgress() throws Exception {
+            Field view = ViBRoAutoCompassPainter.class.getDeclaredField("compassView");
+            view.setAccessible(true);
+            Object compassView = view.get(painter);
+            Field progress = compassView.getClass().getDeclaredField("perspectiveProgress");
+            progress.setAccessible(true);
+            return progress.getFloat(compassView);
+        }
     }
 
     @NonNull

@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.car.app.AppInfo;
 import androidx.car.app.CarContext;
 import androidx.car.app.model.PaneTemplate;
+import androidx.car.app.model.Action;
 import androidx.car.app.model.Template;
 import androidx.car.app.navigation.model.NavigationTemplate;
 import androidx.lifecycle.Lifecycle;
@@ -32,6 +33,7 @@ import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Field;
 
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
@@ -111,6 +113,21 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         NavigationTemplate navigationTemplate = (NavigationTemplate) template;
         assertEquals(1, navigationTemplate.getActionStrip().getActions().size());
         assertNull(navigationTemplate.getActionStrip().getActions().get(0).getTitle());
+        assertEquals(Action.PAN, navigationTemplate.getMapActionStrip().getActions().get(0));
+    }
+
+    @Test
+    public void apiOneHostKeepsNavigationWithoutGestureActionStrip() throws Exception {
+        ViBRoCarTemplates templates = new ViBRoCarTemplates(testCarContext(1), () -> { });
+        NavigationTemplate template = (NavigationTemplate) templates.build(activeNavigationState());
+        assertNull(template.getMapActionStrip());
+    }
+
+    @Test
+    public void apiTwoHostEnablesPanAndZoomCallbacks() throws Exception {
+        ViBRoCarTemplates templates = new ViBRoCarTemplates(testCarContext(2), () -> { });
+        NavigationTemplate template = (NavigationTemplate) templates.build(activeNavigationState());
+        assertEquals(Action.PAN, template.getMapActionStrip().getActions().get(0));
     }
 
     @Test
@@ -167,6 +184,11 @@ public class ViBRoCarAppServiceSettingsGplayTest {
 
     @NonNull
     private CarContext testCarContext() throws Exception {
+        return testCarContext(5);
+    }
+
+    @NonNull
+    private CarContext testCarContext(int carApiLevel) throws Exception {
         CarContext carContext = CarContext.create(new TestLifecycleOwner().getLifecycle());
         Method attachBaseContext = CarContext.class.getDeclaredMethod(
                 "attachBaseContext",
@@ -175,6 +197,9 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         );
         attachBaseContext.setAccessible(true);
         attachBaseContext.invoke(carContext, context, context.getResources().getConfiguration());
+        Field apiLevel = CarContext.class.getDeclaredField("mCarAppApiLevel");
+        apiLevel.setAccessible(true);
+        apiLevel.setInt(carContext, carApiLevel);
         return carContext;
     }
 

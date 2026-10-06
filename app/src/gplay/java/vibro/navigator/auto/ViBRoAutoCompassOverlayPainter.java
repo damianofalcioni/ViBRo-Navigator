@@ -74,11 +74,15 @@ final class ViBRoAutoCompassOverlayPainter {
     }
 
     boolean handleClick(float x, float y) {
-        if (customButtonVisible && customButtonBounds.contains(x, y)) {
+        if (containsControl(x, y)) {
             controls.onToggleCustomButton();
             return true;
         }
         return false;
+    }
+
+    boolean containsControl(float x, float y) {
+        return customButtonVisible && customButtonBounds.contains(x, y);
     }
 
     private void initPaints() {
