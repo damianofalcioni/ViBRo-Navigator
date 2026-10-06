@@ -4,6 +4,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.CompassPerspectiveScale;
+import vibro.navigator.nav.compass.CompassDisplayStateCache;
 
 /** Display-only adjustments relative to the automatic/tap-selected compass viewport. */
 public final class NavigationCompassGestureState {
@@ -15,9 +16,7 @@ public final class NavigationCompassGestureState {
     private float inclination = 1f;
     private boolean zoomEnabled;
     private boolean tiltEnabled;
-    private NavCompassState cachedSource;
-    private NavCompassState cachedZoomedState;
-    private int cachedZoomLevel;
+    private final CompassDisplayStateCache zoomStateCache = new CompassDisplayStateCache();
 
     @Nullable
     public NavCompassState apply(@Nullable NavCompassState state, boolean perspectiveViewEnabled) {
@@ -26,19 +25,13 @@ public final class NavigationCompassGestureState {
         if (state == null) {
             zoomLevel = 0;
             inclination = 1f;
-            cachedSource = null;
-            cachedZoomedState = null;
+            zoomStateCache.clear();
         }
         if (!zoomEnabled || zoomLevel == 0) {
             return state;
         }
-        if (cachedSource != state || cachedZoomLevel != zoomLevel) {
-            cachedSource = state;
-            cachedZoomLevel = zoomLevel;
-            cachedZoomedState = state.withDisplayMode(
-                    true, state.radiusState.visibleRadiusMeters * (float) Math.pow(2.0, -zoomLevel));
-        }
-        return cachedZoomedState;
+        return zoomStateCache.resolve(state, true,
+                state.radiusState.visibleRadiusMeters * (float) Math.pow(2.0, -zoomLevel));
     }
 
     public boolean isZoomEnabled() {

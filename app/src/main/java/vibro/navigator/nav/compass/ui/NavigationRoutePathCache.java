@@ -10,7 +10,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Keeps a bounded set of projected route paths while the viewport and heading are unchanged. */
+/** Keeps a bounded set of north-up route paths while the viewport and source are unchanged. */
 final class NavigationRoutePathCache {
     private static final int MAX_PATHS = 32;
 
@@ -20,7 +20,6 @@ final class NavigationRoutePathCache {
     private float scale;
     private float visibleRadiusMeters;
     private float drawPaddingMeters;
-    private float headingDegrees;
     private boolean hasContext;
 
     @Nullable
@@ -33,17 +32,15 @@ final class NavigationRoutePathCache {
             float cy,
             float scale,
             float visibleRadiusMeters,
-            float drawPaddingMeters,
-            float headingDegrees
+            float drawPaddingMeters
     ) {
-        if (!sameContext(cx, cy, scale, visibleRadiusMeters, drawPaddingMeters, headingDegrees)) {
+        if (!sameContext(cx, cy, scale, visibleRadiusMeters, drawPaddingMeters)) {
             entries.clear();
             this.cx = cx;
             this.cy = cy;
             this.scale = scale;
             this.visibleRadiusMeters = visibleRadiusMeters;
             this.drawPaddingMeters = drawPaddingMeters;
-            this.headingDegrees = headingDegrees;
             hasContext = true;
         }
         for (Entry entry : entries) {
@@ -54,7 +51,8 @@ final class NavigationRoutePathCache {
         return null;
     }
 
-    void remember(
+    @NonNull
+    Entry remember(
             @NonNull Object source,
             int sourceSlot,
             int startIndex,
@@ -65,7 +63,9 @@ final class NavigationRoutePathCache {
         if (entries.size() == MAX_PATHS) {
             entries.remove(0);
         }
-        entries.add(new Entry(source, sourceSlot, startIndex, endIndex, path, visible));
+        Entry entry = new Entry(source, sourceSlot, startIndex, endIndex, path, visible);
+        entries.add(entry);
+        return entry;
     }
 
     private boolean sameContext(
@@ -73,13 +73,11 @@ final class NavigationRoutePathCache {
             float cy,
             float scale,
             float visibleRadiusMeters,
-            float drawPaddingMeters,
-            float headingDegrees
+            float drawPaddingMeters
     ) {
         return hasContext && this.cx == cx && this.cy == cy && this.scale == scale
                 && this.visibleRadiusMeters == visibleRadiusMeters
-                && this.drawPaddingMeters == drawPaddingMeters
-                && this.headingDegrees == headingDegrees;
+                && this.drawPaddingMeters == drawPaddingMeters;
     }
 
     static final class Entry {

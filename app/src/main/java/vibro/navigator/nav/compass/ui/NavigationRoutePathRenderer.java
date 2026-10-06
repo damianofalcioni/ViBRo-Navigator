@@ -8,6 +8,9 @@ import androidx.annotation.NonNull;
 
 final class NavigationRoutePathRenderer {
 
+    // A north-up square must cover the heading-up drawing bounds at every rotation.
+    private static final float ROTATION_BOUNDS_SCALE = (float) Math.sqrt(2d);
+
     private final Path routePath = new Path();
     private final PlotPoint routeSegmentStartPoint = new PlotPoint();
     private final PlotPoint routeSegmentEndPoint = new PlotPoint();
@@ -32,17 +35,27 @@ final class NavigationRoutePathRenderer {
     ) {
         NavigationRoutePathCache.Entry cached = pathCache.find(
                 sourceIdentity, sourceSlot, startIndex, endIndex,
-                cx, cy, scale, visibleRadiusMeters, drawPaddingMeters, headingDegrees
+                cx, cy, scale, visibleRadiusMeters, drawPaddingMeters
         );
-        if (cached != null) {
-            cached.draw(canvas, strokePaint);
-            return;
+        if (cached == null) {
+            buildNorthUpPath(cx, cy, scale, startIndex, endIndex,
+                    visibleRadiusMeters, drawPaddingMeters, pointSource);
+            cached = pathCache.remember(sourceIdentity, sourceSlot, startIndex, endIndex,
+                    routePath, !routePath.isEmpty());
         }
+        drawRotatedPath(canvas, cached, cx, cy, scale,
+                visibleRadiusMeters + drawPaddingMeters, headingDegrees, strokePaint);
+    }
+
+    private void buildNorthUpPath(
+            float cx, float cy, float scale, int startIndex, int endIndex,
+            float visibleRadiusMeters, float drawPaddingMeters,
+            @NonNull ProjectedRoutePointSource pointSource
+    ) {
         routePath.reset();
         boolean havePrevious = false;
         boolean activeSubpath = false;
-        boolean hasVisibleSegment = false;
-        float drawBoundsMeters = visibleRadiusMeters + drawPaddingMeters;
+        float drawBoundsMeters = (visibleRadiusMeters + drawPaddingMeters) * ROTATION_BOUNDS_SCALE;
         for (int i = startIndex; i < endIndex; i++) {
             if (!pointSource.project(i, routeSegmentEndPoint)) {
                 continue;
@@ -62,13 +75,23 @@ final class NavigationRoutePathRenderer {
                     activeSubpath
             );
             activeSubpath = appended;
-            hasVisibleSegment = hasVisibleSegment || appended;
             routeSegmentStartPoint.set(routeSegmentEndPoint.x, routeSegmentEndPoint.y);
         }
-        if (hasVisibleSegment) {
-            canvas.drawPath(routePath, strokePaint);
+    }
+
+    private static void drawRotatedPath(
+            Canvas canvas, NavigationRoutePathCache.Entry entry,
+            float cx, float cy, float scale, float boundsMeters, float headingDegrees, Paint paint
+    ) {
+        int saved = canvas.save();
+        try {
+            float boundsPixels = boundsMeters * scale;
+            canvas.clipRect(cx - boundsPixels, cy - boundsPixels, cx + boundsPixels, cy + boundsPixels);
+            canvas.rotate(-headingDegrees, cx, cy);
+            entry.draw(canvas, paint);
+        } finally {
+            canvas.restoreToCount(saved);
         }
-        pathCache.remember(sourceIdentity, sourceSlot, startIndex, endIndex, routePath, hasVisibleSegment);
     }
 
     private boolean appendVisibleSegmentIfNearVisibleArea(
@@ -138,6 +161,7 @@ final class NavigationRoutePathRenderer {
         }
     }
 
+    /** Supplies east/north meters independently of the display heading. */
     interface ProjectedRoutePointSource {
         boolean project(int index, @NonNull PlotPoint out);
     }

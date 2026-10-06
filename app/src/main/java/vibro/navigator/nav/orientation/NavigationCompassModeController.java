@@ -2,6 +2,7 @@ package vibro.navigator.nav.orientation;
 
 
 import vibro.navigator.nav.compass.CompassPerspectiveScale;
+import vibro.navigator.nav.compass.CompassDisplayStateCache;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
@@ -33,15 +34,8 @@ public final class NavigationCompassModeController {
     @Nullable
     private ViewMode overrideMode;
     private ViewMode displayedMode = ViewMode.FULL_ROUTE;
-    @Nullable
-    private NavCompassState cachedAutomaticState;
-    private boolean cachedMovingScale;
-    @Nullable
-    private NavCompassState cachedModeState;
-    @Nullable
-    private NavCompassState cachedPerspectiveBaseState;
-    @Nullable
-    private NavCompassState cachedPerspectiveState;
+    private final CompassDisplayStateCache modeStateCache = new CompassDisplayStateCache();
+    private final CompassDisplayStateCache perspectiveStateCache = new CompassDisplayStateCache();
     private long overrideExpiryElapsedMs = NO_EXPIRY;
     private final NavigationCompassUiRadiusTransition radiusTransition =
             new NavigationCompassUiRadiusTransition();
@@ -172,25 +166,14 @@ public final class NavigationCompassModeController {
             return automaticState;
         }
         boolean movingScale = displayedMode.usesMovingScale();
-        if (cachedAutomaticState != automaticState || cachedMovingScale != movingScale) {
-            cachedAutomaticState = automaticState;
-            cachedMovingScale = movingScale;
-            cachedModeState = automaticState.withDisplayMode(movingScale);
-        }
-        return cachedModeState;
+        return modeStateCache.resolve(automaticState, movingScale,
+                automaticState.radiusState.targetVisibleRadiusMeters(movingScale));
     }
 
     @NonNull
     private NavCompassState perspectiveState(@NonNull NavCompassState baseState) {
-        if (cachedPerspectiveBaseState != baseState) {
-            cachedPerspectiveBaseState = baseState;
-            cachedPerspectiveState = baseState.withDisplayMode(
-                    baseState.displayMode.movingScaleActive,
-                    baseState.radiusState.visibleRadiusMeters
-                            * CompassPerspectiveScale.maximumViewportMultiplier()
-            );
-        }
-        return cachedPerspectiveState;
+        return perspectiveStateCache.resolve(baseState, baseState.displayMode.movingScaleActive,
+                baseState.radiusState.visibleRadiusMeters * CompassPerspectiveScale.maximumViewportMultiplier());
     }
 
     private void startRadiusTransitionIfScaleChanges(
@@ -248,10 +231,8 @@ public final class NavigationCompassModeController {
     private void clear() {
         clearOverride();
         displayedMode = ViewMode.FULL_ROUTE;
-        cachedAutomaticState = null;
-        cachedModeState = null;
-        cachedPerspectiveBaseState = null;
-        cachedPerspectiveState = null;
+        modeStateCache.clear();
+        perspectiveStateCache.clear();
         radiusTransition.reset();
         perspectiveTransition.reset();
     }

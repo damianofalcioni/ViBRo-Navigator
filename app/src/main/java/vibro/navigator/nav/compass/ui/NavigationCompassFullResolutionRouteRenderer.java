@@ -319,6 +319,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
         if (endIndex <= startIndex) {
             return;
         }
+        // This immutable projection source survives heading refreshes, but changes with position/route state.
         routePathRenderer.drawProjectedRouteSegment(
                 canvas,
                 cx,
@@ -328,11 +329,11 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 endIndex,
                 state.radiusState.visibleRadiusMeters,
                 resolveRouteDrawPaddingMeters(state),
-                state,
+                state.routePoints,
                 SAMPLED_ROUTE_SOURCE,
                 headingDegrees,
                 paint,
-                (index, out) -> projectSampledPoint(state, index, headingDegrees, out)
+                (index, out) -> projectSampledPoint(state, index, out)
         );
     }
 
@@ -362,7 +363,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 0,
                 headingDegrees,
                 paint,
-                (index, out) -> projectProjectedPoint(points.get(index), headingDegrees, out)
+                (index, out) -> projectProjectedPoint(points.get(index), out)
         );
     }
 
@@ -389,53 +390,45 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 endIndex,
                 state.radiusState.visibleRadiusMeters,
                 resolveRouteDrawPaddingMeters(state),
-                state,
+                state.routePoints,
                 FULL_ROUTE_SOURCE,
                 headingDegrees,
                 paint,
-                (index, out) -> projectPoint(state, index, headingDegrees, out)
+                (index, out) -> projectPoint(state, index, out)
         );
     }
 
     private boolean projectPoint(
             @NonNull NavCompassState state,
             int index,
-            float headingDegrees,
             @NonNull NavigationRoutePathRenderer.PlotPoint out
     ) {
         LatLon point = state.fullRouteView.pointAt(index);
         if (point == null) {
             return false;
         }
-        NavigationCompassRouteProjector.projectRoutePoint(state, point, headingDegrees, out);
+        NavigationCompassRouteProjector.projectNorthUpRoutePoint(state, point, out);
         return true;
     }
 
     private boolean projectSampledPoint(
             @NonNull NavCompassState state,
             int index,
-            float headingDegrees,
             @NonNull NavigationRoutePathRenderer.PlotPoint out
     ) {
         LatLon point = state.routeSamplePointAt(index);
         if (point == null) {
             return false;
         }
-        NavigationCompassRouteProjector.projectRoutePoint(state, point, headingDegrees, out);
+        NavigationCompassRouteProjector.projectNorthUpRoutePoint(state, point, out);
         return true;
     }
 
     private boolean projectProjectedPoint(
             @NonNull CompassRoutePoint point,
-            float headingDegrees,
             @NonNull NavigationRoutePathRenderer.PlotPoint out
     ) {
-        NavigationCompassRouteProjector.projectHeadingUp(
-                point.eastMeters,
-                point.northMeters,
-                headingDegrees,
-                out
-        );
+        out.set(point.eastMeters, point.northMeters);
         return true;
     }
 

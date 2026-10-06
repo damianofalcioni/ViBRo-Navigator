@@ -28,6 +28,7 @@ final class NavigationCompassStoredRouteSegmentRenderer {
                 canvas,
                 state,
                 state.archivedPassedRouteSegments(),
+                state.passedRoutePoints,
                 cx,
                 cy,
                 scale,
@@ -41,6 +42,7 @@ final class NavigationCompassStoredRouteSegmentRenderer {
                     canvas,
                     state,
                     geometry.recalculationBridgeSegments(),
+                    state.routePoints,
                     cx,
                     cy,
                     scale,
@@ -55,6 +57,7 @@ final class NavigationCompassStoredRouteSegmentRenderer {
             @NonNull Canvas canvas,
             @NonNull NavCompassState state,
             @NonNull CompassPassedRouteSegments segments,
+            @NonNull Object sourceIdentity,
             float cx,
             float cy,
             float scale,
@@ -67,6 +70,7 @@ final class NavigationCompassStoredRouteSegmentRenderer {
                     canvas,
                     state,
                     segments,
+                    sourceIdentity,
                     cx,
                     cy,
                     scale,
@@ -82,6 +86,7 @@ final class NavigationCompassStoredRouteSegmentRenderer {
             @NonNull Canvas canvas,
             @NonNull NavCompassState state,
             @NonNull CompassPassedRouteSegments segments,
+            @NonNull Object sourceIdentity,
             float cx,
             float cy,
             float scale,
@@ -103,11 +108,11 @@ final class NavigationCompassStoredRouteSegmentRenderer {
                 pointCount,
                 state.radiusState.visibleRadiusMeters,
                 drawPaddingMeters,
-                state,
+                sourceIdentity,
                 segmentIndex,
                 headingDegrees,
                 strokePaint,
-                (i, out) -> projectSegmentPoint(state, segments, segmentIndex, i, headingDegrees, out)
+                (i, out) -> projectSegmentPoint(state, segments, segmentIndex, i, out)
         );
     }
 
@@ -116,14 +121,13 @@ final class NavigationCompassStoredRouteSegmentRenderer {
             @NonNull CompassPassedRouteSegments segments,
             int segmentIndex,
             int pointIndex,
-            float headingDegrees,
             @NonNull NavigationRoutePathRenderer.PlotPoint out
     ) {
         LatLon point = segments.samplePointAt(segmentIndex, pointIndex);
         if (point == null) {
             return false;
         }
-        NavigationCompassRouteProjector.projectRoutePoint(state, point, headingDegrees, out);
+        NavigationCompassRouteProjector.projectNorthUpRoutePoint(state, point, out);
         return true;
     }
 }

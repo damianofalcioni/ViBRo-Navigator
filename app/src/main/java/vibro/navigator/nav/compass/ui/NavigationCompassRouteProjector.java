@@ -30,6 +30,15 @@ final class NavigationCompassRouteProjector {
             float headingDegrees,
             @NonNull NavigationRoutePathRenderer.PlotPoint out
     ) {
+        projectNorthUpRoutePoint(state, point, out);
+        projectHeadingUp(out.x, out.y, headingDegrees, out);
+    }
+
+    static void projectNorthUpRoutePoint(
+            @NonNull NavCompassState state,
+            @NonNull LatLon point,
+            @NonNull NavigationRoutePathRenderer.PlotPoint out
+    ) {
         float eastMeters = (float) GeoMath.eastMeters(
                 state.currentLatitude(),
                 state.currentLongitude(),
@@ -37,6 +46,6 @@ final class NavigationCompassRouteProjector {
                 point.lon
         );
         float northMeters = (float) GeoMath.northMeters(state.currentLatitude(), point.lat);
-        projectHeadingUp(eastMeters, northMeters, headingDegrees, out);
+        out.set(eastMeters, northMeters);
     }
 }
