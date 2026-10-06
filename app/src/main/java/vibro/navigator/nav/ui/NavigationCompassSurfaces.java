@@ -13,6 +13,7 @@ import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.ui.NavigationCompassView;
 import vibro.navigator.nav.compass.ui.NavigationCompassTouchListener;
+import vibro.navigator.nav.compass.ui.NavigationCompassTouchListener.ViewChangeListener;
 import vibro.navigator.nav.orientation.NavigationCompassGestureState;
 import vibro.navigator.settings.AppCompassSettings;
 
@@ -79,9 +80,11 @@ final class NavigationCompassSurfaces {
         fullscreenCompass.setOnClickListener(listener);
     }
 
-    void configureGestures(@NonNull Runnable redraw) {
-        compactCompass.setOnTouchListener(new NavigationCompassTouchListener(compactCompass, gestureState, redraw));
-        fullscreenCompass.setOnTouchListener(new NavigationCompassTouchListener(fullscreenCompass, gestureState, redraw));
+    void configureGestures(@NonNull Runnable redraw, @NonNull ViewChangeListener changeView) {
+        compactCompass.setOnTouchListener(
+                new NavigationCompassTouchListener(compactCompass, gestureState, redraw, changeView));
+        fullscreenCompass.setOnTouchListener(
+                new NavigationCompassTouchListener(fullscreenCompass, gestureState, redraw, changeView));
     }
 
     @Nullable

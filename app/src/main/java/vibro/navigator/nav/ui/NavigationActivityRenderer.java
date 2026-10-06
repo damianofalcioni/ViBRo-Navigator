@@ -79,7 +79,7 @@ final class NavigationActivityRenderer {
         actionButtons = new NavigationActionButtons(activity, uiScheduler, afterSettingsLaunch);
         customButtonUi = new NavigationCustomButtonUi(activity, uiScheduler, new CustomButtonHost());
         compassSurfaces = new NavigationCompassSurfaces(activity, directionsBlock, destination);
-        compassSurfaces.configureGestures(this::renderCompassState);
+        compassSurfaces.configureGestures(this::renderCompassState, this::onCompassSwiped);
         compassSurfaces.alignFullscreenCenterWith(actionButtons.settingsAnchor(), actionButtons.exportAnchor());
         detailsDialogs = new NavigationDetailsDialogs(activity, elapsedRealtimeClock);
         compassSurfaces.includeForegroundText(gpsStatus);
@@ -214,6 +214,15 @@ final class NavigationActivityRenderer {
 
     void dismissDetailsDialogs() {
         detailsDialogs.dismissAll();
+    }
+
+    private void onCompassSwiped(int step) {
+        compassModeController.onCompassSwiped(
+                currentState == null ? null : currentState.routeStatus.compassState,
+                step > 0,
+                compassZoomAnimationEnabled()
+        );
+        renderCompassState();
     }
 
     private void renderCompassState() {

@@ -6,8 +6,12 @@ import android.view.ViewConfiguration;
 
 import vibro.navigator.nav.orientation.NavigationCompassGestureState;
 
-/** Separates physical double taps from pinch and tilt streams. */
+/** Separates single-finger view gestures from pinch and tilt streams. */
 public final class NavigationCompassTouchListener implements View.OnTouchListener {
+    public interface ViewChangeListener {
+        void onSwipe(int step);
+    }
+
     private enum Gesture { UNDECIDED, ZOOM, TILT }
 
     // Crossing this span ratio advances one level, then consumes the rest of the pinch.
@@ -15,7 +19,7 @@ public final class NavigationCompassTouchListener implements View.OnTouchListene
     private final NavigationCompassGestureState state;
     private final Runnable redraw;
     private final float touchSlop;
-    private final NavigationCompassTapListener taps;
+    private final NavigationCompassSingleTouchListener singleTouch;
     private boolean multiTouch;
     private boolean tracking;
     private Gesture gesture = Gesture.UNDECIDED;
@@ -25,11 +29,12 @@ public final class NavigationCompassTouchListener implements View.OnTouchListene
     private int firstPointerId;
     private int secondPointerId;
 
-    public NavigationCompassTouchListener(View view, NavigationCompassGestureState state, Runnable redraw) {
+    public NavigationCompassTouchListener(View view, NavigationCompassGestureState state,
+                                          Runnable redraw, ViewChangeListener changeView) {
         this.state = state;
         this.redraw = redraw;
         touchSlop = ViewConfiguration.get(view.getContext()).getScaledTouchSlop();
-        taps = new NavigationCompassTapListener(view);
+        singleTouch = new NavigationCompassSingleTouchListener(view, changeView);
     }
 
     @Override
@@ -43,7 +48,7 @@ public final class NavigationCompassTouchListener implements View.OnTouchListene
             onPointerDown(view, event);
         }
         if (!multiTouch) {
-            if (taps.onTouch(view, event)) {
+            if (singleTouch.onTouch(view, event)) {
                 view.performClick();
             }
         } else {
@@ -54,7 +59,7 @@ public final class NavigationCompassTouchListener implements View.OnTouchListene
 
     private void onPointerDown(View view, MotionEvent event) {
         if (!multiTouch) {
-            taps.cancel(view);
+            singleTouch.cancel(view);
             multiTouch = true;
             if (view.getParent() != null) {
                 view.getParent().requestDisallowInterceptTouchEvent(true);

@@ -22,6 +22,45 @@ import vibro.navigator.nav.compass.CompassStreetSegment;
 public class NavigationCompassModeControllerTest {
 
     @Test
+    public void reverseSwipesCycleThroughFullRouteSecond2d3dFirst2dAndFullRoute() {
+        long[] now = {1_000L};
+        NavigationCompassModeController controller = new NavigationCompassModeController(() -> now[0]);
+        NavCompassState automaticState = stationaryState();
+        for (int step = 1; step <= 4; step++) {
+            controller.onCompassSwiped(automaticState, false, false);
+            now[0] += 320L;
+            NavCompassState displayed = controller.resolve(automaticState, now[0], false);
+            assertEquals(step != 4, displayed.displayMode.movingScaleActive);
+            assertEquals(step == 2, controller.isPerspectiveViewEnabled());
+        }
+    }
+
+    @Test
+    public void forwardSwipeAndDoubleTapShareCycleAndRightSwipeReversesThem() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automaticState = stationaryState();
+        controller.onCompassSwiped(automaticState, true, false);
+        assertTrue(controller.resolve(automaticState, 0L, false).displayMode.movingScaleActive);
+        controller.onCompassTapped(automaticState, 0L, false);
+        assertTrue(controller.isPerspectiveViewEnabled());
+        controller.onCompassSwiped(automaticState, false, false);
+        assertFalse(controller.isPerspectiveViewEnabled());
+        controller.onCompassSwiped(automaticState, false, false);
+        assertFalse(controller.resolve(automaticState, 0L, false).displayMode.movingScaleActive);
+    }
+
+    @Test
+    public void reverseSwipeToOverviewWhileMovingRetainsFiveSecondRestore() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automaticState = movingState();
+        controller.onCompassSwiped(automaticState, false, false);
+        assertFalse(controller.resolve(automaticState, 4_999L, false).displayMode.movingScaleActive);
+        assertTrue(controller.resolve(automaticState, 5_000L, false).displayMode.movingScaleActive);
+        controller.onCompassSwiped(null, false, false);
+        assertTrue(controller.resolve(automaticState, 5_000L, false).displayMode.movingScaleActive);
+    }
+
+    @Test
     public void stationaryTapsCycleThroughFullRoute2d3d2dAndFullRoute() {
         NavigationCompassModeController controller = newController();
         NavCompassState automaticState = stationaryState();

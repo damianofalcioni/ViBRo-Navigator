@@ -22,8 +22,8 @@ public final class NavigationCompassModeController {
             return this != FULL_ROUTE;
         }
 
-        ViewMode next() {
-            return CYCLE[(ordinal() + 1) % CYCLE.length];
+        ViewMode step(boolean forward) {
+            return CYCLE[(ordinal() + (forward ? 1 : CYCLE.length - 1)) % CYCLE.length];
         }
     }
 
@@ -71,6 +71,16 @@ public final class NavigationCompassModeController {
             long nowElapsedMs,
             boolean animateRadiusTransition
     ) {
+        changeView(automaticState, nowElapsedMs, animateRadiusTransition, true);
+    }
+
+    public void onCompassSwiped(@Nullable NavCompassState automaticState,
+                                boolean forward, boolean animateRadiusTransition) {
+        changeView(automaticState, elapsedRealtimeClock.elapsedRealtimeMs(), animateRadiusTransition, forward);
+    }
+
+    private void changeView(@Nullable NavCompassState automaticState, long nowElapsedMs,
+                            boolean animateRadiusTransition, boolean forward) {
         if (automaticState == null) {
             return;
         }
@@ -80,7 +90,7 @@ public final class NavigationCompassModeController {
                 nowElapsedMs,
                 animateRadiusTransition
         );
-        ViewMode targetMode = currentMode.next();
+        ViewMode targetMode = currentMode.step(forward);
         perspectiveTransition.start(targetMode == ViewMode.PERSPECTIVE_3D, nowElapsedMs);
         startRadiusTransitionIfScaleChanges(currentMode, targetMode, nowElapsedMs, animateRadiusTransition);
         displayedMode = targetMode;

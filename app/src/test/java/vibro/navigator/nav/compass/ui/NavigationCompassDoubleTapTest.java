@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricTestRunner.class)
 public class NavigationCompassDoubleTapTest {
     @Test
-    public void onlyDoubleTapSwitchesCompactAndFullscreenInEveryMode() {
+    public void doubleTapSwitchesCompactAndFullscreenInEveryMode() {
         for (boolean fullscreen : new boolean[]{false, true}) {
             for (boolean moving : new boolean[]{false, true}) {
                 for (boolean perspective : new boolean[]{false, true}) {

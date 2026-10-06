@@ -147,6 +147,8 @@ public class NavigationCompassTouchListenerTest {
         final NavigationCompassView view;
         int clicks;
         int redraws;
+        int swipes;
+        int lastSwipeStep;
         long eventTime;
 
         Fixture(boolean moving, boolean perspective, boolean fullscreen) {
@@ -160,7 +162,10 @@ public class NavigationCompassTouchListenerTest {
             activity.setContentView(view);
             view.layout(0, 0, 300, 300);
             view.setOnClickListener(v -> clicks++);
-            view.setOnTouchListener(new NavigationCompassTouchListener(view, gestures, () -> redraws++));
+            view.setOnTouchListener(new NavigationCompassTouchListener(view, gestures, () -> redraws++, step -> {
+                swipes++;
+                lastSwipeStep = step;
+            }));
         }
 
         float radius() {
