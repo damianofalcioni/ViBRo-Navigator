@@ -385,6 +385,7 @@
     <string name="about_play_store_link"><u>Rate on Play Store</u></string>
     <string name="about_source_code_link"><u>Source Code on GitHub</u></string>
     <string name="about_report_issue_link"><u>Report an issue</u></string>
+    <string name="about_changelog_link"><u>Changelog</u></string>
     <string name="about_privacy_policy_link"><u>Privacy Policy</u></string>
     <string name="about_terms_of_service_link"><u>Terms of Service</u></string>
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>

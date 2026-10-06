@@ -53,7 +53,7 @@ abstract class PrepareReleaseTask extends DefaultTask {
 
 def releaseAppBuildFile = layout.projectDirectory.file("app/build.gradle").asFile
 def releaseFdroidMetadataFile = layout.projectDirectory.file("fdroid/vibro.navigator.yml").asFile
-def releaseChangelogFile = layout.projectDirectory.file("CHANGELOG.md").asFile
+def releaseChangelogFile = layout.projectDirectory.file("docs/CHANGELOG/index.html").asFile
 def releaseFastlaneChangelogDir = layout.projectDirectory.dir("fastlane/metadata/android/en-US/changelogs").asFile
 def releaseRepoDir = layout.projectDirectory.asFile
 
@@ -94,7 +94,7 @@ def replaceExactlyOne = { File file, String regex, Closure<String> replacement -
 }
 
 def runReleaseGit = { File cwd, List<String> args ->
-    def command = ["git"] + args
+    def command = (["git"] + args).collect { it.toString() }
     def process = new ProcessBuilder(command)
             .directory(cwd)
             .redirectErrorStream(false)
@@ -118,43 +118,59 @@ def releaseTagMatches = { String tagName ->
     tagName ==~ /^v?\d+\.\d+\.\d+$/
 }
 
-def markdownReleaseSection = { String versionName, String today, String baseRef, List<String> messages ->
+def escapeReleaseHtml = { String text ->
+    text.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .replace('"', "&quot;")
+            .replace("'", "&#39;")
+}
+
+def htmlReleaseSection = { String versionName, String today, String baseRef, List<String> messages ->
     def baseLine = baseRef
             ? "Changes since ${baseRef}."
             : "Changes since repository start; no previous release tag was found."
-    def bulletLines = messages
-            ? messages.collect { "- ${it}" }.join("\n")
-            : "- No commits since the previous release."
+    def bulletLines = (messages ?: ["No commits since the previous release."])
+            .collect { "            <li>${escapeReleaseHtml(it)}</li>" }.join("\n")
 
-    "## ${versionName} - ${today}\n\n${baseLine}\n\n${bulletLines}\n\n"
+    """        <section data-release-version="${versionName}">
+          <h2 id="v${versionName}">${versionName} - ${today}</h2>
+          <p>${escapeReleaseHtml(baseLine)}</p>
+          <ul>
+${bulletLines}
+          </ul>
+        </section>"""
 }
 
-def updateReleaseChangelog = { File changelogFile, String versionName, String section ->
+def updatedReleaseChangelog = { File changelogFile, String versionName, String section ->
     if (!changelogFile.exists()) {
-        writeUtf8(changelogFile, "# Changelog\n\n${section}")
-        return
+        throw new GradleException("Missing HTML changelog: ${changelogFile}.")
     }
 
     def text = readUtf8(changelogFile)
+    def marker = "<!-- ADD NEW CHANGELOG ENTRIES HERE, newest release first. -->"
+    def markerIndex = text.indexOf(marker)
+    if (markerIndex < 0 || text.indexOf(marker, markerIndex + marker.length()) >= 0) {
+        throw new GradleException("Expected exactly one changelog insertion marker in ${changelogFile}.")
+    }
+
+    def insertionIndex = markerIndex + marker.length()
+    def endIndex = text.indexOf("</article>", insertionIndex)
+    if (endIndex < 0) {
+        throw new GradleException("Missing closing article after the changelog insertion marker in ${changelogFile}.")
+    }
+
+    def entries = text.substring(insertionIndex, endIndex)
     def quotedVersion = java.util.regex.Pattern.quote(versionName)
+    // Replace only entries generated for this version, keeping reruns idempotent.
     def sectionPattern = java.util.regex.Pattern.compile(
-            "(?ms)^## \\[?${quotedVersion}\\]? - \\d{4}-\\d{2}-\\d{2}\\R.*?(?=^## |\\z)"
+            "(?s)\\r?\\n[ \\t]*<section data-release-version=\"${quotedVersion}\">.*?</section>"
     )
-    def matcher = sectionPattern.matcher(text)
+    def remainingEntries = sectionPattern.matcher(entries).replaceAll("")
+    def newline = text.contains("\r\n") ? "\r\n" : "\n"
 
-    if (matcher.find()) {
-        def output = new StringBuffer()
-        matcher.appendReplacement(output, java.util.regex.Matcher.quoteReplacement(section))
-        matcher.appendTail(output)
-        writeUtf8(changelogFile, output.toString())
-        return
-    }
-
-    if (text.startsWith("# Changelog")) {
-        writeUtf8(changelogFile, text.replaceFirst(/\A# Changelog\s*/, "# Changelog\n\n${java.util.regex.Matcher.quoteReplacement(section)}"))
-    } else {
-        writeUtf8(changelogFile, "# Changelog\n\n${section}${text}")
-    }
+    text.substring(0, insertionIndex) + newline + section.replace("\n", newline) +
+            remainingEntries + text.substring(endIndex)
 }
 
 tasks.register("prepareRelease", PrepareReleaseTask) {
@@ -219,6 +235,11 @@ tasks.register("prepareRelease", PrepareReleaseTask) {
                 .collect { it.trim() }
                 .findAll { it }
 
+        // Validate the insertion point before changing any release metadata.
+        def today = java.time.LocalDate.now().toString()
+        def htmlSection = htmlReleaseSection(releaseVersion, today, baseRef, commitMessages)
+        def changelogText = updatedReleaseChangelog(releaseChangelogFile, releaseVersion, htmlSection)
+
         replaceExactlyOne(
                 releaseAppBuildFile,
                 /^(\s*versionCode\s*=\s*)\d+(\s*)$/,
@@ -256,9 +277,7 @@ tasks.register("prepareRelease", PrepareReleaseTask) {
                 { matcher -> "${matcher.group(1)}${releaseVersionCode}${matcher.group(2)}" }
         )
 
-        def today = java.time.LocalDate.now().toString()
-        def markdownSection = markdownReleaseSection(releaseVersion, today, baseRef, commitMessages)
-        updateReleaseChangelog(releaseChangelogFile, releaseVersion, markdownSection)
+        writeUtf8(releaseChangelogFile, changelogText)
 
         def fastlaneChangelog = releaseFastlaneChangelogDir.toPath().resolve("${releaseVersionCode}.txt").toFile()
         def fastlaneText = commitMessages
@@ -270,7 +289,9 @@ tasks.register("prepareRelease", PrepareReleaseTask) {
         logger.lifecycle("Previous release ref: ${baseRef ?: 'none found'}")
         logger.lifecycle("Updated ${releaseAppBuildFile}, ${releaseFdroidMetadataFile}, ${releaseChangelogFile}, and ${fastlaneChangelog}.")
         logger.lifecycle("")
-        logger.lifecycle("Review note: inspect CHANGELOG.md and ${fastlaneChangelog} before committing or tagging.")
+        logger.lifecycle("Review note: inspect ${releaseChangelogFile} and ${fastlaneChangelog} before committing or tagging.")
+        logger.lifecycle("Release changelog link: docs/CHANGELOG/index.html#v${releaseVersion}")
+        logger.lifecycle("AI agent suggestion: review the generated entries for ${releaseVersion} in ${releaseChangelogFile} and ${fastlaneChangelog}, and summarize them into concise, user-facing release notes. Group related changes and remove duplicates while preserving heading IDs, the insertion marker, and older releases.")
         logger.lifecycle("New changelog additions: ${commitMessages.size()} commit message(s) from ${baseRef ?: 'repository start'} to HEAD.")
         commitMessages.take(20).each { message ->
             logger.lifecycle(" - ${message}")

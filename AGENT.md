@@ -77,9 +77,14 @@ Distribution-related workflows:
 
 - `.\gradlew.bat prepareRelease --release-version=0.2.0` is the local
   release-prep task. It updates `app/build.gradle`,
-  `fdroid/vibro.navigator.yml`, root `CHANGELOG.md`, and the Fastlane changelog
+  `fdroid/vibro.navigator.yml`, `docs/CHANGELOG/index.html`, and the Fastlane changelog
   for the target `versionCode`, prints a review summary of the new changelog
-  additions, and does not create a commit or tag.
+  additions, and does not create a commit or tag. HTML release entries are inserted
+  immediately after `<!-- ADD NEW CHANGELOG ENTRIES HERE, newest release first. -->`;
+  preparing the same version again replaces its generated entry. Generated headings
+  use `id="v<version>"` for fragment links such as `CHANGELOG/#v0.2.0`. The command
+  suggests that AI agents review and summarize the generated entries into concise
+  release notes while preserving heading IDs, the insertion marker, and older releases.
 - `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, explicit flavor lint/tests, and `assembleFdroidRelease` generation. It is maintainer-triggered through manual dispatch, a pushed `v*` release tag, or the F-Droid submission workflow; it is not per-commit CI.
 - `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that first runs F-Droid readiness for the requested `release_ref`, then renders `fdroid/vibro.navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.

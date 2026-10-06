@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.widget.TextViewCompat;
 import androidx.test.core.app.ApplicationProvider;
 
+import vibro.navigator.BuildConfig;
 import vibro.navigator.R;
 import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppLogger;
@@ -204,12 +205,14 @@ public class AboutLoggingSettingsRobolectricTest {
                 Arrays.asList(
                         activity.getString(R.string.about_source_code_link),
                         activity.getString(R.string.about_report_issue_link),
+                        activity.getString(R.string.about_changelog_link),
                         activity.getString(R.string.about_privacy_policy_link),
                         activity.getString(R.string.about_terms_of_service_link)
                 ),
                 Arrays.asList(
                         ((TextView) activity.findViewById(R.id.aboutSourceCodeLink)).getText().toString(),
                         ((TextView) activity.findViewById(R.id.aboutReportIssueLink)).getText().toString(),
+                        ((TextView) activity.findViewById(R.id.aboutChangelogLink)).getText().toString(),
                         ((TextView) activity.findViewById(R.id.aboutPrivacyPolicyLink)).getText().toString(),
                         ((TextView) activity.findViewById(R.id.aboutTermsOfServiceLink)).getText().toString()
                 )
@@ -451,6 +454,7 @@ public class AboutLoggingSettingsRobolectricTest {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
         TextView reportIssueLink = activity.findViewById(R.id.aboutReportIssueLink);
+        TextView changelogLink = activity.findViewById(R.id.aboutChangelogLink);
         TextView privacyPolicyLink = activity.findViewById(R.id.aboutPrivacyPolicyLink);
         TextView termsOfServiceLink = activity.findViewById(R.id.aboutTermsOfServiceLink);
         TextView credits = activity.findViewById(R.id.aboutCredits);
@@ -459,16 +463,20 @@ public class AboutLoggingSettingsRobolectricTest {
         assertNotEquals(ContextCompat.getColor(activity, R.color.success), expectedProjectLinkColor);
         assertEquals(expectedProjectLinkColor, sourceCodeLink.getCurrentTextColor());
         assertEquals(expectedProjectLinkColor, reportIssueLink.getCurrentTextColor());
+        assertEquals(expectedProjectLinkColor, changelogLink.getCurrentTextColor());
         assertEquals(expectedProjectLinkColor, privacyPolicyLink.getCurrentTextColor());
         assertEquals(expectedProjectLinkColor, termsOfServiceLink.getCurrentTextColor());
         assertTrue(TextViewCompat.getCompoundDrawableTintList(sourceCodeLink) == null);
         assertTrue(TextViewCompat.getCompoundDrawableTintList(reportIssueLink) == null);
+        assertTrue(TextViewCompat.getCompoundDrawableTintList(changelogLink) == null);
         assertTrue(TextViewCompat.getCompoundDrawableTintList(privacyPolicyLink) == null);
         assertTrue(TextViewCompat.getCompoundDrawableTintList(termsOfServiceLink) == null);
         sourceCodeLink.performClick();
         Intent sourceIntent = shadowOf(activity).getNextStartedActivity();
         reportIssueLink.performClick();
         Intent issueIntent = shadowOf(activity).getNextStartedActivity();
+        changelogLink.performClick();
+        Intent changelogIntent = shadowOf(activity).getNextStartedActivity();
         privacyPolicyLink.performClick();
         Intent privacyIntent = shadowOf(activity).getNextStartedActivity();
         termsOfServiceLink.performClick();
@@ -478,6 +486,14 @@ public class AboutLoggingSettingsRobolectricTest {
         assertEquals("https://github.com/damianofalcioni/ViBRo-Navigator", sourceIntent.getDataString());
         assertEquals(Intent.ACTION_VIEW, issueIntent.getAction());
         assertEquals("https://github.com/damianofalcioni/ViBRo-Navigator/issues/new", issueIntent.getDataString());
+        assertEquals(Intent.ACTION_VIEW, changelogIntent.getAction());
+        assertEquals(
+                "https://damianofalcioni.github.io/ViBRo-Navigator/CHANGELOG/#v" + BuildConfig.VERSION_NAME,
+                changelogIntent.getDataString()
+        );
+        LinearLayout links = activity.findViewById(R.id.aboutLinks);
+        assertEquals(links.indexOfChild(reportIssueLink) + 1, links.indexOfChild(changelogLink));
+        assertTrue(changelogLink.getCompoundDrawablesRelative()[0] != null);
         assertEquals(Intent.ACTION_VIEW, privacyIntent.getAction());
         assertEquals(
                 "https://damianofalcioni.github.io/ViBRo-Navigator/privacy-policy/",

@@ -10,7 +10,7 @@ Before opening the official F-Droid merge request, complete these steps:
    store-document URLs are live.
 3. Prepare local release metadata without creating a commit or tag:
    `.\gradlew.bat prepareRelease --release-version=0.1.13`.
-4. Review the console changelog summary, `CHANGELOG.md`, and
+4. Review the console changelog summary, `docs/CHANGELOG/index.html`, and
    `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
 5. Commit the current F-Droid prep changes.
 6. Create and push a release tag matching `versionName`, for example `v0.1.13`.
