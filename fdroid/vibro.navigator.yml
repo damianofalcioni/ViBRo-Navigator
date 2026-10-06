@@ -4,17 +4,22 @@ License: MIT
 AuthorName: Damiano Falcioni
 Summary: Vibrating/Vibe-coded BRouter Navigator is a lightweight, offline-first, and battery-efficient Android navigation app built on top of BRouter
 
-# Replace these with the final public GitHub URLs before submitting to fdroiddata.
 WebSite: https://damianofalcioni.github.io/ViBRo-Navigator/
 SourceCode: https://github.com/damianofalcioni/ViBRo-Navigator
 IssueTracker: https://github.com/damianofalcioni/ViBRo-Navigator/issues
 RepoType: git
 Repo: https://github.com/damianofalcioni/ViBRo-Navigator.git
 
+# F-Droid publishes this APK with the upstream signature only after reproducing it.
+Binaries: https://github.com/damianofalcioni/ViBRo-Navigator/releases/download/v%v/app-fdroid-release.apk
+# Replace with the lower-case SHA-256 signing certificate fingerprint, not the APK hash.
+# The submission workflow obtains this from the verified readiness APK.
+AllowedAPKSigningKeys: REPLACE_WITH_APKSIGNER_SHA256_FINGERPRINT
+
 Builds:
-  - versionName: "0.1.13"
-    versionCode: 13
-    # Prefer the release tag once it exists, e.g. v0.1.13.
+  - versionName: "0.1.16"
+    versionCode: 16
+    # Prefer the release tag once it exists, e.g. v0.1.16.
     # A fixed commit hash also works for the initial submission.
     commit: REPLACE_WITH_RELEASE_TAG_OR_COMMIT
     rm: local.properties
@@ -22,10 +27,7 @@ Builds:
       - fdroid
 
 AutoUpdateMode: Version
-UpdateCheckMode: Tags ^v?[0-9]+\.[0-9]+\.[0-9]+$
+UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
 UpdateCheckData: app/build.gradle|versionCode = (\d+)|.|versionName = "([^"]+)"
-CurrentVersion: "0.1.13"
-CurrentVersionCode: 13
-
-# Optional once you publish a signed upstream APK and want F-Droid to verify it:
-# AllowedAPKSigningKeys: REPLACE_WITH_APKSIGNER_SHA256_FINGERPRINT
+CurrentVersion: "0.1.16"
+CurrentVersionCode: 16

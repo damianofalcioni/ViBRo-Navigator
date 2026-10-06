@@ -1,4 +1,4 @@
-name: Build APK
+name: Build and Publish Release
 
 on:
   push:
@@ -15,6 +15,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
+
+      - name: Verify release tag matches source version
+        if: github.event_name == 'release'
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          python <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          source = Path("app/build.gradle").read_text(encoding="utf-8")
+          version = re.search(r'^\s*versionName\s*=\s*"([^"]+)"', source, re.MULTILINE)
+          if not version or os.environ["RELEASE_TAG"] != f"v{version.group(1)}":
+              raise SystemExit("Release tag must match v<versionName> in app/build.gradle")
+          PY
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
@@ -33,33 +51,117 @@ jobs:
       - name: Ensure gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Run maintainability checks and tests
-        run: ./gradlew complexityCheck testFdroidDebugUnitTest testGplayDebugUnitTest
+      - name: Run lint, maintainability checks, and tests
+        run: ./gradlew lintFdroidDebug lintGplayDebug complexityCheck testFdroidDebugUnitTest testGplayDebugUnitTest
 
       - name: Decode keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > $RUNNER_TEMP/release-keystore.jks
 
-      - name: Build signed release APKs
+      - name: Build signed release artifacts
         env:
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release-keystore.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew assembleFdroidRelease assembleGplayRelease
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == "release" ]]; then
+            ./gradlew assembleFdroidRelease assembleGplayRelease bundleGplayRelease
+          else
+            ./gradlew assembleFdroidRelease assembleGplayRelease
+          fi
+
+      - name: Prepare Google Play bundle and release notes
+        if: github.event_name == 'release' && !github.event.release.prerelease
+        run: |
+          python <<'PY'
+          import json
+          import os
+          import shutil
+          from pathlib import Path
+
+          metadata = json.loads(Path("app/build/outputs/apk/gplay/release/output-metadata.json").read_text())
+          version_code = metadata["elements"][0]["versionCode"]
+          notes = Path(f"fastlane/metadata/android/en-US/changelogs/{version_code}.txt").read_text(encoding="utf-8").strip()
+          if not notes or len(notes) > 500:
+              raise SystemExit("Google Play release notes must contain 1 to 500 characters. Review the Fastlane changelog before publishing.")
+          release_dir = Path(os.environ["RUNNER_TEMP"]) / "play-release"
+          notes_dir = release_dir / "whatsnew"
+          notes_dir.mkdir(parents=True, exist_ok=True)
+          shutil.copyfile("app/build/outputs/bundle/gplayRelease/app-gplay-release.aab", release_dir / "app-gplay-release.aab")
+          (notes_dir / "whatsnew-en-US").write_text(notes, encoding="utf-8")
+          PY
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
           name: release-apks
+          if-no-files-found: error
           path: |
-            app/build/outputs/apk/fdroid/release/*.apk
-            app/build/outputs/apk/gplay/release/*.apk
+            app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
+            app/build/outputs/apk/fdroid/release/output-metadata.json
+            app/build/outputs/apk/gplay/release/app-gplay-release.apk
+            app/build/outputs/apk/gplay/release/output-metadata.json
 
-      - name: Attach APK to release
+      - name: Upload Google Play release artifact
+        if: github.event_name == 'release' && !github.event.release.prerelease
+        uses: actions/upload-artifact@v7
+        with:
+          name: play-release-bundle
+          if-no-files-found: error
+          path: ${{ runner.temp }}/play-release/
+
+      - name: Attach signed artifacts to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: ${{ github.event.release.tag_name }}
+          fail_on_unmatched_files: true
           files: |
-            app/build/outputs/apk/fdroid/release/*.apk
-            app/build/outputs/apk/gplay/release/*.apk
+            app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
+            app/build/outputs/apk/gplay/release/app-gplay-release.apk
+            app/build/outputs/bundle/gplayRelease/app-gplay-release.aab
+
+  publish_play:
+    needs: build
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    concurrency:
+      group: google-play-vibro.navigator
+      cancel-in-progress: false
+    steps:
+      - name: Download signed Google Play bundle and release notes
+        uses: actions/download-artifact@v8
+        with:
+          name: play-release-bundle
+          path: play-release
+
+      - name: Validate Google Play credentials
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+        run: |
+          test -n "$PLAY_SERVICE_ACCOUNT_JSON" || { echo "Missing secret: PLAY_SERVICE_ACCOUNT_JSON"; exit 1; }
+
+      - name: Publish Google Play production release
+        uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5 # v1.1.5
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: vibro.navigator
+          releaseFiles: play-release/app-gplay-release.aab
+          releaseName: ${{ github.event.release.tag_name }}
+          tracks: production
+          status: completed
+          whatsNewDirectory: play-release/whatsnew
+
+  submit_fdroid:
+    needs: build
+    if: github.event_name == 'release' && !github.event.release.prerelease
+    permissions:
+      contents: read
+    uses: ./.github/workflows/fdroid-submit.yml
+    with:
+      release_ref: ${{ github.event.release.tag_name }}
+      release_artifact: release-apks
+    secrets: inherit

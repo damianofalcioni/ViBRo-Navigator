@@ -151,6 +151,8 @@ ViBRo-Navigator prioritizes **high-confidence guidance**—when accuracy is low,
 * Minimal architecture with focused components
 * Navigation logic split into small, testable modules
 * Check [`AGENT.md`](./AGENT.md) and [`SPECIFICATION.md`](./SPECIFICATION.md) for more details
+* Publishing a stable GitHub Release triggers signed artifact builds, a Google Play production release with a full rollout, and F-Droid metadata submission. See [`gradle/PLAY_STORE.md`](./gradle/PLAY_STORE.md) for required secrets and the retained manual Gradle publishing fallback.
+* F-Droid submission: see [`fdroid/SUBMISSION.md`](./fdroid/SUBMISSION.md). The recipe requests your signed `fdroid` APK; F-Droid must reproduce it before publishing it with your signature.
 
 ---
 

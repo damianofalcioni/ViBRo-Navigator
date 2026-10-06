@@ -1,0 +1,37 @@
+play {
+    enabled.set(false)
+    defaultToAppBundles.set(true)
+    track.set("internal")
+    releaseStatus.set("DRAFT")
+
+    // Alternatively, GPP reads JSON from ANDROID_PUBLISHER_CREDENTIALS.
+    def credentialsPath = providers.environmentVariable("PLAY_SERVICE_ACCOUNT_JSON")
+    if (credentialsPath.isPresent()) {
+        serviceAccountCredentials.set(rootProject.file(credentialsPath.get()))
+    }
+}
+
+android {
+    playConfigs {
+        gplayRelease {
+            enabled.set(true)
+        }
+    }
+}
+
+def validatePlaySigning = tasks.register("validatePlaySigning") {
+    group = "publishing"
+    description = "Checks the signing environment before publishing a Google Play release."
+    doLast {
+        def required = ["ANDROID_KEYSTORE_PATH", "ANDROID_KEYSTORE_PASSWORD",
+                        "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"]
+        def missing = required.findAll { !System.getenv(it)?.trim() }
+        if (missing) {
+            throw new GradleException("Missing signing environment variables: ${missing.join(', ')}. See gradle/PLAY_STORE.md.")
+        }
+    }
+}
+
+tasks.matching { it.name in ["publishGplayReleaseBundle", "publishGplayReleaseApk"] }.configureEach {
+    dependsOn(validatePlaySigning)
+}

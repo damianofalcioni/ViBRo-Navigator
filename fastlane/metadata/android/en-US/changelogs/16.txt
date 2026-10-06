@@ -1,0 +1,4 @@
+- New first-open welcome explaining navigation, setup and permissions.
+- Improved permission and settings prompts on newer Android versions.
+- Settings exports now include timestamps in filenames.
+- Added a Google Play rating shortcut in the Google Play version.

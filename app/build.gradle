@@ -140,3 +140,9 @@ dependencies {
     testImplementation "org.json:json:20260814"
     testImplementation "org.robolectric:robolectric:4.17"
 }
+
+// Keep the publishing plugin out of normal builds and F-Droid's build environment.
+if (providers.gradleProperty("playPublishing").map { it.isEmpty() || it.toBoolean() }.getOrElse(false)) {
+    apply plugin: "com.github.triplet.play"
+    apply from: "$rootDir/gradle/play-publish.gradle"
+}

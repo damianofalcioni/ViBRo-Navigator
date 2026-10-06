@@ -4,13 +4,42 @@ on:
   workflow_dispatch:
     inputs:
       release_ref:
-        description: "Release tag or commit to use in fdroiddata, for example v0.1.0"
+        description: "Published v<versionName> release tag with app-fdroid-release.apk attached"
         required: true
-        default: "v0.1.0"
+        default: "v0.1.16"
       fdroiddata_branch:
         description: "Branch name in your GitLab fdroiddata fork"
         required: true
         default: "vibro.navigator"
+  workflow_call:
+    inputs:
+      release_ref:
+        description: "Published v<versionName> release tag with signed APK attached"
+        required: true
+        type: string
+      fdroiddata_branch:
+        description: "Branch name in your GitLab fdroiddata fork"
+        required: false
+        type: string
+        default: "vibro.navigator"
+      release_artifact:
+        description: "Signed APK artifact from the calling release build"
+        required: false
+        type: string
+        default: ""
+    secrets:
+      ANDROID_KEYSTORE_BASE64:
+        required: true
+      ANDROID_KEYSTORE_PASSWORD:
+        required: true
+      ANDROID_KEY_ALIAS:
+        required: true
+      ANDROID_KEY_PASSWORD:
+        required: true
+      GITLAB_NAMESPACE:
+        required: true
+      GITLAB_TOKEN:
+        required: true
 
 jobs:
   readiness:
@@ -19,6 +48,8 @@ jobs:
       contents: read
     with:
       release_ref: ${{ inputs.release_ref }}
+      verify_published_apk: true
+      release_artifact: ${{ inputs.release_artifact || '' }}
     secrets: inherit
 
   submit:
@@ -26,6 +57,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    concurrency:
+      group: fdroiddata-${{ inputs.fdroiddata_branch }}
+      cancel-in-progress: false
 
     env:
       APP_ID: vibro.navigator
@@ -50,24 +84,30 @@ jobs:
 
       - name: Validate requested release ref
         shell: bash
+        env:
+          RELEASE_REF: ${{ inputs.release_ref }}
         run: |
           set -euo pipefail
-          git rev-parse --verify "${{ inputs.release_ref }}^{commit}" >/dev/null
+          git rev-parse --verify "${RELEASE_REF}^{commit}" >/dev/null
 
       - name: Render fdroiddata metadata
         id: render
         shell: bash
         env:
           RELEASE_REF: ${{ inputs.release_ref }}
+          APK_SIGNING_KEY: ${{ needs.readiness.outputs.apk_signing_key }}
         run: |
           set -euo pipefail
 
           python <<'PY'
           import os
           import re
+          import subprocess
           from pathlib import Path
 
-          build_gradle = Path("app/build.gradle").read_text(encoding="utf-8")
+          release_ref = os.environ["RELEASE_REF"]
+          release_commit = subprocess.check_output(["git", "rev-parse", "--verify", f"{release_ref}^{{commit}}"], text=True).strip()
+          build_gradle = subprocess.check_output(["git", "show", f"{release_commit}:app/build.gradle"], text=True)
           version_name_match = re.search(r'versionName = "([^"]+)"', build_gradle)
           version_code_match = re.search(r'versionCode = (\d+)', build_gradle)
           if not version_name_match or not version_code_match:
@@ -77,17 +117,23 @@ jobs:
           version_code = version_code_match.group(1)
           repo = os.environ["GITHUB_REPOSITORY"]
           repo_url = f"https://github.com/{repo}"
-          release_ref = os.environ["RELEASE_REF"]
+          signing_key = os.environ["APK_SIGNING_KEY"].lower()
+          if not re.fullmatch(r"[0-9a-f]{64}", signing_key):
+              raise SystemExit("Missing or invalid verified APK signing certificate fingerprint")
+          if release_ref != f"v{version_name}":
+              raise SystemExit("Release tag must match v<versionName> for the upstream APK URL")
 
           text = Path("fdroid/vibro.navigator.yml").read_text(encoding="utf-8")
           replacements = {
-              r"^WebSite: .*$": f"WebSite: {repo_url}",
+              r"^WebSite: .*$": f"WebSite: https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/",
               r"^SourceCode: .*$": f"SourceCode: {repo_url}",
               r"^IssueTracker: .*$": f"IssueTracker: {repo_url}/issues",
               r"^Repo: .*$": f"Repo: {repo_url}.git",
+              r"^Binaries: .*$": f"Binaries: {repo_url}/releases/download/v%v/app-fdroid-release.apk",
+              r"^AllowedAPKSigningKeys: .*$": f"AllowedAPKSigningKeys: {signing_key}",
               r'^  - versionName: ".*"$': f'  - versionName: "{version_name}"',
               r"^    versionCode: \d+$": f"    versionCode: {version_code}",
-              r"^    commit: .*$": f"    commit: {release_ref}",
+              r"^    commit: .*$": f"    commit: {release_commit}",
               r'^CurrentVersion: ".*"$': f'CurrentVersion: "{version_name}"',
               r"^CurrentVersionCode: \d+$": f"CurrentVersionCode: {version_code}",
           }

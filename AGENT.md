@@ -71,7 +71,7 @@ Verified commands from the repository root:
 - `.\gradlew.bat lintFdroidDebug`
 - `.\gradlew.bat lintGplayDebug`
 
-CI lives in `.github/workflows/build-apk.yml` and runs on pushes, pull requests, releases, and manual dispatch. It requires the Android signing secrets, runs explicit `fdroid`/`gplay` unit tests, and builds signed release APKs for both flavors.
+CI lives in `.github/workflows/build-apk.yml` and runs on pushes, pull requests, releases, and manual dispatch. It requires the Android signing secrets, runs explicit `fdroid`/`gplay` lint/tests, and builds signed release APKs for both flavors. On published GitHub Releases it also builds the signed Google Play AAB and attaches all three artifacts. Only stable release events start store jobs, and those jobs depend on successful artifact attachment.
 
 Distribution-related workflows:
 
@@ -85,8 +85,10 @@ Distribution-related workflows:
   use `id="v<version>"` for fragment links such as `CHANGELOG/#v0.2.0`. The command
   suggests that AI agents review and summarize the generated entries into concise
   release notes while preserving heading IDs, the insertion marker, and older releases.
-- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence, version/tag consistency, explicit flavor lint/tests, and `assembleFdroidRelease` generation. It is maintainer-triggered through manual dispatch, a pushed `v*` release tag, or the F-Droid submission workflow; it is not per-commit CI.
-- `.github/workflows/fdroid-submit.yml` is a maintainer-operated workflow that first runs F-Droid readiness for the requested `release_ref`, then renders `fdroid/vibro.navigator.yml`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
+- `.\gradlew.bat -PplayPublishing :app:publishGplayReleaseBundle` remains the manual publishing fallback using `gradle/play-publish.gradle`. It enables only `gplayRelease`, defaults to an internal-track draft AAB, and uses external service account credentials plus the existing signing environment. CI does not enable this plugin; it uses a dedicated Play upload action with the already-built AAB. See `gradle/PLAY_STORE.md`. Keep the plugin classpath opt-in so F-Droid source builds do not load it.
+- `.github/workflows/build-apk.yml` calls both store jobs only after its release build and artifact attachment succeed. Play submits a production release with a full rollout (`tracks: production`, `status: completed`) using the `PLAY_SERVICE_ACCOUNT_JSON` repository secret (JSON contents), which needs production release permission. Google review and Play Console managed publishing controls still apply. Release notes reuse the Fastlane changelog and must be 1–500 characters. Store jobs never run for pushes, pull requests, manual build dispatches, or prereleases.
+- `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence and version/tag consistency. Standalone runs execute flavor lint/tests and build a signed APK; release calls reuse the parent build's tested APK artifact. It verifies the APK signature and exports the signing certificate fingerprint. Submission additionally requires the public GitHub Release APK to have the same certificate, package and version. It runs through manual dispatch or the F-Droid submission workflow, with no independent tag-push trigger, and does not establish F-Droid-side reproducibility.
+- `.github/workflows/fdroid-submit.yml` is reusable and also supports standalone manual retries. It first runs F-Droid readiness for the requested published `v<versionName>` tag, then renders `fdroid/vibro.navigator.yml` with the release commit/version, versioned `Binaries` URL and verified `AllowedAPKSigningKeys`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
 - `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
 

@@ -19,3 +19,6 @@ Desktop.ini
 
 #keystore
 release-keystore.jks
+
+# Local Google Play service account credentials
+play-service-account*.json
