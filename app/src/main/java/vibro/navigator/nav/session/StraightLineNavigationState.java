@@ -161,7 +161,7 @@ final class StraightLineNavigationState {
         );
         compassMemory.rememberCompassState(
                 state,
-                snapshot.nowMs,
+                snapshot.nowElapsedMs,
                 snapshot.lastFiltered,
                 snapshot.displaySpeedMps,
                 snapshot.likelyStationary
@@ -280,9 +280,9 @@ final class StraightLineNavigationState {
                 compassMemory.lastReliableMovingSpeedBucket(),
                 CompassZoomAnimationPolicy.updateDeltaMs(
                         snapshot.compassZoomAnimationEnabled,
-                        compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
+                        compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowElapsedMs)
                 ),
-                snapshot.nowMs,
+                snapshot.nowElapsedMs,
                 snapshot.stationaryFullRouteZoomEnabled
         );
     }

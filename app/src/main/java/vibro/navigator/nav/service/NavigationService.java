@@ -1,5 +1,7 @@
 package vibro.navigator.nav.service;
 
+import vibro.navigator.nav.time.NavigationDisplayTime;
+import vibro.navigator.nav.session.NavigationSessionContextResources;
 
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
@@ -289,10 +291,11 @@ public class NavigationService extends Service {
             return;
         }
         var orientationCue = runtime().activeOrientationCue();
-        NavState s = navigationSession.buildState(
+        NavState s = NavigationSessionContextResources.buildState(
+                navigationSession,
                 this,
                 runtime().nextEvaluationDeadlineElapsedMs(),
-                System.currentTimeMillis(),
+                new NavigationDisplayTime(System.currentTimeMillis(), runtime().elapsedRealtimeMs()),
                 runtime().fixedSatelliteCount(),
                 runtime().displayHeadingDegrees(),
                 runtime().displayHeadingAccuracyDegrees(),

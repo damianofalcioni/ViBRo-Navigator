@@ -498,6 +498,8 @@ The navigation UI must show the following in large text:
 
 #### 4.5.2 Compass route view
 
+- Full navigation snapshots and heading-only refreshes must use the same monotonic time domain for GPS freshness, stationary heading confirmation and compass transitions. Calendar-clock corrections must not change those policies; displayed arrival times must continue to use wall-clock time.
+
 - In the center: a map-free compass canvas showing the active route relative to the current position
 - The compass must not render a map background
 - The route must rotate live with the latest trusted display heading so forward stays at the top of the view

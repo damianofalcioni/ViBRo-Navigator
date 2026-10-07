@@ -1,5 +1,6 @@
 package vibro.navigator.nav.session;
 
+import vibro.navigator.nav.time.NavigationDisplayTime;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -359,11 +360,38 @@ public final class NavigationSessionResourceAdapter {
             boolean compassZoomAnimationEnabled,
             boolean stationaryFullRouteZoomEnabled
     ) {
+        return buildState(
+                session,
+                textResources,
+                nextEvaluationDeadlineElapsedMs,
+                new NavigationDisplayTime(nowMs, nowMs),
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                compassZoomAnimationEnabled,
+                stationaryFullRouteZoomEnabled
+        );
+    }
+
+    @NonNull
+    public static NavState buildState(
+            @NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources,
+            long nextEvaluationDeadlineElapsedMs,
+            @NonNull NavigationDisplayTime time,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue,
+            boolean compassZoomAnimationEnabled,
+            boolean stationaryFullRouteZoomEnabled
+    ) {
         return session.components.stateBuilder.build(
                 textResources,
                 session.currentRequest,
                 nextEvaluationDeadlineElapsedMs,
-                nowMs,
+                time,
                 fixedSatelliteCount,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,

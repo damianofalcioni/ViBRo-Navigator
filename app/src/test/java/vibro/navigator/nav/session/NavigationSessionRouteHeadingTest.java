@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavState;
@@ -14,12 +15,83 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.time.NavigationDisplayTime;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class NavigationSessionRouteHeadingTest {
+    private static final long WALL_TIME_MS = 1_791_367_985_000L;
+
+    @Test
+    public void distinctClocksKeepFullAndSensorUpdatesOnTheSameBeelineHeading() {
+        for (int scenario = 0; scenario < 3; scenario++) {
+            assertBeelineClockStability(beelineSession(scenario));
+        }
+    }
+
+    private static NavigationSession beelineSession(int scenario) {
+        NavigationSession session = session(scenario == 0
+                ? NavigationRoutingMode.STRAIGHT_LINE : NavigationRoutingMode.BROUTER);
+        if (scenario != 0) {
+            applyRoute(session, new LatLon(0, scenario == 1 ? 0.001 : 0), scenario == 2);
+            evaluateRoute(session, 1_000L);
+            assertTrue(session.components.routeState.isBeelineGuidanceActive());
+        }
+        return session;
+    }
+
+    private static void assertBeelineClockStability(NavigationSession session) {
+        for (long elapsed = 1_000; elapsed <= 7_000; elapsed += 3_000) {
+            if (elapsed != 1_000) {
+                accept(session, fix(elapsed));
+            }
+            // A calendar-clock correction must not change GPS freshness.
+            NavState full = buildWithClocks(session, WALL_TIME_MS - elapsed, elapsed);
+            assertHeading(full, 84f);
+            assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, full, 220.0, 5f, elapsed + 100), 84f);
+        }
+        NavState stale = buildWithClocks(session, WALL_TIME_MS, 18_000);
+        assertHeading(stale, 180f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, stale, 220.0, 5f, 18_100), 220f);
+    }
+
+    @Test
+    public void routedDisagreementRemainsConfirmedAcrossDifferentClockUpdates() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        applyRoute(session, new LatLon(0, 0), false);
+        session.getLastFilteredLocation().setBearing(270f);
+        assertHeading(buildWithClocks(session, WALL_TIME_MS, 1_000), 90f);
+        NavigationLocation reversed = fix(3_000);
+        reversed.setLongitude(-0.00015);
+        reversed.setBearing(270f);
+        accept(session, reversed);
+        NavState state = buildWithClocks(session, WALL_TIME_MS + 2_000, 3_000);
+        assertHeading(state, 270f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, state, 220.0, 5f, 3_100), 270f);
+        assertHeading(buildWithClocks(session, WALL_TIME_MS + 3_000, 4_000), 270f);
+    }
+
+    @Test
+    public void arrivalLabelsUseWallTimeWhileHeadingUsesElapsedTime() {
+        NavigationSession session = session(NavigationRoutingMode.STRAIGHT_LINE);
+        // The target is about 352 m away at 3 m/s, so arrival is about 117 seconds ahead.
+        NavState state = buildWithClocks(session, WALL_TIME_MS, 1_000);
+        assertTrue(state.routeStatus.progress.destinationLine.contains(
+                NavigationTextFormatter.formatEta(WALL_TIME_MS + 117_000)));
+        assertHeading(state, 84f);
+    }
+
+    private static NavState buildWithClocks(NavigationSession session, long wallTime, long elapsed) {
+        return NavigationSessionResourceAdapter.buildState(session, TestNavigationTextResources.metric(),
+                NavState.NO_DEADLINE, new NavigationDisplayTime(wallTime, elapsed),
+                null, 180.0, 5f, null, true, true);
+    }
+
     @Test
     public void routedNavigationAndHeadingRefreshUseRouteInsteadOfGpsOrCompass() {
         for (NavigationRoutingMode mode : new NavigationRoutingMode[] {

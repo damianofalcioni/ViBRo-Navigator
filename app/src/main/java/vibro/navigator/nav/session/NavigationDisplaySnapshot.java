@@ -1,5 +1,6 @@
 package vibro.navigator.nav.session;
 
+import vibro.navigator.nav.time.NavigationDisplayTime;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
 
@@ -36,6 +37,7 @@ public final class NavigationDisplaySnapshot {
     final List<NogoPoint> blockedPoints;
     final long nextEvaluationDeadlineElapsedMs;
     final long nowMs;
+    final long nowElapsedMs;
     final boolean routeCalculationInProgress;
     @Nullable
     final String routeCalculationNotice;
@@ -59,6 +61,7 @@ public final class NavigationDisplaySnapshot {
         blockedPoints = builder.blockedPoints;
         nextEvaluationDeadlineElapsedMs = builder.nextEvaluationDeadlineElapsedMs;
         nowMs = builder.nowMs;
+        nowElapsedMs = builder.nowElapsedMs;
         routeCalculationInProgress = builder.routeCalculationInProgress;
         routeCalculationNotice = builder.routeCalculationNotice;
         lastRouteFailure = builder.lastRouteFailure;
@@ -98,6 +101,7 @@ public final class NavigationDisplaySnapshot {
         private List<NogoPoint> blockedPoints = Collections.emptyList();
         private long nextEvaluationDeadlineElapsedMs;
         private long nowMs;
+        private long nowElapsedMs;
         private boolean routeCalculationInProgress;
         @Nullable
         private String routeCalculationNotice;
@@ -164,8 +168,14 @@ public final class NavigationDisplaySnapshot {
 
         @NonNull
         Builder timing(long nextEvaluationDeadlineElapsedMs, long nowMs) {
+            return timing(nextEvaluationDeadlineElapsedMs, new NavigationDisplayTime(nowMs, nowMs));
+        }
+
+        @NonNull
+        Builder timing(long nextEvaluationDeadlineElapsedMs, @NonNull NavigationDisplayTime time) {
             this.nextEvaluationDeadlineElapsedMs = nextEvaluationDeadlineElapsedMs;
-            this.nowMs = nowMs;
+            this.nowMs = time.wallTimeMs;
+            this.nowElapsedMs = time.elapsedRealtimeMs;
             return this;
         }
 

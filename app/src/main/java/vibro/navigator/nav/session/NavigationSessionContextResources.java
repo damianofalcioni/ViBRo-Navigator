@@ -3,6 +3,10 @@ package vibro.navigator.nav.session;
 import android.content.Context;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import vibro.navigator.nav.compass.CompassOrientationCue;
+import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.time.NavigationDisplayTime;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
@@ -11,10 +15,35 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppNotificationSettings;
 
-final class NavigationSessionContextResources {
+public final class NavigationSessionContextResources {
     private static final String TAG = "NavigationSession";
 
     private NavigationSessionContextResources() {
+    }
+
+    @NonNull
+    public static NavState buildState(
+            @NonNull NavigationSession session,
+            @NonNull Context context,
+            long nextEvaluationDeadlineElapsedMs,
+            @NonNull NavigationDisplayTime time,
+            @Nullable Integer fixedSatelliteCount,
+            @Nullable Double displayHeadingDegrees,
+            @Nullable Float displayHeadingAccuracyDegrees,
+            @Nullable CompassOrientationCue orientationCue
+    ) {
+        return NavigationSessionResourceAdapter.buildState(
+                session,
+                textResources(session, context),
+                nextEvaluationDeadlineElapsedMs,
+                time,
+                fixedSatelliteCount,
+                displayHeadingDegrees,
+                displayHeadingAccuracyDegrees,
+                orientationCue,
+                !isInstantZoomEnabled(context),
+                isStationaryFullRouteZoomEnabled(context)
+        );
     }
 
     @NonNull

@@ -1,13 +1,12 @@
 package vibro.navigator.nav.session;
 
-import android.content.Context;
+import vibro.navigator.nav.time.NavigationDisplayTime;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.compass.CompassOrientationCue;
-import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
@@ -51,7 +50,7 @@ final class NavigationSessionStateBuilder {
 
     @NonNull
     NavState build(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
@@ -63,7 +62,7 @@ final class NavigationSessionStateBuilder {
             boolean paused
     ) {
         return build(
-                context,
+                textResources,
                 currentRequest,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
@@ -79,7 +78,7 @@ final class NavigationSessionStateBuilder {
 
     @NonNull
     NavState build(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
@@ -92,7 +91,7 @@ final class NavigationSessionStateBuilder {
             boolean compassZoomAnimationEnabled
     ) {
         return build(
-                context,
+                textResources,
                 currentRequest,
                 nextEvaluationDeadlineElapsedMs,
                 nowMs,
@@ -109,7 +108,7 @@ final class NavigationSessionStateBuilder {
 
     @NonNull
     NavState build(
-            @NonNull Context context,
+            @NonNull NavigationTextResources textResources,
             @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
             long nowMs,
@@ -123,10 +122,10 @@ final class NavigationSessionStateBuilder {
             boolean stationaryFullRouteZoomEnabled
     ) {
         return build(
-                new AndroidNavigationTextResources(context),
+                textResources,
                 currentRequest,
                 nextEvaluationDeadlineElapsedMs,
-                nowMs,
+                new NavigationDisplayTime(nowMs, nowMs),
                 fixedSatelliteCount,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
@@ -143,65 +142,7 @@ final class NavigationSessionStateBuilder {
             @NonNull NavigationTextResources textResources,
             @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Double displayHeadingDegrees,
-            @Nullable Float displayHeadingAccuracyDegrees,
-            @Nullable CompassOrientationCue orientationCue,
-            int acquiredFixCount,
-            boolean paused
-    ) {
-        return build(
-                textResources,
-                currentRequest,
-                nextEvaluationDeadlineElapsedMs,
-                nowMs,
-                fixedSatelliteCount,
-                displayHeadingDegrees,
-                displayHeadingAccuracyDegrees,
-                orientationCue,
-                acquiredFixCount,
-                paused,
-                true
-        );
-    }
-
-    @NonNull
-    NavState build(
-            @NonNull NavigationTextResources textResources,
-            @NonNull NavigationRequest currentRequest,
-            long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
-            @Nullable Integer fixedSatelliteCount,
-            @Nullable Double displayHeadingDegrees,
-            @Nullable Float displayHeadingAccuracyDegrees,
-            @Nullable CompassOrientationCue orientationCue,
-            int acquiredFixCount,
-            boolean paused,
-            boolean compassZoomAnimationEnabled
-    ) {
-        return build(
-                textResources,
-                currentRequest,
-                nextEvaluationDeadlineElapsedMs,
-                nowMs,
-                fixedSatelliteCount,
-                displayHeadingDegrees,
-                displayHeadingAccuracyDegrees,
-                orientationCue,
-                acquiredFixCount,
-                paused,
-                compassZoomAnimationEnabled,
-                true
-        );
-    }
-
-    @NonNull
-    NavState build(
-            @NonNull NavigationTextResources textResources,
-            @NonNull NavigationRequest currentRequest,
-            long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
+            @NonNull NavigationDisplayTime time,
             @Nullable Integer fixedSatelliteCount,
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees,
@@ -215,7 +156,7 @@ final class NavigationSessionStateBuilder {
                 textResources,
                 currentRequest,
                 nextEvaluationDeadlineElapsedMs,
-                nowMs,
+                time,
                 fixedSatelliteCount,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
@@ -271,7 +212,7 @@ final class NavigationSessionStateBuilder {
             @NonNull NavigationTextResources textResources,
             @NonNull NavigationRequest currentRequest,
             long nextEvaluationDeadlineElapsedMs,
-            long nowMs,
+            @NonNull NavigationDisplayTime time,
             @Nullable Integer fixedSatelliteCount,
             @Nullable Double displayHeadingDegrees,
             @Nullable Float displayHeadingAccuracyDegrees,
@@ -293,7 +234,7 @@ final class NavigationSessionStateBuilder {
                 likelyStationary,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
-                nowMs
+                time.elapsedRealtimeMs
         );
         return NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
@@ -301,7 +242,7 @@ final class NavigationSessionStateBuilder {
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
                 .orientationCue(orientationCue)
                 .blockedPoints(routeState.copyBlockedPoints())
-                .timing(nextEvaluationDeadlineElapsedMs, nowMs)
+                .timing(nextEvaluationDeadlineElapsedMs, time)
                 .routeCalculation(
                         routeRequestManager.isVisibleRouteCalculationInProgress(),
                         routeRequestManager.getInProgressNotice(),

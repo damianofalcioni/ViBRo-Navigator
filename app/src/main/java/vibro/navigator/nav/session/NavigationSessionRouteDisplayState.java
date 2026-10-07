@@ -139,7 +139,7 @@ public final class NavigationSessionRouteDisplayState {
                         compassMemory.lastReliableMovingVisibleRadiusMeters(),
                         CompassZoomAnimationPolicy.updateDeltaMs(
                                 snapshot.compassZoomAnimationEnabled,
-                                compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowMs)
+                                compassMemory.resolveRadiusUpdateDeltaMs(snapshot.nowElapsedMs)
                         )
                 )
                 .speedBucketMemory(compassMemory.lastReliableMovingSpeedBucket())
@@ -154,7 +154,7 @@ public final class NavigationSessionRouteDisplayState {
                 .routeStartApproachTarget(directGuidanceTarget)
                 .orientationCue(orientationCue)
                 .blockedAreas(NavigationBlockedCompassAreas.project(snapshot.lastFiltered, snapshot.blockedPoints))
-                .nowMs(snapshot.nowMs)
+                .nowMs(snapshot.nowElapsedMs)
                 .build();
         NavState state = NavStateComposer.from(NavStateBuildInput
                 .builder(snapshot.textResources, route, polylineIndex, snapshot.lastFiltered)
@@ -185,7 +185,7 @@ public final class NavigationSessionRouteDisplayState {
         if (snapshot.lastFiltered != null) {
             compassMemory.rememberCompassState(
                     state,
-                    snapshot.nowMs,
+                    snapshot.nowElapsedMs,
                     snapshot.lastFiltered,
                     snapshot.displaySpeedMps,
                     snapshot.likelyStationary
