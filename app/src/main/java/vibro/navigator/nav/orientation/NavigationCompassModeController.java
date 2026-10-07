@@ -41,6 +41,8 @@ public final class NavigationCompassModeController {
             new NavigationCompassUiRadiusTransition();
     private final NavigationCompassPerspectiveTransition perspectiveTransition =
             new NavigationCompassPerspectiveTransition();
+    private final NavigationCompassHeadingTransition headingTransition =
+            new NavigationCompassHeadingTransition();
     @NonNull
     private final ElapsedRealtimeClock elapsedRealtimeClock;
 
@@ -142,11 +144,11 @@ public final class NavigationCompassModeController {
         if (progress > 0f) {
             displayedState = perspectiveState(baseState);
         }
-        return displayedState;
+        return headingTransition.resolve(displayedState, nowElapsedMs);
     }
 
     public boolean isTransitionInProgress() {
-        return radiusTransition.isActive() || perspectiveTransition.isActive();
+        return radiusTransition.isActive() || perspectiveTransition.isActive() || headingTransition.isActive();
     }
 
     public boolean isPerspectiveViewEnabled() {
@@ -235,6 +237,7 @@ public final class NavigationCompassModeController {
         perspectiveStateCache.clear();
         radiusTransition.reset();
         perspectiveTransition.reset();
+        headingTransition.reset();
     }
 
     private void clearOverride() {

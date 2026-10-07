@@ -30,7 +30,7 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
     private static final LatLon DESTINATION_POINT = new LatLon(0.0, 0.003);
 
     @Test
-    public void command16LegDoesNotActivateBeforeItsRouteStartWithinRadius() {
+    public void command16LegRemainsInactiveOutsideReachedRadiusAndActivatesInsideIt() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -51,19 +51,35 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
         NavigationRouteBeelineState state = new NavigationRouteBeelineState();
         state.onRouteApplied(route, index);
 
-        NavigationLocation beforeStart = location(0.0, 0.0009, 1_000L, 1f);
+        NavigationLocation beforeStart = location(0.0, 0.0008, 1_000L, 1f);
         assertFalse(state.activateIfReached(
                 index.match(new LatLon(beforeStart.getLatitude(), beforeStart.getLongitude()), -1),
                 beforeStart,
                 20.0
         ));
 
-        NavigationLocation atStart = location(0.0, 0.0011, 2_000L, 1f);
+        NavigationLocation atStart = location(0.0, 0.0009, 2_000L, 1f);
         assertTrue(state.activateIfReached(
                 index.match(new LatLon(atStart.getLatitude(), atStart.getLongitude()), -1),
                 atStart,
                 20.0
         ));
+    }
+
+    @Test
+    public void nearbyFutureBeelineStartDoesNotActivateWhileProgressIsOnAnEarlierLoop() {
+        GeoJsonRoute route = new GeoJsonRoute(Arrays.asList(new LatLon(0, 0),
+                new LatLon(0.002, 0), new LatLon(0.002, 0.002),
+                new LatLon(0, 0.0001), new LatLon(0.001, 0.0001)),
+                Collections.singletonList(new VoiceHint(3, 16, 0, 111, 0)), 200, 800);
+        PolylineIndex index = new PolylineIndex(route.track);
+        NavigationRouteBeelineState state = new NavigationRouteBeelineState();
+        state.onRouteApplied(route, index);
+        assertFalse(state.activateIfReached(new PolylineIndex.Match(0, 0, 0, 0),
+                location(0, 0, 1_000L, 1f), 20));
+        assertTrue(state.activateIfReached(new PolylineIndex.Match(
+                0, index.distanceAtPointIndex(3) - 10, 225, 2),
+                location(0, 0.0001, 4_000L, 1f), 20));
     }
 
     @Test

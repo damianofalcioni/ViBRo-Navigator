@@ -322,13 +322,14 @@ final class NavigationSessionStateBuilder {
             long nowMs
     ) {
         boolean beelineGuidance = currentRequest.isStraightLine() || routeState.isBeelineGuidanceActive();
+        headingResolver.synchronizeRoute(beelineGuidance ? null : routeState.currentRoute());
         return headingResolver.selectHeading(
                 lastFiltered,
                 likelyStationary,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 nowMs,
-                beelineGuidance ? null : routeState.currentSegmentBearingDegrees(lastFiltered),
+                beelineGuidance ? null : routeState.currentDisplayBearingDegrees(lastFiltered),
                 beelineGuidance
         );
     }

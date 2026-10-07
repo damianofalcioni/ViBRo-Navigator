@@ -57,6 +57,7 @@ public final class NavigationSession {
             return false;
         }
         paused = true;
+        components.headingResolver.clearRouteDisagreement();
         components.routeState.clearMotionEvidence();
         components.straightLineState.clearMotionEvidence();
         return true;
@@ -67,6 +68,7 @@ public final class NavigationSession {
             return false;
         }
         paused = false;
+        components.headingResolver.clearRouteDisagreement();
         return true;
     }
 

@@ -114,6 +114,13 @@ final class CompassDisplayMemory {
         return activeTurnManeuverCue;
     }
 
+    @NonNull
+    CompassOrientationCue resolveDirectGuidanceCue(@NonNull NavigationLocation location, @NonNull LatLon target) {
+        clearTurnManeuverCue();
+        return new CompassOrientationCue((float) GeoMath.bearingDegrees(
+                location.getLatitude(), location.getLongitude(), target.lat, target.lon));
+    }
+
     long resolveRadiusUpdateDeltaMs(long nowMs) {
         if (lastRadiusUpdateTimeMs == NO_COMPASS_RADIUS_UPDATE_TIME_MS || nowMs <= lastRadiusUpdateTimeMs) {
             return 0L;

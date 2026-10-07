@@ -26,9 +26,13 @@ public final class NavigationLocationFormatter {
         if (location.hasSpeed()) {
             sb.append(" speed=").append(location.getSpeed());
         }
+        sb.append(" speedAccuracy=").append(location.hasSpeedAccuracy()
+                ? Float.toString(location.getSpeedAccuracyMetersPerSecond()) : "unknown");
         if (location.hasBearing()) {
             sb.append(" bearing=").append(location.getBearing());
         }
+        sb.append(" bearingAccuracy=").append(location.hasBearingAccuracy()
+                ? Float.toString(location.getBearingAccuracyDegrees()) : "unknown");
         sb.append(" time=").append(location.getTime());
         return sb.toString();
     }

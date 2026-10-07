@@ -38,12 +38,18 @@ public final class NavigationLocationMotionModel {
     }
 
     public void recordFilteredLocation(@NonNull NavigationLocation filtered) {
+        boolean wasStationary = stationarityTracker.isStationary();
         previousFiltered = lastFiltered;
         lastFiltered = filtered;
         recentFilteredLocations.addLast(new NavigationLocation(filtered));
-        displayCourseHistory.record(filtered);
         pruneRecentFilteredLocations(filtered.getElapsedRealtimeOrTimeMs());
         stationarityTracker.record(filtered, previousFiltered, isStationaryCandidate());
+        if (!wasStationary && stationarityTracker.isStationary()) {
+            // A departure may reverse direction. Approach fixes must not yield a confident
+            // incoming course while the first return steps are still near the stop.
+            displayCourseHistory.reset();
+        }
+        displayCourseHistory.record(filtered);
     }
 
     public boolean isLikelyStationary() {

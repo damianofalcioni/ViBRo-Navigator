@@ -24,10 +24,12 @@ public final class NavigationSessionLocationState {
     private final NavigationGpsBearingTrustPolicy bearingTrustPolicy = new NavigationGpsBearingTrustPolicy();
 
     private int locationUpdateCount;
+    private int motionRevision;
 
     public void reset() {
         kalman.reset();
         motionModel.reset();
+        motionRevision++;
         locationUpdateCount = 0;
         reacquisitionTracker.reset();
         liveLocationCoordinator.reset();
@@ -85,6 +87,7 @@ public final class NavigationSessionLocationState {
         if (reacquiringAfterLongGap) {
             kalman.reset();
             motionModel.reset();
+            motionRevision++;
             NavigationLocationDebugLogger.reacquiringAfterLongGap(
                     selected,
                     reacquisitionTracker.gapMs(nowMs)
@@ -92,6 +95,7 @@ public final class NavigationSessionLocationState {
         } else if (shouldResetStartupFilter(allowStartupFilterReset, selected, nowMs)) {
             kalman.reset();
             motionModel.reset();
+            motionRevision++;
             NavigationLocationDebugLogger.resettingStartupFilter(selected);
         }
         NavigationLocation filtered = kalman.update(selected);
@@ -103,12 +107,17 @@ public final class NavigationSessionLocationState {
         motionModel.recordFilteredLocation(filtered);
         locationUpdateCount++;
         reacquisitionTracker.recordAccepted(nowMs);
-        NavigationLocationDebugLogger.accepted(locationUpdateCount, selected, filtered);
+        NavigationLocationDebugLogger.accepted(locationUpdateCount, selected, filtered,
+                motionModel.isLikelyStationary(), motionModel.speedMps(filtered));
         return Update.accepted(filtered, reacquiringAfterLongGap);
     }
 
     public boolean isLikelyStationary() {
         return motionModel.isLikelyStationary();
+    }
+
+    int motionRevision() {
+        return motionRevision;
     }
 
     public float speedMps(@NonNull NavigationLocation location) {
@@ -140,6 +149,17 @@ public final class NavigationSessionLocationState {
         return course == null || course.accuracyDegrees > 25f
                 ? null
                 : new HeadingEstimate(course.headingDegrees, course.accuracyDegrees);
+    }
+
+    @Nullable
+    HeadingEstimate routeDisagreementHeading(@NonNull NavigationLocation location) {
+        HeadingEstimate preferred = preferredLocationHeading(location, false);
+        if (preferred != null && preferred.headingAccuracyDegrees != null) {
+            return preferred;
+        }
+        Double bearing = bearingTrustPolicy.displayDisagreementBearingDegrees(location, speedMps(location));
+        return bearing == null ? null
+                : new HeadingEstimate(bearing, bearingTrustPolicy.currentBearingAccuracyDegrees(location));
     }
 
     @Nullable

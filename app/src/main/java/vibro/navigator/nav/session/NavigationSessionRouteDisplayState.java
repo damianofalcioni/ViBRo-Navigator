@@ -118,7 +118,8 @@ public final class NavigationSessionRouteDisplayState {
                 turnState,
                 polylineIndex,
                 match,
-                showNextManeuverCue
+                showNextManeuverCue,
+                directGuidanceTarget
         );
         NavCompassStateInput compassInput = NavCompassStateInput.builder(route, polylineIndex, snapshot.lastFiltered)
                 .routeProgress(match.alongTrackMeters)
@@ -294,8 +295,12 @@ public final class NavigationSessionRouteDisplayState {
             @NonNull NavigationTurnState turnState,
             @NonNull PolylineIndex polylineIndex,
             @NonNull PolylineIndex.Match match,
-            boolean showNextManeuverCue
+            boolean showNextManeuverCue,
+            @Nullable LatLon directGuidanceTarget
     ) {
+        if (directGuidanceTarget != null && snapshot.lastFiltered != null) {
+            return compassMemory.resolveDirectGuidanceCue(snapshot.lastFiltered, directGuidanceTarget);
+        }
         Integer turnManeuverDegrees = turnState.getActiveTurnManeuverDegrees();
         Integer turnManeuverTrackIndex = turnState.getActiveTurnManeuverTrackIndex();
         if (turnManeuverDegrees == null && showNextManeuverCue) {

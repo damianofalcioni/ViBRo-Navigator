@@ -255,6 +255,10 @@ final class NavigationActivityRenderer {
     }
 
     private void logRenderedStateIfChanged(@NonNull NavState state) {
+        var compass = state.routeStatus.compassState;
+        Float cueHeading = compass == null || compass.orientationCue == null
+                ? null : compass.orientationCue.targetHeadingDegrees;
+        boolean beeline = compass != null && compass.routeStartApproachProjection != null;
         String stateKey = state.routeStatus.guidance.nextLine + "|" + state.routeStatus.guidance.afterNextLine
                 + "|" + state.gpsStatus.statusLine
                 + "|" + state.gpsStatus.nextEvaluationDeadlineElapsedMs
@@ -263,6 +267,7 @@ final class NavigationActivityRenderer {
                 + "|" + state.routeStatus.progress.detailBlock
                 + "|" + state.pauseStatus.paused
                 + "|" + formatLogSpeedLimit(state)
+                + "|" + beeline + "|" + cueHeading
                 + "|" + (state.routeStatus.compassState == null ? "no-compass"
                 : state.routeStatus.compassState.routePoints.size());
         if (stateKey.equals(lastRenderedStateKey)) {
@@ -279,7 +284,9 @@ final class NavigationActivityRenderer {
                 + " speedLimit=" + formatLogSpeedLimit(state)
                 + " compass=" + (state.routeStatus.compassState == null ? "none"
                 : ("points=" + state.routeStatus.compassState.routePoints.size()
-                + " heading=" + state.routeStatus.compassState.displayMode.headingDegrees))
+                + " heading=" + state.routeStatus.compassState.displayMode.headingDegrees
+                + " headingAccuracy=" + state.routeStatus.compassState.displayMode.headingAccuracyDegrees
+                + " beeline=" + beeline + " cue=" + cueHeading))
                 + " detail=" + state.routeStatus.progress.detailBlock);
     }
 

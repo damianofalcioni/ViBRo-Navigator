@@ -61,6 +61,29 @@ public class NavigationStationarityTrackerTest {
     }
 
     @Test
+    public void reliablyNonzeroWalkingSpeedDoesNotNeedItsLowerBoundToExceedTravelThreshold() {
+        record(1_000L, 0.0, 0f, 5f);
+        NavigationLocation moving = location(4_000L, 0.5, 0.37f, 6f);
+        moving.setSpeedAccuracyMetersPerSecond(0.1f);
+        model.recordFilteredLocation(moving);
+        assertFalse(model.isLikelyStationary());
+        assertEquals(0.37f, model.speedMps(moving), 0f);
+    }
+
+    @Test
+    public void speedMustExceedTravelThresholdAndExcludeRestToReleaseStop() {
+        record(1_000L, 0.0, 0f, 5f);
+        NavigationLocation boundary = location(4_000L, 0.5, 0.35f, 6f);
+        boundary.setSpeedAccuracyMetersPerSecond(0.05f);
+        model.recordFilteredLocation(boundary);
+        assertTrue(model.isLikelyStationary());
+        NavigationLocation uncertain = location(7_000L, 0.5, 0.4f, 6f);
+        uncertain.setSpeedAccuracyMetersPerSecond(0.2f);
+        model.recordFilteredLocation(uncertain);
+        assertTrue(model.isLikelyStationary());
+    }
+
+    @Test
     public void uncertainOrInvalidSpeedAccuracyCannotReleaseStop() {
         record(1_000L, 0.0, 0f, 5f);
         float[] uncertainties = {0.3f, Float.NaN, Float.POSITIVE_INFINITY, -0.1f};

@@ -146,6 +146,21 @@ public class NavigationSessionHeadingResolverTest {
     }
 
     @Test
+    public void freshReliableWalkingBearingReplacesIncomingGpsHeadingOnFirstReversedFix() {
+        accept(1_000L, 0.0, 1.4f, 5f, 353f);
+        assertEquals(353.0, selectCurrent(103.0, 1_000L).headingDegrees, 0.0);
+        accept(4_000L, 0.0, 0f, 5f, 353f);
+        assertTrue(locationState.isLikelyStationary());
+        selectCurrent(103.0, 4_000L);
+        NavigationLocation reverse = sample(7_000L, -1.0, 0.37f, 6f, 147f);
+        reverse.setSpeedAccuracyMetersPerSecond(0.1f);
+        assertFalse(locationState.onRawLocationChanged(reverse, 7_000L, false).isDropped());
+        assertFalse(locationState.isLikelyStationary());
+        assertEquals(147.0, selectCurrent(103.0, 7_000L).headingDegrees, 0.0);
+        assertEquals(147.0, selectCurrent(103.0, 7_100L).headingDegrees, 0.0);
+    }
+
+    @Test
     public void unknownBearingAccuracyFallsBackToCompassEvenAtHighSpeed() {
         NavigationLocation location = new NavigationLocation("gps");
         location.setTime(1_000L, 1_000L);

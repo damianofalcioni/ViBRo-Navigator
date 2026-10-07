@@ -104,4 +104,10 @@ final class NavigationRouteDirectGuidance {
         PolylineIndex.Match match = resolveRouteMatch(location, accuracyMeters);
         return match == null ? null : geometryState.expectedBearingDegrees(match);
     }
+
+    @Nullable
+    Double displayRouteBearingDegrees(@Nullable NavigationLocation location, float accuracyMeters) {
+        PolylineIndex.Match match = resolveRouteMatch(location, accuracyMeters);
+        return match == null ? null : geometryState.displayBearingDegrees(match);
+    }
 }

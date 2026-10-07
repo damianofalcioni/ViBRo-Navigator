@@ -130,6 +130,12 @@ final class NavigationRouteDirectGuidanceEvaluator {
             directGuidanceState.clearRouteStartApproach();
             geometryState.rememberSegment(match);
             routeHistory.recordProgress(match);
+            if (directGuidanceState.activateRouteBeelineIfReached(match, filtered,
+                    NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(trustedAccuracyMeters))) {
+                // Continue through the native/synthetic beeline evaluator on this same fix,
+                // before an initial road-turn event or display state can escape the handoff.
+                return null;
+            }
             return NavigationRouteEvaluation.keepRoute(
                     NavigationInitialTurnEvents.suppressForSingleInstructionMode(
                             turnState.buildInitialTurnEventIfNeeded(

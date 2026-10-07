@@ -107,6 +107,51 @@ public class NavigationSessionRouteHeadingTest {
                 2_000L, Double.NaN, false).headingDegrees, 0.0);
     }
 
+    @Test
+    public void routedAndRoundTripSnapshotsAndHeadingRefreshesShareConfirmedGpsFallback() {
+        for (NavigationRoutingMode mode : new NavigationRoutingMode[] {
+                NavigationRoutingMode.BROUTER, NavigationRoutingMode.ROUND_TRIP}) {
+            NavigationSession session = session(mode);
+            applyRoute(session, new LatLon(0, 0), false);
+            session.getLastFilteredLocation().setBearing(270f);
+            NavState initial = build(session, 180.0, 1_000L);
+            assertHeading(initial, 90f);
+            assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, initial, 220.0, 5f, 2_000L), 90f);
+            NavigationLocation backwards = fix(3_000);
+            backwards.setLongitude(-0.00015);
+            backwards.setBearing(270f);
+            accept(session, backwards);
+            NavState reversed = build(session, 180.0, 3_000);
+            assertHeading(reversed, 270f);
+            assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, reversed, 220.0, 5f, 3_100), 270f);
+            assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, reversed, 220.0, 5f, 14_000), 90f);
+            assertTrue(session.pause());
+            assertTrue(session.resume());
+            assertHeading(build(session, 180.0, 3_200), 90f);
+        }
+    }
+
+    @Test
+    public void fullSnapshotsAndHeadingRefreshesUseRoadsideSmoothing() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        GeoJsonRoute offset = new GeoJsonRoute(Arrays.asList(new LatLon(0, 0),
+                new LatLon(0, 0.0001), new LatLon(0.000036, 0.0001),
+                new LatLon(0.000036, 0.001), session.currentRequest.destination), Collections.emptyList(), 200, 444);
+        applyRoute(session, offset);
+        NavigationLocation shifted = fix(3_000);
+        shifted.setLatitude(0.000018);
+        shifted.setLongitude(0.0001);
+        accept(session, shifted);
+        NavState state = build(session, 180.0, 3_000);
+        float heading = state.routeStatus.compassState.displayMode.headingDegrees;
+        assertEquals(90f, heading, 10f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, state, 220.0, 5f, 3_100), heading);
+    }
+
     private static NavigationSession session(NavigationRoutingMode mode) {
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(mode, "trekking", null, "Destination",
@@ -124,13 +169,17 @@ public class NavigationSessionRouteHeadingTest {
     }
 
     private static void applyRoute(NavigationSession session, LatLon start, boolean beeline) {
-        NavigationRouteRequestSnapshot request = new NavigationRouteRequestSnapshot(1, 1,
-                session.currentRequest.routingMode, new LatLon(0, 0), Collections.emptyList(),
-                session.currentRequest.destination, "trekking", null, Collections.emptyList(), 1_000);
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(start, new LatLon(0, 0.001), new LatLon(0.003, 0.001)),
                 beeline ? Collections.singletonList(new VoiceHint(0, 16, 0, 111, 0))
                         : Collections.emptyList(), 200, 444);
+        applyRoute(session, route);
+    }
+
+    private static void applyRoute(NavigationSession session, GeoJsonRoute route) {
+        NavigationRouteRequestSnapshot request = new NavigationRouteRequestSnapshot(1, 1,
+                session.currentRequest.routingMode, new LatLon(0, 0), Collections.emptyList(),
+                session.currentRequest.destination, "trekking", null, Collections.emptyList(), 1_000);
         session.components.routeState.applyRouteResult(TestNavigationTextResources.metric(), request,
                 route, session.getLastFilteredLocation(), 3f, false, 1_000L);
     }

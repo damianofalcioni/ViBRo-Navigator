@@ -67,8 +67,10 @@ final class NavigationStationarityTracker {
         }
         float speed = location.getSpeed();
         float uncertainty = location.getSpeedAccuracyMetersPerSecond();
+        // Confirm nonzero motion; applying the travel-speed threshold to the
+        // uncertainty bound too needlessly delays reliable slow walking.
         return Float.isFinite(speed) && validAccuracy(uncertainty)
-                && speed - 2.0 * uncertainty > MAX_STATIONARY_SPEED_MPS;
+                && speed > MAX_STATIONARY_SPEED_MPS && speed - 2.0 * uncertainty > 0.0;
     }
 
     private static boolean hasClearDisplacement(@Nullable NavigationLocation reference,

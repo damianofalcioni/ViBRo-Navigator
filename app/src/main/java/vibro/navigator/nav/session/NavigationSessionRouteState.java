@@ -173,6 +173,15 @@ public final class NavigationSessionRouteState {
         );
     }
 
+    @Nullable
+    Double currentDisplayBearingDegrees(@Nullable NavigationLocation location) {
+        if (location == null || components.geometryState.isRouteUnavailable()) {
+            return null;
+        }
+        float accuracy = location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
+        return components.directGuidance.displayRouteBearingDegrees(location, accuracy);
+    }
+
     void recordRecalculationFixPath(
             @NonNull NavigationLocation filtered,
             @NonNull NavigationRouteEvaluation evaluation,

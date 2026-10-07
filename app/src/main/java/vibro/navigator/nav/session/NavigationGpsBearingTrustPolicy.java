@@ -23,6 +23,13 @@ final class NavigationGpsBearingTrustPolicy {
     }
 
     @Nullable
+    Double displayDisagreementBearingDegrees(@NonNull NavigationLocation location, float speedMps) {
+        Float accuracy = currentBearingAccuracyDegrees(location);
+        return hasUsableBearing(location) && Float.isFinite(speedMps) && speedMps >= MIN_DISPLAY_BEARING_SPEED_MPS
+                && accuracy != null && accuracy <= 90f ? (double) location.getBearing() : null;
+    }
+
+    @Nullable
     private Double trustedBearingDegrees(@NonNull NavigationLocation location, float speedMps, float minimumSpeedMps) {
         if (!hasUsableBearing(location)) {
             return null;

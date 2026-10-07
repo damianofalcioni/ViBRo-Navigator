@@ -1,6 +1,7 @@
 package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.orientation.StationaryCompassHeadingGate;
 
 import androidx.annotation.NonNull;
@@ -13,9 +14,13 @@ public final class NavigationSessionHeadingResolver {
 
     private final NavigationSessionLocationState locationState;
     private final StationaryCompassHeadingGate stationaryCompassGate = new StationaryCompassHeadingGate();
+    private final NavigationRouteHeadingFallback routeHeadingFallback = new NavigationRouteHeadingFallback();
     private Selection lastHeading = Selection.none();
     private Selection lastTravelHeading = Selection.none();
     private boolean movementStarted;
+    @Nullable
+    private GeoJsonRoute headingRoute;
+    private int motionRevision;
 
     public NavigationSessionHeadingResolver(@NonNull NavigationSessionLocationState locationState) {
         this.locationState = locationState;
@@ -23,9 +28,29 @@ public final class NavigationSessionHeadingResolver {
 
     public void reset() {
         stationaryCompassGate.reset();
+        routeHeadingFallback.reset();
         lastHeading = Selection.none();
         lastTravelHeading = Selection.none();
         movementStarted = false;
+        headingRoute = null;
+    }
+
+    void synchronizeRoute(@Nullable GeoJsonRoute route) {
+        if (headingRoute != route) {
+            routeHeadingFallback.reset();
+            headingRoute = route;
+        }
+    }
+
+    void clearRouteDisagreement() {
+        routeHeadingFallback.reset();
+    }
+
+    private void synchronizeMotion() {
+        if (motionRevision != locationState.motionRevision()) {
+            routeHeadingFallback.reset();
+            motionRevision = locationState.motionRevision();
+        }
     }
 
     @NonNull
@@ -38,6 +63,7 @@ public final class NavigationSessionHeadingResolver {
             @Nullable Double routeHeadingDegrees,
             boolean beelineGuidance
     ) {
+        synchronizeMotion();
         if (!movementStarted) {
             selectStartupHeading(displayHeadingDegrees, displayHeadingAccuracyDegrees);
         }
@@ -50,6 +76,7 @@ public final class NavigationSessionHeadingResolver {
             lastHeading = selectMovingHeading(lastFiltered, nowMs, routeHeadingDegrees, beelineGuidance,
                     displayHeadingDegrees, displayHeadingAccuracyDegrees);
         } else if (movementStarted) {
+            routeHeadingFallback.reset();
             lastHeading = selectStationaryHeading(displayHeadingDegrees, displayHeadingAccuracyDegrees, nowMs);
         }
         return lastHeading;
@@ -102,13 +129,35 @@ public final class NavigationSessionHeadingResolver {
             boolean beelineGuidance
     ) {
         if (!beelineGuidance) {
-            // Route direction comes from geometry, so it has no sensor accuracy cone.
             return routeHeadingDegrees != null && Double.isFinite(routeHeadingDegrees)
-                    ? new Selection(routeHeadingDegrees, 0f) : Selection.none();
+                    ? selectRouteHeading(location, nowMs, routeHeadingDegrees) : noRouteHeading();
         }
+        routeHeadingFallback.reset();
         long ageMs = nowMs - location.getElapsedRealtimeOrTimeMs();
         return ageMs >= 0L && ageMs <= MAX_LIVE_TRAVEL_HEADING_AGE_MS
                 ? selectLocationHeading(location) : Selection.none();
+    }
+
+    private Selection noRouteHeading() {
+        routeHeadingFallback.reset();
+        return Selection.none();
+    }
+
+    private Selection selectRouteHeading(NavigationLocation location, long nowMs, double routeHeading) {
+        long ageMs = nowMs - location.getElapsedRealtimeOrTimeMs();
+        if (ageMs < 0L || ageMs > MAX_LIVE_TRAVEL_HEADING_AGE_MS) {
+            // Sparse acquisitions must not confirm a source change through repeated UI refreshes.
+            return new Selection(routeHeading, 0f);
+        }
+        NavigationSessionLocationState.HeadingEstimate heading = locationState.routeDisagreementHeading(location);
+        if (heading == null) {
+            routeHeadingFallback.reset();
+            return new Selection(routeHeading, 0f);
+        }
+        return routeHeadingFallback.useLocationHeading(location, heading.headingDegrees,
+                heading.headingAccuracyDegrees, routeHeading)
+                ? new Selection(heading.headingDegrees, heading.headingAccuracyDegrees)
+                : new Selection(routeHeading, 0f);
     }
 
     @NonNull

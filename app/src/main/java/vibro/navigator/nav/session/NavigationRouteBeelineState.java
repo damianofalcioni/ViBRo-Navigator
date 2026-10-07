@@ -158,11 +158,12 @@ final class NavigationRouteBeelineState {
                 distanceMeters(location, candidate.target),
                 reachedRadiusMeters
         );
-        return (routeMatch.alongTrackMeters >= startDistance || reachedIntermediateTarget)
-                && (reachedIntermediateTarget
-                || distanceMeters(location, candidate.start) <= reachedRadiusMeters
-                || (routeMatch.distanceToTrackMeters <= reachedRadiusMeters
-                && routeMatch.alongTrackMeters <= targetDistance + reachedRadiusMeters));
+        boolean startReached = distanceMeters(location, candidate.start) <= reachedRadiusMeters;
+        return reachedIntermediateTarget
+                || (startReached && routeMatch.alongTrackMeters + reachedRadiusMeters >= startDistance)
+                || (routeMatch.alongTrackMeters >= startDistance
+                && routeMatch.distanceToTrackMeters <= reachedRadiusMeters
+                && routeMatch.alongTrackMeters <= targetDistance + reachedRadiusMeters);
     }
 
     private void activateFollowingLeg(int completedTargetTrackIndex) {

@@ -2,6 +2,7 @@ package vibro.navigator.nav.route;
 
 
 import vibro.navigator.nav.orientation.NavigationExpectedBearingResolver;
+import vibro.navigator.nav.orientation.NavigationRouteDisplayHeadingResolver;
 import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,8 @@ public final class NavigationRouteGeometryState {
     private GeoJsonRoute route;
     @Nullable
     private PolylineIndex polylineIndex;
+    @Nullable
+    private NavigationRouteDisplayHeadingResolver displayHeadingResolver;
     private int lastSegmentIndex = -1;
     private boolean roundTripRoute;
     private boolean roundTripDepartureObserved;
@@ -23,6 +26,7 @@ public final class NavigationRouteGeometryState {
     public void reset() {
         route = null;
         polylineIndex = null;
+        displayHeadingResolver = null;
         lastSegmentIndex = -1;
         roundTripRoute = false;
         roundTripDepartureObserved = false;
@@ -43,6 +47,7 @@ public final class NavigationRouteGeometryState {
     public void loadRoute(@NonNull GeoJsonRoute newRoute, boolean roundTripRoute) {
         route = newRoute;
         polylineIndex = new PolylineIndex(newRoute.track);
+        displayHeadingResolver = new NavigationRouteDisplayHeadingResolver(newRoute, polylineIndex);
         lastSegmentIndex = -1;
         this.roundTripRoute = roundTripRoute;
         roundTripDepartureObserved = false;
@@ -92,18 +97,12 @@ public final class NavigationRouteGeometryState {
         return startMatch != null ? startMatch : polylineIndex.match(point, lastSegmentIndex);
     }
 
-    @Nullable
-    public Double currentSegmentBearingDegrees(@Nullable NavigationLocation lastFiltered) {
-        if (lastFiltered == null || isRouteUnavailable()) {
-            return null;
-        }
-        float accuracyMeters = lastFiltered.hasAccuracy() ? lastFiltered.getAccuracy() : Float.MAX_VALUE;
-        PolylineIndex.Match match = match(lastFiltered, accuracyMeters);
-        return match == null ? null : expectedBearingDegrees(match);
-    }
-
     public double expectedBearingDegrees(@NonNull PolylineIndex.Match match) {
         return NavigationExpectedBearingResolver.resolve(polylineIndex, match);
+    }
+
+    public double displayBearingDegrees(@NonNull PolylineIndex.Match match) {
+        return displayHeadingResolver == null ? match.segmentBearingDegrees : displayHeadingResolver.resolve(match);
     }
 
     public static double resolveDestinationReachedRadiusMeters(float accuracyMeters) {
