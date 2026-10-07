@@ -31,6 +31,7 @@ final class AboutProjectLinks {
     static void configure(@NonNull Activity activity) {
         TextView credits = activity.findViewById(R.id.aboutCredits);
         ColorStateList linkColors = credits.getLinkTextColors();
+        configureLink(activity, R.id.aboutHomepageLink, linkColors, PAGES_BASE_URL + "/");
         if ("gplay".equals(BuildConfig.FLAVOR)) {
             activity.findViewById(R.id.aboutPlayStoreLink).setVisibility(View.VISIBLE);
             configureLink(activity, R.id.aboutPlayStoreLink, linkColors, PLAY_STORE_URL);

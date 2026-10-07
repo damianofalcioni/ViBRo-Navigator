@@ -771,7 +771,7 @@ The navigation UI must show the following in large text:
 - The about page must contain:
   - The app version
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
-  - Links immediately after the summary to the project source code, the GitHub new-issue page, the changelog for the installed app version, the public Privacy Policy, and the public Terms of Service
+  - Links immediately after the summary, starting with the project homepage and a simple home icon before the Google Play rating link (when available) and project source code, followed by the GitHub new-issue page, the changelog for the installed app version, the public Privacy Policy, and the public Terms of Service
   - The Changelog link must follow Report an issue, reuse the Terms of Service list icon, and open `https://damianofalcioni.github.io/ViBRo-Navigator/CHANGELOG/#v<version>` using the app's version name
   - Copyright and license text
   - API/data-source attribution stating the active POI search data source and that map tiles and geodata are by OpenStreetMap contributors, including the `https://www.openstreetmap.org/copyright` URL
