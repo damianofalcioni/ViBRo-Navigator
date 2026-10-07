@@ -143,7 +143,8 @@ final class ViBRoAutoDetailPanelPainter {
                 return NavigationGpsTelemetryFormatter.formatDetails(
                         carContext,
                         state.gpsStatus.telemetry,
-                        nextEvaluationValue(state)
+                        nextEvaluationValue(state),
+                        elapsedRealtimeClock.elapsedRealtimeMs()
                 );
             case DIRECTIONS:
                 return controls.buildCurrentDirectionDetailsText();

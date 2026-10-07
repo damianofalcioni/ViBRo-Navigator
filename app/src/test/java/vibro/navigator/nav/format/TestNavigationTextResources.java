@@ -118,7 +118,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.format_nav_gps_obtained_time_value, "%1$tH:%1$tM:%1$tS");
         strings.put(R.string.format_nav_gps_details,
                 "Speed: %1$s\nAltitude: %2$s\nAccuracy: %3$s\nGPS obtained: %4$s\nSatellites: %5$s\n"
-                        + "Interval: %6$s\nGPS fixes: %7$s\nGPS bearing: %8$s\nBearing accuracy: %9$s");
+                        + "Interval: %6$s\nLast fix age: %10$s\nGPS fixes: %7$s\nGPS bearing: %8$s\nBearing accuracy: %9$s");
         strings.put(R.string.format_nav_battery_used_mah, "%1$.1f mAh");
         strings.put(R.string.format_nav_battery_drop_percent, "%1$d%%");
         strings.put(R.string.format_nav_trip_stats_details,
@@ -132,6 +132,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
         strings.put(R.string.nav_destination_label, "🏁");
         strings.put(R.string.nav_eta, "ETA");
         strings.put(R.string.nav_status_unavailable, "--");
+        strings.put(R.string.format_nav_gps_fix_age, "%1$d s");
         strings.put(R.string.nav_no_route, "No route");
         strings.put(R.string.nav_waiting_for_location_title, "Waiting for location");
         strings.put(

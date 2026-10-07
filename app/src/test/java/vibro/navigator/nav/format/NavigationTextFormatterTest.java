@@ -91,7 +91,7 @@ public class NavigationTextFormatterTest {
 
             assertEquals(
                     "Speed: 16 km/h\nAltitude: 245 m\nAccuracy: ±5 m\nGPS obtained: 00:00:01\n"
-                            + "Satellites: 7\nInterval: 8 s\nGPS fixes: #3\nGPS bearing: 182°\n"
+                            + "Satellites: 7\nInterval: 8 s\nLast fix age: --\nGPS fixes: #3\nGPS bearing: 182°\n"
                             + "Bearing accuracy: 9°",
                     details
             );

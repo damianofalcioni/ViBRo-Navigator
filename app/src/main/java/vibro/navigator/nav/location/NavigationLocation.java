@@ -18,6 +18,8 @@ public final class NavigationLocation {
     private boolean hasAltitude;
     private float accuracy;
     private boolean hasAccuracy;
+    private float providerAccuracy;
+    private boolean filteredAccuracy;
     private float speed;
     private boolean hasSpeed;
     private float speedAccuracyMetersPerSecond;
@@ -41,6 +43,8 @@ public final class NavigationLocation {
         hasAltitude = source.hasAltitude;
         accuracy = source.accuracy;
         hasAccuracy = source.hasAccuracy;
+        providerAccuracy = source.providerAccuracy;
+        filteredAccuracy = source.filteredAccuracy;
         speed = source.speed;
         hasSpeed = source.hasSpeed;
         speedAccuracyMetersPerSecond = source.speedAccuracyMetersPerSecond;
@@ -76,6 +80,11 @@ public final class NavigationLocation {
 
     public long getElapsedRealtimeOrTimeMs() {
         return elapsedRealtimeMs >= 0L ? elapsedRealtimeMs : time;
+    }
+
+    /** Monotonic fix time, or -1 when only a wall-clock timestamp is available. */
+    public long getElapsedRealtimeMs() {
+        return elapsedRealtimeMs;
     }
 
     public double getLatitude() {
@@ -118,6 +127,18 @@ public final class NavigationLocation {
     public void setAccuracy(float accuracy) {
         this.accuracy = accuracy;
         hasAccuracy = true;
+        filteredAccuracy = false;
+    }
+
+    public float getProviderAccuracy() {
+        return filteredAccuracy ? providerAccuracy : accuracy;
+    }
+
+    public void setFilteredAccuracy(float accuracy) {
+        providerAccuracy = getProviderAccuracy();
+        this.accuracy = accuracy;
+        hasAccuracy = true;
+        filteredAccuracy = true;
     }
 
     public boolean hasSpeed() {

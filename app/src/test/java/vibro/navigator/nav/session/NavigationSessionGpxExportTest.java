@@ -92,8 +92,8 @@ public class NavigationSessionGpxExportTest {
         NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
-                locationWithSpeed(0.0, 0.001, 2_000L, 2f),
-                2_000L
+                locationWithSpeed(0.0, 0.001, 61_000L, 2f),
+                61_000L
         );
 
         String gpx = session.buildCurrentRouteGpx(textResources);
@@ -135,17 +135,17 @@ public class NavigationSessionGpxExportTest {
         NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 textResources,
-                locationWithSpeed(0.0, 0.002, 2_000L, 2f),
-                2_000L
+                locationWithSpeed(0.0, 0.0015, 15_000L, 15f),
+                15_000L
         );
-        NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, 3_000L);
+        NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, 16_000L);
         assertNotNull(secondSnapshot);
         NavigationSessionResourceAdapter.applyRouteResult(
                 session,
                 textResources,
                 secondSnapshot,
                 route(new VoiceHint(1, 5, 0, 30.0, 90), 0.0, 0.0025, 0.00275, 0.003),
-                3_000L
+                16_000L
         );
 
         String gpx = session.buildCurrentRouteGpx(textResources);

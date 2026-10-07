@@ -81,8 +81,6 @@ public final class NavigationSessionLocationState {
             NavigationLocationDebugLogger.droppedUnchanged(rawLocation, selected);
             return Update.dropped();
         }
-        liveLocationCoordinator.markDispatched(selection, nowMs);
-
         boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs, expectedUpdateIntervalMs);
         if (reacquiringAfterLongGap) {
             kalman.reset();
@@ -100,10 +98,11 @@ public final class NavigationSessionLocationState {
         }
         NavigationLocation filtered = kalman.update(selected);
         if (filtered == null) {
-            NavigationLocationDebugLogger.kalmanDropped(selected);
+            NavigationLocationDebugLogger.kalmanDropped(selected, kalman.getLastRejectionReason());
             return Update.dropped();
         }
 
+        liveLocationCoordinator.markDispatched(selection, nowMs);
         motionModel.recordFilteredLocation(filtered);
         locationUpdateCount++;
         reacquisitionTracker.recordAccepted(nowMs);

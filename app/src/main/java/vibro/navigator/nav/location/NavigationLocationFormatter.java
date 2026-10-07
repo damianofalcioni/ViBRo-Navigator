@@ -22,6 +22,9 @@ public final class NavigationLocationFormatter {
                 .append(")");
         if (location.hasAccuracy()) {
             sb.append(" acc=").append(location.getAccuracy());
+            sb.append(" providerAcc=").append(location.getProviderAccuracy());
+        } else {
+            sb.append(" acc=unknown providerAcc=unknown");
         }
         if (location.hasSpeed()) {
             sb.append(" speed=").append(location.getSpeed());
@@ -34,6 +37,7 @@ public final class NavigationLocationFormatter {
         sb.append(" bearingAccuracy=").append(location.hasBearingAccuracy()
                 ? Float.toString(location.getBearingAccuracyDegrees()) : "unknown");
         sb.append(" time=").append(location.getTime());
+        sb.append(" elapsedRealtimeMs=").append(location.getElapsedRealtimeMs());
         return sb.toString();
     }
 }

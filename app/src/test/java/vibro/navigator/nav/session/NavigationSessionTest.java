@@ -441,14 +441,14 @@ public class NavigationSessionTest {
         NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.001, nowMs + 1_000L, 2f),
-                nowMs + 1_000L
+                locationWithSpeed(0.0, 0.001, nowMs + 60_000L, 2f),
+                nowMs + 60_000L
         );
         NavState state = NavigationSessionResourceAdapter.buildState(
                 session,
                 context,
                 NavState.NO_DEADLINE,
-                nowMs + 1_000L,
+                nowMs + 60_000L,
                 null,
                 0.0,
                 null
@@ -490,7 +490,7 @@ public class NavigationSessionTest {
         NavigationLocationUpdateResult offTrackResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0003, 0.00005, nowMs + 3_000L, 5f),
+                locationWithSpeed(0.0003, 0.0002, nowMs + 3_000L, 5f),
                 nowMs + 3_000L
         );
         NavState state = NavigationSessionResourceAdapter.buildState(
@@ -600,9 +600,9 @@ public class NavigationSessionTest {
         NavigationLocationUpdateResult notification = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, -0.001, nowMs + 10_000L, 2f),
-                nowMs + 10_000L,
-                10_000L,
+                locationWithSpeed(0.0, -0.001, nowMs + 60_000L, 2f),
+                nowMs + 60_000L,
+                60_000L,
                 false
         );
 

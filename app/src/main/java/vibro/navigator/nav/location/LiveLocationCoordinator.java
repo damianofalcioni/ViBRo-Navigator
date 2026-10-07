@@ -48,6 +48,9 @@ public final class LiveLocationCoordinator {
     public void remember(@NonNull NavigationLocation location) {
         NavigationLocation copy = new NavigationLocation(location);
         NavigationLocationFix fix = NavigationLocationFix.from(copy);
+        if (!LiveLocationPolicy.shouldRemember(latestGpsFix, latestNetworkFix, latestFusedFix, fix)) {
+            return;
+        }
         if (NavigationLocationProviders.GPS_PROVIDER.equals(fix.provider)) {
             latestGpsLocation = copy;
             latestGpsFix = fix;
@@ -61,6 +64,9 @@ public final class LiveLocationCoordinator {
     }
 
     void remember(@NonNull NavigationLocationFix fix) {
+        if (!LiveLocationPolicy.shouldRemember(latestGpsFix, latestNetworkFix, latestFusedFix, fix)) {
+            return;
+        }
         if (NavigationLocationProviders.GPS_PROVIDER.equals(fix.provider)) {
             latestGpsLocation = null;
             latestGpsFix = fix;

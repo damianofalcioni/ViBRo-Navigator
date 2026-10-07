@@ -16,15 +16,24 @@ public final class Kalman1D {
     }
 
     public void reset(double position, double velocity) {
+        reset(position, velocity, 10, 10);
+    }
+
+    public void reset(double position, double velocity, double positionVariance, double velocityVariance) {
+        requireFinite(position);
+        requireFinite(velocity);
+        requireVariance(positionVariance);
+        requireVariance(velocityVariance);
         x = position;
         v = velocity;
-        p00 = 10;
+        p00 = positionVariance;
         p01 = 0;
         p10 = 0;
-        p11 = 10;
+        p11 = velocityVariance;
     }
 
     public void predict(double dtSeconds) {
+        requireFinite(dtSeconds);
         if (dtSeconds <= 0) {
             return;
         }
@@ -50,6 +59,8 @@ public final class Kalman1D {
     }
 
     public void update(double measuredPosition, double measurementVariance) {
+        requireFinite(measuredPosition);
+        requireVariance(measurementVariance);
         double r = Math.max(1e-3, measurementVariance);
         double s = p00 + r;
         double k0 = p00 / s;
@@ -59,10 +70,12 @@ public final class Kalman1D {
         x = x + k0 * y;
         v = v + k1 * y;
 
-        double n00 = (1 - k0) * p00;
-        double n01 = (1 - k0) * p01;
-        double n10 = p10 - k1 * p00;
-        double n11 = p11 - k1 * p01;
+        // Joseph covariance update remains stable when gains approach one.
+        double a = 1 - k0;
+        double n00 = a * a * p00 + k0 * k0 * r;
+        double n01 = a * (p01 - k1 * p00) + k0 * k1 * r;
+        double n10 = n01;
+        double n11 = p11 - k1 * (p01 + p10) + k1 * k1 * (p00 + r);
 
         p00 = n00;
         p01 = n01;
@@ -76,5 +89,32 @@ public final class Kalman1D {
 
     public double velocity() {
         return v;
+    }
+
+    /** Position corrections must not invent a travel velocity. */
+    public void predictPosition(double displacement, double addedVariance) {
+        requireFinite(displacement);
+        requireVariance(addedVariance);
+        x += displacement;
+        p00 += addedVariance;
+        v = 0;
+        p01 = p10 = p11 = 0;
+    }
+
+    public double positionVariance() {
+        return p00;
+    }
+
+    private static void requireFinite(double value) {
+        if (!Double.isFinite(value)) {
+            throw new IllegalArgumentException("Filter input must be finite");
+        }
+    }
+
+    private static void requireVariance(double value) {
+        requireFinite(value);
+        if (value < 0) {
+            throw new IllegalArgumentException("Variance must be nonnegative");
+        }
     }
 }

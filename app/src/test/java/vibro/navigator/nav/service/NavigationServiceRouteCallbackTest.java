@@ -109,7 +109,7 @@ public class NavigationServiceRouteCallbackTest {
         NavigationLocationUpdateResult confirmed = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 TEXT_RESOURCES,
-                routeModeLocation(0.0003, 0.00005, NOW_MS + 3_000L),
+                routeModeLocation(0.0003, 0.0002, NOW_MS + 3_000L),
                 NOW_MS + 3_000L
         );
         callback.onSpeculativeRouteConfirmed(

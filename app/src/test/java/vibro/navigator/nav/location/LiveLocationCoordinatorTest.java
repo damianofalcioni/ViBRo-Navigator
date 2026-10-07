@@ -118,6 +118,39 @@ public class LiveLocationCoordinatorTest {
         assertEquals(16.40d, selected.getLongitude(), 0.0);
     }
 
+    @Test
+    public void rejectsOlderFixEvenWhenMoreAccurateAndWithinOldTolerance() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        NavigationLocationFix initial = newFix(GPS_PROVIDER, 500, 25, 48.2, 16.37);
+        coordinator.markDispatched(initial);
+        assertFalse(coordinator.shouldDispatch(newFix(GPS_PROVIDER, 501, 5, 48.2, 16.37)));
+    }
+
+    @Test
+    public void rejectsSameTimeDifferentCoordinatesWithoutAccuracyImprovement() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        coordinator.markDispatched(newFix(GPS_PROVIDER, 500, 5, 48.2, 16.37));
+        assertFalse(coordinator.shouldDispatch(newFix(GPS_PROVIDER, 500, 5, 48.21, 16.38)));
+    }
+
+    @Test
+    public void invalidOrOlderProviderFixCannotReplaceValidCachedFix() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        NavigationLocationFix initial = newFix(GPS_PROVIDER, 500, 5, 48.2, 16.37);
+        coordinator.remember(initial);
+        coordinator.remember(newFix(GPS_PROVIDER, 501, 1, 48.3, 16.4));
+        coordinator.remember(newFix(GPS_PROVIDER, 100, Float.NaN, 48.3, 16.4));
+        coordinator.remember(newFix(GPS_PROVIDER, 100, 1, Double.NaN, 16.4));
+        assertEquals(initial, coordinator.selectBestLiveFix(NOW_MS));
+    }
+
+    @Test
+    public void invalidFirstCandidateIsRejectedByIntervalDispatch() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        NavigationLocation invalid = location(GPS_PROVIDER, 1000, 1000, Float.NaN, 48.2, 16.37);
+        assertFalse(coordinator.shouldDispatch(invalid, 1000, 60000));
+    }
+
     private static NavigationLocationFix newFix(
             String provider,
             long ageMs,

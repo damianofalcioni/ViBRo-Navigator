@@ -14,6 +14,17 @@ import vibro.navigator.nav.format.NavigationTextResources;
 
 public final class NavigationGpsTextFormatter {
 
+    /** Always provide a value for the fixed GPS-details row, including immediately after a fix. */
+    @NonNull
+    public static String formatFixAge(@NonNull NavigationTextResources resources,
+            long fixElapsedRealtimeMs, long nowElapsedRealtimeMs) {
+        if (fixElapsedRealtimeMs < 0 || nowElapsedRealtimeMs < fixElapsedRealtimeMs) {
+            return resources.getString(R.string.nav_status_unavailable);
+        }
+        return resources.getString(R.string.format_nav_gps_fix_age,
+                (nowElapsedRealtimeMs - fixElapsedRealtimeMs) / 1000L);
+    }
+
     private NavigationGpsTextFormatter() {
     }
 

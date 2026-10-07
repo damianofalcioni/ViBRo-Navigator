@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 public final class NavGpsTelemetry {
     public final float speedMps;
+    public final long fixElapsedRealtimeMs;
     @NonNull
     public final String compactLine;
     @NonNull
@@ -35,7 +36,26 @@ public final class NavGpsTelemetry {
             @NonNull String acquiredFixCountText,
             @NonNull String obtainedTimeText
     ) {
+        this(speedMps, compactLine, speedText, elevationText, accuracyText, bearingText,
+                bearingAccuracyText, fixedSatelliteCountText, acquiredFixCountText,
+                obtainedTimeText, -1L);
+    }
+
+    private NavGpsTelemetry(
+            float speedMps,
+            @NonNull String compactLine,
+            @NonNull String speedText,
+            @NonNull String elevationText,
+            @NonNull String accuracyText,
+            @NonNull String bearingText,
+            @NonNull String bearingAccuracyText,
+            @NonNull String fixedSatelliteCountText,
+            @NonNull String acquiredFixCountText,
+            @NonNull String obtainedTimeText,
+            long fixElapsedRealtimeMs
+    ) {
         this.speedMps = speedMps;
+        this.fixElapsedRealtimeMs = fixElapsedRealtimeMs;
         this.compactLine = compactLine;
         this.speedText = speedText;
         this.elevationText = elevationText;
@@ -75,7 +95,8 @@ public final class NavGpsTelemetry {
                 bearingAccuracyText,
                 fixedSatelliteCountText,
                 acquiredFixCountText,
-                obtainedTimeText
+                obtainedTimeText,
+                fixElapsedRealtimeMs
         );
     }
 
@@ -91,7 +112,15 @@ public final class NavGpsTelemetry {
                 bearingAccuracyText,
                 fixedSatelliteCountText,
                 acquiredFixCountText,
-                obtainedTimeText
+                obtainedTimeText,
+                fixElapsedRealtimeMs
         );
+    }
+
+    @NonNull
+    public NavGpsTelemetry withFixElapsedRealtimeMs(long fixElapsedRealtimeMs) {
+        return new NavGpsTelemetry(speedMps, compactLine, speedText, elevationText,
+                accuracyText, bearingText, bearingAccuracyText, fixedSatelliteCountText,
+                acquiredFixCountText, obtainedTimeText, fixElapsedRealtimeMs);
     }
 }

@@ -38,7 +38,8 @@ final class NavigationGpsDetailsDialog {
         detailsDialog.update(NavigationGpsTelemetryFormatter.formatDetails(
                 activity,
                 detailsState.gpsStatus.telemetry,
-                nextEvaluationValue(state)
+                nextEvaluationValue(state),
+                elapsedRealtimeClock.elapsedRealtimeMs()
         ));
     }
 

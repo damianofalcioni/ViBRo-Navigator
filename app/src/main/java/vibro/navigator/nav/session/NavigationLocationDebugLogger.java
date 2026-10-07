@@ -1,6 +1,7 @@
 package vibro.navigator.nav.session;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocation;
@@ -49,11 +50,12 @@ final class NavigationLocationDebugLogger {
                 + NavigationLocationFormatter.format(selected));
     }
 
-    static void kalmanDropped(@NonNull NavigationLocation selected) {
+    static void kalmanDropped(@NonNull NavigationLocation selected, @Nullable String reason) {
         if (!AppLogger.isLoggingEnabled()) {
             return;
         }
-        AppLogger.d(TAG, "Kalman filter dropped NavigationLocation " + NavigationLocationFormatter.format(selected));
+        AppLogger.d(TAG, "Kalman filter dropped NavigationLocation reason=" + reason
+                + " raw=" + NavigationLocationFormatter.format(selected));
     }
 
     static void accepted(
@@ -69,6 +71,7 @@ final class NavigationLocationDebugLogger {
         AppLogger.d(TAG, "NavigationLocation update #" + locationUpdateCount
                 + " raw=" + NavigationLocationFormatter.format(selected)
                 + " filtered=" + NavigationLocationFormatter.format(filtered)
+                + " smoothingShiftMeters=" + selected.distanceTo(filtered)
                 + " stationary=" + stationary + " motionSpeed=" + motionSpeedMps);
     }
 }

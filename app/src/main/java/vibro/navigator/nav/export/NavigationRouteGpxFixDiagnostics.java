@@ -9,6 +9,7 @@ final class NavigationRouteGpxFixDiagnostics {
     private static final String FIX_NAMESPACE = "urn:vibro:navigator:gpx:1";
     private static final String TAG_PROVIDER = "provider";
     private static final String TAG_ACCURACY_METERS = "accuracyMeters";
+    private static final String TAG_POSITION_ACCURACY_METERS = "positionAccuracyMeters";
     private static final String TAG_SPEED_MPS = "speedMps";
     private static final String TAG_BEARING_DEGREES = "bearingDegrees";
     private static final String TAG_BEARING_ACCURACY_DEGREES = "bearingAccuracyDegrees";
@@ -35,7 +36,8 @@ final class NavigationRouteGpxFixDiagnostics {
                     location.getProvider()
             );
         }
-        appendMeasurement(out, indentLevel, TAG_ACCURACY_METERS, location.hasAccuracy(), location.getAccuracy());
+        appendMeasurement(out, indentLevel, TAG_ACCURACY_METERS, location.hasAccuracy(), location.getProviderAccuracy());
+        appendMeasurement(out, indentLevel, TAG_POSITION_ACCURACY_METERS, location.hasAccuracy(), location.getAccuracy());
         appendMeasurement(out, indentLevel, TAG_SPEED_MPS, location.hasSpeed(), location.getSpeed());
         appendMeasurement(out, indentLevel, TAG_BEARING_DEGREES, location.hasBearing(), location.getBearing());
         appendMeasurement(out, indentLevel, TAG_BEARING_ACCURACY_DEGREES, location.hasBearingAccuracy(),

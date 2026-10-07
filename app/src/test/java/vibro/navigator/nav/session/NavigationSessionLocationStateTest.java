@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import org.junit.Test;
@@ -128,10 +129,10 @@ public class NavigationSessionLocationStateTest {
     @Test
     public void preferredLocationHeading_fallsBackToMovementCourseWhenGpsBearingAccuracyIsLow() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();
-        long baseTimeMs = System.currentTimeMillis() - 4_000L;
+        long baseTimeMs = System.currentTimeMillis() - 14_000L;
 
         onRawLocationChanged(state, location(baseTimeMs, 48.2082000, 16.3738000, 0.4f));
-        NavigationLocation update = location(baseTimeMs + 2_500L, 48.2088000, 16.3738000, 3.0f);
+        NavigationLocation update = location(baseTimeMs + 14_000L, 48.2088000, 16.3738000, 3.0f);
         update.setBearing(84f);
         update.setBearingAccuracyDegrees(40f);
         NavigationSessionLocationState.Update accepted = onRawLocationChanged(state, update);
@@ -140,7 +141,7 @@ public class NavigationSessionLocationStateTest {
                 state.preferredLocationHeading(accepted.getFilteredLocation(), false);
 
         assertNotNull(headingEstimate);
-        assertEquals(0.0, headingEstimate.headingDegrees, 15.0);
+        assertTrue(GeoMath.angularDiffDegrees(0, headingEstimate.headingDegrees) <= 15);
         assertNotNull(headingEstimate.headingAccuracyDegrees);
         assertTrue(headingEstimate.headingAccuracyDegrees <= 25f);
     }

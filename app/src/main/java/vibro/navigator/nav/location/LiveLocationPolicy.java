@@ -31,6 +31,9 @@ final class LiveLocationPolicy {
             @Nullable NavigationLocationFix lastDispatched,
             @NonNull NavigationLocationFix candidate
     ) {
+        if (!isValidFix(candidate)) {
+            return false;
+        }
         if (lastDispatched == null) {
             return true;
         }
@@ -39,7 +42,7 @@ final class LiveLocationPolicy {
         if (candidateTime > lastTime + LOCATION_TIME_TOLERANCE_MS) {
             return true;
         }
-        if (candidateTime + LOCATION_TIME_TOLERANCE_MS < lastTime) {
+        if (candidateTime < lastTime) {
             return false;
         }
 
@@ -48,7 +51,7 @@ final class LiveLocationPolicy {
         if (candidateAccuracy + LOCATION_ACCURACY_IMPROVEMENT_METERS < lastAccuracy) {
             return true;
         }
-        if (sameFix(candidate, lastDispatched)) {
+        if (candidateTime == lastTime) {
             return false;
         }
         return candidateAccuracy <= lastAccuracy + LOCATION_ACCURACY_BIAS_METERS;
@@ -60,11 +63,11 @@ final class LiveLocationPolicy {
             long elapsedSinceLastDispatchMs,
             long expectedUpdateIntervalMs
     ) {
-        if (lastDispatched == null) {
-            return true;
-        }
         if (!shouldDispatch(lastDispatched, candidate)) {
             return false;
+        }
+        if (lastDispatched == null) {
+            return true;
         }
         if (safeProvider(lastDispatched.provider).equals(safeProvider(candidate.provider))) {
             return true;
@@ -78,7 +81,13 @@ final class LiveLocationPolicy {
     }
 
     static boolean isRecentFix(@Nullable NavigationLocationFix fix, long nowMs) {
-        return fix != null && ageMs(fix, nowMs) <= LOCATION_STALE_MS;
+        return fix != null && isValidFix(fix) && ageMs(fix, nowMs) <= LOCATION_STALE_MS;
+    }
+
+    static boolean isValidFix(@NonNull NavigationLocationFix fix) {
+        return Double.isFinite(fix.lat) && Math.abs(fix.lat) <= 90
+                && Double.isFinite(fix.lon) && Math.abs(fix.lon) <= 180
+                && Float.isFinite(fix.accuracyMeters) && fix.accuracyMeters >= 0;
     }
 
     static boolean sameFix(@NonNull NavigationLocationFix first, @NonNull NavigationLocationFix second) {
@@ -86,6 +95,17 @@ final class LiveLocationPolicy {
                 && safeProvider(first.provider).equals(safeProvider(second.provider))
                 && Double.compare(first.lat, second.lat) == 0
                 && Double.compare(first.lon, second.lon) == 0;
+    }
+
+    static boolean shouldRemember(NavigationLocationFix gps, NavigationLocationFix network,
+            NavigationLocationFix fused, NavigationLocationFix candidate) {
+        if (!isValidFix(candidate)) {
+            return false;
+        }
+        NavigationLocationFix previous = NavigationLocationProviders.GPS_PROVIDER.equals(candidate.provider)
+                ? gps : NavigationLocationProviders.NETWORK_PROVIDER.equals(candidate.provider) ? network : fused;
+        return previous == null || candidate.timeMs > previous.timeMs
+                || (candidate.timeMs == previous.timeMs && candidate.accuracyMeters < previous.accuracyMeters);
     }
 
     @Nullable

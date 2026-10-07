@@ -34,6 +34,16 @@ public class NavigationRouteGpxFixDiagnosticsTest {
         assertEquals(0, document.getElementsByTagNameNS(NAMESPACE, "speedMps").getLength());
     }
 
+    @Test
+    public void preservesProviderAccuracySeparatelyFromFilteredPositionRadius() throws Exception {
+        NavigationLocation fix = new NavigationLocation("gps");
+        fix.setAccuracy(5);
+        fix.setFilteredAccuracy(9);
+        Document document = parse(new NavigationLocation(fix));
+        assertEquals("5.0", document.getElementsByTagNameNS(NAMESPACE, "accuracyMeters").item(0).getTextContent());
+        assertEquals("9.0", document.getElementsByTagNameNS(NAMESPACE, "positionAccuracyMeters").item(0).getTextContent());
+    }
+
     private static Document parse(NavigationLocation fix) throws Exception {
         StringBuilder xml = new StringBuilder();
         NavigationRouteGpxFixDiagnostics.append(xml, fix);

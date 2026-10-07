@@ -37,7 +37,7 @@ public final class NavigationGpsTelemetryFormatter {
         return telemetry.withObtainedTimeText(NavigationGpsTextFormatter.formatObtainedTime(
                 resources,
                 obtainedTimeMs(currentLocation)
-        ));
+        )).withFixElapsedRealtimeMs(currentLocation == null ? -1L : currentLocation.getElapsedRealtimeMs());
     }
 
     @NonNull
@@ -108,20 +108,10 @@ public final class NavigationGpsTelemetryFormatter {
     public static String formatDetails(
             @NonNull Context context,
             @NonNull NavGpsTelemetry telemetry,
-            @NonNull String intervalText
+            @NonNull String intervalText,
+            long nowElapsedRealtimeMs
     ) {
-        return context.getString(
-                R.string.format_nav_gps_details,
-                telemetry.speedText,
-                telemetry.elevationText,
-                telemetry.accuracyText,
-                telemetry.obtainedTimeText,
-                telemetry.fixedSatelliteCountText,
-                intervalText,
-                telemetry.acquiredFixCountText,
-                telemetry.bearingText,
-                telemetry.bearingAccuracyText
-        );
+        return formatDetails(new AndroidNavigationTextResources(context), telemetry, intervalText, nowElapsedRealtimeMs);
     }
 
     @NonNull
@@ -129,6 +119,16 @@ public final class NavigationGpsTelemetryFormatter {
             @NonNull NavigationTextResources resources,
             @NonNull NavGpsTelemetry telemetry,
             @NonNull String intervalText
+    ) {
+        return formatDetails(resources, telemetry, intervalText, -1L);
+    }
+
+    @NonNull
+    public static String formatDetails(
+            @NonNull NavigationTextResources resources,
+            @NonNull NavGpsTelemetry telemetry,
+            @NonNull String intervalText,
+            long nowElapsedRealtimeMs
     ) {
         return resources.getString(
                 R.string.format_nav_gps_details,
@@ -140,7 +140,8 @@ public final class NavigationGpsTelemetryFormatter {
                 intervalText,
                 telemetry.acquiredFixCountText,
                 telemetry.bearingText,
-                telemetry.bearingAccuracyText
+                telemetry.bearingAccuracyText,
+                NavigationGpsTextFormatter.formatFixAge(resources, telemetry.fixElapsedRealtimeMs, nowElapsedRealtimeMs)
         );
     }
 
