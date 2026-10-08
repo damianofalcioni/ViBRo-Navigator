@@ -125,8 +125,12 @@ public class NavigationCompassPerspectiveRingTest {
     }
 
     private static boolean hasRingPixels(Bitmap bitmap, int surfaceColor) {
-        for (int y = 65; y < 71; y++) {
-            for (int x = 205; x < 211; x++) {
+        // Sample the outer orthographic ellipse at 60 px right of the route origin.
+        float ringRadius = 127.4f * CompassPerspectiveScale.viewportMultiplier(1f);
+        int ringY = Math.round(150f + 127.4f * 0.32f
+                - CompassPerspectiveScale.verticalScale(1f) * (float) Math.sqrt(ringRadius * ringRadius - 60f * 60f));
+        for (int y = ringY - 2; y <= ringY + 2; y++) {
+            for (int x = 208; x <= 212; x++) {
                 if (bitmap.getPixel(x, y) != surfaceColor) {
                     return true;
                 }

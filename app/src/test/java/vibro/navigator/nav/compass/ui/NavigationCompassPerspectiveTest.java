@@ -44,10 +44,30 @@ public class NavigationCompassPerspectiveTest {
         assertEquals(150f, point[0], 0.01f);
         assertEquals(150f, point[1], 0.01f);
         perspective.mapPoint(250f, 50f, point);
-        assertTrue(point[0] > 150f && point[0] < 250f);
-        assertTrue(point[1] > 90f && point[1] < 150f);
+        assertEquals(250f, point[0], 0.01f);
+        assertEquals(92f, point[1], 0.01f);
         perspective.mapPoint(150f, 250f, point);
-        assertTrue(point[1] < 250f);
+        assertEquals(208f, point[1], 0.01f);
+    }
+
+    @Test
+    public void orthographicTiltPreservesWidthsAndParallelLinesAtEveryDistance() {
+        NavigationCompassPerspective perspective = new NavigationCompassPerspective();
+        float[] point = new float[2];
+        float sourceRadius = 100f * CompassPerspectiveScale.maximumViewportMultiplier();
+        for (float progress : new float[] {0f, 0.25f, 0.5f, 1f, 1.25f}) {
+            assertTrue(perspective.configure(150f, 150f, sourceRadius, progress, 18f));
+            for (float y : new float[] {-150f, 50f, 150f, 250f, 450f}) {
+                perspective.mapPoint(130f, y, point);
+                assertEquals(130f, point[0], 0.01f);
+                float leftY = point[1];
+                perspective.mapPoint(170f, y, point);
+                assertEquals(170f, point[0], 0.01f);
+                assertEquals(leftY, point[1], 0.01f);
+                assertEquals(168f + (y - 150f) * CompassPerspectiveScale.verticalScale(progress),
+                        point[1], 0.01f);
+            }
+        }
     }
 
     @Test

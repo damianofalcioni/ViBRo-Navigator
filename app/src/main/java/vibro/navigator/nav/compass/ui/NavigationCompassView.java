@@ -433,9 +433,7 @@ public final class NavigationCompassView extends View {
                 return;
             }
             drawPerspectivePlane(canvas, cx, cy, sourceRouteRadius, 0f, headingDegrees);
-            // Compensate the tilt at the guide's radius rather than the taller route viewport.
-            float visibleScale = 1f / (CompassPerspectiveScale.verticalScale(perspectiveProgress)
-                    - CompassPerspectiveScale.depth(perspectiveProgress) * headingGuideRadius / sourceRouteRadius);
+            float visibleScale = CompassPerspectiveScale.viewportMultiplier(perspectiveProgress);
             drawFullscreenReferences(canvas, cx, cy, headingGuideRadius * visibleScale,
                     fullscreenMode.resolveLegendOuterScale(routeRadius, headingGuideRadius),
                     perspectiveVisibleRadiusMeters(visibleScale));

@@ -95,7 +95,7 @@ public class NavigationCompassFullscreenRingTest {
                 view(activity, width, height, progress).draw(new Canvas(bitmap));
                 float cy = height - 88f;
                 float radius = headingRadius(width, height, portrait)
-                        * guideScale(width, height, portrait, progress) * 0.91f;
+                        * CompassPerspectiveScale.viewportMultiplier(progress) * 0.91f;
                 float[] point = new float[2];
                 projection(width, height, progress).mapPoint(width / 2f + radius * 0.5f,
                         cy - radius * (float) Math.sin(Math.toRadians(60f)), point);
@@ -124,8 +124,8 @@ public class NavigationCompassFullscreenRingTest {
             ShadowCanvas drawing = Shadows.shadowOf(canvas);
             assertEquals(!portrait && progress == 0f ? 6 : 2, drawing.getTextHistoryCount());
             float radius = headingRadius(width, height, portrait)
-                    * guideScale(width, height, portrait, progress) * 0.91f;
-            float distance = 80f * guideScale(width, height, portrait, progress) * 0.91f
+                    * CompassPerspectiveScale.viewportMultiplier(progress) * 0.91f;
+            float distance = 80f * CompassPerspectiveScale.viewportMultiplier(progress) * 0.91f
                     * headingRadius(width, height, portrait) / (height - 104f);
             assertEquals(NavigationTextFormatter.formatDistance(activity, distance),
                     drawing.getDrawnTextEvent(0).text);
@@ -175,12 +175,6 @@ public class NavigationCompassFullscreenRingTest {
 
     private static float centerOffset(int width, int height, float progress) {
         return (Math.min(width / 2f, height - 88f) - 10f) * 0.91f * 0.32f * progress;
-    }
-
-    private static float guideScale(int width, int height, boolean portrait, float progress) {
-        float sourceRadius = (height - 104f) * CompassPerspectiveScale.maximumViewportMultiplier();
-        return 1f / (CompassPerspectiveScale.verticalScale(progress)
-                - CompassPerspectiveScale.depth(progress) * headingRadius(width, height, portrait) / sourceRadius);
     }
 
     private static int strongestPixel(Bitmap bitmap, float[] point) {
