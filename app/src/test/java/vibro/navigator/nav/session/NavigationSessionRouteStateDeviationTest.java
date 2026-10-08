@@ -395,6 +395,25 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
     }
 
     @Test
+    public void evaluateLocation_keepsRouteWhileApproachingRoadWithStalledProgress() {
+        NavigationSessionRouteState state = new NavigationSessionRouteState();
+        NavigationRequest request = new NavigationRequest(TREKKING_PROFILE, DESTINATION,
+                new LatLon(0.0, 0.001), Collections.emptyList());
+        state.applyRouteResult(TestNavigationTextResources.metric(), snapshot(request), routeWithHint(),
+                location(0.0, 0.0, 1_000L), 1.2f, 500L);
+        state.evaluateLocation(location(0.0, 0.00035, 2_000L), 1.2f, 5f, 90.0, 2_000L, 0L);
+
+        for (long now : new long[]{5_500L, 6_500L}) {
+            NavigationRouteEvaluation approaching = state.evaluateLocation(
+                    location(0.00005, 0.00036, now), 1.2f, 5f, 180.0, now, 0L);
+            assertFalse(approaching.shouldRecalculateRoute());
+            assertFalse(approaching.isRouteDeviationConfirmationPending());
+            assertFalse(approaching.shouldSpeculativelyRecalculateRoute());
+            assertFalse(approaching.isStableOnRouteSample());
+        }
+    }
+
+    @Test
     public void evaluateLocation_reroutesOnBearingMismatchWhenAlongTrackProgressIsBackward() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();

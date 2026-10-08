@@ -368,7 +368,7 @@ The app must monitor user position:
 #### 4.4.2 Wrong-direction reroute
 
 - The route must also be recalculated when the user is still on the track but is moving in the wrong direction
-- Wrong direction is defined as bearing difference greater than 60 degrees
+- Wrong direction requires a trusted bearing difference greater than 60 degrees combined with backward along-route progress
 - Bearing-based wrong-direction detection must only be trusted when the current fix is accurate enough and the heading source is credible for the current speed and displacement
 - When numeric GPS bearing accuracy is available, the app should trust GPS bearing for wrong-direction evidence only when the reported bearing accuracy is good enough for walking and cycling use cases and the user is moving at least 0.8 m/s; low-speed walking use must remain supported and must not be excluded by a cycling-only speed gate
 - When numeric GPS bearing accuracy is not available, the app should trust GPS bearing for wrong-direction evidence only at course-style speeds of at least 2.5 m/s
@@ -376,7 +376,7 @@ The app must monitor user position:
 - Low-confidence bearing estimates must not trigger reroutes on their own
 - The expected route bearing for wrong-direction checks should be forward-looking, derived from a short lookahead along the matched route geometry rather than only from the single currently matched segment
 - Bearing mismatch alone should not be enough to reroute while the user is still making clear forward progress along the route
-- Wrong-direction reroutes should be confirmed across consecutive samples, and should be supported by direction-of-progress evidence such as backward or stalled along-route progress over time
+- Wrong-direction reroutes require two time-separated trusted bearing mismatches, each supported by `BACKWARD` along-route progress. `STALLED` and `UNKNOWN` progress must hold the current route and clear pending bearing-mismatch evidence; clear `FORWARD` progress suppresses the mismatch. Held mismatches must not trigger deviation-confirmation polling or speculative recalculation. Distance-based off-track detection and confirmation remain independent of this direction gate.
 
 #### 4.4.3 Direction distance estimation
 
@@ -555,6 +555,7 @@ The navigation UI must show the following in large text:
 - When the user stops and the compass expands back to the full-route overview, the last reliable moving zoom radius should be preserved so it can be restored when movement resumes before speed confidence has recovered
 - Automatic compass zoom/radius policy is a navigation-state responsibility and must remain separate from compass drawing and activity/service lifecycle wiring
 - The gesture-driven view cycle must be only a UI override layered on top of the existing automatic behavior, so stationary navigation still defaults to the full-route overview when Zoom out when stationary is enabled, and moving navigation still defaults to the 2D moving-scale view whenever no temporary override is active. The 3D orthographic view remains selected until another view-switch gesture or the navigation display resets.
+- Temporary absence of compass geometry during route calculation or route-unavailable states must preserve the selected view-cycle step, relative zoom and 3D inclination on phone and Android Auto. Clear geometry caches and cancel route-heading/radius transitions during that gap; keep input disabled until geometry returns, then apply the retained adjustments to the new route. The temporary moving overview's five-second expiry must remain unchanged. A new phone navigation screen or an explicit Auto navigation/surface reset clears the view and gesture adjustments.
 - While moving, any view-switch gesture selecting the full-route overview must show the full route temporarily and then automatically restore the 2D moving-scale view after about 5 seconds
 - The compass must retain the complete active BRouter track once per route for close moving-scale rendering, while the full-route overview and hint-marker geometry remain bounded and sampled. Moving-scale rendering must use the original points from only the contiguous route ranges intersecting the compass viewport plus drawing padding, keep disjoint re-entering ranges separate, and use a route-built spatial block index so heading and location updates do not project or scan the full long route
 - Compass rendering should avoid per-frame transient object allocation in its hot drawing path for route, hint, and destination projection

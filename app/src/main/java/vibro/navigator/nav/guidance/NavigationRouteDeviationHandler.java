@@ -131,8 +131,9 @@ public final class NavigationRouteDeviationHandler {
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Decision.keepCurrentRoute(true);
         }
-        if (directionOfProgress.status == NavigationRouteProgressTracker.DirectionStatus.UNKNOWN) {
-            AppLogger.i(TAG, "Holding bearing mismatch until direction-of-progress is known");
+        if (directionOfProgress.status != NavigationRouteProgressTracker.DirectionStatus.BACKWARD) {
+            AppLogger.i(TAG, "Holding bearing mismatch until backward progress is confirmed direction="
+                    + directionOfProgress.status + " delta=" + directionOfProgress.alongTrackDeltaMeters);
             clearDeviationEvidence();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             return Decision.keepCurrentRoute(false);

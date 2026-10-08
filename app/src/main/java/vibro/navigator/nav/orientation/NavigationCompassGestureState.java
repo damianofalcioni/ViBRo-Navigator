@@ -23,8 +23,6 @@ public final class NavigationCompassGestureState {
         zoomEnabled = state != null && state.displayMode.movingScaleActive;
         tiltEnabled = state != null && perspectiveViewEnabled;
         if (state == null) {
-            zoomLevel = 0;
-            inclination = 1f;
             zoomStateCache.clear();
         }
         if (!zoomEnabled || zoomLevel == 0) {
@@ -32,6 +30,14 @@ public final class NavigationCompassGestureState {
         }
         return zoomStateCache.resolve(state, true,
                 state.radiusState.visibleRadiusMeters * (float) Math.pow(2.0, -zoomLevel));
+    }
+
+    public void reset() {
+        zoomLevel = 0;
+        inclination = 1f;
+        zoomEnabled = false;
+        tiltEnabled = false;
+        zoomStateCache.clear();
     }
 
     public boolean isZoomEnabled() {

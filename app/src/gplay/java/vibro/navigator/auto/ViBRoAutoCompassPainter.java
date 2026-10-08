@@ -137,8 +137,8 @@ final class ViBRoAutoCompassPainter {
 
     void reset() {
         gestures.clear();
-        compassModeController.resolve(null);
-        gestureState.apply(null, false);
+        compassModeController.reset();
+        gestureState.reset();
         bounds.setEmpty();
         compassView.setCompassState(null);
     }

@@ -94,7 +94,7 @@ public class NavigationCompassGestureStateTest {
         gestures.apply(source, true);
         gestures.zoomBy(2);
         gestures.tiltBy(-0.5f);
-        gestures.apply(null, false);
+        gestures.reset();
         assertFalse(gestures.isZoomEnabled());
         assertFalse(gestures.isTiltEnabled());
         assertSame(source, gestures.apply(source, true));

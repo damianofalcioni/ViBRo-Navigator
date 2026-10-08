@@ -122,7 +122,9 @@ public final class NavigationCompassModeController {
             boolean animateRadiusTransition
     ) {
         if (automaticState == null) {
-            clear();
+            // Route calculation can temporarily omit geometry without ending navigation.
+            resetGeometry();
+            perspectiveTransition.advance(nowElapsedMs);
             return null;
         }
         ViewMode automaticMode = automaticMode(automaticState);
@@ -230,13 +232,17 @@ public final class NavigationCompassModeController {
         return overrideMode;
     }
 
-    private void clear() {
+    public void reset() {
         clearOverride();
         displayedMode = ViewMode.FULL_ROUTE;
+        resetGeometry();
+        perspectiveTransition.reset();
+    }
+
+    private void resetGeometry() {
         modeStateCache.clear();
         perspectiveStateCache.clear();
         radiusTransition.reset();
-        perspectiveTransition.reset();
         headingTransition.reset();
     }
 
