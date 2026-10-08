@@ -1,6 +1,7 @@
 package vibro.navigator.nav.compass;
 
 import androidx.annotation.NonNull;
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
 
 /** Reuses an adjusted viewport across heading snapshots without retaining stale navigation state. */
 public final class CompassDisplayStateCache {
@@ -15,7 +16,8 @@ public final class CompassDisplayStateCache {
             displayed = state.withDisplayMode(moving, radius);
         } else if (source != state) {
             displayed = NavCompassHeadingRefresh.apply(displayed,
-                    (double) state.displayMode.headingDegrees, state.displayMode.headingAccuracyDegrees);
+                    (double) state.displayMode.headingDegrees, state.displayMode.headingAccuracyDegrees,
+                    state.displayMode.headingSource);
         }
         source = state;
         movingScale = moving;

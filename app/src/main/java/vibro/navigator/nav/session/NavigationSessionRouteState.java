@@ -47,6 +47,10 @@ public final class NavigationSessionRouteState {
         return components.directGuidance.activeTarget() != null;
     }
 
+    boolean usesLocationHeading() {
+        return components.headingHandoff.usesLocationHeading();
+    }
+
     boolean isDestinationReached() {
         return components.turnState.isDestinationReached();
     }
@@ -144,6 +148,7 @@ public final class NavigationSessionRouteState {
             long fastChecksUntilMs,
             boolean reacquiringAfterLongGap
     ) {
+        boolean wasBeeline = isBeelineGuidanceActive();
         NavigationRouteEvaluation evaluation = components.routeEvaluator.evaluateLocation(
                 filtered,
                 speedMps,
@@ -155,6 +160,7 @@ public final class NavigationSessionRouteState {
                 reacquiringAfterLongGap,
                 singleInstructionMode
         );
+        components.headingHandoff.onLocationEvaluated(wasBeeline, filtered, likelyStationary, evaluation, nowMs);
         beelineRecovery().setTarget(components.directGuidance.activeTarget());
         return evaluation;
     }
@@ -248,7 +254,8 @@ public final class NavigationSessionRouteState {
     ) {
         components.deviationHandler.clearDeviationEvidence();
         components.progressTracker.reset();
-        return components.routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
+        boolean wasBeeline = isBeelineGuidanceActive();
+        List<NavigationTurnEvent> events = components.routeResultApplier.applyRouteResult(new NavigationRouteResultInput(
                 textResources,
                 snapshot,
                 newRoute,
@@ -258,6 +265,8 @@ public final class NavigationSessionRouteState {
                 beganAt,
                 singleInstructionMode
         ));
+        components.headingHandoff.onRouteApplied(wasBeeline);
+        return events;
     }
 
     @NonNull

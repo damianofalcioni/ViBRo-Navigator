@@ -3,6 +3,8 @@ package vibro.navigator.nav.compass;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
+
 import vibro.navigator.geo.LatLon;
 
 import java.util.ArrayList;
@@ -201,7 +203,8 @@ public final class NavCompassState {
                 input.displayMetrics.movingScaleHorizonSeconds,
                 input.displayMetrics.movingScaleSpeedBucket,
                 input.displayMetrics.movingScaleActive,
-                input.displayMetrics.straightLineMode
+                input.displayMetrics.straightLineMode,
+                input.displayMetrics.headingSource
         );
         this.radiusState = new CompassRadiusState(
                 input.radiusMetrics.visibleRadiusMeters,
@@ -242,7 +245,8 @@ public final class NavCompassState {
                 input.displayMetrics.movingScaleHorizonSeconds,
                 input.displayMetrics.movingScaleSpeedBucket,
                 input.displayMetrics.movingScaleActive,
-                input.displayMetrics.straightLineMode
+                input.displayMetrics.straightLineMode,
+                input.displayMetrics.headingSource
         );
         this.radiusState = new CompassRadiusState(
                 input.radiusMetrics.visibleRadiusMeters,

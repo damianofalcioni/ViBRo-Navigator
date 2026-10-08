@@ -7,6 +7,8 @@ import vibro.navigator.nav.orientation.StationaryCompassHeadingGate;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
+
 public final class NavigationSessionHeadingResolver {
     // A retained orientation is useful, but a moving fix older than 10 seconds is no longer live.
     private static final long MAX_LIVE_TRAVEL_HEADING_AGE_MS = 10_000L;
@@ -85,7 +87,7 @@ public final class NavigationSessionHeadingResolver {
     @NonNull
     private Selection selectStartupHeading(@Nullable Double headingDegrees, @Nullable Float accuracyDegrees) {
         if (StationaryCompassHeadingGate.isUsable(headingDegrees, accuracyDegrees)) {
-            lastHeading = new Selection(headingDegrees, accuracyDegrees);
+            lastHeading = new Selection(headingDegrees, accuracyDegrees, NavigationHeadingSource.COMPASS);
         } else {
             lastHeading = uncertain(lastHeading);
         }
@@ -95,7 +97,7 @@ public final class NavigationSessionHeadingResolver {
     @NonNull
     private Selection selectStationaryHeading(@Nullable Double headingDegrees, @Nullable Float accuracyDegrees, long nowMs) {
         if (stationaryCompassGate.accept(headingDegrees, accuracyDegrees, nowMs)) {
-            return new Selection(headingDegrees, accuracyDegrees);
+            return new Selection(headingDegrees, accuracyDegrees, NavigationHeadingSource.COMPASS);
         }
         return StationaryCompassHeadingGate.isUsable(headingDegrees, accuracyDegrees)
                 ? lastHeading : uncertain(lastHeading);
@@ -116,7 +118,7 @@ public final class NavigationSessionHeadingResolver {
             return travelHeading;
         }
         if (StationaryCompassHeadingGate.isUsable(compassHeadingDegrees, compassAccuracyDegrees)) {
-            return new Selection(compassHeadingDegrees, compassAccuracyDegrees);
+            return new Selection(compassHeadingDegrees, compassAccuracyDegrees, NavigationHeadingSource.COMPASS);
         }
         return uncertain(lastTravelHeading.hasHeading() ? lastTravelHeading : lastHeading);
     }
@@ -147,23 +149,23 @@ public final class NavigationSessionHeadingResolver {
         long ageMs = nowMs - location.getElapsedRealtimeOrTimeMs();
         if (ageMs < 0L || ageMs > MAX_LIVE_TRAVEL_HEADING_AGE_MS) {
             // Sparse acquisitions must not confirm a source change through repeated UI refreshes.
-            return new Selection(routeHeading, 0f);
+            return new Selection(routeHeading, 0f, NavigationHeadingSource.ROUTE);
         }
         NavigationSessionLocationState.HeadingEstimate heading = locationState.routeDisagreementHeading(location);
         if (heading == null) {
             routeHeadingFallback.reset();
-            return new Selection(routeHeading, 0f);
+            return new Selection(routeHeading, 0f, NavigationHeadingSource.ROUTE);
         }
         return routeHeadingFallback.useLocationHeading(location, heading.headingDegrees,
                 heading.headingAccuracyDegrees, routeHeading)
-                ? new Selection(heading.headingDegrees, heading.headingAccuracyDegrees)
-                : new Selection(routeHeading, 0f);
+                ? new Selection(heading.headingDegrees, heading.headingAccuracyDegrees, NavigationHeadingSource.LOCATION)
+                : new Selection(routeHeading, 0f, NavigationHeadingSource.ROUTE);
     }
 
     @NonNull
     private static Selection uncertain(@NonNull Selection heading) {
         return heading.hasHeading()
-                ? new Selection(heading.headingDegrees, HELD_HEADING_UNCERTAINTY_DEGREES)
+                ? new Selection(heading.headingDegrees, HELD_HEADING_UNCERTAINTY_DEGREES, heading.headingSource)
                 : heading;
     }
 
@@ -175,7 +177,8 @@ public final class NavigationSessionHeadingResolver {
             return Selection.none();
         }
         return StationaryCompassHeadingGate.isUsable(locationHeading.headingDegrees, locationHeading.headingAccuracyDegrees)
-                ? new Selection(locationHeading.headingDegrees, locationHeading.headingAccuracyDegrees)
+                ? new Selection(locationHeading.headingDegrees, locationHeading.headingAccuracyDegrees,
+                        NavigationHeadingSource.LOCATION)
                 : Selection.none();
     }
 
@@ -184,15 +187,18 @@ public final class NavigationSessionHeadingResolver {
         public final Double headingDegrees;
         @Nullable
         public final Float headingAccuracyDegrees;
+        public final NavigationHeadingSource headingSource;
 
-        private Selection(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees) {
+        private Selection(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees,
+                NavigationHeadingSource headingSource) {
             this.headingDegrees = headingDegrees;
             this.headingAccuracyDegrees = headingAccuracyDegrees;
+            this.headingSource = headingSource;
         }
 
         @NonNull
         public static Selection none() {
-            return new Selection(null, null);
+            return new Selection(null, null, NavigationHeadingSource.UNKNOWN);
         }
 
         public boolean hasHeading() {

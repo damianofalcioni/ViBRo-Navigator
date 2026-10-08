@@ -114,9 +114,15 @@ public final class NavigationRouteProgressTracker {
 
     @NonNull
     public DirectionAssessment assessDirection(double alongTrackMeters, long nowMs) {
+        return assessDirection(alongTrackMeters, nowMs, Long.MIN_VALUE);
+    }
+
+    @NonNull
+    // Display handoffs can exclude earlier beeline samples without resetting guidance/ETA history.
+    public DirectionAssessment assessDirection(double alongTrackMeters, long nowMs, long earliestAnchorMs) {
         pruneAlongTrackSamples(nowMs);
         RouteProgressSample anchor = findDirectionAnchor(nowMs);
-        if (anchor == null) {
+        if (anchor == null || anchor.timeMs < earliestAnchorMs) {
             return DirectionAssessment.unknown();
         }
         double deltaMeters = alongTrackMeters - anchor.alongTrackMeters;

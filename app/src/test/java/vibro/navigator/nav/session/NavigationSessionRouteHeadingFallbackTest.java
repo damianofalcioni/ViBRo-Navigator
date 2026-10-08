@@ -11,6 +11,8 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
+import static org.junit.Assert.assertFalse;
 
 public class NavigationSessionRouteHeadingFallbackTest {
     private final NavigationSessionLocationState locations = new NavigationSessionLocationState();
@@ -25,6 +27,7 @@ public class NavigationSessionRouteHeadingFallbackTest {
         NavigationSessionHeadingResolver.Selection heading = select(fix(2_000, -2, 180f, 12f), 2_000);
         assertEquals(180.0, heading.headingDegrees, 0.0);
         assertEquals(12f, heading.headingAccuracyDegrees, 0f);
+        assertEquals(NavigationHeadingSource.LOCATION, heading.headingSource);
     }
 
     @Test
@@ -157,6 +160,7 @@ public class NavigationSessionRouteHeadingFallbackTest {
         NavigationSessionHeadingResolver.Selection heading = select(location, location.getElapsedRealtimeOrTimeMs());
         assertEquals(0.0, heading.headingDegrees, 0.0);
         assertEquals(0f, heading.headingAccuracyDegrees, 0f);
+        assertEquals(NavigationHeadingSource.ROUTE, heading.headingSource);
     }
 
     private NavigationSessionHeadingResolver.Selection select(NavigationLocation location, long nowMs) {

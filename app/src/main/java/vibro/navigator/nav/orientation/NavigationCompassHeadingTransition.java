@@ -5,10 +5,10 @@ import androidx.annotation.NonNull;
 import vibro.navigator.nav.compass.NavCompassHeadingRefresh;
 import vibro.navigator.nav.compass.NavCompassState;
 
-/** Animates the display handoff from direct guidance to road guidance. */
+/** Smooths heading-source handoffs without delaying live updates within a source. */
 final class NavigationCompassHeadingTransition {
-    private static final long DURATION_MS = 1_000L;
-    private boolean previousBeeline;
+    private static final long DURATION_MS = 500L;
+    private NavigationHeadingSource previousSource = NavigationHeadingSource.UNKNOWN;
     private boolean active;
     private float displayedHeading;
     private float startHeading;
@@ -18,17 +18,17 @@ final class NavigationCompassHeadingTransition {
 
     @NonNull
     NavCompassState resolve(@NonNull NavCompassState state, long nowElapsedMs) {
-        // Direct-guidance projections cover route-start, native and synthetic beelines.
-        boolean beeline = state.routeStartApproachProjection != null;
-        if (previousBeeline && !beeline && !state.displayMode.straightLineMode) {
+        NavigationHeadingSource source = state.displayMode.headingSource;
+        if (previousSource != NavigationHeadingSource.UNKNOWN && source != NavigationHeadingSource.UNKNOWN
+                && source != previousSource) {
             startHeading = displayedHeading;
             previousTargetHeading = state.displayMode.headingDegrees;
             rotationDegrees = shortestDelta(startHeading, previousTargetHeading);
             startElapsedMs = nowElapsedMs;
-            active = true;
+            active = rotationDegrees != 0f;
         }
-        previousBeeline = beeline;
-        if (beeline || state.displayMode.straightLineMode) {
+        previousSource = source;
+        if (source == NavigationHeadingSource.UNKNOWN) {
             active = false;
         }
         float heading = state.displayMode.headingDegrees;
@@ -36,7 +36,7 @@ final class NavigationCompassHeadingTransition {
             displayedHeading = heading;
             return state;
         }
-        // Keep the chosen rotation direction if updated road headings cross the opposite bearing.
+        // Preserve the chosen rotation direction if target updates cross the opposite bearing.
         rotationDegrees += shortestDelta(previousTargetHeading, heading);
         previousTargetHeading = heading;
         float fraction = Math.min(1f, Math.max(0L, nowElapsedMs - startElapsedMs) / (float) DURATION_MS);
@@ -56,7 +56,7 @@ final class NavigationCompassHeadingTransition {
     }
 
     void reset() {
-        previousBeeline = false;
+        previousSource = NavigationHeadingSource.UNKNOWN;
         active = false;
     }
 }

@@ -1,6 +1,7 @@
 package vibro.navigator.nav.compass;
 
 import androidx.annotation.NonNull;
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
 import androidx.annotation.Nullable;
 
 public final class NavCompassHeadingRefresh {
@@ -13,10 +14,18 @@ public final class NavCompassHeadingRefresh {
             @Nullable Double headingDegrees,
             @Nullable Float headingAccuracyDegrees
     ) {
+        return apply(source, headingDegrees, headingAccuracyDegrees, source.displayMode.headingSource);
+    }
+
+    @NonNull
+    public static NavCompassState apply(@NonNull NavCompassState source,
+            @Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees,
+            NavigationHeadingSource headingSource) {
         float resolvedHeadingDegrees = normalizeHeading(headingDegrees);
         Float resolvedAccuracyDegrees = sanitizeHeadingAccuracy(headingAccuracyDegrees);
         if (Float.compare(source.displayMode.headingDegrees, resolvedHeadingDegrees) == 0
-                && sameAccuracy(source.displayMode.headingAccuracyDegrees, resolvedAccuracyDegrees)) {
+                && sameAccuracy(source.displayMode.headingAccuracyDegrees, resolvedAccuracyDegrees)
+                && source.displayMode.headingSource == headingSource) {
             return source;
         }
         return new NavCompassState(
@@ -30,7 +39,8 @@ public final class NavCompassHeadingRefresh {
                         source.displayMode.movingScaleHorizonSeconds,
                         source.displayMode.movingScaleSpeedBucket,
                         source.displayMode.movingScaleActive,
-                        source.displayMode.straightLineMode
+                        source.displayMode.straightLineMode,
+                        headingSource
                 ),
                 source.streetOverlay
         );

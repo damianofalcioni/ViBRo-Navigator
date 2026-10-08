@@ -40,6 +40,9 @@ final class NavigationSessionRouteComponents {
                     routeHistory
             );
     @NonNull
+    final NavigationBeelineHeadingHandoff headingHandoff =
+            new NavigationBeelineHeadingHandoff(directGuidance, progressTracker);
+    @NonNull
     final NavigationRouteEvaluator routeEvaluator = new NavigationRouteEvaluator(
             geometryState,
             turnState,
@@ -80,5 +83,6 @@ final class NavigationSessionRouteComponents {
         turnState.reset();
         intermediateArrivalTracker.reset();
         directGuidance.reset();
+        headingHandoff.reset();
     }
 }

@@ -10,6 +10,7 @@ import vibro.navigator.nav.format.NavigationTextFormatter;
 import vibro.navigator.nav.format.TestNavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -113,8 +114,11 @@ public class NavigationSessionRouteHeadingTest {
         NavigationSession session = session(NavigationRoutingMode.STRAIGHT_LINE);
         NavState state = build(session, 180.0, 1_000L);
         assertHeading(state, 84f);
+        assertEquals(NavigationHeadingSource.LOCATION, state.routeStatus.compassState.displayMode.headingSource);
         session.getLastFilteredLocation().setBearingAccuracyDegrees(40f);
-        assertHeading(build(session, 200.0, 2_000L), 200f);
+        NavState compass = build(session, 200.0, 2_000L);
+        assertHeading(compass, 200f);
+        assertEquals(NavigationHeadingSource.COMPASS, compass.routeStatus.compassState.displayMode.headingSource);
         assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
                 session, state, 220.0, 5f, 2_100L), 220f);
     }
@@ -133,7 +137,7 @@ public class NavigationSessionRouteHeadingTest {
     }
 
     @Test
-    public void nativeBeelineUsesGpsAndCompassThenReturnsToRouteHeadingAtItsTarget() {
+    public void nativeBeelineKeepsLocationHeadingAfterReachingItsTarget() {
         NavigationSession session = session(NavigationRoutingMode.BROUTER);
         applyRoute(session, new LatLon(0, 0), true);
         evaluateRoute(session, 1_000L);
@@ -147,7 +151,34 @@ public class NavigationSessionRouteHeadingTest {
         accept(session, reached);
         evaluateRoute(session, 61_000L);
         assertFalse(session.components.routeState.isBeelineGuidanceActive());
-        assertHeading(build(session, 220.0, 61_000L), 0f);
+        NavState road = build(session, 220.0, 61_000L);
+        assertHeading(road, 84f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, road, 230.0, 5f, 61_100L), 84f);
+        // UI refreshes alone cannot establish forward road progress; stale GPS uses live compass.
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, road, 230.0, 5f, 72_000L), 230f);
+    }
+
+    @Test
+    public void forwardRoadProgressRestoresRouteHeadingForSnapshotsAndSensorRefreshes() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        applyRoute(session, new LatLon(0, 0), true);
+        NavigationLocation reached = fix(61_000);
+        reached.setLongitude(0.001);
+        accept(session, reached);
+        evaluateRoute(session, 61_000);
+        assertHeading(build(session, 220.0, 61_000), 84f);
+        NavigationLocation forward = fix(64_000);
+        forward.setLongitude(0.001);
+        forward.setLatitude(0.0002);
+        forward.setBearing(10f);
+        accept(session, forward);
+        evaluateRoute(session, 64_000);
+        NavState road = build(session, 220.0, 64_000);
+        assertHeading(road, 0f);
+        assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
+                session, road, 230.0, 5f, 64_100), 0f);
     }
 
     @Test
@@ -188,6 +219,7 @@ public class NavigationSessionRouteHeadingTest {
             session.getLastFilteredLocation().setBearing(270f);
             NavState initial = build(session, 180.0, 1_000L);
             assertHeading(initial, 90f);
+            assertEquals(NavigationHeadingSource.ROUTE, initial.routeStatus.compassState.displayMode.headingSource);
             assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
                     session, initial, 220.0, 5f, 2_000L), 90f);
             NavigationLocation backwards = fix(3_000);
@@ -196,11 +228,18 @@ public class NavigationSessionRouteHeadingTest {
             accept(session, backwards);
             NavState reversed = build(session, 180.0, 3_000);
             assertHeading(reversed, 270f);
+            assertEquals(NavigationHeadingSource.LOCATION, reversed.routeStatus.compassState.displayMode.headingSource);
+            assertEquals(NavigationHeadingSource.LOCATION, NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, reversed, 220.0, 5f, 3_100).routeStatus.compassState.displayMode.headingSource);
             assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
                     session, reversed, 220.0, 5f, 3_100), 270f);
             assertHeading(NavigationSessionResourceAdapter.withDisplayHeading(
                     session, reversed, 220.0, 5f, 14_000), 90f);
             assertTrue(session.pause());
+            NavState paused = build(session, 180.0, 3_100);
+            assertEquals(NavigationHeadingSource.UNKNOWN, paused.routeStatus.compassState.displayMode.headingSource);
+            assertEquals(NavigationHeadingSource.UNKNOWN, NavigationSessionResourceAdapter.withDisplayHeading(
+                    session, paused, 220.0, 5f, 3_150).routeStatus.compassState.displayMode.headingSource);
             assertTrue(session.resume());
             assertHeading(build(session, 180.0, 3_200), 90f);
         }

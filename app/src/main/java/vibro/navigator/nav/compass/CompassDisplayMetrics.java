@@ -1,6 +1,7 @@
 package vibro.navigator.nav.compass;
 
 import androidx.annotation.NonNull;
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.policy.NavigationSpeedBucket;
@@ -17,6 +18,7 @@ public final class CompassDisplayMetrics {
     public final NavigationSpeedBucket movingScaleSpeedBucket;
     public final boolean movingScaleActive;
     public final boolean straightLineMode;
+    public final NavigationHeadingSource headingSource;
 
     public CompassDisplayMetrics(
             float headingDegrees,
@@ -50,6 +52,15 @@ public final class CompassDisplayMetrics {
             boolean movingScaleActive,
             boolean straightLineMode
     ) {
+        this(headingDegrees, headingAccuracyDegrees, referenceSpeedMps, fullRouteReferenceSpeedMps,
+                movingScaleReferenceSpeedMps, movingScaleHorizonSeconds, movingScaleSpeedBucket,
+                movingScaleActive, straightLineMode, NavigationHeadingSource.UNKNOWN);
+    }
+
+    public CompassDisplayMetrics(float headingDegrees, @Nullable Float headingAccuracyDegrees,
+            float referenceSpeedMps, float fullRouteReferenceSpeedMps, float movingScaleReferenceSpeedMps,
+            float movingScaleHorizonSeconds, @NonNull NavigationSpeedBucket movingScaleSpeedBucket,
+            boolean movingScaleActive, boolean straightLineMode, NavigationHeadingSource headingSource) {
         this.headingDegrees = headingDegrees;
         this.headingAccuracyDegrees = headingAccuracyDegrees;
         this.referenceSpeedMps = referenceSpeedMps;
@@ -59,6 +70,7 @@ public final class CompassDisplayMetrics {
         this.movingScaleSpeedBucket = movingScaleSpeedBucket;
         this.movingScaleActive = movingScaleActive;
         this.straightLineMode = straightLineMode;
+        this.headingSource = headingSource;
     }
 
     @NonNull
@@ -76,7 +88,8 @@ public final class CompassDisplayMetrics {
                 source.movingScaleHorizonSeconds,
                 source.movingScaleSpeedBucket,
                 movingScaleActive,
-                source.straightLineMode
+                source.straightLineMode,
+                source.headingSource
         );
     }
 }

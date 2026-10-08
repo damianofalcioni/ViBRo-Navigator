@@ -7,6 +7,8 @@ import vibro.navigator.nav.location.NavigationLocation;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.nav.orientation.NavigationHeadingSource;
+
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
@@ -31,6 +33,7 @@ public final class NavigationDisplaySnapshot {
     final Double headingDegrees;
     @Nullable
     final Float headingAccuracyDegrees;
+    final NavigationHeadingSource headingSource;
     @Nullable
     final CompassOrientationCue orientationCue;
     @NonNull
@@ -57,6 +60,7 @@ public final class NavigationDisplaySnapshot {
         acquiredFixCount = builder.acquiredFixCount;
         headingDegrees = builder.headingDegrees;
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
+        headingSource = builder.headingSource;
         orientationCue = builder.orientationCue;
         blockedPoints = builder.blockedPoints;
         nextEvaluationDeadlineElapsedMs = builder.nextEvaluationDeadlineElapsedMs;
@@ -95,6 +99,7 @@ public final class NavigationDisplaySnapshot {
         private Double headingDegrees;
         @Nullable
         private Float headingAccuracyDegrees;
+        private NavigationHeadingSource headingSource = NavigationHeadingSource.UNKNOWN;
         @Nullable
         private CompassOrientationCue orientationCue;
         @NonNull
@@ -149,8 +154,15 @@ public final class NavigationDisplaySnapshot {
 
         @NonNull
         Builder heading(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees) {
+            return heading(headingDegrees, headingAccuracyDegrees, NavigationHeadingSource.UNKNOWN);
+        }
+
+        @NonNull
+        Builder heading(@Nullable Double headingDegrees, @Nullable Float headingAccuracyDegrees,
+                NavigationHeadingSource headingSource) {
             this.headingDegrees = headingDegrees;
             this.headingAccuracyDegrees = headingAccuracyDegrees;
+            this.headingSource = headingSource;
             return this;
         }
 

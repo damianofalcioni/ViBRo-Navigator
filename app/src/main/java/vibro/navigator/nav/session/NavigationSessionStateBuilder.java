@@ -11,6 +11,7 @@ import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.presentation.NavStateComposer;
+import vibro.navigator.nav.presentation.NavStateCompassHeadingComposer;
 import vibro.navigator.nav.presentation.NavStateResourceComposer;
 import vibro.navigator.nav.routing.NavigationRouteRequestManager;
 
@@ -171,16 +172,18 @@ final class NavigationSessionStateBuilder {
                     straightLineState.buildState(currentRequest, snapshot, acceptedFixHistory.snapshot()),
                     paused
             );
+            baseState = NavStateCompassHeadingComposer.withHeading(baseState, snapshot.headingDegrees,
+                    snapshot.headingAccuracyDegrees, snapshot.headingSource);
             return NavStateComposer.withTripStatus(baseState, tripStatsTracker.snapshot());
         }
         NavState baseState = routeState.advanceDisplayState(snapshot, currentRequest.isRoundTrip());
         if (currentRequest.isRoundTrip()) {
             baseState = NavStateComposer.withBlockedRoadActionAvailable(baseState, false);
         }
-        return NavStateComposer.withTripStatus(
-                NavStateResourceComposer.withPauseState(textResources, baseState, paused),
-                tripStatsTracker.snapshot()
-        );
+        baseState = NavStateResourceComposer.withPauseState(textResources, baseState, paused);
+        baseState = NavStateCompassHeadingComposer.withHeading(baseState, snapshot.headingDegrees,
+                snapshot.headingAccuracyDegrees, snapshot.headingSource);
+        return NavStateComposer.withTripStatus(baseState, tripStatsTracker.snapshot());
     }
 
     @NonNull
@@ -200,10 +203,11 @@ final class NavigationSessionStateBuilder {
                 displayHeadingAccuracyDegrees,
                 nowMs
         );
-        return NavStateComposer.withCompassHeading(
+        return NavStateCompassHeadingComposer.withHeading(
                 base,
                 heading.headingDegrees,
-                heading.headingAccuracyDegrees
+                heading.headingAccuracyDegrees,
+                heading.headingSource
         );
     }
 
@@ -239,7 +243,7 @@ final class NavigationSessionStateBuilder {
         return NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
                 .gps(fixedSatelliteCount, acquiredFixCount)
-                .heading(heading.headingDegrees, heading.headingAccuracyDegrees)
+                .heading(heading.headingDegrees, heading.headingAccuracyDegrees, heading.headingSource)
                 .orientationCue(orientationCue)
                 .blockedPoints(routeState.copyBlockedPoints())
                 .timing(nextEvaluationDeadlineElapsedMs, time)
@@ -262,16 +266,16 @@ final class NavigationSessionStateBuilder {
             @Nullable Float displayHeadingAccuracyDegrees,
             long nowMs
     ) {
-        boolean beelineGuidance = currentRequest.isStraightLine() || routeState.isBeelineGuidanceActive();
-        headingResolver.synchronizeRoute(beelineGuidance ? null : routeState.currentRoute());
+        boolean locationHeading = currentRequest.isStraightLine() || routeState.usesLocationHeading();
+        headingResolver.synchronizeRoute(locationHeading ? null : routeState.currentRoute());
         return headingResolver.selectHeading(
                 lastFiltered,
                 likelyStationary,
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 nowMs,
-                beelineGuidance ? null : routeState.currentDisplayBearingDegrees(lastFiltered),
-                beelineGuidance
+                locationHeading ? null : routeState.currentDisplayBearingDegrees(lastFiltered),
+                locationHeading
         );
     }
 }

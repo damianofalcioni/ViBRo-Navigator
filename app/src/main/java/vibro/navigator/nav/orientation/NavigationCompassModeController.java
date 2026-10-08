@@ -41,8 +41,7 @@ public final class NavigationCompassModeController {
             new NavigationCompassUiRadiusTransition();
     private final NavigationCompassPerspectiveTransition perspectiveTransition =
             new NavigationCompassPerspectiveTransition();
-    private final NavigationCompassHeadingTransition headingTransition =
-            new NavigationCompassHeadingTransition();
+    private final NavigationCompassHeadingTransition headingTransition = new NavigationCompassHeadingTransition();
     @NonNull
     private final ElapsedRealtimeClock elapsedRealtimeClock;
 
