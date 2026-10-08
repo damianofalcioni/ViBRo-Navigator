@@ -3,6 +3,7 @@ package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateBuildInput;
@@ -300,6 +301,14 @@ public final class NavigationSessionRouteDisplayState {
     ) {
         if (directGuidanceTarget != null && snapshot.lastFiltered != null) {
             return compassMemory.resolveDirectGuidanceCue(snapshot.lastFiltered, directGuidanceTarget);
+        }
+        double routeThresholdMeters = RouteDeviationPolicy.resolveOffTrackThresholdMeters(
+                compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters));
+        if (!(match.distanceToTrackMeters <= routeThresholdMeters)) {
+            // A projected road turn is misleading while the user is outside the visible corridor,
+            // including the interval before a speculative reroute is confirmed and applied.
+            compassMemory.clearTurnManeuverCue();
+            return null;
         }
         Integer turnManeuverDegrees = turnState.getActiveTurnManeuverDegrees();
         Integer turnManeuverTrackIndex = turnState.getActiveTurnManeuverTrackIndex();

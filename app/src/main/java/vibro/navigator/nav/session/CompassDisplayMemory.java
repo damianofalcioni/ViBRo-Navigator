@@ -184,7 +184,7 @@ final class CompassDisplayMemory {
                 && Objects.equals(turnManeuverTrackIndex, activeTurnManeuverTrackIndex);
     }
 
-    private void clearTurnManeuverCue() {
+    void clearTurnManeuverCue() {
         activeTurnManeuverCue = null;
         activeTurnManeuverDegrees = null;
         activeTurnManeuverTrackIndex = null;
