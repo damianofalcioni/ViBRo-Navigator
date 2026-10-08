@@ -318,6 +318,7 @@ public class AppDataBackupTest {
         AppCompassSettings.setInstantZoomEnabled(context, true);
         AppCompassSettings.setStationaryFullRouteZoomEnabled(context, true);
         AppCompassSettings.setFullscreenRouteEnabled(context, true);
+        AppCompassSettings.setCentralPerspectiveEnabled(context, true);
     }
 
     private void enableCustomButtonSettings() {
@@ -333,6 +334,7 @@ public class AppDataBackupTest {
         assertTrue(AppCompassSettings.isInstantZoomEnabled(context));
         assertTrue(AppCompassSettings.isStationaryFullRouteZoomEnabled(context));
         assertTrue(AppCompassSettings.isFullscreenRouteEnabled(context));
+        assertTrue(AppCompassSettings.isCentralPerspectiveEnabled(context));
     }
 
     private void assertCustomButtonSettingsRestored() {
@@ -348,6 +350,7 @@ public class AppDataBackupTest {
         assertBooleanPreference(appSettings, "compass_instant_zoom_enabled", true);
         assertBooleanPreference(appSettings, "compass_stationary_full_route_zoom_enabled", true);
         assertBooleanPreference(appSettings, "compass_fullscreen_route_enabled", true);
+        assertBooleanPreference(appSettings, "compass_central_perspective_enabled", true);
     }
 
     private static void assertBooleanPreference(

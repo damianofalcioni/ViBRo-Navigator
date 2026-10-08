@@ -1,6 +1,7 @@
 package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
+import vibro.navigator.settings.AppCompassSettings;
 
 
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
@@ -226,6 +227,7 @@ final class NavigationActivityRenderer {
     }
 
     private void renderCompassState() {
+        compassModeController.setCentralPerspectiveEnabled(AppCompassSettings.isCentralPerspectiveEnabled(activity));
         var compassState = currentState == null ? null : currentState.routeStatus.compassState;
         boolean fullscreenRouteMode = compassSurfaces.fullscreenRouteModeEnabled();
         boolean navigationPaused = currentState != null && currentState.pauseStatus.paused;

@@ -34,6 +34,7 @@ public final class NavigationCompassModeController {
     @Nullable
     private ViewMode overrideMode;
     private ViewMode displayedMode = ViewMode.FULL_ROUTE;
+    private boolean centralPerspectiveEnabled;
     private final CompassDisplayStateCache modeStateCache = new CompassDisplayStateCache();
     private final CompassDisplayStateCache perspectiveStateCache = new CompassDisplayStateCache();
     private long overrideExpiryElapsedMs = NO_EXPIRY;
@@ -156,6 +157,10 @@ public final class NavigationCompassModeController {
         return displayedMode == ViewMode.PERSPECTIVE_3D;
     }
 
+    public void setCentralPerspectiveEnabled(boolean enabled) {
+        centralPerspectiveEnabled = enabled;
+    }
+
     public float perspectiveProgress() {
         return perspectiveTransition.progress();
     }
@@ -176,7 +181,8 @@ public final class NavigationCompassModeController {
     @NonNull
     private NavCompassState perspectiveState(@NonNull NavCompassState baseState) {
         return perspectiveStateCache.resolve(baseState, baseState.displayMode.movingScaleActive,
-                baseState.radiusState.visibleRadiusMeters * CompassPerspectiveScale.maximumViewportMultiplier());
+                baseState.radiusState.visibleRadiusMeters
+                        * CompassPerspectiveScale.maximumViewportMultiplier(centralPerspectiveEnabled));
     }
 
     private void startRadiusTransitionIfScaleChanges(

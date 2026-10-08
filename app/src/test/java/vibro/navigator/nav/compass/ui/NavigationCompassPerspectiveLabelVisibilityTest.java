@@ -16,6 +16,7 @@ import org.robolectric.annotation.GraphicsMode;
 import java.util.Collections;
 
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.settings.AppCompassSettings;
 
 @RunWith(RobolectricTestRunner.class)
 @GraphicsMode(GraphicsMode.Mode.NATIVE)
@@ -23,6 +24,7 @@ public class NavigationCompassPerspectiveLabelVisibilityTest {
     @Test
     public void sixtySecondLabelsRemainVisibleBesideCentralArrow() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         Bitmap bitmap = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
         compassView(activity, 30f).draw(new Canvas(bitmap));
 
@@ -33,6 +35,7 @@ public class NavigationCompassPerspectiveLabelVisibilityTest {
     @Test
     public void wideAccuracyKeepsLabelsBesideCentralArrowOnLargerDrawingSurface() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         Bitmap bitmap = Bitmap.createBitmap(600, 300, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.clipRect(0, 0, 300, 300);

@@ -16,6 +16,8 @@ public final class AppCompassSettings {
             "compass_fullscreen_route_enabled";
     private static final String KEY_COMPASS_DISTANCE_CIRCLES_ENABLED =
             "compass_distance_circles_enabled";
+    private static final String KEY_COMPASS_CENTRAL_PERSPECTIVE_ENABLED =
+            "compass_central_perspective_enabled";
 
     private AppCompassSettings() {
     }
@@ -103,5 +105,17 @@ public final class AppCompassSettings {
 
     public static void setDistanceCirclesEnabled(@NonNull Context context, boolean enabled) {
         prefs(context).edit().putBoolean(KEY_COMPASS_DISTANCE_CIRCLES_ENABLED, enabled).apply();
+    }
+
+    public static boolean isCentralPerspectiveEnabled(@NonNull Context context) {
+        return isCentralPerspectiveEnabled(prefs(context));
+    }
+
+    static boolean isCentralPerspectiveEnabled(@NonNull SharedPreferences preferences) {
+        return preferences.getBoolean(KEY_COMPASS_CENTRAL_PERSPECTIVE_ENABLED, true);
+    }
+
+    public static void setCentralPerspectiveEnabled(@NonNull Context context, boolean enabled) {
+        prefs(context).edit().putBoolean(KEY_COMPASS_CENTRAL_PERSPECTIVE_ENABLED, enabled).apply();
     }
 }

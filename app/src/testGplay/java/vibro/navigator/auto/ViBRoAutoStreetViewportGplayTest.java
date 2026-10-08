@@ -139,7 +139,7 @@ public class ViBRoAutoStreetViewportGplayTest {
         assertTrue(fixture.painter.handleScroll(100f, 0f, fixture.state));
         fixture.timeMs += 400L;
         fixture.draw();
-        float perspectiveRadius = 300f * CompassPerspectiveScale.maximumViewportMultiplier();
+        float perspectiveRadius = 300f * CompassPerspectiveScale.maximumViewportMultiplier(true);
         assertEquals(perspectiveRadius, fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
         assertTrue(fixture.painter.handleScroll(-100f, 0f, fixture.state));
         fixture.timeMs += 400L;
@@ -164,6 +164,30 @@ public class ViBRoAutoStreetViewportGplayTest {
         assertTrue(fixture.painter.handleScroll(0f, 200f, fixture.state));
         fixture.draw();
         assertEquals(1.25f, fixture.perspectiveProgress(), 0.001f);
+    }
+
+    @Test
+    public void perspectivePreferenceUpdatesThePublishedViewportAndRetainsHostTilt() throws Exception {
+        AppCompassSettings.setCentralPerspectiveEnabled(context, false);
+        PainterFixture fixture = painterFixture();
+        fixture.painter.handleScroll(100f, 0f, fixture.state);
+        fixture.timeMs += 400L;
+        fixture.draw();
+        assertEquals(1f, fixture.perspectiveProgress(), 0.001f);
+        AppCompassSettings.setCentralPerspectiveEnabled(context, true);
+        fixture.draw();
+        NavCompassState central = fixture.viewport.lastCompassStreetViewport;
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(true),
+                central.radiusState.visibleRadiusMeters, 0.01f);
+        fixture.painter.handleScroll(0f, -100f, fixture.state);
+        fixture.draw();
+        assertSame(central, fixture.viewport.lastCompassStreetViewport);
+        assertEquals(0.375f, fixture.perspectiveProgress(), 0.001f);
+        AppCompassSettings.setCentralPerspectiveEnabled(context, false);
+        fixture.draw();
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(),
+                fixture.viewport.lastCompassStreetViewport.radiusState.visibleRadiusMeters, 0.01f);
+        assertEquals(0.375f, fixture.perspectiveProgress(), 0.001f);
     }
 
     @Test

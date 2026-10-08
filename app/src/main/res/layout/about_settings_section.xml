@@ -473,6 +473,34 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/aboutCompassCentralPerspectiveRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <Switch
+            android:id="@+id/aboutCompassCentralPerspectiveSwitch"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minHeight="48dp"
+            android:text="@string/label_compass_central_perspective_enabled"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutCompassCentralPerspectiveInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/aboutCompassDistanceCirclesRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

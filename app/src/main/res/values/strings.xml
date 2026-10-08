@@ -498,6 +498,7 @@
     <string name="label_compass_stationary_full_route_zoom_enabled">Automatic zoom out</string>
     <string name="label_compass_fullscreen_route_enabled">Fullscreen route</string>
     <string name="label_compass_distance_circles_enabled">Distance circles</string>
+    <string name="label_compass_central_perspective_enabled">Perspective 3D view</string>
     <string name="label_navigation_notifications_enabled">Notifications</string>
     <string name="label_single_instruction_mode_enabled">Single instruction mode</string>
     <string name="label_android_auto_integration_enabled">Android Auto</string>
@@ -533,6 +534,7 @@
     <string name="about_setting_compass_stationary_full_route_zoom_info">Shows the full route in the compass when you are stationary. Turn it off to keep the last moving-scale zoom when stopped.</string>
     <string name="about_setting_compass_fullscreen_route_info">Expands the route compass view behind the full navigation screen while keeping controls and direction text visible in front.</string>
     <string name="about_setting_compass_distance_circles_info">Shows distance circles with time and distance labels, the heading arrow, and heading accuracy lines and arcs in compass and fullscreen views.</string>
+    <string name="about_setting_compass_central_perspective_info">Uses perspective in the 3D compass view: nearby routes and streets appear larger, while distant ones shrink toward the top. Turn this off to use the uniform orthographic tilt.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_navigation_custom_button_info">Shows an extra button in the navigation compass that toggles the selected setting while navigation is open.</string>

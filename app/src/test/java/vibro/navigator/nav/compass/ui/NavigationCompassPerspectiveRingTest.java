@@ -21,6 +21,7 @@ import java.util.Collections;
 import vibro.navigator.R;
 import vibro.navigator.nav.compass.CompassPerspectiveScale;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 
 @RunWith(RobolectricTestRunner.class)
@@ -29,6 +30,7 @@ public class NavigationCompassPerspectiveRingTest {
     @GraphicsMode(GraphicsMode.Mode.NATIVE)
     public void compactPerspectiveShowsOuterTravelRingAndLoweredPositionMarker() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         Bitmap bitmap = Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888);
         compactView(activity, 300, 60f * CompassPerspectiveScale.maximumViewportMultiplier(), 1f, null)
                 .draw(new Canvas(bitmap));
@@ -41,6 +43,7 @@ public class NavigationCompassPerspectiveRingTest {
     @Test
     public void compactPerspectiveLabelsUseExpandedHorizonThroughoutTilt() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         for (int horizon : new int[] {30, 45, 60}) {
             for (float progress : new float[] {0.25f, 0.5f, 1f}) {
                 Canvas canvas = new Canvas(Bitmap.createBitmap(300, 300, Bitmap.Config.ARGB_8888));
@@ -64,6 +67,7 @@ public class NavigationCompassPerspectiveRingTest {
     @Test
     public void perspectiveUsesProjected2dAnchorsWithUprightLabelsAndAccuracyArcs() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         for (Float accuracy : new Float[] {null, 20f, 85f}) {
             assertLegendMatches2d(activity, accuracy);
         }

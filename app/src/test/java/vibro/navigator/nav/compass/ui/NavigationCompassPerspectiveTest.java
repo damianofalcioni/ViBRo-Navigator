@@ -22,6 +22,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.CompassPerspectiveScale;
 import vibro.navigator.nav.compass.CompassRouteGeometry;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.nav.compass.CompassRoutePoint;
 import vibro.navigator.nav.compass.CompassStreetOverlay;
 import vibro.navigator.nav.compass.CompassStreetSegment;
@@ -197,6 +198,7 @@ public class NavigationCompassPerspectiveTest {
 
     private static void assertPerspectiveDraws(int width, int height, boolean fullscreen) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         NavigationCompassView view = new NavigationCompassView(activity);
         view.setFullscreenRouteModeEnabled(fullscreen);
         view.setPerspectiveProgress(1f);
@@ -303,6 +305,7 @@ public class NavigationCompassPerspectiveTest {
             NavCompassState state, int width, int height, boolean fullscreen, float progress
     ) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         NavigationCompassView view = new NavigationCompassView(activity);
         view.setFullscreenRouteModeEnabled(fullscreen);
         view.setPerspectiveProgress(progress);

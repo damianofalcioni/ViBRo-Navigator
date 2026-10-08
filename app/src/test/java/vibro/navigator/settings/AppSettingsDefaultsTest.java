@@ -31,6 +31,7 @@ public class AppSettingsDefaultsTest {
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(preferences));
         assertFalse(AppCompassSettings.isInstantZoomEnabled(preferences));
         assertTrue(AppCompassSettings.isFullscreenRouteEnabled(preferences));
+        assertTrue(AppCompassSettings.isCentralPerspectiveEnabled(preferences));
         assertTrue(AppPoiCategoryPreferences.isMapPoiCategoryFilterEnabled(preferences));
         assertTrue(AppSpeechRecognitionSettings.isEnabled(preferences));
         assertFalse(AppSettingsPreferenceValues.hasValidGooglePoiApiKey(preferences));

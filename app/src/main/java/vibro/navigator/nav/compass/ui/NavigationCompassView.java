@@ -345,12 +345,14 @@ public final class NavigationCompassView extends View {
     private final class PerspectiveRenderer {
         private static final float CENTER_OFFSET_SCALE = 0.32f;
         private final NavigationCompassPerspective perspective = new NavigationCompassPerspective();
+        private boolean centralPerspective;
 
         void drawCompact(@NonNull Canvas canvas, float cx, float cy, float headingDegrees) {
+            centralPerspective = AppCompassSettings.isCentralPerspectiveEnabled(getContext());
             float radius = fullscreenMode.resolveCompassRadius(cx, cy, dp(10f));
             float routeRadius = radius * OUTER_COMPASS_LAYER_INNER_SCALE;
-            float sourceScale = CompassPerspectiveScale.maximumViewportMultiplier();
-            float visibleScale = CompassPerspectiveScale.viewportMultiplier(perspectiveProgress);
+            float sourceScale = CompassPerspectiveScale.maximumViewportMultiplier(centralPerspective);
+            float visibleScale = CompassPerspectiveScale.viewportMultiplier(perspectiveProgress, centralPerspective);
             float sourceRouteRadius = routeRadius * sourceScale;
             float centerYOffset = routeRadius * CENTER_OFFSET_SCALE * perspectiveProgress;
             canvas.drawCircle(cx, cy, radius, surfacePaint);
@@ -373,7 +375,7 @@ public final class NavigationCompassView extends View {
                     pausedRingPaint
             );
             outerRingRenderer.draw(canvas, cx, cy, radius, outerCompassLayerRadius(radius), headingDegrees);
-            if (perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress, centerYOffset)) {
+            if (perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress, centerYOffset, centralPerspective)) {
                 int saveCount = canvas.save();
                 compassClipPath.reset();
                 compassClipPath.addCircle(cx, cy, routeRadius, Path.Direction.CW);
@@ -413,11 +415,12 @@ public final class NavigationCompassView extends View {
                 float height,
                 float headingDegrees
         ) {
+            centralPerspective = AppCompassSettings.isCentralPerspectiveEnabled(getContext());
             float cx = width / 2f;
             float cy = fullscreenMode.resolveCenterY(height, dp(FULLSCREEN_CENTER_BOTTOM_INSET_DP));
             float markerRadius = fullscreenMode.resolveCompassRadius(cx, cy, dp(10f));
             float routeRadius = fullscreenMode.resolveRouteRadius(cy, dp(FULLSCREEN_ROUTE_TOP_INSET_DP));
-            float sourceScale = CompassPerspectiveScale.maximumViewportMultiplier();
+            float sourceScale = CompassPerspectiveScale.maximumViewportMultiplier(centralPerspective);
             float sourceRouteRadius = routeRadius * sourceScale;
             boolean portraitOrientation =
                     getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT;
@@ -429,11 +432,11 @@ public final class NavigationCompassView extends View {
             float centerYOffset = Math.min(
                     markerRadius * OUTER_COMPASS_LAYER_INNER_SCALE * CENTER_OFFSET_SCALE * perspectiveProgress,
                     Math.max(0f, height - cy - dp(10f)));
-            if (!perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress, centerYOffset)) {
+            if (!perspective.configure(cx, cy, sourceRouteRadius, perspectiveProgress, centerYOffset, centralPerspective)) {
                 return;
             }
             drawPerspectivePlane(canvas, cx, cy, sourceRouteRadius, 0f, headingDegrees);
-            float visibleScale = CompassPerspectiveScale.viewportMultiplier(perspectiveProgress);
+            float visibleScale = CompassPerspectiveScale.viewportMultiplier(perspectiveProgress, centralPerspective);
             drawFullscreenReferences(canvas, cx, cy, headingGuideRadius * visibleScale,
                     fullscreenMode.resolveLegendOuterScale(routeRadius, headingGuideRadius),
                     perspectiveVisibleRadiusMeters(visibleScale));
@@ -493,7 +496,7 @@ public final class NavigationCompassView extends View {
 
         private float perspectiveVisibleRadiusMeters(float visibleScale) {
             return NavigationCompassLegendRenderer.visibleRadiusMeters(compassState)
-                    * visibleScale / CompassPerspectiveScale.maximumViewportMultiplier();
+                    * visibleScale / CompassPerspectiveScale.maximumViewportMultiplier(centralPerspective);
         }
 
         private void drawProjectedHeadingAccuracyGuides(

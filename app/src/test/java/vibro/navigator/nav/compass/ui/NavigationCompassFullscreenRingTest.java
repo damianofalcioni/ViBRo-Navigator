@@ -24,6 +24,7 @@ import vibro.navigator.R;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.compass.CompassPerspectiveScale;
 import vibro.navigator.nav.compass.NavCompassState;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.nav.format.NavigationTextFormatter;
 
 @RunWith(RobolectricTestRunner.class)
@@ -67,6 +68,7 @@ public class NavigationCompassFullscreenRingTest {
 
     private static void assertArrowAndCenter(int width, int height, boolean portrait) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         float arrowLength = headingRadius(width, height, portrait);
         int previousCenterY = 0;
         for (float progress : new float[] {0f, 0.25f, 0.5f, 1f}) {
@@ -88,6 +90,7 @@ public class NavigationCompassFullscreenRingTest {
 
     private static void assertRingPixels(int width, int height, boolean portrait) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         for (int theme : new int[] {R.style.Theme_ViBRoNavigator, R.style.Theme_ViBRoNavigator_Light}) {
             activity.setTheme(theme);
             for (float progress : new float[] {0f, 0.25f, 0.5f, 1f}) {
@@ -116,6 +119,7 @@ public class NavigationCompassFullscreenRingTest {
 
     private static void assertProjectedLabels(int width, int height, boolean portrait) {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        AppCompassSettings.setCentralPerspectiveEnabled(activity, false);
         for (float progress : new float[] {0f, 0.25f, 0.5f, 1f}) {
             Canvas canvas = new Canvas(Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888));
             NavigationCompassView view = view(activity, width, height, progress);

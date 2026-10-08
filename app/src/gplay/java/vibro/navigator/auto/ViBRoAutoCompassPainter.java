@@ -127,6 +127,7 @@ final class ViBRoAutoCompassPainter {
 
     @Nullable
     private NavCompassState resolveCompassState(@NonNull NavState state) {
+        compassModeController.setCentralPerspectiveEnabled(AppCompassSettings.isCentralPerspectiveEnabled(carContext));
         return gestureState.apply(compassModeController.resolve(state.routeStatus.compassState,
                 animateRadiusTransition()), compassModeController.isPerspectiveViewEnabled());
     }

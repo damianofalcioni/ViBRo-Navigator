@@ -79,6 +79,11 @@ final class AboutSettingInfoButtons {
                 R.string.about_setting_compass_distance_circles_info
         );
         bind(
+                R.id.aboutCompassCentralPerspectiveInfoButton,
+                R.string.label_compass_central_perspective_enabled,
+                R.string.about_setting_compass_central_perspective_info
+        );
+        bind(
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled,
                 R.string.about_setting_navigation_notifications_info

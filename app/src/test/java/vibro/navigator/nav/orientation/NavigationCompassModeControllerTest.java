@@ -321,6 +321,26 @@ public class NavigationCompassModeControllerTest {
         assertFalse(controller.isTransitionInProgress());
     }
 
+    @Test
+    public void projectionSwitchChangesPreparedViewportWithoutResettingViewOrRebuildingTiltFrames() {
+        NavigationCompassModeController controller = newController();
+        NavCompassState automatic = movingState();
+        controller.onCompassTapped(automatic, 0L, false);
+        NavCompassState orthographic = controller.resolve(automatic, 320L, false);
+        controller.setCentralPerspectiveEnabled(true);
+        NavCompassState central = controller.resolve(automatic, 400L, false);
+        assertTrue(controller.isPerspectiveViewEnabled());
+        assertEquals(300f * CompassPerspectiveScale.maximumViewportMultiplier(true),
+                central.radiusState.visibleRadiusMeters, 0.01f);
+        assertSame(central, controller.resolve(automatic, 450L, false));
+        assertEquals(1f, controller.perspectiveProgress(), 0.001f);
+        controller.setCentralPerspectiveEnabled(false);
+        assertEquals(orthographic.radiusState.visibleRadiusMeters,
+                controller.resolve(automatic, 500L, false).radiusState.visibleRadiusMeters, 0.01f);
+        controller.onCompassTapped(automatic, 600L, false);
+        assertEquals(300f, controller.resolve(automatic, 920L, false).radiusState.visibleRadiusMeters, 0.01f);
+    }
+
     private static NavCompassState stationaryState() {
         return compassState(false, 2_000f, 300f, 1f, 5f);
     }
