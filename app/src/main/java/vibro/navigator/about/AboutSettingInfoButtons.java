@@ -83,6 +83,8 @@ final class AboutSettingInfoButtons {
                 R.string.label_compass_central_perspective_enabled,
                 R.string.about_setting_compass_central_perspective_info
         );
+        bind(R.id.aboutShowHintPanelInfoButton, R.string.label_show_hint_panel,
+                R.string.about_setting_show_hint_panel_info);
         bind(
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled,

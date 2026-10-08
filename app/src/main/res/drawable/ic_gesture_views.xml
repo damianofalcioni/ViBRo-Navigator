@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp" android:height="56dp"
+    android:viewportWidth="64" android:viewportHeight="64">
+    <!-- One raised index finger, tap marks and horizontal swipe arrows. -->
+    <path android:fillColor="@android:color/transparent"
+        android:strokeColor="?attr/vibroIconColor" android:strokeWidth="2"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M25,55 L19,43 Q17,39 20,38 Q22,37 25,41 L28,45 L28,26 Q28,22 31,22 Q34,22 34,26 L34,36 L38,35 L47,39 Q49,40 49,44 L47,55 Z M28,8 Q22,10 22,17 M34,8 Q40,10 40,17 M28,14 Q26,15 26,18 M34,14 Q36,15 36,18 M6,29 L21,29 M6,29 L10,25 M6,29 L10,33 M43,29 L58,29 M58,29 L54,25 M58,29 L54,33" />
+</vector>

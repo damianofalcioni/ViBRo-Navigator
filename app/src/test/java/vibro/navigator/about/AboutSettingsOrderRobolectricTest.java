@@ -39,6 +39,7 @@ public class AboutSettingsOrderRobolectricTest {
                 R.id.aboutCompassFullscreenRouteRow,
                 R.id.aboutCompassCentralPerspectiveRow,
                 R.id.aboutCompassDistanceCirclesRow,
+                R.id.aboutShowHintPanelRow,
                 R.id.aboutSettingsSearchInputTitle,
                 R.id.aboutPoiCategoriesRow,
                 R.id.aboutSpeechRecognitionRow,

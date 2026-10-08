@@ -16,6 +16,7 @@ final class AboutSettingsControllers {
     private AboutPoiCategorySettings poiCategorySettings;
     private AboutSpeechRecognitionSettings speechRecognitionSettings;
     private AboutCompassProjectionSettings compassProjectionSettings;
+    private AboutNavigationHintSettings navigationHintSettings;
 
     AboutSettingsControllers(@NonNull Activity activity) {
         this.activity = activity;
@@ -23,6 +24,7 @@ final class AboutSettingsControllers {
 
     void configure() {
         compassProjectionSettings = new AboutCompassProjectionSettings(activity);
+        navigationHintSettings = new AboutNavigationHintSettings(activity);
         new AboutSurroundingStreetTypes(activity).configure(
                 activity.findViewById(R.id.aboutCompassSurroundingStreetsSettingsButton)
         );
@@ -76,6 +78,7 @@ final class AboutSettingsControllers {
 
     void refreshAfterDatabaseImport() {
         compassProjectionSettings.refresh();
+        navigationHintSettings.refresh();
         refreshGooglePoiApiKeySetting();
         refreshAndroidAutoSettingAfterDatabaseImport();
         refreshPoiCategorySetting();
@@ -88,6 +91,9 @@ final class AboutSettingsControllers {
     }
 
     void flush() {
+        if (navigationHintSettings != null) {
+            navigationHintSettings.flush();
+        }
         if (compassProjectionSettings != null) {
             compassProjectionSettings.flush();
         }

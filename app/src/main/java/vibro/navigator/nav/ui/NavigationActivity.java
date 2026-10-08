@@ -19,6 +19,7 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MotionEvent;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -42,6 +43,7 @@ public class NavigationActivity extends Activity {
     private NavigationActivityCommands commands;
     private NavigationActivityRenderer renderer;
     private NavigationActivityBackHandler backHandler;
+    private NavigationGestureHints gestureHints;
     private final NavigationStartupCoordinator startupCoordinator =
             NavigationActivityStartupHost.createCoordinator(this);
     private final NavigationActivityStopMonitor stopMonitor = new NavigationActivityStopMonitor(
@@ -143,6 +145,8 @@ public class NavigationActivity extends Activity {
         commands = new NavigationActivityCommands(this, () -> navBinder);
         render(NavStateComposer.waiting(this));
         configureControls();
+        gestureHints = new NavigationGestureHints(
+                this, savedInstanceState, uiScheduler, AndroidElapsedRealtimeClock.INSTANCE);
 
         ensureReadyThenStart();
     }
@@ -176,6 +180,9 @@ public class NavigationActivity extends Activity {
         super.onNewIntent(intent);
         setIntent(intent);
         startupCoordinator.setAutoStartNavigation(hasNavigationRequest() && !shouldResumeExistingNavigation());
+        if (startupCoordinator.isAutoStartNavigation()) {
+            gestureHints.show();
+        }
         AppLogger.i(TAG, "onNewIntent autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
                 + " request=" + describeNavigationRequest());
         ensureReadyThenStart();
@@ -194,6 +201,7 @@ public class NavigationActivity extends Activity {
         super.onResume();
         AndroidAppTheme.recreateIfThemeChanged(this, appliedLightTheme);
         renderer.refreshSettings();
+        gestureHints.refreshCountdown();
         startupCoordinator.onResume();
     }
 
@@ -226,8 +234,23 @@ public class NavigationActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        gestureHints.dismiss();
         backHandler.unregisterPredictiveBackCallbackIfNeeded();
         super.onDestroy();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        if (gestureHints != null && event.getActionMasked() == MotionEvent.ACTION_DOWN) {
+            gestureHints.dismiss();
+        }
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        gestureHints.saveState(outState);
+        super.onSaveInstanceState(outState);
     }
 
     private void render(@NonNull NavState state) {

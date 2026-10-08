@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="56dp" android:height="56dp"
+    android:viewportWidth="64" android:viewportHeight="64">
+    <!-- Two raised fingers share a single-width divider, beside an up/down arrow. -->
+    <path android:fillColor="@android:color/transparent"
+        android:strokeColor="?attr/vibroIconColor" android:strokeWidth="2"
+        android:strokeLineCap="round" android:strokeLineJoin="round"
+        android:pathData="M19,56 L11,43 Q9,39 12,38 Q14,37 17,41 L20,44 L20,20 Q20,16 23,16 Q27,16 27,20 L27,17 Q27,13 31,13 Q34,13 34,17 L34,34 L42,37 Q45,38 45,42 L42,56 Z M27,20 L27,34 M54,12 L54,48 M54,12 L49,17 M54,12 L59,17 M54,48 L49,43 M54,48 L59,43" />
+</vector>

@@ -94,6 +94,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
                 R.id.aboutNavigationNotificationsInfoButton,
                 R.string.label_navigation_notifications_enabled
         );
+        assertInfoButton(activity, R.id.aboutShowHintPanelInfoButton, R.string.label_show_hint_panel);
         assertInfoButton(
                 activity,
                 R.id.aboutSingleInstructionModeInfoButton,
