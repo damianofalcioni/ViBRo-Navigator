@@ -16,22 +16,24 @@ public class StationaryCompassHeadingGateTest {
     }
 
     @Test
-    public void substantialTurnMustRemainStableForOneSecond() {
+    public void substantialTurnMustRemainStableForQuarterSecond() {
         gate.accept(90.0, 5f, 1_000L);
         assertFalse(gate.accept(120.0, 5f, 2_000L));
-        assertFalse(gate.accept(123.0, 5f, 2_999L));
-        assertTrue(gate.accept(125.0, 5f, 3_000L));
-        assertTrue(gate.accept(129.0, 5f, 4_000L));
-        assertTrue(gate.accept(90.0, 5f, 4_100L));
+        assertFalse(gate.accept(123.0, 5f, 2_249L));
+        assertTrue(gate.accept(125.0, 5f, 2_250L));
+        assertTrue(gate.accept(129.0, 5f, 2_300L));
+        assertTrue(gate.accept(90.0, 5f, 2_400L));
     }
 
     @Test
     public void briefSpikeOrUnstableLargeChangesDoNotQualify() {
         gate.accept(0.0, 5f, 1_000L);
         gate.accept(90.0, 5f, 2_000L);
-        assertFalse(gate.accept(5.0, 5f, 3_000L));
+        assertFalse(gate.accept(5.0, 5f, 2_200L));
         gate.accept(90.0, 5f, 4_000L);
-        assertFalse(gate.accept(180.0, 5f, 5_000L));
+        assertFalse(gate.accept(180.0, 5f, 4_200L));
+        assertFalse(gate.accept(180.0, 5f, 4_449L));
+        assertTrue(gate.accept(180.0, 5f, 4_450L));
     }
 
     @Test

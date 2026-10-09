@@ -54,7 +54,8 @@ public class NavigationSessionHeadingResolverTest {
         selectHeading(location, false, 180.0, 5f, 1_000L);
         selectHeading(location, true, 180.0, 5f, 2_000L);
         selectHeading(location, true, 220.0, 5f, 3_000L);
-        assertEquals(220.0, selectHeading(location, true, 220.0, 5f, 4_000L).headingDegrees, 0.0);
+        assertEquals(84.0, selectHeading(location, true, 220.0, 5f, 3_249L).headingDegrees, 0.0);
+        assertEquals(220.0, selectHeading(location, true, 220.0, 5f, 3_250L).headingDegrees, 0.0);
         assertEquals(84.0, selectHeading(location, false, 220.0, 5f, 5_000L).headingDegrees, 0.0);
         assertEquals(84.0, selectHeading(location, true, 260.0, 5f, 6_000L).headingDegrees, 0.0);
     }

@@ -29,18 +29,31 @@ public class NavigationHeadingSourceSelectionTest {
     }
 
     @Test
-    public void stoppingRetainsRouteSourceUntilCompassTurnGateActivates() {
+    public void stoppingRetainsTravelSourceUntilQuarterSecondCompassTurnConfirmation() {
+        for (boolean beeline : new boolean[] {false, true}) {
+            assertStationaryActivation(beeline);
+        }
+    }
+
+    private static void assertStationaryActivation(boolean beeline) {
         NavigationSessionHeadingResolver resolver = resolver();
         NavigationLocation fix = fix(1_000);
-        assertEquals(NavigationHeadingSource.ROUTE,
-                resolver.selectHeading(fix, false, 180.0, 5f, 1_000, 90.0, false).headingSource);
-        assertEquals(NavigationHeadingSource.ROUTE,
-                resolver.selectHeading(fix, true, 180.0, 5f, 2_000, 90.0, false).headingSource);
-        resolver.selectHeading(fix, true, 220.0, 5f, 3_000, 90.0, false);
+        NavigationHeadingSource travelSource = beeline ? NavigationHeadingSource.LOCATION : NavigationHeadingSource.ROUTE;
+        assertEquals(travelSource,
+                resolver.selectHeading(fix, false, 180.0, 5f, 1_000, 90.0, beeline).headingSource);
+        assertEquals(travelSource,
+                resolver.selectHeading(fix, true, 180.0, 5f, 2_000, 90.0, beeline).headingSource);
+        resolver.selectHeading(fix, true, 220.0, 5f, 3_000, 90.0, beeline);
+        assertEquals(travelSource,
+                resolver.selectHeading(fix, true, 220.0, 5f, 3_249, 90.0, beeline).headingSource);
         assertEquals(NavigationHeadingSource.COMPASS,
-                resolver.selectHeading(fix, true, 220.0, 5f, 4_000, 90.0, false).headingSource);
-        assertEquals(NavigationHeadingSource.ROUTE,
-                resolver.selectHeading(fix, false, 220.0, 5f, 4_100, 90.0, false).headingSource);
+                resolver.selectHeading(fix, true, 220.0, 5f, 3_250, 90.0, beeline).headingSource);
+        assertEquals(NavigationHeadingSource.COMPASS,
+                resolver.selectHeading(fix, true, 225.0, 5f, 3_300, 90.0, beeline).headingSource);
+        assertEquals(travelSource,
+                resolver.selectHeading(fix, false, 225.0, 5f, 3_400, 90.0, beeline).headingSource);
+        assertEquals(travelSource,
+                resolver.selectHeading(fix, true, 260.0, 5f, 3_500, 90.0, beeline).headingSource);
     }
 
     private static NavigationSessionHeadingResolver resolver() {

@@ -9,7 +9,8 @@ public final class StationaryCompassHeadingGate {
     private static final double MIN_TURN_DEGREES = 30.0;
     private static final float MAX_ACCURACY_DEGREES = 25f;
     private static final double MAX_CONFIRMATION_JITTER_DEGREES = 10.0;
-    private static final long TURN_CONFIRMATION_MS = 1_000L;
+    // Reject brief sensor spikes without a noticeable pause after a deliberate turn.
+    private static final long TURN_CONFIRMATION_MS = 250L;
     private static final long MAX_CONFIRMATION_SAMPLE_GAP_MS = 1_500L;
 
     @Nullable
