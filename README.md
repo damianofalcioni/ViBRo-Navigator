@@ -23,7 +23,7 @@
 </table>
 
 > [!NOTE]
-> **The project is entirely created by AI. No code has been written nor reviewed by humans. Despite that...**
+> **The project is entirely created by AI. No code has been written nor reviewed by humans. Despite that... here we are, Your Honor**
 
 ## ❓ Why
 
