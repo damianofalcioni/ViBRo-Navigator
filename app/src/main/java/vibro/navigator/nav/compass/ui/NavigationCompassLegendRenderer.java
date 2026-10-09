@@ -186,7 +186,7 @@ final class NavigationCompassLegendRenderer {
             @NonNull NavCompassState compassState,
             float distanceMeters
     ) {
-        int seconds = (int) Math.round(distanceMeters / Math.max(1f, compassState.displayMode.referenceSpeedMps));
+        int seconds = Math.round(distanceMeters / Math.max(0.2f, compassState.displayMode.referenceSpeedMps));
         return NavigationTextFormatter.formatTimeSeconds(context, seconds);
     }
 }

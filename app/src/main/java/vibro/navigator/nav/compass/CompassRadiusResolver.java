@@ -191,30 +191,6 @@ public final class CompassRadiusResolver {
                 + (targetVisibleRadiusMeters - previousVisibleRadiusMeters) * alpha);
     }
 
-    public static float movingLegendReferenceSpeedMps(float visibleRadiusMeters) {
-        return movingLegendReferenceSpeedMps(visibleRadiusMeters, MIN_VISIBLE_RADIUS_METERS);
-    }
-
-    public static float movingLegendReferenceSpeedMps(float visibleRadiusMeters, float fallbackRadiusMeters) {
-        return movingLegendReferenceSpeedMps(
-                visibleRadiusMeters,
-                CompassMovingScaleHorizon.secondsFor(CompassMovingScaleHorizon.DEFAULT_SPEED_BUCKET),
-                fallbackRadiusMeters
-        );
-    }
-
-    public static float movingLegendReferenceSpeedMps(
-            float visibleRadiusMeters,
-            float movingScaleHorizonSeconds,
-            float fallbackRadiusMeters
-    ) {
-        return CompassMovingScalePolicy.referenceSpeedMps(
-                visibleRadiusMeters,
-                movingScaleHorizonSeconds,
-                fallbackRadiusMeters
-        );
-    }
-
     private static boolean isReusableMovingRadius(@Nullable Float radiusMeters) {
         return radiusMeters != null && Float.isFinite(radiusMeters) && radiusMeters > 0f;
     }

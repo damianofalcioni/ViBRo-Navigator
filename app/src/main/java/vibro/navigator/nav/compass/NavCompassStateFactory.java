@@ -222,11 +222,8 @@ public final class NavCompassStateFactory {
                 nowMs
         );
         float fullRouteReferenceSpeedMps = sanitizeReferenceSpeedMps(speedMps);
-        float movingScaleReferenceSpeedMps = CompassRadiusResolver.movingLegendReferenceSpeedMps(
-                radiusState.movingScaleVisibleRadiusMeters,
-                radiusState.movingScaleHorizonSeconds,
-                0f
-        );
+        // The minimum map radius is a visibility constraint, not evidence of faster travel.
+        float movingScaleReferenceSpeedMps = fullRouteReferenceSpeedMps;
         float referenceSpeedMps = radiusState.usingMovingScale
                 ? movingScaleReferenceSpeedMps
                 : fullRouteReferenceSpeedMps;
@@ -291,7 +288,7 @@ public final class NavCompassStateFactory {
     }
 
     private static float sanitizeReferenceSpeedMps(float speedMps) {
-        return Float.isFinite(speedMps) && speedMps > 0f ? Math.max(1f, speedMps) : 1f;
+        return Float.isFinite(speedMps) && speedMps > 0f ? Math.max(0.2f, speedMps) : 1f;
     }
 
     @Nullable

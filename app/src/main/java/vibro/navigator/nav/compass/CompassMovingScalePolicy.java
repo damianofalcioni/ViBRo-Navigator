@@ -40,17 +40,6 @@ final class CompassMovingScalePolicy {
         return Math.max(minimumVisibleRadiusMeters, targetRadiusMeters);
     }
 
-    static float referenceSpeedMps(
-            float visibleRadiusMeters,
-            float movingScaleHorizonSeconds,
-            float fallbackRadiusMeters
-    ) {
-        float safeRadiusMeters = Float.isFinite(visibleRadiusMeters) && visibleRadiusMeters > 0f
-                ? visibleRadiusMeters
-                : fallbackRadiusMeters;
-        return Math.max(1f, safeRadiusMeters / safeHorizonSeconds(movingScaleHorizonSeconds));
-    }
-
     @NonNull
     private static NavigationSpeedBucket resolveSpeedBucket(
             float speedMps,

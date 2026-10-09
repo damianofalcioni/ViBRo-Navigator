@@ -484,7 +484,7 @@ public class NavStateTest {
         assertTrue(state.routeStatus.compassState.routePoints.size() >= 2);
         assertTrue(state.routeStatus.compassState.radiusState.visibleRadiusMeters >= 90f);
         assertEquals(
-                state.routeStatus.compassState.radiusState.movingScaleVisibleRadiusMeters / 30f,
+                2.5f,
                 state.routeStatus.compassState.displayMode.referenceSpeedMps,
                 0.01f
         );
@@ -784,7 +784,7 @@ public class NavStateTest {
         );
 
         assertNotNull(state.routeStatus.compassState);
-        assertEquals(1.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
+        assertEquals(0.4f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
     }
 
     @Test
@@ -824,7 +824,7 @@ public class NavStateTest {
 
         assertNotNull(state.routeStatus.compassState);
         assertEquals(240f, state.routeStatus.compassState.radiusState.visibleRadiusMeters, 0.01f);
-        assertEquals(8.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
+        assertEquals(3.0f, state.routeStatus.compassState.displayMode.referenceSpeedMps, 0.01f);
         assertEquals(NavigationSpeedBucket.LOW, state.routeStatus.compassState.displayMode.movingScaleSpeedBucket);
     }
 
