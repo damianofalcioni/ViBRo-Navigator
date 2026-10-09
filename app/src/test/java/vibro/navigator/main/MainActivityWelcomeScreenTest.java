@@ -79,23 +79,42 @@ public class MainActivityWelcomeScreenTest {
     }
 
     @Test
-    public void updateWithoutCompletionFlagSkipsWelcomeAndAppliesIncomingDestination() throws Exception {
+    public void updateWithoutCompletionStillShowsWelcomeAndDefersIncomingDestination() throws Exception {
         Application context = ApplicationProvider.getApplicationContext();
-        assertFalse(context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
-                .contains("welcome_completed"));
         setInstallTimes(1_000L, 2_000L);
 
         try (ActivityController<MainActivity> controller =
                      Robolectric.buildActivity(MainActivity.class, sharedAddress()).setup()) {
-            assertNull(ShadowDialog.getLatestDialog().findViewById(R.id.welcomeContinueButton));
+            assertTrue(welcomeDialog().isShowing());
+            assertFalse(AppMainUiSettings.isWelcomeCompleted(context));
+            assertEquals("", destination(controller.get()));
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+
+            continueWelcome(welcomeDialog());
+
             assertEquals(SHARED_ADDRESS, destination(controller.get()));
-            assertTrue(context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE)
-                    .getBoolean("welcome_completed", false));
+            assertTrue(AppMainUiSettings.isWelcomeCompleted(context));
             assertEquals(controller.get().getString(R.string.msg_brouter_install_prompt),
                     String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()));
             controller.recreate();
             assertEquals(SHARED_ADDRESS, destination(controller.get()));
             assertEquals(0, ((LinearLayout) controller.get().findViewById(R.id.stopsContainer)).getChildCount());
+        }
+    }
+
+    @Test
+    public void restoredLegacyCompletionDoesNotSkipWelcomeOnNewInstallation() {
+        Application context = ApplicationProvider.getApplicationContext();
+        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE).edit()
+                .putBoolean("welcome_completed", true).commit();
+
+        try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            assertFalse(AppMainUiSettings.isWelcomeCompleted(context));
+            assertTrue(welcomeDialog().isShowing());
+            controller.recreate();
+            assertTrue(welcomeDialog().isShowing());
+            continueWelcome(welcomeDialog());
+            assertTrue(AppMainUiSettings.isWelcomeCompleted(context));
         }
     }
 
@@ -167,14 +186,14 @@ public class MainActivityWelcomeScreenTest {
             Dialog first = welcomeDialog();
             layoutWelcome(first);
             ScrollView scroll = first.findViewById(R.id.welcomeScroll);
-            scroll.scrollTo(0, 150);
-            assertEquals(150, scroll.getScrollY());
+            scroll.scrollTo(0, 50);
+            assertEquals(50, scroll.getScrollY());
 
             controller.recreate();
 
             Dialog restored = welcomeDialog();
             layoutWelcome(restored);
-            assertEquals(150, ((ScrollView) restored.findViewById(R.id.welcomeScroll)).getScrollY());
+            assertEquals(50, ((ScrollView) restored.findViewById(R.id.welcomeScroll)).getScrollY());
             continueWelcome(restored);
             assertTrue(AppMainUiSettings.isWelcomeCompleted(controller.get()));
         }

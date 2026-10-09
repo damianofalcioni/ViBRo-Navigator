@@ -36,16 +36,13 @@
                 android:textStyle="bold" />
 
             <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Heading"
+                android:layout_marginTop="10dp"
+                android:text="@string/welcome_tldr" />
+
+            <TextView
                 style="@style/Widget.ViBRoNavigator.Welcome.Body"
                 android:text="@string/welcome_intro" />
-
-            <TextView
-                style="@style/Widget.ViBRoNavigator.Welcome.Heading"
-                android:text="@string/welcome_how_to_title" />
-
-            <TextView
-                style="@style/Widget.ViBRoNavigator.Welcome.Body"
-                android:text="@string/welcome_how_to_body" />
 
             <TextView
                 style="@style/Widget.ViBRoNavigator.Welcome.Heading"
@@ -61,11 +58,15 @@
 
             <TextView
                 style="@style/Widget.ViBRoNavigator.Welcome.Body"
-                android:text="@string/welcome_optional_access_body" />
+                android:text="@string/welcome_storage_body" />
 
             <TextView
                 style="@style/Widget.ViBRoNavigator.Welcome.Body"
-                android:text="@string/welcome_settings_body" />
+                android:text="@string/welcome_battery_body" />
+
+            <TextView
+                style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                android:text="@string/welcome_optional_access_body" />
         </LinearLayout>
     </ScrollView>
 

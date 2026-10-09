@@ -38,11 +38,12 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 
 #### 1.0 First-open welcome
 
-- Before setup prompts or incoming route actions, show a full-screen welcome explaining map-free guidance, mode/profile selection, destination/map picking, stops, and the green play button.
-- Briefly preview BRouter installation and regional routing-data downloads, `profiles2` folder access, location and notification access at navigation startup, the optional battery optimization exemption, and conditional legacy storage/microphone access.
-- Explain that Straight Line mode works without BRouter, online search/map tiles need internet, and the main-screen logo opens settings/access diagnostics.
+- Before setup prompts or incoming route actions, show a full-screen welcome with the welcome title, a one-sentence TL;DR, one sentence introducing the app, an Initial setup heading, and short setup bullet points in that order.
+- Focus on BRouter installation and regional routing-data downloads, `profiles2` folder access or legacy storage permission, location and notification access at navigation startup, the optional battery optimization exemption, and conditional microphone access for voice search.
+- Keep the welcome concise and focused on initial setup; leave navigation instructions and mode explanations to their existing in-app help.
 - Keep the text scrollable and Continue reachable in portrait, landscape, and with larger system fonts; follow the selected dark/light theme.
 - Persist completion only after Continue. Closing before completion must show the welcome on the next open, and activity recreation must retain the welcome and its scroll position. After completion, resume normal setup and preserve any incoming destination or GPX intent. Subsequent opens skip the welcome.
+- Keep welcome completion in installation-local storage excluded from Android and in-app backups. A restored settings backup or an updated package timestamp must not skip an uncompleted welcome. Ordinary updates retain completion; reinstalls or clearing app data show the welcome again. Existing installations with only the legacy preference show the welcome once when migrating to this storage.
 - Notification taps must still resume an existing navigation session immediately while the welcome is open.
 
 #### 1.1 Routing profiles

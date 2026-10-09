@@ -2,43 +2,39 @@ package vibro.navigator.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
 
 import androidx.annotation.NonNull;
 
+import java.io.File;
+import java.io.IOException;
+
+import vibro.navigator.android.storage.AndroidAppStorageDirs;
+import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 
 public final class AppMainUiSettings {
     private static final String KEY_MAIN_UI_ROUTING_MODE = "main_ui_routing_mode";
-    private static final String KEY_WELCOME_COMPLETED = "welcome_completed";
+    private static final String WELCOME_COMPLETION_FILE = "welcome_completed";
 
     private AppMainUiSettings() {
     }
 
     public static boolean isWelcomeCompleted(@NonNull Context context) {
-        if (prefs(context).getBoolean(KEY_WELCOME_COMPLETED, false)) {
-            return true;
-        }
-        // Older releases have no completion flag. Updates should not introduce onboarding.
-        if (isUpdatedInstall(context)) {
-            completeWelcome(context);
-            return true;
-        }
-        return false;
-    }
-
-    private static boolean isUpdatedInstall(@NonNull Context context) {
-        try {
-            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
-            return info.lastUpdateTime > info.firstInstallTime;
-        } catch (PackageManager.NameNotFoundException ignored) {
-            return false;
-        }
+        return welcomeCompletionFile(context).isFile();
     }
 
     public static void completeWelcome(@NonNull Context context) {
-        prefs(context).edit().putBoolean(KEY_WELCOME_COMPLETED, true).apply();
+        try {
+            welcomeCompletionFile(context).createNewFile();
+        } catch (IOException error) {
+            AppLogger.e("AppMainUiSettings", "Unable to save welcome completion", error);
+        }
+    }
+
+    @NonNull
+    private static File welcomeCompletionFile(@NonNull Context context) {
+        // Installation state must not be restored from Android or in-app backups.
+        return new File(AndroidAppStorageDirs.noBackupFilesDir(context), WELCOME_COMPLETION_FILE);
     }
 
     @NonNull

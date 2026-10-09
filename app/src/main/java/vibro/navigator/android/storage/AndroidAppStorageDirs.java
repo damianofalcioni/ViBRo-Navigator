@@ -17,6 +17,11 @@ public final class AndroidAppStorageDirs {
         return context.getFilesDir();
     }
 
+    @NonNull
+    public static File noBackupFilesDir(@NonNull Context context) {
+        return context.getNoBackupFilesDir();
+    }
+
     @Nullable
     public static File preferredExternalFilesDir(@NonNull Context context) {
         File[] dirs = context.getExternalFilesDirs(null);

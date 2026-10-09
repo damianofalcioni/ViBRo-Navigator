@@ -15,14 +15,14 @@
     </plurals>
 
     <string name="welcome_title">Welcome to ViBRo</string>
-    <string name="welcome_intro">Navigate with vibrations, spoken directions, and a simple compass — even with the screen off.</string>
-    <string name="welcome_how_to_title">Plan your first trip</string>
-    <string name="welcome_how_to_body">Choose a mode and routing profile. Search for a destination or pick it on the map, add stops with +, then tap the green play button. Round Trip uses a distance and direction instead.</string>
-    <string name="welcome_setup_title">What happens next</string>
-    <string name="welcome_brouter_body">If BRouter is missing, we’ll offer install links. Open BRouter and download routing data for your area. We may ask you to select its profiles2 folder for custom profiles. Straight Line mode needs no BRouter and points directly to your destination, without road routing.</string>
-    <string name="welcome_permissions_body">When navigation starts, we’ll ask for location and notification access if needed. Enable device location and allow notifications for guidance. We’ll recommend a battery optimization exemption for reliable navigation with the screen off; you can skip it.</string>
-    <string name="welcome_optional_access_body">On older Android versions, reading BRouter data for nearby streets may need storage permission. Microphone access may be requested if you use voice search.</string>
-    <string name="welcome_settings_body">Search and map tiles need internet; BRouter routing works offline after downloading data. Tap the logo on the main screen for settings and access status.</string>
+    <string name="welcome_tldr">TL;DR: Install BRouter, download local routing data, and grant permissions.</string>
+    <string name="welcome_intro">ViBRo Navigator (Vibrating/Vibe-coded BRouter Navigator) is a lightweight, offline-first, and battery-efficient Android GPS navigation app built on top of BRouter. It is designed for map-free navigation, delivering directions through vibrations and minimal on-screen and voice guidance, enabling distraction-free and screen-off usage.</string>
+    <string name="welcome_setup_title">Initial setup</string>
+    <string name="welcome_brouter_body">• Install BRouter using the links provided, then open it and download routing data for your area.</string>
+    <string name="welcome_permissions_body">• Enable device location and allow location and notification access when prompted at navigation startup.</string>
+    <string name="welcome_storage_body">• Grant profiles2 folder access when prompted, or storage permission on older Android versions.</string>
+    <string name="welcome_battery_body">• Allow the optional battery optimization exemption for reliable guidance with the screen off.</string>
+    <string name="welcome_optional_access_body">• Microphone access is only needed if requested for voice search.</string>
 
     <string name="action_about">About</string>
     <string name="action_start_navigation">Start navigation</string>
