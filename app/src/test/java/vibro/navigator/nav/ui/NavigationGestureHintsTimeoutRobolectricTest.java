@@ -37,20 +37,20 @@ public class NavigationGestureHintsTimeoutRobolectricTest {
     public void resumeHidesExpiredGuideBeforePendingTimerIsDelivered() {
         try (ActivityController<TestNavigationActivity> controller = builder().setup().visible()) {
             controller.pause().stop();
-            ShadowSystemClock.advanceBy(Duration.ofSeconds(5));
+            ShadowSystemClock.advanceBy(Duration.ofSeconds(10));
             controller.start().resume();
             assertVisibility(controller.get(), View.GONE);
         }
     }
 
     @Test
-    public void guideDismissesAtFiveSeconds() {
+    public void guideDismissesAtTenSeconds() {
         try (ActivityController<TestNavigationActivity> controller = builder().setup().visible()) {
             TextView caption = controller.get().findViewById(R.id.dismissGestureHints);
-            assertEquals("Touch anywhere to dismiss or wait 5 seconds", caption.getText().toString());
+            assertEquals("Touch anywhere to dismiss or wait 10 seconds", caption.getText().toString());
             idle(1000);
-            assertEquals("Touch anywhere to dismiss or wait 4 seconds", caption.getText().toString());
-            idle(3000);
+            assertEquals("Touch anywhere to dismiss or wait 9 seconds", caption.getText().toString());
+            idle(8000);
             assertVisibility(controller.get(), View.VISIBLE);
             assertEquals("Touch anywhere to dismiss or wait 1 second", caption.getText().toString());
             idle(1000);
@@ -64,8 +64,8 @@ public class NavigationGestureHintsTimeoutRobolectricTest {
             idle(2000);
             controller.recreate();
             TextView caption = controller.get().findViewById(R.id.dismissGestureHints);
-            assertEquals("Touch anywhere to dismiss or wait 3 seconds", caption.getText().toString());
-            idle(2000);
+            assertEquals("Touch anywhere to dismiss or wait 8 seconds", caption.getText().toString());
+            idle(7000);
             assertVisibility(controller.get(), View.VISIBLE);
             idle(1000);
             assertVisibility(controller.get(), View.GONE);
@@ -81,7 +81,7 @@ public class NavigationGestureHintsTimeoutRobolectricTest {
             idle(2000);
             controller.saveInstanceState(state);
         }
-        idle(3000);
+        idle(8000);
         try (ActivityController<TestNavigationActivity> restored = builder().setup(state).visible()) {
             assertVisibility(restored.get(), View.GONE);
         }
@@ -92,11 +92,11 @@ public class NavigationGestureHintsTimeoutRobolectricTest {
         try (ActivityController<TestNavigationActivity> controller = builder().setup().visible()) {
             idle(2000);
             controller.get().findViewById(R.id.dismissGestureHints).performClick();
-            idle(3000);
+            idle(8000);
             assertVisibility(controller.get(), View.GONE);
         }
         try (ActivityController<TestNavigationActivity> fresh = builder().setup().visible()) {
-            idle(4000);
+            idle(9000);
             assertVisibility(fresh.get(), View.VISIBLE);
             idle(1000);
             assertVisibility(fresh.get(), View.GONE);

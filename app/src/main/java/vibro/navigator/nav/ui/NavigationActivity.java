@@ -242,7 +242,7 @@ public class NavigationActivity extends Activity {
     @Override
     public boolean dispatchTouchEvent(MotionEvent event) {
         if (gestureHints != null && event.getActionMasked() == MotionEvent.ACTION_DOWN) {
-            gestureHints.dismiss();
+            gestureHints.dismissOnTouch(event.getX(), event.getY());
         }
         return super.dispatchTouchEvent(event);
     }

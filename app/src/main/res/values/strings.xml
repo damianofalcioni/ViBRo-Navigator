@@ -2,12 +2,12 @@
 <resources>
     <string name="app_name">ViBRo Navigator</string>
 
-    <string name="nav_gesture_views_title">Switch views</string>
-    <string name="nav_gesture_views_body">Double tap or swipe left / right to move from full route, 2D, and 3D views</string>
-    <string name="nav_gesture_zoom_title">Zoom in / out</string>
-    <string name="nav_gesture_zoom_body">Pinch or spread the 2D and 3D view to ±2 zoom levels</string>
-    <string name="nav_gesture_tilt_title">Tilt the 3D view</string>
-    <string name="nav_gesture_tilt_body">Swipe up / down with two fingers to tilt the 3D view</string>
+    <string name="nav_gesture_map_controls_title">Gesture map controls</string>
+    <string name="nav_gesture_views_body"><b>Switch views.</b> Double tap or swipe left / right to move from full route, 2D, and 3D views</string>
+    <string name="nav_gesture_zoom_body"><b>Zoom in / out.</b> Pinch or spread the 2D and 3D view to ±2 zoom levels</string>
+    <string name="nav_gesture_tilt_body"><b>Tilt the 3D view.</b> Swipe up / down with two fingers to tilt the 3D view</string>
+    <string name="nav_gesture_street_colors_title">Street colors</string>
+    <string name="nav_gesture_dont_show_again">Don\'t show again</string>
     <string name="nav_gesture_dismiss">Touch anywhere to dismiss</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Touch anywhere to dismiss or wait %1$d second</item>
@@ -548,7 +548,7 @@
     <string name="about_setting_compass_fullscreen_route_info">Expands the route compass view behind the full navigation screen while keeping controls and direction text visible in front.</string>
     <string name="about_setting_compass_distance_circles_info">Shows distance circles with time and distance labels, the heading arrow, and heading accuracy lines and arcs in compass and fullscreen views.</string>
     <string name="about_setting_compass_central_perspective_info">Uses perspective in the 3D compass view: nearby routes and streets appear larger, while distant ones shrink toward the top. Turn this off to use the uniform orthographic tilt.</string>
-    <string name="about_setting_show_hint_panel_info">Shows the gesture hint panel when phone navigation opens. Touch anywhere to dismiss it, or wait five seconds. Turn this off to keep the panel hidden on future navigation starts.</string>
+    <string name="about_setting_show_hint_panel_info">Shows gesture tips and the street color legend when phone navigation opens. Touch anywhere to dismiss it, or wait ten seconds. Select Don\'t show again in the panel, or turn this setting off, to keep the panel hidden on future navigation starts.</string>
     <string name="about_setting_navigation_notifications_info">Shows turn alerts and navigation warnings as notifications. The ongoing navigation notification is not affected and will stays visible while navigating.</string>
     <string name="about_setting_single_instruction_mode_info">Uses one maneuver alert about 10 seconds before each upcoming instruction and suppresses the startup, 20-second, and 5-second maneuver alerts. Arrival and warning notifications are not affected.</string>
     <string name="about_setting_navigation_custom_button_info">Shows an extra button in the navigation compass that toggles the selected setting while navigation is open.</string>

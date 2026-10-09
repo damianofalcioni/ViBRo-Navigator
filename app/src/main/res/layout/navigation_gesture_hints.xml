@@ -1,84 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/navigationGestureHints"
-    android:layout_width="320dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="center"
-    android:layout_marginTop="8dp"
-    android:layout_marginBottom="8dp"
+    android:layout_margin="12dp"
     android:background="@drawable/bg_navigation_gesture_hints"
-    android:scrollbars="none">
+    android:elevation="8dp"
+    android:orientation="vertical"
+    android:padding="14dp">
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="14dp">
-
-        <LinearLayout style="@style/Widget.ViBRoNavigator.GestureHintRow">
-            <ImageView
-                style="@style/Widget.ViBRoNavigator.GestureHintIcon"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_gesture_views" />
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    style="@style/Widget.ViBRoNavigator.GestureHintTitle"
-                    android:text="@string/nav_gesture_views_title" />
-                <TextView
-                    style="@style/Widget.ViBRoNavigator.GestureHintBody"
-                    android:text="@string/nav_gesture_views_body" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout style="@style/Widget.ViBRoNavigator.GestureHintRow">
-            <ImageView
-                style="@style/Widget.ViBRoNavigator.GestureHintIcon"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_gesture_zoom" />
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    style="@style/Widget.ViBRoNavigator.GestureHintTitle"
-                    android:text="@string/nav_gesture_zoom_title" />
-                <TextView
-                    style="@style/Widget.ViBRoNavigator.GestureHintBody"
-                    android:text="@string/nav_gesture_zoom_body" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout style="@style/Widget.ViBRoNavigator.GestureHintRow">
-            <ImageView
-                style="@style/Widget.ViBRoNavigator.GestureHintIcon"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_gesture_tilt" />
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    style="@style/Widget.ViBRoNavigator.GestureHintTitle"
-                    android:text="@string/nav_gesture_tilt_title" />
-                <TextView
-                    style="@style/Widget.ViBRoNavigator.GestureHintBody"
-                    android:text="@string/nav_gesture_tilt_body" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/dismissGestureHints"
-            style="@style/Widget.ViBRoNavigator.GestureHintBody"
-            android:layout_marginTop="8dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="center"
-            android:text="@string/nav_gesture_dismiss" />
+        style="@style/Widget.ViBRoNavigator.GestureHintSections"
+        android:id="@+id/navigationGestureHintSections">
+        <include layout="@layout/navigation_gesture_tips" />
+        <include layout="@layout/navigation_street_legend" />
     </LinearLayout>
-</ScrollView>
+
+    <TextView
+        android:id="@+id/dismissGestureHints"
+        style="@style/Widget.ViBRoNavigator.GestureHintBody"
+        android:layout_marginTop="16dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:text="@string/nav_gesture_dismiss" />
+
+    <TextView
+        android:id="@+id/dontShowGestureHintsAgain"
+        style="@style/Widget.ViBRoNavigator.GestureHintTitle"
+        android:layout_marginTop="4dp"
+        android:background="?android:attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:minHeight="48dp"
+        android:text="@string/nav_gesture_dont_show_again" />
+</LinearLayout>

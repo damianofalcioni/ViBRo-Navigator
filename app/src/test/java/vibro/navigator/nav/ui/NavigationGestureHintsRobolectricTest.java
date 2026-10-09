@@ -1,16 +1,21 @@
 package vibro.navigator.nav.ui;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Looper;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -42,42 +47,42 @@ public class NavigationGestureHintsRobolectricTest {
     }
 
     @Test
-    public void compactPortraitCentersHintsOverCompass() {
+    public void compactPortraitCentersAllHintsWithoutEmptySpace() {
         try (ActivityController<TestNavigationActivity> controller = activity()) {
-            assertCompactPlacement(controller.get(), 400, 800);
+            assertCenteredPlacement(controller.get(), 400, 800);
         }
     }
 
     @Test
     @Config(qualifiers = "land")
-    public void compactLandscapeCentersHintsOverCompass() {
+    public void compactLandscapeCentersAllHintsWithoutEmptySpace() {
         try (ActivityController<TestNavigationActivity> controller = activity()) {
-            assertCompactPlacement(controller.get(), 800, 400);
+            assertCenteredPlacement(controller.get(), 800, 400);
         }
     }
 
     @Test
     @Config(qualifiers = "ldrtl-land")
-    public void compactLandscapeCentersHintsInRightToLeftLayouts() {
+    public void compactLandscapeShowsAllHintsInRightToLeftLayouts() {
         try (ActivityController<TestNavigationActivity> controller = activity()) {
             controller.get().findViewById(android.R.id.content).setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
-            assertCompactPlacement(controller.get(), 800, 400);
+            assertCenteredPlacement(controller.get(), 800, 400);
         }
     }
 
     @Test
-    public void fullscreenPortraitCentersHintsInScreen() {
+    public void fullscreenPortraitCentersAllHintsWithoutEmptySpace() {
         assertFullscreenPlacement(400, 800);
     }
 
     @Test
     @Config(qualifiers = "land")
-    public void fullscreenLandscapeCentersHintsInScreen() {
+    public void fullscreenLandscapeCentersAllHintsWithoutEmptySpace() {
         assertFullscreenPlacement(800, 400);
     }
 
     @Test
-    public void firstTouchOnHintsStillReachesCompass() {
+    public void firstTouchOutsideHintsStillReachesCompass() {
         try (ActivityController<TestNavigationActivity> controller = activity()) {
             TestNavigationActivity activity = controller.get();
             layout(activity, 400, 800);
@@ -88,11 +93,11 @@ public class NavigationGestureHintsRobolectricTest {
                 return true;
             });
 
-            touch(activity, compass, MotionEvent.ACTION_DOWN);
+            touchAt(activity, compass, MotionEvent.ACTION_DOWN, 2, 2);
 
             assertEquals(View.GONE, overlay(activity).getVisibility());
             assertEquals(1, touches[0]);
-            touch(activity, compass, MotionEvent.ACTION_UP);
+            touchAt(activity, compass, MotionEvent.ACTION_UP, 2, 2);
             assertEquals(2, touches[0]);
         }
     }
@@ -131,6 +136,7 @@ public class NavigationGestureHintsRobolectricTest {
     @Test
     public void themeRecreationPreservesVisibilityAndRefreshesColors() {
         try (ActivityController<TestNavigationActivity> controller = activity()) {
+            assertStreetColors(controller.get());
             AppThemeSettings.setLightThemeEnabled(controller.get(), true);
             controller.recreate();
             assertEquals(View.VISIBLE, overlay(controller.get()).getVisibility());
@@ -138,10 +144,61 @@ public class NavigationGestureHintsRobolectricTest {
             assertEquals(AndroidAppTheme.color(controller.get(), R.attr.vibroTextPrimaryColor),
                     dismiss.getCurrentTextColor());
             assertEquals(0.75f, dismiss.getAlpha(), 0.001f);
+            assertStreetColors(controller.get());
             dismiss.performClick();
             AppThemeSettings.setLightThemeEnabled(controller.get(), false);
             controller.recreate();
             assertEquals(View.GONE, overlay(controller.get()).getVisibility());
+        }
+    }
+
+    @Test
+    public void dontShowAgainTouchDisablesSettingAndSurvivesNewScreens() {
+        try (ActivityController<TestNavigationActivity> controller = activity()) {
+            TestNavigationActivity activity = controller.get();
+            layout(activity, 400, 800);
+            View action = activity.findViewById(R.id.dontShowGestureHintsAgain);
+            touch(activity, action, MotionEvent.ACTION_DOWN);
+            assertEquals(View.VISIBLE, overlay(activity).getVisibility());
+            touch(activity, action, MotionEvent.ACTION_UP);
+            shadowOf(Looper.getMainLooper()).idleFor(100, TimeUnit.MILLISECONDS);
+            assertEquals(View.GONE, overlay(activity).getVisibility());
+            assertFalse(AppNavigationHintSettings.isEnabled(activity));
+            controller.recreate();
+            assertEquals(View.GONE, overlay(controller.get()).getVisibility());
+        }
+        try (ActivityController<TestNavigationActivity> fresh = activity()) {
+            assertEquals(View.GONE, overlay(fresh.get()).getVisibility());
+        }
+        Intent settingsIntent = new Intent(ApplicationProvider.getApplicationContext(), AboutActivity.class);
+        settingsIntent.putExtra(AboutActivity.EXTRA_SCROLL_TO_SETTINGS, true);
+        try (ActivityController<AboutActivity> settings =
+                     Robolectric.buildActivity(AboutActivity.class, settingsIntent).setup()) {
+            Switch switchView = settings.get().findViewById(R.id.aboutShowHintPanelSwitch);
+            assertFalse(switchView.isChecked());
+        }
+    }
+
+    @Test
+    @Config(qualifiers = "w320dp-h480dp-mdpi")
+    public void smallPortraitShowsAllContentWithoutScrolling() {
+        try (ActivityController<TestNavigationActivity> controller = activity()) {
+            TestNavigationActivity activity = controller.get();
+            assertCenteredPlacement(activity, 320, 480);
+        }
+    }
+
+    private static void assertStreetColors(TestNavigationActivity activity) {
+        int[][] swatches = {
+                {R.id.gestureHintHighwaySwatch, R.attr.vibroCompassStreetHighwayColor},
+                {R.id.gestureHintNormalStreetSwatch, R.attr.vibroCompassStreetNormalColor},
+                {R.id.gestureHintWalkingCyclingSwatch, R.attr.vibroCompassStreetWalkingCyclingColor},
+                {R.id.gestureHintSpecialRoutingSwatch, R.attr.vibroCompassStreetSpecialRoutingColor}
+        };
+        for (int[] swatch : swatches) {
+            TextView view = activity.findViewById(swatch[0]);
+            assertEquals(AndroidAppTheme.color(activity, swatch[1]), view.getCurrentTextColor());
+            assertEquals(1f, view.getAlpha(), 0.001f);
         }
     }
 
@@ -156,36 +213,53 @@ public class NavigationGestureHintsRobolectricTest {
         }
     }
 
-    private static void assertCompactPlacement(TestNavigationActivity activity, int width, int height) {
+    private static void assertCenteredPlacement(TestNavigationActivity activity, int width, int height) {
         layout(activity, width, height);
-        View compass = activity.findViewById(R.id.navigationCompassView);
+        View content = activity.findViewById(android.R.id.content);
+        View card = activity.findViewById(R.id.navigationGestureHints);
         assertEquals(View.VISIBLE, overlay(activity).getVisibility());
-        assertSameCenter(compass, activity.findViewById(R.id.navigationGestureHints));
-        assertEquals(compass.getWidth(), overlay(activity).getWidth());
-        assertEquals(compass.getHeight(), overlay(activity).getHeight());
+        assertEquals(content.getWidth(), overlay(activity).getWidth());
+        assertEquals(content.getHeight(), overlay(activity).getHeight());
+        assertTrue(card.getWidth() < content.getWidth());
+        assertTrue(card.getHeight() < content.getHeight());
+        int[] contentLocation = new int[2];
+        int[] cardLocation = new int[2];
+        content.getLocationInWindow(contentLocation);
+        card.getLocationInWindow(cardLocation);
+        assertEquals(contentLocation[0] + content.getWidth() / 2f,
+                cardLocation[0] + card.getWidth() / 2f, 1f);
+        assertEquals(contentLocation[1] + content.getHeight() / 2f,
+                cardLocation[1] + card.getHeight() / 2f, 1f);
+        View sections = activity.findViewById(R.id.navigationGestureHintSections);
+        View dismiss = activity.findViewById(R.id.dismissGestureHints);
+        ViewGroup.MarginLayoutParams dismissParams = (ViewGroup.MarginLayoutParams) dismiss.getLayoutParams();
+        assertEquals(sections.getBottom() + dismissParams.topMargin, dismiss.getTop());
+        assertFullyVisible(card, new Rect(cardLocation[0], cardLocation[1],
+                cardLocation[0] + card.getWidth(), cardLocation[1] + card.getHeight()));
     }
 
     private static void assertFullscreenPlacement(int width, int height) {
         AppCompassSettings.setFullscreenRouteEnabled(ApplicationProvider.getApplicationContext(), true);
         try (ActivityController<TestNavigationActivity> controller = activity()) {
             TestNavigationActivity activity = controller.get();
-            layout(activity, width, height);
-            assertSameCenter(activity.findViewById(android.R.id.content),
-                    activity.findViewById(R.id.navigationGestureHints));
+            assertCenteredPlacement(activity, width, height);
         }
     }
 
-    private static void assertSameCenter(View anchor, View card) {
-        int[] anchorLocation = new int[2];
-        int[] cardLocation = new int[2];
-        anchor.getLocationInWindow(anchorLocation);
-        card.getLocationInWindow(cardLocation);
-        assertEquals(anchorLocation[0] + anchor.getWidth() / 2f,
-                cardLocation[0] + card.getWidth() / 2f, 1f);
-        assertEquals(anchorLocation[1] + anchor.getHeight() / 2f,
-                cardLocation[1] + card.getHeight() / 2f, 1f);
-        assertTrue(card.getWidth() > 0);
-        assertTrue(card.getHeight() > 0);
+    private static void assertFullyVisible(View view, Rect page) {
+        assertFalse(view instanceof ScrollView);
+        int[] location = new int[2];
+        view.getLocationInWindow(location);
+        Rect bounds = new Rect(location[0], location[1],
+                location[0] + view.getWidth(), location[1] + view.getHeight());
+        assertTrue("Clipped hint view " + view.getId() + ": " + bounds + " outside " + page,
+                page.contains(bounds));
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                assertFullyVisible(group.getChildAt(index), bounds);
+            }
+        }
     }
 
     private static void layout(TestNavigationActivity activity, int width, int height) {
@@ -199,11 +273,14 @@ public class NavigationGestureHintsRobolectricTest {
     }
 
     private static void touch(TestNavigationActivity activity, View target, int action) {
+        touchAt(activity, target, action, target.getWidth() / 2f, target.getHeight() / 2f);
+    }
+
+    private static void touchAt(TestNavigationActivity activity, View target, int action, float x, float y) {
         int[] location = new int[2];
         target.getLocationInWindow(location);
         MotionEvent event = MotionEvent.obtain(0, 0, action,
-                location[0] + target.getWidth() / 2f,
-                location[1] + target.getHeight() / 2f, 0);
+                location[0] + x, location[1] + y, 0);
         activity.dispatchTouchEvent(event);
         event.recycle();
     }
