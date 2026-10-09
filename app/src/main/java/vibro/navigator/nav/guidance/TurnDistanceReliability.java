@@ -1,6 +1,6 @@
 package vibro.navigator.nav.guidance;
 
-final class TurnDistanceReliability {
+public final class TurnDistanceReliability {
     private static final double MIN_TRUSTED_TURN_DISTANCE_METERS = 5.0;
     private static final double MIN_SLOW_SPEED_TURN_DISTANCE_METERS = 0.75;
     static final double MIN_ACTIONABLE_NOTICE_SECONDS = 2.0;
@@ -9,11 +9,13 @@ final class TurnDistanceReliability {
     }
 
     static boolean isInitialReliable(double distanceToNextMeters, float accuracyMeters) {
-        double safeAccuracyMeters = Float.isFinite(accuracyMeters) && accuracyMeters > 0f
-                ? accuracyMeters
-                : 0.0;
-        double minTrustedDistanceMeters = Math.max(MIN_TRUSTED_TURN_DISTANCE_METERS, safeAccuracyMeters);
-        return distanceToNextMeters > minTrustedDistanceMeters;
+        return distanceToNextMeters > MIN_TRUSTED_TURN_DISTANCE_METERS
+                && !isInsideAccuracyRadius(distanceToNextMeters, accuracyMeters);
+    }
+
+    public static boolean isInsideAccuracyRadius(double distanceMeters, float accuracyMeters) {
+        return !Float.isFinite(accuracyMeters) || accuracyMeters < 0f
+                || distanceMeters <= accuracyMeters;
     }
 
     static boolean isImminentReliable(

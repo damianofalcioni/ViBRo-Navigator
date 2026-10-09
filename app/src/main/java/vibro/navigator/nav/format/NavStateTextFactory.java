@@ -4,6 +4,7 @@ package vibro.navigator.nav.format;
 
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.guidance.RouteTimeEstimator;
+import vibro.navigator.nav.guidance.TurnDistanceReliability;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -51,7 +52,6 @@ public final class NavStateTextFactory {
                 hintIdx,
                 currentSegmentIndex,
                 speedMps,
-                accuracyMeters,
                 targets,
                 intermediateDestinationReachedTrackIndex,
                 VISIBLE_DIRECTION_LINE_COUNT
@@ -59,7 +59,14 @@ public final class NavStateTextFactory {
         List<String> visibleLines = formatDirectionLines(route, index, upcomingHints, textResources);
         String next = visibleLines.isEmpty() ? "" : visibleLines.get(0);
         String afterNext = visibleLines.size() > 1 ? visibleLines.get(1) : "";
-        return new NavGuidanceStatus(next, afterNext);
+        return new NavGuidanceStatus(next, afterNext,
+                isUncertain(upcomingHints, 0, accuracyMeters),
+                isUncertain(upcomingHints, 1, accuracyMeters));
+    }
+
+    private static boolean isUncertain(@NonNull List<NavUpcomingHint> hints, int index, float accuracyMeters) {
+        return index < hints.size()
+                && TurnDistanceReliability.isInsideAccuracyRadius(hints.get(index).distanceMeters, accuracyMeters);
     }
 
     @NonNull

@@ -111,6 +111,7 @@ public final class NavigationTurnState {
                 currentSegmentIndex,
                 speedMps,
                 Float.NaN,
+                true,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode
@@ -125,6 +126,7 @@ public final class NavigationTurnState {
             int currentSegmentIndex,
             float speedMps,
             float accelerationMps2,
+            boolean trustworthyProgress,
             long nowMs,
             long fastChecksUntilMs,
             boolean singleInstructionMode
@@ -141,6 +143,7 @@ public final class NavigationTurnState {
                 currentSegmentIndex,
                 speedMps,
                 accelerationMps2,
+                trustworthyProgress,
                 TurnNotificationPlan.from(singleInstructionMode)
         );
         guidanceHints.advanceTo(progress.nextHintIdx);
@@ -148,8 +151,10 @@ public final class NavigationTurnState {
         notified20 = progress.notified20;
         notified5 = progress.notified5;
         maneuverCueState.update(progress.signals);
-        maneuverCueState.clearIfPassed(polylineIndex, alongTrackMeters);
-        clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
+        if (trustworthyProgress) {
+            maneuverCueState.clearIfPassed(polylineIndex, alongTrackMeters);
+            clearIntermediateDestinationReachedIfPassed(polylineIndex, alongTrackMeters);
+        }
         long naturalUpdateIntervalMs = updateScheduler.suggestUpdateInterval(
                 nowMs,
                 fastChecksUntilMs,

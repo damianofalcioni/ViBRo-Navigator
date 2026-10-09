@@ -143,7 +143,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
                                     geometryState.polylineIndex(),
                                     new LatLon(filtered.getLatitude(), filtered.getLongitude()),
                                     likelyStationary ? 0f : speedMps,
-                                    trustedAccuracyMeters
+                                    currentAccuracyMeters
                             ),
                             singleInstructionMode
                     ),
@@ -390,6 +390,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 match.segmentIndex,
                 speedMps,
                 Float.NaN,
+                true,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode

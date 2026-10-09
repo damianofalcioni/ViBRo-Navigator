@@ -86,8 +86,10 @@ final class ViBRoAutoTextColumnPainter {
         }
         detailPanelPainter.clearBounds();
         float directionsTop = y;
+        textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.nextUncertain));
         y = drawSingleLine(canvas, state.routeStatus.guidance.nextLine, left, y, width, 24f, scale)
                 + dp(10f, scale);
+        textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.afterNextUncertain));
         float directionsBottom = drawSingleLine(
                 canvas,
                 state.routeStatus.guidance.afterNextLine,
@@ -103,6 +105,7 @@ final class ViBRoAutoTextColumnPainter {
                 left + width,
                 Math.max(directionsBottom, directionsTop + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP, scale))
         );
+        textPaint.setColor(textPrimaryColor());
         drawStatusBlock(canvas, state.routeStatus.displayStatusBlock(), left, top, width, height, scale);
         buttonRow.draw(canvas, state, left, top + height, width, scale);
     }

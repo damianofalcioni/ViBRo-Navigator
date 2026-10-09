@@ -6,15 +6,58 @@ import androidx.annotation.NonNull;
 
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Collections;
+
+import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
+import vibro.navigator.nav.guidance.NavigationTurnState;
+import vibro.navigator.nav.guidance.NavigationTurnEventDispatcher;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.service.NavigationServiceTurnNotificationSink;
 
 public class NavigationSpeechForegroundControllerTest {
+
+    @Test
+    public void progressConfidenceSuppressionAndRecoveryKeepSpeechAndNotificationsTogether() {
+        RecordingForegroundController foregroundController = new RecordingForegroundController();
+        RecordingAlertSpeaker speaker = new RecordingAlertSpeaker();
+        NavigationSpeechForegroundController controller =
+                new NavigationSpeechForegroundController(foregroundController, speaker);
+        NavigationTurnEventDispatcher dispatcher = new NavigationTurnEventDispatcher(
+                new NavigationServiceTurnNotificationSink(controller));
+        NavigationTurnState state = new NavigationTurnState();
+        GeoJsonRoute route = new GeoJsonRoute(
+                Arrays.asList(new LatLon(0.0, 0.0), new LatLon(0.0, 0.001)),
+                Collections.singletonList(new VoiceHint(1, 1, 0, 0.0, 0)), 77.0, 111.0);
+        PolylineIndex index = new PolylineIndex(route.track);
+        state.onRouteApplied(route, index, Collections.emptyList(), new LatLon(0.0, 0.0), 1.45f, 4f);
+        double alongTrackMeters = index.totalLengthMeters() - 7.0;
+
+        dispatcher.dispatch(state.evaluate(route, index, alongTrackMeters,
+                0, 1.45f, Float.NaN, false, 1_000L, 0L, false).turnEvents);
+        assertEquals(0, foregroundController.turnNotifications);
+        assertEquals(0, speaker.turnSpeechCalls);
+
+        dispatcher.dispatch(state.evaluate(route, index, alongTrackMeters,
+                0, 1.45f, Float.NaN, true, 4_000L, 0L, false).turnEvents);
+        assertEquals(1, foregroundController.turnNotifications);
+        assertEquals(1, speaker.turnSpeechCalls);
+        assertEquals(foregroundController.lastTurnHint, speaker.lastTurnHint);
+        assertEquals(foregroundController.lastTurnTimeSeconds, speaker.lastTurnSpeechTimeSeconds, 0.0);
+
+        dispatcher.dispatch(state.evaluate(route, index, alongTrackMeters,
+                0, 1.45f, Float.NaN, true, 7_000L, 0L, false).turnEvents);
+        assertEquals(1, foregroundController.turnNotifications);
+        assertEquals(1, speaker.turnSpeechCalls);
+    }
 
     @Test
     public void sendAlertNotificationsDelegatesAndSpeaksMatchingAlert() {
@@ -44,6 +87,8 @@ public class NavigationSpeechForegroundControllerTest {
 
     private static final class RecordingForegroundController implements NavigationForegroundController {
         int turnNotifications;
+        VoiceHint lastTurnHint;
+        double lastTurnTimeSeconds;
         int stationaryOrientationNotifications;
         int offRouteNotifications;
         int wrongDirectionNotifications;
@@ -72,6 +117,8 @@ public class NavigationSpeechForegroundControllerTest {
                 double timeSeconds
         ) {
             turnNotifications++;
+            lastTurnHint = hint;
+            lastTurnTimeSeconds = timeSeconds;
         }
 
         @Override
@@ -94,6 +141,7 @@ public class NavigationSpeechForegroundControllerTest {
 
     private static final class RecordingAlertSpeaker implements NavigationAlertSpeaker {
         int turnSpeechCalls;
+        VoiceHint lastTurnHint;
         double lastTurnSpeechTimeSeconds;
         int stationaryOrientationSpeechCalls;
         int offRouteSpeechCalls;
@@ -102,6 +150,7 @@ public class NavigationSpeechForegroundControllerTest {
         @Override
         public void speakTurn(@NonNull VoiceHint hint, double timeSeconds) {
             turnSpeechCalls++;
+            lastTurnHint = hint;
             lastTurnSpeechTimeSeconds = timeSeconds;
         }
 

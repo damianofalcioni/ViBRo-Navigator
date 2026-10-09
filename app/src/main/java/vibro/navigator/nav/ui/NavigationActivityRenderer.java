@@ -2,6 +2,7 @@ package vibro.navigator.nav.ui;
 
 import vibro.navigator.R;
 import vibro.navigator.settings.AppCompassSettings;
+import vibro.navigator.android.theme.AndroidAppTheme;
 
 
 import vibro.navigator.nav.orientation.NavigationCompassModeController;
@@ -137,6 +138,8 @@ final class NavigationActivityRenderer {
         currentBinder = navBinder;
         setTextIfChanged(next, state.routeStatus.guidance.nextLine);
         setTextIfChanged(afterNext, state.routeStatus.guidance.afterNextLine);
+        next.setTextColor(AndroidAppTheme.navigationInstructionColor(activity, state.routeStatus.guidance.nextUncertain));
+        afterNext.setTextColor(AndroidAppTheme.navigationInstructionColor(activity, state.routeStatus.guidance.afterNextUncertain));
         setTextIfChanged(destination, state.routeStatus.displayStatusBlock());
         renderCompassState();
         renderSpeedLimitIfChanged(state);
@@ -262,6 +265,7 @@ final class NavigationActivityRenderer {
                 ? null : compass.orientationCue.targetHeadingDegrees;
         boolean beeline = compass != null && compass.routeStartApproachProjection != null;
         String stateKey = state.routeStatus.guidance.nextLine + "|" + state.routeStatus.guidance.afterNextLine
+                + "|" + state.routeStatus.guidance.nextUncertain + "|" + state.routeStatus.guidance.afterNextUncertain
                 + "|" + state.gpsStatus.statusLine
                 + "|" + state.gpsStatus.nextEvaluationDeadlineElapsedMs
                 + "|" + state.routeStatus.progress.destinationLine
@@ -278,6 +282,8 @@ final class NavigationActivityRenderer {
         lastRenderedStateKey = stateKey;
         AppLogger.d(TAG, "Rendered state next=" + state.routeStatus.guidance.nextLine
                 + " afterNext=" + state.routeStatus.guidance.afterNextLine
+                + " nextUncertain=" + state.routeStatus.guidance.nextUncertain
+                + " afterNextUncertain=" + state.routeStatus.guidance.afterNextUncertain
                 + " gpsStatus=" + state.gpsStatus.statusLine
                 + " nextEvalDeadline=" + state.gpsStatus.nextEvaluationDeadlineElapsedMs
                 + " destination=" + state.routeStatus.progress.destinationLine

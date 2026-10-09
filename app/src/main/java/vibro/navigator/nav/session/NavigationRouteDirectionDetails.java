@@ -55,7 +55,6 @@ final class NavigationRouteDirectionDetails {
                         snapshot.accuracyMeters,
                         snapshot.likelyStationary
                 ),
-                snapshot.accuracyMeters,
                 turnState.isDestinationReached(),
                 turnState.getIntermediateDestinationReachedTrackIndex(),
                 targets,

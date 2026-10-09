@@ -263,7 +263,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
     }
 
     @Test
-    public void buildState_showsTurnManeuverCueFromFiveSecondNotificationWithCoarseAccuracyUntilPassed() {
+    public void buildState_keepsOrangeTurnVisibleAndAlertsWhenMatchedProgressIsStable() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -292,7 +292,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         );
 
         NavigationLocation approachingTurn = location(0.0, 0.00082, 2_000L);
-        NavigationRouteEvaluation approachingEvaluation = state.evaluateLocation(
+        NavigationRouteEvaluation coarseEvaluation = state.evaluateLocation(
                 approachingTurn,
                 5f,
                 25f,
@@ -300,7 +300,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 2_000L,
                 0L
         );
-        NavState approachingState = state.buildState(
+        NavState coarseState = state.buildState(
                 context,
                 approachingTurn,
                 5f,
@@ -316,8 +316,21 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 null
         );
 
-        assertEquals(1, approachingEvaluation.turnEvents.size());
-        assertEquals(NavigationTurnEvent.Type.IMMINENT, approachingEvaluation.turnEvents.get(0).type);
+        assertEquals(1, coarseEvaluation.turnEvents.size());
+        assertEquals(NavigationTurnEvent.Type.IMMINENT, coarseEvaluation.turnEvents.get(0).type);
+        assertTrue(coarseState.routeStatus.guidance.nextUncertain);
+        assertNotNull(coarseState.routeStatus.compassState);
+        assertNotNull(coarseState.routeStatus.compassState.orientationCue);
+
+        NavigationRouteEvaluation approachingEvaluation = state.evaluateLocation(
+                approachingTurn, 5f, 5f, 90.0, 2_050L, 0L);
+        NavState approachingState = state.buildState(
+                context, approachingTurn, 5f, false, 5f, null, 120.0, null,
+                NavState.NO_DEADLINE, 2_050L, false, null, null);
+
+        assertTrue(approachingEvaluation.turnEvents.isEmpty());
+        assertFalse(approachingState.routeStatus.guidance.nextUncertain);
+        assertTrue(approachingState.routeStatus.guidance.nextLine.contains("Turn left"));
         assertNotNull(approachingState.routeStatus.compassState);
         assertNotNull(approachingState.routeStatus.compassState.orientationCue);
         assertEquals(

@@ -83,6 +83,12 @@ public final class AndroidAppTheme {
         throw new IllegalArgumentException("Theme attribute not defined: " + attrResId);
     }
 
+    @ColorInt
+    public static int navigationInstructionColor(@NonNull Context context, boolean uncertain) {
+        return uncertain ? ContextCompat.getColor(context, R.color.compass_accent)
+                : color(context, R.attr.vibroTextPrimaryColor);
+    }
+
     private static void applySystemBarAppearance(@NonNull Activity activity, boolean lightThemeEnabled) {
         WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(
                 activity.getWindow(),

@@ -136,6 +136,7 @@ final class NavigationBeelineTargetSkipper {
                 skippedTarget.segmentIndex,
                 0f,
                 Float.NaN,
+                true,
                 nowMs,
                 0L,
                 false

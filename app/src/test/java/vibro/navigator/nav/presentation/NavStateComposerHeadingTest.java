@@ -35,7 +35,7 @@ public class NavStateComposerHeadingTest {
         );
         NavState state = new NavState(
                 new NavRouteStatus(
-                        new NavGuidanceStatus("Turn left", "Continue"),
+                        new NavGuidanceStatus("Turn left", "Continue", true, false),
                         new NavProgressStatus("Destination", "Stop", ""),
                         compassState
                 ),

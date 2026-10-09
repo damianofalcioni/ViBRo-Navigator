@@ -11,6 +11,7 @@ import vibro.navigator.nav.guidance.RouteTimeEstimator;
 import vibro.navigator.nav.model.NavTarget;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.route.RouteStartApproach;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class NavUpcomingHintCollector {
@@ -27,7 +28,6 @@ final class NavUpcomingHintCollector {
             int hintIdx,
             int currentSegmentIndex,
             float speedMps,
-            float accuracyMeters,
             int maxHintCount
     ) {
         return collect(
@@ -37,7 +37,6 @@ final class NavUpcomingHintCollector {
                 hintIdx,
                 currentSegmentIndex,
                 speedMps,
-                accuracyMeters,
                 Collections.emptyList(),
                 -1,
                 maxHintCount
@@ -52,7 +51,6 @@ final class NavUpcomingHintCollector {
             int hintIdx,
             int currentSegmentIndex,
             float speedMps,
-            float accuracyMeters,
             @NonNull List<NavTarget> targets,
             int intermediateDestinationReachedTrackIndex,
             int maxHintCount
@@ -68,8 +66,7 @@ final class NavUpcomingHintCollector {
                 alongTrackMeters,
                 Math.max(0, hintIdx),
                 currentSegmentIndex,
-                speedMps,
-                accuracyMeters
+                speedMps
         );
         addSyntheticIntermediateArrivalHints(
                 upcomingHints,
@@ -114,39 +111,36 @@ final class NavUpcomingHintCollector {
             double alongTrackMeters,
             int startHintIdx,
             int currentSegmentIndex,
-            float speedMps,
-            float accuracyMeters
+            float speedMps
     ) {
-        double minReliableDistanceMeters = minimumReliableTurnDistanceMeters(accuracyMeters);
         for (int i = startHintIdx; i < route.voiceHints.size(); i++) {
-            addRouteHintIfReliable(
+            addRouteHint(
                     upcomingHints,
                     route,
                     index,
                     route.voiceHints.get(i),
                     alongTrackMeters,
                     currentSegmentIndex,
-                    speedMps,
-                    minReliableDistanceMeters
+                    speedMps
             );
         }
     }
 
-    private static void addRouteHintIfReliable(
+    private static void addRouteHint(
             @NonNull List<NavUpcomingHint> upcomingHints,
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
             @NonNull VoiceHint hint,
             double alongTrackMeters,
             int currentSegmentIndex,
-            float speedMps,
-            double minReliableDistanceMeters
+            float speedMps
     ) {
         double hintDist = index.distanceAtPointIndex(hint.indexInTrack);
-        double distanceMeters = Math.max(0.0, hintDist - alongTrackMeters);
-        if (distanceMeters <= minReliableDistanceMeters && !isArrivalCommand(hint.command)) {
+        // A reached beeline start is represented by active direct guidance, not a future turn.
+        if (hint.command == RouteStartApproach.BEELINE_COMMAND && hintDist <= alongTrackMeters) {
             return;
         }
+        double distanceMeters = Math.max(0.0, hintDist - alongTrackMeters);
         Double timeSeconds = RouteTimeEstimator.estimateSecondsToTrackPoint(
                 route,
                 index,
@@ -226,13 +220,6 @@ final class NavUpcomingHintCollector {
         }
     }
 
-    private static double minimumReliableTurnDistanceMeters(float accuracyMeters) {
-        double safeAccuracyMeters = Float.isFinite(accuracyMeters) && accuracyMeters > 0f
-                ? accuracyMeters
-                : 0.0;
-        return Math.max(5.0, safeAccuracyMeters);
-    }
-
     private static int resolveTargetTrackIndex(
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex index,
@@ -261,11 +248,6 @@ final class NavUpcomingHintCollector {
         }
         return targetTrackIndex == reachedTrackIndex
                 || Math.abs(index.distanceAtPointIndex(reachedTrackIndex) - target.alongTrackMeters) <= 1.0;
-    }
-
-    private static boolean isArrivalCommand(int command) {
-        return command == NavArrivalHintFactory.ARRIVAL_COMMAND
-                || command == NavArrivalHintFactory.INTERMEDIATE_ARRIVAL_COMMAND;
     }
 
     private static int arrivalSortPriority(int command) {

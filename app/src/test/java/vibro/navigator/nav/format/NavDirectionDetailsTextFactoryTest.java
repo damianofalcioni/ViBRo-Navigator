@@ -49,7 +49,6 @@ public class NavDirectionDetailsTextFactoryTest {
                 0,
                 0,
                 0f,
-                5f,
                 false,
                 -1,
                 Collections.singletonList(new NavTarget(DESTINATION, 333.0)),

@@ -4,8 +4,6 @@ import androidx.annotation.NonNull;
 
 import java.util.List;
 
-import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
 
 final class TurnHintAdvancePolicy {
@@ -16,16 +14,12 @@ final class TurnHintAdvancePolicy {
 
     @NonNull
     static Result consumePassedAndRetiredHints(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex,
             @NonNull List<VoiceHint> hints,
             @NonNull List<Double> hintAlongTrackMeters,
             int nextHintIdx,
             boolean notified20,
             boolean notified5,
             double alongTrackMeters,
-            int currentSegmentIndex,
-            @NonNull RouteMotionEstimate motionEstimate,
             @NonNull List<TurnEventPlanner.TurnSignal> signals
     ) {
         int updatedHintIdx = nextHintIdx;
@@ -36,12 +30,8 @@ final class TurnHintAdvancePolicy {
             double hintAlongTrackMetersValue = hintAlongTrackMeters.get(updatedHintIdx);
             boolean passed = hasPassedHint(hintAlongTrackMetersValue, alongTrackMeters);
             boolean retired = shouldRetireAlreadyNotifiedHint(
-                    route,
-                    polylineIndex,
                     hintAlongTrackMetersValue,
                     alongTrackMeters,
-                    currentSegmentIndex,
-                    motionEstimate,
                     updatedNotified5
             );
             if (!passed && !retired) {
@@ -66,32 +56,11 @@ final class TurnHintAdvancePolicy {
     }
 
     private static boolean shouldRetireAlreadyNotifiedHint(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex,
             double hintAlongTrackMeters,
             double alongTrackMeters,
-            int currentSegmentIndex,
-            @NonNull RouteMotionEstimate motionEstimate,
             boolean notified5
     ) {
-        if (!notified5) {
-            return false;
-        }
-        double distanceToHintMeters = hintAlongTrackMeters - alongTrackMeters;
-        if (distanceToHintMeters <= 0.0) {
-            return true;
-        }
-        Double timeToHintSeconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
-                route,
-                polylineIndex,
-                alongTrackMeters,
-                currentSegmentIndex,
-                hintAlongTrackMeters,
-                motionEstimate
-        );
-        return timeToHintSeconds != null
-                && Double.isFinite(timeToHintSeconds)
-                && timeToHintSeconds <= TurnDistanceReliability.MIN_ACTIONABLE_NOTICE_SECONDS;
+        return notified5 && alongTrackMeters >= hintAlongTrackMeters;
     }
 
     static final class Result {

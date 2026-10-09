@@ -26,7 +26,6 @@ public final class NavDirectionDetailsTextFactory {
             int hintIdx,
             int currentSegmentIndex,
             float speedMps,
-            float accuracyMeters,
             boolean destinationReached,
             int intermediateDestinationReachedTrackIndex,
             @NonNull List<NavTarget> targets,
@@ -45,7 +44,6 @@ public final class NavDirectionDetailsTextFactory {
                 hintIdx,
                 currentSegmentIndex,
                 speedMps,
-                accuracyMeters,
                 targets,
                 intermediateDestinationReachedTrackIndex,
                 ALL_UPCOMING_HINTS

@@ -38,7 +38,7 @@ public class NavStateTest {
     private final NavigationTextResources context = TestNavigationTextResources.metric();
 
     @Test
-    public void from_skipsHintsInsideAccuracyRadius() {
+    public void from_keepsHintsInsideAccuracyRadiusAndMarksThemUncertain() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -77,8 +77,10 @@ public class NavStateTest {
                 context
         );
 
-        assertTrue(state.routeStatus.guidance.nextLine.contains(DISTANCE_111_METERS));
-        assertTrue(state.routeStatus.guidance.afterNextLine.contains(DISTANCE_111_METERS));
+        assertTrue(state.routeStatus.guidance.nextLine.contains("6 m"));
+        assertTrue(state.routeStatus.guidance.nextUncertain);
+        assertFalse(state.routeStatus.guidance.afterNextUncertain);
+        assertTrue(state.routeStatus.guidance.afterNextLine.contains("106 m"));
     }
 
     @Test

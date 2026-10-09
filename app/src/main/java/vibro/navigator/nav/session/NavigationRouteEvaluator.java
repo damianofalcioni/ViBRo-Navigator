@@ -378,6 +378,7 @@ final class NavigationRouteEvaluator {
                 match.segmentIndex,
                 etaSpeedMps,
                 etaAccelerationMps2,
+                stableOnRouteSample,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode

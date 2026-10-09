@@ -230,6 +230,7 @@ public final class TurnEventPlanner {
                 alongTrackMeters,
                 currentSegmentIndex,
                 RouteMotionEstimate.speedOnly(speedMps),
+                true,
                 TurnNotificationPlan.from(singleInstructionMode)
         );
     }
@@ -247,6 +248,7 @@ public final class TurnEventPlanner {
             int currentSegmentIndex,
             float speedMps,
             float accelerationMps2,
+            boolean trustworthyProgress,
             @NonNull TurnNotificationPlan notificationPlan
     ) {
         return advance(
@@ -260,6 +262,7 @@ public final class TurnEventPlanner {
                 alongTrackMeters,
                 currentSegmentIndex,
                 RouteMotionEstimate.withAcceleration(speedMps, accelerationMps2),
+                trustworthyProgress,
                 notificationPlan
         );
     }
@@ -276,24 +279,21 @@ public final class TurnEventPlanner {
             double alongTrackMeters,
             int currentSegmentIndex,
             @NonNull RouteMotionEstimate motionEstimate,
+            boolean trustworthyProgress,
             @NonNull TurnNotificationPlan notificationPlan
     ) {
-        if (hints.isEmpty() || nextHintIdx >= hints.size()) {
+        if (!trustworthyProgress || hints.isEmpty() || nextHintIdx >= hints.size()) {
             return new Progress(nextHintIdx, notified20, notified5, false, Collections.emptyList());
         }
 
         List<TurnSignal> signals = new ArrayList<>();
         TurnHintAdvancePolicy.Result consumed = TurnHintAdvancePolicy.consumePassedAndRetiredHints(
-                route,
-                polylineIndex,
                 hints,
                 hintAlongTrackMeters,
                 nextHintIdx,
                 notified20,
                 notified5,
                 alongTrackMeters,
-                currentSegmentIndex,
-                motionEstimate,
                 signals
         );
         AdvanceCursor cursor = new AdvanceCursor(

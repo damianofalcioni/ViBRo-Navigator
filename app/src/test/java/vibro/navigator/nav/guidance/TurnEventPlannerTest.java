@@ -326,6 +326,7 @@ public class TurnEventPlannerTest {
                 0,
                 5f,
                 0.5f,
+                true,
                 TurnNotificationPlan.from(false)
         );
 
@@ -351,6 +352,7 @@ public class TurnEventPlannerTest {
                 0,
                 5f,
                 -0.2f,
+                true,
                 TurnNotificationPlan.from(false)
         );
 
@@ -425,7 +427,7 @@ public class TurnEventPlannerTest {
     }
 
     @Test
-    public void advance_surfacesCloseFollowingTurnWhenNotifiedTurnIsTooLateToRepeat() {
+    public void advance_keepsNotifiedTurnUntilItsPointThenAlertsCloseFollowingTurn() {
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
                         new LatLon(0.0, 0.0),
@@ -453,12 +455,17 @@ public class TurnEventPlannerTest {
                 3f
         );
 
-        assertEquals(1, progress.nextHintIdx);
-        assertEquals(1, progress.signals.size());
-        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, progress.signals.get(0).type);
-        assertEquals(2, progress.signals.get(0).hint.indexInTrack);
+        assertEquals(0, progress.nextHintIdx);
+        assertTrue(progress.signals.isEmpty());
         assertTrue(progress.notified20);
         assertTrue(progress.notified5);
+
+        TurnEventPlanner.Progress atTurn = planner.advance(route, index, progress.nextHintIdx,
+                progress.notified20, progress.notified5, index.distanceAtPointIndex(1), 1, 1f);
+        assertEquals(1, atTurn.nextHintIdx);
+        assertEquals(1, atTurn.signals.size());
+        assertEquals(TurnEventPlanner.TurnSignal.Type.IMMINENT, atTurn.signals.get(0).type);
+        assertEquals(2, atTurn.signals.get(0).hint.indexInTrack);
     }
 
     @Test
