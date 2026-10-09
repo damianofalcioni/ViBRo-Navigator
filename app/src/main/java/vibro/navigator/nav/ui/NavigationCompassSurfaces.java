@@ -58,11 +58,16 @@ final class NavigationCompassSurfaces {
         fullscreenCompass = activity.findViewById(R.id.navigationFullscreenCompassView);
         fullscreenOverlaysForeground = fullscreenCompass.getParent() != compactCompass.getParent();
         fullscreenCompass.addOnLayoutChangeListener(centerLayoutListener);
-        foregroundPanels.add(directionsBlock);
-        foregroundPanels.add(destination);
+        includeForegroundText(directionsBlock);
+        includeForegroundText(destination);
     }
 
     void includeForegroundText(@NonNull View view) {
+        if (fullscreenOverlaysForeground) {
+            // Reserve the same panel inset in compact view so fullscreen cannot change auto-sizing.
+            ForegroundPanelList.Padding padding = foregroundPadding();
+            view.setPadding(padding.horizontal, padding.vertical, padding.horizontal, padding.vertical);
+        }
         foregroundPanels.add(view);
     }
 

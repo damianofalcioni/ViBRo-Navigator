@@ -498,6 +498,7 @@ The navigation UI must show the following in large text:
 - That terminal destination-reached presentation should omit misleading `0 m` or `0 s` countdown fields and behave as a terminal guidance state rather than as another ordinary turn
 - The first upcoming direction must keep the full available instruction row width
 - Both direction lines must stay on a single line and should reduce text size as needed before falling back to end-ellipsis truncation
+- Switching between compact compass and fullscreen route views must preserve the text size of the GPS status and upcoming-direction lines with the same content. Portrait GPS and direction panels must use the same padding as the arrival-statistics panel and reserve that inset in both modes so fullscreen backgrounds cannot change the available text bounds.
 - Tapping either of the two direction lines, or the surrounding direction block, must open a compact details UI styled like the GPS details UI
 - The directions details UI must list the remaining upcoming directions using live distance and time values from the current navigation state; the first row must be relative to the user's current matched route position, and each following row must be relative to the previous direction in the list
 - The app should build the full directions details list only while that details UI is open so long routes do not add work to normal navigation rendering
