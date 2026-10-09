@@ -1,12 +1,14 @@
 package vibro.navigator.android.export;
 
 import android.content.Context;
+import android.net.Uri;
 
 import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
@@ -14,6 +16,10 @@ import java.util.Date;
 import java.util.Locale;
 
 import vibro.navigator.android.storage.AndroidAppStorageDirs;
+import vibro.navigator.android.storage.AndroidOutputFolderAccess;
+import vibro.navigator.android.storage.AndroidWritableDocumentTree;
+import vibro.navigator.settings.AppOutputFolderSettings.Kind;
+import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 
 public final class AndroidRouteGpxAutoSaver {
     private static final String GPX_DIR = "gpx";
@@ -21,6 +27,36 @@ public final class AndroidRouteGpxAutoSaver {
     private static final String FILE_SUFFIX = ".gpx";
 
     private AndroidRouteGpxAutoSaver() {
+    }
+
+    @NonNull
+    public static Uri saveUri(@NonNull Context context, @NonNull String gpx) throws IOException {
+        try {
+            Uri custom = saveCustom(context, gpx);
+            if (custom != null) {
+                AndroidOutputFolderAccess.markAvailable(Kind.GPX);
+                return custom;
+            }
+        } catch (IOException | RuntimeException e) {
+            AndroidOutputFolderAccess.markUnavailable(context, Kind.GPX);
+        }
+        return AndroidRouteGpxFileProvider.uriForFile(context, save(context, gpx));
+    }
+
+    private static Uri saveCustom(Context context, String gpx) throws IOException {
+        Uri tree = AndroidOutputFolderAccess.ensureFolder(context, Kind.GPX);
+        if (tree == null) {
+            return null;
+        }
+        Uri document = AndroidWritableDocumentTree.createFile(context, tree,
+                NavigationRouteGpxExporter.GPX_MIME_TYPE, buildFileName(new Date()));
+        try (OutputStream out = AndroidWritableDocumentTree.open(context, document)) {
+            out.write(gpx.getBytes(StandardCharsets.UTF_8));
+        } catch (IOException | RuntimeException e) {
+            AndroidWritableDocumentTree.removeQuietly(context, document);
+            throw e;
+        }
+        return document;
     }
 
     @NonNull

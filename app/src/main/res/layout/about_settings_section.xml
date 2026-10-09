@@ -280,15 +280,31 @@
         android:minHeight="48dp"
         android:orientation="horizontal">
 
-        <Switch
-            android:id="@+id/aboutAutoSaveGpxSwitch"
+        <TextView
+            android:id="@+id/aboutAutoSaveGpxLabel"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:minHeight="48dp"
             android:text="@string/label_auto_save_gpx_enabled"
             android:textColor="?attr/vibroTextPrimaryColor"
             android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutGpxFolderSettingsButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@drawable/ic_settings"
+            android:contentDescription="@string/title_gpx_output_folder" />
+
+        <Switch
+            android:id="@+id/aboutAutoSaveGpxSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/label_auto_save_gpx_enabled"
+            android:minHeight="48dp"
+            android:showText="false" />
 
         <ImageButton
             android:id="@+id/aboutAutoSaveGpxInfoButton"

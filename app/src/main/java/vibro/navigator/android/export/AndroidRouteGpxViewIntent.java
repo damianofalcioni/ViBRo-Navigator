@@ -28,9 +28,7 @@ public final class AndroidRouteGpxViewIntent {
 
     @NonNull
     public static Intent create(@NonNull Context context, @NonNull String gpx) throws IOException {
-        File file = writeExportFile(context, gpx);
-        Uri uri = AndroidRouteGpxFileProvider.uriForFile(context, file);
-        return createForUri(context, uri);
+        return createForUri(context, AndroidRouteGpxAutoSaver.saveUri(context, gpx));
     }
 
     @NonNull

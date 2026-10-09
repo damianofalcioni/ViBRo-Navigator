@@ -2,16 +2,13 @@ package vibro.navigator.nav.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ActivityNotFoundException;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.io.IOException;
-
 import vibro.navigator.R;
-import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
+import vibro.navigator.android.export.AndroidRouteGpxActions;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 
@@ -75,17 +72,7 @@ final class NavigationActivityCommands {
             showShortToast(R.string.msg_route_export_unavailable);
             return;
         }
-        AppLogger.dMultiline(TAG, "Generated route GPX XML", gpx);
-        try {
-            activity.startActivity(AndroidRouteGpxViewIntent.createChooser(activity, gpx));
-            AppLogger.i(TAG, "Route GPX chooser launched");
-        } catch (ActivityNotFoundException e) {
-            AppLogger.w(TAG, "No app can open exported GPX route", e);
-            showShortToast(R.string.msg_route_export_no_app);
-        } catch (IOException | RuntimeException e) {
-            AppLogger.w(TAG, "Failed to export current route as GPX", e);
-            showShortToast(R.string.msg_route_export_failed);
-        }
+        AndroidRouteGpxActions.export(activity, gpx);
     }
 
     void showStopNavigationConfirmation() {

@@ -37,6 +37,11 @@ final class AppLogSessionInfo {
 
     @NonNull
     static String format(@NonNull Context context, @Nullable File logFile) {
+        return formatDestination(context, logFile == null ? UNKNOWN : logFile.getAbsolutePath());
+    }
+
+    @NonNull
+    static String formatDestination(@NonNull Context context, @NonNull String destination) {
         Context appContext = context.getApplicationContext();
         Resources resources = appContext.getResources();
         DisplayMetrics metrics = resources.getDisplayMetrics();
@@ -46,7 +51,7 @@ final class AppLogSessionInfo {
         appendAppInfo(out, appContext);
         appendIntegrationInfo(out, appContext);
         appendDeviceInfo(out);
-        appendRuntimeInfo(out, metrics, configuration, logFile);
+        appendRuntimeInfo(out, metrics, configuration, destination);
         return out.toString();
     }
 
@@ -112,7 +117,7 @@ final class AppLogSessionInfo {
             @NonNull StringBuilder out,
             @NonNull DisplayMetrics metrics,
             @NonNull Configuration configuration,
-            @Nullable File logFile
+            @NonNull String destination
     ) {
         append(out, "locale", Locale.getDefault().toLanguageTag());
         append(out, "timeZone", TimeZone.getDefault().getID());
@@ -120,7 +125,7 @@ final class AppLogSessionInfo {
         append(out, "densityDpi", metrics.densityDpi);
         append(out, "fontScale", String.valueOf(configuration.fontScale));
         append(out, "uiModeNight", uiModeNight(configuration));
-        append(out, "logFile", logFile == null ? UNKNOWN : logFile.getAbsolutePath());
+        append(out, "logFile", destination);
     }
 
     private static void appendInstalledPackage(

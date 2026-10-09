@@ -39,6 +39,7 @@ final class AboutDiagnosticSection {
     private final TextView sensorStatusBody;
     @NonNull
     private final AboutPermissionStatusRows permissionStatusRows;
+    private final AboutOutputFolderStatusRows outputFolderRows;
     @NonNull
     private final AboutSymbolTestButtons symbolTestButtons;
     private boolean started;
@@ -48,6 +49,7 @@ final class AboutDiagnosticSection {
         sensorStatusTitle = activity.findViewById(R.id.aboutSensorStatusTitle);
         sensorStatusBody = activity.findViewById(R.id.aboutSensorStatusBody);
         permissionStatusRows = new AboutPermissionStatusRows(activity);
+        outputFolderRows = new AboutOutputFolderStatusRows(activity);
         symbolTestButtons = new AboutSymbolTestButtons(activity);
     }
 
@@ -55,6 +57,7 @@ final class AboutDiagnosticSection {
         sensorStatusTitle.setVisibility(View.VISIBLE);
         sensorStatusBody.setVisibility(View.VISIBLE);
         permissionStatusRows.render();
+        outputFolderRows.render();
         symbolTestButtons.show();
         sensorStatusBody.setText(sensorStatusFormatter().build(activity));
     }
@@ -77,11 +80,17 @@ final class AboutDiagnosticSection {
     }
 
     void stop() {
+        outputFolderRows.stop();
         sensorStatusScheduler.removeCallbacks(sensorStatusRefreshRunnable);
         if (sensorStatusFormatter != null) {
             sensorStatusFormatter.stop();
         }
         started = false;
+    }
+
+    void shutdown() {
+        stop();
+        outputFolderRows.shutdown();
     }
 
     @NonNull

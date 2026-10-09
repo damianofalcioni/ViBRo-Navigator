@@ -142,6 +142,9 @@ public class AboutActivity extends Activity {
     @Override
     protected void onDestroy() {
         cancelSettingsInitialization();
+        if (diagnosticSection != null) {
+            diagnosticSection.shutdown();
+        }
         if (settingsControllers != null) {
             settingsControllers.shutdown();
         }
@@ -152,6 +155,9 @@ public class AboutActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         initializeSettingsSection();
+        if (settingsControllers.handleActivityResult(requestCode, resultCode, data)) {
+            return;
+        }
         AboutActivityResultHandlers.handleActivityResult(
                 settingsSwitches,
                 diagnosticSection,

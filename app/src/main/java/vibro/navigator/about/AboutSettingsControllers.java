@@ -1,6 +1,7 @@
 package vibro.navigator.about;
 
 import android.app.Activity;
+import android.content.Intent;
 
 import androidx.annotation.NonNull;
 
@@ -17,12 +18,15 @@ final class AboutSettingsControllers {
     private AboutSpeechRecognitionSettings speechRecognitionSettings;
     private AboutCompassProjectionSettings compassProjectionSettings;
     private AboutNavigationHintSettings navigationHintSettings;
+    private AboutOutputFolderSettings outputFolderSettings;
 
     AboutSettingsControllers(@NonNull Activity activity) {
         this.activity = activity;
     }
 
     void configure() {
+        outputFolderSettings = new AboutOutputFolderSettings(activity);
+        outputFolderSettings.configure();
         compassProjectionSettings = new AboutCompassProjectionSettings(activity);
         navigationHintSettings = new AboutNavigationHintSettings(activity);
         new AboutSurroundingStreetTypes(activity).configure(
@@ -65,6 +69,7 @@ final class AboutSettingsControllers {
     }
 
     void shutdown() {
+        outputFolderSettings.shutdown();
         if (speechRecognitionSettings != null) {
             speechRecognitionSettings.shutdown();
         }
@@ -74,6 +79,10 @@ final class AboutSettingsControllers {
         if (googlePoiApiKeySettings != null) {
             googlePoiApiKeySettings.shutdown();
         }
+    }
+
+    boolean handleActivityResult(int requestCode, int resultCode, Intent data) {
+        return outputFolderSettings.handleActivityResult(requestCode, resultCode, data);
     }
 
     void refreshAfterDatabaseImport() {

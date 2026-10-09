@@ -5,12 +5,15 @@ import android.content.Context;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+
+import vibro.navigator.android.storage.AndroidOutputFolderCleaner;
+import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
 public final class AppLogger {
 
@@ -20,7 +23,7 @@ public final class AppLogger {
     private static final String KEY_LOG_ENABLED = "log_enabled";
 
     @Nullable
-    private static File logFile;
+    private static AppLogDestination destination;
     private static volatile boolean loggingEnabled;
 
     private AppLogger() {
@@ -29,23 +32,17 @@ public final class AppLogger {
     public static void init(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
         synchronized (LOCK) {
+            AppLogDestination.close(destination);
             loggingEnabled = readLogEnabled(appContext);
-            logFile = null;
-            if (loggingEnabled) {
-                logFile = AppLogFiles.startSession(appContext);
-            }
+            destination = AppLogDestination.startIfEnabled(appContext, loggingEnabled);
         }
     }
 
     @NonNull
     public static String getLogFilePath(@NonNull Context context) {
         synchronized (LOCK) {
-            Context appContext = context.getApplicationContext();
-            if (loggingEnabled) {
-                logFile = AppLogFiles.ensureLogFile(appContext, logFile, false);
-            }
-            if (logFile != null) {
-                return logFile.getAbsolutePath();
+            if (destination != null) {
+                return destination.path();
             }
         }
         return AppLogFiles.fallbackLogFilePath(context.getApplicationContext());
@@ -69,11 +66,8 @@ public final class AppLogger {
             }
             writeLogEnabled(appContext, enabled);
             loggingEnabled = enabled;
-            if (loggingEnabled) {
-                logFile = AppLogFiles.startSession(appContext);
-            } else {
-                logFile = null;
-            }
+            AppLogDestination.close(destination);
+            destination = AppLogDestination.startIfEnabled(appContext, loggingEnabled);
         }
         if (enabled) {
             write("INFO", TAG, "Logging enabled", null);
@@ -113,14 +107,12 @@ public final class AppLogger {
     ) {
         synchronized (LOCK) {
             Context appContext = context.getApplicationContext();
-            if (logFile == null) {
-                logFile = AppLogFiles.startSession(appContext);
+            if (destination == null) {
+                destination = AppLogDestination.start(appContext);
             }
             StringBuilder block = buildLogPrefix("ERROR", tag, message);
             appendThrowable(block, throwable);
-            if (logFile != null) {
-                AppLogFiles.appendBlock(logFile, block);
-            }
+            destination.append(block);
         }
     }
 
@@ -187,8 +179,29 @@ public final class AppLogger {
 
     private static void appendBlock(@NonNull CharSequence block) {
         synchronized (LOCK) {
-            if (loggingEnabled && logFile != null) {
-                AppLogFiles.appendBlock(logFile, block);
+            if (loggingEnabled && destination != null) {
+                destination.append(block);
+            }
+        }
+    }
+
+    public static void refreshOutputFolder(@NonNull Context context) {
+        synchronized (LOCK) {
+            if (destination != null) {
+                AppLogDestination.close(destination);
+                destination = AppLogDestination.start(context);
+            }
+        }
+    }
+
+    public static void clearOutputFolder(Context context, @Nullable String selected) throws IOException {
+        synchronized (LOCK) {
+            AppLogDestination.close(destination);
+            destination = null;
+            try {
+                AndroidOutputFolderCleaner.clear(context, Kind.LOGS, selected);
+            } finally {
+                destination = AppLogDestination.startIfEnabled(context, loggingEnabled);
             }
         }
     }

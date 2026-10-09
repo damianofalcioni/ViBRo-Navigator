@@ -8,7 +8,7 @@ import androidx.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 
-import vibro.navigator.android.export.AndroidRouteGpxAutoSaver;
+import vibro.navigator.android.export.AndroidRouteGpxActions;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppGpxSettings;
 
@@ -28,13 +28,11 @@ final class NavigationStopGpxAutoSave {
     private NavigationStopGpxAutoSave() {
     }
 
-    @Nullable
-    static File saveIfEnabled(@NonNull Context context, @NonNull RouteGpxSource source) {
-        return saveIfEnabled(
-                AppGpxSettings.isAutoSaveOnStopEnabled(context),
-                source,
-                gpx -> AndroidRouteGpxAutoSaver.save(context, gpx)
-        );
+    static void saveIfEnabled(@NonNull Context context, @NonNull RouteGpxSource source) {
+        String gpx = buildIfEnabled(AppGpxSettings.isAutoSaveOnStopEnabled(context), source);
+        if (gpx != null) {
+            AndroidRouteGpxActions.autoSave(context, gpx);
+        }
     }
 
     @Nullable
@@ -43,12 +41,8 @@ final class NavigationStopGpxAutoSave {
             @NonNull RouteGpxSource source,
             @NonNull RouteGpxSaver saver
     ) {
-        if (!enabled) {
-            return null;
-        }
-        String gpx = source.buildCurrentRouteGpx();
+        String gpx = buildIfEnabled(enabled, source);
         if (gpx == null) {
-            AppLogger.w(TAG, "Auto-save GPX skipped because no active route is available");
             return null;
         }
         try {
@@ -59,5 +53,17 @@ final class NavigationStopGpxAutoSave {
             AppLogger.w(TAG, "Failed to auto-save route GPX on stop", e);
             return null;
         }
+    }
+
+    @Nullable
+    private static String buildIfEnabled(boolean enabled, @NonNull RouteGpxSource source) {
+        if (!enabled) {
+            return null;
+        }
+        String gpx = source.buildCurrentRouteGpx();
+        if (gpx == null) {
+            AppLogger.w(TAG, "Auto-save GPX skipped because no active route is available");
+        }
+        return gpx;
     }
 }

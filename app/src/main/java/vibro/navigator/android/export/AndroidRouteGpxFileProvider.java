@@ -21,7 +21,7 @@ public final class AndroidRouteGpxFileProvider extends ContentProvider {
     private static final String READ_MODE = "r";
 
     @NonNull
-    static Uri uriForFile(@NonNull Context context, @NonNull File file) throws IOException {
+    public static Uri uriForFile(@NonNull Context context, @NonNull File file) throws IOException {
         return AndroidRouteGpxProviderUri.uriForFile(context, file, authority(context));
     }
 
@@ -38,7 +38,9 @@ public final class AndroidRouteGpxFileProvider extends ContentProvider {
     @Override
     @Nullable
     public String getType(@NonNull Uri uri) {
-        return NavigationRouteGpxExporter.GPX_MIME_TYPE;
+        String name = uri.getLastPathSegment();
+        return name != null && (name.endsWith(".txt") || name.endsWith(".log"))
+                ? "text/plain" : NavigationRouteGpxExporter.GPX_MIME_TYPE;
     }
 
     @Override

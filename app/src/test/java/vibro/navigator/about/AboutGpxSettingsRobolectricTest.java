@@ -8,6 +8,7 @@ import static org.robolectric.Shadows.shadowOf;
 import android.content.Context;
 import android.os.Looper;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -38,10 +39,11 @@ public class AboutGpxSettingsRobolectricTest {
     public void aboutPageShowsAutoSaveGpxSwitchEnabledByDefault() {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         Switch autoSaveGpxSwitch = activity.findViewById(R.id.aboutAutoSaveGpxSwitch);
+        TextView autoSaveGpxLabel = activity.findViewById(R.id.aboutAutoSaveGpxLabel);
 
         assertEquals(
                 activity.getString(R.string.label_auto_save_gpx_enabled),
-                autoSaveGpxSwitch.getText().toString()
+                autoSaveGpxLabel.getText().toString()
         );
         assertTrue(autoSaveGpxSwitch.isChecked());
     }
