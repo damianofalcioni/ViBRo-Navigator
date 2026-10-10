@@ -11,67 +11,63 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:baselineAligned="false">
-        <LinearLayout
-            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow"
-            android:layout_width="0dp"
-            android:layout_weight="1">
+        <FrameLayout
+            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow">
             <TextView
                 android:id="@+id/gestureHintHighwaySwatch"
                 style="@style/Widget.ViBRoNavigator.GestureHintStreetSwatch"
+                android:layout_gravity="start|center_vertical"
                 android:textColor="?attr/vibroCompassStreetHighwayColor" />
             <TextView
                 style="@style/Widget.ViBRoNavigator.GestureHintBody"
                 android:text="@string/street_category_highway"
-                android:layout_width="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
-        <LinearLayout
-            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow"
-            android:layout_width="0dp"
-            android:layout_weight="1">
+                android:layout_marginStart="32dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
+        <FrameLayout
+            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow">
             <TextView
                 android:id="@+id/gestureHintNormalStreetSwatch"
                 style="@style/Widget.ViBRoNavigator.GestureHintStreetSwatch"
+                android:layout_gravity="start|center_vertical"
                 android:textColor="?attr/vibroCompassStreetNormalColor" />
             <TextView
                 style="@style/Widget.ViBRoNavigator.GestureHintBody"
                 android:text="@string/street_category_normal"
-                android:layout_width="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
+                android:layout_marginStart="32dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
     </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:baselineAligned="false">
-        <LinearLayout
-            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow"
-            android:layout_width="0dp"
-            android:layout_weight="1">
+        <FrameLayout
+            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow">
             <TextView
                 android:id="@+id/gestureHintWalkingCyclingSwatch"
                 style="@style/Widget.ViBRoNavigator.GestureHintStreetSwatch"
+                android:layout_gravity="start|center_vertical"
                 android:textColor="?attr/vibroCompassStreetWalkingCyclingColor" />
             <TextView
                 style="@style/Widget.ViBRoNavigator.GestureHintBody"
                 android:text="@string/street_category_walking_cycling"
-                android:layout_width="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
-        <LinearLayout
-            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow"
-            android:layout_width="0dp"
-            android:layout_weight="1">
+                android:layout_marginStart="32dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
+        <FrameLayout
+            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow">
             <TextView
                 android:id="@+id/gestureHintSpecialRoutingSwatch"
                 style="@style/Widget.ViBRoNavigator.GestureHintStreetSwatch"
+                android:layout_gravity="start|center_vertical"
                 android:textColor="?attr/vibroCompassStreetSpecialRoutingColor" />
             <TextView
                 style="@style/Widget.ViBRoNavigator.GestureHintBody"
                 android:text="@string/street_category_special_routing"
-                android:layout_width="0dp"
-                android:layout_weight="1" />
-        </LinearLayout>
+                android:layout_marginStart="32dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
     </LinearLayout>
 </LinearLayout>
