@@ -1,56 +1,46 @@
 package vibro.navigator.about;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
-
 import android.app.Activity;
-import android.content.Intent;
+import android.app.Application;
 import android.os.Looper;
 import android.view.View;
 import android.widget.TextView;
-
-import androidx.core.content.ContextCompat;
-
-import org.junit.After;
+import androidx.test.core.app.ApplicationProvider;
 import org.junit.Before;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.android.controller.ActivityController;
-import org.robolectric.shadows.ShadowActivity;
-
-import java.io.IOException;
+import org.robolectric.annotation.Config;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-
 import vibro.navigator.R;
-import vibro.navigator.android.storage.AndroidOutputFolderAccess;
-import vibro.navigator.android.storage.TestOutputDocumentsProvider;
+import vibro.navigator.android.storage.AndroidOutputStorage;
+import vibro.navigator.android.storage.TestOutputMediaDirs;
 import vibro.navigator.android.theme.AndroidAppTheme;
-import vibro.navigator.settings.AppOutputFolderSettings;
-import vibro.navigator.settings.AppOutputFolderSettings.Kind;
+import vibro.navigator.settings.AppOutputStorageSettings;
 
 @RunWith(RobolectricTestRunner.class)
+@Config(sdk = {23, 28}, shadows = TestOutputMediaDirs.class)
 public class AboutOutputFolderStatusRowsTest {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private ActivityController<Activity> controller;
     private Activity activity;
     private AboutOutputFolderStatusRows rows;
-    private TestOutputDocumentsProvider provider;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() {
         controller = Robolectric.buildActivity(Activity.class).setup();
         activity = controller.get();
         AndroidAppTheme.apply(activity);
         activity.setContentView(R.layout.about_diagnostics_section);
-        provider = TestOutputDocumentsProvider.install(activity);
-        AppOutputFolderSettings.set(activity, Kind.LOGS, null);
-        AppOutputFolderSettings.set(activity, Kind.GPX, null);
+        AppOutputStorageSettings.disable(activity);
+        AndroidOutputStorage.resetFailures();
         rows = new AboutOutputFolderStatusRows(activity, worker);
     }
 
@@ -61,73 +51,43 @@ public class AboutOutputFolderStatusRowsTest {
     }
 
     @Test
-    public void rowsAreHiddenWhenDefaultFoldersAreUsed() {
+    @Config(sdk = {29, 35})
+    public void mediaStoreFoldersAreHiddenWithoutSchedulingAccessChecks() {
+        worker.shutdown();
         rows.render();
         assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionLogFolderRow).getVisibility());
         assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionGpxFolderRow).getVisibility());
     }
 
     @Test
-    public void accessibleCustomFoldersShowGreenAndIndependentRepairPickers() throws Exception {
-        selectBoth();
+    public void legacyFoldersRemainVisibleWithoutSavingEnabledAndShowMissingPermission() throws Exception {
+        Application app = ApplicationProvider.getApplicationContext();
+        shadowOf(app).denyPermissions("android.permission.WRITE_EXTERNAL_STORAGE");
         rows.render();
         finishCheck();
-        assertStatus(R.id.aboutPermissionLogFolderStatus, true);
-        assertStatus(R.id.aboutPermissionGpxFolderStatus, true);
         assertEquals(View.VISIBLE, activity.findViewById(R.id.aboutPermissionLogFolderRow).getVisibility());
-        activity.findViewById(R.id.aboutPermissionLogFolderRow).performClick();
-        ShadowActivity.IntentForResult logs = shadowOf(activity).getNextStartedActivityForResult();
-        activity.findViewById(R.id.aboutPermissionGpxFolderRow).performClick();
-        ShadowActivity.IntentForResult gpx = shadowOf(activity).getNextStartedActivityForResult();
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, logs.intent.getAction());
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, gpx.intent.getAction());
-        assertTrue((logs.intent.getFlags() & Intent.FLAG_GRANT_WRITE_URI_PERMISSION) != 0);
-        assertNotEquals(logs.requestCode, gpx.requestCode);
+        assertEquals(View.VISIBLE, activity.findViewById(R.id.aboutPermissionGpxFolderRow).getVisibility());
+        assertFolderNames();
+        assertStatus(R.id.aboutPermissionGpxFolderStatus, false);
     }
 
     @Test
-    public void writeFailuresShowRedEvenWithPersistedGrants() throws Exception {
-        selectBoth();
-        provider.failWrites = true;
-        AndroidOutputFolderAccess.markUnavailable(activity, Kind.LOGS);
-        AndroidOutputFolderAccess.markUnavailable(activity, Kind.GPX);
-        rows.render();
-        finishCheck();
-        assertStatus(R.id.aboutPermissionLogFolderStatus, false);
-        assertStatus(R.id.aboutPermissionGpxFolderStatus, false);
-        provider.failWrites = false;
+    public void permissionGrantRefreshesBothFoldersToDownloads() throws Exception {
+        Application app = ApplicationProvider.getApplicationContext();
+        shadowOf(app).grantPermissions("android.permission.WRITE_EXTERNAL_STORAGE");
         rows.render();
         finishCheck();
         assertStatus(R.id.aboutPermissionLogFolderStatus, true);
         assertStatus(R.id.aboutPermissionGpxFolderStatus, true);
-    }
-
-    @Test
-    public void permissionRevocationShowsRedAndResetHidesRow() throws Exception {
-        selectBoth();
-        activity.getContentResolver().releasePersistableUriPermission(TestOutputDocumentsProvider.TREE,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        rows.render();
-        finishCheck();
-        assertStatus(R.id.aboutPermissionLogFolderStatus, false);
-        AppOutputFolderSettings.set(activity, Kind.LOGS, null);
-        rows.render();
-        finishCheck();
-        assertEquals(View.GONE, activity.findViewById(R.id.aboutPermissionLogFolderRow).getVisibility());
+        assertFolderNames();
     }
 
     @Test
     public void stoppedChecksCannotUpdateOldRows() throws Exception {
-        selectBoth();
         rows.render();
         rows.stop();
         finishCheck();
         assertStatus(R.id.aboutPermissionLogFolderStatus, false);
-    }
-
-    private void selectBoth() {
-        AppOutputFolderSettings.set(activity, Kind.LOGS, TestOutputDocumentsProvider.TREE.toString());
-        AppOutputFolderSettings.set(activity, Kind.GPX, TestOutputDocumentsProvider.TREE.toString());
     }
 
     private void finishCheck() throws Exception {
@@ -136,10 +96,15 @@ public class AboutOutputFolderStatusRowsTest {
     }
 
     private void assertStatus(int id, boolean allowed) {
-        TextView status = activity.findViewById(id);
         assertEquals(activity.getString(allowed ? R.string.permission_status_ok
-                : R.string.permission_status_needs_attention), status.getText().toString());
-        assertEquals(ContextCompat.getColor(activity, allowed ? R.color.success : R.color.danger),
-                status.getCurrentTextColor());
+                : R.string.permission_status_needs_attention),
+                ((TextView) activity.findViewById(id)).getText().toString());
+    }
+
+    private void assertFolderNames() {
+        assertEquals(activity.getString(R.string.title_log_output_folder),
+                ((TextView) activity.findViewById(R.id.aboutPermissionLogFolderLabel)).getText().toString());
+        assertEquals(activity.getString(R.string.title_gpx_output_folder),
+                ((TextView) activity.findViewById(R.id.aboutPermissionGpxFolderLabel)).getText().toString());
     }
 }

@@ -43,4 +43,12 @@ final class AboutActivityTestSupport {
                 TimeUnit.MILLISECONDS
         );
     }
+
+    static void finishOutputSaving(AboutActivity activity) {
+        activity.flushDeferredSettings();
+        shadowOf(Looper.getMainLooper()).idle();
+        activity.flushDeferredSettings();
+        shadowOf(Looper.getMainLooper()).idleFor(
+                AboutDiagnosticRenderScheduler.INITIAL_DIAGNOSTIC_RENDER_DELAY_MS, TimeUnit.MILLISECONDS);
+    }
 }

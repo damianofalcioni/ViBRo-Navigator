@@ -15,14 +15,13 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import vibro.navigator.android.storage.AndroidAppStorageDirs;
-import vibro.navigator.android.storage.AndroidOutputFolderAccess;
-import vibro.navigator.android.storage.AndroidWritableDocumentTree;
+import vibro.navigator.android.storage.AndroidOutputStorage;
+import vibro.navigator.android.storage.AndroidOutputFile;
 import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
+import vibro.navigator.settings.AppGpxSettings;
 
 public final class AndroidRouteGpxAutoSaver {
-    private static final String GPX_DIR = "gpx";
     private static final String FILE_PREFIX = "vibro-navigator-route-";
     private static final String FILE_SUFFIX = ".gpx";
 
@@ -31,32 +30,27 @@ public final class AndroidRouteGpxAutoSaver {
 
     @NonNull
     public static Uri saveUri(@NonNull Context context, @NonNull String gpx) throws IOException {
+        AndroidOutputFile file = null;
         try {
-            Uri custom = saveCustom(context, gpx);
-            if (custom != null) {
-                AndroidOutputFolderAccess.markAvailable(Kind.GPX);
-                return custom;
-            }
+            file = AndroidOutputStorage.create(context, Kind.GPX,
+                    NavigationRouteGpxExporter.GPX_MIME_TYPE, buildFileName(new Date()));
+            write(file, gpx);
+            return file.uri;
         } catch (IOException | RuntimeException e) {
-            AndroidOutputFolderAccess.markUnavailable(context, Kind.GPX);
+            AppGpxSettings.setAutoSaveOnStopEnabled(context, false);
+            if (file != null) {
+                file.removeQuietly();
+                AndroidOutputStorage.failed(Kind.GPX, file.destination);
+            }
+            throw new IOException("Could not save GPX to selected output folder", e);
         }
-        return AndroidRouteGpxFileProvider.uriForFile(context, save(context, gpx));
     }
 
-    private static Uri saveCustom(Context context, String gpx) throws IOException {
-        Uri tree = AndroidOutputFolderAccess.ensureFolder(context, Kind.GPX);
-        if (tree == null) {
-            return null;
-        }
-        Uri document = AndroidWritableDocumentTree.createFile(context, tree,
-                NavigationRouteGpxExporter.GPX_MIME_TYPE, buildFileName(new Date()));
-        try (OutputStream out = AndroidWritableDocumentTree.open(context, document)) {
+    private static void write(AndroidOutputFile file, String gpx) throws IOException {
+        try (OutputStream out = file.open()) {
             out.write(gpx.getBytes(StandardCharsets.UTF_8));
-        } catch (IOException | RuntimeException e) {
-            AndroidWritableDocumentTree.removeQuietly(context, document);
-            throw e;
         }
-        return document;
+        file.publish();
     }
 
     @NonNull
@@ -106,16 +100,14 @@ public final class AndroidRouteGpxAutoSaver {
 
     @NonNull
     private static File ensureGpxDir(@NonNull Context context) throws IOException {
-        File dir = new File(resolveFilesRoot(context), GPX_DIR);
+        File dir = AndroidOutputStorage.requested(context, Kind.GPX).directory;
+        if (dir == null) {
+            throw new IOException("Selected GPX storage requires a document URI");
+        }
         if (dir.isDirectory() || dir.mkdirs() || dir.isDirectory()) {
             return dir;
         }
         throw new IOException("Could not create route GPX directory");
     }
 
-    @NonNull
-    private static File resolveFilesRoot(@NonNull Context context) {
-        File externalBase = AndroidAppStorageDirs.preferredExternalFilesDir(context);
-        return externalBase == null ? AndroidAppStorageDirs.internalFilesDir(context) : externalBase;
-    }
 }

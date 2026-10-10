@@ -85,6 +85,18 @@ final class AboutSettingsControllers {
         return outputFolderSettings.handleActivityResult(requestCode, resultCode, data);
     }
 
+    void renderStorage() {
+        outputFolderSettings.render();
+    }
+
+    void requestOutputStorageAccess() {
+        outputFolderSettings.requestStorageAccess();
+    }
+
+    boolean handlePermissionResult(int requestCode) {
+        return outputFolderSettings.handlePermissionResult(requestCode);
+    }
+
     void refreshAfterDatabaseImport() {
         compassProjectionSettings.refresh();
         navigationHintSettings.refresh();
@@ -100,6 +112,9 @@ final class AboutSettingsControllers {
     }
 
     void flush() {
+        if (outputFolderSettings != null) {
+            outputFolderSettings.flush();
+        }
         if (navigationHintSettings != null) {
             navigationHintSettings.flush();
         }

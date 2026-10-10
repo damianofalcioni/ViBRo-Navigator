@@ -1,7 +1,6 @@
 package vibro.navigator.android.logging;
 
 import android.content.Context;
-import android.net.Uri;
 
 import androidx.annotation.Nullable;
 
@@ -11,46 +10,47 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 
-import vibro.navigator.android.storage.AndroidOutputFolderAccess;
-import vibro.navigator.android.storage.AndroidWritableDocumentTree;
+import vibro.navigator.android.storage.AndroidOutputStorage;
+import vibro.navigator.android.storage.AndroidOutputFile;
 import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
-/** A single selected-folder destination; no app-local mirror is created. */
+/** A single selected Downloads destination; no fallback or app-local mirror is created. */
 public final class AndroidLogFolderWriter {
     private static final long MAX_BYTES = 4L * 1024L * 1024L;
     private static final long KEEP_BYTES = 3L * 1024L * 1024L;
     private final Context context;
-    private final Uri document;
+    private final AndroidOutputFile file;
     private OutputStream stream;
     private long size;
+    private boolean published;
 
-    private AndroidLogFolderWriter(Context context, Uri document, OutputStream stream) {
+    private AndroidLogFolderWriter(Context context, AndroidOutputFile file, OutputStream stream) {
         this.context = context;
-        this.document = document;
+        this.file = file;
         this.stream = stream;
     }
 
     @Nullable
     public static AndroidLogFolderWriter open(Context context, String name) {
-        Uri document = null;
+        AndroidOutputFile file = null;
         try {
-            Uri folder = AndroidOutputFolderAccess.ensureFolder(context, Kind.LOGS);
-            if (folder == null) {
-                return null;
-            }
-            document = AndroidWritableDocumentTree.createFile(context, folder, "text/plain", name);
-            return new AndroidLogFolderWriter(context.getApplicationContext(), document,
-                    AndroidWritableDocumentTree.open(context, document));
+            file = AndroidOutputStorage.create(context, Kind.LOGS, "text/plain", name);
+            return new AndroidLogFolderWriter(context.getApplicationContext(), file, file.open());
         } catch (IOException | RuntimeException e) {
-            AndroidWritableDocumentTree.removeQuietly(context, document);
-            AndroidOutputFolderAccess.markUnavailable(context, Kind.LOGS);
+            if (file != null) {
+                file.removeQuietly();
+                AndroidOutputStorage.failed(Kind.LOGS, file.destination);
+            }
             return null;
         }
     }
 
     public boolean append(CharSequence block) {
         try {
-            AndroidOutputFolderAccess.ensureFolder(context, Kind.LOGS);
+            if (!file.destination.token().equals(AndroidOutputStorage.requested(context, Kind.LOGS).token())) {
+                close();
+                return false;
+            }
             if (size > MAX_BYTES) {
                 trim();
             }
@@ -58,28 +58,35 @@ public final class AndroidLogFolderWriter {
             stream.write(bytes);
             stream.flush();
             size += bytes.length;
-            AndroidOutputFolderAccess.markAvailable(Kind.LOGS);
+            publish();
             return true;
         } catch (IOException | RuntimeException e) {
-            AndroidOutputFolderAccess.markUnavailable(context, Kind.LOGS);
+            AndroidOutputStorage.failed(Kind.LOGS, file.destination);
+            if (!published) {
+                file.removeQuietly();
+            }
             close();
             return false;
+        }
+    }
+
+    private void publish() throws IOException {
+        if (!published) {
+            file.publish();
+            published = true;
         }
     }
 
     private void trim() throws IOException {
         close();
         byte[] tail = readTail();
-        stream = AndroidWritableDocumentTree.open(context, document);
+        stream = file.open();
         stream.write(tail);
         size = tail.length;
     }
 
     private byte[] readTail() throws IOException {
-        try (InputStream in = context.getContentResolver().openInputStream(document)) {
-            if (in == null) {
-                throw new IOException("Log document is unavailable");
-            }
+        try (InputStream in = file.read()) {
             skip(in, size - KEEP_BYTES);
             int value;
             do {
@@ -110,7 +117,7 @@ public final class AndroidLogFolderWriter {
     }
 
     public String path() {
-        return document.toString();
+        return file.path();
     }
 
     public void close() {
@@ -120,7 +127,7 @@ public final class AndroidLogFolderWriter {
         try {
             stream.close();
         } catch (IOException e) {
-            AndroidOutputFolderAccess.markUnavailable(context, Kind.LOGS);
+            AndroidOutputStorage.failed(Kind.LOGS, file.destination);
         }
         stream = null;
     }

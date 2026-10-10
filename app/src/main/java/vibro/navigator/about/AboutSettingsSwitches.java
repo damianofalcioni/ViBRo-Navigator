@@ -28,6 +28,7 @@ import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.settings.AppSettings;
 import vibro.navigator.settings.AppThemeSettings;
+import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
 final class AboutSettingsSwitches {
     static final int REQUEST_SURROUNDING_STREETS_STORAGE = 3001;
@@ -266,7 +267,7 @@ final class AboutSettingsSwitches {
     private void configureLogEnabledSwitch() {
         logEnabledSetting = new AboutDeferredBooleanSetting(
                 settingsChangeScheduler,
-                enabled -> AppLogger.setLoggingEnabled(activity, enabled),
+                enabled -> ((AboutActivity) activity).outputSaving.change(Kind.LOGS, enabled),
                 afterSettingApplied
         );
         logEnabledSetting.render(logEnabledSwitch, AppLogger.isLoggingEnabled(activity));
@@ -277,7 +278,7 @@ final class AboutSettingsSwitches {
     private void configureAutoSaveGpxSwitch() {
         autoSaveGpxSetting = new AboutDeferredBooleanSetting(
                 settingsChangeScheduler,
-                enabled -> AppGpxSettings.setAutoSaveOnStopEnabled(activity, enabled),
+                enabled -> ((AboutActivity) activity).outputSaving.change(Kind.GPX, enabled),
                 afterSettingApplied
         );
         autoSaveGpxSetting.render(autoSaveGpxSwitch, AppGpxSettings.isAutoSaveOnStopEnabled(activity));

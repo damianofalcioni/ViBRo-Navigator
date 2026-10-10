@@ -7,6 +7,9 @@
     <uses-permission
         android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="28" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -58,6 +61,13 @@
         <activity
             android:name=".about.AboutActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".android.storage.AndroidOutputBrowserActivity"
+            android:exported="false"
+            android:label="@string/title_output_browser"
+            android:taskAffinity="${applicationId}.outputBrowser"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
         <activity
             android:name=".nav.ui.NavigationActivity"

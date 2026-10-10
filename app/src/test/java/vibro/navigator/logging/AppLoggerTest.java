@@ -19,6 +19,8 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.shadows.ShadowPackageManager;
 
 import java.io.File;
+import android.net.Uri;
+import vibro.navigator.android.storage.TestDownloadsProvider;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -32,10 +34,12 @@ public class AppLoggerTest {
     private static final String SYSTEM_INFO = "Log session system info";
 
     private Application context;
+    private TestDownloadsProvider downloads;
 
     @Before
     public void setUp() {
         context = ApplicationProvider.getApplicationContext();
+        downloads = TestDownloadsProvider.install(context);
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
@@ -66,9 +70,9 @@ public class AppLoggerTest {
     public void anomalyIsWrittenWithLoggingDisabled() throws Exception {
         AppLogger.anomaly(context, TEST_TAG, "forced termination discovered", new IllegalStateException("boom"));
 
-        File anomalyFile = new File(AppLogger.getLogFilePath(context));
+        String anomalyName = downloads.row(Uri.parse(AppLogger.getLogFilePath(context))).getAsString("_display_name");
         String content = readLogContent();
-        assertTrue(anomalyFile.getName().matches("vibro-navigator-log-\\d{14}(?:-\\d+)?\\.txt"));
+        assertTrue(anomalyName.matches("vibro-navigator-log-\\d{14}(?:-\\d+)?\\.txt"));
         assertSessionInfo(firstLine(content));
         assertTrue(content.indexOf(SYSTEM_INFO) < content.indexOf("forced termination discovered"));
         assertTrue(content.contains("ERROR/AppLoggerTest"));
@@ -165,10 +169,7 @@ public class AppLoggerTest {
     }
 
     private String readLogContent() throws Exception {
-        return new String(
-                Files.readAllBytes(new File(AppLogger.getLogFilePath(context)).toPath()),
-                StandardCharsets.UTF_8
-        );
+        return downloads.read(Uri.parse(AppLogger.getLogFilePath(context)));
     }
 
     private static String firstLine(String content) {

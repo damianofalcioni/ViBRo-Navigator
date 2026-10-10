@@ -39,6 +39,7 @@ public class AndroidRouteGpxViewIntentTest {
 
     @Before
     public void setUp() {
+        vibro.navigator.android.storage.TestDownloadsProvider.install(context);
         File externalFilesDir = context.getExternalFilesDir(null);
         if (externalFilesDir != null) {
             deleteChildren(new File(externalFilesDir, GPX_DIR));
@@ -53,7 +54,7 @@ public class AndroidRouteGpxViewIntentTest {
         String uri = intent.getData().toString();
         assertEquals(Intent.ACTION_VIEW, intent.getAction());
         assertTrue(uri, Pattern.matches(
-                "content://[^/]+/(internal|external\\d+)/gpx/vibro-navigator-route-\\d{14}\\.gpx",
+                "content://media/external_primary/downloads/\\d+",
                 uri
         ));
         assertEquals(NavigationRouteGpxExporter.GPX_MIME_TYPE, intent.getType());

@@ -42,7 +42,7 @@ public class TestOutputDocumentsProvider extends DocumentsProvider {
         return install(context, AUTHORITY, "output");
     }
 
-    static TestOutputDocumentsProvider install(Context context, String authority, String rootId) throws IOException {
+    public static TestOutputDocumentsProvider install(Context context, String authority, String rootId) throws IOException {
         ProviderInfo info = new ProviderInfo();
         info.authority = authority;
         info.exported = true;
@@ -137,7 +137,7 @@ public class TestOutputDocumentsProvider extends DocumentsProvider {
             error.initCause(e);
             throw error;
         }
-        String id = parentDocumentId + "/" + displayName;
+        String id = parentDocumentId + (parentDocumentId.endsWith(":") ? "" : "/") + displayName;
         documents.put(id, child);
         return id;
     }
@@ -164,7 +164,8 @@ public class TestOutputDocumentsProvider extends DocumentsProvider {
 
     @Override
     public boolean isChildDocument(String parentDocumentId, String documentId) {
-        return documentId.equals(parentDocumentId) || documentId.startsWith(parentDocumentId + "/");
+        String prefix = parentDocumentId.endsWith(":") ? parentDocumentId : parentDocumentId + "/";
+        return documentId.equals(parentDocumentId) || documentId.startsWith(prefix);
     }
 
     public String[] names() {

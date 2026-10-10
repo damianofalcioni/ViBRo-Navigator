@@ -97,6 +97,7 @@ public class NavigationActivity extends Activity {
                 public void onBinderConnected(@NonNull NavigationServiceBinder binder) {
                     navBinder = binder;
                     bound = true;
+                    commands.exportWhenBound();
                 }
 
                 @Override
@@ -143,6 +144,7 @@ public class NavigationActivity extends Activity {
                 () -> refreshLocationSettingsOnReconnect = true
         );
         commands = new NavigationActivityCommands(this, () -> navBinder);
+        commands.restoreState(savedInstanceState);
         render(NavStateComposer.waiting(this));
         configureControls();
         gestureHints = new NavigationGestureHints(
@@ -250,6 +252,7 @@ public class NavigationActivity extends Activity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         gestureHints.saveState(outState);
+        commands.saveState(outState);
         super.onSaveInstanceState(outState);
     }
 
@@ -278,6 +281,9 @@ public class NavigationActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (commands.handlePermissionResult(requestCode)) {
+            return;
+        }
         AppLogger.i(TAG, "Permission result permissions=" + describePermissions(permissions, grantResults));
         boolean customButtonHandled = renderer != null
                 && renderer.onRequestPermissionsResult(requestCode, grantResults);
@@ -294,6 +300,9 @@ public class NavigationActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (commands.handleActivityResult(requestCode, resultCode, data)) {
+            return;
+        }
         if (startupSegmentsTreeAccess.handleActivityResult(requestCode, resultCode, data, this::ensureReadyThenStart)) {
             return;
         }

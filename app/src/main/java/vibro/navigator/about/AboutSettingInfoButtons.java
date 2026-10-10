@@ -31,6 +31,8 @@ final class AboutSettingInfoButtons {
     }
 
     void configure() {
+        bind(R.id.aboutExternalStorageInfoButton, R.string.label_external_storage_enabled,
+                R.string.about_setting_external_storage_info);
         bind(R.id.aboutLogEnabledInfoButton, R.string.label_log_enabled, R.string.about_setting_log_info);
         bind(
                 R.id.aboutAutoSaveGpxInfoButton,

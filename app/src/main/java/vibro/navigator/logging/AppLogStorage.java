@@ -11,6 +11,8 @@ import java.util.Date;
 import java.util.Locale;
 
 import vibro.navigator.android.storage.AndroidAppStorageDirs;
+import vibro.navigator.android.storage.AndroidOutputStorage;
+import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
 final class AppLogStorage {
 
@@ -36,8 +38,7 @@ final class AppLogStorage {
         } catch (RuntimeException ignored) {
             // Removable storage can disappear while the app is running.
         }
-        File internalDir = new File(AndroidAppStorageDirs.internalFilesDir(context), LOG_DIR);
-        return ensureDirectory(internalDir) ? internalDir : null;
+        return null;
     }
 
     private static boolean ensureDirectory(@NonNull File dir) {
@@ -63,10 +64,6 @@ final class AppLogStorage {
 
     @NonNull
     private static File resolveLogDir(@NonNull Context context) {
-        File externalBase = AndroidAppStorageDirs.preferredExternalFilesDir(context);
-        if (externalBase != null) {
-            return new File(externalBase, LOG_DIR);
-        }
-        return new File(AndroidAppStorageDirs.internalFilesDir(context), LOG_DIR);
+        return new File(AndroidOutputStorage.current(context, Kind.LOGS).label);
     }
 }

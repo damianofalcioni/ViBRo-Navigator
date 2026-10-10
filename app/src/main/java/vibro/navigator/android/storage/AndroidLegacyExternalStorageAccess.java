@@ -27,6 +27,15 @@ public final class AndroidLegacyExternalStorageAccess {
         return isRuntimeReadPermissionRelevant() && !hasReadPermission(context);
     }
 
+    public static boolean needsOutputPermission(@NonNull Context context) {
+        return isRuntimeReadPermissionRelevant() && ContextCompat.checkSelfPermission(context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    public static void requestOutputPermission(@NonNull Activity activity, int requestCode) {
+        ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, requestCode);
+    }
+
     public static boolean canReadSharedExternalFiles(@NonNull Context context) {
         return isRuntimeReadPermissionRelevant() && hasReadPermission(context);
     }

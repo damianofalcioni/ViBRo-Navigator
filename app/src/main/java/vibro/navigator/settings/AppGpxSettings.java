@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import androidx.annotation.NonNull;
+import vibro.navigator.android.storage.AndroidOutputStorage;
+import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
 public final class AppGpxSettings {
     private static final String KEY_AUTO_SAVE_ON_STOP_ENABLED = "auto_save_gpx_on_stop_enabled";
@@ -12,6 +14,9 @@ public final class AppGpxSettings {
     }
 
     public static boolean isAutoSaveOnStopEnabled(@NonNull Context context) {
+        if (isAutoSaveOnStopEnabled(prefs(context)) && !AndroidOutputStorage.hasAccess(context, Kind.GPX)) {
+            setAutoSaveOnStopEnabled(context, false);
+        }
         return isAutoSaveOnStopEnabled(prefs(context));
     }
 

@@ -45,6 +45,7 @@ public class AboutSettingsOrderRobolectricTest {
                 R.id.aboutSpeechRecognitionRow,
                 R.id.aboutGooglePoiApiKeyContainer,
                 R.id.aboutSettingsAdvancedTitle,
+                R.id.aboutExternalStorageRow,
                 R.id.aboutFusedLocationRow,
                 R.id.aboutLogEnabledRow,
                 R.id.aboutExportDatabaseRow,

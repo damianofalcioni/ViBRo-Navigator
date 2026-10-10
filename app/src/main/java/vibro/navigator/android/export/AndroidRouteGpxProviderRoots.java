@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import vibro.navigator.android.storage.AndroidAppStorageDirs;
+import android.os.Environment;
 
 final class AndroidRouteGpxProviderRoots {
     private static final String ROOT_INTERNAL = "internal";
@@ -53,7 +54,26 @@ final class AndroidRouteGpxProviderRoots {
         List<Root> roots = new ArrayList<>();
         roots.add(new Root(ROOT_INTERNAL, AndroidAppStorageDirs.internalFilesDir(context)));
         addExternalRoots(context, roots);
+        addMediaRoots(context, roots);
+        roots.add(new Root("downloads-gpx", new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS), "ViBRo/gpx")));
+        roots.add(new Root("downloads-logs", new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS), "ViBRo/logs")));
         return roots;
+    }
+
+    // Match the min-SDK-compatible media directory used by the output-storage adapter.
+    @SuppressWarnings("deprecation")
+    private static void addMediaRoots(Context context, List<Root> roots) throws IOException {
+        File[] mediaDirs = context.getExternalMediaDirs();
+        if (mediaDirs == null) {
+            return;
+        }
+        for (int i = 0; i < mediaDirs.length; i++) {
+            if (mediaDirs[i] != null) {
+                roots.add(new Root("media" + i, mediaDirs[i]));
+            }
+        }
     }
 
     private static void addExternalRoots(@NonNull Context context, @NonNull List<Root> roots) throws IOException {

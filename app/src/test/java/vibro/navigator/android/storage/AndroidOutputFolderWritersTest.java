@@ -1,169 +1,120 @@
 package vibro.navigator.android.storage;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assert.*;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.provider.DocumentsContract;
-
+import android.provider.MediaStore;
 import androidx.test.core.app.ApplicationProvider;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
-
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-
 import vibro.navigator.android.export.AndroidRouteGpxAutoSaver;
 import vibro.navigator.android.export.AndroidRouteGpxViewIntent;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppOutputFolderSettings;
 import vibro.navigator.settings.AppOutputFolderSettings.Kind;
+import vibro.navigator.settings.AppOutputStorageSettings;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = {23, 35})
+@Config(sdk = {29, 35}, shadows = TestOutputMediaDirs.class)
 public class AndroidOutputFolderWritersTest {
     private static final String GPX = "<gpx>route</gpx>";
+    private static final String MEDIA = "media";
     private static final String TAG = "Test";
     private final Context context = ApplicationProvider.getApplicationContext();
-    private TestOutputDocumentsProvider provider;
+    private TestDownloadsProvider provider;
 
     @Before
-    public void setUp() throws IOException {
-        provider = TestOutputDocumentsProvider.install(context);
-        AppOutputFolderSettings.set(context, Kind.GPX, TestOutputDocumentsProvider.TREE.toString());
-        AppOutputFolderSettings.set(context, Kind.LOGS, TestOutputDocumentsProvider.TREE.toString());
+    public void setUp() {
+        AppOutputStorageSettings.disable(context);
+        AndroidOutputStorage.resetFailures();
+        provider = TestDownloadsProvider.install(context);
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
     }
 
     @Test
-    public void manualAndAutomaticGpxUseSameFolderWithReadGrants() throws IOException {
+    public void manualAndAutomaticGpxUseDownloadsWithReadGrants() throws IOException {
         Uri auto = AndroidRouteGpxAutoSaver.saveUri(context, GPX);
         Intent manual = AndroidRouteGpxViewIntent.create(context, GPX);
-        assertEquals(TestOutputDocumentsProvider.TREE.getAuthority(), manual.getData().getAuthority());
+        assertEquals(MEDIA, auto.getAuthority());
         assertNotEquals(auto, manual.getData());
+        assertEquals(GPX, provider.read(auto));
+        assertEquals(GPX, provider.read(manual.getData()));
+        assertEquals("Download/ViBRo/gpx/", provider.row(auto).getAsString(MediaStore.MediaColumns.RELATIVE_PATH));
+        assertEquals(Integer.valueOf(0), provider.row(auto).getAsInteger(MediaStore.MediaColumns.IS_PENDING));
         assertTrue((manual.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
-        assertEquals(GPX, provider.read(DocumentsContract.getDocumentId(auto)));
-        assertEquals(GPX, provider.read(DocumentsContract.getDocumentId(manual.getData())));
     }
 
     @Test
-    public void collisionNeverOverwritesExistingDocument() throws IOException {
-        Uri first = AndroidWritableDocumentTree.createFile(context, TestOutputDocumentsProvider.TREE,
-                "text/plain", "route.gpx");
-        Uri second = AndroidWritableDocumentTree.createFile(context, TestOutputDocumentsProvider.TREE,
-                "text/plain", "route.gpx");
-        assertTrue(DocumentsContract.getDocumentId(first).endsWith("/route.gpx"));
-        assertTrue(DocumentsContract.getDocumentId(second).endsWith("/route-2.gpx"));
+    public void oldCustomFolderSelectionsAreIgnored() throws IOException {
+        AppOutputFolderSettings.set(context, Kind.GPX, "content://old/tree/custom");
+        assertEquals(MEDIA, AndroidRouteGpxAutoSaver.saveUri(context, GPX).getAuthority());
     }
 
     @Test
-    public void unavailableGpxFolderSilentlyUsesDefaultAndReportsRedStatus() throws IOException {
-        provider.unavailable = true;
-        Uri saved = AndroidRouteGpxAutoSaver.saveUri(context, GPX);
-        assertDefaultGpx(saved);
-        assertFalse(AndroidOutputFolderAccess.isUsable(context, Kind.GPX));
-    }
-
-    @Test
-    public void failedCustomWriteRemovesPartialFileAndUsesDefault() throws IOException {
+    public void rejectedDownloadsWriteRemovesPartialWithoutFallback() {
         provider.failWrites = true;
-        assertDefaultGpx(AndroidRouteGpxAutoSaver.saveUri(context, GPX));
-        assertEquals(0, provider.names().length);
-        assertFalse(AndroidOutputFolderAccess.isUsable(context, Kind.GPX));
+        assertThrows(IOException.class, () -> AndroidRouteGpxAutoSaver.saveUri(context, GPX));
+        assertEquals(0, provider.count());
+        assertTrue(AndroidOutputStorage.current(context, Kind.GPX).label.contains("Download/ViBRo/gpx"));
     }
 
     @Test
-    public void loggingWritesOnlyToSelectedFolderIncludingSystemDetailsAndAnomalies() throws IOException {
-        int localCount = localLogCount();
-        AppLogger.setLoggingEnabled(context, true);
-        AppLogger.dMultiline(TAG, "Details", "line one\nline two");
-        AppLogger.anomaly(context, TAG, "crash details", null);
-        assertTrue(AppLogger.getLogFilePath(context).startsWith("content://vibro.test.documents/"));
-        AppLogger.setLoggingEnabled(context, false);
-        assertEquals(localCount, localLogCount());
-        assertEquals(1, provider.names().length);
-        String content = provider.read(provider.names()[0]);
-        String firstLine = content.split("\n", 2)[0];
-        assertTrue(firstLine.contains("INFO/AppLogger"));
-        assertTrue(firstLine.contains("Log session system info"));
-        assertTrue(content.contains("line one\nline two"));
-        assertTrue(content.contains("crash details"));
+    public void failedPublicationRemovesPendingDownloadWithoutFallback() {
+        provider.failPublish = true;
+        assertThrows(IOException.class, () -> AndroidRouteGpxAutoSaver.saveUri(context, GPX));
+        assertEquals(0, provider.count());
     }
 
     @Test
-    public void loggingSwitchesToDefaultWhenCustomFolderDisappears() throws IOException {
+    public void logsPublishSystemDetailsAndKeepOneDestination() throws IOException {
         AppLogger.setLoggingEnabled(context, true);
-        AppLogger.i(TAG, "before failure");
-        provider.unavailable = true;
-        AppLogger.i(TAG, "after failure");
-        String path = AppLogger.getLogFilePath(context);
-        assertFalse(path.startsWith("content:"));
-        String fallback = new String(Files.readAllBytes(new File(path).toPath()), StandardCharsets.UTF_8);
-        assertTrue(fallback.contains("after failure"));
-        assertFalse(fallback.contains("before failure"));
-        assertFalse(AndroidOutputFolderAccess.isUsable(context, Kind.LOGS));
-        provider.unavailable = false;
-        assertTrue(AndroidOutputFolderAccess.isUsable(context, Kind.LOGS));
-        AppLogger.i(TAG, "after recovery");
-        String recovered = provider.read(DocumentsContract.getDocumentId(
-                Uri.parse(AppLogger.getLogFilePath(context))));
-        assertTrue(recovered.contains("after recovery"));
-        assertFalse(recovered.contains("after failure"));
-        assertFalse(new String(Files.readAllBytes(new File(path).toPath()), StandardCharsets.UTF_8)
-                .contains("after recovery"));
+        AppLogger.i(TAG, "first entry");
+        AppLogger.anomaly(context, TAG, "anomaly entry", null);
+        Uri uri = Uri.parse(AppLogger.getLogFilePath(context));
+        String text = provider.read(uri);
+        assertTrue(text.split("\n", 2)[0].contains("Log session system info"));
+        assertTrue(text.contains("first entry"));
+        assertTrue(text.contains("anomaly entry"));
+        assertEquals(1, provider.count());
+        assertEquals(Integer.valueOf(0), provider.row(uri).getAsInteger(MediaStore.MediaColumns.IS_PENDING));
+        assertEquals("Download/ViBRo/logs/", provider.row(uri).getAsString(MediaStore.MediaColumns.RELATIVE_PATH));
         AppLogger.setLoggingEnabled(context, false);
     }
 
     @Test
-    public void changingLogFolderStartsNewFileWithoutCopyingOldHistory() throws IOException {
-        AppOutputFolderSettings.set(context, Kind.LOGS, null);
-        AppLogger.setLoggingEnabled(context, true);
-        AppLogger.i(TAG, "old folder entry");
-        AppOutputFolderSettings.set(context, Kind.LOGS, TestOutputDocumentsProvider.TREE.toString());
-        AppLogger.refreshOutputFolder(context);
-        AppLogger.i(TAG, "new folder entry");
-        AppLogger.setLoggingEnabled(context, false);
-        String custom = provider.read(provider.names()[0]);
-        assertFalse(custom.contains("old folder entry"));
-        assertTrue(custom.contains("new folder entry"));
-    }
-
-    @Test
-    public void anomaliesUseCustomFolderWhenDetailedLoggingIsOff() throws IOException {
-        int localCount = localLogCount();
-        AppLogger.anomaly(context, TAG, "always saved", null);
-        assertEquals(1, provider.names().length);
-        assertTrue(provider.read(provider.names()[0]).contains("always saved"));
-        assertEquals(localCount, localLogCount());
+    public void disabledLoggingCreatesNoFileUntilAnomaly() throws IOException {
+        AppLogger.i(TAG, "disabled message");
+        assertEquals(0, provider.count());
+        AppLogger.anomaly(context, TAG, "crash", null);
+        assertEquals(1, provider.count());
+        assertTrue(provider.read(Uri.parse(AppLogger.getLogFilePath(context))).contains("crash"));
         AppLogger.init(context);
     }
 
-    private void assertDefaultGpx(Uri saved) throws IOException {
-        assertNotEquals(TestOutputDocumentsProvider.TREE.getAuthority(), saved.getAuthority());
-        try (InputStream input = context.getContentResolver().openInputStream(saved)) {
-            assertEquals(GPX, new String(input.readAllBytes(), StandardCharsets.UTF_8));
-        }
-    }
-
-    private int localLogCount() {
-        return count(new File(context.getFilesDir(), "logs"))
-                + count(new File(context.getExternalFilesDir(null), "logs"));
-    }
-
-    private static int count(File dir) {
-        String[] files = dir.list();
-        return files == null ? 0 : files.length;
+    @Test
+    public void writeFailureDisablesLogsAndReenablingStartsASelectedFolderSession() throws IOException {
+        AppLogger.setLoggingEnabled(context, true);
+        AppLogger.i(TAG, "old history");
+        Uri first = Uri.parse(AppLogger.getLogFilePath(context));
+        provider.failWrites = true;
+        AppLogger.refreshOutputFolder(context);
+        assertFalse(AppLogger.isLoggingEnabled());
+        AppLogger.i(TAG, "disabled entry");
+        assertFalse(provider.read(first).contains("disabled entry"));
+        assertEquals(1, provider.count());
+        provider.failWrites = false;
+        assertTrue(AndroidOutputStorage.isUsable(context, Kind.LOGS));
+        AppLogger.setLoggingEnabled(context, true);
+        AppLogger.i(TAG, "recovered entry");
+        assertTrue(provider.read(Uri.parse(AppLogger.getLogFilePath(context))).contains("recovered entry"));
+        AppLogger.setLoggingEnabled(context, false);
     }
 }

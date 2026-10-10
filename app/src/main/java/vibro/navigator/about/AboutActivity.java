@@ -35,6 +35,7 @@ public class AboutActivity extends Activity {
     private AboutSettingsSwitches settingsSwitches;
     private AboutDatabaseBackupActions databaseBackupActions;
     private boolean settingsInitializationScheduled;
+    final AboutOutputSavingSettings outputSaving = new AboutOutputSavingSettings(this, this::scheduleDiagnosticSectionRender);
 
     @NonNull
     public static Intent settingsIntent(@NonNull Context context) {
@@ -47,6 +48,7 @@ public class AboutActivity extends Activity {
         AndroidAppTheme.apply(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
+        outputSaving.restoreState(savedInstanceState);
 
         TextView version = findViewById(R.id.aboutVersion);
         AboutProjectLinks.configure(this);
@@ -155,7 +157,9 @@ public class AboutActivity extends Activity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         initializeSettingsSection();
-        if (settingsControllers.handleActivityResult(requestCode, resultCode, data)) {
+        if (outputSaving.handleActivityResult(requestCode, resultCode, data)
+                || settingsControllers.handleActivityResult(requestCode, resultCode, data)) {
+            scheduleDiagnosticSectionRender();
             return;
         }
         AboutActivityResultHandlers.handleActivityResult(
@@ -177,6 +181,8 @@ public class AboutActivity extends Activity {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         initializeSettingsSection();
+        outputSaving.handlePermissionResult(requestCode);
+        settingsControllers.handlePermissionResult(requestCode);
         AboutActivityResultHandlers.handlePermissionResult(
                 settingsSwitches,
                 diagnosticSection,
@@ -191,7 +197,10 @@ public class AboutActivity extends Activity {
     }
 
     private void renderDiagnosticSectionNow() {
-        renderSettingsControls();
+        if (settingsSwitches != null) {
+            settingsSwitches.render();
+            settingsControllers.renderStorage();
+        }
         AboutDiagnosticSection section = diagnosticSection();
         if (diagnosticRenderScheduler.isStarted()) {
             section.start();
@@ -199,10 +208,16 @@ public class AboutActivity extends Activity {
         section.render();
     }
 
-    private void renderSettingsControls() {
-        if (settingsSwitches != null) {
-            settingsSwitches.render();
-        }
+    void requestOutputStorageAccess() {
+        initializeSettingsSection();
+        settingsControllers.requestOutputStorageAccess();
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle state) {
+        flushDeferredSettings();
+        outputSaving.saveState(state);
+        super.onSaveInstanceState(state);
     }
 
     private void scrollToSettingsIfRequested() {
@@ -214,21 +229,18 @@ public class AboutActivity extends Activity {
         AboutScrollTarget.scrollToOnPreDraw(root, settingsTitle);
     }
 
-    private void flushDeferredSettings() {
+    void flushDeferredSettings() {
         if (settingsSwitches != null) {
             settingsSwitches.flush();
-        }
-        if (settingsControllers != null) {
             settingsControllers.flush();
         }
+        outputSaving.flush();
     }
 
     private void renderAfterDatabaseImport() {
         initializeSettingsSection();
         diagnosticRenderScheduler.renderNow();
-        if (settingsControllers != null) {
-            settingsControllers.refreshAfterDatabaseImport();
-        }
+        settingsControllers.refreshAfterDatabaseImport();
     }
 
     @NonNull

@@ -5,6 +5,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Application;
+import android.net.Uri;
+import vibro.navigator.android.storage.TestDownloadsProvider;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -20,11 +22,13 @@ import java.nio.file.Files;
 @RunWith(RobolectricTestRunner.class)
 public class AppExitDiagnosticsTest {
     private Application context;
+    private TestDownloadsProvider downloads;
     private int initialLogFileCount;
 
     @Before
     public void setUp() throws Exception {
         context = ApplicationProvider.getApplicationContext();
+        downloads = TestDownloadsProvider.install(context);
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
         context.getSharedPreferences("app_exit_diagnostics", Application.MODE_PRIVATE)
@@ -83,14 +87,10 @@ public class AppExitDiagnosticsTest {
     }
 
     private String readLog() throws Exception {
-        return new String(Files.readAllBytes(new File(AppLogger.getLogFilePath(context)).toPath()), StandardCharsets.UTF_8);
+        return downloads.read(Uri.parse(AppLogger.getLogFilePath(context)));
     }
 
     private int logFileCount() {
-        File dir = AppLogStorage.ensureLogDir(context);
-        assertTrue(dir != null);
-        File[] files = dir.listFiles((unused, name) -> name.startsWith("vibro-navigator-log-"));
-        assertTrue(files != null);
-        return files.length;
+        return downloads.count();
     }
 }

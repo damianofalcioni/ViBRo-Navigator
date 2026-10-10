@@ -4,29 +4,23 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
-import java.io.File;
 import java.util.Date;
 
 import vibro.navigator.android.logging.AndroidLogFolderWriter;
-import vibro.navigator.android.storage.AndroidOutputFolderAccess;
-import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
-/** Owns one live destination, switching to the default only after a selected-folder failure. */
+/** One live selected output; unavailable storage never creates a fallback session. */
 final class AppLogDestination {
     private final Context context;
     private AndroidLogFolderWriter custom;
-    private File local;
 
     private AppLogDestination(Context context) {
         this.context = context.getApplicationContext();
     }
 
+    @Nullable
     static AppLogDestination start(Context context) {
         AppLogDestination destination = new AppLogDestination(context);
-        if (!destination.openCustom()) {
-            destination.local = AppLogFiles.startSession(context);
-        }
-        return destination;
+        return destination.openCustom() ? destination : null;
     }
 
     @Nullable
@@ -41,36 +35,25 @@ final class AppLogDestination {
         }
         if (custom.append(AppLogger.buildLogPrefix("INFO", AppLogger.TAG,
                 AppLogSessionInfo.formatDestination(context, custom.path())))) {
-            local = null;
             return true;
         }
+        custom.close();
         custom = null;
         return false;
     }
 
-    void append(CharSequence block) {
-        if (custom == null && AndroidOutputFolderAccess.tree(context, Kind.LOGS) != null
-                && !AndroidOutputFolderAccess.isFailureMarked(context, Kind.LOGS)) {
-            openCustom();
-        }
-        if (custom != null) {
-            if (custom.append(block)) {
-                return;
-            }
-            custom = null;
-            local = AppLogFiles.startSession(context);
-        }
-        if (local != null) {
-            AppLogFiles.appendBlock(local, block);
+    boolean append(CharSequence block) {
+        return custom != null && custom.append(block);
+    }
+
+    static void append(AppLogDestination destination, CharSequence block) {
+        if (destination != null && !destination.append(block)) {
+            AppLogger.setLoggingEnabled(destination.context, false);
         }
     }
 
     String path() {
-        if (custom != null) {
-            return custom.path();
-        }
-        local = AppLogFiles.ensureLogFile(context, local, false);
-        return local == null ? AppLogFiles.fallbackLogFilePath(context) : local.getAbsolutePath();
+        return custom.path();
     }
 
     void close() {

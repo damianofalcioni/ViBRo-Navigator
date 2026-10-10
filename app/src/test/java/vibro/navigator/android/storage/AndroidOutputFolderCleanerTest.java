@@ -118,46 +118,59 @@ public class AndroidOutputFolderCleanerTest {
     }
 
     @Test
+    @Config(sdk = 35)
     public void freshLogAfterClearStartsWithSystemDetails() throws IOException {
+        TestDownloadsProvider downloads = freshDownloads();
         AppLogger.setLoggingEnabled(context, true);
         AppLogger.i(TAG, "before clear");
-        create(ROOT, PERSONAL_FILE);
-        AppLogger.clearOutputFolder(context, TREE);
+        String confirmed = AndroidOutputStorage.current(context, Kind.LOGS).token();
+        AppLogger.clearOutputFolder(context, confirmed);
         AppLogger.i(TAG, "after clear");
-        String newId = DocumentsContract.getDocumentId(Uri.parse(AppLogger.getLogFilePath(context)));
+        String content = downloads.read(Uri.parse(AppLogger.getLogFilePath(context)));
         AppLogger.setLoggingEnabled(context, false);
-        String content = provider.read(newId);
         assertSystemDetailsFirst(content);
         assertTrue(content.contains("after clear"));
         assertFalse(content.contains("before clear"));
-        assertEquals(2, provider.names().length);
+        assertEquals(1, downloads.count());
     }
 
     @Test
+    @Config(sdk = 35)
     public void nextAnomalyAfterClearAlsoStartsWithSystemDetails() throws IOException {
+        TestDownloadsProvider downloads = freshDownloads();
         AppLogger.anomaly(context, TAG, "old anomaly", null);
-        AppLogger.clearOutputFolder(context, TREE);
-        assertEquals(0, provider.names().length);
+        AppLogger.clearOutputFolder(context, AndroidOutputStorage.current(context, Kind.LOGS).token());
+        assertEquals(0, downloads.count());
         AppLogger.anomaly(context, TAG, "new anomaly", null);
-        String id = DocumentsContract.getDocumentId(Uri.parse(AppLogger.getLogFilePath(context)));
+        String content = downloads.read(Uri.parse(AppLogger.getLogFilePath(context)));
         AppLogger.init(context);
-        String content = provider.read(id);
         assertSystemDetailsFirst(content);
         assertTrue(content.contains("new anomaly"));
         assertFalse(content.contains("old anomaly"));
     }
 
     @Test
+    @Config(sdk = 35)
     public void failedDeletionDoesNotLeaveLoggingStopped() throws IOException {
+        TestDownloadsProvider downloads = freshDownloads();
         AppLogger.setLoggingEnabled(context, true);
-        provider.failDeletes = true;
-        assertThrows(IOException.class, () -> AppLogger.clearOutputFolder(context, TREE));
+        downloads.failDeletes = true;
+        String confirmed = AndroidOutputStorage.current(context, Kind.LOGS).token();
+        assertThrows(IOException.class, () -> AppLogger.clearOutputFolder(context, confirmed));
         AppLogger.i(TAG, "after rejected deletion");
-        String id = DocumentsContract.getDocumentId(Uri.parse(AppLogger.getLogFilePath(context)));
+        String content = downloads.read(Uri.parse(AppLogger.getLogFilePath(context)));
         AppLogger.setLoggingEnabled(context, false);
-        String content = provider.read(id);
         assertSystemDetailsFirst(content);
         assertTrue(content.contains("after rejected deletion"));
+    }
+
+    private TestDownloadsProvider freshDownloads() {
+        TestDownloadsProvider downloads = TestDownloadsProvider.install(context);
+        vibro.navigator.settings.AppOutputStorageSettings.disable(context);
+        AndroidOutputStorage.resetFailures();
+        AppLogger.init(context);
+        AppLogger.setLoggingEnabled(context, false);
+        return downloads;
     }
 
     private void create(String parent, String name) throws IOException {

@@ -24,6 +24,10 @@ public final class AndroidOutputFolderCleaner {
     }
 
     public static void clear(Context context, Kind kind, @Nullable String selected) throws IOException {
+        if (selected != null && selected.contains("|")) {
+            AndroidOutputStorageCleaner.clear(context, kind, selected);
+            return;
+        }
         if (selected != null) {
             clearDocuments(context, kind, AndroidOutputFolderAccess.ensureFolder(context, Uri.parse(selected)));
             return;

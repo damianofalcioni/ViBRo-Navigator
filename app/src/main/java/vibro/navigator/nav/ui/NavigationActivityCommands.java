@@ -2,6 +2,8 @@ package vibro.navigator.nav.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
+import android.os.Bundle;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -11,6 +13,8 @@ import vibro.navigator.R;
 import vibro.navigator.android.export.AndroidRouteGpxActions;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.service.NavigationServiceBinder;
+import vibro.navigator.android.storage.AndroidOutputPermissionRequest;
+import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
 final class NavigationActivityCommands {
     private static final String TAG = "NavigationActivity";
@@ -24,10 +28,16 @@ final class NavigationActivityCommands {
     private final Activity activity;
     @NonNull
     private final BinderProvider binderProvider;
+    private final AndroidOutputPermissionRequest outputAccess;
+    private boolean exportReady;
 
     NavigationActivityCommands(@NonNull Activity activity, @NonNull BinderProvider binderProvider) {
         this.activity = activity;
         this.binderProvider = binderProvider;
+        outputAccess = new AndroidOutputPermissionRequest(activity, (kind, allowed) -> {
+            exportReady = allowed;
+            exportWhenBound();
+        });
     }
 
     void addBlockedWaypointFromUi() {
@@ -60,6 +70,21 @@ final class NavigationActivityCommands {
     }
 
     void exportCurrentRouteFromUi() {
+        if (binderProvider.current() == null) {
+            showShortToast(R.string.msg_route_export_unavailable);
+            return;
+        }
+        outputAccess.request(Kind.GPX);
+    }
+
+    void exportWhenBound() {
+        if (exportReady && binderProvider.current() != null) {
+            exportReady = false;
+            exportGrantedRoute();
+        }
+    }
+
+    private void exportGrantedRoute() {
         NavigationServiceBinder binder = binderProvider.current();
         if (binder == null) {
             AppLogger.w(TAG, "Route export tapped before service binding completed");
@@ -73,6 +98,24 @@ final class NavigationActivityCommands {
             return;
         }
         AndroidRouteGpxActions.export(activity, gpx);
+    }
+
+    boolean handlePermissionResult(int code) {
+        return outputAccess.handlePermissionResult(code);
+    }
+
+    boolean handleActivityResult(int code, int resultCode, Intent data) {
+        return outputAccess.handleActivityResult(code, resultCode, data);
+    }
+
+    void saveState(Bundle state) {
+        outputAccess.saveState(state);
+        state.putBoolean("route_export_ready", exportReady);
+    }
+
+    void restoreState(Bundle state) {
+        outputAccess.restoreState(state);
+        exportReady = state != null && state.getBoolean("route_export_ready");
     }
 
     void showStopNavigationConfirmation() {

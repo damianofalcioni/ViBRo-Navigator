@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Application;
+import android.net.Uri;
+import vibro.navigator.android.storage.TestDownloadsProvider;
 import android.content.pm.PackageInfo;
 
 import androidx.test.core.app.ApplicationProvider;
@@ -26,10 +28,12 @@ public class AppLoggerGplayTest {
     private static final String ANDROID_AUTO_PACKAGE = "com.google.android.projection.gearhead";
 
     private Application context;
+    private TestDownloadsProvider downloads;
 
     @Before
     public void setUp() {
         context = ApplicationProvider.getApplicationContext();
+        downloads = TestDownloadsProvider.install(context);
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
@@ -77,10 +81,7 @@ public class AppLoggerGplayTest {
     }
 
     private String readLogContent() throws Exception {
-        return new String(
-                Files.readAllBytes(new File(AppLogger.getLogFilePath(context)).toPath()),
-                StandardCharsets.UTF_8
-        );
+        return downloads.read(Uri.parse(AppLogger.getLogFilePath(context)));
     }
 
     private static String firstLine(String content) {

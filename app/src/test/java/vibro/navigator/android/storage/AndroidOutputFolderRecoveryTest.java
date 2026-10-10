@@ -2,7 +2,6 @@ package vibro.navigator.android.storage;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -22,7 +21,6 @@ import org.robolectric.annotation.Config;
 
 import java.io.IOException;
 
-import vibro.navigator.android.export.AndroidRouteGpxAutoSaver;
 import vibro.navigator.settings.AppOutputFolderSettings;
 import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
@@ -46,7 +44,11 @@ public class AndroidOutputFolderRecoveryTest {
         AppOutputFolderSettings.set(context, Kind.GPX, provider.tree(target).toString());
         Uri accessible = AndroidOutputFolderAccess.ensureFolder(context, Kind.GPX);
         assertEquals(target, DocumentsContract.getDocumentId(accessible));
-        Uri saved = AndroidRouteGpxAutoSaver.saveUri(context, GPX);
+        Uri saved = AndroidWritableDocumentTree.createFile(context, accessible, "application/gpx+xml",
+                "vibro-navigator-route-20261010120000.gpx");
+        try (java.io.OutputStream out = AndroidWritableDocumentTree.open(context, saved)) {
+            out.write(GPX.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        }
         assertEquals(AUTHORITY, saved.getAuthority());
         assertTrue(DocumentsContract.getDocumentId(saved).startsWith(target + "/vibro-navigator-route-"));
         assertEquals(GPX, provider.read(DocumentsContract.getDocumentId(saved)));
@@ -54,7 +56,7 @@ public class AndroidOutputFolderRecoveryTest {
     }
 
     @Test
-    public void deletedSelectedRootWithoutParentGrantFallsBack() throws IOException {
+    public void deletedSelectedRootWithoutParentGrantCannotBeRecreated() throws IOException {
         String target = provider.createDocument(ROOT, DocumentsContract.Document.MIME_TYPE_DIR, "ViBRo");
         Uri selected = provider.tree(target);
         context.getContentResolver().takePersistableUriPermission(selected, accessFlags());
@@ -62,22 +64,20 @@ public class AndroidOutputFolderRecoveryTest {
         AppOutputFolderSettings.set(context, Kind.GPX, selected.toString());
         provider.deleteDocument(target);
         assertThrows(IOException.class, () -> AndroidOutputFolderAccess.ensureFolder(context, Kind.GPX));
-        Uri saved = AndroidRouteGpxAutoSaver.saveUri(context, GPX);
-        assertNotEquals(AUTHORITY, saved.getAuthority());
         assertEquals(0, provider.names().length);
         assertFalse(AndroidOutputFolderAccess.isUsable(context, Kind.GPX));
     }
 
     @Test
-    public void revokedPermissionUsesDefaultAndRegrantRestoresAccess() throws IOException {
+    public void revokedPermissionBlocksAccessAndRegrantRestoresIt() throws IOException {
         AppOutputFolderSettings.set(context, Kind.GPX, provider.tree(ROOT).toString());
         context.getContentResolver().releasePersistableUriPermission(provider.tree(ROOT), accessFlags());
-        assertNotEquals(AUTHORITY, AndroidRouteGpxAutoSaver.saveUri(context, GPX).getAuthority());
+        assertThrows(IOException.class, () -> AndroidOutputFolderAccess.ensureFolder(context, Kind.GPX));
         assertFalse(AndroidOutputFolderAccess.isUsable(context, Kind.GPX));
         AndroidOutputFolderAccess.accept(context, Kind.GPX, new Intent().setData(provider.tree(ROOT))
                 .setFlags(accessFlags() | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION));
         assertTrue(AndroidOutputFolderAccess.isUsable(context, Kind.GPX));
-        assertEquals(AUTHORITY, AndroidRouteGpxAutoSaver.saveUri(context, GPX).getAuthority());
+        assertEquals(ROOT, DocumentsContract.getTreeDocumentId(AndroidOutputFolderAccess.tree(context, Kind.GPX)));
     }
 
     @Test

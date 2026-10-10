@@ -60,6 +60,7 @@ public class AboutGpxSettingsRobolectricTest {
         assertFalse(autoSaveGpxSwitch.isChecked());
         assertTrue(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
         idleDeferredSettingApply();
+        AboutActivityTestSupport.finishOutputSaving(activity);
 
         assertFalse(AppGpxSettings.isAutoSaveOnStopEnabled(activity));
     }

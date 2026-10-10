@@ -48,19 +48,18 @@ import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
 
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 public class AboutLoggingSettingsRobolectricTest {
+    private vibro.navigator.android.storage.TestDownloadsProvider downloads;
 
     @Before
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
+        downloads = vibro.navigator.android.storage.TestDownloadsProvider.install(context);
         AppLogger.init(context);
         AppLogger.setLoggingEnabled(context, false);
         AppLogger.init(context);
@@ -111,19 +110,13 @@ public class AboutLoggingSettingsRobolectricTest {
         assertTrue(AppLogger.setLoggingEnabled(context, true));
         String firstPath = AppLogger.getLogFilePath(context);
         AppLogger.i("AboutLoggingSettingsTest", "first run marker");
-        String firstContent = new String(
-                Files.readAllBytes(new File(firstPath).toPath()),
-                StandardCharsets.UTF_8
-        );
+        String firstContent = downloads.read(android.net.Uri.parse(firstPath));
         assertTrue(firstContent.contains("first run marker"));
 
         AppLogger.init(context);
 
         String secondPath = AppLogger.getLogFilePath(context);
-        String secondContent = new String(
-                Files.readAllBytes(new File(secondPath).toPath()),
-                StandardCharsets.UTF_8
-        );
+        String secondContent = downloads.read(android.net.Uri.parse(secondPath));
 
         assertNotEquals(firstPath, secondPath);
         assertFalse(secondContent.contains("first run marker"));
@@ -254,8 +247,9 @@ public class AboutLoggingSettingsRobolectricTest {
         assertFalse(AppLogger.isLoggingEnabled(activity));
         idleDeferredSettingApply();
 
+        AboutActivityTestSupport.finishOutputSaving(activity);
         assertTrue(AppLogger.isLoggingEnabled(activity));
-        assertTrue(new File(AppLogger.getLogFilePath(activity)).exists());
+        assertTrue(AppLogger.getLogFilePath(activity).startsWith("content://media/"));
     }
 
     @Test

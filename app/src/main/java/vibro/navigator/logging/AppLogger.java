@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Locale;
 
 import vibro.navigator.android.storage.AndroidOutputFolderCleaner;
+import vibro.navigator.android.storage.AndroidOutputStorage;
 import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
 public final class AppLogger {
@@ -32,9 +33,7 @@ public final class AppLogger {
     public static void init(@NonNull Context context) {
         Context appContext = context.getApplicationContext();
         synchronized (LOCK) {
-            AppLogDestination.close(destination);
-            loggingEnabled = readLogEnabled(appContext);
-            destination = AppLogDestination.startIfEnabled(appContext, loggingEnabled);
+            replaceDestination(appContext, readLogEnabled(appContext));
         }
     }
 
@@ -45,7 +44,7 @@ public final class AppLogger {
                 return destination.path();
             }
         }
-        return AppLogFiles.fallbackLogFilePath(context.getApplicationContext());
+        return AndroidOutputStorage.current(context, Kind.LOGS).label;
     }
 
     public static boolean isLoggingEnabled(@NonNull Context context) {
@@ -64,15 +63,12 @@ public final class AppLogger {
             if (loggingEnabled == enabled) {
                 return false;
             }
-            writeLogEnabled(appContext, enabled);
-            loggingEnabled = enabled;
-            AppLogDestination.close(destination);
-            destination = AppLogDestination.startIfEnabled(appContext, loggingEnabled);
+            replaceDestination(appContext, enabled);
         }
         if (enabled) {
             write("INFO", TAG, "Logging enabled", null);
         }
-        return true;
+        return loggingEnabled == enabled;
     }
 
     public static void d(@NonNull String tag, @NonNull String message) {
@@ -112,7 +108,7 @@ public final class AppLogger {
             }
             StringBuilder block = buildLogPrefix("ERROR", tag, message);
             appendThrowable(block, throwable);
-            destination.append(block);
+            AppLogDestination.append(destination, block);
         }
     }
 
@@ -179,8 +175,8 @@ public final class AppLogger {
 
     private static void appendBlock(@NonNull CharSequence block) {
         synchronized (LOCK) {
-            if (loggingEnabled && destination != null) {
-                destination.append(block);
+            if (loggingEnabled) {
+                AppLogDestination.append(destination, block);
             }
         }
     }
@@ -188,8 +184,7 @@ public final class AppLogger {
     public static void refreshOutputFolder(@NonNull Context context) {
         synchronized (LOCK) {
             if (destination != null) {
-                AppLogDestination.close(destination);
-                destination = AppLogDestination.start(context);
+                replaceDestination(context, loggingEnabled);
             }
         }
     }
@@ -201,9 +196,17 @@ public final class AppLogger {
             try {
                 AndroidOutputFolderCleaner.clear(context, Kind.LOGS, selected);
             } finally {
-                destination = AppLogDestination.startIfEnabled(context, loggingEnabled);
+                replaceDestination(context, loggingEnabled);
             }
         }
+    }
+
+    private static void replaceDestination(Context context, boolean enabled) {
+        AppLogDestination.close(destination);
+        Context appContext = context.getApplicationContext();
+        destination = AppLogDestination.startIfEnabled(appContext, enabled);
+        loggingEnabled = enabled && destination != null;
+        writeLogEnabled(appContext, loggingEnabled);
     }
 
     @NonNull
