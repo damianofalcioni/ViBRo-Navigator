@@ -412,6 +412,7 @@
     <string name="about_settings_category_advanced">Advanced</string>
     <string name="label_log_enabled">Logs</string>
     <string name="title_log_output_folder">Log folder</string>
+    <string name="label_permission_output_folder">ViBRo download folder</string>
     <string name="title_output_browser">ViBRo files</string>
     <string name="title_gpx_output_folder">GPX folder</string>
     <string name="format_output_folder">Current folder: %1$s</string>

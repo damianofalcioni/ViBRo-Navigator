@@ -265,7 +265,7 @@
                     android:textSize="14sp" />
             </LinearLayout>
             <LinearLayout
-                android:id="@+id/aboutPermissionLogFolderRow"
+                android:id="@+id/aboutPermissionOutputFolderRow"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="?android:attr/selectableItemBackground"
@@ -277,7 +277,7 @@
                 android:visibility="gone">
 
                 <View
-                    android:id="@+id/aboutPermissionLogFolderMark"
+                    android:id="@+id/aboutPermissionOutputFolderMark"
                     android:layout_width="12dp"
                     android:layout_height="12dp"
                     android:layout_marginEnd="12dp"
@@ -285,16 +285,16 @@
                     android:importantForAccessibility="no" />
 
                 <TextView
-                    android:id="@+id/aboutPermissionLogFolderLabel"
+                    android:id="@+id/aboutPermissionOutputFolderLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/title_log_output_folder"
+                    android:text="@string/label_permission_output_folder"
                     android:textColor="?attr/vibroTextPrimaryColor"
                     android:textSize="15sp" />
 
                 <TextView
-                    android:id="@+id/aboutPermissionLogFolderStatus"
+                    android:id="@+id/aboutPermissionOutputFolderStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="12dp"
@@ -303,44 +303,6 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/aboutPermissionGpxFolderRow"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?android:attr/selectableItemBackground"
-                android:clickable="true"
-                android:focusable="true"
-                android:gravity="center_vertical"
-                android:minHeight="44dp"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <View
-                    android:id="@+id/aboutPermissionGpxFolderMark"
-                    android:layout_width="12dp"
-                    android:layout_height="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:background="@drawable/bg_permission_status_error"
-                    android:importantForAccessibility="no" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionGpxFolderLabel"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/title_gpx_output_folder"
-                    android:textColor="?attr/vibroTextPrimaryColor"
-                    android:textSize="15sp" />
-
-                <TextView
-                    android:id="@+id/aboutPermissionGpxFolderStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:text="@string/permission_status_needs_attention"
-                    android:textColor="@color/danger"
-                    android:textSize="14sp" />
-            </LinearLayout>
         </LinearLayout>
 
         <View

@@ -2,21 +2,18 @@ package vibro.navigator.about;
 
 import android.app.Activity;
 
-import java.util.EnumMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import vibro.navigator.R;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
-import vibro.navigator.android.storage.AndroidOutputStorage;
-import vibro.navigator.settings.AppOutputFolderSettings.Kind;
+import vibro.navigator.android.storage.AndroidOutputStorageAccess;
 
-/** Legacy folder/grant checks stay off the UI thread, including when saving is disabled. */
+/** Shared legacy output permission is inspected off the UI thread, even when saving is disabled. */
 final class AboutOutputFolderStatusRows {
     private final Activity activity;
     private final ExecutorService worker;
-    private final Map<Kind, AboutPermissionRow> rows = new EnumMap<>(Kind.class);
+    private final AboutPermissionRow row;
     private boolean checking;
     private int generation;
 
@@ -27,19 +24,14 @@ final class AboutOutputFolderStatusRows {
     AboutOutputFolderStatusRows(Activity activity, ExecutorService worker) {
         this.activity = activity;
         this.worker = worker;
-        rows.put(Kind.LOGS, new AboutPermissionRow(activity, R.id.aboutPermissionLogFolderRow,
-                R.id.aboutPermissionLogFolderMark, R.id.aboutPermissionLogFolderLabel,
-                R.id.aboutPermissionLogFolderStatus, () -> AboutOutputFolderSettings.requestAccess(activity)));
-        rows.put(Kind.GPX, new AboutPermissionRow(activity, R.id.aboutPermissionGpxFolderRow,
-                R.id.aboutPermissionGpxFolderMark, R.id.aboutPermissionGpxFolderLabel,
-                R.id.aboutPermissionGpxFolderStatus, () -> AboutOutputFolderSettings.requestAccess(activity)));
+        row = new AboutPermissionRow(activity, R.id.aboutPermissionOutputFolderRow,
+                R.id.aboutPermissionOutputFolderMark, R.id.aboutPermissionOutputFolderLabel,
+                R.id.aboutPermissionOutputFolderStatus, () -> AboutOutputFolderSettings.requestAccess(activity));
     }
 
     void render() {
         boolean visible = AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant();
-        for (AboutPermissionRow row : rows.values()) {
-            row.setVisible(visible);
-        }
+        row.setVisible(visible);
         if (visible && !checking) {
             checking = true;
             int requestGeneration = generation;
@@ -48,21 +40,16 @@ final class AboutOutputFolderStatusRows {
     }
 
     private void inspect(int requestGeneration) {
-        Map<Kind, Boolean> allowed = new EnumMap<>(Kind.class);
-        for (Kind kind : rows.keySet()) {
-            allowed.put(kind, AndroidOutputStorage.isUsable(activity, kind));
-        }
+        boolean allowed = AndroidOutputStorageAccess.hasRequiredPermission(activity);
         activity.runOnUiThread(() -> apply(requestGeneration, allowed));
     }
 
-    private void apply(int requestGeneration, Map<Kind, Boolean> allowed) {
+    private void apply(int requestGeneration, boolean allowed) {
         if (requestGeneration != generation || activity.isDestroyed()) {
             return;
         }
         checking = false;
-        for (Kind kind : rows.keySet()) {
-            rows.get(kind).render(Boolean.TRUE.equals(allowed.get(kind)));
-        }
+        row.render(allowed);
     }
 
     void stop() {

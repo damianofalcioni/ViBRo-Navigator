@@ -18,6 +18,19 @@ public final class AndroidOutputStorageAccess {
 
     private AndroidOutputStorageAccess() { }
 
+    /** Reports authorization only; storage availability and writes are checked by output operations. */
+    public static boolean hasRequiredPermission(Context context) {
+        if (!AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()) {
+            return true;
+        }
+        if (!AppOutputStorageSettings.useSdCard(context)) {
+            return !AndroidLegacyExternalStorageAccess.needsOutputPermission(context);
+        }
+        Uri parent = AndroidDocumentAccess.buildExternalStorageTreeUri(
+                AppOutputStorageSettings.cardId(context) + ":Download/ViBRo");
+        return AndroidOutputFolderRecovery.hasGrant(context, parent);
+    }
+
     public static Intent picker(String id) {
         return AndroidDocumentAccess.openDocumentTreeIntent(
                 AndroidDocumentAccess.buildExternalStorageDocumentUri(id + ":Download"))
