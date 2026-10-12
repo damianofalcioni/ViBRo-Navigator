@@ -15,6 +15,7 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 public final class AppMainUiSettings {
     private static final String KEY_MAIN_UI_ROUTING_MODE = "main_ui_routing_mode";
     private static final String WELCOME_COMPLETION_FILE = "welcome_completed";
+    private static final String FIRST_RUN_SETUP_FILE = "first_run_setup_pending";
 
     private AppMainUiSettings() {
     }
@@ -24,10 +25,29 @@ public final class AppMainUiSettings {
     }
 
     public static void completeWelcome(@NonNull Context context) {
+        createInstallationFile(context, WELCOME_COMPLETION_FILE);
+    }
+
+    public static void startFirstRunSetup(@NonNull Context context) {
+        createInstallationFile(context, FIRST_RUN_SETUP_FILE);
+    }
+
+    public static boolean isFirstRunSetupPending(@NonNull Context context) {
+        return new File(AndroidAppStorageDirs.noBackupFilesDir(context), FIRST_RUN_SETUP_FILE).isFile();
+    }
+
+    public static void completeFirstRunSetup(@NonNull Context context) {
+        File pending = new File(AndroidAppStorageDirs.noBackupFilesDir(context), FIRST_RUN_SETUP_FILE);
+        if (pending.exists() && !pending.delete()) {
+            AppLogger.w("AppMainUiSettings", "Unable to save first-run setup completion");
+        }
+    }
+
+    private static void createInstallationFile(@NonNull Context context, @NonNull String name) {
         try {
-            welcomeCompletionFile(context).createNewFile();
+            new File(AndroidAppStorageDirs.noBackupFilesDir(context), name).createNewFile();
         } catch (IOException error) {
-            AppLogger.e("AppMainUiSettings", "Unable to save welcome completion", error);
+            AppLogger.e("AppMainUiSettings", "Unable to save installation state: " + name, error);
         }
     }
 

@@ -37,6 +37,7 @@ import org.robolectric.shadows.ShadowDialog;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.android.startup.AndroidFirstRunPermissions;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.nav.ui.NavigationActivity;
 import vibro.navigator.settings.AppMainUiSettings;
@@ -70,6 +71,7 @@ public class MainActivityWelcomeScreenTest {
             assertTrue(AppMainUiSettings.isWelcomeCompleted(activity));
             assertEquals(activity.getString(R.string.msg_brouter_install_prompt),
                     String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()));
+            finishFirstRun(activity);
         }
         setInstallTimes(1_000L, 2_000L);
         try (ActivityController<MainActivity> reopened = Robolectric.buildActivity(MainActivity.class).setup()) {
@@ -92,10 +94,12 @@ public class MainActivityWelcomeScreenTest {
 
             continueWelcome(welcomeDialog());
 
-            assertEquals(SHARED_ADDRESS, destination(controller.get()));
+            assertEquals("", destination(controller.get()));
             assertTrue(AppMainUiSettings.isWelcomeCompleted(context));
             assertEquals(controller.get().getString(R.string.msg_brouter_install_prompt),
                     String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()));
+            finishFirstRun(controller.get());
+            assertEquals(SHARED_ADDRESS, destination(controller.get()));
             controller.recreate();
             assertEquals(SHARED_ADDRESS, destination(controller.get()));
             assertEquals(0, ((LinearLayout) controller.get().findViewById(R.id.stopsContainer)).getChildCount());
@@ -149,6 +153,7 @@ public class MainActivityWelcomeScreenTest {
 
             continueWelcome(welcomeDialog());
 
+            finishFirstRun(controller.get());
             assertEquals(SHARED_ADDRESS, destination(controller.get()));
             controller.recreate();
             assertEquals(SHARED_ADDRESS, destination(controller.get()));
@@ -158,11 +163,13 @@ public class MainActivityWelcomeScreenTest {
     }
 
     @Test
-    public void newIntentDuringWelcomeIsAppliedAfterContinue() {
+    public void newIntentDuringWelcomeIsAppliedAfterSetup() {
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             controller.newIntent(sharedAddress());
             assertEquals("", destination(controller.get()));
             continueWelcome(welcomeDialog());
+            assertEquals("", destination(controller.get()));
+            finishFirstRun(controller.get());
             assertEquals(SHARED_ADDRESS, destination(controller.get()));
         }
     }
@@ -258,6 +265,19 @@ public class MainActivityWelcomeScreenTest {
     private static void continueWelcome(Dialog dialog) {
         dialog.findViewById(R.id.welcomeContinueButton).performClick();
         shadowOf(Looper.getMainLooper()).idleFor(150, TimeUnit.MILLISECONDS);
+    }
+
+    private static void finishFirstRun(MainActivity activity) {
+        ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        activity.onRequestPermissionsResult(AndroidFirstRunPermissions.REQUEST_RUNTIME, new String[0], new int[0]);
+        for (int attempts = 0; attempts < 3 && AppMainUiSettings.isFirstRunSetupPending(activity); attempts++) {
+            AlertDialog prompt = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(prompt.isShowing());
+            prompt.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
+            shadowOf(Looper.getMainLooper()).idle();
+        }
+        assertFalse(AppMainUiSettings.isFirstRunSetupPending(activity));
     }
 
     private static void layoutWelcome(Dialog dialog) {

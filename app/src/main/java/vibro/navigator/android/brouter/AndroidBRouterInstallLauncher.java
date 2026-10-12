@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
@@ -25,7 +26,11 @@ public final class AndroidBRouterInstallLauncher {
     }
 
     public static boolean launchPlayStore(@NonNull Activity activity) {
-        return launchPlayStore(new ActivityInstallLauncher(activity));
+        return launchPlayStore(activity, null);
+    }
+
+    public static boolean launchPlayStore(@NonNull Activity activity, @Nullable Integer requestCode) {
+        return launchPlayStore(new ActivityInstallLauncher(activity, requestCode));
     }
 
     static boolean launchPlayStore(@NonNull InstallLauncher launcher) {
@@ -38,7 +43,11 @@ public final class AndroidBRouterInstallLauncher {
     }
 
     public static boolean launchFdroid(@NonNull Activity activity) {
-        return launchFdroid(new ActivityInstallLauncher(activity));
+        return launchFdroid(activity, null);
+    }
+
+    public static boolean launchFdroid(@NonNull Activity activity, @Nullable Integer requestCode) {
+        return launchFdroid(new ActivityInstallLauncher(activity, requestCode));
     }
 
     static boolean launchFdroid(@NonNull InstallLauncher launcher) {
@@ -90,9 +99,11 @@ public final class AndroidBRouterInstallLauncher {
     private static final class ActivityInstallLauncher implements InstallLauncher {
         @NonNull
         private final Activity activity;
+        private final Integer requestCode;
 
-        ActivityInstallLauncher(@NonNull Activity activity) {
+        ActivityInstallLauncher(@NonNull Activity activity, @Nullable Integer requestCode) {
             this.activity = activity;
+            this.requestCode = requestCode;
         }
 
         @Override
@@ -103,7 +114,11 @@ public final class AndroidBRouterInstallLauncher {
         @Override
         public boolean launch(@NonNull InstallTarget target) {
             try {
-                activity.startActivity(toIntent(target));
+                if (requestCode == null) {
+                    activity.startActivity(toIntent(target));
+                } else {
+                    activity.startActivityForResult(toIntent(target), requestCode);
+                }
                 return true;
             } catch (ActivityNotFoundException | SecurityException e) {
                 AppLogger.w(TAG, "Failed to open install intent data=" + target.uriString, e);

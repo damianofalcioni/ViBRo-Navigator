@@ -162,7 +162,7 @@ public class MainActivity extends Activity {
             return;
         }
         if (MainActivityIntentHandler.handleOpenNavigationIntent(this, intent)
-                || MainActivityProfileCoordinator.isWelcomeShowing(profileCoordinator)) {
+                || MainActivityProfileCoordinator.isStartupPending(profileCoordinator)) {
             return;
         }
         if (routeModeController != null) {
@@ -194,6 +194,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onPause() {
+        MainActivityProfileCoordinator.pauseStartup(profileCoordinator);
         if (roundTripDirectionController != null) {
             roundTripDirectionController.onPause();
         }
@@ -211,7 +212,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        MainActivityProfileCoordinator.saveWelcomeState(profileCoordinator, outState);
+        MainActivityProfileCoordinator.saveStartupState(profileCoordinator, outState);
         if (destinationController != null) {
             MainActivityDestinationState.save(outState, destinationController);
         }
@@ -236,7 +237,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        MainActivityProfileCoordinator.disposeWelcome(profileCoordinator);
+        MainActivityProfileCoordinator.disposeStartup(profileCoordinator);
         MainActivityPoiInputActionCoordinator.dispose(poiInputActionCoordinator);
         if (destinationController != null) {
             destinationController.dispose();

@@ -35,6 +35,7 @@ final class MainActivityWelcomeScreen {
             if (activity.isFinishing() || activity.isDestroyed()) {
                 return;
             }
+            AppMainUiSettings.startFirstRunSetup(activity);
             AppMainUiSettings.completeWelcome(activity);
             dialog.dismiss();
             onContinue.run();

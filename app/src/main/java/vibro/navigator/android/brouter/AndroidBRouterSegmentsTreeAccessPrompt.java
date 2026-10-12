@@ -9,6 +9,8 @@ import android.view.ViewConfiguration;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import androidx.core.util.Consumer;
+
 import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
@@ -28,14 +30,26 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
+        show(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel, dialog -> { });
+    }
+
+    public static void show(
+            @NonNull Activity activity,
+            @NonNull BRouterSegmentsRepository segmentsRepository,
+            int requestCode,
+            @NonNull String logTag,
+            @NonNull Runnable beforeLaunch,
+            @NonNull Runnable onCancel,
+            @NonNull Consumer<AlertDialog> onShown
+    ) {
         AndroidTaskScheduler.main().postDelayed(() -> {
             if (!activity.isFinishing() && !activity.isDestroyed()) {
-                showNow(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel);
+                onShown.accept(showNow(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel));
             }
         }, ViewConfiguration.getPressedStateDuration());
     }
 
-    private static void showNow(
+    private static AlertDialog showNow(
             @NonNull Activity activity,
             @NonNull BRouterSegmentsRepository segmentsRepository,
             int requestCode,
@@ -44,7 +58,7 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable onCancel
     ) {
         Uri initialUri = segmentsRepository.getSegmentsTreePickerInitialUri(activity);
-        new AlertDialog.Builder(activity)
+        return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_segments_storage_access)
                 .setMessage(activity.getString(R.string.msg_brouter_segments_storage_access_prompt,
                         AndroidBRouterStorageInstructions.folderPath(initialUri, "segments4")))

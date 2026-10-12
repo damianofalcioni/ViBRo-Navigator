@@ -40,6 +40,7 @@ public class AppMainUiWelcomeCompletionTest {
     public void importingBackupCannotCompleteWelcomeOnAnotherInstallation() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();
         AppMainUiSettings.completeWelcome(context);
+        AppMainUiSettings.startFirstRunSetup(context);
         String backup = AppDataBackup.exportJson(context);
         File freshStorage = storage.newFolder();
         Context freshInstall = new ContextWrapper(context) {
@@ -52,7 +53,18 @@ public class AppMainUiWelcomeCompletionTest {
         AppDataBackup.importJson(freshInstall, backup);
 
         assertFalse(AppMainUiSettings.isWelcomeCompleted(freshInstall));
+        assertFalse(AppMainUiSettings.isFirstRunSetupPending(freshInstall));
         assertTrue(AppMainUiSettings.isWelcomeCompleted(context));
+    }
+
+    @Test
+    public void pendingSetupSurvivesPreferenceResetAndCanBeCompleted() {
+        Context context = ApplicationProvider.getApplicationContext();
+        AppMainUiSettings.startFirstRunSetup(context);
+        context.getSharedPreferences("vibro.navigator.settings", Context.MODE_PRIVATE).edit().clear().commit();
+        assertTrue(AppMainUiSettings.isFirstRunSetupPending(context));
+        AppMainUiSettings.completeFirstRunSetup(context);
+        assertFalse(AppMainUiSettings.isFirstRunSetupPending(context));
     }
 
     @Test

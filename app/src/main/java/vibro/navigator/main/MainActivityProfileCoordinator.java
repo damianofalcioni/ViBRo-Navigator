@@ -31,7 +31,7 @@ final class MainActivityProfileCoordinator {
     @NonNull
     private final ProfileParameterSettingsController profileParameterSettingsController;
     private boolean waitingForStartupProfilesTree;
-    private MainActivityWelcomeScreen welcomeScreen;
+    private final MainActivityStartupCoordinator startup;
 
     private MainActivityProfileCoordinator(
             @NonNull MainActivity activity,
@@ -45,6 +45,7 @@ final class MainActivityProfileCoordinator {
         this.profilePicker = profilePicker;
         this.profileSpinnerController = profileSpinnerController;
         this.profileParameterSettingsController = profileParameterSettingsController;
+        startup = new MainActivityStartupCoordinator(activity, this);
     }
 
     @NonNull
@@ -95,60 +96,52 @@ final class MainActivityProfileCoordinator {
     static void refresh(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
             coordinator.refresh(coordinator.isBRouterInstalled());
+            coordinator.startup.onResume();
         }
     }
 
-    // Welcome and BRouter setup share one startup gate so prompts cannot cover the introduction.
-    static void startup(
-            @Nullable MainActivityProfileCoordinator coordinator,
-            @Nullable Bundle savedInstanceState,
-            @NonNull Runnable onReady
-    ) {
-        if (coordinator == null) {
-            return;
-        }
-        coordinator.welcomeScreen = MainActivityWelcomeScreen.showIfNeeded(
-                coordinator.activity, savedInstanceState, () -> {
-                    coordinator.showStartupPrompt(true);
-                    onReady.run();
-                });
-        if (coordinator.welcomeScreen == null) {
-            coordinator.showStartupPrompt(savedInstanceState == null);
-            onReady.run();
+    static void pauseStartup(@Nullable MainActivityProfileCoordinator coordinator) {
+        if (coordinator != null) {
+            coordinator.startup.onPause();
         }
     }
 
-    private void showStartupPrompt(boolean enabled) {
+    static void startup(@Nullable MainActivityProfileCoordinator coordinator, @Nullable Bundle state,
+                        @NonNull Runnable onReady) {
+        if (coordinator != null) {
+            coordinator.startup.start(state, onReady);
+        }
+    }
+
+    static boolean isStartupPending(@Nullable MainActivityProfileCoordinator coordinator) {
+        return coordinator != null && coordinator.startup.isPending();
+    }
+
+    static void saveStartupState(@Nullable MainActivityProfileCoordinator coordinator, @NonNull Bundle state) {
+        if (coordinator != null) {
+            coordinator.startup.saveState(state);
+        }
+    }
+
+    static void disposeStartup(@Nullable MainActivityProfileCoordinator coordinator) {
+        if (coordinator != null) {
+            coordinator.startup.dispose();
+        }
+    }
+
+    void showStartupPrompt(boolean enabled) {
         if (!enabled) {
             return;
         }
         if (isBRouterInstalled()) {
-            requestProfilesStorageAccessAtStartupIfNeeded(true);
+            requestProfilesStorageAccessAtStartupIfNeeded();
         } else {
             MainActivityBRouterInstallPrompt.show(activity);
         }
     }
 
-    static boolean isWelcomeShowing(@Nullable MainActivityProfileCoordinator coordinator) {
-        return coordinator != null && coordinator.welcomeScreen != null && coordinator.welcomeScreen.isShowing();
-    }
-
-    static void saveWelcomeState(@Nullable MainActivityProfileCoordinator coordinator, @NonNull Bundle outState) {
-        if (coordinator != null && coordinator.welcomeScreen != null) {
-            coordinator.welcomeScreen.saveState(outState);
-        }
-    }
-
-    static void disposeWelcome(@Nullable MainActivityProfileCoordinator coordinator) {
-        if (coordinator != null && coordinator.welcomeScreen != null) {
-            coordinator.welcomeScreen.dispose();
-        }
-    }
-
-    void requestProfilesStorageAccessAtStartupIfNeeded(boolean startupPromptEnabled) {
-        if (!startupPromptEnabled
-                || !profilesRepository.isBRouterInstalled(activity)
-                || AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)) {
+    private void requestProfilesStorageAccessAtStartupIfNeeded() {
+        if (AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)) {
             return;
         }
         AndroidBRouterProfilesStorageAccess.request(
@@ -172,6 +165,9 @@ final class MainActivityProfileCoordinator {
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if (startup.onActivityResult(requestCode, resultCode, data)) {
+            return true;
+        }
         if (requestCode == REQUEST_STARTUP_PROFILES_STORAGE) {
             handleStartupProfilesTreeResult(resultCode, data);
             return true;
@@ -184,7 +180,11 @@ final class MainActivityProfileCoordinator {
             int requestCode,
             @NonNull int[] grantResults
     ) {
-        return coordinator != null && coordinator.handleLegacyStorageResult(requestCode, grantResults);
+        if (coordinator == null) {
+            return false;
+        }
+        return coordinator.startup.onRequestPermissionsResult(requestCode)
+                || coordinator.handleLegacyStorageResult(requestCode, grantResults);
     }
 
     private boolean handleLegacyStorageResult(int requestCode, @NonNull int[] grantResults) {
