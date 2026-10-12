@@ -3,6 +3,7 @@ package vibro.navigator.main;
 import vibro.navigator.R;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.widget.Toast;
@@ -12,6 +13,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
+import vibro.navigator.android.storage.AndroidOutputStorageBrowser;
 import vibro.navigator.logging.AppLogger;
 
 final class MainActivityProfilePicker {
@@ -52,7 +54,23 @@ final class MainActivityProfilePicker {
         Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
         Intent intent = AndroidDocumentAccess.openDocumentIntent(initialUri);
         AppLogger.i(TAG, "Launching custom profile document picker initialUri=" + safe(initialUri));
-        activity.startActivityForResult(intent, REQ_PICK_CUSTOM_PROFILE);
+        try {
+            AndroidOutputStorageBrowser.openForResult(activity, intent, REQ_PICK_CUSTOM_PROFILE);
+        } catch (ActivityNotFoundException | SecurityException e) {
+            AppLogger.w(TAG, "Could not open custom profile picker", e);
+            Toast.makeText(activity, R.string.msg_output_viewer_unavailable, Toast.LENGTH_SHORT).show();
+            requireProfileSpinnerController().onCustomProfilePickerCancelled();
+        }
+    }
+
+    boolean handleLaunchIntent(@NonNull Intent intent, boolean recreated) {
+        if (!AndroidOutputStorageBrowser.hasResult(intent)) {
+            return false;
+        }
+        if (!recreated) {
+            AndroidOutputStorageBrowser.dispatchResult(intent, this::handleActivityResult);
+        }
+        return true;
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {

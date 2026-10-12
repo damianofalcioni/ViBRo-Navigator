@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 final class ProfileSpinnerOption {
     static final String CUSTOM_KEY = "__custom__";
+    private static final String PROMPT_KEY = "__unselected__";
 
     @NonNull
     private final String label;
@@ -27,6 +28,15 @@ final class ProfileSpinnerOption {
         return kind == Kind.CUSTOM;
     }
 
+    boolean isPrompt() {
+        return kind == Kind.PROMPT;
+    }
+
+    @NonNull
+    static ProfileSpinnerOption prompt(@NonNull String label) {
+        return new ProfileSpinnerOption(label, null, Kind.PROMPT);
+    }
+
     @Nullable
     String profileName() {
         return profileName;
@@ -34,6 +44,9 @@ final class ProfileSpinnerOption {
 
     @NonNull
     String selectionKey() {
+        if (isPrompt()) {
+            return PROMPT_KEY;
+        }
         if (kind == Kind.CUSTOM) {
             return CUSTOM_KEY;
         }
@@ -52,6 +65,7 @@ final class ProfileSpinnerOption {
     }
 
     private enum Kind {
+        PROMPT,
         BROUTER,
         CUSTOM
     }

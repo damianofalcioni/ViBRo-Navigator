@@ -85,17 +85,13 @@ final class MainActivityProfileCoordinator {
         return profilesRepository.isBRouterInstalled(activity);
     }
 
-    void refresh(boolean brouterInstalled) {
-        if (brouterInstalled) {
-            profilePicker.refreshProfiles();
-        } else {
-            profileSpinnerController.refresh();
-        }
+    void refresh() {
+        profileSpinnerController.refresh();
     }
 
     static void refresh(@Nullable MainActivityProfileCoordinator coordinator) {
         if (coordinator != null) {
-            coordinator.refresh(coordinator.isBRouterInstalled());
+            coordinator.refresh();
             coordinator.startup.onResume();
         }
     }
@@ -164,7 +160,17 @@ final class MainActivityProfileCoordinator {
         profileParameterSettingsController.setProfileSelectionApplicable(mode != NavigationRoutingMode.STRAIGHT_LINE);
     }
 
-    boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    static boolean handleLaunchIntent(@Nullable MainActivityProfileCoordinator coordinator,
+                                      @NonNull Intent intent, boolean recreated) {
+        return coordinator != null && coordinator.profilePicker.handleLaunchIntent(intent, recreated);
+    }
+
+    static boolean handleActivityResult(@Nullable MainActivityProfileCoordinator coordinator,
+                                        int requestCode, int resultCode, @Nullable Intent data) {
+        return coordinator != null && coordinator.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (startup.onActivityResult(requestCode, resultCode, data)) {
             return true;
         }

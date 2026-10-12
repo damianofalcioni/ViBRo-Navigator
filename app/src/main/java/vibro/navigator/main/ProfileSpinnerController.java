@@ -13,6 +13,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.brouter.BRouterProfilesRepository;
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 
 final class ProfileSpinnerController {
@@ -33,9 +35,12 @@ final class ProfileSpinnerController {
     private final Listener listener;
     private final ProfileSpinnerAdapter adapter;
     private final ProfileSpinnerOptions options = new ProfileSpinnerOptions();
+    private final TaskScheduler selectionScheduler = AndroidTaskScheduler.main();
 
     private boolean suppressSelectionCallback;
     private boolean selectionUserInitiated;
+    @Nullable
+    private String selectedProfileKey;
     @NonNull
     private SelectionChangeListener selectionChangeListener = () -> {
     };
@@ -81,11 +86,12 @@ final class ProfileSpinnerController {
     }
 
     void refresh() {
-        String currentSelectionKey = getSelectedProfileKey();
+        String currentSelectionKey = selectedProfileKey;
         if (currentSelectionKey == null) {
             currentSelectionKey = profilesRepository.getSelectedProfileKey(context);
         }
-        String customProfile = profilesRepository.getCustomProfileName(context);
+        String customProfile = profilesRepository.getCustomProfileUri(context) == null
+                ? null : profilesRepository.getCustomProfileName(context);
         boolean bRouterInstalled = profilesRepository.isBRouterInstalled(context);
         options.replace(context, profilesRepository.listProfiles(context), customProfile);
         suppressSelectionCallback = true;
@@ -107,9 +113,6 @@ final class ProfileSpinnerController {
 
     void onCustomProfilePickerCancelled() {
         AppLogger.i(TAG, "Custom profile picker cancelled");
-        if (profilesRepository.getCustomProfileName(context) == null) {
-            selectFirstRegularProfile();
-        }
     }
 
     @Nullable
@@ -169,39 +172,37 @@ final class ProfileSpinnerController {
         if (option == null) {
             return;
         }
-        saveSelectedOption(option);
-        if (!option.isCustom()) {
-            selectionUserInitiated = false;
-            notifyProfileSelectionChanged();
-            return;
-        }
-        if (!selectionUserInitiated) {
-            AppLogger.d(TAG, "Ignoring custom profile auto-selection");
-            notifyProfileSelectionChanged();
+        if (option.isCustom()) {
+            handleCustomSelection(option);
             return;
         }
         selectionUserInitiated = false;
+        saveSelectedOption(option);
         notifyProfileSelectionChanged();
-        AppLogger.i(TAG, "Custom profile entry selected");
-        listener.onCustomProfilePickerRequested();
     }
 
-    @Nullable
-    private String getSelectedProfileKey() {
-        int position = spinner.getSelectedItemPosition();
-        ProfileSpinnerOption option = options.optionAt(position);
-        if (option == null) {
-            return null;
+    private void handleCustomSelection(@NonNull ProfileSpinnerOption option) {
+        boolean openPicker = selectionUserInitiated || !option.selectionKey().equals(selectedProfileKey);
+        selectionUserInitiated = false;
+        if (openPicker || option.profileName() == null) {
+            // Spinner can overwrite a reentrant selection change while finishing its callback.
+            selectionScheduler.post(() -> restoreBeforeCustomPicker(openPicker));
+        } else {
+            saveSelectedOption(option);
+            notifyProfileSelectionChanged();
         }
-        return option.selectionKey();
+    }
+
+    private void restoreBeforeCustomPicker(boolean openPicker) {
+        restoreSelection(selectedProfileKey, profilesRepository.isBRouterInstalled(context));
+        if (openPicker) {
+            AppLogger.i(TAG, "Custom profile file requested");
+            listener.onCustomProfilePickerRequested();
+        }
     }
 
     private void restoreSelection(@Nullable String selectionKey, boolean bRouterInstalled) {
         setSelection(options.restoredPosition(selectionKey, bRouterInstalled));
-    }
-
-    private void selectFirstRegularProfile() {
-        setSelection(options.firstRegularOrCustomPosition());
     }
 
     private void selectCustomProfileOption() {
@@ -216,7 +217,7 @@ final class ProfileSpinnerController {
             return;
         }
         suppressSelectionCallback = true;
-        spinner.setSelection(position, false);
+        spinner.setSelection(position);
         suppressSelectionCallback = false;
         ProfileSpinnerOption option = options.optionAt(position);
         if (option != null) {
@@ -226,7 +227,8 @@ final class ProfileSpinnerController {
     }
 
     private void saveSelectedOption(@NonNull ProfileSpinnerOption option) {
-        profilesRepository.saveSelectedProfileKey(context, option.selectionKey());
+        selectedProfileKey = option.selectionKey();
+        profilesRepository.saveSelectedProfileKey(context, selectedProfileKey);
     }
 
     private void notifyProfileSelectionChanged() {

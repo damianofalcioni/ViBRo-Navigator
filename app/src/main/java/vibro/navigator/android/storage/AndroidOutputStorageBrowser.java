@@ -63,6 +63,7 @@ public final class AndroidOutputStorageBrowser {
             // Starting the caller with the selected URI transfers read access to its activity
             // before this host finishes and releases the system picker's temporary grant.
             result.setData(data.getData()).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            result.addFlags(data.getFlags() & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
             result.setClipData(data.getClipData());
         }
         host.startActivity(result);
@@ -79,7 +80,7 @@ public final class AndroidOutputStorageBrowser {
         }
         int requestCode = intent.getIntExtra(EXTRA_REQUEST_CODE, -1);
         int resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, Activity.RESULT_CANCELED);
-        // Consume before dispatch so recreation cannot import the same document twice.
+        // Consume before dispatch so recreation cannot apply the same document twice.
         intent.removeExtra(EXTRA_REQUEST_CODE);
         intent.removeExtra(EXTRA_RESULT_CODE);
         receiver.onActivityResult(requestCode, resultCode, intent);

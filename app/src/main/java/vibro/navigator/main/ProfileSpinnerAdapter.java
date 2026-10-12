@@ -32,6 +32,17 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
         this.inflater = LayoutInflater.from(context);
     }
 
+    @Override
+    public boolean areAllItemsEnabled() {
+        return false;
+    }
+
+    @Override
+    public boolean isEnabled(int position) {
+        ProfileSpinnerOption option = getItem(position);
+        return option != null && !option.isPrompt();
+    }
+
     @NonNull
     @Override
     public View getDropDownView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
@@ -50,6 +61,9 @@ final class ProfileSpinnerAdapter extends ArrayAdapter<ProfileSpinnerOption> {
 
     private void bindDropdown(@NonNull DropDownHolder holder, @Nullable ProfileSpinnerOption option) {
         holder.label.setText(option == null ? "" : option.toString());
+        boolean enabled = option != null && !option.isPrompt();
+        holder.row.setEnabled(enabled);
+        holder.label.setEnabled(enabled);
         BundledProfileInfo info = profileInfo(option);
         if (info == null) {
             hideProfileActions(holder);

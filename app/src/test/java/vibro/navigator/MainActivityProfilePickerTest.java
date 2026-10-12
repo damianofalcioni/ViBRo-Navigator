@@ -2,6 +2,7 @@ package vibro.navigator.main;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
@@ -9,6 +10,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.DocumentsContract;
+import androidx.core.content.IntentCompat;
+import vibro.navigator.android.storage.AndroidOutputBrowserActivity;
 
 import vibro.navigator.brouter.BRouterProfileTestDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -34,8 +37,7 @@ public class MainActivityProfilePickerTest {
 
         picker.startCustomProfilePicker();
 
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
-        Intent intent = started.intent;
+        Intent intent = hostedPicker(activity);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT, intent.getAction());
         assertTrue(intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
     }
@@ -51,8 +53,7 @@ public class MainActivityProfilePickerTest {
 
         picker.startCustomProfilePicker();
 
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
-        Intent intent = started.intent;
+        Intent intent = hostedPicker(activity);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT, intent.getAction());
         assertTrue(intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
     }
@@ -68,10 +69,24 @@ public class MainActivityProfilePickerTest {
 
         picker.startCustomProfilePicker();
 
-        ShadowActivity.IntentForResult started = shadowOf(activity).getNextStartedActivityForResult();
-        Intent intent = started.intent;
+        Intent intent = hostedPicker(activity);
         assertEquals(Intent.ACTION_OPEN_DOCUMENT, intent.getAction());
         assertTrue(intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
+    }
+
+    private static Intent hostedPicker(Activity caller) {
+        Intent launch = shadowOf(caller).getNextStartedActivity();
+        assertNotNull(launch);
+        assertEquals(AndroidOutputBrowserActivity.class.getName(), launch.getComponent().getClassName());
+        assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP, launch.getFlags());
+        try (org.robolectric.android.controller.ActivityController<AndroidOutputBrowserActivity> host =
+                     Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
+            ShadowActivity.IntentForResult started = shadowOf(host.get()).getNextStartedActivityForResult();
+            assertNotNull(started);
+            assertEquals(TestProfilesRepository.INITIAL_URI, IntentCompat.getParcelableExtra(
+                    started.intent, DocumentsContract.EXTRA_INITIAL_URI, Uri.class));
+            return started.intent;
+        }
     }
 
     private static final class TestProfilesRepository extends BRouterProfilesRepository {

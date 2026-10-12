@@ -21,7 +21,7 @@ public final class AndroidOutputBrowserActivity extends AndroidLocalizedActivity
                         REQUEST_OPEN_FILE);
             } catch (ActivityNotFoundException | SecurityException e) {
                 unavailable();
-                finish();
+                onActivityResult(REQUEST_OPEN_FILE, RESULT_CANCELED, null);
             }
         }
     }

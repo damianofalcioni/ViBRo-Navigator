@@ -28,6 +28,9 @@ final class ProfileSpinnerOptions {
             String label = info == null ? profile : context.getString(info.titleRes());
             options.add(new ProfileSpinnerOption(label, profile, false));
         }
+        if (profiles.isEmpty() && (customProfile == null || customProfile.trim().isEmpty())) {
+            options.add(ProfileSpinnerOption.prompt(context.getString(R.string.msg_select_custom_profile)));
+        }
         options.add(buildCustomOption(context, customProfile));
     }
 
@@ -55,6 +58,10 @@ final class ProfileSpinnerOptions {
 
     int restoredPosition(@Nullable String selectionKey, boolean preferBRouterProfile) {
         int target = findPosition(selectionKey);
+        ProfileSpinnerOption option = optionAt(target);
+        if (option != null && option.isCustom() && option.profileName() == null) {
+            target = -1;
+        }
         return target < 0 ? defaultPosition(preferBRouterProfile) : target;
     }
 
@@ -71,14 +78,11 @@ final class ProfileSpinnerOptions {
     }
 
     private int defaultPosition(boolean preferBRouterProfile) {
-        if (preferBRouterProfile) {
-            int brouterPosition = findFirstBRouterProfilePosition();
-            if (brouterPosition >= 0) {
-                return brouterPosition;
-            }
+        ProfileSpinnerOption custom = optionAt(findCustomPosition());
+        if (!preferBRouterProfile && custom != null && custom.profileName() != null) {
+            return findCustomPosition();
         }
-        int customPosition = findCustomPosition();
-        return customPosition >= 0 ? customPosition : 0;
+        return firstRegularOrCustomPosition();
     }
 
     private int findFirstBRouterProfilePosition() {

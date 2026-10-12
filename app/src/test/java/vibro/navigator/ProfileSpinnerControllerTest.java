@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
+import android.os.Looper;
 import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
@@ -86,6 +87,7 @@ public class ProfileSpinnerControllerTest {
         customPickerRequested.set(false);
         markSelectionUserInitiated(controller);
         spinner.setSelection(0);
+        shadowOf(Looper.getMainLooper()).idle();
 
         assertEquals(1, spinner.getCount());
         assertTrue(customPickerRequested.get());
@@ -96,7 +98,7 @@ public class ProfileSpinnerControllerTest {
     }
 
     @Test
-    public void refresh_keepsOnlyCustomOptionWhenNoExternalOrBundledProfilesExist() {
+    public void refresh_showsPromptAndCustomActionWhenNoProfilesOrCustomFileExist() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         installBRouterPackage(activity);
         RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
@@ -110,9 +112,14 @@ public class ProfileSpinnerControllerTest {
 
         controller.refresh();
 
-        assertEquals(1, spinner.getCount());
+        assertEquals(2, spinner.getCount());
+        assertEquals(activity.getString(R.string.msg_select_custom_profile),
+                String.valueOf(spinner.getSelectedItem()));
+        ProfileSpinnerAdapter adapter = (ProfileSpinnerAdapter) spinner.getAdapter();
+        assertFalse(adapter.isEnabled(0));
+        assertTrue(adapter.isEnabled(1));
         assertEquals(activity.getString(R.string.label_vehicle_profile_custom),
-                String.valueOf(spinner.getItemAtPosition(0)));
+                String.valueOf(spinner.getItemAtPosition(1)));
     }
 
     @Test
@@ -144,7 +151,7 @@ public class ProfileSpinnerControllerTest {
     }
 
     @Test
-    public void refresh_defaultsToCustomWhenBRouterIsNotInstalled() {
+    public void refresh_defaultsToRegularProfileWhenNoCustomFileIsSaved() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
         ProfileSpinnerController controller = new ProfileSpinnerController(
@@ -157,11 +164,122 @@ public class ProfileSpinnerControllerTest {
 
         controller.refresh();
 
-        assertEquals(1, spinner.getSelectedItemPosition());
+        assertEquals(0, spinner.getSelectedItemPosition());
         ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
         assertNull(selectedProfile);
         assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast())
                 .contains(activity.getString(R.string.msg_brouter_not_found)));
+    }
+
+    @Test
+    public void customRequestKeepsPreviouslySelectedRegularProfileAcrossCancellationAndRecreation() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfilesRepository repository = new ProfilesRepository(true, Arrays.asList(PROFILE_TREKKING, PROFILE_FASTBIKE));
+        repository.saveCustomProfile(activity, Uri.parse("content://example/old.brf"), PROFILE_TREKKING);
+        repository.saveSelectedProfileKey(activity, PROFILE_FASTBIKE);
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
+        AtomicBoolean requested = new AtomicBoolean();
+        ProfileSpinnerController controller = new ProfileSpinnerController(activity, spinner, repository,
+                () -> requested.set(true));
+        controller.refresh();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        requestCustomProfile(controller, spinner);
+
+        assertTrue(requested.get());
+        assertEquals(1, spinner.getSelectedItemPosition());
+        assertEquals(PROFILE_FASTBIKE, repository.getSelectedProfileKey(activity));
+        controller.refresh();
+        controller.onCustomProfilePickerCancelled();
+        assertEquals(1, spinner.getSelectedItemPosition());
+        ProfileSpinnerController recreated = new ProfileSpinnerController(activity,
+                new RepeatSelectSpinner(activity), repository, () -> requested.set(true));
+        recreated.refresh();
+        assertEquals(PROFILE_FASTBIKE, recreated.resolveSelectedProfileSelection().profileName);
+        assertFalse(recreated.resolveSelectedProfileSelection().customProfile);
+    }
+
+    @Test
+    public void customIsSelectedOnlyAfterFileIsSaved() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfilesRepository repository = new ProfilesRepository(true, Arrays.asList(PROFILE_TREKKING, PROFILE_FASTBIKE));
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
+        ProfileSpinnerController controller = new ProfileSpinnerController(activity, spinner, repository, () -> { });
+        controller.refresh();
+        shadowOf(Looper.getMainLooper()).idle();
+        requestCustomProfile(controller, spinner);
+        assertEquals(0, spinner.getSelectedItemPosition());
+        assertEquals(PROFILE_TREKKING, repository.getSelectedProfileKey(activity));
+
+        repository.saveCustomProfile(activity, Uri.parse("content://example/new.brf"), PROFILE_FASTBIKE);
+        controller.onCustomProfileSaved();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertEquals(2, spinner.getSelectedItemPosition());
+        assertEquals(ProfileSpinnerOption.CUSTOM_KEY, repository.getSelectedProfileKey(activity));
+        assertTrue(controller.resolveSelectedProfileSelection().customProfile);
+    }
+
+    @Test
+    public void customSelectionWithoutTouchAlsoWaitsForFilePick() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfilesRepository repository = new ProfilesRepository(true, Collections.singletonList(PROFILE_TREKKING));
+        repository.saveCustomProfile(activity, Uri.parse("content://example/old.brf"), PROFILE_FASTBIKE);
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
+        AtomicBoolean requested = new AtomicBoolean();
+        ProfileSpinnerController controller = new ProfileSpinnerController(activity, spinner, repository,
+                () -> requested.set(true));
+        controller.refresh();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        spinner.setSelection(1);
+        shadowOf(Looper.getMainLooper()).idle();
+
+        assertTrue(requested.get());
+        assertEquals(0, spinner.getSelectedItemPosition());
+        assertEquals(PROFILE_TREKKING, repository.getSelectedProfileKey(activity));
+    }
+
+    @Test
+    public void emptyCustomRequestKeepsPromptUntilAFileIsSaved() throws Exception {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        EmptyProfilesRepository repository = new EmptyProfilesRepository();
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
+        AtomicBoolean requested = new AtomicBoolean();
+        ProfileSpinnerController controller = new ProfileSpinnerController(activity, spinner, repository,
+                () -> requested.set(true));
+        controller.refresh();
+        shadowOf(Looper.getMainLooper()).idle();
+        requestCustomProfile(controller, spinner);
+        assertTrue(requested.get());
+        controller.onCustomProfilePickerCancelled();
+        assertEquals(0, spinner.getSelectedItemPosition());
+        assertFalse(ProfileSpinnerOption.CUSTOM_KEY.equals(repository.getSelectedProfileKey(activity)));
+        assertNull(controller.resolveSelectedProfileSelection());
+
+        repository.saveCustomProfile(activity, Uri.parse("content://example/new.brf"), PROFILE_FASTBIKE);
+        controller.onCustomProfileSaved();
+        assertEquals(1, spinner.getCount());
+        assertEquals(ProfileSpinnerOption.CUSTOM_KEY, repository.getSelectedProfileKey(activity));
+    }
+
+    @Test
+    public void restoredCustomWithoutFileFallsBackToRegularProfile() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        ProfilesRepository repository = new ProfilesRepository(true, Collections.singletonList(PROFILE_TREKKING));
+        repository.saveSelectedProfileKey(activity, ProfileSpinnerOption.CUSTOM_KEY);
+        RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
+        ProfileSpinnerController controller = new ProfileSpinnerController(activity, spinner, repository, () -> { });
+        controller.refresh();
+        assertEquals(0, spinner.getSelectedItemPosition());
+        assertEquals(PROFILE_TREKKING, repository.getSelectedProfileKey(activity));
+    }
+
+    private static void requestCustomProfile(ProfileSpinnerController controller, RepeatSelectSpinner spinner)
+            throws Exception {
+        markSelectionUserInitiated(controller);
+        spinner.setSelection(spinner.getCount() - 1);
+        shadowOf(Looper.getMainLooper()).idle();
     }
 
     @Test
@@ -272,20 +390,6 @@ public class ProfileSpinnerControllerTest {
         @Override
         public boolean isBRouterInstalled(Context context) {
             return bRouterInstalled;
-        }
-
-        @Override
-        public String getSelectedProfileKey(Context context) {
-            return null;
-        }
-
-        @Override
-        public void saveSelectedProfileKey(Context context, String selectionKey) {
-        }
-
-        @Override
-        public String getCustomProfileName(Context context) {
-            return null;
         }
 
         @Override

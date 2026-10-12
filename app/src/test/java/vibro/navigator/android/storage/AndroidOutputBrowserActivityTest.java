@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.app.Application;
+import android.content.pm.ActivityInfo;
 import android.content.ContentValues;
 import android.content.ClipData;
 import android.content.Intent;
@@ -113,6 +115,48 @@ public class AndroidOutputBrowserActivityTest {
             AndroidOutputStorageBrowser.dispatchResult(returned, receiver);
             assertEquals(1, deliveries[0]);
             assertNull(shadowOf(activity).getNextStartedActivity());
+        }
+    }
+
+    @Test
+    public void profileSelectionTransfersOfferedPersistableReadAccess() {
+        try (ActivityController<AndroidOutputBrowserActivity> controller =
+                     Robolectric.buildActivity(AndroidOutputBrowserActivity.class, importLaunch()).setup()) {
+            AndroidOutputBrowserActivity activity = controller.get();
+            shadowOf(activity).getNextStartedActivity();
+            Uri file = Uri.parse("content://profiles/document/custom.brf");
+            Intent selection = new Intent().setData(file).addFlags(
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+            activity.onActivityResult(AndroidOutputBrowserActivity.REQUEST_OPEN_FILE, Activity.RESULT_OK, selection);
+            Intent returned = shadowOf(activity).getNextStartedActivity();
+            assertEquals(file, returned.getData());
+            assertTrue((returned.getFlags() & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) != 0);
+            assertTrue((returned.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+        }
+    }
+
+    @Test
+    public void unavailablePickerReturnsCancellationToCallerAndFinishes() {
+        Intent launch = importLaunch();
+        Application application = ApplicationProvider.getApplicationContext();
+        ActivityInfo caller = new ActivityInfo();
+        caller.packageName = application.getPackageName();
+        caller.name = Activity.class.getName();
+        shadowOf(application.getPackageManager()).addOrUpdateActivity(caller);
+        shadowOf(application).checkActivities(true);
+        try (ActivityController<AndroidOutputBrowserActivity> controller =
+                     Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
+            AndroidOutputBrowserActivity activity = controller.get();
+            assertTrue(activity.isFinishing());
+            Intent returned = shadowOf(activity).getNextStartedActivity();
+            assertNotNull(returned);
+            assertTrue(AndroidOutputStorageBrowser.hasResult(returned));
+            AndroidOutputStorageBrowser.dispatchResult(returned, (request, result, data) -> {
+                assertEquals(4002, request);
+                assertEquals(Activity.RESULT_CANCELED, result);
+            });
+        } finally {
+            shadowOf(application).checkActivities(false);
         }
     }
 

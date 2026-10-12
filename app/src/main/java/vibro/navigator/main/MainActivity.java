@@ -133,7 +133,8 @@ public class MainActivity extends AndroidLocalizedActivity {
         stopController.restoreRows(savedInstanceState);
         MainActivitySpeechInputVisibility.render(poiInputActionCoordinator, controls);
 
-        profileCoordinator.refresh(brouterInstalled);
+        profileCoordinator.refresh();
+        MainActivityProfileCoordinator.handleLaunchIntent(profileCoordinator, getIntent(), savedInstanceState != null);
         MainActivityIntentHandler.handleOpenNavigationIntent(this, getIntent());
     }
 
@@ -157,6 +158,9 @@ public class MainActivity extends AndroidLocalizedActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         AppLogger.i(TAG, "onNewIntent " + MainActivityIntentHandler.describeIntent(intent));
+        if (MainActivityProfileCoordinator.handleLaunchIntent(profileCoordinator, intent, false)) {
+            return;
+        }
         if (MainActivityIntentHandler.redirectGpxImportDuringActiveNavigation(this, intent)) {
             finish();
             return;
@@ -295,7 +299,7 @@ public class MainActivity extends AndroidLocalizedActivity {
         AppLogger.i(TAG, "onActivityResult requestCode=" + requestCode
                 + " resultCode=" + resultCode
                 + " hasData=" + (data != null));
-        if (profileCoordinator != null && profileCoordinator.handleActivityResult(requestCode, resultCode, data)) {
+        if (MainActivityProfileCoordinator.handleActivityResult(profileCoordinator, requestCode, resultCode, data)) {
             return;
         }
         poiInputActionCoordinator.handleActivityResult(
