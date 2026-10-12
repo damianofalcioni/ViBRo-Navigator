@@ -30,6 +30,8 @@ public class TestDownloadsProvider extends ContentProvider {
     public boolean failWrites;
     public boolean failPublish;
     public boolean failDeletes;
+    public String assignedName;
+    public Uri lastUri;
 
     public static TestDownloadsProvider install(Context context) {
         ProviderInfo info = new ProviderInfo();
@@ -50,11 +52,15 @@ public class TestDownloadsProvider extends ContentProvider {
     public Uri insert(Uri uri, ContentValues values) {
         long id = ++nextId;
         ContentValues row = new ContentValues(values);
+        if (assignedName != null) {
+            row.put(MediaStore.MediaColumns.DISPLAY_NAME, assignedName);
+        }
         row.put(MediaStore.MediaColumns.OWNER_PACKAGE_NAME, getContext().getPackageName());
         row.put("volume", uri.getPathSegments().get(0));
         rows.put(id, row);
         files.put(id, new File(getContext().getCacheDir(), "download-" + id));
-        return ContentUris.withAppendedId(uri, id);
+        lastUri = ContentUris.withAppendedId(uri, id);
+        return lastUri;
     }
 
     @Override
@@ -89,11 +95,15 @@ public class TestDownloadsProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] args, String sort) {
         MatrixCursor cursor = new MatrixCursor(projection);
         for (Map.Entry<Long, ContentValues> entry : rows.entrySet()) {
-            if (matches(entry.getValue(), uri, args)) {
+            if (matchesId(entry.getKey(), uri) && matches(entry.getValue(), uri, args)) {
                 cursor.addRow(values(entry.getKey(), entry.getValue(), projection));
             }
         }
         return cursor;
+    }
+
+    private static boolean matchesId(long id, Uri uri) {
+        return uri.getPathSegments().size() < 3 || ContentUris.parseId(uri) == id;
     }
 
     private static boolean matches(ContentValues row, Uri uri, String[] args) {

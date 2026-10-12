@@ -33,7 +33,8 @@ public class AboutActivity extends Activity {
     private AboutSettingsControllers settingsControllers;
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
-    private AboutDatabaseBackupActions databaseBackupActions;
+    private final AboutDatabaseBackupActions databaseBackupActions = new AboutDatabaseBackupActions(
+            this, this::flushDeferredSettings, this::renderAfterDatabaseImport);
     private boolean settingsInitializationScheduled;
     final AboutOutputSavingSettings outputSaving = new AboutOutputSavingSettings(this, this::scheduleDiagnosticSectionRender);
 
@@ -60,6 +61,13 @@ public class AboutActivity extends Activity {
             scheduleSettingsInitialization();
         }
         scrollToSettingsIfRequested();
+        databaseBackupActions.handleLaunchIntent(getIntent(), savedInstanceState != null);
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        databaseBackupActions.handleLaunchIntent(intent, false);
     }
 
     private void initializeSettingsSection() {
@@ -106,11 +114,6 @@ public class AboutActivity extends Activity {
         settingsSwitches.configure();
         settingsControllers = new AboutSettingsControllers(this);
         settingsControllers.configure();
-        databaseBackupActions = new AboutDatabaseBackupActions(
-                this,
-                this::flushDeferredSettings,
-                this::renderAfterDatabaseImport
-        );
         databaseBackupActions.configure(exportDatabaseButton, importDatabaseButton);
         new AboutSettingInfoButtons(this).configure();
     }
@@ -125,9 +128,7 @@ public class AboutActivity extends Activity {
     protected void onStart() {
         super.onStart();
         diagnosticRenderScheduler.start();
-        if (!shouldScrollToSettings()) {
-            scheduleSettingsInitialization();
-        }
+        scheduleSettingsInitialization();
     }
 
     @Override

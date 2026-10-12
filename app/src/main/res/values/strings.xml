@@ -177,7 +177,7 @@
     <string name="msg_map_poi_zoom_in">Zoom in to load POIs.</string>
     <string name="msg_map_poi_empty">No enabled POIs in this map view.</string>
     <string name="msg_map_poi_categories_empty">No POI categories in this map view.</string>
-    <string name="msg_database_exported">Database exported.</string>
+    <string name="msg_database_exported">Database saved: %1$s</string>
     <string name="msg_database_export_failed">Could not export database.</string>
     <string name="msg_database_imported">Database imported.</string>
     <string name="msg_database_import_failed">Could not import database.</string>
@@ -425,10 +425,10 @@
     <string name="hint_log_output_folder">Logs use only Download/ViBRo/logs on the phone or the SD card selected by Use external storage. Logging switches off if access or storage is unavailable. On Android 6–9, check Diagnostics for folder access. Older files stay where they are.</string>
     <string name="hint_gpx_output_folder">Manual and automatic GPX exports use only Download/ViBRo/gpx on the phone or the SD card selected by Use external storage. Automatic saving switches off if access or storage is unavailable. On Android 6–9, check Diagnostics for folder access. Older files stay where they are.</string>
     <string name="label_external_storage_enabled">Use external storage</string>
-    <string name="about_setting_external_storage_info">Save GPX exports and logs to an SD card instead of phone storage. Available only for a mounted, supported SD card; USB drives are excluded. Android 6–9 require folder access even when logging and GPX saving are disabled. If the card becomes unavailable, saving continues in phone storage. Older files stay in their original folders.</string>
-    <string name="hint_sd_download_access">Grant access to the SD card folder:\n%1$s\n\nSelect Download, its ViBRo subfolder, or the SD card root. ViBRo will use Download/ViBRo/gpx and Download/ViBRo/logs. Saving requires access to this folder.</string>
+    <string name="about_setting_external_storage_info">Save GPX exports, logs, and database backups to an SD card instead of phone storage. Available only for a mounted, supported SD card; USB drives are excluded. Android 6–9 require folder access even when logging and GPX saving are disabled. If the card becomes unavailable, saving stops until it is available again. Older files stay in their original folders.</string>
+    <string name="hint_sd_download_access">Grant access to the SD card folder:\n%1$s\n\nSelect Download, its ViBRo subfolder, or the SD card root. ViBRo will use Download/ViBRo/gpx, Download/ViBRo/logs, and Download/ViBRo/backup. Saving requires access to this folder.</string>
     <string name="msg_sd_storage_unavailable">No supported writable SD card is available.</string>
-    <string name="msg_sd_storage_enabled">GPX exports and logs will use the SD card.</string>
+    <string name="msg_sd_storage_enabled">GPX exports, logs, and database backups will use the SD card.</string>
     <string name="msg_output_folder_failed">Could not write to this folder. The previous setting is unchanged.</string>
     <string name="msg_output_access_required">Saving is off because the selected output folder is unavailable or access was not granted.</string>
     <string name="msg_output_folder_picker_unavailable">No folder picker is available.</string>
@@ -578,8 +578,8 @@
     <string name="about_setting_speech_recognition_info">Shows microphone buttons for destination and stop voice input and chooses the requested recognition language. Android may use its default if the selected speech recognizer does not support the requested language.</string>
     <string name="about_setting_maneuver_voice_info">Reads upcoming direction prompts aloud using an Android voice.</string>
     <string name="about_setting_google_poi_api_key_info">Lets destination search use Google Maps when you provide a valid key.</string>
-    <string name="about_setting_export_database_info">Saves your app data, including history, saved routes, settings, and profile choices, to a backup file.</string>
-    <string name="about_setting_import_database_info">Restores your app data from a backup file created by this app.</string>
+    <string name="about_setting_export_database_info">Saves your app data, including history, saved routes, settings, and profile choices, as JSON in Download/ViBRo/backup on the phone or the SD card selected by Use external storage. Shows the saved filename without asking for a folder. On Android 6–9, set up storage access in Diagnostics first.</string>
+    <string name="about_setting_import_database_info">Restores your app data from a JSON backup created by this app. The file picker starts in Download/ViBRo/backup on the phone or the SD card selected by Use external storage on Android 8 and later. You can also browse to another folder.</string>
     <string name="msg_google_poi_api_key_saved">Google Maps API key saved.</string>
     <string name="msg_google_poi_api_key_cleared">Google Maps API key cleared.</string>
     <string name="msg_google_poi_api_key_required">Add a Google Maps API key before enabling Google search.</string>

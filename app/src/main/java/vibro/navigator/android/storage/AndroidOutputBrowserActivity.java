@@ -17,7 +17,7 @@ public final class AndroidOutputBrowserActivity extends Activity {
         super.onCreate(state);
         if (state == null) {
             try {
-                startActivityForResult(AndroidDocumentAccess.openDocumentIntent(getIntent().getData()),
+                startActivityForResult(AndroidOutputStorageBrowser.pickerIntent(getIntent()),
                         REQUEST_OPEN_FILE);
             } catch (ActivityNotFoundException | SecurityException e) {
                 unavailable();
@@ -33,7 +33,8 @@ public final class AndroidOutputBrowserActivity extends Activity {
             return;
         }
         try {
-            if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+            if (!AndroidOutputStorageBrowser.returnResult(this, resultCode, data)
+                    && resultCode == RESULT_OK && data != null && data.getData() != null) {
                 startActivity(new Intent(Intent.ACTION_VIEW).setDataAndType(data.getData(),
                         getContentResolver().getType(data.getData()))
                         .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK));

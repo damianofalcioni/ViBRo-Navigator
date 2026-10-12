@@ -49,7 +49,7 @@ final class AboutOutputFolderStatusRows {
 
     private void inspect(int requestGeneration) {
         Map<Kind, Boolean> allowed = new EnumMap<>(Kind.class);
-        for (Kind kind : Kind.values()) {
+        for (Kind kind : rows.keySet()) {
             allowed.put(kind, AndroidOutputStorage.isUsable(activity, kind));
         }
         activity.runOnUiThread(() -> apply(requestGeneration, allowed));
@@ -60,7 +60,7 @@ final class AboutOutputFolderStatusRows {
             return;
         }
         checking = false;
-        for (Kind kind : Kind.values()) {
+        for (Kind kind : rows.keySet()) {
             rows.get(kind).render(Boolean.TRUE.equals(allowed.get(kind)));
         }
     }

@@ -9,7 +9,7 @@ import androidx.annotation.Nullable;
 public final class AppOutputFolderSettings {
     private static final String PREFS = "output_folders";
 
-    public enum Kind { LOGS, GPX }
+    public enum Kind { LOGS, GPX, BACKUP }
 
     private AppOutputFolderSettings() {
     }

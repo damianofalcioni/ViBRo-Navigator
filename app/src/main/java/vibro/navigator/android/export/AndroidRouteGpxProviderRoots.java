@@ -59,6 +59,8 @@ final class AndroidRouteGpxProviderRoots {
                 Environment.DIRECTORY_DOWNLOADS), "ViBRo/gpx")));
         roots.add(new Root("downloads-logs", new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOWNLOADS), "ViBRo/logs")));
+        roots.add(new Root("downloads-backup", new File(Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS), "ViBRo/backup")));
         return roots;
     }
 

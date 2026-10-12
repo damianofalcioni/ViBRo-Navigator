@@ -1,138 +1,122 @@
 package vibro.navigator.about;
 
 import android.app.Activity;
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.net.Uri;
 import android.view.View;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import java.io.ByteArrayOutputStream;
+import org.json.JSONException;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 import vibro.navigator.R;
+import vibro.navigator.android.storage.AndroidDatabaseBackupStorage;
+import vibro.navigator.android.storage.AndroidOutputStorageBrowser;
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.settings.AppDataBackup;
 
 final class AboutDatabaseBackupActions {
 
     private static final String TAG = "AboutDatabaseBackup";
-    private static final int REQ_EXPORT_DATABASE = 4001;
     private static final int REQ_IMPORT_DATABASE = 4002;
+    private static final Executor WORKER = Executors.newSingleThreadExecutor();
 
-    @NonNull
     private final Activity activity;
-    @NonNull
-    private final Runnable beforePicker;
-    @NonNull
+    private final Runnable beforeBackup;
     private final Runnable afterImport;
+    private final Executor worker;
+    private boolean busy;
 
-    AboutDatabaseBackupActions(
-            @NonNull Activity activity,
-            @NonNull Runnable beforePicker,
-            @NonNull Runnable afterImport
-    ) {
-        this.activity = activity;
-        this.beforePicker = beforePicker;
-        this.afterImport = afterImport;
+    AboutDatabaseBackupActions(Activity activity, Runnable beforeBackup, Runnable afterImport) {
+        this(activity, beforeBackup, afterImport, WORKER);
     }
 
-    void configure(@NonNull View exportButton, @NonNull View importButton) {
-        exportButton.setOnClickListener(v -> openExportDatabasePicker());
-        importButton.setOnClickListener(v -> openImportDatabasePicker());
+    AboutDatabaseBackupActions(Activity activity, Runnable beforeBackup, Runnable afterImport, Executor worker) {
+        this.activity = activity;
+        this.beforeBackup = beforeBackup;
+        this.afterImport = afterImport;
+        this.worker = worker;
+    }
+
+    void configure(View exportButton, View importButton) {
+        AboutDeferredDialogAction.configure(activity, exportButton, () -> startWork(this::exportDatabase));
+        AboutDeferredDialogAction.configure(activity, importButton, () -> startWork(this::prepareImportPicker));
+    }
+
+    void handleLaunchIntent(Intent intent, boolean recreated) {
+        // A restored activity's system launch intent may still contain an already delivered result.
+        if (!recreated) {
+            AndroidOutputStorageBrowser.dispatchResult(intent, this::handleActivityResult);
+        }
     }
 
     boolean handleActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == REQ_EXPORT_DATABASE) {
-            handleExportResult(resultCode, data);
-            return true;
+        if (requestCode != REQ_IMPORT_DATABASE) {
+            return false;
         }
-        if (requestCode == REQ_IMPORT_DATABASE) {
-            handleImportResult(resultCode, data);
-            return true;
+        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            Uri uri = data.getData();
+            startWork(() -> importDatabase(uri));
         }
-        return false;
+        return true;
     }
 
-    private void openExportDatabasePicker() {
-        beforePicker.run();
-        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT)
-                .addCategory(Intent.CATEGORY_OPENABLE)
-                .setType(AppDataBackup.MIME_TYPE)
-                .putExtra(Intent.EXTRA_TITLE, AppDataBackup.defaultFileName());
-        activity.startActivityForResult(intent, REQ_EXPORT_DATABASE);
-    }
-
-    private void openImportDatabasePicker() {
-        beforePicker.run();
-        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
-                .addCategory(Intent.CATEGORY_OPENABLE)
-                .setType(AppDataBackup.MIME_TYPE);
-        activity.startActivityForResult(intent, REQ_IMPORT_DATABASE);
-    }
-
-    private void handleExportResult(int resultCode, @Nullable Intent data) {
-        Uri uri = resultUri(resultCode, data);
-        if (uri != null) {
-            exportDatabase(uri);
+    private void startWork(Runnable work) {
+        if (busy) {
+            return;
         }
+        busy = true;
+        beforeBackup.run();
+        worker.execute(work);
     }
 
-    private void handleImportResult(int resultCode, @Nullable Intent data) {
-        Uri uri = resultUri(resultCode, data);
-        if (uri != null) {
-            importDatabase(uri);
-        }
-    }
-
-    @Nullable
-    private static Uri resultUri(int resultCode, @Nullable Intent data) {
-        if (resultCode != Activity.RESULT_OK || data == null) {
-            return null;
-        }
-        return data.getData();
-    }
-
-    private void exportDatabase(@NonNull Uri uri) {
-        try (OutputStream out = activity.getContentResolver().openOutputStream(uri, "wt")) {
-            if (out == null) {
-                throw new IOException("No output stream for backup document");
+    private void prepareImportPicker() {
+        Intent intent = AndroidDatabaseBackupStorage.importIntent(activity);
+        complete(() -> {
+            try {
+                AndroidOutputStorageBrowser.openForResult(activity, intent, REQ_IMPORT_DATABASE);
+            } catch (ActivityNotFoundException | SecurityException e) {
+                AppLogger.w(TAG, "Could not open database import picker", e);
+                Toast.makeText(activity, R.string.msg_database_import_failed, Toast.LENGTH_SHORT).show();
             }
-            out.write(AppDataBackup.exportJson(activity).getBytes(StandardCharsets.UTF_8));
-            Toast.makeText(activity, R.string.msg_database_exported, Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
+        });
+    }
+
+    private void exportDatabase() {
+        try {
+            String name = AndroidDatabaseBackupStorage.exportDatabase(activity);
+            complete(() -> Toast.makeText(activity, activity.getString(R.string.msg_database_exported, name),
+                    Toast.LENGTH_LONG).show());
+        } catch (IOException | JSONException | RuntimeException e) {
             AppLogger.w(TAG, "Failed to export database", e);
-            Toast.makeText(activity, R.string.msg_database_export_failed, Toast.LENGTH_SHORT).show();
+            complete(() -> Toast.makeText(activity, R.string.msg_database_export_failed, Toast.LENGTH_SHORT).show());
         }
     }
 
-    private void importDatabase(@NonNull Uri uri) {
-        try (InputStream in = activity.getContentResolver().openInputStream(uri)) {
-            if (in == null) {
-                throw new IOException("No input stream for backup document");
-            }
-            AppDataBackup.importJson(activity, readUtf8(in));
-            afterImport.run();
-            Toast.makeText(activity, R.string.msg_database_imported, Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
+    private void importDatabase(Uri uri) {
+        try {
+            AndroidDatabaseBackupStorage.importDatabase(activity, uri);
+            complete(() -> {
+                afterImport.run();
+                Toast.makeText(activity, R.string.msg_database_imported, Toast.LENGTH_SHORT).show();
+            });
+        } catch (IOException | JSONException | RuntimeException e) {
             AppLogger.w(TAG, "Failed to import database", e);
-            Toast.makeText(activity, R.string.msg_database_import_failed, Toast.LENGTH_SHORT).show();
+            complete(() -> Toast.makeText(activity, R.string.msg_database_import_failed, Toast.LENGTH_SHORT).show());
         }
     }
 
-    @NonNull
-    private static String readUtf8(@NonNull InputStream in) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        byte[] buffer = new byte[4096];
-        int read;
-        while ((read = in.read(buffer)) != -1) {
-            out.write(buffer, 0, read);
-        }
-        return new String(out.toByteArray(), StandardCharsets.UTF_8);
+    private void complete(Runnable uiAction) {
+        activity.runOnUiThread(() -> {
+            busy = false;
+            if (!activity.isFinishing() && !activity.isDestroyed()) {
+                uiAction.run();
+            }
+        });
     }
 }

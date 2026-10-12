@@ -2,8 +2,10 @@ package vibro.navigator.android.storage;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.provider.OpenableColumns;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -111,6 +113,18 @@ public final class AndroidOutputFile {
 
     public String path() {
         return file == null ? uri.toString() : file.getAbsolutePath();
+    }
+
+    public String displayName() throws IOException {
+        if (file != null) {
+            return file.getName();
+        }
+        try (Cursor cursor = AndroidWritableDocumentTree.query(context, uri, new String[]{OpenableColumns.DISPLAY_NAME})) {
+            if (cursor != null && cursor.moveToFirst() && !cursor.isNull(0)) {
+                return cursor.getString(0);
+            }
+        }
+        throw new IOException("Could not read output filename");
     }
 
     public void removeQuietly() {

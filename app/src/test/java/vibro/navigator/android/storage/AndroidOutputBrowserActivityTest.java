@@ -5,6 +5,7 @@ import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.ContentValues;
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -78,6 +79,76 @@ public class AndroidOutputBrowserActivityTest {
             assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK,
                     viewer.getFlags());
             assertTrue(activity.isFinishing());
+        }
+    }
+
+    @Test
+    public void importReturnsToCallerWithReadAccessAndConsumesResultOnce() {
+        Intent launch = importLaunch();
+        try (ActivityController<AndroidOutputBrowserActivity> controller =
+                     Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
+            AndroidOutputBrowserActivity activity = controller.get();
+            shadowOf(activity).getNextStartedActivity();
+            Uri file = Uri.parse("content://backups/document/backup.json");
+            ClipData clip = ClipData.newRawUri("backup", file);
+            Intent selection = new Intent().setData(file);
+            selection.setClipData(clip);
+            activity.onActivityResult(AndroidOutputBrowserActivity.REQUEST_OPEN_FILE,
+                    Activity.RESULT_OK, selection);
+            Intent returned = shadowOf(activity).getNextStartedActivity();
+            assertEquals(Activity.class.getName(), returned.getComponent().getClassName());
+            assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    | Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_GRANT_READ_URI_PERMISSION, returned.getFlags());
+            assertEquals(file, returned.getData());
+            assertEquals(file, returned.getClipData().getItemAt(0).getUri());
+            assertTrue(activity.isFinishing());
+            int[] deliveries = {0};
+            AndroidOutputStorageBrowser.ActivityResult receiver = (request, result, data) -> {
+                assertEquals(4002, request);
+                assertEquals(Activity.RESULT_OK, result);
+                assertEquals(file, data.getData());
+                deliveries[0]++;
+            };
+            AndroidOutputStorageBrowser.dispatchResult(returned, receiver);
+            AndroidOutputStorageBrowser.dispatchResult(returned, receiver);
+            assertEquals(1, deliveries[0]);
+            assertNull(shadowOf(activity).getNextStartedActivity());
+        }
+    }
+
+    @Test
+    public void recreatedImportHostReturnsCancellationWithoutOpeningAnotherPicker() {
+        Intent launch = importLaunch();
+        Bundle saved = new Bundle();
+        try (ActivityController<AndroidOutputBrowserActivity> controller =
+                     Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
+            shadowOf(controller.get()).getNextStartedActivityForResult();
+            shadowOf(controller.get()).getNextStartedActivity();
+            controller.saveInstanceState(saved);
+        }
+        try (ActivityController<AndroidOutputBrowserActivity> controller =
+                     Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup(saved)) {
+            AndroidOutputBrowserActivity activity = controller.get();
+            assertNull(shadowOf(activity).getNextStartedActivityForResult());
+            activity.onActivityResult(AndroidOutputBrowserActivity.REQUEST_OPEN_FILE, Activity.RESULT_CANCELED, null);
+            Intent returned = shadowOf(activity).getNextStartedActivity();
+            AndroidOutputStorageBrowser.dispatchResult(returned, (request, result, data) -> {
+                assertEquals(4002, request);
+                assertEquals(Activity.RESULT_CANCELED, result);
+                assertNull(data.getData());
+            });
+            assertTrue(activity.isFinishing());
+            assertNull(shadowOf(activity).getNextStartedActivity());
+        }
+    }
+
+    private static Intent importLaunch() {
+        try (ActivityController<Activity> caller = Robolectric.buildActivity(Activity.class).setup()) {
+            AndroidOutputStorageBrowser.openForResult(caller.get(),
+                    AndroidDocumentAccess.openDocumentIntent(FOLDER), 4002);
+            Intent launch = shadowOf(caller.get()).getNextStartedActivityForResult().intent;
+            shadowOf(caller.get()).getNextStartedActivity();
+            return launch;
         }
     }
 

@@ -47,7 +47,11 @@ public final class AndroidOutputDestination {
     }
 
     public static String subfolder(Kind kind) {
-        return kind == Kind.LOGS ? "logs" : "gpx";
+        return switch (kind) {
+            case LOGS -> "logs";
+            case GPX -> "gpx";
+            case BACKUP -> "backup";
+        };
     }
 
     public String token() {

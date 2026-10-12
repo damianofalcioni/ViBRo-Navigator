@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
+import vibro.navigator.settings.AppDataBackup;
 
 public final class AndroidRouteGpxFileProvider extends ContentProvider {
     private static final String FILE_PROVIDER_SUFFIX = ".fileprovider";
@@ -39,6 +40,9 @@ public final class AndroidRouteGpxFileProvider extends ContentProvider {
     @Nullable
     public String getType(@NonNull Uri uri) {
         String name = uri.getLastPathSegment();
+        if (name != null && name.endsWith(".json")) {
+            return AppDataBackup.MIME_TYPE;
+        }
         return name != null && (name.endsWith(".txt") || name.endsWith(".log"))
                 ? "text/plain" : NavigationRouteGpxExporter.GPX_MIME_TYPE;
     }

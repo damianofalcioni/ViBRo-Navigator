@@ -23,6 +23,7 @@ public class AboutOutputFolderBrowserTest {
     public void opensSystemBrowserWithoutUsingTheBrokenFolderViewer() {
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             Activity activity = controller.get();
+            String[] subfolders = {"logs", "gpx", "backup"};
             for (Kind kind : Kind.values()) {
                 AndroidOutputStorageBrowser.open(activity, AndroidOutputStorage.current(activity, kind));
                 org.robolectric.shadows.ShadowActivity.IntentForResult launch =
@@ -31,7 +32,7 @@ public class AboutOutputFolderBrowserTest {
                 Intent browser = launch.intent;
                 assertEquals(AndroidOutputBrowserActivity.class.getName(), browser.getComponent().getClassName());
                 assertEquals(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP, browser.getFlags());
-                assertEquals("primary:Download/ViBRo/" + (kind == Kind.GPX ? "gpx" : "logs"),
+                assertEquals("primary:Download/ViBRo/" + subfolders[kind.ordinal()],
                         DocumentsContract.getDocumentId(browser.getData()));
                 assertNull(browser.getType());
             }

@@ -426,24 +426,6 @@ public class AboutLoggingSettingsRobolectricTest {
     }
 
     @Test
-    public void aboutPageDatabaseButtonsOpenDocumentPickers() {
-        AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
-        Button exportDatabaseButton = activity.findViewById(R.id.aboutExportDatabaseButton);
-        Button importDatabaseButton = activity.findViewById(R.id.aboutImportDatabaseButton);
-
-        exportDatabaseButton.performClick();
-        ShadowActivity.IntentForResult exportIntent = shadowOf(activity).getNextStartedActivityForResult();
-
-        importDatabaseButton.performClick();
-        ShadowActivity.IntentForResult importIntent = shadowOf(activity).getNextStartedActivityForResult();
-
-        assertEquals(Intent.ACTION_CREATE_DOCUMENT, exportIntent.intent.getAction());
-        assertEquals("application/json", exportIntent.intent.getType());
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT, importIntent.intent.getAction());
-        assertEquals("application/json", importIntent.intent.getType());
-    }
-
-    @Test
     public void aboutPageLinksOpenProjectUrls() {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         TextView sourceCodeLink = activity.findViewById(R.id.aboutSourceCodeLink);
