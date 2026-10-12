@@ -16,7 +16,7 @@ import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.presentation.NavStateComposer;
 import android.annotation.SuppressLint;
-import android.app.Activity;
+import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -26,7 +26,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
 
-public class NavigationActivity extends Activity {
+public class NavigationActivity extends AndroidLocalizedActivity {
 
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
 

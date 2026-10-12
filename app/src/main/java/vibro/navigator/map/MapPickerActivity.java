@@ -3,7 +3,7 @@ package vibro.navigator.map;
 import vibro.navigator.R;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
+import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -27,7 +27,7 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.poi.Poi;
 
-public final class MapPickerActivity extends Activity {
+public final class MapPickerActivity extends AndroidLocalizedActivity {
 
     private static final String TAG = "MapPickerActivity";
     private static final double DEFAULT_CENTER_LAT = 20.0d;

@@ -11,6 +11,7 @@ import vibro.navigator.logging.AppLogger;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -58,6 +59,11 @@ final class BRouterProfileLister {
     ) {
         Set<String> out = new TreeSet<>(externalProfiles);
         out.addAll(bundledProfiles);
+        for (Iterator<String> profiles = out.iterator(); profiles.hasNext();) {
+            if ("remote".equalsIgnoreCase(profiles.next())) {
+                profiles.remove();
+            }
+        }
         return new ArrayList<>(out);
     }
 

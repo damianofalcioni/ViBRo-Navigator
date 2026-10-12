@@ -7,13 +7,14 @@ import androidx.annotation.PluralsRes;
 import androidx.annotation.StringRes;
 
 import vibro.navigator.settings.AppSettings;
+import vibro.navigator.android.language.AndroidLanguageContext;
 
 public final class AndroidNavigationTextResources implements NavigationTextResources {
     @NonNull
     private final Context context;
 
     public AndroidNavigationTextResources(@NonNull Context context) {
-        this.context = context;
+        this.context = new AndroidLanguageContext(context);
     }
 
     @NonNull

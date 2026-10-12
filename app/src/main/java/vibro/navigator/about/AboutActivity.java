@@ -1,6 +1,6 @@
 package vibro.navigator.about;
 
-import android.app.Activity;
+import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,7 +18,7 @@ import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.dispatch.TaskScheduler;
 
-public class AboutActivity extends Activity {
+public class AboutActivity extends AndroidLocalizedActivity {
 
     public static final String EXTRA_SCROLL_TO_SETTINGS = "vibro.navigator.about.SCROLL_TO_SETTINGS";
     static final long SETTINGS_INITIALIZATION_DELAY_MS = 75L;
@@ -76,6 +76,7 @@ public class AboutActivity extends Activity {
             return;
         }
         inflateSettingsSectionIfNeeded();
+        new AboutLanguageSettings(this).configure();
         Switch logEnabledSwitch = findViewById(R.id.aboutLogEnabledSwitch);
         Switch autoSaveGpxSwitch = findViewById(R.id.aboutAutoSaveGpxSwitch);
         Switch fusedLocationSwitch = findViewById(R.id.aboutFusedLocationSwitch);
@@ -242,6 +243,8 @@ public class AboutActivity extends Activity {
         initializeSettingsSection();
         diagnosticRenderScheduler.renderNow();
         settingsControllers.refreshAfterDatabaseImport();
+        new AboutLanguageSettings(this).configure();
+        recreateIfLanguageChanged();
     }
 
     @NonNull

@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
 
 import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.format.NavigationTripStatsFormatter;
 import vibro.navigator.nav.location.NavigationGpsTelemetryFormatter;
@@ -126,11 +127,11 @@ final class ViBRoAutoDetailPanelPainter {
     private String detailTitle(@NonNull ViBRoAutoDetailPanel detailPanel) {
         switch (detailPanel) {
             case GPS:
-                return carContext.getString(R.string.title_nav_gps_details);
+                return AndroidAppLanguage.getString(carContext, R.string.title_nav_gps_details);
             case DIRECTIONS:
-                return carContext.getString(R.string.title_nav_directions_details);
+                return AndroidAppLanguage.getString(carContext, R.string.title_nav_directions_details);
             case TRIP:
-                return carContext.getString(R.string.title_nav_trip_stats);
+                return AndroidAppLanguage.getString(carContext, R.string.title_nav_trip_stats);
             default:
                 throw new IllegalArgumentException("Unsupported detail panel=" + detailPanel);
         }
@@ -164,10 +165,10 @@ final class ViBRoAutoDetailPanelPainter {
         long deadline = state.gpsStatus.nextEvaluationDeadlineElapsedMs;
         long remainingMs = Math.max(0L, deadline - elapsedRealtimeClock.elapsedRealtimeMs());
         if (deadline == NavState.NO_DEADLINE || remainingMs <= 0L) {
-            return carContext.getString(R.string.nav_status_unavailable);
+            return AndroidAppLanguage.getString(carContext, R.string.nav_status_unavailable);
         }
         long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
-        return carContext.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
+        return AndroidAppLanguage.getString(carContext, R.string.format_nav_next_position_check_value, remainingSeconds);
     }
 
     @NonNull

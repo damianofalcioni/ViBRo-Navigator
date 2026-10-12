@@ -17,6 +17,7 @@ Core product constraints:
 - The current repository baseline is `compileSdk 37` and `targetSdk 37` while keeping `minSdk 23`
 - Use a black theme by default and provide a settings switch for an optional light theme
 - Do not hardcode user-facing text in code
+- Support English, Italian, and German, following the system language by default and allowing a saved manual app language in Display settings
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
@@ -49,6 +50,9 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 #### 1.1 Routing profiles
 
 - The BRouter profile selector items must include BRouter profile names plus a single custom-profile entry
+- In both the selected row and dropdown, use the existing localized profile title when a profile name matches the bundled-profile catalog; otherwise retain the original profile name. Keep the original profile name for selection persistence and BRouter requests, and retain the custom-profile entry's existing label format.
+- Exclude the reserved `remote` profile from discovered external and bundled lists: BRouter creates `remote.brf` temporarily for `remoteProfile` requests, as documented in its [Android service interface](https://github.com/abrensch/brouter/blob/master/docs/developers/android_service.md). Keep the normal custom-profile picker and `remoteProfile` routing support.
+- Keep localized profile titles concise and display selected/dropdown labels on one line, ellipsizing at the end when needed on narrow screens or with larger fonts. Convey experimental/debug status through the existing warning triangle rather than repeating it in titles; retain the detailed explanations in profile help.
 - Profiles may come from bundled BRouter internal profiles or from user-accessible `.brf` files in autodiscovered external `profiles2` folders
 - The selector is profile-based, not a separate vehicle-type toggle
 - Profile handling must remain compatible with both bundled BRouter profiles and autodiscovered external `profiles2` folders
@@ -798,6 +802,7 @@ The navigation UI must show the following in large text:
 #### 5.1 Logging and diagnostics
 
 - Each entry in the about page Settings section must include a right-side info button that opens a short UI explanation of that setting or settings action
+- Settings rows with both a configuration button and a switch must use the left-to-right order: label, configuration button, switch, info/help button. The configuration button must sit immediately left of the switch; apply this convention to existing and future settings.
 - The about page Settings section must show a Log enabled switch
 - The about page Settings section must show an Auto-save GPX on stop switch that is enabled by default
 - Logs and Auto-save GPX retain their label, circular 44dp configuration button immediately left of the switch, and info button. Their dialogs show the actual current folder and compact right-aligned Open, red Delete, and OK actions. Remove custom output-folder selection and reset actions.
@@ -887,6 +892,18 @@ The navigation UI must show the following in large text:
 - The test notification titles must identify the tested group as `test all lefts notifications`, `test all others notifications`, or `test all rights notifications`
 - Those test symbols should remain simple enough to render on generic smart bands rather than assuming full emoji support
 
+#### 5.2 App language and Display settings
+
+- The first entry under Settings → Display must be a Use system language switch, enabled by default, before Light Theme and imperial units. Include an icon-only configuration button immediately left of the switch, styled like the other settings configuration buttons, and a right-side help button.
+- Automatic language selection must use the first supported language in the device's ordered language preferences. Match regional variants to their supported language, such as Italian for `it-CH` and German for `de-AT`; fall back to English when none of the device languages is supported.
+- The configuration button must remain available whether Use system language is on or off. Its dialog must contain a spinner offering English, Italiano, and Deutsch with capitalized names in their own languages, a short explanation, and OK/Cancel actions. Use the same themed spinner field, popup, and item layouts as the other app spinners.
+- Before a manual choice has been saved, the spinner must select the supported system language, or English for an unsupported system language. After a choice has been saved, reopening the dialog must select that saved language. OK saves the selection; Cancel leaves the saved selection unchanged.
+- While Use system language is enabled, saving a spinner selection must retain it for later manual use without changing the effective app language. Turning the switch off must use the saved selection; if no selection exists yet, capture the current supported system language so subsequent device-language changes do not alter the manual choice. Reenabling automatic selection must retain the manual choice.
+- Persist both preferences across launches and include them in app settings database export/import. Refresh the switch and effective language after import. Language preferences must remain independent of the speech-recognition language and speech-direction voice preferences.
+- Apply the effective language before inflating phone UI. When the effective language changes, refresh the settings screen and screens returning from settings through normal activity recreation, preserving their saved state and any running navigation session. Application and service text must follow the effective language without restarting navigation.
+- Localize app-owned UI, dialogs, settings explanations, accessibility text, notifications, and guidance text in both distribution flavors, including Google Play-specific attribution and Android Auto text. Preserve user-entered names, external data, proper names, and OSM/BRouter tag identifiers.
+- Keep the language row and dialog usable in portrait, landscape, dark and light themes, and with larger system fonts on all supported Android versions.
+
 ### 6. Shared/opened coordinates and addresses
 
 - The app must support opening or sharing map coordinates or addresses into the app
@@ -925,7 +942,7 @@ The navigation UI must show the following in large text:
 - Battery-conscious background navigation
 - Minimal UI and minimal code footprint
 - Offline-first routing through BRouter
-- Translation-friendly text resource usage
+- Complete English, Italian, and German text resources, including localized plural forms and preserved formatting placeholders
 - Orientation-safe layouts
 - Robust permission handling before navigation starts
 - Robust OEM-compatible redirects for required system settings and battery-optimization exemption requests
@@ -933,6 +950,8 @@ The navigation UI must show the following in large text:
 - Robustness for map-free guidance: the product should favor conservative, high-confidence navigation prompts over aggressive but error-prone updates
 
 ## Distribution and release expectations
+
+- Every installed build must include all supported app languages so the in-app picker works offline. Google Play app bundles must package the language resources together rather than require an additional language download when the user changes the app language.
 
 - The repository should remain suitable for official F-Droid inclusion.
 - The Android app must be built with explicit `fdroid` and `gplay` product flavors.
@@ -973,6 +992,8 @@ The navigation UI must show the following in large text:
 - Prefer extending the existing `logging/AppLogger` coverage when touching startup, permissions, routing, background execution, or network search behavior.
 
 ## Testing expectations
+
+- Maintain language coverage for automatic selection, ordered system-language matching and regional variants, English fallback, manual selection persistence, switch defaults, spinner defaults and saved selection, OK/Cancel behavior, and system changes while manual selection is active. Cover localized activity inflation/recreation and language updates in an existing service, including Android 6 compatibility and modern Android, in both flavors. Validate translation completeness, formatting placeholders, plural forms, and packaging that keeps all languages available offline.
 
 - Prefer JVM regression coverage, with Robolectric for Android lifecycle behavior where practical.
 - The core automated suite should not require an emulator or real device, though some foreground-service and OEM notification behaviors may still need manual verification.

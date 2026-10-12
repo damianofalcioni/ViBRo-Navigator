@@ -12,6 +12,7 @@ import androidx.car.app.CarContext;
 import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.model.NavState;
@@ -300,7 +301,7 @@ final class ViBRoAutoTextColumnPainter {
 
     @NonNull
     private String gpsStatusText(@NonNull NavState state) {
-        return carContext.getString(
+        return AndroidAppLanguage.getString(carContext,
                 R.string.format_nav_gps_status_with_countdown,
                 state.gpsStatus.statusLine,
                 nextEvaluationValue(state)
@@ -312,10 +313,10 @@ final class ViBRoAutoTextColumnPainter {
         long deadline = state.gpsStatus.nextEvaluationDeadlineElapsedMs;
         long remainingMs = Math.max(0L, deadline - elapsedRealtimeClock.elapsedRealtimeMs());
         if (deadline == NavState.NO_DEADLINE || remainingMs <= 0L) {
-            return carContext.getString(R.string.nav_status_unavailable);
+            return AndroidAppLanguage.getString(carContext, R.string.nav_status_unavailable);
         }
         long remainingSeconds = (long) Math.ceil(remainingMs / 1000.0);
-        return carContext.getString(R.string.format_nav_next_position_check_value, remainingSeconds);
+        return AndroidAppLanguage.getString(carContext, R.string.format_nav_next_position_check_value, remainingSeconds);
     }
 
     private void drawForegroundPanelBackground(

@@ -1,6 +1,6 @@
 package vibro.navigator.android.storage;
 
-import android.app.Activity;
+import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,7 +9,7 @@ import android.widget.Toast;
 import vibro.navigator.R;
 
 /** Hosts system file picking in its own task without creating an in-app file browser. */
-public final class AndroidOutputBrowserActivity extends Activity {
+public final class AndroidOutputBrowserActivity extends AndroidLocalizedActivity {
     static final int REQUEST_OPEN_FILE = 4013;
 
     @Override

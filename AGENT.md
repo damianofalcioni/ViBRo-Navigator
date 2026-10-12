@@ -17,6 +17,10 @@ For work in `docs/` or `docs-tools/`, also read `docs/AGENT.MD` and `docs-tools/
 
 - When implementing a user request, do not stop at the narrowest change that merely appears to work. Implement the most correct solution for the product and architecture, accounting for realistic edge cases, failure modes, lifecycle states, flavor boundaries, and existing contracts before closing the task.
 - Keep repository documentation aligned with the code when relevant changes are made. Update `SPECIFICATION.md` when product behavior, requirements, or user-visible flows change. Update `AGENT.md` when architecture, guardrails, workflows, or coding expectations change. Do not make doc-only churn for code changes that do not affect those areas.
+- Settings rows with both a configuration button and a switch must follow this left-to-right order: label, configuration button, switch, info/help button. Use a separate weighted label and place the configuration button immediately left of the switch, including for Use system language and future settings.
+- Reuse the app's themed spinner field/popup backgrounds and selected/dropdown item layouts for settings dialogs instead of Android's default spinner item layouts. Display language names in their own language with an initial capital, such as English, Italiano, and Deutsch.
+- BRouter profile spinner labels should reuse `BundledProfileInfo` localized titles for matching profile names and preserve original names for unmatched profiles. Keep display labels separate from raw profile names and selection keys so localization never changes routing or persisted selection.
+- Exclude BRouter's temporary `remote.brf` from discovered profile lists. Keep localized profile titles short, use one-line spinner labels with end ellipsis, and rely on the existing warning triangle for experimental/debug status while retaining the help descriptions.
 - Keep README/about content aligned at the product-description level. `README.md` and `about_short_description` in `strings.xml` should stay consistent about the app's purpose and core behavior, but they do not need to be literal copies of each other.
 - When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/vibro.navigator.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
 - At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
@@ -36,7 +40,7 @@ For work in `docs/` or `docs-tools/`, also read `docs/AGENT.MD` and `docs-tools/
 
 - Single-module Android app at `app/`
 - Language: Java only
-- UI base: platform `Activity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
+- UI base: platform `Activity` through `android/language/AndroidLocalizedActivity` + platform widgets/dialogs, with `androidx.core` kept for compatibility helpers
 - Keep navigation back handling compatible with predictive back using platform callbacks; do not migrate the app shell to `ComponentActivity` unless explicitly requested
 - Gradle: `9.8.1`
 - Android Gradle Plugin: `9.4.1`
@@ -92,10 +96,22 @@ Distribution-related workflows:
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
 - `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
 
+## App localization
+
+- English is the default resource language; Italian and German translations live in `app/src/main/res/values-it/strings.xml` and `values-de/strings.xml`. Translate flavor-specific text and overrides in the corresponding `app/src/gplay/res/values-it` and `values-de` directories so the Google Play build does not replace translated common text with English.
+- Keep the supported language catalog and persisted automatic/manual choices in `settings/AppLanguageSettings`. Language preferences belong to the existing app settings preference file and participate in database backup/import. Keep them independent of speech-recognition language and TTS voice preferences.
+- `about/AboutLanguageSettings` owns the first Display setting and its language spinner dialog. Preserve the enabled-by-default Use system language switch, configuration availability in either switch state, initial system-matched selection, remembered manual selection, and OK/Cancel behavior specified in section 5.2.
+- Android locale/configuration handling belongs in `android/language`. `AndroidAppLanguage` resolves the first supported system language and English fallback; `AndroidLocalizedActivity` applies the language before inflation and recreates returning screens when it changes. New phone activities must use that base while preserving platform widgets, dialogs, predictive back, saved state, and the existing theme handling.
+- `ViBRoNavigatorApp` uses `AndroidLanguageContext`, and `NavigationService` uses `AndroidLocalizedService`, to keep application/service resource text current without restarting navigation. `AndroidNavigationTextResources` and Android Auto text must use the shared localization adapters; a raw car context must not bypass the saved app language. Preserve non-language configuration such as screen dimensions and font scale, and do not change the process-wide default locale to implement the picker.
+- Add every new translatable string to each supported language, including help and accessibility descriptions. Preserve numbered format placeholders, inline styling, and OSM/BRouter tag values. Supply each language's required plural quantities, including Italian `many`. Mark only genuinely language-independent names, symbols, and measurement/format patterns `translatable="false"`; do not hide missing translations with that flag or translate user-entered data.
+- Keep `android.bundle.language.enableSplit = false` in `app/build.gradle` so all languages remain available offline in Play-installed builds. Do not introduce Play Core language downloads or an AppCompat migration solely for localization.
+- When adding a language, update the shared catalog, common and flavor-specific resources, specification, README feature description, and relevant language tests together. Run both flavor tests and lint, retain the PMD baseline, and verify app-bundle packaging when changing language delivery.
+
 ## Test strategy
 
 - Apply the 100% code-coverable principle: production decisions, policy thresholds, parsers, planners, and formatting rules should expose a plain JVM-testable path. When Android objects are only data carriers, add a small value-object or overload boundary so the decision code can be tested without Robolectric.
 - Prefer JVM tests. Use Robolectric when Android lifecycle coverage is needed.
+- Run Gradle verification tasks in one invocation per checkout; do not overlap builds that write to the same build or test-report directories. Use focused tests during development, then run the required full flavor checks before closing implementation work.
 - Keep Robolectric limited to tests that actually need Android framework execution: Activity/Service lifecycle, resources, `Context`/`SharedPreferences`, package manager/intent resolution, framework services/shadows, view drawing, or Android SDK stubs that are not executable in plain local tests.
 - When a framework or SDK call only supports integration-style testing, put that call behind a narrow app-owned port and unit-test the policy/decision code against fakes. Robolectric tests should validate adapter wiring only where framework execution is the behavior under test.
 - Do not add emulator/device requirements to the core automated suite unless explicitly requested.

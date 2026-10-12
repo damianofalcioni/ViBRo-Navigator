@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="about_credits">Mitwirkende: BRouter für Routen. POI-Suche und umgekehrte Geokodierung verwenden Google Maps Geocoding, wenn die Google-Suche mit gespeichertem API-Schlüssel aktiviert ist, andernfalls OpenStreetMap Nominatim. Kartenkacheln und Geodaten von OpenStreetMap-Mitwirkenden: https://www.openstreetmap.org/copyright</string>
+    <string name="auto_no_active_navigation_title">Keine aktive Navigation</string>
+    <string name="auto_no_active_navigation_text">Starte die Navigation auf dem Telefon, um hier Hinweise anzuzeigen.</string>
+</resources>

@@ -30,6 +30,50 @@
         android:textSize="18sp" />
 
     <LinearLayout
+        android:id="@+id/aboutLanguageRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical"
+        android:minHeight="48dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/aboutLanguageLabel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/label_use_system_language"
+            android:textColor="?attr/vibroTextPrimaryColor"
+            android:textSize="16sp" />
+
+        <ImageButton
+            android:id="@+id/aboutLanguageSettingsButton"
+            style="@style/Widget.ViBRoNavigator.IconButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:contentDescription="@string/action_configure_app_language"
+            android:src="@drawable/ic_settings" />
+
+        <Switch
+            android:id="@+id/aboutUseSystemLanguageSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/label_use_system_language"
+            android:minHeight="48dp"
+            android:showText="false" />
+
+        <ImageButton
+            android:id="@+id/aboutLanguageInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="4dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
+
+    <LinearLayout
         android:id="@+id/aboutLightThemeRow"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

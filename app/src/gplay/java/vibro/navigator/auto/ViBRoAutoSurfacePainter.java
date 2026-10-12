@@ -11,6 +11,7 @@ import androidx.car.app.CarContext;
 import androidx.car.app.SurfaceContainer;
 
 import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.android.theme.AndroidAppTheme;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
@@ -54,7 +55,7 @@ final class ViBRoAutoSurfacePainter {
             textColumnPainter.drawMessage(
                     canvas,
                     contentArea,
-                    carContext.getString(R.string.auto_no_active_navigation_title),
+                    AndroidAppLanguage.getString(carContext, R.string.auto_no_active_navigation_title),
                     layoutScale
             );
             return;

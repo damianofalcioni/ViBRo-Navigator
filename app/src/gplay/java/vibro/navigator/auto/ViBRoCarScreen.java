@@ -114,7 +114,7 @@ public final class ViBRoCarScreen extends Screen {
     }
 
     private void showToast(int messageResId) {
-        CarToast.makeText(carContext, messageResId, CarToast.LENGTH_SHORT).show();
+        CarToast.makeText(carContext, carContext.getApplicationContext().getString(messageResId), CarToast.LENGTH_SHORT).show();
     }
 
     private void openPhoneApp() {

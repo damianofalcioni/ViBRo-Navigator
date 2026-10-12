@@ -14,7 +14,6 @@ import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import vibro.navigator.nav.policy.NavigationLifecyclePolicy;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.model.NavState;
-import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
 
@@ -22,9 +21,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.logging.AppExitDiagnostics;
+import vibro.navigator.android.language.AndroidLocalizedService;
 
 // Android service shell: explicit collaborators keep lifecycle ownership visible and behavior isolated in helpers.
-public class NavigationService extends Service {
+public class NavigationService extends AndroidLocalizedService {
 
     private static final String TAG = "NavigationService";
     private static final long FOREGROUND_NOTIFICATION_CHECK_INTERVAL_MS = 5_000L;

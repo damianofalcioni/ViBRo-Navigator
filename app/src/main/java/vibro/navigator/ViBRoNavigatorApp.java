@@ -2,6 +2,7 @@ package vibro.navigator;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ import vibro.navigator.distribution.DistributionServices;
 import vibro.navigator.logging.AppExitDiagnostics;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppAndroidAutoSettings;
+import vibro.navigator.android.language.AndroidLanguageContext;
 
 public final class ViBRoNavigatorApp extends Application {
 
@@ -18,6 +20,11 @@ public final class ViBRoNavigatorApp extends Application {
 
     @Nullable
     private Thread.UncaughtExceptionHandler previousUncaughtExceptionHandler;
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(new AndroidLanguageContext(base));
+    }
 
     @Override
     public void onCreate() {

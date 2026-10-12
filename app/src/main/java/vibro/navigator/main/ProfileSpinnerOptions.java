@@ -24,7 +24,9 @@ final class ProfileSpinnerOptions {
         profiles.addAll(newProfiles);
         options.clear();
         for (String profile : profiles) {
-            options.add(new ProfileSpinnerOption(profile, profile, false));
+            BundledProfileInfo info = BundledProfileInfo.forProfile(profile);
+            String label = info == null ? profile : context.getString(info.titleRes());
+            options.add(new ProfileSpinnerOption(label, profile, false));
         }
         options.add(buildCustomOption(context, customProfile));
     }

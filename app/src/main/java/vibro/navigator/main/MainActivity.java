@@ -1,7 +1,7 @@
 package vibro.navigator.main;
 
 import vibro.navigator.R;
-import android.app.Activity;
+import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -23,7 +23,7 @@ import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.model.NavigationRoutingMode;
 
 // Android entry point: keep workflow logic delegated without hiding required screen collaborators behind a generic facade.
-public class MainActivity extends Activity {
+public class MainActivity extends AndroidLocalizedActivity {
 
     public static final String EXTRA_OPEN_NAVIGATION = "open_navigation";
 

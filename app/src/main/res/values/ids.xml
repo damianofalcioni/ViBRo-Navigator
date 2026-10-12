@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <item name="aboutLanguageSpinner" type="id" />
     <item name="aboutPoiCategoryDialogList" type="id" />
     <item name="aboutPoiCategoryAddButton" type="id" />
     <item name="aboutGooglePoiApiKeyEdit" type="id" />

@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
 import org.robolectric.shadows.ShadowPackageManager;
 
@@ -115,22 +116,26 @@ public class ProfileSpinnerControllerTest {
     }
 
     @Test
+    @Config(qualifiers = "it")
     public void refresh_listsBRouterProfilesAndCustomEntryButDefaultsToBRouterWhenInstalled() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         RepeatSelectSpinner spinner = new RepeatSelectSpinner(activity);
         ProfileSpinnerController controller = new ProfileSpinnerController(
                 activity,
                 spinner,
-                new ProfilesRepository(true, Arrays.asList(PROFILE_TREKKING, PROFILE_FASTBIKE)),
+                new ProfilesRepository(true, Arrays.asList(PROFILE_TREKKING, PROFILE_FASTBIKE, "user-bike")),
                 () -> {
                 }
         );
 
         controller.refresh();
 
-        assertEquals(3, spinner.getCount());
-        assertEquals(PROFILE_TREKKING, String.valueOf(spinner.getItemAtPosition(0)));
-        assertEquals(PROFILE_FASTBIKE, String.valueOf(spinner.getItemAtPosition(1)));
+        assertEquals(4, spinner.getCount());
+        assertEquals(activity.getString(R.string.profile_info_trekking_title),
+                String.valueOf(spinner.getItemAtPosition(0)));
+        assertEquals(activity.getString(R.string.profile_info_fastbike_title),
+                String.valueOf(spinner.getItemAtPosition(1)));
+        assertEquals("user-bike", String.valueOf(spinner.getItemAtPosition(2)));
         assertEquals(0, spinner.getSelectedItemPosition());
         ProfileSelection selectedProfile = controller.resolveSelectedProfileSelection();
         assertEquals(NavigationRoutingMode.BROUTER, selectedProfile.routingMode);

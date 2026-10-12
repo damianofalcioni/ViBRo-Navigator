@@ -13,6 +13,7 @@ import androidx.car.app.model.Template;
 import androidx.car.app.navigation.model.NavigationTemplate;
 
 import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.nav.model.NavState;
 
 final class ViBRoCarTemplates {
@@ -97,6 +98,6 @@ final class ViBRoCarTemplates {
 
     @NonNull
     private String text(int resId) {
-        return carContext.getString(resId);
+        return AndroidAppLanguage.getString(carContext, resId);
     }
 }

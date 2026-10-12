@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 
 import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.nav.service.NavigationServiceBinder;
 
 final class ViBRoAutoDirectionDetailsText {
@@ -18,7 +19,7 @@ final class ViBRoAutoDirectionDetailsText {
     static String build(@NonNull CarContext carContext, @Nullable NavigationServiceBinder navBinder) {
         List<String> lines = navBinder == null ? Collections.emptyList() : navBinder.buildCurrentDirectionDetails();
         if (lines.isEmpty()) {
-            return carContext.getString(R.string.nav_directions_unavailable);
+            return AndroidAppLanguage.getString(carContext, R.string.nav_directions_unavailable);
         }
         return formatLines(carContext, lines);
     }
@@ -30,7 +31,7 @@ final class ViBRoAutoDirectionDetailsText {
             if (i > 0) {
                 details.append('\n');
             }
-            details.append(carContext.getString(R.string.format_nav_direction_details_row, i + 1, lines.get(i)));
+            details.append(AndroidAppLanguage.getString(carContext, R.string.format_nav_direction_details_row, i + 1, lines.get(i)));
         }
         return details.toString();
     }

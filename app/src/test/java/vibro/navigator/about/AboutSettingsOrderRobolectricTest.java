@@ -22,6 +22,7 @@ public class AboutSettingsOrderRobolectricTest {
                 section,
                 R.id.aboutSettingsTitle,
                 R.id.aboutSettingsDisplayTitle,
+                R.id.aboutLanguageRow,
                 R.id.aboutLightThemeRow,
                 R.id.aboutImperialUnitsRow,
                 R.id.aboutSettingsGuidanceTitle,
