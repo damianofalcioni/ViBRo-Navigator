@@ -6,7 +6,7 @@
     android:viewportHeight="24">
 
     <path
-        android:fillColor="@color/compass_accent"
+        android:fillColor="@color/success"
         android:pathData="M12,2a10,10 0,1 0,0 20a10,10 0,1 0,0 -20z" />
 
     <path
