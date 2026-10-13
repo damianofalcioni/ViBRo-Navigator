@@ -296,7 +296,6 @@ public final class NavStateTextFactory {
                 label,
                 NavigationTextFormatter.formatDistance(textResources, distanceMeters),
                 timeText,
-                textResources.getString(R.string.nav_eta),
                 etaText
         );
     }

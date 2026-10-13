@@ -130,7 +130,6 @@ public final class TestNavigationTextResources implements NavigationTextResource
 
     private static void addNavigationStatusStrings(@NonNull Map<Integer, String> strings) {
         strings.put(R.string.nav_destination_label, "🏁");
-        strings.put(R.string.nav_eta, "ETA");
         strings.put(R.string.nav_status_unavailable, "--");
         strings.put(R.string.format_nav_gps_fix_age, "%1$d s");
         strings.put(R.string.nav_no_route, "No route");
@@ -174,7 +173,7 @@ public final class TestNavigationTextResources implements NavigationTextResource
                 R.string.nav_paused_notice,
                 "Navigation is paused. Tap Resume navigation to continue live guidance."
         );
-        strings.put(R.string.format_progress_line, "%1$s: %2$s • %3$s • %4$s %5$s");
+        strings.put(R.string.format_progress_line, "%1$s: %2$s • %3$s • %4$s");
         strings.put(R.string.nav_destination_reached, "Destination reached");
         strings.put(R.string.notification_off_route_title, "Off route");
         strings.put(R.string.notification_wrong_direction_title, "Wrong direction");

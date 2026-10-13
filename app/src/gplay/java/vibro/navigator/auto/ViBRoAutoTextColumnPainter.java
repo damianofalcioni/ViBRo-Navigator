@@ -4,17 +4,16 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.text.StaticLayout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.car.app.CarContext;
-import androidx.core.content.ContextCompat;
 
 import vibro.navigator.R;
 import vibro.navigator.android.language.AndroidAppLanguage;
 import vibro.navigator.android.theme.AndroidAppTheme;
-import vibro.navigator.nav.format.NavigationSpeedLimitFormatter;
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
@@ -86,28 +85,9 @@ final class ViBRoAutoTextColumnPainter {
             return;
         }
         detailPanelPainter.clearBounds();
-        float directionsTop = y;
-        textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.nextUncertain));
-        y = drawSingleLine(canvas, state.routeStatus.guidance.nextLine, left, y, width, 24f, scale)
-                + dp(10f, scale);
-        textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.afterNextUncertain));
-        float directionsBottom = drawSingleLine(
-                canvas,
-                state.routeStatus.guidance.afterNextLine,
-                left,
-                y,
-                width,
-                19f,
-                scale
-        );
-        directionsBounds.set(
-                left,
-                directionsTop,
-                left + width,
-                Math.max(directionsBottom, directionsTop + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP, scale))
-        );
         textPaint.setColor(textPrimaryColor());
         drawStatusBlock(canvas, state.routeStatus.displayStatusBlock(), left, top, width, height, scale);
+        drawDirections(canvas, state, left, y, width, scale);
         buttonRow.draw(canvas, state, left, top + height, width, scale);
     }
 
@@ -139,117 +119,39 @@ final class ViBRoAutoTextColumnPainter {
             gpsStatusBounds.setEmpty();
             return top;
         }
-        textPaint.setTextSize(sp(GPS_STATUS_TEXT_SIZE_SP, scale));
-        textPaint.setTextAlign(Paint.Align.LEFT);
-        Paint.FontMetrics metrics = textPaint.getFontMetrics();
-        float baseline = top - metrics.ascent;
-        drawGpsStatusText(canvas, state, text, left, baseline, width);
-        float bottom = baseline + metrics.descent;
+        textPaint.setColor(textPrimaryColor());
+        StaticLayout layout = ViBRoAutoWrappedText.create(ViBRoAutoWrappedText.gpsStatus(carContext, text, state),
+                textPaint, width, sp(GPS_STATUS_TEXT_SIZE_SP, scale), Float.MAX_VALUE);
+        float bottom = ViBRoAutoWrappedText.draw(canvas, layout, left, top);
         gpsStatusBounds.set(
                 left,
                 top,
                 left + width,
                 Math.max(bottom, top + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP, scale))
         );
-        return bottom;
+        return gpsStatusBounds.bottom;
     }
 
-    private void drawGpsStatusText(
-            @NonNull Canvas canvas,
-            @NonNull NavState state,
-            @NonNull String text,
-            float left,
-            float baseline,
-            float width
-    ) {
-        String visibleText = ellipsize(text, width);
-        textPaint.setFakeBoldText(false);
+    private void drawDirections(@NonNull Canvas canvas, @NonNull NavState state,
+            float left, float top, float width, float scale) {
+        float bottom = statusBounds.top - dp(8f, scale);
+        float gap = dp(10f, scale);
+        float availableHeight = Math.max(0f, bottom - top - gap);
+        boolean hasFollowing = !state.routeStatus.guidance.afterNextLine.trim().isEmpty();
+        float nextHeight = hasFollowing ? availableHeight / 2f : availableHeight;
+        textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.nextUncertain));
+        StaticLayout next = ViBRoAutoWrappedText.create(state.routeStatus.guidance.nextLine.trim(),
+                textPaint, width, sp(24f, scale), nextHeight);
+        textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.afterNextUncertain));
+        StaticLayout following = ViBRoAutoWrappedText.create(state.routeStatus.guidance.afterNextLine.trim(),
+                textPaint, width, sp(19f, scale), availableHeight - nextHeight);
+        float blockHeight = ViBRoAutoWrappedText.height(next) + ViBRoAutoWrappedText.height(following) + gap;
+        float directionsTop = top + Math.max(0f, (bottom - top - blockHeight) / 2f);
+        float y = ViBRoAutoWrappedText.draw(canvas, next, left, directionsTop) + gap;
+        float directionsBottom = ViBRoAutoWrappedText.draw(canvas, following, left, y);
+        directionsBounds.set(left, directionsTop, left + width,
+                Math.min(bottom, Math.max(directionsBottom, directionsTop + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP, scale))));
         textPaint.setColor(textPrimaryColor());
-        canvas.drawText(visibleText, left, baseline, textPaint);
-        drawGpsAccuracy(canvas, state, visibleText, left, baseline);
-        if (NavigationSpeedLimitFormatter.isOverLimit(
-                state.gpsStatus.telemetry.speedMps,
-                state.routeStatus.speedLimit
-        )) {
-            drawBoldGpsSpeed(canvas, state, visibleText, left, baseline);
-        }
-        textPaint.setFakeBoldText(false);
-        textPaint.setColor(textPrimaryColor());
-    }
-
-    private void drawGpsAccuracy(
-            @NonNull Canvas canvas,
-            @NonNull NavState state,
-            @NonNull String visibleText,
-            float left,
-            float baseline
-    ) {
-        int accuracyStart = accuracyStart(visibleText, state);
-        if (accuracyStart < 0) {
-            return;
-        }
-        textPaint.setColor(ContextCompat.getColor(carContext, R.color.compass_accent));
-        canvas.drawText(
-                state.gpsStatus.telemetry.accuracyText,
-                left + textPaint.measureText(visibleText, 0, accuracyStart),
-                baseline,
-                textPaint
-        );
-        textPaint.setColor(textPrimaryColor());
-    }
-
-    private void drawBoldGpsSpeed(
-            @NonNull Canvas canvas,
-            @NonNull NavState state,
-            @NonNull String visibleText,
-            float left,
-            float baseline
-    ) {
-        String speedText = state.gpsStatus.telemetry.speedText;
-        if (!visibleText.startsWith(speedText)) {
-            return;
-        }
-        textPaint.setFakeBoldText(true);
-        canvas.drawText(speedText, left, baseline, textPaint);
-        textPaint.setFakeBoldText(false);
-    }
-
-    private int accuracyStart(@NonNull String visibleText, @NonNull NavState state) {
-        int elevationStart = visibleText.indexOf(state.gpsStatus.telemetry.elevationText);
-        if (elevationStart < 0) {
-            return -1;
-        }
-        int accuracyStart = visibleText.indexOf(
-                state.gpsStatus.telemetry.accuracyText,
-                elevationStart + state.gpsStatus.telemetry.elevationText.length()
-        );
-        if (accuracyStart < 0
-                || accuracyStart + state.gpsStatus.telemetry.accuracyText.length() > visibleText.length()) {
-            return -1;
-        }
-        return accuracyStart;
-    }
-
-    private float drawSingleLine(
-            @NonNull Canvas canvas,
-            @NonNull String rawText,
-            float left,
-            float top,
-            float width,
-            float textSizeSp,
-            float scale
-    ) {
-        String text = rawText.trim();
-        if (text.isEmpty()) {
-            return top;
-        }
-        textPaint.setFakeBoldText(false);
-        textPaint.setTextSize(sp(textSizeSp, scale));
-        textPaint.setTextAlign(Paint.Align.LEFT);
-        Paint.FontMetrics metrics = textPaint.getFontMetrics();
-        float baseline = top - metrics.ascent;
-        canvas.drawText(ellipsize(text, width), left, baseline, textPaint);
-        return baseline + metrics.descent;
     }
 
     private void drawStatusBlock(
@@ -295,8 +197,7 @@ final class ViBRoAutoTextColumnPainter {
     }
 
     private float statusBaseline(float top, float actionRowTop, float blockHeight, @NonNull Paint.FontMetrics metrics) {
-        float centerY = top + (actionRowTop - top) * 0.64f;
-        return centerY - blockHeight / 2f - metrics.ascent;
+        return Math.max(top, actionRowTop - blockHeight) - metrics.ascent;
     }
 
     @NonNull

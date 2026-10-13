@@ -183,7 +183,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
     }
 
     @NonNull
-    private CarContext testCarContext() throws Exception {
+    CarContext testCarContext() throws Exception {
         return testCarContext(5);
     }
 
@@ -208,7 +208,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         return new NavState(
                 new NavRouteStatus(
                         new NavGuidanceStatus("Turn right", "Continue"),
-                        new NavProgressStatus("ETA 13:51", "466 m", ""),
+                        new NavProgressStatus("13:51", "466 m", ""),
                         null
                 ),
                 new NavGpsStatus("0 km/h", NavState.NO_DEADLINE),
@@ -239,7 +239,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         }
     }
 
-    private static final class RecordingAutoControls implements ViBRoAutoSurfaceRenderer.Controls {
+    static final class RecordingAutoControls implements ViBRoAutoSurfaceRenderer.Controls {
         private int customButtonToggles;
 
         @Override

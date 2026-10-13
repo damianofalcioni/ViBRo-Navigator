@@ -259,7 +259,6 @@
     <string name="msg_restore_route_confirm">Sostituire la destinazione e le tappe attuali con \&quot;%1$s\&quot;?</string>
     <string name="title_map_picker_destination">Scegli la destinazione sulla mappa</string>
     <string name="title_map_picker_stop">Scegli la tappa %1$d sulla mappa</string>
-    <string name="nav_eta">Arrivo previsto</string>
     <string name="nav_no_route">Nessun percorso</string>
     <string name="nav_waiting_for_location_title">In attesa della posizione</string>
     <string name="nav_waiting_for_location_body">In attesa di una posizione utilizzabile per calcolare il percorso.</string>

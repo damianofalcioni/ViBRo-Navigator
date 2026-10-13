@@ -258,7 +258,6 @@
     <string name="msg_restore_route_confirm">Aktuelles Ziel und Zwischenziele durch \&quot;%1$s\&quot; ersetzen?</string>
     <string name="title_map_picker_destination">Ziel auf der Karte auswählen</string>
     <string name="title_map_picker_stop">Zwischenziel %1$d auf der Karte auswählen</string>
-    <string name="nav_eta">Ankunft</string>
     <string name="nav_no_route">Keine Route</string>
     <string name="nav_waiting_for_location_title">Warte auf Standort</string>
     <string name="nav_waiting_for_location_body">Warte auf einen nutzbaren Standort zur Routenberechnung.</string>

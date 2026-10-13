@@ -15,7 +15,10 @@
         android:layout_height="match_parent"
         android:keepScreenOn="true"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingTop="4dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="2dp">
 
         <TextView
             android:id="@+id/gpsStatusText"
@@ -30,7 +33,7 @@
             android:id="@+id/turnInstructionRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="2dp"
             android:orientation="vertical">
 
             <TextView
@@ -47,7 +50,7 @@
                 android:id="@+id/afterNextDirectionText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="4dp"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:text=""
@@ -58,7 +61,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="4dp"
             android:layout_weight="1"
             android:gravity="center_horizontal">
 
@@ -69,7 +72,7 @@
                 android:layout_above="@id/destinationText"
                 android:layout_alignParentTop="true"
                 android:layout_centerHorizontal="true"
-                android:layout_marginBottom="12dp" />
+                android:layout_marginBottom="4dp" />
 
             <ImageButton
                 android:id="@+id/exportRouteButton"
@@ -131,7 +134,7 @@
             android:id="@+id/navigationActionRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="2dp"
             android:gravity="center_vertical"
             android:orientation="horizontal">
 

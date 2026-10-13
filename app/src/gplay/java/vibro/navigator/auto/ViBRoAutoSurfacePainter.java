@@ -18,6 +18,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.settings.AppCompassSettings;
 
 final class ViBRoAutoSurfacePainter {
+    private static final float LANDSCAPE_TEXT_WIDTH_FRACTION = 0.4f;
 
     private final CarContext carContext;
     private final Rect fullSurfaceArea = new Rect();
@@ -126,9 +127,9 @@ final class ViBRoAutoSurfacePainter {
             boolean fullscreenRouteMode,
             float layoutScale
     ) {
-        float columnWidth = Math.max(1f, (width - padding) / 2f);
-        float textWidth = columnWidth;
-        float compassAreaWidth = columnWidth;
+        float columnsWidth = Math.max(1f, width - padding);
+        float textWidth = columnsWidth * LANDSCAPE_TEXT_WIDTH_FRACTION;
+        float compassAreaWidth = columnsWidth - textWidth;
         float compassAreaLeft = left + textWidth + padding;
         if (fullscreenRouteMode) {
             compassOverlayBounds.set(compassAreaLeft, top, compassAreaLeft + compassAreaWidth, top + height);

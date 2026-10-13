@@ -46,7 +46,6 @@ final class NavigationActivityTextScaling {
                 1,
                 TypedValue.COMPLEX_UNIT_SP
         );
-        gpsStatus.setMaxLines(1);
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 gpsStatus,
                 10,

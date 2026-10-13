@@ -289,7 +289,7 @@ public class ViBRoAutoStreetViewportGplayTest {
         return new NavState(
                 new NavRouteStatus(
                         new NavGuidanceStatus("Turn right", "Continue"),
-                        new NavProgressStatus("ETA 13:51", "466 m", ""),
+                        new NavProgressStatus("13:51", "466 m", ""),
                         compassState
                 ),
                 new NavGpsStatus("0 km/h", NavState.NO_DEADLINE),
