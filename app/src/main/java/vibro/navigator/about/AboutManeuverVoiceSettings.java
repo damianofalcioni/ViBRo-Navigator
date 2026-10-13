@@ -66,6 +66,10 @@ final class AboutManeuverVoiceSettings {
         }
     }
 
+    void onResume() {
+        voiceClientLoader.onResume();
+    }
+
     void shutdown() {
         voiceClientLoader.shutdown();
     }

@@ -122,6 +122,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        AboutSettingsControllers.onResume(settingsControllers);
         scheduleDiagnosticSectionRender();
     }
 

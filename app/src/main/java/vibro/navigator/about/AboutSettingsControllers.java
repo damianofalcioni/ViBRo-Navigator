@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Intent;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 
@@ -66,6 +67,12 @@ final class AboutSettingsControllers {
                 activity.findViewById(R.id.aboutAndroidAutoSwitch)
         );
         androidAutoSettings.configure();
+    }
+
+    static void onResume(@Nullable AboutSettingsControllers controllers) {
+        if (controllers != null && controllers.maneuverVoiceSettings != null) {
+            controllers.maneuverVoiceSettings.onResume();
+        }
     }
 
     void shutdown() {

@@ -36,6 +36,7 @@ final class AboutManeuverVoiceClientLoader {
     private boolean dialogOpen;
     private boolean initScheduled;
     private boolean shutdown;
+    private int clientGeneration;
 
     AboutManeuverVoiceClientLoader(
             @NonNull Activity activity,
@@ -49,7 +50,13 @@ final class AboutManeuverVoiceClientLoader {
 
     void onDialogShown() {
         dialogOpen = true;
-        scheduleInitialization();
+        refreshVoices();
+    }
+
+    void onResume() {
+        if (dialogOpen) {
+            refreshVoices();
+        }
     }
 
     void onDialogDismissed() {
@@ -70,6 +77,16 @@ final class AboutManeuverVoiceClientLoader {
         shutdown = true;
         dialogOpen = false;
         pendingPreviewVoiceName = null;
+        releaseVoiceClient();
+    }
+
+    private void refreshVoices() {
+        releaseVoiceClient();
+        scheduleInitialization();
+    }
+
+    private void releaseVoiceClient() {
+        clientGeneration++;
         initScheduled = false;
         scheduler.removeCallbacks(deferredInit);
         if (voiceClient != null) {
@@ -79,7 +96,7 @@ final class AboutManeuverVoiceClientLoader {
     }
 
     private void scheduleInitialization() {
-        if (voiceClient != null || initScheduled) {
+        if (shutdown || voiceClient != null || initScheduled) {
             return;
         }
         initScheduled = true;
@@ -100,9 +117,10 @@ final class AboutManeuverVoiceClientLoader {
 
     private void initialize() {
         try {
+            int generation = clientGeneration;
             NavigationTextToSpeechSettingsClient client = new NavigationTextToSpeechSettingsClient(
                     activity.getApplicationContext(),
-                    this::onAvailableVoicesLoaded
+                    options -> onAvailableVoicesLoaded(generation, options)
             );
             voiceClient = client;
             client.initialize();
@@ -112,9 +130,9 @@ final class AboutManeuverVoiceClientLoader {
         }
     }
 
-    private void onAvailableVoicesLoaded(@NonNull List<NavigationVoiceOption> options) {
+    private void onAvailableVoicesLoaded(int generation, @NonNull List<NavigationVoiceOption> options) {
         activity.runOnUiThread(() -> {
-            if (shutdown) {
+            if (shutdown || generation != clientGeneration) {
                 return;
             }
             callback.onLoaded(options);
