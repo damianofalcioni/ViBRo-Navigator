@@ -10,7 +10,9 @@
     <string name="nav_gesture_views_body"><b>Cambia vista.</b> Tocca due volte o scorri a sinistra/destra per passare tra percorso completo, 2D e 3D</string>
     <string name="nav_gesture_zoom_body"><b>Ingrandisci/riduci.</b> Avvicina o allontana due dita nelle viste 2D e 3D per variare lo zoom di ±2 livelli</string>
     <string name="nav_gesture_tilt_body"><b>Inclina la vista 3D.</b> Scorri verso l’alto/il basso con due dita per inclinare la vista 3D</string>
-    <string name="nav_gesture_street_colors_title">Colori delle strade</string>
+    <string name="nav_gesture_map_legend_title">Legenda della mappa</string>
+    <string name="nav_gesture_current_route">Percorso attuale</string>
+    <string name="nav_gesture_current_position_accuracy">Posizione attuale e precisione</string>
     <string name="nav_gesture_dont_show_again">Non mostrare più</string>
     <string name="nav_gesture_dismiss">Tocca ovunque per chiudere</string>
     <plurals name="nav_gesture_dismiss_countdown">

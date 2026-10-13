@@ -10,7 +10,9 @@
     <string name="nav_gesture_views_body"><b>Ansicht wechseln.</b> Doppeltippen oder nach links/rechts wischen, um zwischen gesamter Route, 2D und 3D zu wechseln</string>
     <string name="nav_gesture_zoom_body"><b>Vergrößern/verkleinern.</b> In der 2D- und 3D-Ansicht zwei Finger zusammen- oder auseinanderziehen, um den Zoom um ±2 Stufen zu ändern</string>
     <string name="nav_gesture_tilt_body"><b>3D-Ansicht neigen.</b> Mit zwei Fingern nach oben/unten wischen, um die 3D-Ansicht zu neigen</string>
-    <string name="nav_gesture_street_colors_title">Straßenfarben</string>
+    <string name="nav_gesture_map_legend_title">Kartenlegende</string>
+    <string name="nav_gesture_current_route">Aktuelle Route</string>
+    <string name="nav_gesture_current_position_accuracy">Aktuelle Position und Genauigkeit</string>
     <string name="nav_gesture_dont_show_again">Nicht mehr anzeigen</string>
     <string name="nav_gesture_dismiss">Zum Schließen irgendwo tippen</string>
     <plurals name="nav_gesture_dismiss_countdown">

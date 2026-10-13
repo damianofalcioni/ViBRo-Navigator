@@ -5,7 +5,7 @@
     <TextView
         style="@style/Widget.ViBRoNavigator.GestureHintTitle"
         android:layout_marginTop="8dp"
-        android:text="@string/nav_gesture_street_colors_title" />
+        android:text="@string/nav_gesture_map_legend_title" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -66,6 +66,41 @@
             <TextView
                 style="@style/Widget.ViBRoNavigator.GestureHintBody"
                 android:text="@string/street_category_special_routing"
+                android:layout_marginStart="32dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+        <FrameLayout
+            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow">
+            <TextView
+                android:id="@+id/gestureHintCurrentRouteSwatch"
+                style="@style/Widget.ViBRoNavigator.GestureHintStreetSwatch"
+                android:layout_gravity="start|center_vertical"
+                android:textColor="@color/compass_route" />
+            <TextView
+                style="@style/Widget.ViBRoNavigator.GestureHintBody"
+                android:text="@string/nav_gesture_current_route"
+                android:layout_marginStart="32dp"
+                android:gravity="center_vertical" />
+        </FrameLayout>
+        <FrameLayout
+            style="@style/Widget.ViBRoNavigator.GestureHintLegendRow">
+            <ImageView
+                android:id="@+id/gestureHintCurrentPositionSwatch"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="start|center_vertical"
+                android:importantForAccessibility="no"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_legend_position_accuracy" />
+            <TextView
+                style="@style/Widget.ViBRoNavigator.GestureHintBody"
+                android:text="@string/nav_gesture_current_position_accuracy"
                 android:layout_marginStart="32dp"
                 android:gravity="center_vertical" />
         </FrameLayout>

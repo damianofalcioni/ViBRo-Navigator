@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="22dp"
+    android:height="22dp"
+    android:viewportWidth="22"
+    android:viewportHeight="22">
+    <!-- Match the compass accuracy overlay color and 128/255 opacity. -->
+    <path
+        android:fillColor="@color/compass_accent"
+        android:fillAlpha="0.5019608"
+        android:pathData="M11,1 A10,10 0,1 1,11,21 A10,10 0,1 1,11,1" />
+    <path
+        android:fillColor="?attr/vibroCompassCenterColor"
+        android:pathData="M11,8 A3,3 0,1 1,11,14 A3,3 0,1 1,11,8" />
+</vector>

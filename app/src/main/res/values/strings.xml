@@ -12,7 +12,9 @@
     <string name="nav_gesture_views_body"><b>Switch views.</b> Double tap or swipe left / right to move from full route, 2D, and 3D views</string>
     <string name="nav_gesture_zoom_body"><b>Zoom in / out.</b> Pinch or spread the 2D and 3D view to ±2 zoom levels</string>
     <string name="nav_gesture_tilt_body"><b>Tilt the 3D view.</b> Swipe up / down with two fingers to tilt the 3D view</string>
-    <string name="nav_gesture_street_colors_title">Street colors</string>
+    <string name="nav_gesture_map_legend_title">Map legend</string>
+    <string name="nav_gesture_current_route">Current route</string>
+    <string name="nav_gesture_current_position_accuracy">Current position &amp; accuracy</string>
     <string name="nav_gesture_dont_show_again">Don\'t show again</string>
     <string name="nav_gesture_dismiss">Touch anywhere to dismiss</string>
     <plurals name="nav_gesture_dismiss_countdown">

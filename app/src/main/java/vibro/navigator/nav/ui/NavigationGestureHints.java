@@ -17,7 +17,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.settings.AppNavigationHintSettings;
 
-/** A centered startup guide with all tips and street colors visible together. */
+/** A centered startup guide with all tips and the map legend visible together. */
 final class NavigationGestureHints {
     private static final String STATE_DISMISSED = "navigation_gesture_hints_dismissed";
     private static final String STATE_DISMISS_AT = "navigation_gesture_hints_dismiss_at";
