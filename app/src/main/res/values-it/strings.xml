@@ -375,8 +375,6 @@
     <string name="hint_clear_gpx_output_folder">Elimina definitivamente le esportazioni GPX ViBRo da:\n%1$s\n\nGli altri file e le sottocartelle saranno conservati. L’operazione non può essere annullata.</string>
     <string name="msg_output_folder_cleared">File ViBRo eliminati.</string>
     <string name="msg_output_folder_clear_failed">Impossibile eliminare tutti i file ViBRo. Verifica l’accesso alla cartella in Diagnostica.</string>
-    <string name="hint_log_output_folder">I log usano solo Download/ViBRo/logs sul telefono o sulla scheda SD scelta con Usa archiviazione esterna. I log si disattivano se l’accesso o l’archiviazione non sono disponibili. Su Android 6–9 verifica l’accesso alla cartella in Diagnostica. I file precedenti restano nella posizione originale.</string>
-    <string name="hint_gpx_output_folder">Le esportazioni GPX manuali e automatiche usano solo Download/ViBRo/gpx sul telefono o sulla scheda SD scelta con Usa archiviazione esterna. Il salvataggio automatico si disattiva se l’accesso o l’archiviazione non sono disponibili. Su Android 6–9 verifica l’accesso alla cartella in Diagnostica. I file precedenti restano nella posizione originale.</string>
     <string name="label_external_storage_enabled">Usa archiviazione esterna</string>
     <string name="about_setting_external_storage_info">Salva esportazioni GPX, log e backup del database su una scheda SD anziché sul telefono. Disponibile solo per schede SD montate e supportate; le unità USB sono escluse. Android 6–9 richiede l’accesso alla cartella anche quando log e salvataggio GPX sono disattivati. Se la scheda non è più disponibile, il salvataggio si interrompe finché torna disponibile. I file precedenti restano nelle cartelle originali.</string>
     <string name="hint_sd_download_access">Concedi l’accesso alla cartella sulla scheda SD:\n%1$s\n\nSeleziona Download, la sottocartella ViBRo o la radice della scheda SD. ViBRo userà Download/ViBRo/gpx, Download/ViBRo/logs e Download/ViBRo/backup. Il salvataggio richiede l’accesso a questa cartella.</string>
@@ -488,6 +486,7 @@
     <string name="label_single_instruction_mode_enabled">Modalità istruzione singola</string>
     <string name="label_android_auto_integration_enabled">Android Auto</string>
     <string name="label_poi_categories">Filtro categorie di POI</string>
+    <string name="hint_poi_categories_filter">Scegli quali categorie di POI mostrare nel selettore della mappa quando il filtro è attivo. Modifica i nomi, attiva o disattiva le categorie oppure usa + per aggiungerne altre.</string>
     <string name="hint_poi_category_name">Nome della categoria di POI</string>
     <string name="label_speech_recognition">Riconoscimento vocale</string>
     <string name="label_speech_recognition_language">Lingua</string>
@@ -546,7 +545,6 @@
     <string name="label_permission_battery">Ottimizzazione della batteria</string>
     <string name="label_permission_surrounding_street_storage">Archiviazione delle strade BRouter</string>
     <string name="label_permission_brouter_profile_storage">Archiviazione dei profili BRouter</string>
-    <string name="permission_status_needs_attention">Da verificare</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tocca per risolvere.</string>
     <string name="label_sensor_fused_provider">Provider combinato Google</string>
     <string name="label_sensor_gps_provider">Provider GPS</string>

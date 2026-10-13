@@ -371,8 +371,6 @@
     <string name="hint_clear_gpx_output_folder">ViBRo-GPX-Exporte endgültig löschen aus:\n%1$s\n\nAndere Dateien und Unterordner bleiben erhalten. Dies kann nicht rückgängig gemacht werden.</string>
     <string name="msg_output_folder_cleared">ViBRo-Dateien gelöscht.</string>
     <string name="msg_output_folder_clear_failed">Nicht alle ViBRo-Dateien konnten gelöscht werden. Prüfe den Ordnerzugriff in der Diagnose.</string>
-    <string name="hint_log_output_folder">Protokolle verwenden nur Download/ViBRo/logs auf dem Telefon oder der über Externen Speicher verwenden gewählten SD-Karte. Die Protokollierung wird bei fehlendem Zugriff oder Speicher ausgeschaltet. Prüfe auf Android 6–9 den Ordnerzugriff in der Diagnose. Ältere Dateien bleiben an ihrem bisherigen Ort.</string>
-    <string name="hint_gpx_output_folder">Manuelle und automatische GPX-Exporte verwenden nur Download/ViBRo/gpx auf dem Telefon oder der über Externen Speicher verwenden gewählten SD-Karte. Automatisches Speichern wird bei fehlendem Zugriff oder Speicher ausgeschaltet. Prüfe auf Android 6–9 den Ordnerzugriff in der Diagnose. Ältere Dateien bleiben an ihrem bisherigen Ort.</string>
     <string name="label_external_storage_enabled">Externen Speicher verwenden</string>
     <string name="about_setting_external_storage_info">Speichert GPX-Exporte, Protokolle und Datenbanksicherungen auf einer SD-Karte statt im Telefonspeicher. Nur für eingebundene, unterstützte SD-Karten verfügbar; USB-Laufwerke sind ausgeschlossen. Android 6–9 benötigt Ordnerzugriff auch bei ausgeschalteter Protokollierung und GPX-Speicherung. Ist die Karte nicht verfügbar, wird das Speichern bis zur erneuten Verfügbarkeit gestoppt. Ältere Dateien bleiben in ihren ursprünglichen Ordnern.</string>
     <string name="hint_sd_download_access">Erlaube Zugriff auf den SD-Kartenordner:\n%1$s\n\nWähle Download, den Unterordner ViBRo oder das Stammverzeichnis der SD-Karte. ViBRo verwendet Download/ViBRo/gpx, Download/ViBRo/logs und Download/ViBRo/backup. Zum Speichern wird Zugriff auf diesen Ordner benötigt.</string>
@@ -484,6 +482,7 @@
     <string name="label_single_instruction_mode_enabled">Einzelhinweismodus</string>
     <string name="label_android_auto_integration_enabled">Android Auto</string>
     <string name="label_poi_categories">POI-Kategorienfilter</string>
+    <string name="hint_poi_categories_filter">Wähle, welche POI-Kategorien bei aktiviertem Filter in der Kartenauswahl erscheinen. Bearbeite die Namen, schalte Kategorien ein oder aus oder füge mit + weitere hinzu.</string>
     <string name="hint_poi_category_name">Name der POI-Kategorie</string>
     <string name="label_speech_recognition">Spracherkennung</string>
     <string name="label_speech_recognition_language">Sprache</string>
@@ -542,7 +541,6 @@
     <string name="label_permission_battery">Akkuoptimierung</string>
     <string name="label_permission_surrounding_street_storage">BRouter-Straßenspeicher</string>
     <string name="label_permission_brouter_profile_storage">BRouter-Profilspeicher</string>
-    <string name="permission_status_needs_attention">Prüfen</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Zum Beheben tippen.</string>
     <string name="label_sensor_fused_provider">Google Fused Provider</string>
     <string name="label_sensor_gps_provider">GPS-Anbieter</string>

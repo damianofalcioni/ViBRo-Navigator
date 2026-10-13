@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import java.util.ArrayList;
@@ -60,7 +61,15 @@ final class AboutPoiCategorySettings {
         populateRows(categoryList, rows);
 
         LinearLayout content = createDialogContent();
-        content.addView(createCategoryScrollView(categoryList));
+        TextView hint = new TextView(activity);
+        hint.setText(R.string.hint_poi_categories_filter);
+        hint.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
+        hint.setPadding(0, 0, 0, dp(8));
+        LinearLayout scrollContent = new LinearLayout(activity);
+        scrollContent.setOrientation(LinearLayout.VERTICAL);
+        scrollContent.addView(hint);
+        scrollContent.addView(categoryList);
+        content.addView(createCategoryScrollView(scrollContent));
         content.addView(createAddButtonRow(categoryList, rows));
 
         AlertDialog dialog = new AlertDialog.Builder(activity)
@@ -109,11 +118,11 @@ final class AboutPoiCategorySettings {
     }
 
     @NonNull
-    private View createCategoryScrollView(@NonNull LinearLayout categoryList) {
+    private View createCategoryScrollView(@NonNull LinearLayout scrollContent) {
         ScrollView scrollView = new MaxHeightScrollView(dp(360));
         scrollView.setFillViewport(false);
         scrollView.setOverScrollMode(View.OVER_SCROLL_IF_CONTENT_SCROLLS);
-        scrollView.addView(categoryList, new ScrollView.LayoutParams(
+        scrollView.addView(scrollContent, new ScrollView.LayoutParams(
                 ScrollView.LayoutParams.MATCH_PARENT,
                 ScrollView.LayoutParams.WRAP_CONTENT
         ));

@@ -1,6 +1,7 @@
 package vibro.navigator.about;
 
 import android.app.AlertDialog;
+import android.view.Gravity;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -42,10 +43,14 @@ final class AboutLanguageSettings {
         content.setOrientation(LinearLayout.VERTICAL);
         int padding = Math.round(20 * activity.getResources().getDisplayMetrics().density);
         content.setPadding(padding, padding / 2, padding, padding / 2);
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
         TextView label = new TextView(activity);
         label.setText(R.string.label_app_language);
         label.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor));
-        content.addView(label);
+        row.addView(label, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
         Spinner spinner = new Spinner(activity);
         spinner.setId(R.id.aboutLanguageSpinner);
         spinner.setContentDescription(activity.getString(R.string.label_app_language));
@@ -57,7 +62,11 @@ final class AboutLanguageSettings {
         adapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
         spinner.setAdapter(adapter);
         spinner.setSelection(selectedPosition(languageTags));
-        content.addView(spinner);
+        LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        spinnerParams.setMarginStart(Math.round(12 * activity.getResources().getDisplayMetrics().density));
+        row.addView(spinner, spinnerParams);
+        content.addView(row);
         TextView explanation = new TextView(activity);
         explanation.setText(R.string.hint_app_language);
         explanation.setTextColor(AndroidAppTheme.color(activity, R.attr.vibroTextSecondaryColor));

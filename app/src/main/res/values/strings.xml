@@ -429,8 +429,6 @@
     <string name="hint_clear_gpx_output_folder">Permanently delete ViBRo GPX exports from:\n%1$s\n\nOther files and subfolders will be kept. This cannot be undone.</string>
     <string name="msg_output_folder_cleared">ViBRo files cleared.</string>
     <string name="msg_output_folder_clear_failed">Could not clear all ViBRo files. Check folder access in Diagnostics.</string>
-    <string name="hint_log_output_folder">Logs use only Download/ViBRo/logs on the phone or the SD card selected by Use external storage. Logging switches off if access or storage is unavailable. On Android 6–9, check Diagnostics for folder access. Older files stay where they are.</string>
-    <string name="hint_gpx_output_folder">Manual and automatic GPX exports use only Download/ViBRo/gpx on the phone or the SD card selected by Use external storage. Automatic saving switches off if access or storage is unavailable. On Android 6–9, check Diagnostics for folder access. Older files stay where they are.</string>
     <string name="label_external_storage_enabled">Use external storage</string>
     <string name="about_setting_external_storage_info">Save GPX exports, logs, and database backups to an SD card instead of phone storage. Available only for a mounted, supported SD card; USB drives are excluded. Android 6–9 require folder access even when logging and GPX saving are disabled. If the card becomes unavailable, saving stops until it is available again. Older files stay in their original folders.</string>
     <string name="hint_sd_download_access">Grant access to the SD card folder:\n%1$s\n\nSelect Download, its ViBRo subfolder, or the SD card root. ViBRo will use Download/ViBRo/gpx, Download/ViBRo/logs, and Download/ViBRo/backup. Saving requires access to this folder.</string>
@@ -544,6 +542,7 @@
     <string name="label_single_instruction_mode_enabled">Single instruction mode</string>
     <string name="label_android_auto_integration_enabled">Android Auto</string>
     <string name="label_poi_categories">POI categories filter</string>
+    <string name="hint_poi_categories_filter">Choose which POI categories appear in the map picker when the filter is enabled. Edit category names, switch them on or off, or use + to add more.</string>
     <string name="hint_poi_category_name">POI Category Name</string>
     <string name="label_speech_recognition">Speech recognition</string>
     <string name="label_speech_recognition_language">Language</string>
@@ -604,7 +603,7 @@
     <string name="label_permission_surrounding_street_storage">BRouter street storage</string>
     <string name="label_permission_brouter_profile_storage">BRouter profile storage</string>
     <string name="permission_status_ok" translatable="false">OK</string>
-    <string name="permission_status_needs_attention">KO</string>
+    <string name="permission_status_needs_attention" translatable="false">KO</string>
     <string name="format_about_permission_status_content_description">%1$s: %2$s. Tap to resolve.</string>
     <string name="label_sensor_fused_provider">Google fused provider</string>
     <string name="label_sensor_gps_provider">GPS provider</string>

@@ -3,6 +3,7 @@ package vibro.navigator.about;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -49,8 +50,16 @@ final class AboutNavigationCustomButtonSettings {
 
         TextView label = createLabel();
         Spinner spinner = createSpinner();
-        content.addView(label);
-        content.addView(spinner);
+        LinearLayout row = new LinearLayout(activity);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.addView(label, new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+        LinearLayout.LayoutParams spinnerParams = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        spinnerParams.setMarginStart(dp(12));
+        row.addView(spinner, spinnerParams);
+        content.addView(row);
 
         new AlertDialog.Builder(activity)
                 .setTitle(R.string.label_navigation_custom_button)
@@ -73,6 +82,9 @@ final class AboutNavigationCustomButtonSettings {
     private Spinner createSpinner() {
         Spinner spinner = new Spinner(activity);
         spinner.setId(R.id.aboutNavigationCustomButtonTargetSpinner);
+        spinner.setBackgroundResource(R.drawable.bg_spinner_field);
+        spinner.setPopupBackgroundResource(R.drawable.bg_spinner_popup);
+        spinner.setMinimumHeight(dp(48));
         spinner.setAdapter(newAdapter());
         selectCurrentTarget(spinner);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -94,10 +106,10 @@ final class AboutNavigationCustomButtonSettings {
     private ArrayAdapter<String> newAdapter() {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 activity,
-                android.R.layout.simple_spinner_item,
+                R.layout.item_profile_spinner,
                 targetLabels()
         );
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        adapter.setDropDownViewResource(R.layout.item_profile_spinner_dropdown);
         return adapter;
     }
 

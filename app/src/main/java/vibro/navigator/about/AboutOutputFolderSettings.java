@@ -58,9 +58,7 @@ final class AboutOutputFolderSettings {
         AndroidOutputDestination destination = AndroidOutputStorage.current(activity, kind);
         AlertDialog dialog = new AlertDialog.Builder(activity)
                 .setTitle(kind == Kind.LOGS ? R.string.title_log_output_folder : R.string.title_gpx_output_folder)
-                .setMessage(activity.getString(R.string.format_output_folder, destination.label) + "\n\n"
-                        + activity.getString(kind == Kind.LOGS ? R.string.hint_log_output_folder
-                        : R.string.hint_gpx_output_folder))
+                .setMessage(activity.getString(R.string.format_output_folder, destination.label))
                 .setPositiveButton(android.R.string.ok, null)
                 .setNeutralButton(R.string.action_open_output_folder, null)
                 .setNegativeButton(R.string.action_clear_output_folder, null).show();
