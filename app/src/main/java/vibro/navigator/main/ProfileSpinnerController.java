@@ -134,9 +134,14 @@ final class ProfileSpinnerController {
     @Nullable
     String selectedBRouterProfileName() {
         return ProfileSpinnerSelectedProfile.brouterProfileName(
-                options.optionAt(spinner.getSelectedItemPosition()),
+                selectedOption(),
                 profilesRepository.getCustomProfileName(context)
         );
+    }
+
+    @Nullable
+    ProfileSpinnerOption selectedOption() {
+        return options.optionAt(spinner.getSelectedItemPosition());
     }
 
     @Nullable

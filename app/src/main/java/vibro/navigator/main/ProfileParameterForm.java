@@ -2,11 +2,12 @@ package vibro.navigator.main;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -27,11 +28,11 @@ final class ProfileParameterForm {
     private static final int INFO_BUTTON_SIZE_DP = 44;
 
     @NonNull
-    private final ScrollView view;
+    private final View view;
     @NonNull
     private final List<Row> rows;
 
-    private ProfileParameterForm(@NonNull ScrollView view, @NonNull List<Row> rows) {
+    private ProfileParameterForm(@NonNull View view, @NonNull List<Row> rows) {
         this.view = view;
         this.rows = rows;
     }
@@ -42,11 +43,9 @@ final class ProfileParameterForm {
             @NonNull List<BRouterProfileParameter> parameters,
             @NonNull Map<String, String> savedValues
     ) {
-        ScrollView scrollView = new ScrollView(context);
-        LinearLayout content = new LinearLayout(context);
-        content.setOrientation(LinearLayout.VERTICAL);
-        content.setPadding(dp(context, 8), dp(context, 8), dp(context, 8), 0);
-        scrollView.addView(content);
+        View view = LayoutInflater.from(context).inflate(
+                R.layout.dialog_profile_parameters, new FrameLayout(context), false);
+        LinearLayout content = view.findViewById(R.id.profileParameterRows);
 
         List<Row> rows = new ArrayList<>();
         for (BRouterProfileParameter parameter : parameters) {
@@ -54,7 +53,7 @@ final class ProfileParameterForm {
             rows.add(row);
             content.addView(row.view);
         }
-        return new ProfileParameterForm(scrollView, rows);
+        return new ProfileParameterForm(view, rows);
     }
 
     @NonNull

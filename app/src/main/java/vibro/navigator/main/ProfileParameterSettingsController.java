@@ -63,7 +63,7 @@ final class ProfileParameterSettingsController {
         }
         List<BRouterProfileParameter> parameters = profilesRepository.getProfileParameters(activity, profileName);
         if (parameters.isEmpty()) {
-            showNoParametersDialog(profileName);
+            showNoParametersDialog();
             return;
         }
         ProfileParameterForm form = ProfileParameterForm.create(
@@ -80,18 +80,15 @@ final class ProfileParameterSettingsController {
             @NonNull ProfileParameterForm form
     ) {
         AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle(activity.getString(R.string.title_profile_parameters, profileName))
+                .setTitle(activity.getString(R.string.title_profile_parameters,
+                        profileSpinnerController.selectedOption()))
                 .setView(form.view())
-                .setNegativeButton(R.string.action_cancel, null)
-                .setNeutralButton(R.string.action_reset_defaults, null)
-                .setPositiveButton(android.R.string.ok, null)
                 .create();
-        dialog.setOnShowListener(shown -> {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v ->
-                    saveAndClose(dialog, profileName, parameters, form));
-            dialog.getButton(AlertDialog.BUTTON_NEUTRAL).setOnClickListener(v ->
-                    confirmReset(profileName, form));
-        });
+        form.view().findViewById(R.id.profileParameterCancelButton).setOnClickListener(v -> dialog.dismiss());
+        form.view().findViewById(R.id.profileParameterSaveButton).setOnClickListener(v ->
+                saveAndClose(dialog, profileName, parameters, form));
+        form.view().findViewById(R.id.profileParameterResetButton).setOnClickListener(v ->
+                confirmReset(profileName, form));
         dialog.show();
     }
 
@@ -126,9 +123,10 @@ final class ProfileParameterSettingsController {
         AppLogger.i(TAG, "Reset profile parameters profile=" + profileName);
     }
 
-    private void showNoParametersDialog(@NonNull String profileName) {
+    private void showNoParametersDialog() {
         new AlertDialog.Builder(activity)
-                .setTitle(activity.getString(R.string.title_profile_parameters, profileName))
+                .setTitle(activity.getString(R.string.title_profile_parameters,
+                        profileSpinnerController.selectedOption()))
                 .setMessage(R.string.msg_profile_parameters_empty)
                 .setPositiveButton(android.R.string.ok, null)
                 .show();

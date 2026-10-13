@@ -158,6 +158,7 @@
     <string name="msg_select_custom_profile">Select a custom BRouter .brf file</string>
     <string name="msg_invalid_custom_profile">Select a valid BRouter .brf file</string>
     <string name="msg_profile_parameters_empty">This profile does not expose editable parameters.</string>
+    <string name="msg_profile_parameters_not_localized">Parameters are dynamically extracted from the BRouter profile file, so their names, descriptions, and options are not translated.</string>
     <string name="msg_profile_parameters_saved">Profile settings saved.</string>
     <string name="msg_profile_parameters_reset">Profile settings reset to profile defaults.</string>
     <string name="msg_profile_parameter_invalid_number">Enter a valid number.</string>

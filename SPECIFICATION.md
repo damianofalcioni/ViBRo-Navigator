@@ -68,11 +68,13 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 - Experimental or debug bundled profiles such as `car-eco-de`, `moped`, `dummy`, `rail`, and `river` must be visually marked with a red experimental/debug indicator in the opened selector
 - A profile-settings icon button must be shown next to the routing-profile selector in BRouter-backed modes and hidden when Straight Line mode is selected
 - For a selected BRouter profile, the profile-settings UI must parse editable parameters declared in the selected `.brf` profile using BRouter's `%parameter% | description | type` comment convention
+- The profile-settings heading must use exactly the selected spinner item's display label, including localized bundled-profile titles and the custom-profile label. Apply this to both the editable-parameters dialog and the no-editable-parameters message; keep raw profile names for parameter lookup, routing, and persistence.
 - The profile-settings UI must show each parameter name and a type-appropriate input: switch for boolean parameters, numeric input for number/integer parameters, spinner for bracketed option lists, and text input when no supported type can be inferred
 - When a profile parameter has a description, the UI must show an information button for that parameter
+- Immediately below the profile-settings heading, explain in the selected app language that parameter names, descriptions, and options are dynamically extracted from the BRouter profile file and are not translated.
 - Saved profile-parameter values must be stored separately by normalized profile name, so switching from profile A to profile B and back to profile A restores profile A's edited values
 - Custom profiles use the same profile-name key as bundled profiles, allowing a custom profile with the same name as a bundled profile to reuse the bundled profile's saved values and, when needed, parameter metadata fallback
-- The profile-settings UI must include `Reset defaults` next to `Cancel` and `OK`; after confirmation, reset must restore the values defined by the profile and clear saved overrides for that profile
+- The profile-settings UI must keep `Reset defaults`, `Cancel`, and `OK` visible in a fixed footer outside the scrollable parameter list, including with longer translations, larger fonts, and in landscape. Use the platform dialog text-button styles, with Reset right-aligned on its own row and Cancel and OK together right-aligned below it; after confirmation, reset must restore the values defined by the profile and clear saved overrides for that profile.
 - Route calculation requests sent to the BRouter Android service must pass saved non-default profile-parameter overrides through the `extraParams` service parameter
 - Profile-parameter names and values in `extraParams` must use UTF-8 URL encoding so BRouter preserves literal `+` and `%` characters. Text inputs must reject `?`, `&`, and `=` because BRouter splits parameters on those separators after decoding.
 - The selector must include a single custom-profile entry; when the user chooses that custom entry from the opened dropdown, the app must open the custom `.brf` picker even if that same custom entry is already the current selection
@@ -943,6 +945,8 @@ The navigation UI must show the following in large text:
 
 - Battery-conscious background navigation
 - Minimal UI and minimal code footprint
+- Consistent dialog actions throughout the app: OK, Cancel, and additional actions must use the same compact platform dialog text-button styles and be right-aligned. Keep every action visible outside scrollable content; when longer labels require another row, place additional actions above the Cancel/OK row while preserving the same style in both themes, all supported languages, and both orientations.
+- Consistent spinners throughout the app: reuse the shared themed field and popup backgrounds and selected/dropdown item layouts. Inline spinner labels must use consistent typography, theme colors, and spacing, appear to the left of their spinner, and be vertically centered with it; keep the row readable with longer translations and larger system fonts.
 - Offline-first routing through BRouter
 - Complete English, Italian, and German text resources, including localized plural forms and preserved formatting placeholders
 - Orientation-safe layouts
