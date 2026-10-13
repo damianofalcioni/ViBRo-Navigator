@@ -25,7 +25,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity.IntentForResult;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = {23, 26, 35})
+@Config(sdk = {23, 26, 35}, shadows = TestOutputBrowserActivity.class)
 public class AndroidOutputBrowserActivityTest {
     private static final Uri FOLDER = Uri.parse(
             "content://com.android.externalstorage.documents/document/primary%3ADownload%2FViBRo%2Fgpx");
@@ -46,6 +46,7 @@ public class AndroidOutputBrowserActivityTest {
             }
             activity.onActivityResult(launch.requestCode, Activity.RESULT_CANCELED, null);
             assertTrue(activity.isFinishing());
+            assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
             assertNull(shadowOf(activity).getNextStartedActivity());
         }
     }
@@ -81,6 +82,7 @@ public class AndroidOutputBrowserActivityTest {
             assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK,
                     viewer.getFlags());
             assertTrue(activity.isFinishing());
+            assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
         }
     }
 
@@ -104,6 +106,7 @@ public class AndroidOutputBrowserActivityTest {
             assertEquals(file, returned.getData());
             assertEquals(file, returned.getClipData().getItemAt(0).getUri());
             assertTrue(activity.isFinishing());
+            assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
             int[] deliveries = {0};
             AndroidOutputStorageBrowser.ActivityResult receiver = (request, result, data) -> {
                 assertEquals(4002, request);
@@ -132,6 +135,7 @@ public class AndroidOutputBrowserActivityTest {
             assertEquals(file, returned.getData());
             assertTrue((returned.getFlags() & Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION) != 0);
             assertTrue((returned.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION) != 0);
+            assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
         }
     }
 
@@ -148,6 +152,7 @@ public class AndroidOutputBrowserActivityTest {
                      Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
             AndroidOutputBrowserActivity activity = controller.get();
             assertTrue(activity.isFinishing());
+            assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
             Intent returned = shadowOf(activity).getNextStartedActivity();
             assertNotNull(returned);
             assertTrue(AndroidOutputStorageBrowser.hasResult(returned));
@@ -182,6 +187,7 @@ public class AndroidOutputBrowserActivityTest {
                 assertNull(data.getData());
             });
             assertTrue(activity.isFinishing());
+            assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
             assertNull(shadowOf(activity).getNextStartedActivity());
         }
     }

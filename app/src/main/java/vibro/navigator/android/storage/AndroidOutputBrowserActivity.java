@@ -42,7 +42,8 @@ public final class AndroidOutputBrowserActivity extends AndroidLocalizedActivity
         } catch (ActivityNotFoundException | SecurityException e) {
             unavailable();
         } finally {
-            finish();
+            // This activity owns a separate picker task; remove its card from Recents too.
+            finishAndRemoveTask();
         }
     }
 
