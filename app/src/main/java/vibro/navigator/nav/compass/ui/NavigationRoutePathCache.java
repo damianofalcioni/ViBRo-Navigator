@@ -87,6 +87,7 @@ final class NavigationRoutePathCache {
         private final int endIndex;
         private final Path path;
         private final boolean visible;
+        private NavigationRouteCorridor corridor;
 
         private Entry(Object source, int sourceSlot, int startIndex, int endIndex, Path path, boolean visible) {
             this.source = source;
@@ -108,6 +109,16 @@ final class NavigationRoutePathCache {
             if (visible) {
                 canvas.drawPath(path, paint);
             }
+        }
+
+        void drawCorridor(@NonNull Canvas canvas, @NonNull Paint strokePaint) {
+            if (!visible || strokePaint.getStrokeWidth() <= 0f) {
+                return;
+            }
+            if (corridor == null) {
+                corridor = new NavigationRouteCorridor();
+            }
+            corridor.draw(canvas, path, strokePaint);
         }
     }
 }

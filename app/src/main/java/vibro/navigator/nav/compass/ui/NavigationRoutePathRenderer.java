@@ -33,6 +33,18 @@ final class NavigationRoutePathRenderer {
             @NonNull Paint strokePaint,
             @NonNull ProjectedRoutePointSource pointSource
     ) {
+        drawProjectedRouteSegment(canvas, cx, cy, scale, startIndex, endIndex,
+                visibleRadiusMeters, drawPaddingMeters, sourceIdentity, sourceSlot,
+                headingDegrees, strokePaint, false, pointSource);
+    }
+
+    void drawProjectedRouteSegment(
+            @NonNull Canvas canvas, float cx, float cy, float scale,
+            int startIndex, int endIndex, float visibleRadiusMeters, float drawPaddingMeters,
+            @NonNull Object sourceIdentity, int sourceSlot, float headingDegrees,
+            @NonNull Paint strokePaint, boolean filledStroke,
+            @NonNull ProjectedRoutePointSource pointSource
+    ) {
         NavigationRoutePathCache.Entry cached = pathCache.find(
                 sourceIdentity, sourceSlot, startIndex, endIndex,
                 cx, cy, scale, visibleRadiusMeters, drawPaddingMeters
@@ -44,7 +56,7 @@ final class NavigationRoutePathRenderer {
                     routePath, !routePath.isEmpty());
         }
         drawRotatedPath(canvas, cached, cx, cy, scale,
-                visibleRadiusMeters + drawPaddingMeters, headingDegrees, strokePaint);
+                visibleRadiusMeters + drawPaddingMeters, headingDegrees, strokePaint, filledStroke);
     }
 
     private void buildNorthUpPath(
@@ -81,14 +93,19 @@ final class NavigationRoutePathRenderer {
 
     private static void drawRotatedPath(
             Canvas canvas, NavigationRoutePathCache.Entry entry,
-            float cx, float cy, float scale, float boundsMeters, float headingDegrees, Paint paint
+            float cx, float cy, float scale, float boundsMeters, float headingDegrees, Paint paint,
+            boolean filledStroke
     ) {
         int saved = canvas.save();
         try {
             float boundsPixels = boundsMeters * scale;
             canvas.clipRect(cx - boundsPixels, cy - boundsPixels, cx + boundsPixels, cy + boundsPixels);
             canvas.rotate(-headingDegrees, cx, cy);
-            entry.draw(canvas, paint);
+            if (filledStroke) {
+                entry.drawCorridor(canvas, paint);
+            } else {
+                entry.draw(canvas, paint);
+            }
         } finally {
             canvas.restoreToCount(saved);
         }

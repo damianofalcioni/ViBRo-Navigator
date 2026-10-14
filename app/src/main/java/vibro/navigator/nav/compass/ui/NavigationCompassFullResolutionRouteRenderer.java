@@ -333,6 +333,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 SAMPLED_ROUTE_SOURCE,
                 headingDegrees,
                 paint,
+                paint.equals(routeThresholdPaint),
                 (index, out) -> projectSampledPoint(state, index, out)
         );
     }
@@ -363,6 +364,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 0,
                 headingDegrees,
                 paint,
+                paint.equals(routeThresholdPaint),
                 (index, out) -> projectProjectedPoint(points.get(index), out)
         );
     }
@@ -394,6 +396,7 @@ final class NavigationCompassFullResolutionRouteRenderer {
                 FULL_ROUTE_SOURCE,
                 headingDegrees,
                 paint,
+                paint.equals(routeThresholdPaint),
                 (index, out) -> projectPoint(state, index, out)
         );
     }

@@ -136,7 +136,7 @@ public class NavigationCompassRouteRotationCacheTest {
     private static NavigationCompassFullResolutionRouteRenderer renderer() {
         Paint paint = new Paint();
         paint.setStyle(Paint.Style.STROKE);
-        return new NavigationCompassFullResolutionRouteRenderer(paint, paint, paint, paint, paint);
+        return new NavigationCompassFullResolutionRouteRenderer(paint, paint, new Paint(paint), paint, paint);
     }
 
     private static NavCompassState state(CompassRouteGeometry geometry, double latitude, int passed, boolean moving) {
