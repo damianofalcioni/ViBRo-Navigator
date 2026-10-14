@@ -52,7 +52,7 @@ abstract class PrepareReleaseTask extends DefaultTask {
 }
 
 def releaseAppBuildFile = layout.projectDirectory.file("app/build.gradle").asFile
-def releaseFdroidMetadataFile = layout.projectDirectory.file("fdroid/vibro.navigator.yml").asFile
+def releaseFdroidMetadataFile = layout.projectDirectory.file("fdroid/vibro.navigator.foss.yml").asFile
 def releaseChangelogFile = layout.projectDirectory.file("docs/CHANGELOG/index.html").asFile
 def releaseFastlaneChangelogDir = layout.projectDirectory.dir("fastlane/metadata/android/en-US/changelogs").asFile
 def releaseRepoDir = layout.projectDirectory.asFile

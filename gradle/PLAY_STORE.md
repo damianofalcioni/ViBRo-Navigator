@@ -2,7 +2,9 @@
 
 Published stable GitHub Releases trigger `.github/workflows/build-apk.yml`.
 It checks out the tag, runs lint/tests, builds signed release APKs and the `gplay`
-AAB, and attaches all three to the release. Only after that build succeeds do
+AAB, and attaches only the signed FOSS (`fdroid`) APK to the GitHub Release.
+The Google Play artifacts remain CI artifacts; the AAB is passed to the Play
+publishing job. Only after that build succeeds do
 Google Play upload and F-Droid submission start as separate jobs. Prereleases,
 pushes, pull requests, and manual build dispatches do not submit to either store.
 
@@ -107,7 +109,8 @@ not automatically import them. `publishGplayReleaseBundle` uploads the bundle
 and release notes, while store-listing changes use the separate GPP listing
 tasks.
 
-F-Droid's signed APK must use the `fdroid` flavor. If Play App Signing uses a
-different app signing certificate from your upstream APK certificate, installed
-Play and F-Droid copies cannot update one another just because their upload
-artifacts used the same keystore.
+F-Droid's signed APK must use the `fdroid` flavor and application ID
+`vibro.navigator.foss`. Google Play keeps `vibro.navigator`, so both versions
+can be installed together and update independently. Each package must retain
+its own signing identity for future updates; using the same upload keystore
+does not make the packages interchangeable.

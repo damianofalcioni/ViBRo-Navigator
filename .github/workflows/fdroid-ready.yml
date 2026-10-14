@@ -159,6 +159,8 @@ jobs:
 
           apk_dir = Path("app/build/outputs/apk/fdroid/release")
           metadata = json.loads((apk_dir / "output-metadata.json").read_text())
+          if metadata["applicationId"] != "vibro.navigator.foss":
+              raise SystemExit("F-Droid release APK must use the FOSS application ID")
           version = metadata["elements"][0]
           tools = Path(os.environ["ANDROID_HOME"]) / "build-tools" / "37.0.0"
 
@@ -188,7 +190,7 @@ jobs:
                   raise SystemExit("Published F-Droid APK uses a different signing certificate")
               badging = subprocess.check_output([str(tools / "aapt2"), "dump", "badging", str(published)], text=True)
               package = re.search(r"^package: name='([^']+)' versionCode='([^']+)' versionName='([^']+)'", badging, re.MULTILINE)
-              expected = ("vibro.navigator", str(version["versionCode"]), version_name)
+              expected = ("vibro.navigator.foss", str(version["versionCode"]), version_name)
               if not package or package.groups() != expected:
                   raise SystemExit("Published APK package/version does not match the release source")
               print(f"Verified public upstream APK: {url}")

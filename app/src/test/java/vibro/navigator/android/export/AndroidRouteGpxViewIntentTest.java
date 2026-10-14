@@ -70,7 +70,8 @@ public class AndroidRouteGpxViewIntentTest {
     public void createForUri_buildsActionViewGpxIntent() {
         Intent intent = AndroidRouteGpxViewIntent.createForUri(
                 context,
-                Uri.parse("content://vibro.navigator.debug.fileprovider/external0/gpx/vibro-navigator-route-20260713123456.gpx")
+                Uri.parse("content://" + context.getPackageName()
+                        + ".fileprovider/external0/gpx/vibro-navigator-route-20260713123456.gpx")
         );
 
         assertEquals(Intent.ACTION_VIEW, intent.getAction());
@@ -96,7 +97,8 @@ public class AndroidRouteGpxViewIntentTest {
     public void createChooserForIntent_addsExplicitViewTargetsWhenGpxHandlersExist() {
         Intent actionView = AndroidRouteGpxViewIntent.createForUri(
                 context,
-                Uri.parse("content://vibro.navigator.debug.fileprovider/external0/gpx/vibro-navigator-route-20260713123456.gpx")
+                Uri.parse("content://" + context.getPackageName()
+                        + ".fileprovider/external0/gpx/vibro-navigator-route-20260713123456.gpx")
         );
         registerResolvableIntent(actionView, "com.example.first", "FirstActivity");
         registerResolvableIntent(actionView, "com.example.second", "SecondActivity");

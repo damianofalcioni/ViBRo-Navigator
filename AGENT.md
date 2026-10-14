@@ -23,7 +23,7 @@ For work in `docs/` or `docs-tools/`, also read `docs/AGENT.MD` and `docs-tools/
 - Treat the Custom spinner row as a file-picker action. Keep the committed selection while browsing and only commit Custom after a valid file is saved. Cancellation must preserve the previous profile, including when an older custom file exists; use the disabled prompt when no regular or saved custom profile is available.
 - Exclude BRouter's temporary `remote.brf` from discovered profile lists. Keep localized profile titles short, use one-line spinner labels with end ellipsis, and rely on the existing warning triangle for experimental/debug status while retaining the help descriptions.
 - Keep README/about content aligned at the product-description level. `README.md` and `about_short_description` in `strings.xml` should stay consistent about the app's purpose and core behavior, but they do not need to be literal copies of each other.
-- When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/vibro.navigator.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
+- When release/distribution mechanics change, keep `.github/workflows/fdroid-ready.yml`, `.github/workflows/fdroid-submit.yml`, `fastlane/metadata/android/en-US/...`, `fdroid/vibro.navigator.foss.yml`, and `fdroid/SUBMISSION.md` aligned so the maintainer-facing F-Droid process remains accurate.
 - At the end of implementation work, always ask whether to do a fresh recompile and install on a connected phone if one is available, and if there are next-step suggestions, propose those as well.
 
 ## Practical review checklist
@@ -49,6 +49,7 @@ For work in `docs/` or `docs-tools/`, also read `docs/AGENT.MD` and `docs-tools/
 - SDKs in repo today: `compileSdk 37`, `targetSdk 37`, `minSdk 23`
 - Runtime dependencies are intentionally minimal in the common/F-Droid code path: `androidx.core`
 - The app has two distribution flavors: `fdroid` and `gplay`
+- Release application IDs and launcher names are `vibro.navigator` / `ViBRo Navigator` for `gplay` and `vibro.navigator.foss` / `ViBRo Navigator FOSS` for `fdroid`. Debug adds `.debug` and ` Debug` respectively. Keep launcher names in resource overlays (`main`, `fdroid`, `debug`, `fdroidDebug`) and installed-package identities derived from `${applicationId}` or `Context.getPackageName()` so all four variants can coexist.
 - Google Play Services is allowed only in the `gplay` source set/dependency graph. Keep F-Droid and common source sets free of Google Play Services classes, API clients, and build requirements.
 - Android for Cars App Library dependencies and Android Auto manifest/resources are allowed only in the `gplay` source set/dependency graph. Android Auto must use templated `CarAppService` screens and may render the phone-style landscape navigation UI only by drawing onto an Android for Cars navigation surface; do not try to host the phone `Activity` or raw phone layout on the car display.
 - Use focused adapter boundaries for Android framework APIs, Google/third-party SDKs, and other external APIs when the API has permission checks, OS/version guards, callbacks, deprecations, flavor-specific implementations, lifecycle coupling, or makes plain JVM testing difficult. Keep external API calls and raw external types inside the adapter package/source set; expose app-owned ports, value objects, and callback interfaces to the rest of the app. Prefer nesting or inlining stateless one-consumer helpers inside their owning adapter or entry-point shell; split them into top-level adapters only when they are shared, stateful, independently testable, or meaningfully reduce framework leakage. Avoid broad "API service" facades: name adapters by capability, such as `android/location`, `android/foreground`, `android/power`, `android/startup`, or `nav/voice`.
@@ -76,13 +77,13 @@ Verified commands from the repository root:
 - `.\gradlew.bat lintFdroidDebug`
 - `.\gradlew.bat lintGplayDebug`
 
-CI lives in `.github/workflows/build-apk.yml` and runs on pushes, pull requests, releases, and manual dispatch. It requires the Android signing secrets, runs explicit `fdroid`/`gplay` lint/tests, and builds signed release APKs for both flavors. On published GitHub Releases it also builds the signed Google Play AAB and attaches all three artifacts. Only stable release events start store jobs, and those jobs depend on successful artifact attachment.
+CI lives in `.github/workflows/build-apk.yml` and runs on pushes, pull requests, releases, and manual dispatch. It requires the Android signing secrets, runs explicit `fdroid`/`gplay` lint/tests, and builds signed release APKs for both flavors. On published GitHub Releases it also builds the signed Google Play AAB, but attaches only the signed FOSS (`fdroid`) APK to the release. Google Play APK/AAB files remain CI artifacts, with the AAB passed to the Play publishing job. Only stable release events start store jobs, and those jobs depend on successful FOSS APK attachment.
 
 Distribution-related workflows:
 
 - `.\gradlew.bat prepareRelease --release-version=0.2.0` is the local
   release-prep task. It updates `app/build.gradle`,
-  `fdroid/vibro.navigator.yml`, `docs/CHANGELOG/index.html`, and the Fastlane changelog
+  `fdroid/vibro.navigator.foss.yml`, `docs/CHANGELOG/index.html`, and the Fastlane changelog
   for the target `versionCode`, prints a review summary of the new changelog
   additions, and does not create a commit or tag. HTML release entries are inserted
   immediately after `<!-- ADD NEW CHANGELOG ENTRIES HERE, newest release first. -->`;
@@ -93,9 +94,9 @@ Distribution-related workflows:
 - `.\gradlew.bat -PplayPublishing :app:publishGplayReleaseBundle` remains the manual publishing fallback using `gradle/play-publish.gradle`. It enables only `gplayRelease`, defaults to an internal-track draft AAB, and uses external service account credentials plus the existing signing environment. CI does not enable this plugin; it uses a dedicated Play upload action with the already-built AAB. See `gradle/PLAY_STORE.md`. Keep the plugin classpath opt-in so F-Droid source builds do not load it.
 - `.github/workflows/build-apk.yml` calls both store jobs only after its release build and artifact attachment succeed. Play submits a production release with a full rollout (`tracks: production`, `status: completed`) using the `PLAY_SERVICE_ACCOUNT_JSON` repository secret (JSON contents), which needs production release permission. Google review and Play Console managed publishing controls still apply. Release notes reuse the Fastlane changelog and must be 1–500 characters. Store jobs never run for pushes, pull requests, manual build dispatches, or prereleases.
 - `.github/workflows/fdroid-ready.yml` validates upstream F-Droid readiness: fastlane metadata presence and version/tag consistency. Standalone runs execute flavor lint/tests and build a signed APK; release calls reuse the parent build's tested APK artifact. It verifies the APK signature and exports the signing certificate fingerprint. Submission additionally requires the public GitHub Release APK to have the same certificate, package and version. It runs through manual dispatch or the F-Droid submission workflow, with no independent tag-push trigger, and does not establish F-Droid-side reproducibility.
-- `.github/workflows/fdroid-submit.yml` is reusable and also supports standalone manual retries. It first runs F-Droid readiness for the requested published `v<versionName>` tag, then renders `fdroid/vibro.navigator.yml` with the release commit/version, versioned `Binaries` URL and verified `AllowedAPKSigningKeys`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
+- `.github/workflows/fdroid-submit.yml` is reusable and also supports standalone manual retries. It first runs F-Droid readiness for the requested published `v<versionName>` tag, then renders `fdroid/vibro.navigator.foss.yml` with the release commit/version, versioned `Binaries` URL and verified `AllowedAPKSigningKeys`, pushes it to a GitLab `fdroiddata` fork, and opens or reuses a merge request. It does not complete official publication by itself.
 - `fdroid/SUBMISSION.md` is maintainer-facing runbook documentation for the official F-Droid submission flow. Treat it as operator documentation, not as an agent-only instruction file.
-- `fdroid/vibro.navigator.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
+- `fdroid/vibro.navigator.foss.yml` is a draft metadata template for `fdroiddata`; keep its placeholders and release fields aligned with the real upstream repo, tag, and versioning strategy.
 
 ## App localization
 

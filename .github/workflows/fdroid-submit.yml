@@ -10,7 +10,7 @@ on:
       fdroiddata_branch:
         description: "Branch name in your GitLab fdroiddata fork"
         required: true
-        default: "vibro.navigator"
+        default: "vibro.navigator.foss"
   workflow_call:
     inputs:
       release_ref:
@@ -21,7 +21,7 @@ on:
         description: "Branch name in your GitLab fdroiddata fork"
         required: false
         type: string
-        default: "vibro.navigator"
+        default: "vibro.navigator.foss"
       release_artifact:
         description: "Signed APK artifact from the calling release build"
         required: false
@@ -62,7 +62,7 @@ jobs:
       cancel-in-progress: false
 
     env:
-      APP_ID: vibro.navigator
+      APP_ID: vibro.navigator.foss
       TARGET_PROJECT: fdroid/fdroiddata
       TARGET_BRANCH: master
 
@@ -123,7 +123,7 @@ jobs:
           if release_ref != f"v{version_name}":
               raise SystemExit("Release tag must match v<versionName> for the upstream APK URL")
 
-          text = Path("fdroid/vibro.navigator.yml").read_text(encoding="utf-8")
+          text = Path("fdroid/vibro.navigator.foss.yml").read_text(encoding="utf-8")
           replacements = {
               r"^WebSite: .*$": f"WebSite: https://{repo.split('/')[0]}.github.io/{repo.split('/')[1]}/",
               r"^SourceCode: .*$": f"SourceCode: {repo_url}",
@@ -145,7 +145,7 @@ jobs:
           if "REPLACE_WITH_" in text:
               raise SystemExit("Rendered metadata still contains placeholder values")
 
-          output_path = Path(os.environ["RUNNER_TEMP"]) / "vibro.navigator.yml"
+          output_path = Path(os.environ["RUNNER_TEMP"]) / "vibro.navigator.foss.yml"
           output_path.write_text(text, encoding="utf-8")
 
           github_output = Path(os.environ["GITHUB_OUTPUT"])

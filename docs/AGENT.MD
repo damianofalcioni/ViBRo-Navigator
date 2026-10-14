@@ -12,7 +12,7 @@ Current shared asset queries: CSS **v=182**, JavaScript **v=178** across all six
 - App: ViBRo Navigator
 - Repository: `https://github.com/damianofalcioni/ViBRo-Navigator`
 - Google Play: `https://play.google.com/store/apps/details?id=vibro.navigator`
-- F-Droid: `https://f-droid.org/packages/vibro.navigator/`
+- F-Droid: `https://f-droid.org/packages/vibro.navigator.foss/` (ViBRo Navigator FOSS)
 - Latest release: `https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest`
 - GitHub Sponsors: `https://github.com/sponsors/damianofalcioni`
 

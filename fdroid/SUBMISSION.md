@@ -1,7 +1,17 @@
 # F-Droid Submission Notes
 
 This directory contains a draft `fdroiddata` metadata file for
-`vibro.navigator`.
+`vibro.navigator.foss`.
+
+The `fdroid` release launcher name is `ViBRo Navigator FOSS`; Google Play
+keeps `vibro.navigator` / `ViBRo Navigator`. Both can be installed together,
+with separate app data, permissions, and updates. F-Droid debug builds use
+`vibro.navigator.foss.debug` / `ViBRo Navigator FOSS Debug`.
+
+Older F-Droid builds using `vibro.navigator` do not update into the new FOSS
+package. Export a database backup from the old installation and import it
+into FOSS to transfer settings, history, and saved routes. Grant permissions
+and folder access again for the new installation.
 
 Before opening the official F-Droid merge request, complete these steps:
 
@@ -15,27 +25,28 @@ Before opening the official F-Droid merge request, complete these steps:
 5. Commit the current F-Droid prep changes.
 6. Create and push a release tag matching `versionName`, for example `v0.1.16`.
    Publish a stable GitHub Release for that tag. The `Build and Publish Release`
-   workflow checks/builds the tagged source and attaches the signed APKs and AAB.
+   workflow checks/builds the tagged source and attaches only the signed FOSS
+   (`fdroid`) APK. Google Play artifacts remain in CI for Play publishing.
    After attachment succeeds, it starts both Google Play upload and F-Droid
    submission automatically. A tag push alone does not submit to either store.
 7. Confirm the release workflow's F-Droid readiness and submission jobs pass.
    They reuse the release build's APK, verify the public release APK, and then
    prepare the merge request. For retries, the manual `Submit F-Droid Metadata`
    workflow runs readiness before touching your `fdroiddata` fork.
-8. Confirm `fdroid/vibro.navigator.yml` points at the release tag in its
+8. Confirm `fdroid/vibro.navigator.foss.yml` points at the release tag in its
    `commit` field; `prepareRelease` writes this automatically. For manual
    submission, replace `REPLACE_WITH_APKSIGNER_SHA256_FINGERPRINT` with the
    lower-case SHA-256 certificate fingerprint from
    `apksigner verify --print-certs app-fdroid-release.apk`. The automated
    submission fills this from the verified readiness APK and pins the full commit.
 9. For manual submission instead of the automatic workflow, copy the completed
-   metadata into your `fdroiddata` fork as `metadata/vibro.navigator.yml`.
+   metadata into your `fdroiddata` fork as `metadata/vibro.navigator.foss.yml`.
 10. Run the standard validation flow in the F-Droid build container:
    - `fdroid readmeta`
-   - `fdroid rewritemeta vibro.navigator`
-   - `fdroid checkupdates --allow-dirty vibro.navigator`
-   - `fdroid lint vibro.navigator`
-   - `fdroid build vibro.navigator`
+   - `fdroid rewritemeta vibro.navigator.foss`
+   - `fdroid checkupdates --allow-dirty vibro.navigator.foss`
+   - `fdroid lint vibro.navigator.foss`
+   - `fdroid build vibro.navigator.foss`
 
 Useful repository files already prepared upstream:
 
@@ -50,7 +61,7 @@ Notes:
   Android signing secrets. The `F-Droid Readiness` workflow is reserved for
   manual maintainer checks and the automatic pre-submit gate in
   `Submit F-Droid Metadata`. Its separate tag-push trigger has been removed.
-- GitHub prereleases build and attach artifacts but do not submit to either store.
+- GitHub prereleases attach only the signed FOSS APK and do not submit to either store.
 - The Gradle build must run from the repository root, not `app/`, because the
   wrapper and `settings.gradle` live at the top level.
 - `local.properties` is excluded in the draft recipe because it is machine-
@@ -65,11 +76,11 @@ Notes:
 ## GitHub Action automation
 
 The release workflow calls the reusable `Submit F-Droid Metadata` workflow
-after signed artifacts have been attached. It performs these steps:
+after the signed FOSS APK has been attached. It performs these steps:
 
 - run the `F-Droid Readiness` gate for the requested `release_ref`
 - verify that the public release APK has the expected signature, package and version
-- render the final `metadata/vibro.navigator.yml`
+- render the final `metadata/vibro.navigator.foss.yml`
 - push it to your GitLab `fdroiddata` fork
 - create or reuse a merge request against `fdroid/fdroiddata`
 
@@ -92,7 +103,7 @@ Workflow inputs:
 - `release_ref`: the published `v<versionName>` tag with the signed APK attached;
   rendering reads the version from that tag's source, even if the default branch is newer
 - `fdroiddata_branch`: the branch name in your fork, normally
-  `vibro.navigator`
+  `vibro.navigator.foss`
 - `release_artifact`: reusable-workflow input supplied by the release caller
   to reuse its tested signed APKs. Leave it empty for standalone manual runs,
   which check and build the release source themselves.

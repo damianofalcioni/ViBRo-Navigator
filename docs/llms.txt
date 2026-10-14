@@ -18,7 +18,7 @@ ViBRo Navigator is an Android navigation app designed for roads, trails, cities,
 - [GitHub repository](https://github.com/damianofalcioni/ViBRo-Navigator): Source code, documentation, issues, and development history.
 - [Latest GitHub release](https://github.com/damianofalcioni/ViBRo-Navigator/releases/latest): Latest release artifacts.
 - [Google Play](https://play.google.com/store/apps/details?id=vibro.navigator): Google Play distribution page.
-- [F-Droid](https://f-droid.org/packages/vibro.navigator/): F-Droid distribution page.
+- [F-Droid](https://f-droid.org/packages/vibro.navigator.foss/): ViBRo Navigator FOSS distribution page.
 
 ## Key characteristics
 

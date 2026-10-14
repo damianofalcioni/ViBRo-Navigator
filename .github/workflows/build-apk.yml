@@ -111,16 +111,13 @@ jobs:
           if-no-files-found: error
           path: ${{ runner.temp }}/play-release/
 
-      - name: Attach signed artifacts to release
+      - name: Attach signed FOSS APK to release
         if: github.event_name == 'release'
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name }}
           fail_on_unmatched_files: true
-          files: |
-            app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
-            app/build/outputs/apk/gplay/release/app-gplay-release.apk
-            app/build/outputs/bundle/gplayRelease/app-gplay-release.aab
+          files: app/build/outputs/apk/fdroid/release/app-fdroid-release.apk
 
   publish_play:
     needs: build
