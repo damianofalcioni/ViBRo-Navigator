@@ -37,6 +37,9 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
 * **Minimal speech direction instructions**
   Optional spoken direction instructions keep audio guidance concise and distraction-free.
 
+* **Multilingual**
+  Currently supports: Arabic, Catalan, Chinese, Czech, Danish, Dutch, English, French, German, Greek, Hungarian, Italian, Japanese, Korean, Polish, Portuguese, Spanish, and Swedish. Wording contributions are welcome.
+
 * **Offline-first routing**
   Uses BRouter for fully offline route calculation and turn instruction generation. An internet connection is required only when searching for a destination.
 
@@ -50,7 +53,7 @@ I needed an offline GPS navigation for my Android 8 phone with degraded battery 
   Plan circular BRouter routes from your current location using a target distance and direction.
   
 * **Minimal & dependency-light**
-  Built in pure Java with minimal external dependencies. APK size is ~400Kb for the F-Droid version and ~900Kb for the GPlay version !!
+  Built in pure Java with minimal external dependencies. APK size is ~2 MB for the F-Droid variant !!
 
 * **Smart POI search**
 

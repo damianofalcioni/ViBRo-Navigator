@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Použít jazyk systému</string>
+    <string name="action_configure_app_language">Nastavit jazyk aplikace</string>
+    <string name="title_app_language">Jazyk aplikace</string>
+    <string name="label_app_language">Jazyk</string>
+    <string name="hint_app_language">Vybraný jazyk se používá, když je možnost Použít jazyk systému vypnutá.</string>
+    <string name="about_setting_language_info">Používá první podporovaný jazyk ve vašich preferencích jazyka zařízení, nebo angličtinu, pokud žádný není k dispozici. Vypněte tuto možnost pro použití jazyka vybraného tlačítkem pro nastavení. Počáteční výběr odpovídá vašemu jazykovému nastavení systému.</string>
+    <string name="nav_gesture_map_controls_title">Ovládání mapy pomocí gest</string>
+    <string name="nav_gesture_views_body">
+        <b>Přepnout pohledy.</b> Poklepáním nebo přejetím doleva / doprava přepínáte mezi pohledem celé trasy, 2D a 3D</string>
+    <string name="nav_gesture_zoom_body">
+        <b>Přiblížit / oddálit.</b> Štípnutím nebo roztáhnutím pohledu 2D a 3D upravíte zoom o ±2 úrovně</string>
+    <string name="nav_gesture_tilt_body">
+        <b>Naklonit pohled 3D.</b> Přejetím nahoru / dolů se dvěma prsty nakloníte pohled 3D</string>
+    <string name="nav_gesture_map_legend_title">Legenda mapy</string>
+    <string name="nav_gesture_current_route">Aktuální trasa</string>
+    <string name="nav_gesture_current_position_accuracy">Aktuální pozice a přesnost</string>
+    <string name="nav_gesture_dont_show_again">Už nezobrazovat</string>
+    <string name="nav_gesture_dismiss">Klepněte kamkoli pro zavření</string>
+    <string name="welcome_title">Vítejte v ViBRo</string>
+    <string name="welcome_tldr">Shrnutí: Nainstalujte BRouter, stáhněte si lokální data pro trasování a udělte oprávnění.</string>
+    <string name="welcome_intro">ViBRo Navigator (Vibrační/Navigátor BRouter s vibračními kódy) je lehká, prioritně offline a úsporná aplikace pro navigaci Android GPS postavená na BRouter. Je navržena pro navigaci bez map, poskytuje pokyny prostřednictvím vibrací a minimálních vizuálních či hlasových pokynů, umožňuje používání bez rozptýlení a se zhasnutou obrazovkou.</string>
+    <string name="welcome_setup_title">Počáteční nastavení</string>
+    <string name="welcome_brouter_body">• Nainstalujte BRouter pomocí poskytnutých odkazů, poté ji otevřete a stáhněte data trasování pro svou oblast.</string>
+    <string name="welcome_permissions_body">• Po tomto uvítání a volitelném výzvě k instalaci BRouter povolte polohu, mikrofon (pro hlasový vstup), oznámení a jakýkoli požadovaný přístup k úložišti. Při výzvě povolte polohu zařízení. Žádost můžete přeskočit a přístup povolit později.</string>
+    <string name="welcome_storage_body">• Udělte přístup ke složce profiles2, když budete vyzváni, nebo oprávnění k úložišti na starších verzích Android.</string>
+    <string name="welcome_battery_body">• Umožněte volitelné vyloučení z optimalizace baterie pro spolehlivou navigaci s vypnutou obrazovkou.</string>
+    <string name="welcome_optional_access_body">• Přístup k mikrofonu je potřeba pouze tehdy, pokud je vyžadován pro hlasové vyhledávání.</string>
+    <string name="action_about">O aplikaci</string>
+    <string name="action_start_navigation">Spustit navigaci</string>
+    <string name="action_pause_navigation">Pozastavit navigaci</string>
+    <string name="action_resume_navigation">Pokračovat v navigaci</string>
+    <string name="action_stop_navigation">Zastavit navigaci</string>
+    <string name="action_save_route">Uložit trasu</string>
+    <string name="action_restore_route">Obnovit trasu</string>
+    <string name="action_add_stop">Přidat zastávku</string>
+    <string name="action_remove_stop">Odstranit zastávku</string>
+    <string name="action_blocked_road">Blokovaná silnice</string>
+    <string name="action_skip_beeline_target">Přeskočit cílový bod</string>
+    <string name="action_delete">Odstranit</string>
+    <string name="action_edit">Upravit</string>
+    <string name="action_open_settings">Otevřít nastavení</string>
+    <string name="action_open_tts_settings">Otevřená nastavení převodu textu na řeč</string>
+    <string name="action_open_speech_directions_settings">Nastavení otevřených pokynů řeči</string>
+    <string name="action_open_speech_recognition_settings">Otevřená nastavení rozpoznávání řeči</string>
+    <string name="action_open_android_stt_settings">Nastavení převodu řeči Android text</string>
+    <string name="action_continue">Pokračovat</string>
+    <string name="action_enable_speech_recognition">Zobrazit tlačítka pro rozpoznávání řeči</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Testujte hlasové pokyny k řeči</string>
+    <string name="action_voice_search_destination">Speak, cíl</string>
+    <string name="action_voice_search_stop">Mluv, přestaň</string>
+    <string name="action_clear_poi_search">Vymazat vyhledávací text</string>
+    <string name="action_save">Uložit klíč</string>
+    <string name="action_save_poi_categories">Uložit</string>
+    <string name="action_open_map">Mapa</string>
+    <string name="action_cancel">Zrušit</string>
+    <string name="action_use_selected_point">Použít vybraný bod</string>
+    <string name="action_map_poi_categories">POI kategorie</string>
+    <string name="action_open_map_position">Pozice na otevřené mapě</string>
+    <string name="action_test_left_notification">Levicové</string>
+    <string name="action_test_other_notification">Ostatní</string>
+    <string name="action_test_right_notification">Práva</string>
+    <string name="action_current_location">Současné umístění</string>
+    <string name="action_edit_poi_categories">Editovat POI kategorie</string>
+    <string name="action_edit_google_poi_api_key">Edit Google Maps API klíč</string>
+    <string name="action_configure_navigation_custom_button">Tlačítko Nastavit vlastní nastavení</string>
+    <string name="action_enable_google_poi_search">Povolit vyhledávání Google</string>
+    <string name="action_add_poi_category">Přidat kategorii POI</string>
+    <string name="action_remove_poi_category">Odebrat kategorii POI</string>
+    <string name="action_enable_poi_category">Povolit kategorii POI</string>
+    <string name="action_export_database">Exportovat databázi</string>
+    <string name="action_import_database">Importovat databázi</string>
+    <string name="action_export_route">Exportovat GPX</string>
+    <string name="action_profile_info">Informace o profilu</string>
+    <string name="action_setting_info">Informace o nastavení</string>
+    <string name="action_poi_details">Podrobnosti POI</string>
+    <string name="action_search_google_maps">Hledat v Google Maps</string>
+    <string name="action_profile_settings">Nastavení profilu</string>
+    <string name="action_reset_defaults">Obnovit výchozí hodnoty</string>
+    <string name="label_vehicle_profile">Profil</string>
+    <string name="label_route_mode_route">Režim trasy</string>
+    <string name="label_route_mode_round_trip">Režim okružní trasy</string>
+    <string name="label_route_mode_straight_line">Režim přímé linie</string>
+    <string name="label_destination">Cíl</string>
+    <string name="label_poi_entrance">Vstup</string>
+    <string name="label_poi_entrances">Vstupy</string>
+    <string name="label_poi_entrance_type">Typ</string>
+    <string name="label_poi_coordinates">Souřadnice</string>
+    <string name="label_poi_extra_tags">Extra značky</string>
+    <string name="label_poi_address_details">Adresa</string>
+    <string name="label_round_trip_distance_km">Průměrná vzdálenost zpáteční cesty (km)</string>
+    <string name="label_round_trip_distance_mi">Průměrná vzdálenost zpáteční cesty (mi)</string>
+    <string name="label_round_trip_direction">Směr zpáteční cesty (°)</string>
+    <string name="label_round_trip_direction_compass">Kompas směru zpáteční cesty</string>
+    <string name="label_profile_attention_icon">Experimentální nebo ladicí profil</string>
+    <string name="format_profile_info_content_description">Zobrazit informace pro %1$s</string>
+    <string name="format_route_mode_info_content_description">Zobrazit informace o režimu pro %1$s</string>
+    <string name="format_poi_details_content_description">Zobrazit podrobnosti POI pro %1$s</string>
+    <string name="format_poi_search_info_content_description">Zobrazit vyhledávací informace pro %1$s</string>
+    <string name="format_poi_entrance_heading">Vstup %1$d</string>
+    <string name="format_poi_entrance_type">Vstup: %1$s</string>
+    <string name="format_stop_label">Zastavit %1$d</string>
+    <string name="format_default_saved_route_name">Trasa %1$s</string>
+    <string name="hint_search_destination">Vyhledat cíl</string>
+    <string name="hint_search_stop">Vyhledat zastávku</string>
+    <string name="prompt_speech_destination">Řekněte cíl</string>
+    <string name="prompt_speech_stop">Řekněte zastávku</string>
+    <string name="hint_saved_route_name">Název trasy</string>
+    <string name="msg_missing_destination">Vyberte cíl</string>
+    <string name="msg_invalid_destination_name">Zadejte název cíle</string>
+    <string name="msg_invalid_route_name">Zadejte název trasy</string>
+    <string name="msg_invalid_coordinates">Vyberte místo s souřadnicemi</string>
+    <string name="msg_invalid_stop">Odstraňte nebo vyberte zastávku se souřadnicemi</string>
+    <string name="msg_invalid_round_trip_distance">Zadejte platnou vzdálenost zpáteční cesty</string>
+    <string name="msg_invalid_round_trip_direction">Zadejte platný směr zpáteční cesty</string>
+    <string name="msg_round_trip_requires_brouter_profile">Vyberte profil BRouter pro režim zpáteční cesty</string>
+    <string name="msg_brouter_not_found">BRouter není nainstalován</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter je vyžadován pro okolní ulice.</string>
+    <string name="title_brouter_not_found">BRouter je vyžadován</string>
+    <string name="title_stop_navigation_confirm">Zastavit navigaci?</string>
+    <string name="msg_brouter_install_prompt">BRouter není nainstalován. Otevřít jeho stránku aplikace v Play Store nebo F-Droid?</string>
+    <string name="msg_location_disabled">Poloha je zakázána. Povolte ji pro navigaci.</string>
+    <string name="msg_permission_required">Povolení vyžadováno</string>
+    <string name="msg_stop_navigation_confirm">Chcete zastavit navigaci a zavřít tuto obrazovku?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator potřebuje přístup k poloze pro navigaci a vibrace směrových pokynů.</string>
+    <string name="msg_permission_notifications_rationale">Oznámení se používají k upozornění na nadcházející zatáčky.</string>
+    <string name="msg_enable_notifications">Povolte oznámení pro upozornění na zatáčky.</string>
+    <string name="msg_battery_opt_rationale">Pro spolehlivou navigaci na pozadí povolte ViBRo Navigator ignorovat optimalizace baterie.</string>
+    <string name="msg_open_settings_failed">Na tomto zařízení se nepodařilo otevřít nastavení.</string>
+    <string name="msg_open_brouter_store_failed">Na tomto zařízení se nepodařilo otevřít stránku obchodu BRouter.</string>
+    <string name="msg_intent_unrecognized">Sdílená poloha nebyla rozpoznána</string>
+    <string name="msg_gpx_import_failed">Nepodařilo se načíst body trasy GPX.</string>
+    <string name="msg_gpx_import_blocked_navigation">Zastavte navigaci před otevřením trasy GPX.</string>
+    <string name="msg_speech_input_unavailable">Žádná služba rozpoznávání řeči není povolena. Povolit aplikaci Google nebo hlasový vstup Android.</string>
+    <string name="msg_speech_input_listening">Poslouchám…</string>
+    <string name="msg_speech_input_empty">Nebyla rozpoznána žádná řeč.</string>
+    <string name="msg_speech_input_failed">Vstup řeči selhal. Zkuste to znovu.</string>
+    <string name="msg_speech_input_unresponsive">Rozpoznávání řeči se nespustilo. Povolit aplikaci Google nebo hlasový vstup Android.</string>
+    <string name="msg_speech_permission_required">Pro vstup řeči je potřeba oprávnění k mikrofonu.</string>
+    <string name="msg_select_custom_profile">Vyberte vlastní soubor BRouter .brf</string>
+    <string name="msg_invalid_custom_profile">Vyberte platný soubor BRouter .brf</string>
+    <string name="msg_profile_parameters_empty">Tento profil neumožňuje upravitelné parametry.</string>
+    <string name="msg_profile_parameters_not_localized">Parametry jsou dynamicky získávány ze souboru profilu BRouter, takže jejich názvy, popisy a možnosti nejsou přeloženy.</string>
+    <string name="msg_profile_parameters_saved">Nastavení profilu uloženo.</string>
+    <string name="msg_profile_parameters_reset">Nastavení profilu bylo obnoveno na výchozí hodnoty profilu.</string>
+    <string name="msg_profile_parameter_invalid_number">Zadejte platné číslo.</string>
+    <string name="msg_profile_parameter_invalid_text">Hodnoty nesmí obsahovat ?, &amp; nebo =.</string>
+    <string name="msg_poi_details_unavailable">Žádné další podrobnosti nejsou k dispozici.</string>
+    <string name="msg_poi_details_map_check_hint">Použijte mapu k dvojnásobné kontrole, že se jedná o zamýšlenou lokaci.</string>
+    <string name="msg_poi_google_maps_search_info">Otevře Google Maps s textem z tohoto vyhledávacího pole POI. Po výběru místa v Google Maps sdílejte toto místo a vyberte ViBRo Navigator pro přenesení výsledku zde.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">Pro čtení místních ulic BRouter je potřeba přístup k úložišti.</string>
+    <string name="title_brouter_segments_storage_access">Uložení ulic BRouter</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Okolní ulice potřebují přístup do složky BRouter segments4. Na další obrazovce přejděte do %1$s a potvrďte přístup ke složce. Pokud tato lokalita není dostupná, vyberte složku, kam BRouter ukládá své soubory .rd5.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">Pro čtení profilových souborů BRouter je potřeba přístup k úložišti.</string>
+    <string name="title_brouter_profiles_storage_access">Uložení profilů BRouter</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter potřebují přístup ke složce profiles2. Na další obrazovce přejděte do %1$s a potvrďte přístup ke složce. Pokud toto umístění není k dispozici, vyberte složku, kde BRouter ukládá své profily .brf.\n\nOdesláno upozornění na test symbolu</string>
+    <string name="msg_symbol_test_notification_sent">.</string>
+    <string name="msg_map_location_searching">Hledání aktuální polohy…</string>
+    <string name="msg_map_location_unavailable">Aktuální poloha není dostupná.</string>
+    <string name="msg_map_selection_required">Nejprve vyberte bod na mapě.</string>
+    <string name="msg_map_position_unavailable">Poloha na mapě není dostupná.</string>
+    <string name="msg_map_position_no_app">Žádná aplikace nemůže otevřít polohu na mapě.</string>
+    <string name="msg_map_position_open_failed">Nepodařilo se otevřít polohu na mapě.</string>
+    <string name="msg_map_poi_loading">Načítání POI…</string>
+    <string name="msg_map_poi_unavailable">POI nejsou k dispozici.</string>
+    <string name="msg_map_poi_zoom_in">Při načítání POI se přibližte.</string>
+    <string name="msg_map_poi_empty">V tomto zobrazení mapy nejsou žádné povolené POI.</string>
+    <string name="msg_map_poi_categories_empty">V tomto zobrazení mapy nejsou žádné kategorie POI.</string>
+    <string name="msg_database_exported">Databáze uložena: %1$s</string>
+    <string name="msg_database_export_failed">Nepodařilo se exportovat databázi.</string>
+    <string name="msg_database_imported">Databáze importována.</string>
+    <string name="msg_database_import_failed">Nepodařilo se importovat databázi.</string>
+    <string name="msg_saved_route_saved">Trasa uložena.</string>
+    <string name="msg_saved_route_restored">Trasa obnovena.</string>
+    <string name="msg_saved_routes_empty">Žádné uložené trasy.</string>
+    <string name="msg_route_export_unavailable">Žádná aktivní trasa k exportu.</string>
+    <string name="msg_route_export_failed">Nelze exportovat trasu.</string>
+    <string name="msg_route_export_no_app">Žádná aplikace nemůže otevřít trasy GPX.</string>
+    <string name="msg_google_maps_search_open_failed">Nelze otevřít vyhledávání Google Maps.</string>
+    <string name="msg_open_url_failed">Nelze otevřít odkaz na tomto zařízení.</string>
+    <string name="label_exported_route_gpx">Trasa ViBRo GPX</string>
+    <string name="gpx_passed_route_track_name">Ujetá trasa</string>
+    <string name="format_gpx_gps_fix_name">Oprava GPS %1$d</string>
+    <string name="label_vehicle_profile_custom">Vlastní</string>
+    <string name="label_vehicle_profile_custom_with_name">Vlastní (%1$s)</string>
+    <string name="title_profile_parameters">Nastavení profilu: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Obnovit nastavení profilu?</string>
+    <string name="msg_profile_parameters_reset_confirm">Obnovit nastavení tohoto profilu na hodnoty definované v profilu?</string>
+    <string name="format_profile_parameter_info_content_description">Zobrazit informace o parametrech pro %1$s</string>
+    <string name="route_mode_info_route_description">Vypočítá trasu BRouter z vaší aktuální polohy přes všechny zastávky do cíle.</string>
+    <string name="route_mode_info_round_trip_description">Vypočítává kruhovou trasu BRouter z vaší aktuální polohy podle vybraného profilu a průměrné délky výletu.</string>
+    <string name="route_mode_info_straight_line_description">Přeskočí BRouter a vede přímo k cíli a zastaví s přímou vzdáleností a směrem.</string>
+    <string name="profile_info_trekking_title">Trekingové kolo</string>
+    <string name="profile_info_trekking_description">Vyvážené plánování trasy pro běžné cyklisty, turisty a praktickou navigaci. Jeho hlavní silnou stránkou je všestrannost: vyhýbá se hustému automobilovému provozu, podporuje cyklotrasy, zohledňuje převýšení a obvykle vytváří trasy, které působí rozumně pro běžné cyklisty. Jeho slabou stránkou je, že není vysoce specializované: silničáři mohou zjistit, že je pomalejší než `fastbike`, zatímco terénní jezdci mohou považovat za příliš konzervativní ve srovnání s `mtb` nebo `gravel`. Jeho charakteristickým rysem je, že je to nejbezpečnější profil pro obecné použití a pravděpodobně nejlepší výchozí volba pro většinu uživatelů.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Trekking, ignorovat trasy</string>
+    <string name="profile_info_trekking_ignore_cr_description">Variant trekkingového kola, který ignoruje vztahy cyklotras. Jeho síla spočívá v tom, že se vyhýbá nadměrnému upřednostňování značených nebo mapovaných cyklotras, pokud jsou tyto trasy nepřímé, malebné, zastaralé nebo pro aktuální výlet ve skutečnosti nepoužitelné. Jeho slabinou je, že ztrácí jednu z hlavních výhod běžného trekkingového profilu: následování dobrých cyklistických sítí, kde existují. Jeho charakteristickým rysem je, že odpovídá na konkrétní problém: \"nepreferovat silnici jen proto, že patří k cyklotrase.\"</string>
+    <string name="profile_info_trekking_noferries_title">Trekking, bez trajektů</string>
+    <string name="profile_info_trekking_noferries_description">Varianta trekkingového kola, která se vyhýbá trajektovým spojům. Její silnou stránkou je předvídatelnost: vyhýbá se trasám, které závisí na jízdních řádech trajektů, sezónním provozu, vstupenkách, čekací době nebo nejisté dostupnosti. Její slabinou je, že může vytvářet mnohem delší trasy v oblastech s řekami, jezery, ostrovy nebo pobřežími, kde jsou trajekty praktickým spojením. Její charakteristickou vlastností je, že jde o trekkingový profil pro uživatele, kteří chtějí trasu pouze po zemi.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, bez schodů</string>
+    <string name="profile_info_trekking_nosteps_description">Varianta trekkingového kola, která se vyhýbá schodům. Její silnou stránkou je praktická sjízdnost, zejména pro naložená turistická kola, elektrokola, nákladní kola, dětské vozíky nebo uživatele, kteří nechtějí kolo nést. Její slabinou je, že může vynechávat krátké pěší/cyklistické zkratky a v městech nebo kopcovitých oblastech způsobovat delší objížďky. Její charakteristickým rysem je, že si zachovává normální trekkingovou rovnováhu, ale odstraňuje jednu z nejméně příjemných překvapení při navigaci na kole: schody.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, strmé stoupání</string>
+    <string name="profile_info_trekking_steep_description">Varianta trekkingového kola pro trasy, kde jsou strmější stoupání více akceptovatelná. Jeho silnou stránkou je, že může volit přímější nebo kopcovitější trasy místo toho, aby se vyhýbal převýšení. Jeho slabinou je, že může být nepohodlné nebo nevhodné pro rekreační jezdce, těžká kola, přívěsy nebo jízdy na elektrokole s nízkou baterií. Jeho charakteristickým rysem je, že si zachovává trekkingový charakter, ale méně se bojí strmého terénu než normální trekkingový profil.</string>
+    <string name="profile_info_fastbike_title">Silniční kolo</string>
+    <string name="profile_info_fastbike_description">Optimalizováno pro rychlou jízdu po zpevněných cestách, závodní kola, fitness kola a rychlé elektrokola. Jeho síla je rychlost: preferuje efektivní a kvalitní silnice a používá model orientovaný na délku cesty, místo aby jen hledal klidné nebo malebné trasy. Jeho slabina je, že může působit příliš silničně orientovaně pro příležitostné jezdce, rodiny nebo uživatele, kteří silně preferují trasy s nízkým provozem. Jeho charakteristickým rysem je, že jde o profil kola orientovaný na výkon: rychlejší a přímější než `trekking`, ale stále uvědomuje si jezdce na kole.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Silniční kolo, nízký provoz</string>
+    <string name="profile_info_fastbike_lowtraffic_description">Profil rychlého kola, který klade větší důraz na vyhýbání se dopravě než běžný `fastbike`, přitom však zůstává výkonnostně orientovaný. Jeho silnou stránkou je, že je dobrým kompromisem pro jezdce, kteří chtějí rychlost, ale nechtějí být neustále směrováni na rušné silnice. Jeho slabinou je, že může být o něco pomalejší nebo méně přímý než `fastbike` a méně vyhýbavý dopravě než `fastbike-verylowtraffic`. Jeho charakteristickým rysem je, že je střední volbou mezi čistě rychlým trasováním a rychlým trasováním velmi citlivým na dopravu.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Silniční kolo, nejméně zatížené dopravou</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">Silnější varianta s nízkou dopravou pro uživatele silničních kol nebo rychlých elektrokol, kteří se chtějí co nejvíce vyhnout autům a nákladním vozidlům. Její předností je bezpečnější a klidnější rychlá jízda, zejména pro sólové jízdy, déšť, noční jízdu nebo hustě zatížené oblasti. Její slabinou je, že může způsobit delší objížďky a může odmítat jinak rychlé silnice, pokud jsou hustě zatížené dopravou. Její charakteristický rys spočívá v tom, že si zachovává charakter rychlého kola, ale velmi nízká dopravní trasa je hlavní prioritou.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Silniční kolo, Asijsko-pacifická oblast</string>
+    <string name="profile_info_fastbike_asia_pacific_description">Regionální varianta `fastbike` pro země, kde evropské předpoklady ohledně hlavních silnic, dálnic a omezení pro bicykly ne vždy platí. Její silnou stránkou je, že může učinit trasování pro rychlá kola použitelnější v regionech, jako je Japonsko, Austrálie a další kontexty Asie a Tichomoří, kde klasifikace silnic a přístup bicyklů může být odlišný od Evropy. Její slabinou je, že není vhodná jako univerzální výchozí profil. Její zvláštností je, že zachovává logiku rychlého kola, ale přizpůsobuje předpoklady přístupu k silnicím pro použití v Asii a Tichomoří.</string>
+    <string name="profile_info_safety_title">Bezpečnější cyklistika</string>
+    <string name="profile_info_safety_description">Profil kola zaměřený na bezpečnější a klidnější trasování. Jeho silnou stránkou je, že při trasování dává větší přednost vyhýbání se nepříjemným nebo nebezpečným silnicím než běžné rychlé trasování, což je užitečné pro opatrné jezdce, rodiny, městské cyklisty nebo uživatele, kteří preferují pohodlí před rychlostí. Jeho slabinou je, že může vést k pomalejším, delším nebo méně přímým trasám. Jeho charakteristickým rysem je, že je nejjasnějším cyklistickým profilem \"bezpečí především\", užitečným, když je prioritou uživatele vyhýbání se stresující dopravě spíše než minimalizace času.</string>
+    <string name="profile_info_gravel_title">Gravel kolo</string>
+    <string name="profile_info_gravel_description">Navrženo pro gravelové kolo a jízdu po smíšených površích. Jeho silnou stránkou je hledání tras, které mohou zahrnovat zpevněnou štěrkovou cestu, stezky a málo frekventované nezpevněné cesty, přičemž stále vyhýbá povrchům, které jsou příliš hrubé, bahnité, strmé nebo pomalé. Jeho slabinou je, že není ideální pro čistě silniční kola, protože může úmyslně vybírat nezpevněné úseky a není tak orientovaný na stezky jako pravý profil MTB. Jeho charakteristickým rysem je, že se nachází mezi silniční cyklistikou a horskou cyklistikou: dobrodružnější než „fastbike“, méně technický než „mtb“.</string>
+    <string name="profile_info_mtb_title">Horská kola</string>
+    <string name="profile_info_mtb_description">Profil jízdního kola orientovaný na jízdu v terénu pro horská kola a jízdu na stezkách. Jeho silnou stránkou je, že může upřednostňovat cesty, stezky, nezpevněné cesty a terén vhodný pro MTB mnohem více než běžné profily jízdních kol. Jeho slabinou je, že může vytvářet trasy nevhodné pro turistiku, dojíždění nebo silniční kola, zejména pokud uživatel ve skutečnosti nechce drsné cesty. Jeho charakteristickým rysem je jeho chování specifické pro MTB: zohledňuje preferenci cest, kvalitu povrchu, hladkost, mokré podmínky, chování v kopcích a vhodnost pro jízdu mimo silnice.</string>
+    <string name="profile_info_hiking_mountain_title">Horská turistika</string>
+    <string name="profile_info_hiking_mountain_description">Profil pro chůzi po turistických a horských stezkách. Jeho silnou stránkou je, že je navržen kolem pěšího cestování, turistických tras, obtížnosti stezek a horských specifických podmínek, místo aby vycházel z předpokladů pro bicykl nebo auto. Jeho slabinou je, že se silně spoléhá na kvalitní označení OSM pro stezky, přístupy, turistické trasy a úrovně obtížnosti, zejména v alpských oblastech. Jeho charakteristickým rysem je, že jde o součást balíku profilů, který je nejvíce zaměřen na horskou chůzi, nikoli na efektivitu dopravy.</string>
+    <string name="profile_info_skating_title">Bruslení</string>
+    <string name="profile_info_skating_description">Optimalizováno pro inline bruslení nebo podobné dlouhodobé aktivitě na kolečkových bruslích. Jeho silnou stránkou je citlivost na povrch: výrazně preferuje hladké, zpevněné, plynulé trasy a vyhýbá se povrchům, překážkám, semaforům, přechodům a ostrým přerušením, která narušují rytmus bruslení. Jeho slabinou je, že je velmi specializovaný a může odmítat trasy, které jsou přijatelné pro kola nebo chodce, ale nevhodné pro brusle. Jeho charakteristickým rysem je, že plánuje trasy pro plynulost bruslení, nikoli jen z hlediska legálního přístupu nebo vzdálenosti.</string>
+    <string name="profile_info_shortest_title">Nejkratší trasa</string>
+    <string name="profile_info_shortest_description">Minimální profil, který se hlavně snaží minimalizovat délku trasy. Jeho silnou stránkou je jednoduchost: je užitečný, když uživatel výslovně chce co nejkratší dostupnou trasu, nebo při porovnávání geometrie tras. Jeho slabinou je, že nejkratší trasa často není nejlepší: může vybrat nebezpečné, nepříjemné, strmé, hrubé nebo silně frekventované úseky. Jeho výrazným rysem je, že většinou ignoruje komfort a logiku preferencí, což z něj činí užitečný referenční profil spíše než dobrý výchozí profil.</string>
+    <string name="profile_info_car_eco_title">Auto, eco</string>
+    <string name="profile_info_car_eco_description">Ekonomický profil pro trasování automobilů zaměřený na snižování zbytečné rychlosti, spotřeby energie a neefektivních jízdních vzorců. Jeho silnou stránkou je, že může upřednostňovat energeticky úspornější trasy namísto prostého hledání nejrychlejší cesty. Jeho slabinou je to, že může zvolit pomalejší nebo méně přímé trasy a může se zdát méně pohodlný, pokud je hlavní prioritou čas příjezdu. Jeho charakteristický rys je, že představuje automobilový profil pro \"rozumnou efektivitu\" místo maximální rychlosti.</string>
+    <string name="profile_info_car_eco_nocost_title">Auto, ekologické (základní)</string>
+    <string name="profile_info_car_eco_nocost_description">Zjednodušená ekonomická varianta auta. Její silnou stránkou je, že si zachovává model auta orientovaný na ekonomiku při snížení dalších penalizací založených na preferencích, což ji činí užitečnou jako čistší srovnávací profil. Její slabinou je, že může být méně vyspělá pro skutečnou navigaci, protože odstraňuje část logiky nákladů, která normálně pomáhá formovat praktickou kvalitu trasy. Její charakteristický rys je, že je nejlepší vidět ji jako technický základ: užitečná pro porovnání s `car-eco`, méně užitečná jako hlavní profil auta pro uživatele.</string>
+    <string name="profile_info_car_fast_title">Auto, rychlé</string>
+    <string name="profile_info_car_fast_description">Profil pro automobily zaměřený na rychlost a dobu cestování. Jeho silnou stránkou je, že má tendenci upřednostňovat rychlejší silnice a přímočařejší časově efektivní trasy. Jeho slabinou je, že může být méně ekonomický, méně tichý, méně malebný a někdy méně vhodný tam, kde jsou omezení automobilů OSM nebo místní kontext silnic neúplné. Jeho charakteristickým rysem je, že je to nejzřetelnější profil pro uživatele, kteří jednoduše chtějí dorazit rychle.</string>
+    <string name="profile_info_car_fast_nocost_title">Auto, rychlé (základní)</string>
+    <string name="profile_info_car_fast_nocost_description">Zjednodušená varianta rychlého vozu. Její silnou stránkou je, že se více zaměřuje na chování modelu rychlosti, což ji činí užitečnou pro testování, srovnávání nebo předvídatelné experimenty na nejrychlejších cestách. Její slabinou je, že může být méně detailní než `car-fast`, protože jsou sníženy dodatečné penalizace a preference. Její výraznou vlastností je, že se jedná o základní verzi směrování rychlého vozu: vhodná pro technické porovnání, méně ideální jako výchozí profil vozu.</string>
+    <string name="profile_info_car_vario_title">Vůz, proměnná rychlost</string>
+    <string name="profile_info_car_vario_description">Hlavní flexibilní profil pro automobil. Jeho silnou stránkou je přizpůsobivost: změnou parametrů se může chovat spíše jako rychlý automobilový routing nebo spíše jako routing zaměřený na šetření energie/ekologii. Podporuje preference, jako je vyhýbání se mýtnému, nezpevněným cestám, dálnicím a určitým prostředím. Jeho slabinou je, že je stále jednodušší než plně komerční navigační engine pro automobily a silně závisí na kvalitě značkování OSM. Jeho charakteristickým rysem je, že využívá fyzikální/kinematický model, místo aby se spoléhál pouze na jednoduché priority tříd silnic.</string>
+    <string name="profile_info_car_vario_nocost_title">Automobil, proměnný (základní)</string>
+    <string name="profile_info_car_vario_nocost_description">Jednodušší varianta trasování automobilů založená převážně na modelu kinematické rychlosti. Její síla spočívá v tom, že poskytuje čistší základ pro trasování vozidel, což je užitečné pro srovnání, testování nebo případy, kdy by neměly dominovat dodatečné náklady spojené s krajinou nebo preferencemi. Její slabinou je, že je méně výstižná a méně uživatelsky přívětivá než car-vario pro běžnou navigaci. Její charakteristický rys je, že jde spíše o technický základ než o bohatý profil preferencí.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Rychlý ležící</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">Profil pro rychlá ležatá kola. Jeho silnou stránkou je, že lépe odráží potřeby jezdců na ležatých kolech než běžný profil silničního kola: efektivní zpevněné cesty, vyhýbání se špatným povrchům, opatrné nakládání s převýšením a penalizace za schody nebo úseky, kde je nutné sesednout. Jeho slabinou je, že je příliš specializovaný pro běžná kola a může vyhýbat infrastrukturu, kterou by vzpřímení cyklisté akceptovali. Jeho charakteristickým rysem je, že modeluje ležaté kolo jako svůj vlastní typ vozidla, ne jen jako rychlejší kolo.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Rychlý velomobil</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">Profil pro rychlá velomobily. Jeho síla spočívá v plánování tras pro velmi efektivní, těžká, nízkoodporová vozidla poháněná lidskou silou, která potřebují hladké povrchy, málo zastávek, málo překážek a dobré valivé podmínky. Jeho slabinou je, že je špatně vhodný pro běžná kola, protože silně penalizuje úzké, hrubé, často zastavované nebo časté sestupy vyžadující trasy. Jeho zvláštností je, že jde o nejvíce na vozidlo specifický profil poháněný lidskou silou v balíku, laděný pro omezení velomobilů spíše než pro obecné cyklistické použití.</string>
+    <string name="profile_info_car_eco_de_title">Auto, ekologické (Německo)</string>
+    <string name="profile_info_car_eco_de_description">Varianta `car-eco` historicky spojená s alternativními nebo sekundárními daty pro trasování. Její silnou stránkou je, že může být užitečná při ladění nebo testování trasování automobilů proti jinému datovému snímku nebo speciální přípravě silniční sítě. Její slabinou je, že nejde jednoduše o běžný každodenní profil auta a může vyžadovat speciální konfiguraci sekundárních dat. Její charakteristický rys je, že se chová jako ekonomický profil auta, ale je hlavně užitečná, když je sekundární datové nastavení úmyslně k dispozici.</string>
+    <string name="profile_info_moped_title">Moped</string>
+    <string name="profile_info_moped_description">Experimentální profil pro směrování podobné mopedu. Jeho silnou stránkou je, že modeluje přístup motorových dvoukolových vozidel přirozeněji než cyklistický profil. Jeho slabinou je důležité: není dostatečně spolehlivý pro reálnou navigaci, protože mohou chybět omezení zatáček a některá dopravní omezení. Jeho charakteristickým aspektem je, že se nachází mezi logikou kola a auta, ale měl by být považován za experimentální nebo skrytý před běžnými uživateli.</string>
+    <string name="profile_info_dummy_title">Kontrola tagů</string>
+    <string name="profile_info_dummy_description">Profil ladění pro kontrolu, jaké značky OSM BRouter vidí na segmentu trasy. Jeho silnou stránkou je transparentnost: pomáhá vývojářům porozumět dostupným datům trasování a nepoužitým značkám. Jeho slabinou je, že není navržen pro vytváření vysoce kvalitních nebo smysluplných tras. Jeho odlišným aspektem je, že je převážně diagnostickým profilem pro vývoj profilu a kontrolu dat.</string>
+    <string name="profile_info_rail_title">Železnice</string>
+    <string name="profile_info_rail_description">Profil pro trasování přes železnici, tramvaj, metro, lehkou železnici a podobné železniční objekty. Jeho silnou stránkou je sledování topologie železniční sítě a kontrola spojení v datech OSM. Jeho slabinou je, že nezobrazuje cestování cestujících: žádné jízdní řády, přestupy, logiku stanic, dostupnost služeb ani omezení jízdenek. Jeho charakteristickým rysem je, že je užitečný pro analýzu železničních dat, nikoli pro běžnou navigaci.</string>
+    <string name="profile_info_river_title">Řeky / kanály</string>
+    <string name="profile_info_river_description">Profil pro navigaci po vodních cestách, jako jsou řeky, kanály, plavební dráhy a zdymadla. Jeho silnou stránkou je sledování sítě vodních cest a průzkum dat OSM. Jeho slabinou je, že je příliš jednoduchý pro skutečnou námořní navigaci, protože nezohledňuje typ lodi, hloubku, proud, právní omezení, nebezpečí ani provozní omezení zdymadel. Jeho charakteristickým rysem je, že považuje vodní cesty za síť vhodnou pro trasování, ale pouze na základní úrovni topologie.</string>
+    <string name="title_edit_destination_name">Upravit název cíle</string>
+    <string name="title_save_route">Uložit trasu</string>
+    <string name="title_restore_route">Obnovit trasu</string>
+    <string name="title_edit_route_name">Upravit název trasy</string>
+    <string name="title_restore_route_confirm">Obnovit trasu?</string>
+    <string name="msg_restore_route_confirm">Nahradit současný cíl a zastávky \"%1$s\"?</string>
+    <string name="title_map_picker_destination">Vybrat cíl na mapě</string>
+    <string name="title_map_picker_stop">Vybrat zastávku %1$d na mapě</string>
+    <string name="nav_no_route">Žádná trasa</string>
+    <string name="nav_waiting_for_location_title">Čekání na polohu</string>
+    <string name="nav_waiting_for_location_body">Čekání na použitelnou opravu polohy pro výpočet trasy.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Čekání na použitelnou opravu polohy pro přímé vedení.</string>
+    <string name="nav_calculating_route_title">Vypočítávání trasy</string>
+    <string name="nav_calculating_route_body">Získávání pokynů od BRouter.</string>
+    <string name="nav_route_unavailable_title">Trasa nedostupná</string>
+    <string name="format_nav_route_unavailable_body">Trasa nedostupná: %1$s \n Zkontrolujte BRouter pro dostupné úseky.</string>
+    <string name="nav_route_unavailable_generic">neznámá chyba</string>
+    <string name="nav_start_invalid_request">požadavek na navigaci je neúplný</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Nepodařilo se najít alternativní trasu kolem zablokované oblasti. Držíme se aktuální trasy.</string>
+    <string name="nav_route_notice_no_route_found">Nebyla nalezena žádná trasa k tomuto cíli.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Služba trasování je nedostupná. Držíme se aktuální trasy.</string>
+    <string name="nav_route_notice_service_unavailable">Služba trasování je nedostupná.</string>
+    <string name="nav_route_notice_invalid_profile">Profil trasy je neplatný.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Nepodařilo se aktualizovat trasu. Držíme se aktuální trasy.</string>
+    <string name="nav_route_notice_unavailable">Nepodařilo se vypočítat trasu.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Přidána zablokovaná silnice. Přepočítávání trasy.</string>
+    <string name="nav_paused_notice">Navigace je pozastavena. Klepněte na Pokračovat v navigaci pro pokračování živého vedení.</string>
+    <string name="notification_channel_nav">Navigace</string>
+    <string name="notification_channel_alert">Upozornění navigace</string>
+    <string name="notification_channel_turn_left">Zatočit (vlevo)</string>
+    <string name="notification_channel_turn_right">Zatočit (vpravo)</string>
+    <string name="notification_nav_running">Navigace je spuštěna</string>
+    <string name="notification_nav_running_text">ViBRo Navigator naviguje na pozadí</string>
+    <string name="notification_nav_paused">Navigace pozastavena</string>
+    <string name="notification_nav_paused_text">Navigace ViBRo Navigator je pozastavena</string>
+    <string name="notification_off_route_title">Mimo trasu</string>
+    <string name="notification_wrong_direction_title">Špatný směr</string>
+    <string name="notification_symbol_test_left_title">otestovat všechna upozornění vlevo</string>
+    <string name="notification_symbol_test_other_title">otestovat všechna ostatní upozornění</string>
+    <string name="notification_symbol_test_right_title">otestovat všechna upozornění vpravo</string>
+    <string name="direction_continue">Pokračovat</string>
+    <string name="direction_keep_left">Držte se vlevo</string>
+    <string name="direction_keep_right">Držte se vpravo</string>
+    <string name="direction_turn_left">Odbočte vlevo</string>
+    <string name="direction_turn_right">Odbočte vpravo</string>
+    <string name="direction_slight_left">Odbočte mírně vlevo</string>
+    <string name="direction_slight_right">Odbočte mírně vpravo</string>
+    <string name="direction_sharp_left">Odbočte ostře vlevo</string>
+    <string name="direction_sharp_right">Odbočte ostře vpravo</string>
+    <string name="direction_uturn_left">Otočte se vlevo do protisměru</string>
+    <string name="direction_uturn">Otočte se do protisměru</string>
+    <string name="direction_uturn_right">Otočte se vpravo do protisměru</string>
+    <string name="direction_roundabout_exit">Na kruhovém objezdu použijte výjezd číslo %1$d</string>
+    <string name="direction_roundabout_exit_left">Na kruhovém objezdu použijte výjezd číslo %1$d</string>
+    <string name="direction_beeline">Přímý směr</string>
+    <string name="direction_exit_left">Použijte výjezd vlevo</string>
+    <string name="direction_exit_right">Použijte výjezd vpravo</string>
+    <string name="direction_offroute">Mimo trasu</string>
+    <string name="direction_arrive">Cíl dosažen</string>
+    <string name="direction_intermediate_arrive">Mezicíl dosažen</string>
+    <string name="direction_unknown">Neznámý směr</string>
+    <string name="direction_side_left">vlevo</string>
+    <string name="direction_side_right">vpravo</string>
+    <string name="format_speed_limit_content_description">Rychlostní limit %1$s</string>
+    <string name="title_nav_gps_details">Podrobnosti o GPS</string>
+    <string name="format_nav_gps_details">Rychlost: %1$s\nNadmořská výška: %2$s\nPřesnost: %3$s\nGPS čas: %4$s\nSatelity: %5$s\nInterval: %6$s\nStáří posledního záznamu: %10$s\nGPS záznamy: %7$s\nGPS směr: %8$s\nPřesnost směru: %9$s</string>
+    <string name="title_nav_directions_details">Směrové pokyny</string>
+    <string name="nav_directions_unavailable">Žádné nadcházející směrové pokyny</string>
+    <string name="title_nav_trip_stats">Statistiky cesty</string>
+    <string name="format_nav_trip_stats_details">Uplynulý čas: %1$s\nVzdálenost: %2$s\nDoba pohybu: %3$s\nDoba bez pohybu: %4$s\nPrůměrná rychlost: %5$s\nPrůměrná rychlost pohybu: %6$s\nMaximální rychlost: %7$s\nObrazovka zapnutá: %8$s\nObrazovka vypnutá: %9$s\nSpotřebovaná baterie: %10$s\nPokles baterie: %11$s</string>
+    <string name="speech_off_route_recalculating">Mimo trasu. Přepočítávání</string>
+    <string name="speech_off_route">Mimo trasu</string>
+    <string name="speech_wrong_direction_turn_back">Špatný směr. Otočte se zpět</string>
+    <string name="format_off_route_off_track_notification">Detekováno odchýlení z trasy. Vzdálenost %1$s, práh %2$s. Přepočítávání trasy.</string>
+    <string name="format_off_route_bearing_notification">Zjištěna nesoulad azimutu. Rozdíl %1$s, očekávané %2$s, skutečné %3$s. Přepočítávání trasy.</string>
+    <string name="format_off_route_off_track_notice_only">Detekováno odchýlení z trasy. Vzdálenost %1$s, práh %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Zjištěna nesoulad azimutu. Rozdíl %1$s, očekávané %2$s, skutečné %3$s.</string>
+    <string name="format_wrong_direction_notification">Zjištěn špatný směr. Cíl %1$s, skutečné %2$s, rozdíl %3$s.</string>
+    <string name="format_startup_orientation_notification">Otočte se %1$s %2$s, abyste čelili směru.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s vzorek směru</string>
+    <string name="nav_destination_reached">Cíl dosažen</string>
+    <string name="format_version">Verze %1$s %2$s</string>
+    <string name="about_short_description">Lehká, energeticky úsporná a offline-prioritní GPS navigační aplikace, která vibruje pokyny, postavená kolem BRouter.</string>
+    <string name="about_homepage_link">
+        <u>Domovská stránka</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Ohodnotit na Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Zdrojový kód na GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Nahlásit problém</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>Seznam změn</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>Zásady ochrany osobních údajů</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>Obchodní podmínky</u>
+    </string>
+    <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nLicence MIT</string>
+    <string name="about_credits">Poděkování: BRouter za směrování. POI vyhledávání a zpětné geokódování souřadnic používají OpenStreetMap Nominatim, nebo Google Maps Geocoding ve verzích Google Play, když je vyhledávání Google povoleno s uloženým klíčem API. POI mapy používají OpenStreetMap Overpass. Mapové dlaždice a geodata od přispěvatelů OpenStreetMap: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Nastavení</string>
+    <string name="about_settings_category_display">Zobrazit</string>
+    <string name="about_settings_category_guidance">Návod</string>
+    <string name="about_settings_category_compass">Kompas</string>
+    <string name="about_settings_category_search_input">Hledání a zadávání</string>
+    <string name="about_settings_category_advanced">Pokročilé</string>
+    <string name="label_log_enabled">Záznamy</string>
+    <string name="title_log_output_folder">Složka záznamů</string>
+    <string name="label_permission_output_folder">Složka stahování ViBRo</string>
+    <string name="title_output_browser">Soubor(y) ViBRo</string>
+    <string name="title_gpx_output_folder">Složka GPX</string>
+    <string name="format_output_folder">Aktuální složka: %1$s</string>
+    <string name="action_clear_output_folder">Odstranit</string>
+    <string name="action_open_output_folder">Otevřít</string>
+    <string name="msg_output_viewer_unavailable">Není k dispozici žádná aplikace pro otevření této složky nebo souboru.</string>
+    <string name="hint_clear_log_output_folder">Trvale smazat soubory záznamů ViBRo z: \n%1$s\n\nOstatní soubory a podsložky zůstanou zachovány. Toto nelze vrátit zpět. Pokud je zapnuté logování, bude spuštěn nový záznam s údaji o systému.</string>
+    <string name="hint_clear_gpx_output_folder">Trvale smazat exporty ViBRo GPX z: \n%1$s\n\nOstatní soubory a podsložky budou zachovány. Tato akce se nedá vrátit zpět.</string>
+    <string name="msg_output_folder_cleared">Soubory ViBRo byly vymazány.</string>
+    <string name="msg_output_folder_clear_failed">Nepodařilo se vymazat všechny soubory ViBRo. Zkontrolujte přístup ke složce v Diagnostice.</string>
+    <string name="label_external_storage_enabled">Použít externí úložiště</string>
+    <string name="about_setting_external_storage_info">Ukládejte exporty, protokoly a zálohy databáze GPX na kartu SD místo do úložiště telefonu. K dispozici je pouze pro namontovanou, podporovanou kartu SD; USB disky jsou vyloučeny. Android 6–9 vyžadují přístup ke složkám, i když jsou protokolování a ukládání GPX vypnuté. Pokud se karta stane nedostupnou, ukládání se zastaví, dokud nebude znovu k dispozici. Starší soubory zůstávají ve svých původních složkách.</string>
+    <string name="hint_sd_download_access">Udělte přístup ke složce karty SD: \n%1$s\n\n. Vyberte Stáhnout, jeho podsložku ViBRo nebo kořen karty SD. ViBRo bude používat Download/ViBRo/gpx, Download/ViBRo/logs a Download/ViBRo/backup. Ukládání vyžaduje přístup k této složce.</string>
+    <string name="msg_sd_storage_unavailable">Žádná podporovaná zapisovatelná karta SD není dostupná.</string>
+    <string name="msg_sd_storage_enabled">Exporty, protokoly a zálohy databáze GPX budou používat kartu SD.</string>
+    <string name="msg_output_folder_failed">Nelze zapisovat do této složky. Předchozí nastavení zůstává nezměněno.</string>
+    <string name="msg_output_access_required">Ukládání je vypnuto, protože vybraná výstupní složka není dostupná nebo nebylo uděleno oprávnění.</string>
+    <string name="msg_output_folder_picker_unavailable">Není k dispozici výběr složky.</string>
+    <string name="label_auto_save_gpx_enabled">Automatické ukládání GPX</string>
+    <string name="label_fused_location_enabled">Google Spojená poloha</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Dynamický interval GPS</string>
+    <string name="label_imperial_units_enabled">Imperiální jednotky (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Světlé téma</string>
+    <string name="label_compass_surrounding_streets_enabled">Okolní ulice</string>
+    <string name="action_configure_surrounding_street_types">Vyberte typy okolních ulic</string>
+    <string name="title_surrounding_street_types">Typy okolních ulic</string>
+    <string name="hint_surrounding_street_types">Přepínače kategorií skrývají nebo zobrazují celou barevnou skupinu, aniž by se měnily jednotlivé volby. Stále platí viditelnost podle rychlosti.</string>
+    <string name="street_category_highway">Hlavní silnice</string>
+    <string name="street_category_normal">Běžné ulice</string>
+    <string name="street_category_walking_cycling">Chůze / Cyklotrasy</string>
+    <string name="street_category_special_routing">Speciální cesty</string>
+    <string name="street_type_motorway">Dálnice</string>
+    <string name="street_type_motorway_info">Rychlostní silnice s řízeným přístupem.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Nájazdy na dálnici</string>
+    <string name="street_type_motorway_link_info">Spojení vstupující na dálnici nebo z ní vystupující.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Hlavní silnice</string>
+    <string name="street_type_trunk_info">Hlavní průjezdní silnice pod úrovní dálnice.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Spojení hlavních silnic</string>
+    <string name="street_type_trunk_link_info">Spojení vstupující na hlavní silnici nebo z ní vystupující.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Primární silnice</string>
+    <string name="street_type_primary_info">Důležité silnice spojující města a regiony.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Spojení primárních silnic</string>
+    <string name="street_type_primary_link_info">Spojení vstupující na primární silnici nebo z ní vystupující.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Sekundární silnice</string>
+    <string name="street_type_secondary_info">Silnice spojující menší města a oblasti.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Spojení sekundárních silnic</string>
+    <string name="street_type_secondary_link_info">Spojení vstupující na sekundární silnici nebo z ní vystupující.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Terciární silnice</string>
+    <string name="street_type_tertiary_info">Místní silnice propojující blízká sídliště nebo čtvrti.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Spojení terciárních silnic</string>
+    <string name="street_type_tertiary_link_info">Spojení vstupující na terciární silnici nebo z ní vystupující.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Vedlejší veřejné silnice</string>
+    <string name="street_type_unclassified_info">Veřejné silnice pod terciární úrovní, často mimo obytné oblasti.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Obytné ulice</string>
+    <string name="street_type_residential_info">Ulice sloužící převážně domům.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Sdílené obytné ulice</string>
+    <string name="street_type_living_street_info">Nízkorychlostní ulice, kde se prostor sdílí mezi chůzí a jinými činnostmi.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Přístupové silnice</string>
+    <string name="street_type_service_info">Silnice poskytující přístup k budovám, parkovištím nebo zařízením.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Cesty</string>
+    <string name="street_type_track_info">Trasy převážně používané pro zemědělský nebo lesní přístup.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Nedefinované silnice</string>
+    <string name="street_type_road_info">Silnice, jejichž přesný typ je neznámý.\n\nOSM/BRouter: highway=road nebo highway=yes.</string>
+    <string name="street_type_busway">Autobusové trasy</string>
+    <string name="street_type_busway_info">Silnice určené převážně pro autobusy.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Pěší ulice</string>
+    <string name="street_type_pedestrian_info">Ulice nebo oblasti převážně určené pro chodce.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Chodníky</string>
+    <string name="street_type_footway_info">Cesty určené pro chůzi.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Cesty</string>
+    <string name="street_type_path_info">Cesty pro všeobecné použití, které mohou sloužit chůzi, cyklistice nebo jinému nemotorovému provozu.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Cyklostezky</string>
+    <string name="street_type_cycleway_info">Cesty určené pro cyklistiku.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Jezdecké stezky</string>
+    <string name="street_type_bridleway_info">Trasy určené pro jízdu na koni.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Schody</string>
+    <string name="street_type_steps_info">Schodiště podél trasy.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Přestupní plošiny</string>
+    <string name="street_type_platform_info">Choditelné plošiny na zastávkách veřejné dopravy.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Vnitřní chodby</string>
+    <string name="street_type_corridor_info">Průchody uvnitř budov.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Odpočívadla u silnice</string>
+    <string name="street_type_rest_area_info">Silniční přístup v rámci odpočívadel.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Silniční služby</string>
+    <string name="street_type_services_info">Silniční přístup v rámci servisních oblastí.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Výtahy</string>
+    <string name="street_type_elevator_info">Výtahové spojení mezi choditelnými úrovněmi.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Via ferrata trasy</string>
+    <string name="street_type_via_ferrata_info">Chráněné lezecké trasy s pevnými pomůckami.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Závodní dráhy</string>
+    <string name="street_type_raceway_info">Silniční okruhy určené pro závodění.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Železnice</string>
+    <string name="street_type_railway_info">Veškerá železniční geometrie v lokálních segmentech BRouter.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">Vodní cesty</string>
+    <string name="street_type_waterway_info">Veškerá geometrie vodních cest v lokálních segmentech BRouter.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Jiná geometrie tras</string>
+    <string name="street_type_other_info">Geometrie bez uznané ulice nebo podporovaného typu trasy.\n\nOSM/BRouter: žádná uznaná hodnota highway=*, railway=*, waterway=* ani podporovaná hodnota route=*.</string>
+    <string name="street_type_route_ferry">Trajekty</string>
+    <string name="street_type_route_ferry_info">Trasy přepravované trajektem.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Chodníkové trasy</string>
+    <string name="street_type_route_hiking_foot_info">Označené trasy pro turistiku nebo chůzi.\n\nOSM/BRouter: route=hiking nebo route=foot.</string>
+    <string name="street_type_route_bicycle">Cyklistické trasy</string>
+    <string name="street_type_route_bicycle_info">Označené trasy pro cyklistiku.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Lyžařské/trasové sjezdovky</string>
+    <string name="street_type_route_ski_piste_info">Lyžařské trasy a sjezdovky pro jiné aktivity, jako je sáňkování nebo turistika. BRouter ukládá oba štítky jako jednu hodnotu, takže sdílí tento přepínač. \n \n OSM/BRouter: route=ski nebo route=piste.</string>
+    <string name="street_type_route_mtb">Trasy pro horská kola</string>
+    <string name="street_type_route_mtb_info">Vyznačené trasy pro horská kola. \n \n OSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Kanoistické trasy</string>
+    <string name="street_type_route_canoe_info">Vyznačené trasy pro kanoistiku. \n \n OSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Autobusové linky</string>
+    <string name="street_type_route_bus_info">Geometrie autobusových linek v místních segmentech BRouter. \n \n OSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Okamžité přiblížení kompasu</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Automatické oddálení</string>
+    <string name="label_compass_fullscreen_route_enabled">Trasa na celou obrazovku</string>
+    <string name="label_compass_distance_circles_enabled">Kruhy dle vzdálenosti</string>
+    <string name="label_compass_central_perspective_enabled">Perspektivní zobrazení 3D</string>
+    <string name="label_show_hint_panel">Zobrazit panel nápovědy</string>
+    <string name="label_navigation_notifications_enabled">Oznámení</string>
+    <string name="label_single_instruction_mode_enabled">Režim jediné instrukce</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">Filtr kategorií POI</string>
+    <string name="hint_poi_categories_filter">Vyberte, které kategorie POI se zobrazí ve výběru mapy, když je filtr povolen. Upravte názvy kategorií, zapněte je nebo vypněte, nebo použijte + pro přidání dalších.</string>
+    <string name="hint_poi_category_name">Název kategorie POI</string>
+    <string name="label_speech_recognition">Rozpoznávání řeči</string>
+    <string name="label_speech_recognition_language">Jazyk</string>
+    <string name="label_speech_recognition_language_system_default">Výchozí systémové</string>
+    <string name="label_maneuver_voice">Pokyny pro řeč</string>
+    <string name="label_maneuver_voice_spinner">Hlas</string>
+    <string name="label_maneuver_voice_disabled">Zakázáno</string>
+    <string name="label_maneuver_voice_system_default">Výchozí systémové</string>
+    <string name="format_maneuver_voice_variant_code">Hlas %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Žena</string>
+    <string name="label_maneuver_voice_gender_male">Muž</string>
+    <string name="label_google_poi_api_key">Klíč Google Maps API</string>
+    <string name="label_navigation_custom_button">Vlastní tlačítko</string>
+    <string name="label_navigation_custom_button_target">Nastavení</string>
+    <string name="label_setting_enabled">povoleno</string>
+    <string name="label_setting_disabled">zakázáno</string>
+    <string name="hint_google_poi_api_key">Nepovinný klíč Google Maps</string>
+    <string name="format_about_setting_info_content_description">Zobrazit nápovědu pro %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">Přepnout %1$s (%2$s)</string>
+    <string name="about_setting_log_info">Udržuje podrobný záznam chování, který může pomoci diagnostikovat problémy. Nechte tuto možnost vypnutou, pokud nepotřebujete sdílet podrobnosti pro podporu. Když je vybraná složka přístupná, pády a neočekávané ukončení navigace stále vytvářejí časově označený záznam s údaji o systému, když je tento přepínač vypnutý. Nucené zastavení lze nahlásit až po opětovném spuštění aplikace; přesná příčina nemusí být k dispozici.</string>
+    <string name="about_setting_auto_save_gpx_info">Ukládá aktivní trasu jako soubor GPX, když zastavíte navigaci tlačítkem Stop. Používá Download/ViBRo/gpx na telefonu nebo vybranou kartu SD vybranou volbou Použít externí úložiště. Zapnutí této možnosti vyžaduje přístup k chybějící složce. Ukládání zůstává vypnuté, pokud je přístup odepřen nebo je vybrané úložiště nedostupné.</string>
+    <string name="about_setting_fused_location_info">Používá polohu Google, když je k dispozici. To může zlepšit aktualizace polohy na některých telefonech.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Šetří baterii tím, že kontroluje vaši polohu méně často, ale stále spolehlivým způsobem. Vypněte ji pro nepřetržité aktualizace polohy.</string>
+    <string name="about_setting_imperial_units_info">Zobrazuje vzdálenosti a rychlosti ve stopách, mílích a mph místo metrů a km/h.</string>
+    <string name="about_setting_light_theme_info">Přepíná aplikaci z výchozího tmavého vzhledu na světlý vzhled.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Zobrazuje okolní ulice a další geometrii trasy na kompase, když jsou k dispozici místní mapová data.\n\nLegenda barev:\n■ — hlavní silnice a dálnice\n■ — běžné ulice\n■ — pěší a cyklistické ulice a trasy\n■ — železnice, vodní cesty, trajekty, lyžařské/kanoistické/autobusové trasy, jezdecké stezky, závodní tratě a via ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">Přeskočí animaci zoomu kompasu, takže přepínání mezi přehledem trasy a pohyblivými škálovanými pohledy je okamžité.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Zobrazuje celou trasu na kompasu, když stojíte na místě. Vypněte jej, abyste při zastavení zachovali poslední přiblížení podle pohybu.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Rozšiřuje pohled kompasu trasy za celou navigační obrazovkou, přičemž ovládací prvky a text směru zůstávají viditelné vpředu.</string>
+    <string name="about_setting_compass_distance_circles_info">Zobrazuje vzdálenostní kruhy s označením času a vzdálenosti, šipku směru a linie a oblouky přesnosti směru v pohledech kompasu a na celé obrazovce.</string>
+    <string name="about_setting_compass_central_perspective_info">Používá perspektivu v pohledu kompasu 3D: blízké trasy a ulice se jeví větší, zatímco vzdálené směrem nahoru zmenšují. Vypněte toto, abyste použili jednotné ortografické naklonění.</string>
+    <string name="about_setting_show_hint_panel_info">Zobrazuje tipy gest a legendu barev ulic při otevření navigace na telefonu.</string>
+    <string name="about_setting_navigation_notifications_info">Zobrazuje upozornění na zatáčky a výstrahy navigace jako oznámení. Probíhající oznámení o navigaci není ovlivněno a zůstane viditelné během navigace.</string>
+    <string name="about_setting_single_instruction_mode_info">Používá jedno upozornění na manévr asi 10 sekund před každým nadcházejícím pokynem a potlačuje upozornění na manévr při spuštění, po 20 sekundách a po 5 sekundách. Oznámení o příjezdu a výstrahy nejsou ovlivněna.</string>
+    <string name="about_setting_navigation_custom_button_info">Zobrazuje další tlačítko v navigačním kompasu, které přepíná vybrané nastavení, dokud je otevřená navigace.</string>
+    <string name="about_setting_android_auto_info">Umožňuje kompatibilním displejům automobilů zobrazovat navigaci přes Android Auto. Některé hostitele obnovují seznam aplikací až poté, co se Android Auto znovu připojí. Ve skutečných vozidlech Android Auto zobrazuje tento typ aplikace pouze tehdy, je-li nainstalována z důvěryhodného zdroje, jako je Google Play nebo Vnitřní sdílení aplikací.</string>
+    <string name="about_setting_poi_categories_info">Volí, která místa se mohou zobrazit ve výběru mapy, například benzín, parkoviště nebo toalety.</string>
+    <string name="about_setting_speech_recognition_info">Zobrazuje tlačítka mikrofonu pro destinaci a zastavení hlasového vstupu a volí požadovaný jazyk rozpoznávání. Android může použít svůj výchozí jazyk, pokud vybraný rozpoznávač řeči nepodporuje požadovaný jazyk.</string>
+    <string name="about_setting_maneuver_voice_info">Přečte nahlas nadcházející pokyny směru pomocí hlasu Android.</string>
+    <string name="about_setting_google_poi_api_key_info">Umožňuje vyhledávání destinace pomocí Google Maps, když poskytnete platný klíč.</string>
+    <string name="about_setting_export_database_info">Ukládá data vaší aplikace, včetně historie, uložených tras, nastavení a voleb profilu, jako JSON v Download/ViBRo/backup v telefonu nebo na kartě SD vybrané možností Použít externí úložiště. Zobrazuje uložený název souboru bez dotazu na složku. Na Android 6–9 nejprve nastavte přístup k úložišti v Diagnostice.</string>
+    <string name="about_setting_import_database_info">Obnovuje data vaší aplikace ze zálohy JSON vytvořené touto aplikací. Výběr souboru začíná v Download/ViBRo/backup na telefonu nebo na kartě SD vybrané pomocí Použít externí úložiště na Android 8 a novějších. Můžete také procházet do jiné složky.</string>
+    <string name="msg_google_poi_api_key_saved">Klíč Google Maps API uložen.</string>
+    <string name="msg_google_poi_api_key_cleared">Klíč Google Maps API vymazán.</string>
+    <string name="msg_google_poi_api_key_required">Přidejte klíč Google Maps API před povolením vyhledávání Google.</string>
+    <string name="msg_google_poi_api_key_validating">Ověřování klíče Google Maps API…</string>
+    <string name="msg_google_poi_api_key_invalid">Klíč Google Maps API není platný.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Nepodařilo se ověřit klíč Google Maps API.</string>
+    <string name="about_diagnostic_title">Diagnostika</string>
+    <string name="about_permission_status_title">Požadovaný přístup</string>
+    <string name="about_sensor_status_title">Stav senzoru</string>
+    <string name="label_direction_notification_tests">Testy oznámení směru</string>
+    <string name="label_permission_location">Oprávnění k poloze</string>
+    <string name="label_permission_location_services">Poloha zařízení</string>
+    <string name="label_permission_notifications">Oznámení</string>
+    <string name="label_permission_battery">Optimalizace baterie</string>
+    <string name="label_permission_surrounding_street_storage">Uložení ulic BRouter</string>
+    <string name="label_permission_brouter_profile_storage">Uložení profilů BRouter</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Klepněte pro vyřešení.</string>
+    <string name="label_sensor_fused_provider">Poskytovatel Google fused</string>
+    <string name="label_sensor_gps_provider">Poskytovatel GPS</string>
+    <string name="label_sensor_network_provider">Poskytovatel sítě</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Geomagnetický rotační vektor</string>
+    <string name="label_sensor_rotation_vector">Rotační vektor</string>
+    <string name="label_sensor_orientation">Senzor orientace</string>
+    <string name="label_sensor_linear_acceleration">Senzor lineárního zrychlení</string>
+    <string name="label_sensor_accelerometer">Akcelerometr</string>
+    <string name="sensor_status_enabled">povoleno</string>
+    <string name="sensor_status_disabled">zakázáno</string>
+    <string name="sensor_status_available">k dispozici</string>
+    <string name="sensor_status_unavailable">nedostupný</string>
+    <string name="sensor_status_permission_denied">přístup odepřen</string>
+    <string name="auto_no_active_navigation_title">Žádná aktivní navigace</string>
+    <string name="auto_no_active_navigation_text">Spusťte navigaci v telefonu, aby se zde zobrazovalo vedení.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Klepnutím kamkoli zavřete nebo počkejte %1$d sekundu</item>
+        <item quantity="few">Klepnutím kamkoli zavřete nebo počkejte %1$d sekundy</item>
+        <item quantity="many">Klepnutím kamkoli zavřete nebo počkejte %1$d sekund</item>
+        <item quantity="other">Klepnutím kamkoli zavřete nebo počkejte %1$d sekund</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Otočte se o %1$d stupeň %2$s</item>
+        <item quantity="few">Otočte se o %1$d stupně %2$s</item>
+        <item quantity="many">Otočte se o %1$d stupňů %2$s</item>
+        <item quantity="other">Otočte se o %1$d stupňů %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d sekunda</item>
+        <item quantity="few">%1$d sekundy</item>
+        <item quantity="many">%1$d sekund</item>
+        <item quantity="other">%1$d sekund</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d minuta</item>
+        <item quantity="few">%1$d minuty</item>
+        <item quantity="many">%1$d minut</item>
+        <item quantity="other">%1$d minut</item>
+    </plurals>
+</resources>

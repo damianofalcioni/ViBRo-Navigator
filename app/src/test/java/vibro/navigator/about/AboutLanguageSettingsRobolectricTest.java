@@ -46,7 +46,7 @@ public class AboutLanguageSettingsRobolectricTest {
         Spinner spinner = openLanguageDialog(activity).findViewById(R.id.aboutLanguageSpinner);
         String[] tags = AppLanguageSettings.availableLanguageTags();
         assertEquals(AndroidAppLanguage.systemLanguageTag(), tags[spinner.getSelectedItemPosition()]);
-        assertEquals(3, spinner.getCount());
+        assertEquals(tags.length, spinner.getCount());
     }
 
     @Test
@@ -54,14 +54,14 @@ public class AboutLanguageSettingsRobolectricTest {
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         AlertDialog dialog = openLanguageDialog(activity);
         Spinner spinner = dialog.findViewById(R.id.aboutLanguageSpinner);
-        spinner.setSelection(1);
+        spinner.setSelection(spinner.getCount() - 1);
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
         assertTrue(AppLanguageSettings.isUseSystemLanguageEnabled(activity));
-        assertEquals("it", AppLanguageSettings.getSelectedLanguageTag(activity, "en"));
+        assertEquals("zh", AppLanguageSettings.getSelectedLanguageTag(activity, "en"));
         ((Switch) activity.findViewById(R.id.aboutUseSystemLanguageSwitch)).performClick();
         assertFalse(AppLanguageSettings.isUseSystemLanguageEnabled(activity));
-        assertEquals("it", AppLanguageSettings.getEffectiveLanguageTag(activity, "en"));
+        assertEquals("zh", AppLanguageSettings.getEffectiveLanguageTag(activity, "en"));
     }
 
     @Test

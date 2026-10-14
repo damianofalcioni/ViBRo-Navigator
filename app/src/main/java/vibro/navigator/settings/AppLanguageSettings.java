@@ -11,7 +11,10 @@ import java.util.Locale;
 public final class AppLanguageSettings {
     private static final String KEY_USE_SYSTEM_LANGUAGE = "use_system_language";
     private static final String KEY_SELECTED_LANGUAGE = "selected_language";
-    private static final String[] LANGUAGE_TAGS = {"en", "it", "de"};
+    private static final String[] LANGUAGE_TAGS = {
+            "en", "it", "de", "ar", "ca", "cs", "da", "el", "es", "fr",
+            "hu", "ja", "ko", "nl", "pl", "pt", "sv", "zh"
+    };
 
     private AppLanguageSettings() {
     }

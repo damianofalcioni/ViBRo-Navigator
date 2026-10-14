@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">시스템 언어 사용</string>
+    <string name="action_configure_app_language">앱 언어 설정</string>
+    <string name="title_app_language">앱 언어</string>
+    <string name="label_app_language">언어</string>
+    <string name="hint_app_language">시스템 언어 사용이 꺼져 있을 때 선택한 언어가 사용됩니다.</string>
+    <string name="about_setting_language_info">기기 언어 설정에서 첫 번째로 지원되는 언어를 사용하거나, 지원되는 언어가 없으면 영어를 사용합니다. 구성 버튼으로 선택한 언어를 사용하려면 이 기능을 끄세요. 초기 선택은 시스템 언어와 일치합니다.</string>
+    <string name="nav_gesture_map_controls_title">제스처 지도 제어</string>
+    <string name="nav_gesture_views_body">
+        <b>뷰 전환.</b> 전체 경로, 2D, 3D 뷰 사이를 이동하려면 두 번 탭하거나 왼쪽/오른쪽으로 스와이프하세요</string>
+    <string name="nav_gesture_zoom_body">
+        <b>확대 / 축소.</b> 2D 및 3D 뷰를 ±2 확대 수준으로 핀치 또는 벌려 조정하세요</string>
+    <string name="nav_gesture_tilt_body">
+        <b>3D 뷰 기울이기.</b> 두 손가락으로 위/아래로 스와이프하여 3D 뷰를 기울이세요</string>
+    <string name="nav_gesture_map_legend_title">지도 범례</string>
+    <string name="nav_gesture_current_route">현재 경로</string>
+    <string name="nav_gesture_current_position_accuracy">현재 위치 및 정확도</string>
+    <string name="nav_gesture_dont_show_again">다시 표시하지 않기</string>
+    <string name="nav_gesture_dismiss">해제하려면 아무 곳이나 터치하세요</string>
+    <string name="welcome_title">ViBRo에 오신 것을 환영합니다</string>
+    <string name="welcome_tldr">요약: BRouter를 설치하고, 지역 경로 데이터를 다운로드하며, 권한을 부여하세요.</string>
+    <string name="welcome_intro">ViBRo Navigator(진동/진동 코드 BRouter 내비게이터)는 BRouter 위에 구축된 경량, 오프라인 우선, 배터리 효율적인 Android GPS 내비게이션 앱입니다. 지도를 사용하지 않는 내비게이션용으로 설계되어 있으며, 진동과 최소한의 화면 및 음성 안내를 통해 길 안내를 제공하여 주의 산만 없이 화면을 끄고도 사용할 수 있습니다.</string>
+    <string name="welcome_setup_title">초기 설정</string>
+    <string name="welcome_brouter_body">• 제공된 링크를 사용하여 BRouter를 설치한 후 열고 해당 지역의 경로 데이터를 다운로드하세요.</string>
+    <string name="welcome_permissions_body">• 이 환영 메시지와 선택적 BRouter 설치 안내 후, 위치, 마이크(음성 입력용), 알림, 요청된 저장소 접근을 허용하세요. 안내가 나오면 기기 위치를 활성화하세요. 요청을 건너뛰고 나중에 접근을 활성화할 수도 있습니다.</string>
+    <string name="welcome_storage_body">• 안내가 나오면 profiles2 폴더 접근을 허용하거나, 이전 Android 버전에서는 저장소 권한을 허용하세요.</string>
+    <string name="welcome_battery_body">• 화면이 꺼진 상태에서도 안정적인 안내를 위해 선택적 배터리 최적화 예외를 허용하세요.</string>
+    <string name="welcome_optional_access_body">• 음성 검색 요청이 있는 경우에만 마이크 접근이 필요합니다.</string>
+    <string name="action_about">정보</string>
+    <string name="action_start_navigation">내비게이션 시작</string>
+    <string name="action_pause_navigation">내비게이션 일시정지</string>
+    <string name="action_resume_navigation">내비게이션 재개</string>
+    <string name="action_stop_navigation">내비게이션 종료</string>
+    <string name="action_save_route">경로 저장</string>
+    <string name="action_restore_route">경로 복원</string>
+    <string name="action_add_stop">경유지 추가</string>
+    <string name="action_remove_stop">경유지 제거</string>
+    <string name="action_blocked_road">통제된 도로</string>
+    <string name="action_skip_beeline_target">직선 경로 목표 건너뛰기</string>
+    <string name="action_delete">삭제</string>
+    <string name="action_edit">편집</string>
+    <string name="action_open_settings">설정 열기</string>
+    <string name="action_open_tts_settings">텍스트-음성 변환 설정 열기</string>
+    <string name="action_open_speech_directions_settings">음성 안내 설정 열기</string>
+    <string name="action_open_speech_recognition_settings">음성 인식 설정 열기</string>
+    <string name="action_open_android_stt_settings">Android 음성-텍스트 변환 설정 열기</string>
+    <string name="action_continue">계속</string>
+    <string name="action_enable_speech_recognition">음성 인식 버튼 표시</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">음성 안내 테스트</string>
+    <string name="action_voice_search_destination">목적지 말하기</string>
+    <string name="action_voice_search_stop">정지 말하기</string>
+    <string name="action_clear_poi_search">검색 텍스트 지우기</string>
+    <string name="action_save">키 저장</string>
+    <string name="action_save_poi_categories">저장</string>
+    <string name="action_open_map">지도</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_use_selected_point">선택한 지점 사용</string>
+    <string name="action_map_poi_categories">POI 카테고리</string>
+    <string name="action_open_map_position">지도 위치 열기</string>
+    <string name="action_test_left_notification">왼쪽</string>
+    <string name="action_test_other_notification">기타</string>
+    <string name="action_test_right_notification">오른쪽</string>
+    <string name="action_current_location">현재 위치</string>
+    <string name="action_edit_poi_categories">POI 카테고리 편집</string>
+    <string name="action_edit_google_poi_api_key">Google Maps API 키 편집</string>
+    <string name="action_configure_navigation_custom_button">사용자 정의 버튼 구성</string>
+    <string name="action_enable_google_poi_search">Google 검색 활성화</string>
+    <string name="action_add_poi_category">POI 카테고리 추가</string>
+    <string name="action_remove_poi_category">POI 카테고리 제거</string>
+    <string name="action_enable_poi_category">POI 카테고리 활성화</string>
+    <string name="action_export_database">데이터베이스 내보내기</string>
+    <string name="action_import_database">데이터베이스 가져오기</string>
+    <string name="action_export_route">GPX 내보내기</string>
+    <string name="action_profile_info">프로필 정보</string>
+    <string name="action_setting_info">설정 정보</string>
+    <string name="action_poi_details">POI 세부 정보</string>
+    <string name="action_search_google_maps">Google Maps에서 검색</string>
+    <string name="action_profile_settings">프로필 설정</string>
+    <string name="action_reset_defaults">기본값 재설정</string>
+    <string name="label_vehicle_profile">프로필</string>
+    <string name="label_route_mode_route">경로 모드</string>
+    <string name="label_route_mode_round_trip">순환 경로 모드</string>
+    <string name="label_route_mode_straight_line">직선 모드</string>
+    <string name="label_destination">목적지</string>
+    <string name="label_poi_entrance">입구</string>
+    <string name="label_poi_entrances">입구들</string>
+    <string name="label_poi_entrance_type">유형</string>
+    <string name="label_poi_coordinates">좌표</string>
+    <string name="label_poi_extra_tags">추가 태그</string>
+    <string name="label_poi_address_details">주소</string>
+    <string name="label_round_trip_distance_km">평균 왕복 거리 (km)</string>
+    <string name="label_round_trip_distance_mi">평균 왕복 거리 (mi)</string>
+    <string name="label_round_trip_direction">왕복 방향 (°)</string>
+    <string name="label_round_trip_direction_compass">왕복 방향 나침반</string>
+    <string name="label_profile_attention_icon">실험용 또는 디버그 프로필</string>
+    <string name="format_profile_info_content_description">%1$s의 정보를 표시합니다</string>
+    <string name="format_route_mode_info_content_description">%1$s의 모드 정보를 표시합니다</string>
+    <string name="format_poi_details_content_description">%1$s에 대한 POI 세부 정보를 표시합니다</string>
+    <string name="format_poi_search_info_content_description">%1$s의 검색 정보를 표시합니다</string>
+    <string name="format_poi_entrance_heading">%1$d 입구</string>
+    <string name="format_poi_entrance_type">입구: %1$s</string>
+    <string name="format_stop_label">%1$d 정지</string>
+    <string name="format_default_saved_route_name">%1$s 경로</string>
+    <string name="hint_search_destination">목적지 검색</string>
+    <string name="hint_search_stop">정류장 검색</string>
+    <string name="prompt_speech_destination">목적지를 말하세요</string>
+    <string name="prompt_speech_stop">정류장을 말하세요</string>
+    <string name="hint_saved_route_name">경로 이름</string>
+    <string name="msg_missing_destination">목적지를 선택하세요</string>
+    <string name="msg_invalid_destination_name">목적지 이름을 입력하세요</string>
+    <string name="msg_invalid_route_name">경로 이름을 입력하세요</string>
+    <string name="msg_invalid_coordinates">좌표로 장소 선택</string>
+    <string name="msg_invalid_stop">좌표로 정류장 제거 또는 선택</string>
+    <string name="msg_invalid_round_trip_distance">유효한 왕복 거리를 입력하세요</string>
+    <string name="msg_invalid_round_trip_direction">유효한 왕복 방향을 입력하세요</string>
+    <string name="msg_round_trip_requires_brouter_profile">왕복 모드를 위해 BRouter 프로필을 선택하세요</string>
+    <string name="msg_brouter_not_found">BRouter이 설치되어 있지 않습니다</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter은 주변 거리에서 필요합니다.</string>
+    <string name="title_brouter_not_found">BRouter 필요</string>
+    <string name="title_stop_navigation_confirm">내비게이션을 중지하시겠습니까?</string>
+    <string name="msg_brouter_install_prompt">BRouter이 설치되어 있지 않습니다. Play Store 또는 F-Droid에서 앱 페이지를 열겠습니까?</string>
+    <string name="msg_location_disabled">위치가 비활성화되어 있습니다. 내비게이션을 위해 활성화하세요.</string>
+    <string name="msg_permission_required">권한 필요</string>
+    <string name="msg_stop_navigation_confirm">내비게이션을 중지하고 이 화면을 닫으시겠습니까?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator은 내비게이션 및 진동 안내를 위해 위치 접근이 필요합니다.</string>
+    <string name="msg_permission_notifications_rationale">알림은 다가오는 회전을 알리는 데 사용됩니다.</string>
+    <string name="msg_enable_notifications">회전 알림을 위해 알림을 활성화하세요.</string>
+    <string name="msg_battery_opt_rationale">신뢰할 수 있는 백그라운드 내비게이션을 위해 ViBRo Navigator이 배터리 최적화를 무시하도록 허용하세요.</string>
+    <string name="msg_open_settings_failed">이 기기에서 설정을 열 수 없습니다.</string>
+    <string name="msg_open_brouter_store_failed">이 기기에서 BRouter 스토어 페이지를 열 수 없습니다.</string>
+    <string name="msg_intent_unrecognized">공유된 위치를 인식할 수 없습니다.</string>
+    <string name="msg_gpx_import_failed">GPX 웨이포인트를 불러올 수 없습니다.</string>
+    <string name="msg_gpx_import_blocked_navigation">GPX 경로를 열기 전에 길찾기를 중지하세요.</string>
+    <string name="msg_speech_input_unavailable">음성 인식 서비스가 활성화되어 있지 않습니다. Google 앱 또는 Android 음성 입력을 활성화하세요.</string>
+    <string name="msg_speech_input_listening">듣는 중…</string>
+    <string name="msg_speech_input_empty">음성을 인식하지 못했습니다.</string>
+    <string name="msg_speech_input_failed">음성 입력에 실패했습니다. 다시 시도하세요.</string>
+    <string name="msg_speech_input_unresponsive">음성 인식이 시작되지 않았습니다. Google 앱 또는 Android 음성 입력을 활성화하세요.</string>
+    <string name="msg_speech_permission_required">음성 입력을 위해 마이크 권한이 필요합니다.</string>
+    <string name="msg_select_custom_profile">사용자 지정 BRouter .brf 파일 선택</string>
+    <string name="msg_invalid_custom_profile">유효한 BRouter .brf 파일 선택</string>
+    <string name="msg_profile_parameters_empty">이 프로필은 편집 가능한 매개변수를 제공하지 않습니다.</string>
+    <string name="msg_profile_parameters_not_localized">매개변수는 BRouter 프로필 파일에서 동적으로 추출되므로 이름, 설명 및 옵션은 번역되지 않습니다.</string>
+    <string name="msg_profile_parameters_saved">프로필 설정이 저장되었습니다.</string>
+    <string name="msg_profile_parameters_reset">프로필 설정이 프로필 기본값으로 재설정되었습니다.</string>
+    <string name="msg_profile_parameter_invalid_number">유효한 숫자를 입력하세요.</string>
+    <string name="msg_profile_parameter_invalid_text">값에는 ?, &amp;, 또는 =을 포함할 수 없습니다.</string>
+    <string name="msg_poi_details_unavailable">추가 세부 정보는 없습니다.</string>
+    <string name="msg_poi_details_map_check_hint">지도가 의도한 위치인지 다시 확인하세요.</string>
+    <string name="msg_poi_google_maps_search_info">POI 검색 필드의 텍스트로 Google Maps를 엽니다. Google Maps에서 장소를 선택한 후, 해당 장소를 공유하고 ViBRo Navigator를 선택하여 결과를 여기로 가져옵니다.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">로컬 BRouter 거리 파일을 읽으려면 저장소 접근 권한이 필요합니다.</string>
+    <string name="title_brouter_segments_storage_access">BRouter 거리 저장소</string>
+    <string name="msg_brouter_segments_storage_access_prompt">주변 거리는 BRouter segments4 폴더 접근 권한이 필요합니다. 다음 화면에서 %1$s로 이동하여 폴더 접근 권한을 확인하세요. 해당 위치를 사용할 수 없는 경우 BRouter가 .rd5 파일을 저장하는 폴더를 선택하세요.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">BRouter 프로필 파일을 읽으려면 저장소 접근 권한이 필요합니다.</string>
+    <string name="title_brouter_profiles_storage_access">BRouter 프로필 저장소</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter 프로필에 profiles2 폴더 접근 권한이 필요합니다. 다음 화면에서 %1$s로 이동하여 폴더 접근을 확인하세요. 해당 위치를 사용할 수 없는 경우, BRouter가 .brf 프로필을 저장하는 폴더를 선택하세요.</string>
+    <string name="msg_symbol_test_notification_sent">심볼 테스트 알림이 전송되었습니다.</string>
+    <string name="msg_map_location_searching">현재 위치를 조회 중입니다…</string>
+    <string name="msg_map_location_unavailable">현재 위치를 사용할 수 없습니다.</string>
+    <string name="msg_map_selection_required">먼저 지도에서 지점을 선택하세요.</string>
+    <string name="msg_map_position_unavailable">지도 위치를 사용할 수 없습니다.</string>
+    <string name="msg_map_position_no_app">지도를 열 수 있는 앱이 없습니다.</string>
+    <string name="msg_map_position_open_failed">지도 위치를 열 수 없습니다.</string>
+    <string name="msg_map_poi_loading">POI를 로드 중입니다…</string>
+    <string name="msg_map_poi_unavailable">POI를 사용할 수 없습니다.</string>
+    <string name="msg_map_poi_zoom_in">POI를 로드하려면 확대하세요.</string>
+    <string name="msg_map_poi_empty">이 지도 뷰에서 사용 가능한 POI가 없습니다.</string>
+    <string name="msg_map_poi_categories_empty">이 지도 뷰에서 POI 카테고리가 없습니다.</string>
+    <string name="msg_database_exported">데이터베이스가 저장되었습니다: %1$s</string>
+    <string name="msg_database_export_failed">데이터베이스를 내보낼 수 없습니다.</string>
+    <string name="msg_database_imported">데이터베이스가 가져와졌습니다.</string>
+    <string name="msg_database_import_failed">데이터베이스를 가져올 수 없습니다.</string>
+    <string name="msg_saved_route_saved">경로가 저장되었습니다.</string>
+    <string name="msg_saved_route_restored">경로가 복원되었습니다.</string>
+    <string name="msg_saved_routes_empty">저장된 경로가 없습니다.</string>
+    <string name="msg_route_export_unavailable">내보낼 활성 경로가 없습니다.</string>
+    <string name="msg_route_export_failed">경로를 내보낼 수 없습니다.</string>
+    <string name="msg_route_export_no_app">어떤 앱도 GPX 경로를 열 수 없습니다.</string>
+    <string name="msg_google_maps_search_open_failed">Google Maps 검색을 열 수 없습니다.</string>
+    <string name="msg_open_url_failed">이 장치에서 링크를 열 수 없습니다.</string>
+    <string name="label_exported_route_gpx">ViBRo 경로 GPX</string>
+    <string name="gpx_passed_route_track_name">완료된 경로</string>
+    <string name="format_gpx_gps_fix_name">GPS 수정 %1$d</string>
+    <string name="label_vehicle_profile_custom">사용자 정의</string>
+    <string name="label_vehicle_profile_custom_with_name">사용자 정의 (%1$s)</string>
+    <string name="title_profile_parameters">프로필 설정: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">프로필 설정을 재설정하시겠습니까?</string>
+    <string name="msg_profile_parameters_reset_confirm">이 프로필의 설정을 프로필에 정의된 값으로 복원하시겠습니까?</string>
+    <string name="format_profile_parameter_info_content_description">%1$s의 매개변수 정보를 표시</string>
+    <string name="route_mode_info_route_description">현재 위치에서 모든 정류장을 거쳐 목적지까지의 BRouter 경로를 계산합니다.</string>
+    <string name="route_mode_info_round_trip_description">선택한 프로필과 평균 여행 거리를 사용하여 현재 위치에서 원형 BRouter 경로를 계산합니다.</string>
+    <string name="route_mode_info_straight_line_description">BRouter를 건너뛰고 목적지를 향해 직선으로 안내하며 직선 거리와 방향으로 멈춥니다.</string>
+    <string name="profile_info_trekking_title">트레킹 자전거</string>
+    <string name="profile_info_trekking_description">일상적인 사이클링, 투어링 및 실용적인 내비게이션을 위한 균형 잡힌 자전거 경로 설정입니다. 주요 강점은 다재다능함에 있습니다: 차량 통행이 많은 길을 피하고, 자전거 도로를 지원하며, 고도를 고려하고, 일반적인 자전거 이용자에게 합리적인 경로를 제공하는 경우가 많습니다. 약점은 고도로 특화되어 있지 않다는 점입니다: 도로 자전거 이용자는 `fastbike`보다 느리다고 느낄 수 있으며, 오프로드 이용자는 `mtb` 또는 `gravel`에 비해 너무 보수적이라고 느낄 수 있습니다. 특징적인 점은 가장 안전한 일반용 자전거 프로필이며, 대부분의 사용자에게 아마도 기본 설정으로 가장 적합하다는 것입니다.</string>
+    <string name="profile_info_trekking_ignore_cr_title">트레킹, 경로 무시</string>
+    <string name="profile_info_trekking_ignore_cr_description">사이클 경로 관계를 무시하는 트레킹-자전거 변형입니다. 장점은 해당 경로가 우회적이거나, 경치가 좋거나, 오래되었거나, 현재 여행에 실제로 유용하지 않은 경우에도 지정되거나 지도에 표시된 자전거 경로를 과도하게 우선시하지 않는다는 것입니다. 단점은 정상적인 트레킹 프로필의 주요 장점 중 하나인 존재하는 좋은 사이클링 네트워크를 따르는 점을 잃는다는 것입니다. 특징적인 측면은 특정 문제에 대한 답을 제공한다는 점입니다: \"사이클 경로에 속해 있다고 해서 도로를 우선하지 마세요.\"</string>
+    <string name="profile_info_trekking_noferries_title">트레킹, 페리 사용 금지</string>
+    <string name="profile_info_trekking_noferries_description">페리 연결을 피하는 트레킹 자전거 변형입니다. 장점은 예측 가능성입니다: 페리 시간표, 계절 운행, 티켓 발권, 대기 시간 또는 불확실한 이용 가능성에 의존하는 경로를 피합니다. 단점은 강, 호수, 섬 또는 연안 지역에서 페리가 실질적인 연결 수단인 경우 훨씬 긴 경로를 생성할 수 있다는 것입니다. 특징은 육지만을 원하는 사용자를 위한 트레킹 프로필이라는 점입니다.</string>
+    <string name="profile_info_trekking_nosteps_title">트레킹, 계단 없음</string>
+    <string name="profile_info_trekking_nosteps_description">계단을 피하는 트레킹 자전거 변형입니다. 그 강점은 실용적인 주행성에 있으며, 특히 짐을 싣는 투어링 자전거, 전기 자전거, 화물 자전거, 어린이 트레일러, 혹은 자전거를 들어 옮기고 싶지 않은 사용자를 위해 적합합니다. 약점은 도심이나 언덕 지역에서 짧은 보행자/자전거 지름길을 피하게 되어 더 긴 우회 경로를 만들 수 있다는 것입니다. 특징은 일반 트레킹 균형을 유지하면서도 가장 성가신 자전거 경로상의 놀라움 중 하나인 계단을 제거한 점입니다.</string>
+    <string name="profile_info_trekking_steep_title">트레킹, 가파른 오르막</string>
+    <string name="profile_info_trekking_steep_description">가파른 오르막이 더 허용되는 경로를 위한 트레킹 자전거 변형입니다. 강점은 고도를 크게 피하기보다는 더 직선적이거나 언덕이 많은 경로를 선택할 수 있다는 것입니다. 약점은 일반 라이더, 무거운 자전거, 트레일러 또는 배터리가 적은 전기자전거 여행에는 불편하거나 부적합할 수 있다는 점입니다. 특징은 트레킹 특성을 유지하면서도 일반 트레킹 프로필보다 가파른 지형을 덜 두려워한다는 것입니다.</string>
+    <string name="profile_info_fastbike_title">로드 바이크</string>
+    <string name="profile_info_fastbike_description">빠른 포장도로 사이클링, 레이싱 자전거, 피트니스 자전거, 속도 페델렉스에 최적화되었습니다. 강점은 속도입니다: 효율적이고 품질이 좋은 도로를 선호하며 단순히 조용하거나 경치 좋은 경로를 찾기보다는 이동 시간 중심 모델을 사용합니다. 약점은 일반 라이더, 가족, 저교통 경로를 강하게 원하는 사용자에게는 도로 중심적이라고 느껴질 수 있다는 점입니다. 특징적인 측면은 성능 중심 자전거 프로필이라는 것입니다: `트레킹`보다 빠르고 더 직접적이지만 여전히 자전거를 인식합니다.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">도로 자전거, 저교통</string>
+    <string name="profile_info_fastbike_lowtraffic_description">일반 `fastbike`보다 교통 회피에 더 비중을 두면서도 여전히 성능 지향적인 빠른 자전거 프로필입니다. 장점은 속도를 원하지만 계속 붐비는 도로로 안내되는 것을 원하지 않는 라이더에게 좋은 타협안이라는 점입니다. 단점은 `fastbike`보다 약간 느리거나 덜 직접적일 수 있으며, `fastbike-verylowtraffic`보다는 교통 회피 성향이 낮다는 것입니다. 특징은 순수한 빠른 경로와 교통에 매우 민감한 빠른 자전거 경로 사이의 중간 옵션이라는 것입니다.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">도로 자전거, 교통 최소</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">자동차와 트럭을 가능한 한 피하고 싶은 로드 바이크 또는 스피드 페덱 사용자들을 위한 더 강력한 저교통 변형입니다. 이 경로의 강점은 특히 혼자 타거나, 비 오는 날, 야간 주행, 또는 교통량이 많은 지역에서 더 안전하고 차분한 빠른 사이클링을 제공한다는 점입니다. 단점은 더 큰 우회 경로가 생길 수 있고, 교통량이 많다면 원래 빠른 도로를 피할 수도 있다는 것입니다. 특징은 빠른 자전거 특성을 유지하면서도 매우 저교통 경로를 중심 우선순위로 설정한다는 것입니다.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">로드 바이크, 아시아-태평양</string>
+    <string name="profile_info_fastbike_asia_pacific_description">\'fastbike\'의 지역적 변형으로, 유럽의 간선 도로, 고속도로, 자전거 제한에 대한 가정이 항상 맞지 않는 국가들을 위한 것입니다. 강점은 일본, 호주 및 기타 아시아 태평양 지역과 같이 도로 분류 및 자전거 접근이 유럽과 다를 수 있는 지역에서 fast-bike 경로 설정을 더 유용하게 만들 수 있다는 것입니다. 약점은 범용 기본 프로필로는 덜 적합하다는 것입니다. 특징적인 점은 fast-bike 논리를 유지하면서 아시아 태평양 사용을 위해 도로 접근 가정을 조정한다는 것입니다.</string>
+    <string name="profile_info_safety_title">더 안전한 자전거 타기</string>
+    <string name="profile_info_safety_description">안전하고 차분한 경로에 중점을 둔 자전거 프로필입니다. 이 프로필의 강점은 일반적인 빠른 경로보다 불쾌하거나 위험한 도로를 피하는 것을 더 우선시하여, 신중한 라이더, 가족, 도시 자전거 이용자 또는 속도보다 편안함을 선호하는 사용자에게 유용하다는 점입니다. 약점은 더 느리거나, 더 길거나, 덜 직선적인 경로를 생성할 수 있다는 것입니다. 특징적인 점은 사용자의 우선순위가 시간을 최소화하는 것보다 스트레스가 많은 교통을 피하는 것일 때 가장 명확하게 \'안전 우선\' 자전거 옵션이라는 점입니다.</string>
+    <string name="profile_info_gravel_title">자갈 자전거</string>
+    <string name="profile_info_gravel_description">자갈 자전거 및 혼합 지면 주행용으로 설계되었습니다. 강점은 단단히 다져진 자갈, 트랙, 그리고 교통이 적은 비포장 도로를 포함할 수 있는 경로를 찾으면서도 지나치게 거칠거나, 진흙 투성이거나, 가파르거나, 느린 지면은 피할 수 있다는 점입니다. 약점은 순수 도로 자전거에는 이상적이지 않다는 점인데, 이는 의도적으로 비포장 구간을 선택할 수 있으며, 진정한 MTB 프로필만큼 트레일 지향적이지 않기 때문입니다. 특징적인 점은 도로 사이클링과 산악 자전거 사이에 위치한다는 것으로, `fastbike`보다 모험적이지만, `mtb`만큼 기술적이지 않습니다.</string>
+    <string name="profile_info_mtb_title">산악 자전거</string>
+    <string name="profile_info_mtb_description">산악 자전거 및 트레일 기반 라이딩을 위한 오프로드 중심 자전거 프로필입니다. 장점은 일반 자전거 프로필보다 경로, 트랙, 포장되지 않은 길 및 MTB에 적합한 지형을 훨씬 더 선호할 수 있다는 점입니다. 단점은 사용자가 실제로 거친 경로를 원하지 않는 경우, 관광, 통근 또는 도로용 자전거에 적합하지 않은 경로를 생성할 수 있다는 점입니다. 특징적인 점은 MTB 전용 동작으로, 경로 선호도, 표면 품질, 매끄러움, 습한 조건, 언덕 동작 및 오프로드 적합성을 고려한다는 것입니다.</string>
+    <string name="profile_info_hiking_mountain_title">산악 등산</string>
+    <string name="profile_info_hiking_mountain_description">하이킹과 산길을 위한 도보 프로필입니다. 장점은 자전거나 자동차를 기준으로 설계된 것이 아니라 도보 이동, 하이킹 경로, 경로 난이도, 산악 특수 조건에 맞추어 설계되었다는 점입니다. 단점은 특히 고산 지역에서 경로, 접근성, 하이킹 경로, 난이도 수준에 대한 좋은 OSM 태그에 크게 의존한다는 것입니다. 특징적인 점은 교통 효율보다 산행에 가장 명확하게 집중된 번들 프로필이라는 것입니다.</string>
+    <string name="profile_info_skating_title">스케이팅</string>
+    <string name="profile_info_skating_description">인라인 스케이팅 또는 유사한 장거리 스케이팅 활동에 최적화되어 있습니다. 그 강점은 표면 민감성에 있습니다: 매끄럽고 포장된 흐름이 좋은 경로를 강하게 선호하며, 스케이팅 리듬을 깨는 표면, 장애물, 신호등, 횡단보도 및 급격한 방해물은 피합니다. 약점은 매우 전문화되어 있어 자전거나 보행자에게는 괜찮은 경로일지라도 스케이트에는 적합하지 않은 경로를 거부할 수 있다는 점입니다. 특징적인 점은 단순히 법적 접근성이나 거리뿐만 아니라 스케이팅 흐름을 위해 경로를 설정한다는 것입니다.</string>
+    <string name="profile_info_shortest_title">최단 경로</string>
+    <string name="profile_info_shortest_description">주로 경로 거리를 최소화하려는 최소한의 프로필입니다. 장점은 단순함에 있습니다: 사용자가 명시적으로 가능한 가장 짧은 경로를 원할 때나 경로 기하를 비교할 때 유용합니다. 단점은 가장 짧은 경로가 항상 최선은 아니라는 것입니다: 안전하지 않거나, 불쾌하거나, 가파르거나, 거칠거나, 교통이 많은 구간을 선택할 수 있습니다. 특징적인 측면은 주로 편안함과 선호 논리를 무시한다는 점으로, 기본값으로 사용하기보다는 참조용 프로필로 유용합니다.</string>
+    <string name="profile_info_car_eco_title">자동차, 에코</string>
+    <string name="profile_info_car_eco_description">불필요한 속도, 에너지 사용 및 비효율적인 운전 패턴을 줄이는 데 중점을 둔 경제적인 자동차 경로 설정 프로필입니다. 장점은 단순히 가장 빠른 도로를 쫓기보다는 에너지 친화적인 경로를 선호할 수 있다는 점입니다. 단점은 느리거나 덜 직선적인 경로를 선택할 수 있고, 도착 시간이 가장 중요한 경우 편리함이 떨어질 수 있다는 점입니다. 특징적인 점은 최대 속도보다는 \'합리적인 효율성\'을 위한 자동차 프로필이라는 것입니다.</string>
+    <string name="profile_info_car_eco_nocost_title">자동차, 에코 (기본)</string>
+    <string name="profile_info_car_eco_nocost_description">단순화된 경제형 자동차 버전입니다. 장점은 추가 선호 기반 페널티를 줄이면서 경제 중심의 자동차 모델을 유지한다는 점으로, 더 명확한 비교 프로파일로 유용합니다. 단점은 일반적으로 실제 경로 품질을 형성하는 데 도움이 되는 비용 논리의 일부를 제거하기 때문에 실제 내비게이션에서는 덜 정교할 수 있다는 점입니다. 특징적인 점은 기술적 기준선으로 가장 잘 볼 수 있다는 것입니다: `car-eco`와 비교할 때 유용하지만, 사용자 중심의 주요 자동차 프로파일로서의 유용성은 적습니다.</string>
+    <string name="profile_info_car_fast_title">자동차, 빠름</string>
+    <string name="profile_info_car_fast_description">속도와 이동 시간을 중점으로 한 자동차 경로 설정 프로필입니다. 장점은 더 빠른 도로와 시간 효율이 높은 직선 경로를 선호하는 경향이 있다는 것입니다. 단점은 경제적이지 않을 수 있고, 조용하지 않을 수 있으며, 경치가 덜할 수 있고, 경우에 따라 OSM 자동차 제한이나 지역 도로 정보가 불완전한 곳에서는 덜 적합할 수 있다는 점입니다. 특징은 단순히 빨리 도착하고 싶은 사용자를 위한 가장 뚜렷한 자동차 프로필이라는 점입니다.</string>
+    <string name="profile_info_car_fast_nocost_title">자동차, 빠름 (기본)</string>
+    <string name="profile_info_car_fast_nocost_description">간소화된 고속차량 변형입니다. 이 차량의 강점은 속도 모델 동작에 더 직접적으로 초점을 맞추었다는 점으로, 테스트, 비교 또는 예측 가능한 최고 속도 도로 실험에 유용합니다. 약점은 `car-fast`보다 덜 세밀할 수 있다는 점인데, 이는 추가 벌점과 선호도가 줄어들었기 때문입니다. 특징적인 점은 고속차량 경로 설정의 기준 버전이라는 것입니다: 기술적 비교에는 좋지만, 기본 차량 프로필로서는 덜 이상적입니다.</string>
+    <string name="profile_info_car_vario_title">차량, 가변 속도</string>
+    <string name="profile_info_car_vario_description">주요 유연한 자동차 프로필입니다. 그 강점은 적응력에 있습니다: 매개변수를 변경함으로써 빠른 자동차 경로 탐색처럼 동작하게 하거나 에너지 절약/친환경 경로 탐색처럼 동작하게 할 수 있습니다. 통행료, 비포장 도로, 고속도로, 특정 환경을 피하는 것과 같은 선호도를 지원합니다. 약점은 여전히 상업용 자동차 내비게이션 엔진보다 단순하며 OSM 태그 품질에 크게 의존한다는 점입니다. 특징적인 점은 단순한 도로 등급 우선순위만 사용하는 것이 아니라 물리적/운동학적 모델을 사용한다는 것입니다.</string>
+    <string name="profile_info_car_vario_nocost_title">자동차, 가변(기본)</string>
+    <string name="profile_info_car_vario_nocost_description">주로 운동학적 속도 모델을 기반으로 한 보다 간단한 차량 경로 선택 변형입니다. 장점은 차량 경로 선택을 위한 보다 깔끔한 기준을 제공하여 비교, 테스트 또는 추가적인 경치나 선호 기반 비용이 지배적이지 않아야 하는 경우에 유용하다는 점입니다. 단점은 일반적인 내비게이션에서는 car-vario보다 표현력이 떨어지고 사용자 친화적이지 않다는 점입니다. 특징적인 측면은 풍부한 선호 프로필보다는 기술적 기준에 더 가깝다는 것입니다.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">빠른 리컴번트형</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">빠른 리컴번트 바이크를 위한 프로필입니다. 이 프로필의 강점은 일반 로드바이크 프로필보다 리컴번트 라이더의 필요를 더 잘 반영한다는 점입니다: 효율적인 포장도로, 나쁜 표면 회피, 고도 변화 신중 관리, 계단이나 하차 구간에 대한 패널티 적용. 약점은 일반 자전거에 비해 너무 전문화되어 있어, 일반형 자전거 이용자가 받아들이는 인프라를 피할 수 있다는 점입니다. 특징적인 부분은 리컴번트 바이크를 단순히 더 빠른 자전거로 보는 것이 아니라, 자체 차량 유형으로 모델링한다는 점입니다.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">빠른 벨로모빌</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">빠른 벨로모빌을 위한 프로필입니다. 이 프로필의 강점은 매끄러운 표면, 적은 정지, 적은 장애물, 좋은 구름 조건이 필요한 아주 효율적이고 무거우며 저항이 낮은 인간 동력 차량을 위한 경로 설정입니다. 약점은 좁고 거칠거나 정지가 많거나 내려타기가 많은 경로에 대해 강하게 패널티를 부과하기 때문에 일반 자전거에는 적합하지 않다는 점입니다. 특징적인 점은 번들 내에서 인간 동력 프로필 중 가장 차량 특화되어 있으며, 일반적인 사이클링보다는 벨로모빌의 제약 조건에 맞게 조정되었다는 것입니다.</string>
+    <string name="profile_info_car_eco_de_title">자동차, 친환경 (독일)</string>
+    <string name="profile_info_car_eco_de_description">`car-eco`의 변형으로, 역사적으로 대체 또는 보조 경로 데이터와 연결됩니다. 그 장점은 다른 데이터 스냅샷이나 특별한 도로 네트워크 준비에 대해 자동차 경로를 디버깅하거나 테스트할 때 유용할 수 있다는 것입니다. 단점은 단순히 일반적인 일상용 자동차 프로필이 아니며 특별한 보조 데이터 구성이 필요할 수 있다는 점입니다. 특징적인 측면은 경제형 자동차 프로필처럼 작동하지만, 주로 보조 데이터 설정이 의도적으로 제공될 때 유용하다는 점입니다.</string>
+    <string name="profile_info_moped_title">모페드</string>
+    <string name="profile_info_moped_description">모페드 스타일 경로 탐색을 위한 실험적 프로필입니다. 장점은 자전거 프로필보다 모터가 달린 이륜차 접근을 더 자연스럽게 모델링한다는 점입니다. 단점은 중요합니다: 회전 제한이나 일부 교통 제약이 누락될 수 있어 실제 내비게이션에는 신뢰할 수 없습니다. 특징적인 측면은 자전거와 자동차 논리 사이에 위치하지만, 실험적이거나 일반 사용자에게는 숨겨진 것으로 취급해야 한다는 것입니다.</string>
+    <string name="profile_info_dummy_title">태그 검사</string>
+    <string name="profile_info_dummy_description">경로 구간에서 BRouter가 보는 OSM 태그를 검사하기 위한 디버깅 프로파일입니다. 장점은 투명성에 있으며, 개발자가 사용 가능한 라우팅 데이터와 사용되지 않은 태그를 이해하는 데 도움을 줍니다. 단점은 고품질 또는 의미 있는 경로를 생성하도록 설계되지 않았다는 점입니다. 특징적인 측면은 주로 프로파일 개발과 데이터 검사를 위한 진단용 프로파일이라는 것입니다.</string>
+    <string name="profile_info_rail_title">철도</string>
+    <string name="profile_info_rail_description">철도, 트램, 지하철, 경전철 및 유사한 철도 객체를 통해 경로를 안내하기 위한 프로필입니다. 장점은 철도 네트워크 토폴로지를 추적하고 OSM 데이터에서 철도 연결성을 확인하는 것입니다. 단점은 승객 여행을 나타내지 않는다는 점입니다: 시간표, 환승, 역 논리, 서비스 가능 여부, 티켓 제약 등이 포함되지 않습니다. 특징적인 점은 일반 내비게이션이 아닌 철도 데이터 분석에 유용하다는 것입니다.</string>
+    <string name="profile_info_river_title">강 / 운하</string>
+    <string name="profile_info_river_description">강, 운하, 수로, 락과 같은 수로를 따라 경로를 생성하기 위한 프로필입니다. 이 프로필의 강점은 수로 네트워크 추적과 OSM 데이터 탐색입니다. 약점은 보트 유형, 수심, 조류, 법적 제한, 위험 요소 또는 운용 락 제약을 모델링하지 않기 때문에 실제 해상 항해에는 너무 단순하다는 점입니다. 특징은 수로를 경로 설정 가능한 네트워크로 처리하지만, 기본적인 토폴로지 수준에서만 다룬다는 점입니다.</string>
+    <string name="title_edit_destination_name">목적지 이름 수정</string>
+    <string name="title_save_route">경로 저장</string>
+    <string name="title_restore_route">경로 복원</string>
+    <string name="title_edit_route_name">경로 이름 수정</string>
+    <string name="title_restore_route_confirm">경로를 복원하시겠습니까?</string>
+    <string name="msg_restore_route_confirm">현재 목적지와 정류장을 \"%1$s\"으로 교체하시겠습니까?</string>
+    <string name="title_map_picker_destination">지도에서 목적지 선택</string>
+    <string name="title_map_picker_stop">지도에서 정류장 %1$d 선택</string>
+    <string name="nav_no_route">경로 없음</string>
+    <string name="nav_waiting_for_location_title">위치 대기 중</string>
+    <string name="nav_waiting_for_location_body">경로를 계산하기 위해 사용 가능한 위치 확인 대기 중</string>
+    <string name="nav_waiting_for_location_straight_line_body">직선 안내를 위한 사용 가능한 위치 수정을 기다리는 중입니다.</string>
+    <string name="nav_calculating_route_title">경로 계산 중</string>
+    <string name="nav_calculating_route_body">BRouter에서 길 안내 받는 중입니다.</string>
+    <string name="nav_route_unavailable_title">경로를 사용할 수 없습니다</string>
+    <string name="format_nav_route_unavailable_body">경로를 사용할 수 없습니다: %1$s \n 사용 가능한 구간은 BRouter를 확인하세요.</string>
+    <string name="nav_route_unavailable_generic">알 수 없는 오류</string>
+    <string name="nav_start_invalid_request">내비게이션 요청이 불완전합니다</string>
+    <string name="nav_route_notice_no_alternative_keep_current">차단된 구역을 우회할 대체 경로를 찾을 수 없습니다. 현재 경로 유지 중.</string>
+    <string name="nav_route_notice_no_route_found">이 목적지에 대한 경로를 찾을 수 없습니다.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">경로 서비스 사용 불가. 현재 경로 유지 중.</string>
+    <string name="nav_route_notice_service_unavailable">경로 서비스 사용 불가.</string>
+    <string name="nav_route_notice_invalid_profile">경로 프로필이 유효하지 않습니다.</string>
+    <string name="nav_route_notice_update_failed_keep_current">경로를 업데이트할 수 없습니다. 현재 경로 유지 중.</string>
+    <string name="nav_route_notice_unavailable">경로를 계산할 수 없습니다.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">차단된 도로가 추가되었습니다. 경로를 다시 계산하는 중.</string>
+    <string name="nav_paused_notice">내비게이션이 일시 중지되었습니다. 실시간 안내를 계속하려면 \'내비게이션 재개\'를 탭하세요.</string>
+    <string name="notification_channel_nav">내비게이션</string>
+    <string name="notification_channel_alert">안내 알림</string>
+    <string name="notification_channel_turn_left">좌회전</string>
+    <string name="notification_channel_turn_right">우회전</string>
+    <string name="notification_nav_running">내비게이션 실행 중</string>
+    <string name="notification_nav_running_text">ViBRo Navigator가 백그라운드에서 내비게이션 중</string>
+    <string name="notification_nav_paused">내비게이션 일시 중지</string>
+    <string name="notification_nav_paused_text">ViBRo Navigator 내비게이션이 일시 중지되었습니다</string>
+    <string name="notification_off_route_title">경로 이탈</string>
+    <string name="notification_wrong_direction_title">잘못된 방향</string>
+    <string name="notification_symbol_test_left_title">모든 좌회전 알림 테스트</string>
+    <string name="notification_symbol_test_other_title">다른 모든 알림 테스트</string>
+    <string name="notification_symbol_test_right_title">모든 우회전 알림 테스트</string>
+    <string name="direction_continue">계속</string>
+    <string name="direction_keep_left">왼쪽으로 진행하세요</string>
+    <string name="direction_keep_right">오른쪽으로 진행하세요</string>
+    <string name="direction_turn_left">좌회전하세요</string>
+    <string name="direction_turn_right">우회전하세요</string>
+    <string name="direction_slight_left">약간 왼쪽으로 가세요</string>
+    <string name="direction_slight_right">약간 오른쪽으로 가세요</string>
+    <string name="direction_sharp_left">크게 왼쪽으로 꺾으세요</string>
+    <string name="direction_sharp_right">크게 오른쪽으로 꺾으세요</string>
+    <string name="direction_uturn_left">왼쪽으로 유턴하세요</string>
+    <string name="direction_uturn">유턴하세요</string>
+    <string name="direction_uturn_right">오른쪽으로 유턴하세요</string>
+    <string name="direction_roundabout_exit">회전교차로에서 %1$d번째 출구로 나가세요</string>
+    <string name="direction_roundabout_exit_left">회전교차로에서 %1$d번째 출구로 나가세요</string>
+    <string name="direction_beeline">직선 안내</string>
+    <string name="direction_exit_left">왼쪽 출구로 나가세요</string>
+    <string name="direction_exit_right">오른쪽 출구로 나가세요</string>
+    <string name="direction_offroute">경로 이탈</string>
+    <string name="direction_arrive">목적지 도달</string>
+    <string name="direction_intermediate_arrive">중간 목적지 도달</string>
+    <string name="direction_unknown">알 수 없는 방향</string>
+    <string name="direction_side_left">왼쪽</string>
+    <string name="direction_side_right">오른쪽</string>
+    <string name="format_speed_limit_content_description">제한 속도 %1$s</string>
+    <string name="title_nav_gps_details">GPS 세부 정보</string>
+    <string name="format_nav_gps_details">속도: %1$s\n 고도: %2$s\n 정확도: %3$s\n GPS 시간: %4$s\n 위성: %5$s\n 간격: %6$s\n 마지막 위치 확인 시간: %10$s\n GPS 위치 확인: %7$s\n GPS 방위: %8$s\n 방위 정확도: %9$s</string>
+    <string name="title_nav_directions_details">경로</string>
+    <string name="nav_directions_unavailable">예정된 경로 없음</string>
+    <string name="title_nav_trip_stats">여행 통계</string>
+    <string name="format_nav_trip_stats_details">경과 시간: %1$s\n거리: %2$s\n이동 시간: %3$s\n정지 시간: %4$s\n평균 속도: %5$s\n이동 평균 속도: %6$s\n최고 속도: %7$s\n화면 켬: %8$s\n화면 끔: %9$s\n사용한 배터리: %10$s\n배터리 감소: %11$s</string>
+    <string name="speech_off_route_recalculating">경로 이탈. 경로 재계산 중</string>
+    <string name="speech_off_route">경로 이탈</string>
+    <string name="speech_wrong_direction_turn_back">잘못된 방향. 되돌아가세요</string>
+    <string name="format_off_route_off_track_notification">트랙 이탈 감지. 거리 %1$s, 임계값 %2$s. 경로 재계산 중.</string>
+    <string name="format_off_route_bearing_notification">방향 불일치 감지. 차이 %1$s, 예상 %2$s, 실제 %3$s. 경로 재계산 중.</string>
+    <string name="format_off_route_off_track_notice_only">트랙 이탈 감지. 거리 %1$s, 임계값 %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">방향 불일치 감지. 차이 %1$s, 예상 %2$s, 실제 %3$s.</string>
+    <string name="format_wrong_direction_notification">잘못된 방향 감지. 목표 %1$s, 실제 %2$s, 차이 %3$s.</string>
+    <string name="format_startup_orientation_notification">경로를 향하도록 %1$s %2$s 몸을 돌리세요.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s 방위 샘플</string>
+    <string name="nav_destination_reached">목적지 도달</string>
+    <string name="format_version">버전 %1$s %2$s</string>
+    <string name="about_short_description">진동으로 방향을 안내하는 가볍고 배터리 효율적이며 오프라인 중심의 GPS 내비게이션 앱, BRouter를 중심으로 빌드됨.</string>
+    <string name="about_homepage_link">
+        <u>홈페이지</u>
+    </string>
+    <string name="about_play_store_link">
+        <u> Play Store</u>에서 평가하기</string>
+    <string name="about_source_code_link">
+        <u> GitHub</u>에서 소스 코드 보기</string>
+    <string name="about_report_issue_link">
+        <u> 문제 신고</u>
+    </string>
+    <string name="about_changelog_link">
+        <u> 변경 로그</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u> 개인정보 처리방침</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u> 서비스 약관</u>
+    </string>
+    <string name="about_legal">저작권 © 2026 Damiano Falcioni.\nMIT 라이선스</string>
+    <string name="about_credits">크레딧: 경로 계획은 BRouter, POI 검색 및 좌표 역지오코딩은 OpenStreetMap Nominatim 사용, 또는 Google 검색이 저장된 API 키로 활성화될 때 Google Play 빌드에서 Google Maps Geocoding 사용. 지도 POI는 OpenStreetMap Overpass 사용. 지도 타일과 지리 데이터 제공: OpenStreetMap 기여자들: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">설정</string>
+    <string name="about_settings_category_display">표시</string>
+    <string name="about_settings_category_guidance">안내</string>
+    <string name="about_settings_category_compass">나침반</string>
+    <string name="about_settings_category_search_input">검색 및 입력</string>
+    <string name="about_settings_category_advanced">고급</string>
+    <string name="label_log_enabled">로그</string>
+    <string name="title_log_output_folder">로그 폴더</string>
+    <string name="label_permission_output_folder">ViBRo 다운로드 폴더</string>
+    <string name="title_output_browser">ViBRo 파일</string>
+    <string name="title_gpx_output_folder">GPX 폴더</string>
+    <string name="format_output_folder">현재 폴더: %1$s</string>
+    <string name="action_clear_output_folder">삭제</string>
+    <string name="action_open_output_folder">열기</string>
+    <string name="msg_output_viewer_unavailable">이 폴더나 파일을 열 수 있는 앱이 없습니다.</string>
+    <string name="hint_clear_log_output_folder">ViBRo 로그 파일을 다음에서 영구 삭제: \n%1$s\n\n 다른 파일과 하위 폴더는 유지됩니다. 이 작업은 실행 취소할 수 없습니다. 로깅이 활성화되어 있으면 시스템 세부 정보와 함께 새로운 로그가 시작됩니다.</string>
+    <string name="hint_clear_gpx_output_folder">\n%1$s\n\n에서 ViBRo GPX 내보내기를 영구적으로 삭제합니다. 다른 파일과 하위 폴더는 유지됩니다. 이 작업은 취소할 수 없습니다.</string>
+    <string name="msg_output_folder_cleared">ViBRo 파일이 지워졌습니다.</string>
+    <string name="msg_output_folder_clear_failed">모든 ViBRo 파일을 지울 수 없습니다. 진단에서 폴더 접근을 확인하세요.</string>
+    <string name="label_external_storage_enabled">외부 저장소 사용</string>
+    <string name="about_setting_external_storage_info">GPX 내보내기, 로그 및 데이터베이스 백업을 전화 저장소 대신 SD 카드에 저장합니다. 장착된 지원 SD 카드에서만 가능합니다. USB 드라이브는 제외됩니다. Android 6–9는 기록 및 GPX 저장이 비활성화되어 있어도 폴더 접근이 필요합니다. 카드가 사용할 수 없게 되면, 카드가 다시 사용 가능해질 때까지 저장이 중단됩니다. 이전 파일은 원래 폴더에 그대로 남습니다.</string>
+    <string name="hint_sd_download_access">SD 카드 폴더에 접근 권한 부여: \n%1$s\n\n 다운로드, 그 ViBRo 하위 폴더 또는 SD 카드 루트 선택. ViBRo는 Download/ViBRo/gpx, Download/ViBRo/logs 및 Download/ViBRo/backup를 사용합니다. 저장하려면 이 폴더에 대한 접근 권한이 필요합니다.</string>
+    <string name="msg_sd_storage_unavailable">지원되는 쓰기 가능한 SD 카드가 없습니다.</string>
+    <string name="msg_sd_storage_enabled">GPX 내보내기, 로그 및 데이터베이스 백업이 SD 카드를 사용합니다.</string>
+    <string name="msg_output_folder_failed">이 폴더에 쓸 수 없습니다. 이전 설정은 변경되지 않았습니다.</string>
+    <string name="msg_output_access_required">선택한 출력 폴더를 사용할 수 없거나 접근 권한이 허용되지 않아 저장이 꺼져 있습니다.</string>
+    <string name="msg_output_folder_picker_unavailable">폴더 선택기가 없습니다.</string>
+    <string name="label_auto_save_gpx_enabled">자동 저장 GPX</string>
+    <string name="label_fused_location_enabled">Google 통합 위치</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">동적 GPS 간격</string>
+    <string name="label_imperial_units_enabled">야드/파운드 단위 (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">밝은 테마</string>
+    <string name="label_compass_surrounding_streets_enabled">주변 거리</string>
+    <string name="action_configure_surrounding_street_types">주변 거리 유형 선택</string>
+    <string name="title_surrounding_street_types">주변 거리 유형</string>
+    <string name="hint_surrounding_street_types">범주 전환은 개별 선택을 변경하지 않고 전체 색상 그룹을 숨기거나 표시합니다. 속도 기반 표시 여부는 여전히 적용됩니다.</string>
+    <string name="street_category_highway">주요 도로</string>
+    <string name="street_category_normal">일반 거리</string>
+    <string name="street_category_walking_cycling">도보 / 자전거</string>
+    <string name="street_category_special_routing">특수 경로</string>
+    <string name="street_type_motorway">고속도로</string>
+    <string name="street_type_motorway_info">통제된 접근이 있는 고속 도로.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">고속도로 진입로</string>
+    <string name="street_type_motorway_link_info">고속도로에 진입하거나 나가는 연결로.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">간선도로</string>
+    <string name="street_type_trunk_info">고속도로보다 낮은 수준의 주요 통과 도로.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">간선도로 연결</string>
+    <string name="street_type_trunk_link_info">간선도로에 진입하거나 나가는 연결로.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">주도로</string>
+    <string name="street_type_primary_info">도시와 지역을 연결하는 중요한 도로.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">주도로 연결</string>
+    <string name="street_type_primary_link_info">주도로에 진입하거나 나가는 연결로.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">2차 도로</string>
+    <string name="street_type_secondary_info">작은 도시와 지역을 연결하는 도로.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">2차 도로 연결</string>
+    <string name="street_type_secondary_link_info">2차 도로에 진입하거나 나가는 연결로.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">3차 도로</string>
+    <string name="street_type_tertiary_info">인근 정착지나 지역을 연결하는 지방 도로.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">3차 도로 연결</string>
+    <string name="street_type_tertiary_link_info">3차 도로에 진입하거나 이를 나가는 연결로.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">소규모 공용 도로</string>
+    <string name="street_type_unclassified_info">3차 수준 이하의 공용 도로, 주거 지역 외부에 흔함.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">주택가 도로</string>
+    <string name="street_type_residential_info">주로 주택에 서비스를 제공하는 도로.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">공유 주택가 도로</string>
+    <string name="street_type_living_street_info">보행 및 기타 사용이 공간을 공유하는 저속 도로.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">접근 도로</string>
+    <string name="street_type_service_info">건물, 주차장 또는 시설에 접근을 제공하는 도로.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">트랙</string>
+    <string name="street_type_track_info">주로 농업 또는 임업 접근을 위해 사용되는 트랙입니다. \n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">미지정 도로</string>
+    <string name="street_type_road_info">정확한 유형은 알려지지 않은 도로들. \n\nOSM/BRouter: highway=road 또는 highway=yes.</string>
+    <string name="street_type_busway">버스웨이</string>
+    <string name="street_type_busway_info">주로 버스 전용 도로입니다. \n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">보행자 도로</string>
+    <string name="street_type_pedestrian_info">주로 도보 이용자를 위한 거리나 구역. \n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">보행로</string>
+    <string name="street_type_footway_info">걷기 위해 지정된 길들. \n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">경로</string>
+    <string name="street_type_path_info">보행, 자전거 또는 기타 비자동차 교통을 위한 일반 이용 경로입니다. \n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">자전거 도로</string>
+    <string name="street_type_cycleway_info">자전거 전용 경로. \n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">승마로</string>
+    <string name="street_type_bridleway_info">승마용 길로 지정된 경로.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">계단</string>
+    <string name="street_type_steps_info">경로를 따라 있는 계단.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">환승 플랫폼</string>
+    <string name="street_type_platform_info">대중교통 정류장의 보행 가능한 플랫폼.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">실내 통로</string>
+    <string name="street_type_corridor_info">건물 내부의 통로.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">도로변 휴게소</string>
+    <string name="street_type_rest_area_info">휴게소 내 도로 접근.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">도로변 서비스</string>
+    <string name="street_type_services_info">서비스 구역 내 도로 접근.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">엘리베이터</string>
+    <string name="street_type_elevator_info">보행 가능한 층 사이의 엘리베이터 연결.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">비아페라타 경로</string>
+    <string name="street_type_via_ferrata_info">고정된 장치를 갖춘 보호 등반 경로.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">경주 트랙</string>
+    <string name="street_type_raceway_info">경주용 도로 코스.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">철도</string>
+    <string name="street_type_railway_info">지역 BRouter 구간의 모든 철도 기하 구조.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">수로</string>
+    <string name="street_type_waterway_info">지역 BRouter 구간의 모든 수로 기하 구조.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">기타 경로 기하 구조</string>
+    <string name="street_type_other_info">인식된 거리 또는 지원되는 경로 유형이 없는 기하 구조.\n\nOSM/BRouter: 인식된 highway=*, railway=*, waterway=*가 없거나 지원되는 route=* 값이 없음.</string>
+    <string name="street_type_route_ferry">페리 경로</string>
+    <string name="street_type_route_ferry_info">페리에 의해 운송되는 경로.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">도보 경로</string>
+    <string name="street_type_route_hiking_foot_info">하이킹 또는 도보를 위해 표시된 경로.\n\nOSM/BRouter: route=hiking 또는 route=foot.</string>
+    <string name="street_type_route_bicycle">자전거 경로</string>
+    <string name="street_type_route_bicycle_info">자전거를 위해 표시된 경로.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">스키/슬로프 경로</string>
+    <string name="street_type_route_ski_piste_info">썰매타기나 하이킹과 같은 다른 활동을 위한 스키 경로와 슬로프. BRouter는 두 태그를 하나의 값으로 저장하므로, 이 스위치를 공유합니다. \n\nOSM/BRouter: route=ski 또는 route=piste.</string>
+    <string name="street_type_route_mtb">산악 자전거 경로</string>
+    <string name="street_type_route_mtb_info">산악 자전거용 표시된 경로. \n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">카누 경로</string>
+    <string name="street_type_route_canoe_info">카누용 표시된 경로. \n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">버스 노선</string>
+    <string name="street_type_route_bus_info">지역 BRouter 구간에서의 버스 노선 지오메트리. \n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">즉시 나침반 확대</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">자동 축소</string>
+    <string name="label_compass_fullscreen_route_enabled">전체 화면 경로</string>
+    <string name="label_compass_distance_circles_enabled">거리 원</string>
+    <string name="label_compass_central_perspective_enabled">관점 3D 보기</string>
+    <string name="label_show_hint_panel">힌트 패널 표시</string>
+    <string name="label_navigation_notifications_enabled">알림</string>
+    <string name="label_single_instruction_mode_enabled">단일 지시 모드</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI 카테고리 필터</string>
+    <string name="hint_poi_categories_filter">필터가 활성화될 때 지도 선택기에서 표시할 POI 카테고리를 선택하세요. 카테고리 이름을 편집하거나 켜거나 끄고, +를 사용하여 더 추가할 수 있습니다.</string>
+    <string name="hint_poi_category_name">POI 카테고리 이름</string>
+    <string name="label_speech_recognition">음성 인식</string>
+    <string name="label_speech_recognition_language">언어</string>
+    <string name="label_speech_recognition_language_system_default">시스템 기본값</string>
+    <string name="label_maneuver_voice">음성 지침</string>
+    <string name="label_maneuver_voice_spinner">음성</string>
+    <string name="label_maneuver_voice_disabled">비활성화</string>
+    <string name="label_maneuver_voice_system_default">시스템 기본값</string>
+    <string name="format_maneuver_voice_variant_code">음성 %1$s</string>
+    <string name="label_maneuver_voice_gender_female">여성</string>
+    <string name="label_maneuver_voice_gender_male">남성</string>
+    <string name="label_google_poi_api_key">Google Maps API 키</string>
+    <string name="label_navigation_custom_button">사용자 정의 버튼</string>
+    <string name="label_navigation_custom_button_target">설정</string>
+    <string name="label_setting_enabled">활성화됨</string>
+    <string name="label_setting_disabled">비활성화됨</string>
+    <string name="hint_google_poi_api_key">선택적인 Google Maps 키</string>
+    <string name="format_about_setting_info_content_description">%1$s에 대한 도움말 표시</string>
+    <string name="format_action_toggle_custom_button_setting">%1$s (%2$s) 전환</string>
+    <string name="about_setting_log_info">문제를 진단하는 데 도움이 되는 자세한 동작 로그를 유지합니다. 지원을 위해 세부 정보를 공유해야 하는 경우가 아니면 이 기능을 끄십시오. 선택한 폴더에 접근할 수 있는 경우에도, 이 스위치가 꺼져 있으면 충돌이나 예상치 못한 탐색 중단 시 시스템 세부 정보가 포함된 타임스탬프 로그가 여전히 생성됩니다. 앱이 다시 시작된 후에만 강제 종료를 보고할 수 있으며, 정확한 원인은 확인할 수 없을 수 있습니다.</string>
+    <string name="about_setting_auto_save_gpx_info">탐색을 정지 버튼으로 중지할 때 활성 경로를 GPX 파일로 저장합니다. 휴대폰에서는 Download/ViBRo/gpx를, 외부 저장소 사용으로 선택된 카드에서는 SD를 사용합니다. 이 기능을 켜면 누락된 폴더 접근이 요청됩니다. 접근이 거부되거나 선택된 저장소를 사용할 수 없는 경우 저장은 꺼진 상태로 유지됩니다.</string>
+    <string name="about_setting_fused_location_info">사용 가능할 경우 Google 위치를 사용합니다. 일부 휴대폰에서 위치 업데이트를 향상시킬 수 있습니다.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">배터리를 절약하기 위해 위치 확인을 덜 자주 하지만 여전히 신뢰할 수 있는 방식으로 확인합니다. 지속적인 위치 업데이트를 원하면 끄세요.</string>
+    <string name="about_setting_imperial_units_info">거리를 미터 및 km/h 대신 피트, 마일 및 mph로 표시합니다.</string>
+    <string name="about_setting_light_theme_info">앱의 기본 다크 모드를 라이트 모드로 전환합니다.</string>
+    <string name="about_setting_compass_surrounding_streets_info">지역 지도 데이터가 있는 경우 나침반에 인근 도로 및 기타 경로 지오메트리를 표시합니다.\n\n색상 범례:\n■ — 주요 도로 및 고속도로\n■ — 일반 도로\n■ — 보행자 및 자전거 도로 및 경로\n■ — 철도, 수로, 페리, 스키/카누/버스 경로, 말길, 경주로, 및 비아페라타</string>
+    <string name="about_setting_compass_instant_zoom_info">나침반 줌 애니메이션을 생략하여 경로 개요 보기와 이동 스케일 보기를 즉시 전환할 수 있습니다.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">: 정지 상태에서 나침반에 전체 경로를 표시합니다. 정지 시 마지막 이동 배율 확대를 유지하려면 꺼주세요.</string>
+    <string name="about_setting_compass_fullscreen_route_info">: 전체 내비게이션 화면 뒤에 경로 나침반 보기를 확장하면서 컨트롤과 방향 텍스트는 앞에 표시되도록 유지합니다.</string>
+    <string name="about_setting_compass_distance_circles_info">: 나침반 및 전체 화면 보기에서 시간 및 거리 레이블이 있는 거리 원, 진행 방향 화살표, 진행 정확도 선과 호를 표시합니다.</string>
+    <string name="about_setting_compass_central_perspective_info">: 3D 나침반 보기에서 원근감을 사용합니다: 가까운 경로와 거리가 있는 거리들은 더 크게 나타나고, 멀리 있는 것들은 위쪽으로 축소됩니다. 균일한 정사영 기울기를 사용하려면 꺼주세요.</string>
+    <string name="about_setting_show_hint_panel_info">: 전화 내비게이션이 열릴 때 제스처 팁과 거리 색상 범례를 표시합니다.</string>
+    <string name="about_setting_navigation_notifications_info">회전 알림과 내비게이션 경고를 알림으로 표시합니다. 진행 중인 내비게이션 알림에는 영향을 주지 않으며, 내비게이션 중에는 계속 표시됩니다.</string>
+    <string name="about_setting_single_instruction_mode_info">각 예정된 지침 약 10초 전에 한 번의 조작 알림을 사용하며, 시작, 20초, 5초 조작 알림을 생략합니다. 도착 및 경고 알림에는 영향을 주지 않습니다.</string>
+    <string name="about_setting_navigation_custom_button_info">내비게이션 나침반에 추가 버튼을 표시하여 내비게이션이 열려 있는 동안 선택한 설정을 전환할 수 있습니다.</string>
+    <string name="about_setting_android_auto_info">호환 가능한 자동차 디스플레이가 Android Auto를 통해 내비게이션을 표시할 수 있게 합니다. 일부 호스트는 Android Auto가 다시 연결된 후에만 앱 목록을 새로 고칩니다. 실제 차량에서는 Android Auto가 Google Play 또는 내부 앱 공유와 같은 신뢰할 수 있는 출처에서 설치된 경우에만 이 유형의 앱을 표시합니다.</string>
+    <string name="about_setting_poi_categories_info">지도 선택기에서 연료, 주차장 또는 화장실과 같은 장소가 나타날 수 있는지를 선택합니다.</string>
+    <string name="about_setting_speech_recognition_info">목적지 및 정지 음성 입력을 위한 마이크 버튼을 표시하고 요청된 인식 언어를 선택합니다. 선택한 음성 인식기가 요청한 언어를 지원하지 않으면 Android이 기본값을 사용할 수 있습니다.</string>
+    <string name="about_setting_maneuver_voice_info">Android 음성을 사용하여 다가오는 방향 안내를 소리 내어 읽습니다.</string>
+    <string name="about_setting_google_poi_api_key_info">유효한 키를 제공하면 목적지 검색에 Google Maps을 사용할 수 있습니다.</string>
+    <string name="about_setting_export_database_info">기록, 저장된 경로, 설정 및 프로필 선택을 포함한 앱 데이터를 Download/ViBRo/backup에 있는 JSON 형식으로 휴대전화나 외부 저장소 사용으로 선택한 SD 카드에 저장합니다. 폴더를 묻지 않고 저장된 파일 이름을 표시합니다. Android 6–9에서는 먼저 진단에서 저장소 접근을 설정하십시오.</string>
+    <string name="about_setting_import_database_info">이 앱에서 생성한 JSON 백업에서 앱 데이터를 복원합니다. 파일 선택기는 전화기의 Download/ViBRo/backup 또는 Android 8 이상에서 사용자가 선택한 SD 카드에서 시작됩니다. 다른 폴더로도 이동할 수 있습니다.</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps API 키가 저장되었습니다.</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps API 키가 삭제되었습니다.</string>
+    <string name="msg_google_poi_api_key_required">Google 검색을 활성화하기 전에 Google Maps API 키를 추가하세요.</string>
+    <string name="msg_google_poi_api_key_validating">Google Maps API 키를 검증하는 중…</string>
+    <string name="msg_google_poi_api_key_invalid">Google Maps API 키가 유효하지 않습니다.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Google Maps API 키를 검증할 수 없습니다.</string>
+    <string name="about_diagnostic_title">진단</string>
+    <string name="about_permission_status_title">필수 접근</string>
+    <string name="about_sensor_status_title">센서 상태</string>
+    <string name="label_direction_notification_tests">길 안내 알림 테스트</string>
+    <string name="label_permission_location">위치 권한</string>
+    <string name="label_permission_location_services">기기 위치</string>
+    <string name="label_permission_notifications">알림</string>
+    <string name="label_permission_battery">배터리 최적화</string>
+    <string name="label_permission_surrounding_street_storage">BRouter 거리 저장소</string>
+    <string name="label_permission_brouter_profile_storage">BRouter 프로필 저장소</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. 해결하려면 누르세요.</string>
+    <string name="label_sensor_fused_provider">Google 퓨즈드 공급자</string>
+    <string name="label_sensor_gps_provider">GPS 공급자</string>
+    <string name="label_sensor_network_provider">네트워크 제공자</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">지자기 회전 벡터</string>
+    <string name="label_sensor_rotation_vector">회전 벡터</string>
+    <string name="label_sensor_orientation">방향 센서</string>
+    <string name="label_sensor_linear_acceleration">선형 가속도 센서</string>
+    <string name="label_sensor_accelerometer">가속도계</string>
+    <string name="sensor_status_enabled">활성화됨</string>
+    <string name="sensor_status_disabled">비활성화됨</string>
+    <string name="sensor_status_available">사용 가능</string>
+    <string name="sensor_status_unavailable">사용 불가</string>
+    <string name="sensor_status_permission_denied">권한 거부</string>
+    <string name="auto_no_active_navigation_title">활성화된 내비게이션 없음</string>
+    <string name="auto_no_active_navigation_text">여기에 안내를 표시하려면 전화기에서 내비게이션을 시작하세요.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="other">아무 곳이나 터치하여 닫거나 %1$d초 기다리세요</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="other">%2$s으로 %1$d도 몸을 돌리세요</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="other">%1$d초</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="other">%1$d분</item>
+    </plurals>
+</resources>

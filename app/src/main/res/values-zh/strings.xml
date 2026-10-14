@@ -1,0 +1,574 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">使用系统语言</string>
+    <string name="action_configure_app_language">配置应用语言</string>
+    <string name="title_app_language">应用语言</string>
+    <string name="label_app_language">语言</string>
+    <string name="hint_app_language">当“使用系统语言”关闭时，将使用所选语言。</string>
+    <string name="about_setting_language_info">使用设备语言偏好中的首个支持语言，如果没有可用语言则使用英语。关闭此选项可使用配置按钮选择的语言。初始选择与您的系统语言匹配。</string>
+    <string name="nav_gesture_map_controls_title">手势地图控制</string>
+    <string name="nav_gesture_views_body">
+        <b>切换视图。</b> 双击或向左/右滑动在完整路线、2D 和 3D 视图之间移动</string>
+    <string name="nav_gesture_zoom_body">
+        <b>放大/缩小。</b> 捏合或展开 2D 和 3D 视图以达到±2 缩放等级</string>
+    <string name="nav_gesture_tilt_body">
+        <b>倾斜 3D 视图。</b> 双指向上/下滑动以倾斜 3D 视图</string>
+    <string name="nav_gesture_map_legend_title">地图图例</string>
+    <string name="nav_gesture_current_route">当前路线</string>
+    <string name="nav_gesture_current_position_accuracy">当前定位及精确度</string>
+    <string name="nav_gesture_dont_show_again">不再显示</string>
+    <string name="nav_gesture_dismiss">点击任意位置以关闭</string>
+    <string name="welcome_title">欢迎使用 ViBRo</string>
+    <string name="welcome_tldr">简而言之：安装 BRouter，下载本地路线数据，并授予权限。</string>
+    <string name="welcome_intro">ViBRo Navigator（振动/振动编码 BRouter 导航器）是一款轻量级、离线优先、节能的 Android GPS 导航应用，基于 BRouter 构建。它设计用于无需地图的导航，通过振动和最少的屏幕及语音指引提供路线，实现免分心和屏幕关闭状态的使用。</string>
+    <string name="welcome_setup_title">初始设置</string>
+    <string name="welcome_brouter_body">• 使用提供的链接安装 BRouter，然后打开并下载您所在区域的路线数据。</string>
+    <string name="welcome_permissions_body">• 在此欢迎界面和可选的 BRouter 安装提示后，允许位置、麦克风（用于语音输入）、通知以及任何请求的存储访问。提示时启用设备位置。您可以跳过请求，稍后启用访问权限。</string>
+    <string name="welcome_storage_body">• 提示时授予 profiles2 文件夹访问权限，或在较早的 Android 版本上授予存储权限。</string>
+    <string name="welcome_battery_body">• 允许可选的电池优化豁免，以在屏幕关闭时获得可靠的导航。</string>
+    <string name="welcome_optional_access_body">• 仅在请求语音搜索时需要麦克风访问权限。</string>
+    <string name="action_about">关于</string>
+    <string name="action_start_navigation">开始导航</string>
+    <string name="action_pause_navigation">暂停导航</string>
+    <string name="action_resume_navigation">恢复导航</string>
+    <string name="action_stop_navigation">停止导航</string>
+    <string name="action_save_route">保存路线</string>
+    <string name="action_restore_route">恢复路线</string>
+    <string name="action_add_stop">添加停靠点</string>
+    <string name="action_remove_stop">移除停靠点</string>
+    <string name="action_blocked_road">封闭道路</string>
+    <string name="action_skip_beeline_target">跳过直线路径目标</string>
+    <string name="action_delete">删除</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_open_settings">打开设置</string>
+    <string name="action_open_tts_settings">打开文字转语音设置</string>
+    <string name="action_open_speech_directions_settings">打开语音导航设置</string>
+    <string name="action_open_speech_recognition_settings">打开语音识别设置</string>
+    <string name="action_open_android_stt_settings">打开 Android 语音转文字设置</string>
+    <string name="action_continue">继续</string>
+    <string name="action_enable_speech_recognition">显示语音识别按钮</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">测试语音导航语音</string>
+    <string name="action_voice_search_destination">朗读目的地</string>
+    <string name="action_voice_search_stop">停止朗读</string>
+    <string name="action_clear_poi_search">清除搜索文本</string>
+    <string name="action_save">保存密钥</string>
+    <string name="action_save_poi_categories">保存</string>
+    <string name="action_open_map">地图</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_use_selected_point">使用选定点</string>
+    <string name="action_map_poi_categories">POI 类别</string>
+    <string name="action_open_map_position">打开地图位置</string>
+    <string name="action_test_left_notification">左侧</string>
+    <string name="action_test_other_notification">其他</string>
+    <string name="action_test_right_notification">右侧</string>
+    <string name="action_current_location">当前位置信息</string>
+    <string name="action_edit_poi_categories">编辑 POI 类别</string>
+    <string name="action_edit_google_poi_api_key">编辑 Google Maps API 密钥</string>
+    <string name="action_configure_navigation_custom_button">配置自定义按钮</string>
+    <string name="action_enable_google_poi_search">启用 Google 搜索</string>
+    <string name="action_add_poi_category">添加 POI 类别</string>
+    <string name="action_remove_poi_category">移除 POI 类别</string>
+    <string name="action_enable_poi_category">启用 POI 类别</string>
+    <string name="action_export_database">导出数据库</string>
+    <string name="action_import_database">导入数据库</string>
+    <string name="action_export_route">导出 GPX</string>
+    <string name="action_profile_info">配置信息</string>
+    <string name="action_setting_info">设置信息</string>
+    <string name="action_poi_details">POI 详情</string>
+    <string name="action_search_google_maps">在 Google Maps 中搜索</string>
+    <string name="action_profile_settings">配置文件设置</string>
+    <string name="action_reset_defaults">重置为默认</string>
+    <string name="label_vehicle_profile">配置文件</string>
+    <string name="label_route_mode_route">路线模式</string>
+    <string name="label_route_mode_round_trip">环线模式</string>
+    <string name="label_route_mode_straight_line">直线模式</string>
+    <string name="label_destination">目的地</string>
+    <string name="label_poi_entrance">入口</string>
+    <string name="label_poi_entrances">入口</string>
+    <string name="label_poi_entrance_type">类型</string>
+    <string name="label_poi_coordinates">坐标</string>
+    <string name="label_poi_extra_tags">额外标签</string>
+    <string name="label_poi_address_details">地址</string>
+    <string name="label_round_trip_distance_km">平均往返距离 (km)</string>
+    <string name="label_round_trip_distance_mi">平均往返距离 (mi)</string>
+    <string name="label_round_trip_direction">往返方向 (°)</string>
+    <string name="label_round_trip_direction_compass">往返方向指北针</string>
+    <string name="label_profile_attention_icon">实验或调试配置文件</string>
+    <string name="format_profile_info_content_description">显示 %1$s 的信息</string>
+    <string name="format_route_mode_info_content_description">显示 %1$s 的模式信息</string>
+    <string name="format_poi_details_content_description">显示 POI 对 %1$s 的详细信息</string>
+    <string name="format_poi_search_info_content_description">显示 %1$s 的搜索信息</string>
+    <string name="format_poi_entrance_heading">入口 %1$d</string>
+    <string name="format_poi_entrance_type">入口：%1$s</string>
+    <string name="format_stop_label">停止 %1$d</string>
+    <string name="format_default_saved_route_name">路线 %1$s</string>
+    <string name="hint_search_destination">搜索目的地</string>
+    <string name="hint_search_stop">搜索站点</string>
+    <string name="prompt_speech_destination">说出目的地</string>
+    <string name="prompt_speech_stop">说出站点</string>
+    <string name="hint_saved_route_name">路线名称</string>
+    <string name="msg_missing_destination">选择一个目的地</string>
+    <string name="msg_invalid_destination_name">输入目的地名称</string>
+    <string name="msg_invalid_route_name">输入路线名称</string>
+    <string name="msg_invalid_coordinates">选择带坐标的地点</string>
+    <string name="msg_invalid_stop">移除或选择带坐标的站点</string>
+    <string name="msg_invalid_round_trip_distance">输入有效的往返距离</string>
+    <string name="msg_invalid_round_trip_direction">输入有效的往返方向</string>
+    <string name="msg_round_trip_requires_brouter_profile">为往返模式选择 BRouter 配置文件</string>
+    <string name="msg_brouter_not_found">BRouter 未安装</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter 需要用于周边街道。</string>
+    <string name="title_brouter_not_found">需要 BRouter</string>
+    <string name="title_stop_navigation_confirm">停止导航吗？</string>
+    <string name="msg_brouter_install_prompt">BRouter 未安装。在 Play Store 或 F-Droid 中打开它的应用页面吗？</string>
+    <string name="msg_location_disabled">位置已禁用。启用它以进行导航。</string>
+    <string name="msg_permission_required">需要权限</string>
+    <string name="msg_stop_navigation_confirm">您要停止导航并关闭此屏幕吗？</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator 需要位置访问权限以便导航并振动提示方向。</string>
+    <string name="msg_permission_notifications_rationale">通知用于提醒即将到来的转弯。</string>
+    <string name="msg_enable_notifications">启用转弯提示通知。</string>
+    <string name="msg_battery_opt_rationale">为确保可靠的后台导航，允许 ViBRo Navigator 忽略电池优化。</string>
+    <string name="msg_open_settings_failed">无法在此设备上打开设置。</string>
+    <string name="msg_open_brouter_store_failed">无法在此设备上打开 BRouter 商店页面。</string>
+    <string name="msg_intent_unrecognized">共享的位置无法识别</string>
+    <string name="msg_gpx_import_failed">无法加载 GPX 路点。</string>
+    <string name="msg_gpx_import_blocked_navigation">在打开 GPX 路线前停止导航。</string>
+    <string name="msg_speech_input_unavailable">没有启用语音识别服务。请启用 Google 应用或 Android 语音输入。</string>
+    <string name="msg_speech_input_listening">正在聆听…</string>
+    <string name="msg_speech_input_empty">未识别到语音。</string>
+    <string name="msg_speech_input_failed">语音输入失败。请重试。</string>
+    <string name="msg_speech_input_unresponsive">语音识别未启动。请启用 Google 应用或 Android 语音输入。</string>
+    <string name="msg_speech_permission_required">语音输入需要麦克风权限。</string>
+    <string name="msg_select_custom_profile">选择自定义 BRouter .brf 文件</string>
+    <string name="msg_invalid_custom_profile">选择有效的 BRouter .brf 文件</string>
+    <string name="msg_profile_parameters_empty">此配置文件未公开可编辑参数。</string>
+    <string name="msg_profile_parameters_not_localized">参数是从 BRouter 配置文件动态提取的，因此其名称、描述和选项不进行翻译。</string>
+    <string name="msg_profile_parameters_saved">配置文件设置已保存。</string>
+    <string name="msg_profile_parameters_reset">配置文件设置已重置为默认值。</string>
+    <string name="msg_profile_parameter_invalid_number">请输入有效数字。</string>
+    <string name="msg_profile_parameter_invalid_text">值不能包含 ?, &amp;, 或 =。</string>
+    <string name="msg_poi_details_unavailable">没有可用的额外详细信息。</string>
+    <string name="msg_poi_details_map_check_hint">使用地图再次确认这是预期的位置。</string>
+    <string name="msg_poi_google_maps_search_info">使用 POI 搜索字段中的文本打开 Google Maps。选择 Google Maps 中的一个地点后，分享该地点并选择 ViBRo Navigator 将结果带回此处。</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">需要存储权限以读取本地 BRouter 街道。</string>
+    <string name="title_brouter_segments_storage_access">BRouter 街道存储</string>
+    <string name="msg_brouter_segments_storage_access_prompt">周边街道需要访问 BRouter segments4 文件夹。在下一屏中，浏览至 %1$s 并确认文件夹访问权限。如果该位置不可用，请选择 BRouter 存储其 .rd5 文件的文件夹。</string>
+    <string name="msg_brouter_profiles_storage_permission_required">需要存储权限以读取 BRouter 配置文件文件。</string>
+    <string name="title_brouter_profiles_storage_access">BRouter 配置文件存储</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter 配置文件需要访问 profiles2 文件夹。在下一个屏幕上，浏览到 %1$s 并确认文件夹访问权限。如果该位置不可用，请选择 BRouter 存储其 .brf 配置文件的文件夹。</string>
+    <string name="msg_symbol_test_notification_sent">符号测试通知已发送。</string>
+    <string name="msg_map_location_searching">正在查找当前位置…</string>
+    <string name="msg_map_location_unavailable">当前位置不可用。</string>
+    <string name="msg_map_selection_required">请先在地图上选择一个点。</string>
+    <string name="msg_map_position_unavailable">地图位置不可用。</string>
+    <string name="msg_map_position_no_app">没有应用可以打开地图位置。</string>
+    <string name="msg_map_position_open_failed">无法打开地图位置。</string>
+    <string name="msg_map_poi_loading">正在加载 POI…</string>
+    <string name="msg_map_poi_unavailable">POI 不可用。</string>
+    <string name="msg_map_poi_zoom_in">放大以加载 POI。</string>
+    <string name="msg_map_poi_empty">此地图视图中没有启用的 POI。</string>
+    <string name="msg_map_poi_categories_empty">此地图视图中没有 POI 类别。</string>
+    <string name="msg_database_exported">数据库已保存: %1$s</string>
+    <string name="msg_database_export_failed">无法导出数据库。</string>
+    <string name="msg_database_imported">数据库已导入。</string>
+    <string name="msg_database_import_failed">无法导入数据库。</string>
+    <string name="msg_saved_route_saved">路线已保存。</string>
+    <string name="msg_saved_route_restored">路线已恢复。</string>
+    <string name="msg_saved_routes_empty">没有已保存的路线。</string>
+    <string name="msg_route_export_unavailable">没有可导出的活动路线。</string>
+    <string name="msg_route_export_failed">无法导出路线。</string>
+    <string name="msg_route_export_no_app">没有应用可以打开 GPX 路线。</string>
+    <string name="msg_google_maps_search_open_failed">无法打开 Google Maps 搜索。</string>
+    <string name="msg_open_url_failed">无法在此设备上打开链接。</string>
+    <string name="label_exported_route_gpx">ViBRo 路线 GPX</string>
+    <string name="gpx_passed_route_track_name">已通过路线</string>
+    <string name="format_gpx_gps_fix_name">GPS 修复 %1$d</string>
+    <string name="label_vehicle_profile_custom">自定义</string>
+    <string name="label_vehicle_profile_custom_with_name">自定义 (%1$s)</string>
+    <string name="title_profile_parameters">配置文件设置：%1$s</string>
+    <string name="title_profile_parameters_reset_confirm">重置配置文件设置？</string>
+    <string name="msg_profile_parameters_reset_confirm">将此配置文件的设置恢复为配置文件中定义的值？</string>
+    <string name="format_profile_parameter_info_content_description">显示 %1$s 的参数信息</string>
+    <string name="route_mode_info_route_description">从当前位置计算一条 BRouter 路线，途经任意停靠点到达目的地。</string>
+    <string name="route_mode_info_round_trip_description">使用所选的骑行配置文件和平均行程距离，从您当前位置计算一个环形的 BRouter 路线。</string>
+    <string name="route_mode_info_straight_line_description">跳过 BRouter，直接引导前往目的地，并以直线距离和方向停止。</string>
+    <string name="profile_info_trekking_title">徒步自行车</string>
+    <string name="profile_info_trekking_description">用于日常骑行、旅行和实用导航的平衡自行车路线。它的主要优点是多功能：避开繁忙的车流，支持自行车路线，考虑高度变化，通常生成的路线对于普通骑行者来说合理。它的缺点是专业性不强：公路骑行者可能会觉得比 `fastbike` 慢，而越野骑行者可能会觉得比 `mtb` 或 `gravel` 过于保守。其独特之处在于，它是最安全的通用自行车配置文件，也可能是大多数用户的最佳默认选择。</string>
+    <string name="profile_info_trekking_ignore_cr_title">徒步旅行，自行车道忽略模式</string>
+    <string name="profile_info_trekking_ignore_cr_description">一种徒步旅行自行车变体，会忽略自行车道的关联。它的强项是避免在路线间接、风景优美、信息过时或实际上对当前行程无用时，过度优先已标记或地图上的自行车道。它的弱点是失去了普通徒步旅行模式的主要优势之一：在现有的良好骑行网络中行驶。它的独特之处在于解决一个特定问题：“不要仅仅因为一条路属于自行车道就优先选择它。”</string>
+    <string name="profile_info_trekking_noferries_title">徒步旅行，不使用渡轮</string>
+    <string name="profile_info_trekking_noferries_description">一种徒步旅行自行车变体，可以避免渡轮连接。它的优势是可预测性：它避免依赖渡轮时刻表、季节性运行、票务、等待时间或不确定的可用性的路线。它的弱点是在河流、湖泊、岛屿或沿海地区，这些地方渡轮是实际的连接方式时，可能会产生更长的路线。其独特之处在于，它是面向希望只走陆路路线的用户的徒步旅行配置档案。</string>
+    <string name="profile_info_trekking_nosteps_title">徒步旅行，无台阶</string>
+    <string name="profile_info_trekking_nosteps_description">一种徒步旅行自行车的变体，旨在避免台阶。它的优势在于实用的可骑性，尤其适合负载的旅行自行车、电动自行车、货运自行车、儿童拖车，或者不想抬车的用户。它的弱点是可能会避开一些短的人行/自行车捷径，从而在城市或丘陵地区绕远路。它的独特之处在于保持了普通徒步旅行的平衡，但去掉了自行车路线中最令人恼火的意外之一：楼梯。</string>
+    <string name="profile_info_trekking_steep_title">徒步旅行，陡峭爬坡</string>
+    <string name="profile_info_trekking_steep_description">一种适用于爬坡较为陡峭路线的徒步自行车变体。它的优点是可以选择更直接或更有坡度的路线，而不是过度避开高程。它的缺点是可能对休闲骑行者、重型自行车、拖车或电池电量低的电动自行车行程来说不太舒适或不适合。其独特之处在于，它保持了徒步自行车的特性，但相比普通徒步车配置，对陡峭地形的畏惧较少。</string>
+    <string name="profile_info_fastbike_title">公路自行车</string>
+    <string name="profile_info_fastbike_description">针对快速铺装骑行进行了优化，适合公路自行车、竞赛车、自行车健身和高速助力自行车。它的优势是速度：偏好高效、优质的道路，并使用以旅行时间为导向的模型，而不是单纯寻找安静或风景优美的路径。它的弱点是对于休闲骑行者、家庭或强烈希望低交通路线的用户来说，可能显得过于以道路为导向。它的特点是以性能为导向的自行车配置：比“远足骑行”更快、更直接，但仍考虑自行车的使用体验。</string>
+    <string name="profile_info_fastbike_lowtraffic_title">公路自行车，低交通量</string>
+    <string name="profile_info_fastbike_lowtraffic_description">一种快速自行车配置，比普通的 `fastbike` 更注重避开交通，同时仍保持以性能为导向。它的优点是对于希望速度快但又不想总是被引导到繁忙道路上的骑手来说，是一个很好的折中选择。它的缺点是可能比 `fastbike` 略慢或路线不够直接，同时避开交通的程度不及 `fastbike-verylowtraffic`。其独特之处在于，它是纯快速路线和非常关注交通的快速自行车路线之间的中间选项。</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">公路自行车，最少交通</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">一种为公路自行车或高速电动助力自行车用户设计的更强低交通量变体，适合尽可能避免汽车和卡车。它的优势是骑行更安全、更平稳，尤其适合单独骑行、下雨、夜间骑行或交通密集区域。它的弱点是可能需要绕更大的路程，并可能拒绝那些虽然快但交通繁忙的道路。其独特之处在于保持快车特性，同时将极低交通量路线作为核心优先。</string>
+    <string name="profile_info_fastbike_asia_pacific_title">公路自行车，亚太地区</string>
+    <string name="profile_info_fastbike_asia_pacific_description">`fastbike` 的区域变体，适用于那些欧洲关于主干道、高速公路以及自行车限行的假设不完全适用的国家。它的优势在于可以使快速自行车路线在日本、澳大利亚以及其他亚太地区更易用，这些地区的道路分类和自行车通行规则可能与欧洲不同。它的劣势是作为通用默认配置文件不太合适。其独特之处在于保留了快速自行车的逻辑，但针对亚太地区使用进行了道路通行假设的调整。</string>
+    <string name="profile_info_safety_title">更安全的骑行</string>
+    <string name="profile_info_safety_description">一种专注于更安全、更平稳路线的自行车配置。它的优势在于，相比普通快速路线，它更优先避开不愉快或危险的道路，这使得它对谨慎的骑行者、家庭、城市骑行或偏爱舒适而非速度的用户非常有用。它的劣势是可能会产生更慢、更长或不那么直接的路线。它的独特之处在于，它是最明确的“安全优先”自行车选项，当用户的优先考虑是避免压力大的交通而非节省时间时非常有用。</string>
+    <string name="profile_info_gravel_title">碎石自行车</string>
+    <string name="profile_info_gravel_description">适用于砾石自行车和混合路面骑行。它的优势在于能够找到包含压实砾石、小路和低交通量未铺路段的路线，同时仍能避免过于崎岖、泥泞、陡峭或缓慢的路面。它的弱点是对于纯公路自行车并不理想，因为它可能会有意选择未铺路段，而且不像真正的山地车模式那样以徒步道为主。它的独特之处在于它介于公路骑行和山地骑行之间：比“fastbike”更具冒险性，比“mtb”技术性低。</string>
+    <string name="profile_info_mtb_title">山地车</string>
+    <string name="profile_info_mtb_description">一种面向越野的自行车配置，适用于山地骑行和基于路径的骑行。它的优势在于相比普通自行车配置，它更偏好小径、车道、未铺砌的道路以及适合山地自行车的地形。它的弱点在于可能生成不适合旅游、通勤或公路自行车的路线，尤其是当用户实际上并不想走崎岖小径时。其独特之处在于其山地自行车特定的行为：它会考虑路径偏好、路面质量、平滑度、湿滑情况、坡度行为以及越野适宜性。</string>
+    <string name="profile_info_hiking_mountain_title">山地徒步</string>
+    <string name="profile_info_hiking_mountain_description">一个用于徒步旅行和山地小径的行走配置文件。它的优势在于它是围绕步行、徒步路线、小径难度和山地特定条件设计的，而不是基于自行车或汽车的假设。它的弱点是强烈依赖于对小径、通道、徒步路线和难度等级的良好OSM标记，特别是在高山地区。其独特之处在于，它是最明确集中于山地步行而非交通效率的捆绑配置文件。</string>
+    <string name="profile_info_skating_title">滑冰</string>
+    <string name="profile_info_skating_description">针对直排轮滑或类似的长距离滑行活动进行了优化。它的优势在于对表面的敏感性：它强烈偏好平滑的、铺好的、流畅的路线，并避开会打断滑行节奏的表面、障碍物、红绿灯、路口和急转弯。它的弱点是非常专业化，可能会拒绝对自行车或行人来说可接受但对滑冰来说不合适的路线。它的特点是根据滑行流畅度规划路线，而不仅仅考虑合法通行或距离。</string>
+    <string name="profile_info_shortest_title">最短路线</string>
+    <string name="profile_info_shortest_description">一个主要试图最小化路线距离的最小配置文件。其优点是简单：当用户明确希望获得最短可通行路线或在比较路线几何时，它非常有用。其缺点是最短路线往往不是最佳：它可能选择不安全、不舒适、陡峭、崎岖或交通繁忙的路段。其独特之处在于，它大多忽略舒适性和偏好逻辑，因此更适合作为参考配置文件，而不是默认的优选配置。</string>
+    <string name="profile_info_car_eco_title">汽车，环保</string>
+    <string name="profile_info_car_eco_description">一种经济型汽车路线规划模式，专注于减少不必要的速度、能源消耗和低效驾驶习惯。它的优点在于可以偏向选择更节能的路线，而不是单纯追求最快的道路。它的缺点是可能会选择速度较慢或不够直接的路线，当到达时间是主要优先事项时，可能会感觉不太方便。其独特之处在于，它是追求“合理效率”而非最高速度的汽车模式。</string>
+    <string name="profile_info_car_eco_nocost_title">汽车，生态（基础）</string>
+    <string name="profile_info_car_eco_nocost_description">一种简化的经济型汽车变体。它的优点是保持了以经济为导向的汽车型号，同时减少了基于偏好的额外惩罚，使其可作为更清晰的比较参考。它的缺点是可能不太适合真实导航，因为它去除了通常有助于形成实际路线质量的一部分成本逻辑。其独特之处在于，它最好被视为技术基线：有助于与 `car-eco` 进行比较，但作为主要面向用户的汽车配置不太适用。</string>
+    <string name="profile_info_car_fast_title">汽车，快速</string>
+    <string name="profile_info_car_fast_description">一种以速度和行驶时间为核心的汽车路线规划配置。其优势在于它倾向于选择更快的道路和更直接、节省时间的路线。其弱点是可能不够经济、不够安静、不够风景优美，并且在 OSM 汽车限制或本地道路情况信息不完整时，有时不太适用。其独特之处在于，它是最适合仅仅想快速到达目的地的用户的明显汽车配置。</string>
+    <string name="profile_info_car_fast_nocost_title">汽车，快速（基础）</string>
+    <string name="profile_info_car_fast_nocost_description">一个简化的快速汽车变体。它的优点是更加直接地关注速度模型行为，使其在测试、比较或可预测的最快道路实验中非常有用。它的缺点是可能不如 `car-fast` 精细，因为额外的惩罚和偏好被减少了。其独特之处在于它是快速汽车路径规划的基准版本：适合技术比较，但作为默认汽车配置不太理想。</string>
+    <string name="profile_info_car_vario_title">汽车，可变速度</string>
+    <string name="profile_info_car_vario_description">主要的灵活车辆配置文件。它的优势在于适应性：通过改变参数，它可以表现得更像快速汽车导航，也可以更像节能/环保导航。它支持诸如避免收费道路、未铺砌道路、高速公路以及某些环境偏好的选项。它的弱点是仍然比完整的商业汽车导航引擎简单，并且高度依赖 OSM 标签质量。其独特之处在于，它使用的是物理/运动学模型，而不仅仅是简单的道路等级优先级。</string>
+    <string name="profile_info_car_vario_nocost_title">汽车，可变（基础）</string>
+    <string name="profile_info_car_vario_nocost_description">一个基于运动学速度模型的更简单的汽车路径规划变体。其优点是为汽车路径规划提供了一个更清晰的基线，适用于比较、测试或在不希望额外的风景或偏好成本占主导的情况下使用。其缺点是相比于 car-vario，它在普通导航中表达能力较弱且用户体验不如后者。其独特之处在于，它更像是一个技术基线，而不是丰富的偏好设置。</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">快速卧式自行车</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">适用于快速卧式自行车的配置文件。它的优点是比普通公路自行车配置文件更好地反映了卧式自行车骑行者的需求：高效的铺装道路、避免不良路面、谨慎处理起伏地形，以及对台阶或下车路段的惩罚。其缺点是对于普通自行车来说过于专业化，可能会避开直立骑行者可以接受的基础设施。其独特之处在于，它将卧式自行车建模为自身的车辆类型，而不仅仅是更快的自行车。</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">快速人力车</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">用于快速人力三轮车的线路配置。它的优势是为非常高效、重型、低阻力的人力车辆规划路线，这类车辆需要平整的路面、少量停顿、少量障碍以及良好的滚动条件。它的劣势是对于普通自行车不太适合，因为它会对狭窄、崎岖、频繁停车或频繁下车的路线给予很高的惩罚。它的独特之处在于，它是套件中最具车辆特性的以人为动力的配置，针对人力三轮车的限制而优化，而非通用骑行。</string>
+    <string name="profile_info_car_eco_de_title">汽车，经济型（德国）</string>
+    <string name="profile_info_car_eco_de_description">是 `car-eco` 的一种变体，历史上与替代或次要路由数据相关。它的优点在于，当对比不同数据快照或特殊路网准备测试汽车路由时，它可能非常有用。它的缺点是，它并不是普通的日常汽车配置，可能需要特殊的次要数据配置。其独特之处在于，它的行为类似经济型汽车配置，但主要在次要数据配置有意可用时才有用。</string>
+    <string name="profile_info_moped_title">摩托车</string>
+    <string name="profile_info_moped_description">一种面向踏板摩托车式路线的实验性配置档案。它的优点是比自行车配置档案更自然地模拟了机动车两轮通行。它的缺点也很重要：由于可能缺少转弯限制和一些交通约束，它不够可靠，无法用于实际导航。其独特之处在于它介于自行车与汽车逻辑之间，但应视为实验性或对普通用户隐藏使用。</string>
+    <string name="profile_info_dummy_title">标签检查</string>
+    <string name="profile_info_dummy_description">一个用于检查 OSM 在路段上看到的 BRouter 标签的调试配置文件。它的优点是透明性：它帮助开发者了解可用的路由数据和未使用的标签。它的缺点是它并非设计用于生成高质量或有意义的路线。它的特点是主要作为配置文件开发和数据检查的诊断配置文件。</string>
+    <string name="profile_info_rail_title">铁路</string>
+    <string name="profile_info_rail_description">用于铁路、有轨电车、地铁、轻轨及类似铁路对象的路由配置文件。它的优势在于追踪铁路网络拓扑结构并检查 OSM 数据中的铁路连通性。它的弱点是无法表示乘客出行：没有时间表、换乘、车站逻辑、服务可用性或购票限制。其独特之处在于，它适用于铁路数据分析，而不适用于普通导航。</string>
+    <string name="profile_info_river_title">河流 / 运河</string>
+    <string name="profile_info_river_description">沿着河流、运河、水道和闸门等水路进行导航的路线配置。它的优点是水路网络追踪和 OSM 数据探索。它的缺点是对于真正的航海导航来说过于简单，因为它不考虑船型、水深、水流、法律限制、危险或闸门操作约束。它的独特之处在于将水路视为可路由的网络，但仅限于基本拓扑级别。</string>
+    <string name="title_edit_destination_name">编辑目的地名称</string>
+    <string name="title_save_route">保存路线</string>
+    <string name="title_restore_route">恢复路线</string>
+    <string name="title_edit_route_name">编辑路线名称</string>
+    <string name="title_restore_route_confirm">恢复路线？</string>
+    <string name="msg_restore_route_confirm">用“%1$s”替换当前目的地和停靠点？</string>
+    <string name="title_map_picker_destination">在地图上选择目的地</string>
+    <string name="title_map_picker_stop">在地图上选择停靠点 %1$d</string>
+    <string name="nav_no_route">没有路线</string>
+    <string name="nav_waiting_for_location_title">正在等待位置</string>
+    <string name="nav_waiting_for_location_body">正在等待可用的位置修正以计算路线。</string>
+    <string name="nav_waiting_for_location_straight_line_body">正在等待可用的定位修正以进行直线导航。</string>
+    <string name="nav_calculating_route_title">正在计算路线</string>
+    <string name="nav_calculating_route_body">正在从 BRouter 获取路线指引。</string>
+    <string name="nav_route_unavailable_title">路线不可用</string>
+    <string name="format_nav_route_unavailable_body">路线不可用：%1$s \n 请检查 BRouter 以获取可用路段。</string>
+    <string name="nav_route_unavailable_generic">未知错误</string>
+    <string name="nav_start_invalid_request">导航请求不完整</string>
+    <string name="nav_route_notice_no_alternative_keep_current">无法找到绕过封锁区域的替代路线。保持当前路线。</string>
+    <string name="nav_route_notice_no_route_found">未找到该目的地的路线。</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">路线服务不可用。保持当前路线。</string>
+    <string name="nav_route_notice_service_unavailable">路线服务不可用。</string>
+    <string name="nav_route_notice_invalid_profile">路线配置无效。</string>
+    <string name="nav_route_notice_update_failed_keep_current">无法更新路线。保持当前路线。</string>
+    <string name="nav_route_notice_unavailable">无法计算路线。</string>
+    <string name="nav_route_notice_blocked_road_recalculating">已添加封闭道路。正在重新计算路线。</string>
+    <string name="nav_paused_notice">导航已暂停。点击‘继续导航’以继续实时指导。</string>
+    <string name="notification_channel_nav">导航</string>
+    <string name="notification_channel_alert">导航提醒</string>
+    <string name="notification_channel_turn_left">左转</string>
+    <string name="notification_channel_turn_right">右转</string>
+    <string name="notification_nav_running">导航进行中</string>
+    <string name="notification_nav_running_text">ViBRo Navigator 正在后台导航</string>
+    <string name="notification_nav_paused">导航已暂停</string>
+    <string name="notification_nav_paused_text">ViBRo Navigator 导航已暂停</string>
+    <string name="notification_off_route_title">偏离路线</string>
+    <string name="notification_wrong_direction_title">方向错误</string>
+    <string name="notification_symbol_test_left_title">测试所有左转提醒</string>
+    <string name="notification_symbol_test_other_title">测试其他所有提醒</string>
+    <string name="notification_symbol_test_right_title">测试所有右转提醒</string>
+    <string name="direction_continue">继续</string>
+    <string name="direction_keep_left">靠左行驶</string>
+    <string name="direction_keep_right">靠右行驶</string>
+    <string name="direction_turn_left">向左转</string>
+    <string name="direction_turn_right">向右转</string>
+    <string name="direction_slight_left">稍向左转</string>
+    <string name="direction_slight_right">稍向右转</string>
+    <string name="direction_sharp_left">急向左转</string>
+    <string name="direction_sharp_right">急向右转</string>
+    <string name="direction_uturn_left">向左掉头</string>
+    <string name="direction_uturn">掉头</string>
+    <string name="direction_uturn_right">向右掉头</string>
+    <string name="direction_roundabout_exit">在环岛从第%1$d个出口驶出</string>
+    <string name="direction_roundabout_exit_left">在环岛从第%1$d个出口驶出</string>
+    <string name="direction_beeline">直线导航</string>
+    <string name="direction_exit_left">从左侧出口驶出</string>
+    <string name="direction_exit_right">从右侧出口驶出</string>
+    <string name="direction_offroute">偏离路线</string>
+    <string name="direction_arrive">已到达目的地</string>
+    <string name="direction_intermediate_arrive">已到达中途目的地</string>
+    <string name="direction_unknown">方向未知</string>
+    <string name="direction_side_left">左</string>
+    <string name="direction_side_right">右</string>
+    <string name="format_speed_limit_content_description">限速 %1$s</string>
+    <string name="title_nav_gps_details">GPS 详细信息</string>
+    <string name="format_nav_gps_details">速度: %1$s\n\n高度: %2$s\n\n精度: %3$s\n\nGPS 时间: %4$s\n\n卫星: %5$s\n\n间隔: %6$s\n\n最后定位时间: %10$s\n\nGPS 定位次数: %7$s\n\nGPS 方向: %8$s\n\n方向精度: %9$s</string>
+    <string name="title_nav_directions_details">路径指示</string>
+    <string name="nav_directions_unavailable">无即将到来的路径指示</string>
+    <string name="title_nav_trip_stats">行程统计</string>
+    <string name="format_nav_trip_stats_details">已用时间：%1$s\n 距离：%2$s\n 移动时间：%3$s\n 静止时间：%4$s\n 平均速度：%5$s\n 移动平均速度：%6$s\n 最高速度：%7$s\n 屏幕开启时间：%8$s\n 屏幕关闭时间：%9$s\n 电池使用量：%10$s\n 电池下降：%11$s</string>
+    <string name="speech_off_route_recalculating">偏离路线。正在重新计算</string>
+    <string name="speech_off_route">偏离路线</string>
+    <string name="speech_wrong_direction_turn_back">方向错误。请掉头</string>
+    <string name="format_off_route_off_track_notification">偏离轨道检测到。距离 %1$s，阈值 %2$s。正在重新计算路线。</string>
+    <string name="format_off_route_bearing_notification">检测到方位角不匹配。差值 %1$s，预期 %2$s，实际 %3$s。正在重新计算路线。</string>
+    <string name="format_off_route_off_track_notice_only">偏离轨道检测到。距离 %1$s，阈值 %2$s。</string>
+    <string name="format_off_route_bearing_notice_only">检测到方位角不匹配。差值 %1$s，预期 %2$s，实际 %3$s。</string>
+    <string name="format_wrong_direction_notification">检测到方向错误。目标 %1$s，实际 %2$s，差值 %3$s。</string>
+    <string name="format_startup_orientation_notification">将自己 %1$s %2$s 面向路线。</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s 方位样本</string>
+    <string name="nav_destination_reached">已到达目的地</string>
+    <string name="format_version">版本 %1$s %2$s</string>
+    <string name="about_short_description">一个轻量、节能电池、优先离线的 GPS 导航应用，可通过振动提供方向指示，构建在 BRouter 上。</string>
+    <string name="about_homepage_link">
+        <u>主页</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>在 Play Store</u> 上评分</string>
+    <string name="about_source_code_link">
+        <u>在 GitHub</u> 上的源代码</string>
+    <string name="about_report_issue_link">
+        <u>报告问题</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>更新日志</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>隐私政策</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>服务条款</u>
+    </string>
+    <string name="about_legal">版权所有 © 2026 Damiano Falcioni.\nMIT 许可</string>
+    <string name="about_credits">鸣谢：BRouter 提供路由。POI 搜索和坐标反向地理编码使用 OpenStreetMap Nominatim，或在启用了保存的 API 密钥的 Google Play 构建中使用 Google Maps Geocoding 进行 Google 搜索。地图兴趣点使用 OpenStreetMap Overpass。地图切片和地理数据由 OpenStreetMap 贡献者提供：https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">设置</string>
+    <string name="about_settings_category_display">显示</string>
+    <string name="about_settings_category_guidance">指南</string>
+    <string name="about_settings_category_compass">指南针</string>
+    <string name="about_settings_category_search_input">搜索与输入</string>
+    <string name="about_settings_category_advanced">高级</string>
+    <string name="label_log_enabled">日志</string>
+    <string name="title_log_output_folder">日志文件夹</string>
+    <string name="label_permission_output_folder">ViBRo 下载文件夹</string>
+    <string name="title_output_browser">ViBRo 文件</string>
+    <string name="title_gpx_output_folder">GPX 文件夹</string>
+    <string name="format_output_folder">当前文件夹：%1$s</string>
+    <string name="action_clear_output_folder">删除</string>
+    <string name="action_open_output_folder">打开</string>
+    <string name="msg_output_viewer_unavailable">没有可用的应用程序来打开此文件夹或文件。</string>
+    <string name="hint_clear_log_output_folder">从以下位置永久删除 ViBRo 日志文件：\n%1$s\n\n 其他文件和子文件夹将被保留。此操作不可撤销。如果日志记录已启用，将启动包含系统详细信息的新日志。</string>
+    <string name="hint_clear_gpx_output_folder">永久删除 ViBRo GPX 从：\n%1$s\n\n 导出的文件。其他文件和子文件夹将被保留。此操作无法撤销。</string>
+    <string name="msg_output_folder_cleared">ViBRo 文件已清除。</string>
+    <string name="msg_output_folder_clear_failed">无法清除所有 ViBRo 文件。在诊断中检查文件夹访问权限。</string>
+    <string name="label_external_storage_enabled">使用外部存储</string>
+    <string name="about_setting_external_storage_info">将 GPX 的导出、日志和数据库备份保存到 SD 卡，而不是手机存储。仅适用于已挂载且支持的 SD 卡；不包括 USB 驱动器。Android 6–9 即使在禁用日志和 GPX 保存时也需要文件夹访问。如果卡不可用，保存将停止，直到再次可用。旧文件仍保留在其原始文件夹中。</string>
+    <string name="hint_sd_download_access">授予访问 SD 卡文件夹的权限：\n%1$s\n\n 选择下载，其 ViBRo 子文件夹，或 SD 卡根目录。ViBRo 将使用 Download/ViBRo/gpx、Download/ViBRo/logs 和 Download/ViBRo/backup。保存需要访问此文件夹。</string>
+    <string name="msg_sd_storage_unavailable">无可用的支持写入的 SD 卡。</string>
+    <string name="msg_sd_storage_enabled">GPX 的导出、日志和数据库备份将使用 SD 卡。</string>
+    <string name="msg_output_folder_failed">无法写入此文件夹。之前的设置保持不变。</string>
+    <string name="msg_output_access_required">保存已关闭，因为所选的输出文件夹不可用或未授予访问权限。</string>
+    <string name="msg_output_folder_picker_unavailable">没有可用的文件夹选择器。</string>
+    <string name="label_auto_save_gpx_enabled">自动保存 GPX</string>
+    <string name="label_fused_location_enabled">Google 融合位置</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">动态 GPS 间隔</string>
+    <string name="label_imperial_units_enabled">英制单位 (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">浅色主题</string>
+    <string name="label_compass_surrounding_streets_enabled">周围街道</string>
+    <string name="action_configure_surrounding_street_types">选择周围街道类型</string>
+    <string name="title_surrounding_street_types">周围街道类型</string>
+    <string name="hint_surrounding_street_types">类别开关会隐藏或显示整个颜色组而不更改单个选择。基于速度的可见性仍然适用。</string>
+    <string name="street_category_highway">主要道路</string>
+    <string name="street_category_normal">普通街道</string>
+    <string name="street_category_walking_cycling">步行 / 骑行</string>
+    <string name="street_category_special_routing">特殊路径</string>
+    <string name="street_type_motorway">高速公路</string>
+    <string name="street_type_motorway_info">高速公路，具有受控出入口。\n\nOSM/BRouter: highway=motorway。</string>
+    <string name="street_type_motorway_link">高速公路匝道</string>
+    <string name="street_type_motorway_link_info">进入或离开高速公路的连接。 \n\nOSM/BRouter: highway=motorway_link。</string>
+    <string name="street_type_trunk">主干道</string>
+    <string name="street_type_trunk_info">低于高速公路等级的重要通行道路。 \n\nOSM/BRouter: highway=trunk。</string>
+    <string name="street_type_trunk_link">主干道路连接</string>
+    <string name="street_type_trunk_link_info">进入或离开主干道的连接。 \n\nOSM/BRouter: highway=trunk_link。</string>
+    <string name="street_type_primary">主要道路</string>
+    <string name="street_type_primary_info">连接城镇和地区的重要道路。 \n\nOSM/BRouter: highway=primary。</string>
+    <string name="street_type_primary_link">主要道路连接</string>
+    <string name="street_type_primary_link_info">进入或离开主要道路的连接。 \n\nOSM/BRouter: highway=primary_link。</string>
+    <string name="street_type_secondary">次要道路</string>
+    <string name="street_type_secondary_info">连接较小城镇和地区的道路。 \n\nOSM/BRouter: highway=secondary。</string>
+    <string name="street_type_secondary_link">次要道路连接</string>
+    <string name="street_type_secondary_link_info">进入或离开次要道路的连接。 \n\nOSM/BRouter: highway=secondary_link。</string>
+    <string name="street_type_tertiary">第三级道路</string>
+    <string name="street_type_tertiary_info">连接附近定居点或社区的本地道路。\n\nOSM/BRouter: highway=tertiary。</string>
+    <string name="street_type_tertiary_link">三级道路连接</string>
+    <string name="street_type_tertiary_link_info">进入或离开三级道路的连接。\n\nOSM/BRouter: highway=tertiary_link。</string>
+    <string name="street_type_unclassified">次要公共道路</string>
+    <string name="street_type_unclassified_info">低于三级的公共道路，通常位于住宅区之外。\n\nOSM/BRouter: highway=unclassified。</string>
+    <string name="street_type_residential">住宅街道</string>
+    <string name="street_type_residential_info">主要服务住宅的街道。\n\nOSM/BRouter: highway=residential。</string>
+    <string name="street_type_living_street">共用住宅街道</string>
+    <string name="street_type_living_street_info">低速街道，行走和其他用途共用空间。\n\nOSM/BRouter: highway=living_street。</string>
+    <string name="street_type_service">通道道路</string>
+    <string name="street_type_service_info">提供进入建筑、停车或设施的道路。\n\nOSM/BRouter: highway=service。</string>
+    <string name="street_type_track">小路</string>
+    <string name="street_type_track_info">主要用于农业或林业通行的道路。\n\nOSM/BRouter: highway=track。</string>
+    <string name="street_type_road">未指定道路</string>
+    <string name="street_type_road_info">类型不明确的道路。\n\nOSM/BRouter: highway=road 或 highway=yes。</string>
+    <string name="street_type_busway">公交专用道</string>
+    <string name="street_type_busway_info">主要供公交车使用的道路。\n\nOSM/BRouter: highway=busway。</string>
+    <string name="street_type_pedestrian">步行街</string>
+    <string name="street_type_pedestrian_info">主要供行人通行的街道或区域。\n\nOSM/BRouter: highway=pedestrian。</string>
+    <string name="street_type_footway">人行道</string>
+    <string name="street_type_footway_info">供步行的路径。\n\nOSM/BRouter: highway=footway。</string>
+    <string name="street_type_path">小径</string>
+    <string name="street_type_path_info">通用路径，可供步行、骑行或其他非机动车通行。\n\nOSM/BRouter: highway=path。</string>
+    <string name="street_type_cycleway">自行车道</string>
+    <string name="street_type_cycleway_info">专供骑行的路径。\n\nOSM/BRouter: highway=cycleway。</string>
+    <string name="street_type_bridleway">马道</string>
+    <string name="street_type_bridleway_info">指定的骑马路径.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">台阶</string>
+    <string name="street_type_steps_info">路线上设置的楼梯.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">交通平台</string>
+    <string name="street_type_platform_info">公共交通站点的可步行平台.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">室内走廊</string>
+    <string name="street_type_corridor_info">建筑物内部的通道.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">路边休息区</string>
+    <string name="street_type_rest_area_info">休息区内的道路通行.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">路边服务</string>
+    <string name="street_type_services_info">服务区内的道路通行.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">电梯</string>
+    <string name="street_type_elevator_info">可步行层之间的电梯连接.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">攀岩铁道线路</string>
+    <string name="street_type_via_ferrata_info">带固定辅助设施的保护攀岩路线.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">赛道</string>
+    <string name="street_type_raceway_info">用于赛车的道路赛道.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">铁路</string>
+    <string name="street_type_railway_info">本地 BRouter 段中的所有铁路几何.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">水路</string>
+    <string name="street_type_waterway_info">本地 BRouter 段中的所有水路几何.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">其他路线几何</string>
+    <string name="street_type_other_info">没有可识别街道或支持路线类型的几何.\n\nOSM/BRouter: 未识别的 highway=*、railway=*、waterway=* 或支持的 route=* 值.</string>
+    <string name="street_type_route_ferry">渡轮路线</string>
+    <string name="street_type_route_ferry_info">由渡轮承载的路线.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">步行路线</string>
+    <string name="street_type_route_hiking_foot_info">标记的徒步或步行路线.\n\nOSM/BRouter: route=hiking 或 route=foot.</string>
+    <string name="street_type_route_bicycle">骑行路线</string>
+    <string name="street_type_route_bicycle_info">标记的骑行路线.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">滑雪/滑道路线</string>
+    <string name="street_type_route_ski_piste_info">滑雪路线及其他活动路线，例如雪橇或徒步。 BRouter 会将两个标签存储为一个值，因此它们共用此开关。\n\nOSM/BRouter: route=ski 或 route=piste。</string>
+    <string name="street_type_route_mtb">山地自行车路线</string>
+    <string name="street_type_route_mtb_info">标记的山地自行车路线。\n\nOSM/BRouter: route=mtb。</string>
+    <string name="street_type_route_canoe">独木舟路线</string>
+    <string name="street_type_route_canoe_info">标记的独木舟路线。\n\nOSM/BRouter: route=canoe。</string>
+    <string name="street_type_route_bus">公交路线</string>
+    <string name="street_type_route_bus_info">当地 BRouter 路段的公交路线几何。\n\nOSM/BRouter: route=bus。</string>
+    <string name="label_compass_instant_zoom_enabled">即时指南针缩放</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">自动缩小</string>
+    <string name="label_compass_fullscreen_route_enabled">全屏路线</string>
+    <string name="label_compass_distance_circles_enabled">距离圆</string>
+    <string name="label_compass_central_perspective_enabled">透视 3D 视图</string>
+    <string name="label_show_hint_panel">显示提示面板</string>
+    <string name="label_navigation_notifications_enabled">通知</string>
+    <string name="label_single_instruction_mode_enabled">单步指令模式</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI 类别筛选</string>
+    <string name="hint_poi_categories_filter">选择在启用筛选器时在地图选择器中显示的 POI 类别。编辑类别名称，切换开关，或使用 + 添加更多。</string>
+    <string name="hint_poi_category_name">POI 类别名称</string>
+    <string name="label_speech_recognition">语音识别</string>
+    <string name="label_speech_recognition_language">语言</string>
+    <string name="label_speech_recognition_language_system_default">系统默认</string>
+    <string name="label_maneuver_voice">语音指令</string>
+    <string name="label_maneuver_voice_spinner">语音</string>
+    <string name="label_maneuver_voice_disabled">已禁用</string>
+    <string name="label_maneuver_voice_system_default">系统默认</string>
+    <string name="format_maneuver_voice_variant_code">语音 %1$s</string>
+    <string name="label_maneuver_voice_gender_female">女性</string>
+    <string name="label_maneuver_voice_gender_male">男性</string>
+    <string name="label_google_poi_api_key">Google Maps API 按键</string>
+    <string name="label_navigation_custom_button">自定义按钮</string>
+    <string name="label_navigation_custom_button_target">设置</string>
+    <string name="label_setting_enabled">已启用</string>
+    <string name="label_setting_disabled">已禁用</string>
+    <string name="hint_google_poi_api_key">可选 Google Maps 按键</string>
+    <string name="format_about_setting_info_content_description">显示 %1$s 的帮助</string>
+    <string name="format_action_toggle_custom_button_setting">切换 %1$s（%2$s）</string>
+    <string name="about_setting_log_info">保留详细的行为日志，可以帮助诊断问题。除非需要共享详细信息以获取支持，否则请保持关闭。当所选文件夹可访问时，即使此开关关闭，崩溃和意外导航中断仍会创建带有系统详细信息的带时间戳的日志。强制停止只能在应用再次启动后报告；确切原因可能无法获取。</string>
+    <string name="about_setting_auto_save_gpx_info">当您使用停止按钮停止导航时，将活动路线保存为 GPX 文件。在手机上使用 Download/ViBRo/gpx，或使用“使用外部存储”选择的 SD 卡。打开此开关会请求缺少的文件夹访问权限。如果访问被拒绝或所选存储不可用，保存将保持关闭。</string>
+    <string name="about_setting_fused_location_info">可用时使用 Google 位置。在某些手机上，这可以改善位置更新。</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">通过减少位置检查次数来节省电池，但仍以可靠的方式进行。关闭它可实现持续的位置信息更新。</string>
+    <string name="about_setting_imperial_units_info">将距离和速度显示为英尺、英里和 mph，而不是米和 km/h。</string>
+    <string name="about_setting_light_theme_info">将应用程序从默认的深色外观切换为浅色外观。</string>
+    <string name="about_setting_compass_surrounding_streets_info">当本地地图数据可用时，在指南针中显示附近的街道和其他路线几何信息。\n\n颜色说明：\n■ — 主要道路和高速公路\n■ — 普通街道\n■ — 步行和骑行街道及路线\n■ — 铁路、水路、渡轮、滑雪/独木舟/公交路线、骑马道、赛道和攀岩路线</string>
+    <string name="about_setting_compass_instant_zoom_info">跳过指南针缩放动画，因此在路线概览和移动缩放视图之间切换时立即生效。</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">当你停下时，在指南针上显示完整路线。关闭它以在停止时保持最后的移动缩放比例。</string>
+    <string name="about_setting_compass_fullscreen_route_info">在完整导航屏幕后扩展路线指南针视图，同时保持控件和方向文本可见。</string>
+    <string name="about_setting_compass_distance_circles_info">在指南针和全屏视图中显示带有时间和距离标签的距离圈、航向箭头以及航向精确度线和弧。</string>
+    <string name="about_setting_compass_central_perspective_info">在 3D 指南针视图中使用透视：附近的路线和街道显得更大，而远处的则向顶部缩小。关闭此功能以使用统一的正射倾斜。</string>
+    <string name="about_setting_show_hint_panel_info">当手机导航打开时显示手势提示和街道颜色图例。</string>
+    <string name="about_setting_navigation_notifications_info">显示转弯提醒和导航警告作为通知。持续导航通知不受影响，并且在导航过程中会保持可见。</string>
+    <string name="about_setting_single_instruction_mode_info">在每个即将到来的指令前大约 10 秒使用一次操作提醒，并抑制启动、20 秒和 5 秒的操作提醒。到达和警告通知不受影响。</string>
+    <string name="about_setting_navigation_custom_button_info">在导航指南针中显示一个额外按钮，在导航开启时切换所选设置。</string>
+    <string name="about_setting_android_auto_info">让兼容的汽车显示器通过 Android Auto 显示导航。一些主机仅在 Android Auto 重新连接后刷新应用列表。在真实车辆中，Android Auto 仅在从受信任来源（例如 Google Play 或内部应用共享）安装时显示此类型应用。</string>
+    <string name="about_setting_poi_categories_info">选择哪些地点可以出现在地图选择器上，例如加油站、停车场或厕所。</string>
+    <string name="about_setting_speech_recognition_info">显示目的地和停止语音输入的麦克风按钮，并选择所请求的识别语言。如果所选的语音识别器不支持所请求的语言，Android 可能使用其默认语言。</string>
+    <string name="about_setting_maneuver_voice_info">使用 Android 语音朗读即将到来的方向提示。</string>
+    <string name="about_setting_google_poi_api_key_info">当您提供有效密钥时，允许目的地搜索使用 Google Maps。</string>
+    <string name="about_setting_export_database_info">保存您的应用数据，包括历史记录、保存的路线、设置和个人资料选择，作为 JSON 保存在手机的 Download/ViBRo/backup 或使用“使用外部存储”选择的 SD 卡中。显示保存的文件名而不要求选择文件夹。在 Android 6–9 上，请先在诊断中设置存储访问权限。</string>
+    <string name="about_setting_import_database_info">从该应用创建的 JSON 备份中恢复您的应用数据。文件选择器会在手机的 Download/ViBRo/backup 或由 Android 8 及更高版本上“使用外部存储”选择的 SD 卡中启动。您也可以浏览到其他文件夹。</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps API 密钥已保存。</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps API 密钥已清除。</string>
+    <string name="msg_google_poi_api_key_required">在启用 Google 搜索前添加 Google Maps API 密钥。</string>
+    <string name="msg_google_poi_api_key_validating">验证 Google Maps API 密钥中…</string>
+    <string name="msg_google_poi_api_key_invalid">Google Maps API 密钥无效。</string>
+    <string name="msg_google_poi_api_key_validation_failed">无法验证 Google Maps API 密钥。</string>
+    <string name="about_diagnostic_title">诊断</string>
+    <string name="about_permission_status_title">所需权限</string>
+    <string name="about_sensor_status_title">传感器状态</string>
+    <string name="label_direction_notification_tests">方向通知测试</string>
+    <string name="label_permission_location">位置权限</string>
+    <string name="label_permission_location_services">设备位置</string>
+    <string name="label_permission_notifications">通知</string>
+    <string name="label_permission_battery">电池优化</string>
+    <string name="label_permission_surrounding_street_storage">BRouter 街道存储</string>
+    <string name="label_permission_brouter_profile_storage">BRouter 配置文件存储</string>
+    <string name="format_about_permission_status_content_description">%1$s：%2$s。点击以解决。</string>
+    <string name="label_sensor_fused_provider">Google 融合提供者</string>
+    <string name="label_sensor_gps_provider">GPS 提供者</string>
+    <string name="label_sensor_network_provider">网络提供商</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">地磁旋转向量</string>
+    <string name="label_sensor_rotation_vector">旋转向量</string>
+    <string name="label_sensor_orientation">方向传感器</string>
+    <string name="label_sensor_linear_acceleration">线性加速度传感器</string>
+    <string name="label_sensor_accelerometer">加速度计</string>
+    <string name="sensor_status_enabled">已启用</string>
+    <string name="sensor_status_disabled">已禁用</string>
+    <string name="sensor_status_available">可用</string>
+    <string name="sensor_status_unavailable">不可用</string>
+    <string name="sensor_status_permission_denied">权限被拒绝</string>
+    <string name="auto_no_active_navigation_title">没有激活的导航</string>
+    <string name="auto_no_active_navigation_text">在手机上开始导航以在此显示指引。</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="other">点按任意位置关闭，或等待%1$d秒</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="other">向%2$s转身%1$d度</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="other">%1$d秒</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="other">%1$d分钟</item>
+    </plurals>
+</resources>

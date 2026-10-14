@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Χρήση γλώσσας συστήματος</string>
+    <string name="action_configure_app_language">Διαμόρφωση γλώσσας εφαρμογής</string>
+    <string name="title_app_language">Γλώσσα εφαρμογής</string>
+    <string name="label_app_language">Γλώσσα</string>
+    <string name="hint_app_language">Η επιλεγμένη γλώσσα χρησιμοποιείται όταν η επιλογή Χρήση γλώσσας συστήματος είναι απενεργοποιημένη.</string>
+    <string name="about_setting_language_info">Χρησιμοποιεί την πρώτη υποστηριζόμενη γλώσσα από τις προτιμήσεις γλώσσας της συσκευής σας ή τα Αγγλικά εάν δεν υπάρχει διαθέσιμη. Απενεργοποιήστε αυτή την επιλογή για να χρησιμοποιήσετε τη γλώσσα που επιλέξατε με το κουμπί διαμόρφωσης. Η αρχική επιλογή αντιστοιχεί στη γλώσσα του συστήματός σας.</string>
+    <string name="nav_gesture_map_controls_title">Χειριστήρια χάρτη με κινήσεις</string>
+    <string name="nav_gesture_views_body">
+        <b>Αλλαγή προβολών.</b> Πατήστε δύο φορές ή σύρετε αριστερά / δεξιά για να μεταβείτε στις προβολές πλήρους διαδρομής, 2D, και 3D</string>
+    <string name="nav_gesture_zoom_body">
+        <b>Μεγέθυνση / σμίκρυνση.</b> Σκίστε ή διασταυρώστε τη θέα 2D και 3D για ±2 επίπεδα ζουμ</string>
+    <string name="nav_gesture_tilt_body">
+        <b>Κλίση της θέας 3D.</b> Σύρετε προς τα πάνω / κάτω με δύο δάχτυλα για να κλίνετε τη θέα 3D</string>
+    <string name="nav_gesture_map_legend_title">Υπόμνημα χάρτη</string>
+    <string name="nav_gesture_current_route">Τρέχουσα διαδρομή</string>
+    <string name="nav_gesture_current_position_accuracy">Τρέχουσα θέση και ακρίβεια</string>
+    <string name="nav_gesture_dont_show_again">Μη δείχνεις ξανά</string>
+    <string name="nav_gesture_dismiss">Αγγίξτε οπουδήποτε για να κλείσετε</string>
+    <string name="welcome_title">Καλώς ήρθατε στο ViBRo</string>
+    <string name="welcome_tldr">Σύντομη περίληψη: Εγκαταστήστε το BRouter, κατεβάστε τα δεδομένα δρομολόγησης της περιοχής σας και παραχωρήστε άδειες.</string>
+    <string name="welcome_intro">Το ViBRo Navigator (Δονητικό/Κωδικοποιημένο με δόνηση BRouter Navigator) είναι μια ελαφριά, offline-first και ενεργειακά αποδοτική εφαρμογή πλοήγησης Android GPS βασισμένη στο BRouter. Έχει σχεδιαστεί για πλοήγηση χωρίς χάρτες, παρέχοντας οδηγίες μέσω δονήσεων και ελάχιστης καθοδήγησης στην οθόνη και με φωνή, επιτρέποντας χρήση χωρίς περισπασμούς και με την οθόνη κλειστή.</string>
+    <string name="welcome_setup_title">Αρχική ρύθμιση</string>
+    <string name="welcome_brouter_body">• Εγκαταστήστε το BRouter χρησιμοποιώντας τους συνδέσμους που παρέχονται, ανοίξτε το και κατεβάστε τα δεδομένα δρομολόγησης για την περιοχή σας.</string>
+    <string name="welcome_permissions_body">• Μετά από αυτό το καλωσόρισμα και την προαιρετική προτροπή εγκατάστασης BRouter, επιτρέψτε την τοποθεσία, το μικρόφωνο (για φωνητική εισαγωγή), τις ειδοποιήσεις και οποιαδήποτε ζητούμενη πρόσβαση σε αποθηκευτικό χώρο. Ενεργοποιήστε την τοποθεσία της συσκευής όταν σας ζητηθεί. Μπορείτε να παραλείψετε ένα αίτημα και να ενεργοποιήσετε την πρόσβαση αργότερα.</string>
+    <string name="welcome_storage_body">• Παρέχετε πρόσβαση στον φάκελο profiles2 όταν σας ζητηθεί, ή άδεια αποθήκευσης σε παλαιότερες εκδόσεις Android.</string>
+    <string name="welcome_battery_body">• Επιτρέψτε την προαιρετική εξαίρεση βελτιστοποίησης μπαταρίας για αξιόπιστες οδηγίες με σβηστή οθόνη.</string>
+    <string name="welcome_optional_access_body">• Η πρόσβαση στο μικρόφωνο χρειάζεται μόνο αν ζητηθεί για φωνητική αναζήτηση.</string>
+    <string name="action_about">Σχετικά</string>
+    <string name="action_start_navigation">Εκκίνηση πλοήγησης</string>
+    <string name="action_pause_navigation">Παύση πλοήγησης</string>
+    <string name="action_resume_navigation">Επανέναρξη πλοήγησης</string>
+    <string name="action_stop_navigation">Διακοπή πλοήγησης</string>
+    <string name="action_save_route">Αποθήκευση διαδρομής</string>
+    <string name="action_restore_route">Επαναφορά διαδρομής</string>
+    <string name="action_add_stop">Προσθήκη στάσης</string>
+    <string name="action_remove_stop">Αφαίρεση στάσης</string>
+    <string name="action_blocked_road">Δρόμος αποκλεισμένος</string>
+    <string name="action_skip_beeline_target">Παράλειψη στόχου σε ευθεία γραμμή</string>
+    <string name="action_delete">Διαγραφή</string>
+    <string name="action_edit">Επεξεργασία</string>
+    <string name="action_open_settings">Άνοιγμα ρυθμίσεων</string>
+    <string name="action_open_tts_settings">Άνοιγμα ρυθμίσεων κειμένου σε ομιλία</string>
+    <string name="action_open_speech_directions_settings">Άνοιγμα ρυθμίσεων φωνητικών οδηγιών</string>
+    <string name="action_open_speech_recognition_settings">Άνοιγμα ρυθμίσεων αναγνώρισης ομιλίας</string>
+    <string name="action_open_android_stt_settings">Άνοιγμα ρυθμίσεων ομιλίας σε κείμενο Android</string>
+    <string name="action_continue">Συνέχεια</string>
+    <string name="action_enable_speech_recognition">Εμφάνιση κουμπιών αναγνώρισης ομιλίας</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Δοκιμή φωνής οδηγιών ομιλίας</string>
+    <string name="action_voice_search_destination">Μίλησε προορισμό</string>
+    <string name="action_voice_search_stop">Μίλησε στάση</string>
+    <string name="action_clear_poi_search">Εκκαθάριση κειμένου αναζήτησης</string>
+    <string name="action_save">Αποθήκευση Κλειδιού</string>
+    <string name="action_save_poi_categories">Αποθήκευση</string>
+    <string name="action_open_map">Χάρτης</string>
+    <string name="action_cancel">Ακύρωση</string>
+    <string name="action_use_selected_point">Χρήση επιλεγμένου σημείου</string>
+    <string name="action_map_poi_categories">Κατηγορίες POI</string>
+    <string name="action_open_map_position">Άνοιγμα θέσης χάρτη</string>
+    <string name="action_test_left_notification">Αριστερά</string>
+    <string name="action_test_other_notification">Άλλα</string>
+    <string name="action_test_right_notification">Δεξιά</string>
+    <string name="action_current_location">Τρέχουσα τοποθεσία</string>
+    <string name="action_edit_poi_categories">Επεξεργασία κατηγοριών POI</string>
+    <string name="action_edit_google_poi_api_key">Επεξεργασία κλειδιού Google Maps API</string>
+    <string name="action_configure_navigation_custom_button">Διαμόρφωση προσαρμοσμένου κουμπιού</string>
+    <string name="action_enable_google_poi_search">Ενεργοποίηση αναζήτησης Google</string>
+    <string name="action_add_poi_category">Προσθήκη κατηγορίας POI</string>
+    <string name="action_remove_poi_category">Αφαίρεση κατηγορίας POI</string>
+    <string name="action_enable_poi_category">Ενεργοποίηση κατηγορίας POI</string>
+    <string name="action_export_database">Εξαγωγή βάσης δεδομένων</string>
+    <string name="action_import_database">Εισαγωγή βάσης δεδομένων</string>
+    <string name="action_export_route">Εξαγωγή GPX</string>
+    <string name="action_profile_info">Πληροφορίες προφίλ</string>
+    <string name="action_setting_info">Πληροφορίες ρυθμίσεων</string>
+    <string name="action_poi_details">Λεπτομέρειες POI</string>
+    <string name="action_search_google_maps">Αναζήτηση σε Google Maps</string>
+    <string name="action_profile_settings">Ρυθμίσεις προφίλ</string>
+    <string name="action_reset_defaults">Επαναφορά προεπιλογών</string>
+    <string name="label_vehicle_profile">Προφίλ</string>
+    <string name="label_route_mode_route">Λειτουργία διαδρομής</string>
+    <string name="label_route_mode_round_trip">Κυκλική διαδρομή</string>
+    <string name="label_route_mode_straight_line">Λειτουργία ευθείας διαδρομής</string>
+    <string name="label_destination">Προορισμός</string>
+    <string name="label_poi_entrance">Είσοδος</string>
+    <string name="label_poi_entrances">Είσοδοι</string>
+    <string name="label_poi_entrance_type">Τύπος</string>
+    <string name="label_poi_coordinates">Συντεταγμένες</string>
+    <string name="label_poi_extra_tags">Επιπλέον ετικέτες</string>
+    <string name="label_poi_address_details">Διεύθυνση</string>
+    <string name="label_round_trip_distance_km">Μέση απόσταση κυκλικής διαδρομής (km)</string>
+    <string name="label_round_trip_distance_mi">Μέση απόσταση κυκλικής διαδρομής (mi)</string>
+    <string name="label_round_trip_direction">Κατεύθυνση κυκλικής διαδρομής (°)</string>
+    <string name="label_round_trip_direction_compass">Πυξίδα κατεύθυνσης κυκλικής διαδρομής</string>
+    <string name="label_profile_attention_icon">Πειραματικό ή προφίλ αποσφαλμάτωσης</string>
+    <string name="format_profile_info_content_description">Εμφάνιση πληροφοριών για %1$s</string>
+    <string name="format_route_mode_info_content_description">Εμφάνιση πληροφοριών λειτουργίας για %1$s</string>
+    <string name="format_poi_details_content_description">Εμφάνιση λεπτομερειών POI για %1$s</string>
+    <string name="format_poi_search_info_content_description">Εμφάνιση πληροφοριών αναζήτησης για %1$s</string>
+    <string name="format_poi_entrance_heading">Είσοδος %1$d</string>
+    <string name="format_poi_entrance_type">Είσοδος: %1$s</string>
+    <string name="format_stop_label">Στάση %1$d</string>
+    <string name="format_default_saved_route_name">Διαδρομή %1$s</string>
+    <string name="hint_search_destination">Αναζήτηση προορισμού</string>
+    <string name="hint_search_stop">Αναζήτηση στάσης</string>
+    <string name="prompt_speech_destination">Πείτε τον προορισμό</string>
+    <string name="prompt_speech_stop">Πείτε τη στάση</string>
+    <string name="hint_saved_route_name">Όνομα διαδρομής</string>
+    <string name="msg_missing_destination">Επιλέξτε έναν προορισμό</string>
+    <string name="msg_invalid_destination_name">Εισαγάγετε το όνομα ενός προορισμού</string>
+    <string name="msg_invalid_route_name">Εισαγάγετε το όνομα μιας διαδρομής</string>
+    <string name="msg_invalid_coordinates">Επιλέξτε ένα μέρος με συντεταγμένες</string>
+    <string name="msg_invalid_stop">Αφαιρέστε ή επιλέξτε μια στάση με συντεταγμένες</string>
+    <string name="msg_invalid_round_trip_distance">Εισαγάγετε μια έγκυρη απόσταση για γύρο διαδρομής</string>
+    <string name="msg_invalid_round_trip_direction">Εισαγάγετε μια έγκυρη κατεύθυνση για γύρο διαδρομής</string>
+    <string name="msg_round_trip_requires_brouter_profile">Επιλέξτε ένα προφίλ BRouter για λειτουργία γύρου διαδρομής</string>
+    <string name="msg_brouter_not_found">Το BRouter δεν είναι εγκατεστημένο</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter απαιτείται για τους γύρω δρόμους.</string>
+    <string name="title_brouter_not_found">Απαιτείται BRouter</string>
+    <string name="title_stop_navigation_confirm">Διακοπή πλοήγησης;</string>
+    <string name="msg_brouter_install_prompt">Το BRouter δεν είναι εγκατεστημένο. Να ανοίξετε τη σελίδα της εφαρμογής του στο Play Store ή F-Droid;</string>
+    <string name="msg_location_disabled">Η τοποθεσία είναι απενεργοποιημένη. Ενεργοποιήστε την για να πλοηγηθείτε.</string>
+    <string name="msg_permission_required">Απαιτείται άδεια</string>
+    <string name="msg_stop_navigation_confirm">Θέλετε να σταματήσετε την πλοήγηση και να κλείσετε αυτήν την οθόνη;</string>
+    <string name="msg_permission_location_rationale">Το ViBRo Navigator χρειάζεται πρόσβαση στην τοποθεσία για να πλοηγείται και να δίνει δονητικά τις οδηγίες.</string>
+    <string name="msg_permission_notifications_rationale">Οι ειδοποιήσεις χρησιμοποιούνται για να ενημερώνουν για τις επερχόμενες στροφές.</string>
+    <string name="msg_enable_notifications">Ενεργοποιήστε τις ειδοποιήσεις για ενημερώσεις στροφών.</string>
+    <string name="msg_battery_opt_rationale">Για αξιόπιστη πλοήγηση στο παρασκήνιο, επιτρέψτε στο ViBRo Navigator να αγνοεί τις βελτιστοποιήσεις μπαταρίας.</string>
+    <string name="msg_open_settings_failed">Αποτυχία ανοίγματος ρυθμίσεων σε αυτή τη συσκευή.</string>
+    <string name="msg_open_brouter_store_failed">Αποτυχία ανοίγματος σελίδας καταστήματος του BRouter σε αυτή τη συσκευή.</string>
+    <string name="msg_intent_unrecognized">Η κοινόχρηστη τοποθεσία δεν αναγνωρίστηκε</string>
+    <string name="msg_gpx_import_failed">Αποτυχία φόρτωσης σημείων διαδρομής του GPX.</string>
+    <string name="msg_gpx_import_blocked_navigation">Σταματήστε την πλοήγηση πριν ανοίξετε μια διαδρομή GPX.</string>
+    <string name="msg_speech_input_unavailable">Κανένας υπηρεσία αναγνώρισης ομιλίας δεν είναι ενεργοποιημένη. Ενεργοποιήστε την εφαρμογή Google ή την εισαγωγή φωνής Android.</string>
+    <string name="msg_speech_input_listening">Ακρόαση…</string>
+    <string name="msg_speech_input_empty">Δεν αναγνωρίστηκε ομιλία.</string>
+    <string name="msg_speech_input_failed">Η εισαγωγή ομιλίας απέτυχε. Δοκιμάστε ξανά.</string>
+    <string name="msg_speech_input_unresponsive">Η αναγνώριση ομιλίας δεν ξεκίνησε. Ενεργοποιήστε την εφαρμογή Google ή την εισαγωγή φωνής Android.</string>
+    <string name="msg_speech_permission_required">Απαιτείται άδεια μικροφώνου για την εισαγωγή ομιλίας.</string>
+    <string name="msg_select_custom_profile">Επιλέξτε ένα προσαρμοσμένο αρχείο BRouter .brf</string>
+    <string name="msg_invalid_custom_profile">Επιλέξτε ένα έγκυρο αρχείο BRouter .brf</string>
+    <string name="msg_profile_parameters_empty">Αυτό το προφίλ δεν εκθέτει επεξεργάσιμες παραμέτρους.</string>
+    <string name="msg_profile_parameters_not_localized">Οι παράμετροι εξάγονται δυναμικά από το αρχείο προφίλ BRouter, έτσι τα ονόματα, οι περιγραφές και οι επιλογές τους δεν μεταφράζονται.</string>
+    <string name="msg_profile_parameters_saved">Οι ρυθμίσεις προφίλ αποθηκεύτηκαν.</string>
+    <string name="msg_profile_parameters_reset">Οι ρυθμίσεις προφίλ επαναφέρθηκαν στις προεπιλεγμένες τιμές του προφίλ.</string>
+    <string name="msg_profile_parameter_invalid_number">Εισάγετε έναν έγκυρο αριθμό.</string>
+    <string name="msg_profile_parameter_invalid_text">Οι τιμές δεν μπορούν να περιέχουν ?, &amp;, ή =.</string>
+    <string name="msg_poi_details_unavailable">Δεν υπάρχουν επιπλέον διαθέσιμες λεπτομέρειες.</string>
+    <string name="msg_poi_details_map_check_hint">Χρησιμοποιήστε τον χάρτη για να επαληθεύσετε ότι αυτή είναι η επιθυμητή τοποθεσία.</string>
+    <string name="msg_poi_google_maps_search_info">Ανοίγει το Google Maps με το κείμενο από το πεδίο αναζήτησης POI. Αφού επιλέξετε ένα μέρος στο Google Maps, μοιραστείτε αυτό το μέρος και επιλέξτε ViBRo Navigator για να φέρετε το αποτέλεσμα εδώ.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">Απαιτείται πρόσβαση αποθήκευσης για ανάγνωση των τοπικών δρόμων BRouter.</string>
+    <string name="title_brouter_segments_storage_access">Αποθήκευση δρόμων BRouter</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Οι γύρω δρόμοι χρειάζονται πρόσβαση στον φάκελο BRouter segments4. Στην επόμενη οθόνη, πλοηγηθείτε στο %1$s και επιβεβαιώστε την πρόσβαση στον φάκελο. Εάν αυτή η τοποθεσία δεν είναι διαθέσιμη, επιλέξτε τον φάκελο όπου το BRouter αποθηκεύει τα αρχεία .rd5.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">Απαιτείται πρόσβαση αποθήκευσης για ανάγνωση των αρχείων προφίλ BRouter.</string>
+    <string name="title_brouter_profiles_storage_access">Αποθήκευση προφίλ BRouter</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter προφίλ χρειάζονται πρόσβαση στον φάκελο profiles2. Στην επόμενη οθόνη, μεταβείτε στο %1$s και επιβεβαιώστε την πρόσβαση στο φάκελο. Εάν αυτή η τοποθεσία δεν είναι διαθέσιμη, επιλέξτε το φάκελο στον οποίο αποθηκεύει BRouter τα .brf προφίλ του.</string>
+    <string name="msg_symbol_test_notification_sent">Στάλθηκε ειδοποίηση δοκιμής συμβόλου.</string>
+    <string name="msg_map_location_searching">Αναζητώντας την τρέχουσα τοποθεσία…</string>
+    <string name="msg_map_location_unavailable">Η τρέχουσα τοποθεσία δεν είναι διαθέσιμη.</string>
+    <string name="msg_map_selection_required">Επιλέξτε πρώτα ένα σημείο στον χάρτη.</string>
+    <string name="msg_map_position_unavailable">Η θέση του χάρτη δεν είναι διαθέσιμη.</string>
+    <string name="msg_map_position_no_app">Καμία εφαρμογή δεν μπορεί να ανοίξει θέσεις χάρτη.</string>
+    <string name="msg_map_position_open_failed">Δεν ήταν δυνατό το άνοιγμα της θέσης του χάρτη.</string>
+    <string name="msg_map_poi_loading">Φόρτωση POI…</string>
+    <string name="msg_map_poi_unavailable">POI δεν είναι διαθέσιμα.</string>
+    <string name="msg_map_poi_zoom_in">Μεγέθυνση για φόρτωση POI.</string>
+    <string name="msg_map_poi_empty">Δεν υπάρχουν ενεργοποιημένα POI σε αυτήν την προβολή χάρτη.</string>
+    <string name="msg_map_poi_categories_empty">Δεν υπάρχουν POI κατηγορίες σε αυτήν την προβολή χάρτη.</string>
+    <string name="msg_database_exported">Αποθηκευμένη βάση δεδομένων: %1$s</string>
+    <string name="msg_database_export_failed">Δεν ήταν δυνατή η εξαγωγή βάσης δεδομένων.</string>
+    <string name="msg_database_imported">Η βάση δεδομένων εισήχθη.</string>
+    <string name="msg_database_import_failed">Δεν ήταν δυνατή η εισαγωγή βάσης δεδομένων.</string>
+    <string name="msg_saved_route_saved">Η διαδρομή αποθηκεύτηκε.</string>
+    <string name="msg_saved_route_restored">Η διαδρομή επαναφέρθηκε.</string>
+    <string name="msg_saved_routes_empty">Δεν υπάρχουν αποθηκευμένες διαδρομές.</string>
+    <string name="msg_route_export_unavailable">Δεν υπάρχει ενεργή διαδρομή για εξαγωγή.</string>
+    <string name="msg_route_export_failed">Αδύνατη η εξαγωγή της διαδρομής.</string>
+    <string name="msg_route_export_no_app">Καμία εφαρμογή δεν μπορεί να ανοίξει τις διαδρομές GPX.</string>
+    <string name="msg_google_maps_search_open_failed">Αδύνατο το άνοιγμα της αναζήτησης Google Maps.</string>
+    <string name="msg_open_url_failed">Αδύνατο το άνοιγμα του συνδέσμου σε αυτή τη συσκευή.</string>
+    <string name="label_exported_route_gpx">Διαδρομή ViBRo GPX</string>
+    <string name="gpx_passed_route_track_name">Διαδρομή που πέρασε</string>
+    <string name="format_gpx_gps_fix_name">Διόρθωση GPS %1$d</string>
+    <string name="label_vehicle_profile_custom">Προσαρμοσμένο</string>
+    <string name="label_vehicle_profile_custom_with_name">Προσαρμοσμένο (%1$s)</string>
+    <string name="title_profile_parameters">Ρυθμίσεις προφίλ: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Επαναφορά ρυθμίσεων προφίλ;</string>
+    <string name="msg_profile_parameters_reset_confirm">Να επαναφερθούν οι ρυθμίσεις αυτού του προφίλ στις τιμές που ορίζονται στο προφίλ;</string>
+    <string name="format_profile_parameter_info_content_description">Εμφάνιση πληροφοριών παραμέτρου για %1$s</string>
+    <string name="route_mode_info_route_description">Υπολογίζει μια διαδρομή BRouter από την τρέχουσα θέση σας μέσω οποιωνδήποτε στάσεων προς τον προορισμό.</string>
+    <string name="route_mode_info_round_trip_description">Υπολογίζει μια κυκλική διαδρομή BRouter από την τρέχουσα θέση σας χρησιμοποιώντας το επιλεγμένο προφίλ και τη μέση απόσταση ταξιδιού.</string>
+    <string name="route_mode_info_straight_line_description">Παρακάμπτει το BRouter και κατευθύνει άμεσα προς τον προορισμό και σταματά με ευθεία απόσταση και κατεύθυνση.</string>
+    <string name="profile_info_trekking_title">Ποδήλατο πεζοπορίας</string>
+    <string name="profile_info_trekking_description">Ισορροπημένη δρομολόγηση ποδηλάτου για καθημερινή ποδηλασία, τουρισμό και πρακτική πλοήγηση. Η βασική της δύναμη είναι η ευελιξία: αποφεύγει την πυκνή κυκλοφορία αυτοκινήτων, υποστηρίζει ποδηλατικές διαδρομές, λαμβάνει υπόψη την υψομετρική διαφορά και συνήθως παράγει διαδρομές που φαίνονται λογικές για κανονικούς ποδηλάτες. Το μειονέκτημά του είναι ότι δεν είναι εξειδικευμένο: οι δρόμοι ποδηλάτες μπορεί να το βρουν πιο αργό από το `fastbike`, ενώ οι εκτός δρόμου αναβάτες μπορεί να το βρουν πολύ συντηρητικό σε σύγκριση με το `mtb` ή `gravel`. Το χαρακτηριστικό του είναι ότι είναι το ασφαλέστερο προφίλ ποδηλάτου γενικής χρήσης και πιθανώς η καλύτερη προεπιλογή για τους περισσότερους χρήστες.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Πεζοπορία, αγνόηση διαδρομών</string>
+    <string name="profile_info_trekking_ignore_cr_description">Μια παραλλαγή ποδηλάτου πεζοπορίας που αγνοεί τις σχέσεις με διαδρομές ποδηλάτου. Το πλεονέκτημά της είναι ότι αποφεύγει την υπερβολική προτεραιότητα σε σήμανση ή χαρτογραφημένες διαδρομές ποδηλάτου όταν αυτές οι διαδρομές είναι έμμεσες, γραφικές, παρωχημένες ή δεν είναι πραγματικά χρήσιμες για την τρέχουσα διαδρομή. Το μειονέκτημά της είναι ότι χάνει ένα από τα κύρια πλεονεκτήματα του κανονικού προφίλ πεζοπορίας: την παρακολούθηση καλών δικτύων ποδηλάτου όπου αυτά υπάρχουν. Το χαρακτηριστικό της στοιχείο είναι ότι απαντά σε ένα συγκεκριμένο πρόβλημα: «μη προτιμάτε έναν δρόμο μόνο και μόνο επειδή ανήκει σε διαδρομή ποδηλάτου».</string>
+    <string name="profile_info_trekking_noferries_title">Πεζοπορία, χωρίς φέρυ</string>
+    <string name="profile_info_trekking_noferries_description">Μια παραλλαγή ποδηλάτου trekking που αποφεύγει τις συνδέσεις με φέρι. Η δύναμή του είναι η προβλεψιμότητα: αποφεύγει διαδρομές που εξαρτώνται από τα δρομολόγια φέρι, τη χειμερινή ή εποχική λειτουργία, την έκδοση εισιτηρίων, τον χρόνο αναμονής ή την αβέβαιη διαθεσιμότητα. Η αδυναμία του είναι ότι μπορεί να δημιουργήσει πολύ μεγαλύτερες διαδρομές σε περιοχές ποταμών, λιμνών, νησιών ή ακτών όπου τα φέρι είναι η πρακτική σύνδεση. Το διακριτικό του σημείο είναι ότι είναι το προφίλ trekking για χρήστες που θέλουν δρομολόγηση μόνο σε ξηρά.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, χωρίς σκαλοπάτια</string>
+    <string name="profile_info_trekking_nosteps_description">Μια παραλλαγή ποδηλάτου trekking που αποφεύγει τις σκάλες. Το πλεονέκτημά της είναι η πρακτική δυνατότητα οδήγησης, ειδικά για ποδήλατα περιήγησης με φορτίο, ηλεκτρικά ποδήλατα, ποδήλατα μεταφοράς, παιδικά τρέιλερ ή χρήστες που δεν θέλουν να μεταφέρουν το ποδήλατο. Το μειονέκτημά της είναι ότι μπορεί να παραλείπει σύντομες διαδρομές πεζών/ποδηλασίας και να δημιουργεί μεγαλύτερες παρακάμψεις σε πόλεις ή ορεινές περιοχές. Το χαρακτηριστικό της είναι ότι διατηρεί την κανονική ισορροπία trekking αλλά αφαιρεί μία από τις πιο ενοχλητικές εκπλήξεις διαδρομής ποδηλάτου: τις σκάλες.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, απότομες ανηφόρες</string>
+    <string name="profile_info_trekking_steep_description">Μια παραλλαγή ποδηλάτου trekking για διαδρομές όπου οι πιο απότομες ανηφοριές είναι πιο αποδεκτές. Η δύναμή του είναι ότι μπορεί να επιλέξει πιο άμεσες ή πιο λοφώδεις διαδρομές αντί να αποφεύγει έντονα την υψομετρική διαφορά. Η αδυναμία του είναι ότι μπορεί να είναι άβολο ή ακατάλληλο για περιστασιακούς αναβάτες, βαριά ποδήλατα, ρυμουλκούμενα ή ταξίδια με ηλεκτρικό ποδήλατο χαμηλής μπαταρίας. Το χαρακτηριστικό του σημείο είναι ότι διατηρεί τον χαρακτήρα του trekking αλλά φοβάται λιγότερο τις απότομες κλίσεις σε σχέση με το κανονικό προφίλ trekking.</string>
+    <string name="profile_info_fastbike_title">Δρόμικο ποδήλατο</string>
+    <string name="profile_info_fastbike_description">Βελτιστοποιημένο για γρήγορη ποδηλασία σε ασφαλτοστρωμένους δρόμους, ποδήλατα αγώνων, ποδήλατα γυμναστικής και ηλεκτρικά ποδήλατα υψηλής ταχύτητας. Η δύναμή του είναι η ταχύτητα: προτιμά αποτελεσματικούς, ποιοτικούς δρόμους και χρησιμοποιεί ένα μοντέλο προσανατολισμένο στον χρόνο ταξιδιού αντί να αναζητά απλώς ήσυχες ή γραφικές διαδρομές. Η αδυναμία του είναι ότι μπορεί να φαίνεται υπερβολικά προσανατολισμένο στο δρόμο για περιστασιακούς ποδηλάτες, οικογένειες ή χρήστες που επιθυμούν έντονα διαδρομές με χαμηλή κυκλοφορία. Το χαρακτηριστικό του είναι ότι αποτελεί προφίλ ποδηλάτου προσανατολισμένο στην απόδοση: ταχύτερο και πιο άμεσο από το `trekking`, αλλά εξακολουθεί να είναι συνειδητοποιημένο για ποδήλατο.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Ποδήλατο δρόμου, χαμηλή κυκλοφορία</string>
+    <string name="profile_info_fastbike_lowtraffic_description">Ένα προφίλ γρήγορου ποδηλάτου που δίνει περισσότερη σημασία στην αποφυγή της κυκλοφορίας από ό,τι το κανονικό `fastbike`, ενώ παραμένει προσανατολισμένο στην απόδοση. Το πλεονέκτημά του είναι ότι αποτελεί έναν καλό συμβιβασμό για ποδηλάτες που θέλουν ταχύτητα αλλά δεν θέλουν να κατευθύνονται συνεχώς σε πολυσύχναστους δρόμους. Το μειονέκτημά του είναι ότι μπορεί να είναι ελαφρώς πιο αργό ή λιγότερο άμεσο από το `fastbike`, και λιγότερο αποφεύγον την κυκλοφορία από το `fastbike-verylowtraffic`. Το χαρακτηριστικό του είναι ότι αποτελεί τη μέση επιλογή μεταξύ καθαρής γρήγορης διαδρομής και γρήγορης διαδρομής πολύ ευαίσθητης στην κυκλοφορία.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Δρόμου ποδήλατο, ελάχιστη κυκλοφορία</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">Μια πιο ισχυρή παραλλαγή χαμηλής κυκλοφορίας για χρήστες ποδηλάτου δρόμου ή ταχυ-πεντελέκ που θέλουν να αποφύγουν αυτοκίνητα και φορτηγά όσο το δυνατόν περισσότερο. Το πλεονέκτημά της είναι το πιο ασφαλές και πιο ήρεμο γρήγορο ποδήλατο, ειδικά για μεμονωμένες διαδρομές, βροχή, νυχτερινή οδήγηση ή περιοχές με πυκνή κυκλοφορία. Το μειονέκτημά της είναι ότι μπορεί να προκαλέσει μεγαλύτερες παρακάμψεις και μπορεί να απορρίψει δρόμους που κατά τα άλλα είναι γρήγοροι, αν έχουν πολλή κίνηση. Το χαρακτηριστικό της στοιχείο είναι ότι διατηρεί τον χαρακτήρα του γρήγορου ποδηλάτου αλλά καθιστά τη δρομολόγηση με πολύ χαμηλή κυκλοφορία την κύρια προτεραιότητα.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Ποδήλατο δρόμου, Ασία-Ειρηνικός</string>
+    <string name="profile_info_fastbike_asia_pacific_description">Μια περιφερειακή παραλλαγή του `fastbike` για χώρες όπου οι ευρωπαϊκές υποθέσεις σχετικά με τους κύριους δρόμους, τους αυτοκινητόδρομους και τους περιορισμούς ποδηλάτου δεν ταιριάζουν πάντα. Το πλεονέκτημά του είναι ότι μπορεί να κάνει τη δρομολόγηση για γρήγορο ποδήλατο πιο χρησιμοποιήσιμη σε περιοχές όπως η Ιαπωνία, η Αυστραλία και άλλα πλαίσια της Ασίας-Ειρηνικού, όπου η ταξινόμηση των δρόμων και η πρόσβαση για ποδήλατα μπορεί να διαφέρουν από την Ευρώπη. Το μειονέκτημά του είναι ότι είναι λιγότερο κατάλληλο ως καθολικό προεπιλεγμένο προφίλ. Το χαρακτηριστικό του είναι ότι διατηρεί τη λογική του fast-bike αλλά προσαρμόζει τις υποθέσεις πρόσβασης στους δρόμους για χρήση στην Ασία-Ειρηνικό.</string>
+    <string name="profile_info_safety_title">Ασφαλέστερη ποδηλασία</string>
+    <string name="profile_info_safety_description">Ένα προφίλ ποδηλάτου επικεντρωμένο σε πιο ασφαλείς και ήπιες διαδρομές. Το πλεονέκτημά του είναι ότι δίνει προτεραιότητα στην αποφυγή δυσάρεστων ή επικίνδυνων δρόμων πιο έντονα από την κανονική γρήγορη δρομολόγηση, καθιστώντας το χρήσιμο για προσεκτικούς αναβάτες, οικογένειες, αστική ποδηλασία ή χρήστες που προτιμούν την άνεση από την ταχύτητα. Το μειονέκτημά του είναι ότι μπορεί να παράγει πιο αργές, μεγαλύτερες ή λιγότερο άμεσες διαδρομές. Το χαρακτηριστικό του στοιχείο είναι ότι είναι η πιο ξεκάθαρα «προτεραιότητα στην ασφάλεια» επιλογή ποδηλάτου, χρήσιμη όταν η προτεραιότητα του χρήστη είναι η αποφυγή του αγχωτικού κυκλοφοριακού φορτίου παρά η ελαχιστοποίηση του χρόνου.</string>
+    <string name="profile_info_gravel_title">Ποδήλατο χωματόδρομου</string>
+    <string name="profile_info_gravel_description">Σχεδιασμένο για ποδήλατα gravel και διαδρομές με μικτά εδάφη. Η δύναμή του είναι να βρίσκει διαδρομές που μπορούν να περιλαμβάνουν συμπιεσμένο χαλίκι, μονοπάτια και ελάχιστα πολυσύχναστους χωμάτινους δρόμους, ενώ παράλληλα αποφεύγει επιφάνειες που είναι πολύ ανώμαλες, λασπώδεις, απότομες ή αργές. Η αδυναμία του είναι ότι δεν είναι ιδανικό για καθαρά ποδήλατα δρόμου, γιατί μπορεί σκόπιμα να επιλέξει χωμάτινα τμήματα, και δεν είναι τόσο προσανατολισμένο σε μονοπάτια όσο ένα αληθινό προφίλ MTB. Το χαρακτηριστικό του είναι ότι βρίσκεται ανάμεσα στο ποδήλατο δρόμου και το mountain bike: πιο περιπετειώδες από το `fastbike`, λιγότερο τεχνικό από το `mtb`.</string>
+    <string name="profile_info_mtb_title">Ποδήλατο βουνού</string>
+    <string name="profile_info_mtb_description">Ένα προφίλ ποδηλάτου προσανατολισμένο σε εκτός δρόμου διαδρομές για ορεινή ποδηλασία και ποδηλασία σε μονοπάτια. Η δύναμή του είναι ότι μπορεί να προτιμά μονοπάτια, διαδρόμους, αδιάβατους δρόμους και εδάφη κατάλληλα για MTB πολύ περισσότερο από τα κανονικά προφίλ ποδηλάτου. Η αδυναμία του είναι ότι μπορεί να παράγει διαδρομές που δεν είναι κατάλληλες για τουρισμό, μετακινήσεις ή οδικά ποδήλατα, ειδικά αν ο χρήστης δεν θέλει πραγματικά τραχιές διαδρομές. Το διακριτικό του χαρακτηριστικό είναι η συμπεριφορά ειδική για MTB: λαμβάνει υπόψη την προτίμηση μονοπατιού, την ποιότητα επιφάνειας, την ομαλότητα, τις υγρές συνθήκες, τη συμπεριφορά σε λόφους και την καταλληλότητα εκτός δρόμου.</string>
+    <string name="profile_info_hiking_mountain_title">Ορεινή πεζοπορία</string>
+    <string name="profile_info_hiking_mountain_description">Ένα προφίλ για πεζοπορία και ορεικά μονοπάτια. Η δύναμή του είναι ότι είναι σχεδιασμένο γύρω από το περπάτημα, τις διαδρομές πεζοπορίας, τη δυσκολία των μονοπατιών και τις συνθήκες που αφορούν τα βουνά, αντί για υποθέσεις σχετικά με ποδήλατα ή αυτοκίνητα. Η αδυναμία του είναι ότι εξαρτάται σε μεγάλο βαθμό από σωστή σήμανση OSM για μονοπάτια, πρόσβαση, διαδρομές πεζοπορίας και επίπεδα δυσκολίας, ειδικά σε αλπικές περιοχές. Το διακριτικό του χαρακτηριστικό είναι ότι είναι το συσκευασμένο προφίλ που επικεντρώνεται πιο καθαρά στο ορεινό περπάτημα παρά στην αποδοτικότητα μεταφοράς.</string>
+    <string name="profile_info_skating_title">Πατινάζ</string>
+    <string name="profile_info_skating_description">Βελτιστοποιημένο για inline skating ή παρόμοιες δραστηριότητες σκέιτινγκ μεγάλων αποστάσεων. Η δύναμή του είναι η ευαισθησία στην επιφάνεια: προτιμά έντονα ομαλές, ασφαλτοστρωμένες, ρέουσες διαδρομές και αποφεύγει επιφάνειες, εμπόδια, φανάρια, διαβάσεις και απότομες διακοπές που διακόπτουν τον ρυθμό του σκέιτινγκ. Η αδυναμία του είναι ότι είναι πολύ εξειδικευμένο και μπορεί να απορρίψει διαδρομές που είναι αποδεκτές για ποδήλατα ή πεζούς, αλλά κακές για πατίνια. Το διακριτικό του χαρακτηριστικό είναι ότι σχεδιάζει διαδρομές για τη ροή του σκέιτινγκ, όχι μόνο για νόμιμη πρόσβαση ή απόσταση.</string>
+    <string name="profile_info_shortest_title">Συντομότερη διαδρομή</string>
+    <string name="profile_info_shortest_description">Ένα ελάχιστο προφίλ που κυρίως προσπαθεί να ελαχιστοποιήσει την απόσταση της διαδρομής. Η δύναμή του είναι η απλότητα: είναι χρήσιμο όταν ο χρήστης θέλει ρητά την πιο σύντομη δυνατή προσβάσιμη διαδρομή ή όταν συγκρίνει τη γεωμετρία της διαδρομής. Η αδυναμία του είναι ότι το συντομότερο δεν είναι πάντα το καλύτερο: μπορεί να επιλέξει επικίνδυνα, δυσάρεστα, απότομα, τραχιά ή πολυσύχναστα τμήματα. Το χαρακτηριστικό του είναι ότι αγνοεί κυρίως την άνεση και τη λογική των προτιμήσεων, καθιστώντας το χρήσιμο ως προφίλ αναφοράς παρά ως καλό προεπιλεγμένο.</string>
+    <string name="profile_info_car_eco_title">Αυτοκίνητο, οικολογικό</string>
+    <string name="profile_info_car_eco_description">Ένα οικονομικό προφίλ δρομολόγησης αυτοκινήτου που επικεντρώνεται στη μείωση της περιττής ταχύτητας, της κατανάλωσης ενέργειας και των αναποτελεσματικών προτύπων οδήγησης. Το πλεονέκτημά του είναι ότι μπορεί να προτιμά πιο ενεργειακά ευαισθητοποιημένες διαδρομές αντί να κυνηγά απλώς τον ταχύτερο δρόμο. Το μειονέκτημά του είναι ότι μπορεί να επιλέγει πιο αργές ή λιγότερο άμεσες διαδρομές και μπορεί να φαίνεται λιγότερο βολικό όταν ο χρόνος άφιξης είναι η κύρια προτεραιότητα. Το διακριτικό του χαρακτηριστικό είναι ότι πρόκειται για το προφίλ αυτοκινήτου για «λογική αποδοτικότητα» αντί για μέγιστη ταχύτητα.</string>
+    <string name="profile_info_car_eco_nocost_title">Αυτοκίνητο, οικολογικό (βασικό)</string>
+    <string name="profile_info_car_eco_nocost_description">Μια απλουστευμένη οικονομική έκδοση αυτοκινήτου. Η δύναμή του είναι ότι διατηρεί ένα μοντέλο αυτοκινήτου προσανατολισμένο στην οικονομία ενώ μειώνει πρόσθετες ποινές βάσει προτίμησης, καθιστώντας το χρήσιμο ως προφίλ σύγκρισης πιο καθαρό. Η αδυναμία του είναι ότι μπορεί να είναι λιγότερο εκλεπτυσμένο για πραγματική πλοήγηση επειδή αφαιρεί μέρος της λογικής κόστους που κανονικά βοηθά στη διαμόρφωση της πρακτικής ποιότητας διαδρομής. Το διακριτικό του χαρακτηριστικό είναι ότι πρέπει να θεωρείται καλύτερα ως τεχνική βάση: χρήσιμο για σύγκριση με το `car-eco`, λιγότερο χρήσιμο ως κύριο προφίλ αυτοκινήτου για τον χρήστη.</string>
+    <string name="profile_info_car_fast_title">Αυτοκίνητο, γρήγορο</string>
+    <string name="profile_info_car_fast_description">Ένα προφίλ δρομολόγησης αυτοκινήτου που επικεντρώνεται στην ταχύτητα και τον χρόνο ταξιδιού. Το πλεονέκτημά του είναι ότι τείνει να προτιμά τα ταχύτερα δρόμους και πιο άμεσα, χρονικά αποδοτικά δρομολόγια. Το μειονέκτημά του είναι ότι μπορεί να είναι λιγότερο οικονομικό, λιγότερο ήσυχο, λιγότερο γραφικό, και μερικές φορές λιγότερο κατάλληλο όπου οι περιορισμοί αυτοκινήτου OSM ή το τοπικό οδικό πλαίσιο είναι ελλιπή. Το διακριτικό του στοιχείο είναι ότι είναι το πιο προφανές προφίλ αυτοκινήτου για χρήστες που απλώς θέλουν να φτάσουν γρήγορα.</string>
+    <string name="profile_info_car_fast_nocost_title">Αυτοκίνητο, γρήγορο (βασικό)</string>
+    <string name="profile_info_car_fast_nocost_description">Μια απλουστευμένη παραλλαγή γρήγορου αυτοκινήτου. Το πλεονέκτημά της είναι ότι επικεντρώνεται πιο άμεσα στη συμπεριφορά των μοντέλων ταχύτητας, καθιστώντας τη χρήσιμη για δοκιμές, συγκρίσεις ή πειράματα με την ταχύτερη διαδρομή. Το μειονέκτημά της είναι ότι μπορεί να είναι λιγότερο λεπτομερής από το `car-fast`, καθώς οι επιπλέον ποινές και προτιμήσεις μειώνονται. Το χαρακτηριστικό της στοιχείο είναι ότι αποτελεί μια βασική έκδοση δρομολόγησης γρήγορων αυτοκινήτων: καλή για τεχνική σύγκριση, λιγότερο ιδανική ως προεπιλεγμένο προφίλ αυτοκινήτου.</string>
+    <string name="profile_info_car_vario_title">Αυτοκίνητο, μεταβλητή ταχύτητα</string>
+    <string name="profile_info_car_vario_description">Το κύριο ευέλικτο προφίλ αυτοκινήτου. Η δύναμή του είναι η προσαρμοστικότητα: αλλάζοντας παραμέτρους, μπορεί να συμπεριφέρεται περισσότερο σαν δρομολόγηση γρήγορου αυτοκινήτου ή περισσότερο σαν δρομολόγηση που λαμβάνει υπόψη την ενέργεια/οικολογική δρομολόγηση. Υποστηρίζει προτιμήσεις όπως η αποφυγή διοδίων, μη ασφαλτοστρωμένων δρόμων, αυτοκινητοδρόμων και ορισμένων περιβαλλόντων. Η αδυναμία του είναι ότι παραμένει απλούστερο από μια πλήρη εμπορική μηχανή πλοήγησης αυτοκινήτου και εξαρτάται έντονα από την ποιότητα της επισημείωσης OSM. Το διακριτικό του χαρακτηριστικό είναι ότι χρησιμοποιεί φυσικό/κινηματικό μοντέλο αντί μόνο απλών προτεραιοτήτων κατηγορίας δρόμου.</string>
+    <string name="profile_info_car_vario_nocost_title">Αυτοκίνητο, μεταβλητό (βάση)</string>
+    <string name="profile_info_car_vario_nocost_description">Μια απλούστερη παραλλαγή δρομολόγησης αυτοκινήτου βασισμένη κυρίως στο κινηματικό μοντέλο ταχύτητας. Το πλεονέκτημά της είναι ότι παρέχει μια καθαρότερη βασική γραμμή για τη δρομολόγηση αυτοκινήτου, χρήσιμη για συγκρίσεις, δοκιμές ή περιπτώσεις όπου τα πρόσθετα κόστη διαδρομής ή προτιμήσεων δεν θα πρέπει να κυριαρχούν. Το μειονέκτημά της είναι ότι είναι λιγότερο εκφραστική και λιγότερο φιλική προς τον χρήστη σε σχέση με την car-vario για κανονική πλοήγηση. Το διακριτικό της χαρακτηριστικό είναι ότι αποτελεί περισσότερο μια τεχνική βασική γραμμή παρά ένα πλούσιο προφίλ προτιμήσεων.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Γρήγορο ανακλινόμενο</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">Ένα προφίλ για γρήγορα ανακλινόμενα ποδήλατα. Το πλεονέκτημά του είναι ότι αντικατοπτρίζει καλύτερα τις ανάγκες των αναβατών ανακλινόμενων ποδηλάτων σε σχέση με ένα κανονικό προφίλ ποδηλάτου δρόμου: αποδοτικοί ασφαλτοστρωμένοι δρόμοι, αποφυγή κακών επιφανειών, προσεκτικός χειρισμός της υψομετρικής διαφοράς και ποινές για σκαλοπάτια ή τμήματα που απαιτούν κατέβασμα από το ποδήλατο. Το μειονέκτημά του είναι ότι είναι πολύ εξειδικευμένο για κανονικά ποδήλατα και μπορεί να αποφεύγει υποδομές που οι ποδηλάτες σε όρθια θέση θα δεχόντουσαν. Το χαρακτηριστικό του στοιχείο είναι ότι μοντελοποιεί το ανακλινόμενο ποδήλατο ως δικό του τύπο οχήματος, όχι απλώς ως ένα ταχύτερο ποδήλατο.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Γρήγορο βελομομπίλ</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">Ένα προφίλ για γρήγορα βελομομπίλ. Η δύναμή του είναι η δρομολόγηση για πολύ αποδοτικά, βαριά, χαμηλής αντίστασης οχήματα ανθρώπινης ισχύος που χρειάζονται ομαλές επιφάνειες, λίγες στάσεις, λίγα εμπόδια και καλές συνθήκες κύλισης. Η αδυναμία του είναι ότι δεν ταιριάζει καλά με τα κανονικά ποδήλατα επειδή τιμωρεί έντονα τις στενές, ανώμαλες, με πολλές στάσεις ή με συχνό κατέβασμα από το ποδήλατο διαδρομές. Το χαρακτηριστικό του είναι ότι είναι το πιο ειδικό στο όχημα προφίλ ανθρώπινης ισχύος στο πακέτο, ρυθμισμένο για τους περιορισμούς των βελομομπίλ αντί για γενικό ποδηλατικό.</string>
+    <string name="profile_info_car_eco_de_title">Αυτοκίνητο, οικολογικό (Γερμανία)</string>
+    <string name="profile_info_car_eco_de_description">Μια παραλλαγή του `car-eco` που ιστορικά συνδέεται με εναλλακτικά ή δευτερεύοντα δεδομένα δρομολόγησης. Το πλεονέκτημά της είναι ότι μπορεί να είναι χρήσιμη για αποσφαλμάτωση ή δοκιμή δρομολόγησης αυτοκινήτου έναντι διαφορετικού στιγμιότυπου δεδομένων ή ειδικής προετοιμασίας δικτύου οδών. Το μειονέκτημά της είναι ότι δεν είναι απλώς ένα κανονικό προφίλ καθημερινού αυτοκινήτου και μπορεί να απαιτεί ειδική διαμόρφωση δευτερευόντων δεδομένων. Το διακριτικό της χαρακτηριστικό είναι ότι συμπεριφέρεται σαν ένα οικονομικό προφίλ αυτοκινήτου αλλά είναι κυρίως χρήσιμη όταν η ρύθμιση των δευτερευόντων δεδομένων είναι διαθέσιμη με προθεσμία.</string>
+    <string name="profile_info_moped_title">Μοτοσικλέτα μικρού κυβισμού</string>
+    <string name="profile_info_moped_description">Ένα πειραματικό προφίλ για δρομολόγηση τύπου μοτοποδηλάτου. Το πλεονέκτημά του είναι ότι μοντελοποιεί την πρόσβαση με μηχανοκίνητο δίτροχο πιο φυσικά σε σχέση με ένα προφίλ ποδηλάτου. Το μειονέκτημά του είναι σημαντικό: δεν είναι αρκετά αξιόπιστο για πραγματική πλοήγηση, γιατί μπορεί να λείπουν περιορισμοί στροφών και κάποιοι κυκλοφοριακοί περιορισμοί. Το χαρακτηριστικό του είναι ότι βρίσκεται μεταξύ της λογικής ποδηλάτου και αυτοκινήτου, αλλά πρέπει να θεωρείται πειραματικό ή κρυφό από τους κανονικούς χρήστες.</string>
+    <string name="profile_info_dummy_title">Έλεγχος ετικετών</string>
+    <string name="profile_info_dummy_description">Ένα προφίλ αποσφαλμάτωσης για την επιθεώρηση των ετικετών OSM που βλέπει το BRouter σε τμήματα διαδρομής. Το πλεονέκτημά του είναι η διαφάνεια: βοηθά τους προγραμματιστές να κατανοήσουν τα διαθέσιμα δεδομένα δρομολόγησης και τις αχρησιμοποίητες ετικέτες. Το μειονέκτημά του είναι ότι δεν έχει σχεδιαστεί για να παράγει δρομολόγια υψηλής ποιότητας ή ουσιαστικά. Το διακριτικό του στοιχείο είναι ότι είναι κυρίως ένα διαγνωστικό προφίλ για την ανάπτυξη προφίλ και την επιθεώρηση δεδομένων.</string>
+    <string name="profile_info_rail_title">Σιδηρόδρομοι</string>
+    <string name="profile_info_rail_description">Ένα προφίλ για δρομολόγηση πάνω σε σιδηρόδρομο, τραμ, υπόγειο, ελαφρύ σιδηρόδρομο και παρόμοια σιδηροδρομικά αντικείμενα. Η δύναμή του είναι η ανίχνευση της τοπολογίας του σιδηροδρομικού δικτύου και ο έλεγχος της συνδεσιμότητας σιδηροδρόμων σε δεδομένα OSM. Η αδυναμία του είναι ότι δεν αντιπροσωπεύει την επιβατική μετακίνηση: χωρίς προγράμματα, μεταφορές, λογική σταθμών, διαθεσιμότητα υπηρεσιών ή περιορισμούς κομίστρου. Το χαρακτηριστικό του στοιχείο είναι ότι είναι χρήσιμο για ανάλυση δεδομένων σιδηροδρόμων, όχι για κανονική πλοήγηση.</string>
+    <string name="profile_info_river_title">Ποτάμια / κανάλια</string>
+    <string name="profile_info_river_description">Ένα προφίλ για δρομολόγηση κατά μήκος υδάτινων οδών όπως ποτάμια, κανάλια, διαδρόμους και κλειδαριές. Η δύναμή του είναι η παρακολούθηση του δικτύου υδάτινων οδών και η εξερεύνηση δεδομένων OSM. Η αδυναμία του είναι ότι είναι πολύ απλό για πραγματική ναυτική πλοήγηση επειδή δεν προσομοιώνει τύπο σκάφους, βάθος, ρεύμα, νομικούς περιορισμούς, κινδύνους ή λειτουργικούς περιορισμούς κλειδαριάς. Το χαρακτηριστικό του είναι ότι αντιμετωπίζει τις υδάτινες οδούς ως δρομολογήσιμο δίκτυο, αλλά μόνο σε βασικό επίπεδο τοπολογίας.</string>
+    <string name="title_edit_destination_name">Επεξεργασία ονόματος προορισμού</string>
+    <string name="title_save_route">Αποθήκευση διαδρομής</string>
+    <string name="title_restore_route">Επαναφορά διαδρομής</string>
+    <string name="title_edit_route_name">Επεξεργασία ονόματος διαδρομής</string>
+    <string name="title_restore_route_confirm">Επαναφορά διαδρομής;</string>
+    <string name="msg_restore_route_confirm">Αντικατάσταση του τρέχοντος προορισμού και των στάσεων με \"%1$s\";</string>
+    <string name="title_map_picker_destination">Επιλογή προορισμού στον χάρτη</string>
+    <string name="title_map_picker_stop">Επιλογή στάσης %1$d στον χάρτη</string>
+    <string name="nav_no_route">Καμία διαδρομή</string>
+    <string name="nav_waiting_for_location_title">Αναμονή τοποθεσίας</string>
+    <string name="nav_waiting_for_location_body">Αναμονή για έγκυρη διόρθωση τοποθεσίας για υπολογισμό της διαδρομής.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Αναμονή για μια χρήσιμη θέση για καθοδήγηση γραμμής ευθείας.</string>
+    <string name="nav_calculating_route_title">Υπολογισμός διαδρομής</string>
+    <string name="nav_calculating_route_body">Λήψη οδηγιών από BRouter.</string>
+    <string name="nav_route_unavailable_title">Διαδρομή μη διαθέσιμη</string>
+    <string name="format_nav_route_unavailable_body">Διαδρομή μη διαθέσιμη: %1$s \n Ελέγξτε το BRouter για διαθέσιμα τμήματα.</string>
+    <string name="nav_route_unavailable_generic">άγνωστο σφάλμα</string>
+    <string name="nav_start_invalid_request">το αίτημα πλοήγησης είναι ατελές</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Δεν ήταν δυνατή η εύρεση εναλλακτικής διαδρομής γύρω από την αποκλεισμένη περιοχή. Διατηρείται η τρέχουσα διαδρομή.</string>
+    <string name="nav_route_notice_no_route_found">Δεν βρέθηκε διαδρομή για αυτόν τον προορισμό.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Η υπηρεσία δρομολόγησης δεν είναι διαθέσιμη. Διατηρείται η τρέχουσα διαδρομή.</string>
+    <string name="nav_route_notice_service_unavailable">Η υπηρεσία δρομολόγησης δεν είναι διαθέσιμη.</string>
+    <string name="nav_route_notice_invalid_profile">Το προφίλ δρομολόγησης δεν είναι έγκυρο.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Δεν ήταν δυνατή η ενημέρωση της διαδρομής. Διατηρείται η τρέχουσα διαδρομή.</string>
+    <string name="nav_route_notice_unavailable">Δεν ήταν δυνατός ο υπολογισμός της διαδρομής.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Προστέθηκε αποκλεισμένο δρόμος. Επαναϋπολογισμός διαδρομής.</string>
+    <string name="nav_paused_notice">Η πλοήγηση είναι σε παύση. Πατήστε Επαναφορά πλοήγησης για να συνεχίσετε την καθοδήγηση σε πραγματικό χρόνο.</string>
+    <string name="notification_channel_nav">Πλοήγηση</string>
+    <string name="notification_channel_alert">Ειδοποιήσεις καθοδήγησης</string>
+    <string name="notification_channel_turn_left">Στρίψτε (αριστερά)</string>
+    <string name="notification_channel_turn_right">Στρίψτε (δεξιά)</string>
+    <string name="notification_nav_running">Η πλοήγηση συνεχίζεται</string>
+    <string name="notification_nav_running_text">Το ViBRo Navigator πλοηγείται στο παρασκήνιο</string>
+    <string name="notification_nav_paused">Η πλοήγηση είναι σε παύση</string>
+    <string name="notification_nav_paused_text">Η πλοήγηση του ViBRo Navigator είναι σε παύση</string>
+    <string name="notification_off_route_title">Εκτός διαδρομής</string>
+    <string name="notification_wrong_direction_title">Λάθος κατεύθυνση</string>
+    <string name="notification_symbol_test_left_title">δοκιμή όλων των ειδοποιήσεων αριστερά</string>
+    <string name="notification_symbol_test_other_title">δοκιμή όλων των άλλων ειδοποιήσεων</string>
+    <string name="notification_symbol_test_right_title">δοκιμή όλων των ειδοποιήσεων δεξιά</string>
+    <string name="direction_continue">Συνέχεια</string>
+    <string name="direction_keep_left">Κρατηθείτε αριστερά</string>
+    <string name="direction_keep_right">Κρατηθείτε δεξιά</string>
+    <string name="direction_turn_left">Στρίψτε αριστερά</string>
+    <string name="direction_turn_right">Στρίψτε δεξιά</string>
+    <string name="direction_slight_left">Στρίψτε ελαφρά αριστερά</string>
+    <string name="direction_slight_right">Στρίψτε ελαφρά δεξιά</string>
+    <string name="direction_sharp_left">Στρίψτε απότομα αριστερά</string>
+    <string name="direction_sharp_right">Στρίψτε απότομα δεξιά</string>
+    <string name="direction_uturn_left">Κάντε αναστροφή αριστερά</string>
+    <string name="direction_uturn">Κάντε αναστροφή</string>
+    <string name="direction_uturn_right">Κάντε αναστροφή δεξιά</string>
+    <string name="direction_roundabout_exit">Στον κυκλικό κόμβο, πάρτε την έξοδο %1$d</string>
+    <string name="direction_roundabout_exit_left">Στον κυκλικό κόμβο, πάρτε την έξοδο %1$d</string>
+    <string name="direction_beeline">Ευθεία γραμμή</string>
+    <string name="direction_exit_left">Πάρτε την έξοδο αριστερά</string>
+    <string name="direction_exit_right">Πάρτε την έξοδο δεξιά</string>
+    <string name="direction_offroute">Εκτός διαδρομής</string>
+    <string name="direction_arrive">Προορισμός επιτευχθεί</string>
+    <string name="direction_intermediate_arrive">Μεταβατικός προορισμός επιτευχθεί</string>
+    <string name="direction_unknown">Άγνωστη κατεύθυνση</string>
+    <string name="direction_side_left">αριστερά</string>
+    <string name="direction_side_right">δεξιά</string>
+    <string name="format_speed_limit_content_description">Όριο ταχύτητας %1$s</string>
+    <string name="title_nav_gps_details">Λεπτομέρειες GPS</string>
+    <string name="format_nav_gps_details">Ταχύτητα: %1$s\n\nΥψόμετρο: %2$s\n\nΑκρίβεια: %3$s\n\nΏρα GPS: %4$s\n\nΔορυφόροι: %5$s\n\nΔιάστημα: %6$s\n\nΗλικία τελευταίας επισήμανσης: %10$s\n\nΔιορθώσεις GPS: %7$s\n\nΚατεύθυνση GPS: %8$s\n\nΑκρίβεια κατεύθυνσης: %9$s</string>
+    <string name="title_nav_directions_details">Οδηγίες</string>
+    <string name="nav_directions_unavailable">Καμία επερχόμενη οδηγία</string>
+    <string name="title_nav_trip_stats">Στατιστικά ταξιδιού</string>
+    <string name="format_nav_trip_stats_details">Εκπνεύσας χρόνος: %1$s\nΑπόσταση: %2$s\nΧρόνος κίνησης: %3$s\nΧρόνος ακινησίας: %4$s\nΜέση ταχύτητα: %5$s\nΜέση ταχύτητα σε κίνηση: %6$s\nΜέγιστη ταχύτητα: %7$s\nΟθόνη ενεργή: %8$s\nΟθόνη ανενεργή: %9$s\nΧρήση μπαταρίας: %10$s\nΠτώση μπαταρίας: %11$s</string>
+    <string name="speech_off_route_recalculating">Εκτός διαδρομής. Υπολογισμός ξανά</string>
+    <string name="speech_off_route">Εκτός διαδρομής</string>
+    <string name="speech_wrong_direction_turn_back">Λάθος κατεύθυνση. Επιστροφή</string>
+    <string name="format_off_route_off_track_notification">Εντοπίστηκε εκτροπή από τη διαδρομή. Απόσταση %1$s, όριο %2$s. Υπολογισμός διαδρομής ξανά.</string>
+    <string name="format_off_route_bearing_notification">Εντοπίστηκε αναντιστοιχία προσανατολισμού. Διαφορά %1$s, αναμενόμενο %2$s, πραγματικό %3$s. Υπολογισμός διαδρομής ξανά.</string>
+    <string name="format_off_route_off_track_notice_only">Εντοπίστηκε εκτροπή από τη διαδρομή. Απόσταση %1$s, όριο %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Εντοπίστηκε αναντιστοιχία προσανατολισμού. Διαφορά %1$s, αναμενόμενο %2$s, πραγματικό %3$s.</string>
+    <string name="format_wrong_direction_notification">Εντοπίστηκε λάθος κατεύθυνση. Στόχος %1$s, πραγματικό %2$s, διαφορά %3$s.</string>
+    <string name="format_startup_orientation_notification">Γυρίστε τον εαυτό σας %1$s %2$s για να αντιμετωπίσετε τη διαδρομή.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s δειγματοληψία κατευθύνσεων</string>
+    <string name="nav_destination_reached">Προορισμός επιτευχθεί</string>
+    <string name="format_version">Έκδοση %1$s %2$s</string>
+    <string name="about_short_description">Μια ελαφριά, ενεργειακά αποδοτική και πρώτα εκτός σύνδεσης GPS εφαρμογή πλοήγησης που δονείται για τις οδηγίες, χτισμένη γύρω από BRouter.</string>
+    <string name="about_homepage_link">
+        <u>Αρχική Σελίδα</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Αξιολόγηση στο Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Κώδικας Πηγής στο GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Αναφορά προβλήματος</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>Ιστορικό αλλαγών</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>Πολιτική Απορρήτου</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>Όροι Παροχής Υπηρεσιών</u>
+    </string>
+    <string name="about_legal">Πνευματικά δικαιώματα © 2026 Damiano Falcioni.\nΆδεια MIT</string>
+    <string name="about_credits">Πιστώσεις: BRouter για δρομολόγηση. Η αναζήτηση POI και η αντιστροφή γεωκωδικοποίησης συντονισμού χρησιμοποιούν OpenStreetMap Nominatim, ή Google Maps Geocoding σε εκδόσεις Google Play όταν η αναζήτηση Google είναι ενεργοποιημένη με ένα αποθηκευμένο κλειδί API. Τα POI του χάρτη χρησιμοποιούν OpenStreetMap Overpass. Πλακίδια χάρτη και γεωδεδομένα από συνεισφέροντες OpenStreetMap: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Ρυθμίσεις</string>
+    <string name="about_settings_category_display">Οθόνη</string>
+    <string name="about_settings_category_guidance">Καθοδήγηση</string>
+    <string name="about_settings_category_compass">Πυξίδα</string>
+    <string name="about_settings_category_search_input">Αναζήτηση &amp; Εισαγωγή</string>
+    <string name="about_settings_category_advanced">Για προχωρημένους</string>
+    <string name="label_log_enabled">Καταγραφές</string>
+    <string name="title_log_output_folder">Φάκελος καταγραφής</string>
+    <string name="label_permission_output_folder">Φάκελος λήψεων ViBRo</string>
+    <string name="title_output_browser">Αρχεία ViBRo</string>
+    <string name="title_gpx_output_folder">Φάκελος GPX</string>
+    <string name="format_output_folder">Τρέχον φάκελο: %1$s</string>
+    <string name="action_clear_output_folder">Διαγραφή</string>
+    <string name="action_open_output_folder">Άνοιξε</string>
+    <string name="msg_output_viewer_unavailable">Δεν υπάρχει διαθέσιμη εφαρμογή για να ανοίξετε αυτόν τον φάκελο ή αρχείο.</string>
+    <string name="hint_clear_log_output_folder">Διαγράψτε μόνιμα τα αρχεία καταγραφής ViBRo από: \n%1$s\n\n. Άλλα αρχεία και υποφακέλους θα διατηρηθούν. Αυτό δεν μπορεί να αναιρεθεί. Εάν η καταγραφή είναι ενεργοποιημένη, θα ξεκινήσει ένα νέο αρχείο καταγραφής με πληροφορίες συστήματος.</string>
+    <string name="hint_clear_gpx_output_folder">Διαγραφή για πάντα των εξαγωγών ViBRo GPX από: \n%1$s\n\n Άλλα αρχεία και υποφακέλους θα διατηρηθούν. Αυτό δεν μπορεί να αναιρεθεί.</string>
+    <string name="msg_output_folder_cleared">Τα αρχεία ViBRo διαγράφηκαν.</string>
+    <string name="msg_output_folder_clear_failed">Δεν ήταν δυνατή η διαγραφή όλων των αρχείων ViBRo. Ελέγξτε την πρόσβαση στον φάκελο στα Διαγνωστικά.</string>
+    <string name="label_external_storage_enabled">Χρησιμοποιήστε εξωτερική αποθήκευση</string>
+    <string name="about_setting_external_storage_info">Αποθηκεύστε τις εξαγωγές, τα αρχεία καταγραφής και τα αντίγραφα ασφαλείας της βάσης δεδομένων GPX σε μια κάρτα SD αντί για την αποθήκευση του τηλεφώνου. Διαθέσιμο μόνο για μια τοποθετημένη, υποστηριζόμενη κάρτα SD· οι μονάδες USB εξαιρούνται. Τα Android 6–9 απαιτούν πρόσβαση φακέλου ακόμα και όταν η καταγραφή και η αποθήκευση GPX είναι απενεργοποιημένες. Εάν η κάρτα καταστεί μη διαθέσιμη, η αποθήκευση σταματά μέχρι να γίνει ξανά διαθέσιμη. Τα παλαιότερα αρχεία παραμένουν στους αρχικούς φακέλους τους.</string>
+    <string name="hint_sd_download_access">Παροχή πρόσβασης στον φάκελο της κάρτας SD: \n%1$s\n\n Επιλέξτε Λήψη, τον υποφάκελο ViBRo ή τη ρίζα της κάρτας SD. Το ViBRo θα χρησιμοποιήσει Download/ViBRo/gpx, Download/ViBRo/logs και Download/ViBRo/backup. Η αποθήκευση απαιτεί πρόσβαση σε αυτόν τον φάκελο.</string>
+    <string name="msg_sd_storage_unavailable">Καμία υποστηριζόμενη εγγράψιμη κάρτα SD δεν είναι διαθέσιμη.</string>
+    <string name="msg_sd_storage_enabled">Οι εξαγωγές, τα αρχεία καταγραφής και τα αντίγραφα ασφαλείας βάσης δεδομένων του GPX θα χρησιμοποιήσουν την κάρτα SD.</string>
+    <string name="msg_output_folder_failed">Δεν ήταν δυνατή η εγγραφή σε αυτόν τον φάκελο. Η προηγούμενη ρύθμιση παραμένει αμετάβλητη.</string>
+    <string name="msg_output_access_required">Η αποθήκευση είναι απενεργοποιημένη επειδή ο επιλεγμένος φάκελος εξόδου δεν είναι διαθέσιμος ή δεν παραχωρήθηκε πρόσβαση.</string>
+    <string name="msg_output_folder_picker_unavailable">Δεν υπάρχει διαθέσιμος επιλογέας φακέλων.</string>
+    <string name="label_auto_save_gpx_enabled">Αυτόματη αποθήκευση GPX</string>
+    <string name="label_fused_location_enabled">Google Συγχωνευμένη τοποθεσία</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Δυναμικό διάστημα GPS</string>
+    <string name="label_imperial_units_enabled">Αυτοκρατορικές μονάδες (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Θέμα φωτός</string>
+    <string name="label_compass_surrounding_streets_enabled">Γύρω δρόμοι</string>
+    <string name="action_configure_surrounding_street_types">Επιλέξτε τύπους γύρω δρόμων</string>
+    <string name="title_surrounding_street_types">Τύποι γύρω δρόμων</string>
+    <string name="hint_surrounding_street_types">Οι μεταγωγείς κατηγοριών κρύβουν ή εμφανίζουν ολόκληρη την ομάδα χρωμάτων χωρίς να αλλάζουν τις μεμονωμένες επιλογές. Η ορατότητα με βάση την ταχύτητα εξακολουθεί να ισχύει.</string>
+    <string name="street_category_highway">Κύριοι δρόμοι</string>
+    <string name="street_category_normal">Κανονικοί δρόμοι</string>
+    <string name="street_category_walking_cycling">Πεζοπορία / Ποδηλασία</string>
+    <string name="street_category_special_routing">Ειδικά μονοπάτια</string>
+    <string name="street_type_motorway">Αυτοκινητόδρομοι</string>
+    <string name="street_type_motorway_info">Δρόμοι υψηλής ταχύτητας με ελεγχόμενη πρόσβαση.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Ράμπες αυτοκινητοδρόμου</string>
+    <string name="street_type_motorway_link_info">Συνδέσεις που εισέρχονται ή εξέρχονται από μια αυτοκινητόδρομο.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Κύριοι δρόμοι</string>
+    <string name="street_type_trunk_info">Μεγάλοι δρόμοι διελεύσεως κάτω από το επίπεδο της αυτοκινητόδρομου.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Συνδέσεις κύριων δρόμων</string>
+    <string name="street_type_trunk_link_info">Συνδέσεις που εισέρχονται ή εξέρχονται από έναν κύριο δρόμο.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Πρωτεύοντες δρόμοι</string>
+    <string name="street_type_primary_info">Σημαντικοί δρόμοι που συνδέουν πόλεις και περιοχές.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Συνδέσεις πρωτευόντων δρόμων</string>
+    <string name="street_type_primary_link_info">Συνδέσεις που εισέρχονται ή εξέρχονται από έναν πρωτεύοντα δρόμο.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Δευτερεύοντες δρόμοι</string>
+    <string name="street_type_secondary_info">Δρόμοι που συνδέουν μικρότερες πόλεις και περιοχές.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Συνδέσεις δευτερευόντων δρόμων</string>
+    <string name="street_type_secondary_link_info">Συνδέσεις που εισέρχονται ή εξέρχονται από έναν δευτερεύοντα δρόμο.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Τριτεύοντες δρόμοι</string>
+    <string name="street_type_tertiary_info">Τοπικοί δρόμοι που συνδέουν κοντινές περιοχές ή γειτονιές.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Συνδέσεις τρίτου επιπέδου δρόμου</string>
+    <string name="street_type_tertiary_link_info">Συνδέσεις που εισέρχονται ή εξέρχονται από δρόμο τρίτου επιπέδου.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Δευτερεύοντες δημόσιοι δρόμοι</string>
+    <string name="street_type_unclassified_info">Δημόσιοι δρόμοι κάτω από το επίπεδο τρίτου δρόμου, συχνά εκτός κατοικημένων περιοχών.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Κατοικημένοι δρόμοι</string>
+    <string name="street_type_residential_info">Δρόμοι που εξυπηρετούν κυρίως κατοικίες.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Κοινόχρηστοι κατοικημένοι δρόμοι</string>
+    <string name="street_type_living_street_info">Δρόμοι χαμηλής ταχύτητας όπου η πεζή κυκλοφορία και άλλες χρήσεις μοιράζονται τον χώρο.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Οδοί πρόσβασης</string>
+    <string name="street_type_service_info">Δρόμοι που παρέχουν πρόσβαση σε κτίρια, χώρους στάθμευσης ή εγκαταστάσεις.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Διαδρομές</string>
+    <string name="street_type_track_info">Διαδρομές κυρίως για γεωργική ή δασική πρόσβαση.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Απροσδιόριστοι δρόμοι</string>
+    <string name="street_type_road_info">Δρόμοι των οποίων ο ακριβής τύπος είναι άγνωστος.\n\nOSM/BRouter: highway=road ή highway=yes.</string>
+    <string name="street_type_busway">Λωρίδες λεωφορείων</string>
+    <string name="street_type_busway_info">Δρόμοι που προορίζονται κυρίως για λεωφορεία.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Οδοί πεζών</string>
+    <string name="street_type_pedestrian_info">Δρόμοι ή περιοχές που προορίζονται κυρίως για πεζούς.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Πεζοδρόμια</string>
+    <string name="street_type_footway_info">Μονοπάτια προορισμένα για περπάτημα.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Μονοπάτια</string>
+    <string name="street_type_path_info">Γενικής χρήσης μονοπάτια που μπορεί να χρησιμοποιηθούν για περπάτημα, ποδηλασία ή άλλη μη μηχανοκίνητη κυκλοφορία.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Ποδηλατόδρομοι</string>
+    <string name="street_type_cycleway_info">Μονοπάτια προορισμένα για ποδηλασία.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Αμαξοδρόμοι</string>
+    <string name="street_type_bridleway_info">Μονοπάτια που προορίζονται για ιππασία.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Βήματα</string>
+    <string name="street_type_steps_info">Σκάλες κατά μήκος μιας διαδρομής.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Πλατφόρμες μεταφοράς</string>
+    <string name="street_type_platform_info">Περπατήσιμες πλατφόρμες στις στάσεις δημόσιων συγκοινωνιών.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Εσωτερικοί διάδρομοι</string>
+    <string name="street_type_corridor_info">Διάδρομοι μέσα σε κτίρια.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Σταθμοί ανάπαυσης στο δρόμο</string>
+    <string name="street_type_rest_area_info">Πρόσβαση δρόμου μέσα σε χώρους ανάπαυσης.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Υπηρεσίες στον δρόμο</string>
+    <string name="street_type_services_info">Πρόσβαση δρόμου μέσα στις περιοχές εξυπηρέτησης.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Ανελκυστήρες</string>
+    <string name="street_type_elevator_info">Συνδέσεις ανελκυστήρα μεταξύ επιπέδων που μπορούν να περπατηθούν.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Διαδρομές via ferrata</string>
+    <string name="street_type_via_ferrata_info">Προστατευμένες αναρριχητικές διαδρομές με σταθερές βοηθητικές διατάξεις.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Πίστες αγώνων</string>
+    <string name="street_type_raceway_info">Διαδρομές δρόμου προοριζόμενες για αγώνες.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Σιδηρόδρομοι</string>
+    <string name="street_type_railway_info">Όλη η γεωμετρία σιδηροδρόμου σε τοπικά τμήματα BRouter.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">Υδάτινοι δρόμοι</string>
+    <string name="street_type_waterway_info">Όλη η γεωμετρία υδάτινων δρόμων σε τοπικά τμήματα BRouter.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Άλλη γεωμετρία διαδρομής</string>
+    <string name="street_type_other_info">Γεωμετρία χωρίς αναγνωρισμένο τύπο οδού ή υποστηριζόμενο τύπο διαδρομής.\n\nOSM/BRouter: κανένα αναγνωρισμένο highway=*, railway=*, waterway=* ή υποστηριζόμενη τιμή route=*.</string>
+    <string name="street_type_route_ferry">Διαδρομές φεριμπότ</string>
+    <string name="street_type_route_ferry_info">Διαδρομές που καλύπτονται από φεριππ.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Διαδρομές πεζοπορίας</string>
+    <string name="street_type_route_hiking_foot_info">Επισημασμένες διαδρομές για πεζοπορία ή περπάτημα.\n\nOSM/BRouter: route=hiking ή route=foot.</string>
+    <string name="street_type_route_bicycle">Διαδρομές ποδηλασίας</string>
+    <string name="street_type_route_bicycle_info">Επισημασμένες διαδρομές για ποδηλασία.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Διαδρομές σκι/πίστες</string>
+    <string name="street_type_route_ski_piste_info">Διαδρομές σκι και πίστες για άλλες δραστηριότητες, όπως έλκηθρο ή πεζοπορία. Το BRouter αποθηκεύει και τις δύο ετικέτες ως μία τιμή, έτσι μοιράζονται αυτόν τον διακόπτη. \n\nOSM/BRouter: route=ski ή route=piste.</string>
+    <string name="street_type_route_mtb">Διαδρομές ορεινής ποδηλασίας</string>
+    <string name="street_type_route_mtb_info">Επισημασμένες διαδρομές για ορεινή ποδηλασία. \n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Διαδρομές κανό</string>
+    <string name="street_type_route_canoe_info">Επισημασμένες διαδρομές για κανό. \n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Διαδρομές λεωφορείου</string>
+    <string name="street_type_route_bus_info">Γεωμετρία διαδρομής λεωφορείου σε τοπικά τμήματα BRouter. \n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Άμεσο ζουμ πυξίδας</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Αυτόματο σμίκρυνση</string>
+    <string name="label_compass_fullscreen_route_enabled">Διαδρομή πλήρους οθόνης</string>
+    <string name="label_compass_distance_circles_enabled">Κύκλοι απόστασης</string>
+    <string name="label_compass_central_perspective_enabled">Προοπτική προβολή 3D</string>
+    <string name="label_show_hint_panel">Εμφάνιση πίνακα βοήθειας</string>
+    <string name="label_navigation_notifications_enabled">Ειδοποιήσεις</string>
+    <string name="label_single_instruction_mode_enabled">Λειτουργία μεμονωμένης οδηγίας</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI\n\nΕπιλέξτε ποιες κατηγορίες</string>
+    <string name="hint_poi_categories_filter">POI εμφανίζονται στον επιλογέα χάρτη όταν το φίλτρο είναι ενεργοποιημένο. Επεξεργαστείτε τα ονόματα κατηγοριών, ενεργοποιήστε ή απενεργοποιήστε τα, ή χρησιμοποιήστε + για να προσθέσετε περισσότερα.\n\nΌνομα Κατηγορίας</string>
+    <string name="hint_poi_category_name">POI\n\nΑναγνώριση ομιλίας</string>
+    <string name="label_speech_recognition">Προεπιλογή συστήματος</string>
+    <string name="label_speech_recognition_language">Γλώσσα</string>
+    <string name="label_speech_recognition_language_system_default">Οδηγίες ομιλίας</string>
+    <string name="label_maneuver_voice">Φωνή</string>
+    <string name="label_maneuver_voice_spinner">Απενεργοποιημένο</string>
+    <string name="label_maneuver_voice_disabled">Φωνή</string>
+    <string name="label_maneuver_voice_system_default">Οδηγίες ομιλίας</string>
+    <string name="format_maneuver_voice_variant_code">%1$s\n\nΘηλυκό</string>
+    <string name="label_maneuver_voice_gender_female">Αρσενικό</string>
+    <string name="label_maneuver_voice_gender_male">Κλειδί</string>
+    <string name="label_google_poi_api_key">Google Maps API\n\nΠροσαρμοσμένο κουμπί</string>
+    <string name="label_navigation_custom_button">Ρύθμιση</string>
+    <string name="label_navigation_custom_button_target">Ενεργοποιημένο</string>
+    <string name="label_setting_enabled">Απενεργοποιημένο</string>
+    <string name="label_setting_disabled">Προαιρετικό κλειδί</string>
+    <string name="hint_google_poi_api_key">Google Maps\n\nΕμφάνιση βοήθειας για</string>
+    <string name="format_about_setting_info_content_description">%1$s\n\nΕναλλαγή</string>
+    <string name="format_action_toggle_custom_button_setting">%1$s (%2$s)</string>
+    <string name="about_setting_log_info">διατηρεί ένα λεπτομερές ημερολόγιο συμπεριφοράς που μπορεί να βοηθήσει στη διάγνωση προβλημάτων. Αφήστε το απενεργοποιημένο εκτός αν χρειάζεστε να μοιραστείτε λεπτομέρειες για υποστήριξη. Όταν ο επιλεγμένος φάκελος είναι προσβάσιμος, οι διακοπές λειτουργίας και οι απροσδόκητες διακοπές πλοήγησης εξακολουθούν να δημιουργούν ένα χρονοσφραγισμένο ημερολόγιο με λεπτομέρειες συστήματος όταν αυτό το διακόπτη είναι απενεργοποιημένος. Μία αναγκαστική διακοπή μπορεί να αναφερθεί μόνο αφού η εφαρμογή ξεκινήσει ξανά· το ακριβές αίτιο μπορεί να μην είναι διαθέσιμο.\n\nΤο</string>
+    <string name="about_setting_auto_save_gpx_info">αποθηκεύει τη δραστηριακή διαδρομή ως αρχείο GPX όταν σταματάτε την πλοήγηση με το κουμπί Stop. Χρησιμοποιεί το Download/ViBRo/gpx στο τηλέφωνο ή την κάρτα SD που επιλέχθηκε από το Χρήση εξωτερικής αποθήκευσης. Η ενεργοποίηση αυτού ζητά πρόσβαση στον απολεσθέντα φάκελο. Η αποθήκευση παραμένει απενεργοποιημένη αν η πρόσβαση απορριφθεί ή η επιλεγμένη αποθήκευση δεν είναι διαθέσιμη.\n\nΤο</string>
+    <string name="about_setting_fused_location_info">χρησιμοποιεί τη θέση Google όταν είναι διαθέσιμη. Αυτό μπορεί να βελτιώσει τις ενημερώσεις θέσης σε κάποια τηλέφωνα.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Εξοικονομεί μπαταρία ελέγχοντας την τοποθεσία σας λιγότερο συχνά αλλά με αξιόπιστο τρόπο. Απενεργοποιήστε το για συνεχείς ενημερώσεις τοποθεσίας.</string>
+    <string name="about_setting_imperial_units_info">Δείχνει αποστάσεις και ταχύτητες σε πόδια, μίλια και mph αντί για μέτρα και km/h.</string>
+    <string name="about_setting_light_theme_info">Αλλάζει την εφαρμογή από την προεπιλεγμένη σκούρα εμφάνιση σε ανοιχτή.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Δείχνει κοντινούς δρόμους και άλλα γεωμετρικά στοιχεία δρομολόγησης στην πυξίδα όταν είναι διαθέσιμα τοπικά δεδομένα χάρτη.\n\n Θρύλος χρωμάτων: \n■ — κύριοι δρόμοι και αυτοκινητόδρομοι \n■ — κανονικοί δρόμοι \n■ — πεζοί και ποδηλατοδρόμοι και διαδρομές \n■ — σιδηρόδρομοι, υδάτινοι δρόμοι, φέρι, διαδρομές σκι/κανό/λεωφορείου, ιπποδρόμια, πίστες αγώνων και via ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">Παραλείπει την κινούμενη μεγέθυνση της πυξίδας ώστε η μετάβαση μεταξύ επισκόπησης διαδρομής και κίνησης κλίμακας να είναι άμεση.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Εμφανίζει ολόκληρη τη διαδρομή στην πυξίδα όταν είστε σταθεροί. Απενεργοποιήστε το για να κρατήσετε την τελευταία κλίμακα ζουμ κίνησης όταν σταματάτε.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Επεκτείνει την προβολή της πυξίδας της διαδρομής πίσω από την πλήρη οθόνη πλοήγησης διατηρώντας τα χειριστήρια και το κείμενο κατεύθυνσης ορατά μπροστά.</string>
+    <string name="about_setting_compass_distance_circles_info">Εμφανίζει κύκλους απόστασης με ετικέτες χρόνου και απόστασης, το βέλος κατεύθυνσης και γραμμές και τόξα ακρίβειας πορείας στις προβολές πυξίδας και πλήρους οθόνης.</string>
+    <string name="about_setting_compass_central_perspective_info">Χρησιμοποιεί προοπτική στην προβολή πυξίδας 3D: οι κοντινές διαδρομές και δρόμοι εμφανίζονται μεγαλύτερες, ενώ οι απομακρυσμένες συρρικνώνονται προς την κορυφή. Απενεργοποιήστε το για να χρησιμοποιήσετε την ομοιόμορφη ορθογραφική κλίση.</string>
+    <string name="about_setting_show_hint_panel_info">Εμφανίζει συμβουλές χειρονομιών και τον θρύλο χρωμάτων δρόμου όταν ανοίγει η πλοήγηση στο τηλέφωνο.</string>
+    <string name="about_setting_navigation_notifications_info">εμφανίζει ειδοποιήσεις στροφών και προειδοποιήσεις πλοήγησης ως ειδοποιήσεις. Η συνεχιζόμενη ειδοποίηση πλοήγησης δεν επηρεάζεται και παραμένει ορατή κατά την πλοήγηση.\n\nΤο</string>
+    <string name="about_setting_single_instruction_mode_info">χρησιμοποιεί μία ειδοποίηση ελιγμού περίπου 10 δευτερόλεπτα πριν από κάθε επερχόμενη εντολή και καταστέλλει τις ειδοποιήσεις εκκίνησης, 20 δευτερολέπτων και 5 δευτερολέπτων ελιγμών. Οι ειδοποιήσεις άφιξης και προειδοποίησης δεν επηρεάζονται.\n\nΤο</string>
+    <string name="about_setting_navigation_custom_button_info">εμφανίζει ένα επιπλέον κουμπί στη πυξίδα πλοήγησης που αλλάζει την επιλεγμένη ρύθμιση ενώ η πλοήγηση είναι ανοιχτή.\n\nΤο</string>
+    <string name="about_setting_android_auto_info">επιτρέπει στις συμβατές οθόνες αυτοκινήτων να εμφανίζουν πλοήγηση μέσω Android Auto. Μερικοί κεντρικοί υπολογιστές ανανεώνουν τη λίστα εφαρμογών μόνο αφού η Android Auto επανασυνδεθεί. Στα πραγματικά οχήματα, η Android Auto εμφανίζει αυτόν τον τύπο εφαρμογής μόνο όταν έχει εγκατασταθεί από αξιόπιστη πηγή όπως η Google Play ή εσωτερική κοινή χρήση εφαρμογών.</string>
+    <string name="about_setting_poi_categories_info">Επιλέγει ποια μέρη μπορούν να εμφανίζονται στον επιλογέα χάρτη, όπως καύσιμα, πάρκινγκ ή τουαλέτες.</string>
+    <string name="about_setting_speech_recognition_info">Εμφανίζει κουμπιά μικροφώνου για τον προορισμό και σταματά την εισαγωγή φωνής και επιλέγει τη ζητούμενη γλώσσα αναγνώρισης. Το Android μπορεί να χρησιμοποιήσει την προεπιλογή του εάν ο επιλεγμένος αναγνωριστής φωνής δεν υποστηρίζει τη ζητούμενη γλώσσα.</string>
+    <string name="about_setting_maneuver_voice_info">Διαβάζει δυνατά τις επερχόμενες οδηγίες κατεύθυνσης χρησιμοποιώντας φωνή Android.</string>
+    <string name="about_setting_google_poi_api_key_info">Επιτρέπει την αναζήτηση προορισμού να χρησιμοποιεί Google Maps όταν παρέχετε έγκυρο κλειδί.</string>
+    <string name="about_setting_export_database_info">Αποθηκεύει τα δεδομένα της εφαρμογής σας, συμπεριλαμβανομένου του ιστορικού, των αποθηκευμένων διαδρομών, των ρυθμίσεων και των επιλογών προφίλ, ως JSON στο Download/ViBRo/backup στο τηλέφωνο ή στην κάρτα SD που επιλέγεται από τη Χρήση εξωτερικής αποθήκευσης. Εμφανίζει το αποθηκευμένο όνομα αρχείου χωρίς να ρωτά για έναν φάκελο. Στα Android 6–9, ρυθμίστε πρώτα την πρόσβαση στην αποθήκευση στις Διαγνωστικές Εξετάσεις.</string>
+    <string name="about_setting_import_database_info">Επαναφέρει τα δεδομένα της εφαρμογής σας από ένα αντίγραφο ασφαλείας JSON που δημιουργήθηκε από αυτήν την εφαρμογή. Ο επιλογέας αρχείων ξεκινάει στο Download/ViBRo/backup στο τηλέφωνο ή στην κάρτα SD που επιλέχθηκε μέσω Χρήση εξωτερικής αποθήκευσης στο Android 8 και μεταγενέστερες εκδόσεις. Μπορείτε επίσης να περιηγηθείτε σε άλλο φάκελο.</string>
+    <string name="msg_google_poi_api_key_saved">Κλειδί Google Maps API αποθηκεύτηκε.</string>
+    <string name="msg_google_poi_api_key_cleared">Κλειδί Google Maps API διαγράφηκε.</string>
+    <string name="msg_google_poi_api_key_required">Προσθέστε ένα κλειδί Google Maps API πριν ενεργοποιήσετε την αναζήτηση Google.</string>
+    <string name="msg_google_poi_api_key_validating">Επικυρώνεται κλειδί Google Maps API…</string>
+    <string name="msg_google_poi_api_key_invalid">Το κλειδί Google Maps API δεν είναι έγκυρο.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Δεν ήταν δυνατή η επικύρωση του κλειδιού Google Maps API.</string>
+    <string name="about_diagnostic_title">Διαγνωστικά</string>
+    <string name="about_permission_status_title">Απαιτούμενη πρόσβαση</string>
+    <string name="about_sensor_status_title">Κατάσταση αισθητήρα</string>
+    <string name="label_direction_notification_tests">Δοκιμές ειδοποιήσεων κατευθύνσεων</string>
+    <string name="label_permission_location">Άδεια τοποθεσίας</string>
+    <string name="label_permission_location_services">Τοποθεσία συσκευής</string>
+    <string name="label_permission_notifications">Ειδοποιήσεις</string>
+    <string name="label_permission_battery">Βελτιστοποίηση μπαταρίας</string>
+    <string name="label_permission_surrounding_street_storage">Αποθήκευση δρόμων BRouter</string>
+    <string name="label_permission_brouter_profile_storage">Αποθήκευση προφίλ BRouter</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Πατήστε για επίλυση.</string>
+    <string name="label_sensor_fused_provider">Πάροχος Google fused</string>
+    <string name="label_sensor_gps_provider">Πάροχος GPS</string>
+    <string name="label_sensor_network_provider">Παροχέας δικτύου</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Διάνυσμα γεωμαγνητικής περιστροφής</string>
+    <string name="label_sensor_rotation_vector">Διάνυσμα περιστροφής</string>
+    <string name="label_sensor_orientation">Αισθητήρας προσανατολισμού</string>
+    <string name="label_sensor_linear_acceleration">Αισθητήρας γραμμικής επιτάχυνσης</string>
+    <string name="label_sensor_accelerometer">Επιταχυνσιόμετρο</string>
+    <string name="sensor_status_enabled">Απενεργοποιημένο</string>
+    <string name="sensor_status_disabled">Προαιρετικό κλειδί</string>
+    <string name="sensor_status_available">διαθέσιμο</string>
+    <string name="sensor_status_unavailable">μη διαθέσιμο</string>
+    <string name="sensor_status_permission_denied">άδεια αρνηθεί</string>
+    <string name="auto_no_active_navigation_title">Καμία ενεργή πλοήγηση</string>
+    <string name="auto_no_active_navigation_text">Ξεκινήστε πλοήγηση στο τηλέφωνο για να εμφανιστεί καθοδήγηση εδώ.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Αγγίξτε οπουδήποτε για κλείσιμο ή περιμένετε %1$d δευτερόλεπτο</item>
+        <item quantity="other">Αγγίξτε οπουδήποτε για κλείσιμο ή περιμένετε %1$d δευτερόλεπτα</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Στραφείτε κατά %1$d μοίρα %2$s</item>
+        <item quantity="other">Στραφείτε κατά %1$d μοίρες %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d δευτερόλεπτο</item>
+        <item quantity="other">%1$d δευτερόλεπτα</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d λεπτό</item>
+        <item quantity="other">%1$d λεπτά</item>
+    </plurals>
+</resources>

@@ -49,10 +49,22 @@ public class AppLanguageSettingsTest {
 
     @Test
     public void unsupportedLanguagesFallBackToEnglishAndCatalogCannotBeMutated() {
-        assertEquals("en", AppLanguageSettings.getEffectiveLanguageTag(context, "fr-FR"));
+        assertEquals("en", AppLanguageSettings.getEffectiveLanguageTag(context, "fi-FI"));
         AppLanguageSettings.setSelectedLanguageTag(context, "invalid");
         assertEquals("en", AppLanguageSettings.getSelectedLanguageTag(context, "it"));
         AppLanguageSettings.availableLanguageTags()[0] = "fr";
-        assertArrayEquals(new String[]{"en", "it", "de"}, AppLanguageSettings.availableLanguageTags());
+        assertArrayEquals(new String[]{"en", "it", "de", "ar", "ca", "cs", "da", "el", "es", "fr",
+                "hu", "ja", "ko", "nl", "pl", "pt", "sv", "zh"}, AppLanguageSettings.availableLanguageTags());
+    }
+
+    @Test
+    public void addedLanguagesMatchRegionalVariantsAndPersistManualSelection() {
+        for (String tag : AppLanguageSettings.availableLanguageTags()) {
+            assertEquals(tag, AppLanguageSettings.getEffectiveLanguageTag(context, tag + "-XX"));
+            AppLanguageSettings.setSelectedLanguageTag(context, tag);
+            AppLanguageSettings.setUseSystemLanguageEnabled(context, false, "en");
+            assertEquals(tag, AppLanguageSettings.getEffectiveLanguageTag(context, "de-AT"));
+            AppLanguageSettings.setUseSystemLanguageEnabled(context, true, "en");
+        }
     }
 }

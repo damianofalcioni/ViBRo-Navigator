@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Använd systemspråk</string>
+    <string name="action_configure_app_language">Konfigurera applikationsspråk</string>
+    <string name="title_app_language">Applikationsspråk</string>
+    <string name="label_app_language">Språk</string>
+    <string name="hint_app_language">Det valda språket används när Använd systemspråk är av.</string>
+    <string name="about_setting_language_info">Använder det första stödda språket i dina språkpreferenser på enheten, eller engelska om inget är tillgängligt. Stäng av detta för att använda språket som valts med konfigurationsknappen. Det initiala valet matchar ditt systemspråk.</string>
+    <string name="nav_gesture_map_controls_title">Kontroll för gestkarta</string>
+    <string name="nav_gesture_views_body">
+        <b>Byt vyer.</b> Dubbeltryck eller svep vänster / höger för att växla mellan full rutt-, 2D- och 3D-vyer</string>
+    <string name="nav_gesture_zoom_body">
+        <b>Zooma in / ut.</b> Nyp ihop eller spreta på 2D- och 3D-vyer för ±2 zoomnivåer</string>
+    <string name="nav_gesture_tilt_body">
+        <b>Luta 3D-vyn.</b> Svep upp / ner med två fingrar för att luta 3D-vyn</string>
+    <string name="nav_gesture_map_legend_title">Kartlegend</string>
+    <string name="nav_gesture_current_route">Aktuell rutt</string>
+    <string name="nav_gesture_current_position_accuracy">Nuvarande position och noggrannhet</string>
+    <string name="nav_gesture_dont_show_again">Visa inte igen</string>
+    <string name="nav_gesture_dismiss">Tryck var som helst för att stänga</string>
+    <string name="welcome_title">Välkommen till ViBRo</string>
+    <string name="welcome_tldr">TL;DR: Installera BRouter, ladda ner lokala ruttdata och ge tillstånd.</string>
+    <string name="welcome_intro">ViBRo Navigator (Vibrerande/Vibe-kodad BRouter Navigator) är en lätt, offline-först och batterisnål Android GPS navigeringsapp byggd ovanpå BRouter. Den är utformad för kartfri navigering, levererar vägbeskrivningar genom vibrationer och minimal visuell och röstbaserad vägledning, vilket möjliggör användning utan distraktioner och med skärmen avstängd.</string>
+    <string name="welcome_setup_title">Första inställningar</string>
+    <string name="welcome_brouter_body">• Installera BRouter med de länkar som ges, öppna sedan appen och ladda ner ruttdata för ditt område.</string>
+    <string name="welcome_permissions_body">• Efter detta välkomnande och den valfria BRouter-installationsprompten, tillåt plats, mikrofon (för röstinmatning), aviseringar och all begärd lagringstillgång. Aktivera enhetens plats när du uppmanas. Du kan hoppa över en begäran och aktivera åtkomst senare.</string>
+    <string name="welcome_storage_body">• Ge profiles2 åtkomst till mappen när du uppmanas, eller lagringstillstånd på äldre Android-versioner.</string>
+    <string name="welcome_battery_body">• Tillåt den valfria undantagen för batterioptimering för pålitlig vägledning med skärmen av.</string>
+    <string name="welcome_optional_access_body">• Mikrofontillgång behövs endast om den efterfrågas för röststyrd sökning.</string>
+    <string name="action_about">• Om</string>
+    <string name="action_start_navigation">• Starta navigation</string>
+    <string name="action_pause_navigation">• Pausa navigation</string>
+    <string name="action_resume_navigation">• Återuppta navigation</string>
+    <string name="action_stop_navigation">• Stoppa navigation</string>
+    <string name="action_save_route">• Spara rutt</string>
+    <string name="action_restore_route">• Återställ rutt</string>
+    <string name="action_add_stop">• Lägg till stopp</string>
+    <string name="action_remove_stop">• Ta bort stopp</string>
+    <string name="action_blocked_road">• Stängd väg</string>
+    <string name="action_skip_beeline_target">• Hoppa över målet rakt fram</string>
+    <string name="action_delete">• Radera</string>
+    <string name="action_edit">Redigera</string>
+    <string name="action_open_settings">Öppna inställningar</string>
+    <string name="action_open_tts_settings">Öppna text-till-tal-inställningar</string>
+    <string name="action_open_speech_directions_settings">Öppna röstvägledningsinställningar</string>
+    <string name="action_open_speech_recognition_settings">Öppna röstigenkänningsinställningar</string>
+    <string name="action_open_android_stt_settings">Öppna Android tal-till-text-inställningar</string>
+    <string name="action_continue">Fortsätt</string>
+    <string name="action_enable_speech_recognition">Visa röstigenkänningsknappar</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Testa röstvägledning</string>
+    <string name="action_voice_search_destination">Tala destination</string>
+    <string name="action_voice_search_stop">Tala stopp</string>
+    <string name="action_clear_poi_search">Rensa söktext</string>
+    <string name="action_save">Spara nyckel</string>
+    <string name="action_save_poi_categories">Spara</string>
+    <string name="action_open_map">Karta</string>
+    <string name="action_cancel">Avbryt</string>
+    <string name="action_use_selected_point">Använd vald punkt</string>
+    <string name="action_map_poi_categories">POI kategorier</string>
+    <string name="action_open_map_position">Öppna kartposition</string>
+    <string name="action_test_left_notification">Vänster</string>
+    <string name="action_test_other_notification">Andra</string>
+    <string name="action_test_right_notification">Höger</string>
+    <string name="action_current_location">Nuvarande plats</string>
+    <string name="action_edit_poi_categories">Redigera POI kategorier</string>
+    <string name="action_edit_google_poi_api_key">Redigera Google Maps API nyckel</string>
+    <string name="action_configure_navigation_custom_button">Konfigurera anpassad knapp</string>
+    <string name="action_enable_google_poi_search">Aktivera Google sökning</string>
+    <string name="action_add_poi_category">Lägg till POI-kategori</string>
+    <string name="action_remove_poi_category">Ta bort POI-kategori</string>
+    <string name="action_enable_poi_category">Aktivera POI-kategori</string>
+    <string name="action_export_database">Exportera databas</string>
+    <string name="action_import_database">Importera databas</string>
+    <string name="action_export_route">Exportera GPX</string>
+    <string name="action_profile_info">Profilinformation</string>
+    <string name="action_setting_info">Inställningsinformation</string>
+    <string name="action_poi_details">POI-detaljer</string>
+    <string name="action_search_google_maps">Sök i Google Maps</string>
+    <string name="action_profile_settings">Profilinställningar</string>
+    <string name="action_reset_defaults">Återställ standardvärden</string>
+    <string name="label_vehicle_profile">Profil</string>
+    <string name="label_route_mode_route">Rutläge</string>
+    <string name="label_route_mode_round_trip">Rundtursläge</string>
+    <string name="label_route_mode_straight_line">Raka linjen-läge</string>
+    <string name="label_destination">Destination</string>
+    <string name="label_poi_entrance">Ingång</string>
+    <string name="label_poi_entrances">Ingångar</string>
+    <string name="label_poi_entrance_type">Typ</string>
+    <string name="label_poi_coordinates">Koordinater</string>
+    <string name="label_poi_extra_tags">Extra taggar</string>
+    <string name="label_poi_address_details">Adress</string>
+    <string name="label_round_trip_distance_km">Genomsnittlig tur-och-retur-distans (km)</string>
+    <string name="label_round_trip_distance_mi">Genomsnittlig tur-och-retur-distans (mi)</string>
+    <string name="label_round_trip_direction">Tur-och-retur-riktning (°)</string>
+    <string name="label_round_trip_direction_compass">Tur-och-retur-riktningskompass</string>
+    <string name="label_profile_attention_icon">Experimentell eller felsökningsprofil</string>
+    <string name="format_profile_info_content_description">Visa information för %1$s</string>
+    <string name="format_route_mode_info_content_description">Visa lägesinformation för %1$s</string>
+    <string name="format_poi_details_content_description">Visa POI detaljer för %1$s</string>
+    <string name="format_poi_search_info_content_description">Visa sökinformation för %1$s</string>
+    <string name="format_poi_entrance_heading">Ingång %1$d</string>
+    <string name="format_poi_entrance_type">Ingång: %1$s</string>
+    <string name="format_stop_label">Stoppa %1$d</string>
+    <string name="format_default_saved_route_name">Rutt %1$s</string>
+    <string name="hint_search_destination">Sök destination</string>
+    <string name="hint_search_stop">Sök stopp</string>
+    <string name="prompt_speech_destination">Säg destinationen</string>
+    <string name="prompt_speech_stop">Säg stoppet</string>
+    <string name="hint_saved_route_name">Ruttnamn</string>
+    <string name="msg_missing_destination">Välj en destination</string>
+    <string name="msg_invalid_destination_name">Ange ett destinationsnamn</string>
+    <string name="msg_invalid_route_name">Ange ett ruttnamn</string>
+    <string name="msg_invalid_coordinates">Välj en plats med koordinater</string>
+    <string name="msg_invalid_stop">Ta bort eller välj ett stopp med koordinater</string>
+    <string name="msg_invalid_round_trip_distance">Ange ett giltigt tur-och-retur-avstånd</string>
+    <string name="msg_invalid_round_trip_direction">Ange en giltig tur-och-retur-riktning</string>
+    <string name="msg_round_trip_requires_brouter_profile">Välj en BRouter-profil för tur-och-retur-läge</string>
+    <string name="msg_brouter_not_found">BRouter är inte installerad</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter krävs för omkringliggande gator.</string>
+    <string name="title_brouter_not_found">BRouter krävs</string>
+    <string name="title_stop_navigation_confirm">Stoppa navigering?</string>
+    <string name="msg_brouter_install_prompt">BRouter är inte installerad. Öppna dess app-sida i Play Store eller F-Droid?</string>
+    <string name="msg_location_disabled">Plats är inaktiverad. Aktivera den för att navigera.</string>
+    <string name="msg_permission_required">Tillstånd krävs</string>
+    <string name="msg_stop_navigation_confirm">Vill du stoppa navigeringen och stänga den här skärmen?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator behöver åtkomst till plats för att navigera och vibrera riktningar.</string>
+    <string name="msg_permission_notifications_rationale">Aviseringar används för att varna om kommande svängar.</string>
+    <string name="msg_enable_notifications">Aktivera aviseringar för svängvarningar.</string>
+    <string name="msg_battery_opt_rationale">För pålitlig bakgrundsnavigering, tillåt ViBRo Navigator att ignorera batterioptimeringar.</string>
+    <string name="msg_open_settings_failed">Kunde inte öppna inställningar på denna enhet.</string>
+    <string name="msg_open_brouter_store_failed">Kunde inte öppna en BRouter-butiksida på denna enhet.</string>
+    <string name="msg_intent_unrecognized">Delad plats inte igenkänd</string>
+    <string name="msg_gpx_import_failed">Kunde inte ladda GPX-vägpunkter.</string>
+    <string name="msg_gpx_import_blocked_navigation">Stoppa navigering innan du öppnar en GPX-rutt.</string>
+    <string name="msg_speech_input_unavailable">Ingen taligenkänningstjänst är aktiverad. Aktivera Google-appen eller Android röstinmatning.</string>
+    <string name="msg_speech_input_listening">Lyssnar…</string>
+    <string name="msg_speech_input_empty">Inget taligenkännande upptäcktes.</string>
+    <string name="msg_speech_input_failed">Talinmatning misslyckades. Försök igen.</string>
+    <string name="msg_speech_input_unresponsive">Taligenkänning startade inte. Aktivera Google-appen eller Android röstinmatning.</string>
+    <string name="msg_speech_permission_required">Mikrofonbehörighet behövs för talinmatning.</string>
+    <string name="msg_select_custom_profile">Välj en anpassad BRouter .brf-fil</string>
+    <string name="msg_invalid_custom_profile">Välj en giltig BRouter .brf-fil</string>
+    <string name="msg_profile_parameters_empty">Den här profilen exponerar inga redigerbara parametrar.</string>
+    <string name="msg_profile_parameters_not_localized">Parametrar hämtas dynamiskt från BRouter-profilfilen, så deras namn, beskrivningar och alternativ är inte översatta.</string>
+    <string name="msg_profile_parameters_saved">Profilinställningar sparade.</string>
+    <string name="msg_profile_parameters_reset">Profilinställningar återställda till profilstandard.</string>
+    <string name="msg_profile_parameter_invalid_number">Ange ett giltigt nummer.</string>
+    <string name="msg_profile_parameter_invalid_text">Värden kan inte innehålla ?, &amp; eller =.</string>
+    <string name="msg_poi_details_unavailable">Inga ytterligare detaljer finns.</string>
+    <string name="msg_poi_details_map_check_hint">Använd kartan för att dubbelkolla att detta är den avsedda platsen.</string>
+    <string name="msg_poi_google_maps_search_info">Öppnar Google Maps med texten från detta POI-sökfält. Efter att ha valt en plats i Google Maps, dela den platsen och välj ViBRo Navigator för att hämta resultatet tillbaka hit.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">Lagringsåtkomst behövs för att läsa lokala BRouter-gator.</string>
+    <string name="title_brouter_segments_storage_access">BRouter-gatlager</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Omgivande gator behöver åtkomst till BRouter segments4-mappen. På nästa skärm går du till %1$s och bekräftar mappåtkomst. Om den platsen inte är tillgänglig, välj mappen där BRouter lagrar sina .rd5-filer.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">Lagringsåtkomst behövs för att läsa BRouter-profilfiler.</string>
+    <string name="title_brouter_profiles_storage_access">BRouter-profillagring</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profiler behöver åtkomst till profiles2-mappen. På nästa skärm, bläddra till %1$s och bekräfta mappåtkomst. Om den platsen inte är tillgänglig, välj mappen där BRouter lagrar sina .brf-profiler.</string>
+    <string name="msg_symbol_test_notification_sent">Symboltestmeddelande skickat.</string>
+    <string name="msg_map_location_searching">Söker efter aktuell plats…</string>
+    <string name="msg_map_location_unavailable">Aktuell plats är inte tillgänglig.</string>
+    <string name="msg_map_selection_required">Välj en punkt på kartan först.</string>
+    <string name="msg_map_position_unavailable">Kartutgång är inte tillgänglig.</string>
+    <string name="msg_map_position_no_app">Ingen app kan öppna kartpositioner.</string>
+    <string name="msg_map_position_open_failed">Kunde inte öppna kartposition.</string>
+    <string name="msg_map_poi_loading">Laddar POIs…</string>
+    <string name="msg_map_poi_unavailable">POIs är inte tillgängliga.</string>
+    <string name="msg_map_poi_zoom_in">Zooma in för att ladda POIs.</string>
+    <string name="msg_map_poi_empty">Inga aktiverade POIs i denna kartvy.</string>
+    <string name="msg_map_poi_categories_empty">Inga POI-kategorier i denna kartvy.</string>
+    <string name="msg_database_exported">Databas sparad: %1$s</string>
+    <string name="msg_database_export_failed">Kunde inte exportera databasen.</string>
+    <string name="msg_database_imported">Databas importerad.</string>
+    <string name="msg_database_import_failed">Kunde inte importera databasen.</string>
+    <string name="msg_saved_route_saved">Rutt sparad.</string>
+    <string name="msg_saved_route_restored">Rutt återställd.</string>
+    <string name="msg_saved_routes_empty">Inga sparade rutter.</string>
+    <string name="msg_route_export_unavailable">Ingen aktiv rutt att exportera.</string>
+    <string name="msg_route_export_failed">Kunde inte exportera rutt.</string>
+    <string name="msg_route_export_no_app">Ingen app kan öppna GPX-rutter.</string>
+    <string name="msg_google_maps_search_open_failed">Kunde inte öppna Google Maps-sökning.</string>
+    <string name="msg_open_url_failed">Kunde inte öppna länk på denna enhet.</string>
+    <string name="label_exported_route_gpx">ViBRo-rutt GPX</string>
+    <string name="gpx_passed_route_track_name">Genomförd rutt</string>
+    <string name="format_gpx_gps_fix_name">GPS-fix %1$d</string>
+    <string name="label_vehicle_profile_custom">Anpassad</string>
+    <string name="label_vehicle_profile_custom_with_name">Anpassad (%1$s)</string>
+    <string name="title_profile_parameters">Profilsinställningar: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Återställ profilen inställningar?</string>
+    <string name="msg_profile_parameters_reset_confirm">Återställ den här profilens inställningar till de värden som definieras i profilen?</string>
+    <string name="format_profile_parameter_info_content_description">Visa parameterinformation för %1$s</string>
+    <string name="route_mode_info_route_description">Beräknar en BRouter-rutt från din nuvarande position via eventuella stopp till destinationen.</string>
+    <string name="route_mode_info_round_trip_description">Beräknar en cirkulär BRouter-rutt från din nuvarande position med hjälp av den valda profilen och genomsnittlig reslängd.</string>
+    <string name="route_mode_info_straight_line_description">Hoppar över BRouter och vägleder direkt mot destinationen och stannar med fågelvägsavstånd och riktning.</string>
+    <string name="profile_info_trekking_title">Trekcykel</string>
+    <string name="profile_info_trekking_description">Balanserad cykelruttning för vardagscykling, touring och praktisk navigation. Dess största styrka är mångsidighet: den undviker tung biltrafik, stöder cykelvägar, tar hänsyn till höjdskillnader och genererar oftast rutter som känns rimliga för vanliga cyklister. Dess svaghet är att den inte är högspecialiserad: landsvägscyklister kan tycka att den är långsammare än `fastbike`, medan offroad-cyklister kan tycka att den är för försiktig jämfört med `mtb` eller `gravel`. Dess särskiljande aspekt är att det är den säkraste profilen för allmän användning och förmodligen den bästa standardinställningen för de flesta användare.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Trekking, ignorera rutter</string>
+    <string name="profile_info_trekking_ignore_cr_description">En trekkingcykelvariant som ignorerar cykelroutrelationer. Dess styrka är att den undviker att överprioritera skyltade eller kartlagda cykelrutter när dessa rutter är indirekta, natursköna, föråldrade eller faktiskt inte användbara för den aktuella resan. Dess svaghet är att den förlorar en av de största fördelarna med den normala trekkingprofilen: att följa bra cykelnätverk där de finns. Dess särskilda aspekt är att den svarar på ett specifikt problem: \"företräd inte en väg bara för att den tillhör en cykelrutt.\"</string>
+    <string name="profile_info_trekking_noferries_title">Trekking, inga färjor</string>
+    <string name="profile_info_trekking_noferries_description">En trekkingcykelvariant som undviker färjeförbindelser. Dess styrka är förutsägbarhet: den undviker rutter som beror på färjetidtabeller, säsongsdrift, biljettköp, väntetid eller osäker tillgänglighet. Dess svaghet är att den kan ge mycket längre rutter i flod-, sjö-, ö- eller kustregioner där färjor är den praktiska förbindelsen. Dess utmärkande aspekt är att det är trekkingprofilen för användare som vill ha rutter enbart på land.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, inga steg</string>
+    <string name="profile_info_trekking_nosteps_description">En vandringscykelvariant som undviker trappor. Dess styrka är praktisk körbarhet, särskilt för lastade touringcyklar, elcyklar, lastcyklar, barnvagnar eller användare som inte vill bära cykeln. Dess svaghet är att den kan undvika korta gång-/cykelgenvägar och orsaka längre omvägar i städer eller kuperade områden. Dess utmärkande aspekt är att den behåller den normala trekkingbalansen men tar bort en av de mest irriterande överraskningarna i cykelrutter: trappor.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, branta backar</string>
+    <string name="profile_info_trekking_steep_description">En trekkingcykelvariant för rutter där brantare stigningar är mer acceptabla. Dess styrka är att den kan välja mer direkta eller backigare rutter istället för att kraftigt undvika höjdskillnader. Dess svaghet är att den kan vara obekväm eller olämplig för vanliga cyklister, tunga cyklar, släpvagnar eller turer med elcyklar med låg batterinivå. Dess utmärkande egenskap är att den behåller trekkingkaraktären men är mindre rädd för brant terräng än den vanliga trekkingprofilen.</string>
+    <string name="profile_info_fastbike_title">Landsvägscykel</string>
+    <string name="profile_info_fastbike_description">Optimerad för snabb cykling på asfalterade vägar, racercyklar, träningscyklar och speed-pedelecs. Dess styrka är hastighet: den föredrar effektiva, högkvalitativa vägar och använder en restidsorienterad modell snarare än att bara leta efter tysta eller natursköna vägar. Dess svaghet är att den kan kännas för vägorienterad för fritidscyklister, familjer eller användare som starkt önskar lågt trafikerade rutter. Dess utmärkande aspekt är att det är den prestationsinriktade cykelprofilen: snabbare och mer direkt än `trekking`, men fortfarande cykelmedveten.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Racercykel, låg trafik</string>
+    <string name="profile_info_fastbike_lowtraffic_description">En snabbcykelprofil som lägger mer vikt vid att undvika trafik än normal `fastbike`, samtidigt som den fortfarande är prestationsinriktad. Dess styrka är att den är ett bra kompromissval för cyklister som vill ha hög hastighet men inte vill ständigt ledas ut på trafikerade vägar. Dess svaghet är att den kan vara något långsammare eller mindre direkt än `fastbike`, och mindre trafikanpassad än `fastbike-verylowtraffic`. Dess särskiljande aspekt är att den är det mittersta alternativet mellan ren snabbrouting och mycket trafik-känslig snabbcykelrouting.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Landsvägscykel, minst trafik</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">En starkare variant med låg trafik för landsvägscykel- eller snabb-pedelec-användare som vill undvika bilar och lastbilar så mycket som möjligt. Dess styrka är säkrare och lugnare snabb cykling, särskilt för ensamcykling, regn, nattcykling eller områden med tät trafik. Dess svaghet är att den kan leda till större omvägar och kan undvika annars snabba vägar om de har mycket trafik. Dess utmärkande egenskap är att den behåller snabbcykelkaraktären men gör mycket lågtrafikerade rutter till huvudprioritet.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Landsvägscykel, Asien-Stillahavsregionen</string>
+    <string name="profile_info_fastbike_asia_pacific_description">En regional variant av `fastbike` för länder där europeiska antaganden om huvudvägar, motorvägar och cykelrestriktioner inte alltid passar. Dess styrka är att den kan göra fast-bike-routing mer användbar i regioner som Japan, Australien och andra Asien-Stillahavs-kontekster där vägklassificering och cykeltillgång kan skilja sig från Europa. Dess svaghet är att den är mindre lämplig som en universell standardprofil. Dess särskiljande aspekt är att den behåller fast-bike-logiken men anpassar väg-tillgångsantagandena för Asien-Stillahavs-användning.</string>
+    <string name="profile_info_safety_title">Säker cykling</string>
+    <string name="profile_info_safety_description">En cykelprofil som fokuserar på säkrare och lugnare rutter. Dess styrka är att den prioriterar att undvika obehagliga eller farliga vägar mer än vanlig snabb ruttplanering, vilket gör den användbar för försiktiga cyklister, familjer, stadscykling eller användare som föredrar komfort framför hastighet. Dess svaghet är att den kan producera långsammare, längre eller mindre direkta rutter. Dess utmärkande aspekt är att det är det tydligaste \"säkerhet-först\" cykelalternativet, användbart när användarens prioritet är att undvika stressig trafik snarare än att minimera tid.</string>
+    <string name="profile_info_gravel_title">Gravelcykel</string>
+    <string name="profile_info_gravel_description">Designad för gruscyklar och turer på blandade underlag. Dess styrka är att hitta rutter som kan inkludera packad grusväg, spår och lågt trafikerade obelagda vägar, samtidigt som ytor som är för grova, leriga, branta eller långsamma undviks. Dess svaghet är att den inte är idealisk för rena landsvägscyklar, eftersom den kan välja obelagda sektioner medvetet, och den är inte lika stigorienterad som en riktig MTB-profil. Dess särdrag är att den ligger mellan landsvägscykling och mountainbike: mer äventyrlig än `fastbike`, mindre teknisk än `mtb`.</string>
+    <string name="profile_info_mtb_title">Mountainbike</string>
+    <string name="profile_info_mtb_description">En terränginriktad cykelprofil för mountainbike och stigbaserad körning. Dess styrka är att den kan föredra stigar, spår, oframkomliga vägar och terräng som passar MTB mycket mer än vanliga cykelprofiler. Dess svaghet är att den kan generera rutter som är olämpliga för turcykling, pendling eller landsvägscykling, särskilt om användaren egentligen inte vill ha ojämna stigar. Dess särdrag är dess MTB-specifika beteende: den tar hänsyn till stigpreferens, ytkvalitet, jämnhet, våta förhållanden, backbeteende och terränganpassning.</string>
+    <string name="profile_info_hiking_mountain_title">Bergsvandring</string>
+    <string name="profile_info_hiking_mountain_description">En vandringsprofil för vandrings- och bergsstigar. Dess styrka är att den är utformad kring fottrafik, vandringsleder, stigsvårigheter och bergsspecifika förhållanden istället för cykel- eller bilantaganden. Dess svaghet är att den är mycket beroende av bra OSM-tagging för stigar, tillgång, vandringsleder och svårighetsnivåer, särskilt i alpina områden. Dess särdrag är att det är den samlade profilen som tydligast fokuserar på bergsvandring snarare än transporteffektivitet.</string>
+    <string name="profile_info_skating_title">Skridskoåkning</string>
+    <string name="profile_info_skating_description">Optimerad för inline-skating eller liknande långdistansskridskoaktiviteter. Dess styrka är ytans känslighet: den föredrar starkt släta, asfalterade, flödande rutter och undviker ytor, barriärer, trafikljus, korsningar och skarpa avbrott som bryter skridskorytmen. Dess svaghet är att den är mycket specialiserad och kan avvisa rutter som är acceptabla för cyklar eller fotgängare men dåliga för skridskor. Dess särskiljande aspekt är att den planerar rutter för skridskoflöde, inte bara laglig tillgång eller avstånd.</string>
+    <string name="profile_info_shortest_title">Kortaste rutt</string>
+    <string name="profile_info_shortest_description">En minimal profil som främst försöker minimera ruttens längd. Dess styrka är enkelheten: den är användbar när användaren uttryckligen vill ha den kortast möjliga tillgängliga rutten eller när man jämför ruttens geometri. Dess svaghet är att kortast ofta inte är bäst: den kan välja osäkra, obehagliga, branta, grova eller trafikintensiva segment. Dess distinkta aspekt är att den för det mesta ignorerar komfort och preferenslogik, vilket gör den användbar som en referensprofil snarare än som en bra standard.</string>
+    <string name="profile_info_car_eco_title">Bil, eco</string>
+    <string name="profile_info_car_eco_description">En ekonomisk bilruttprofil som fokuserar på att minska onödig hastighet, energianvändning och ineffektiva körmönster. Dess styrka är att den kan föredra mer energi-medvetna rutter istället för att helt enkelt jaga den snabbaste vägen. Dess svaghet är att den kan välja långsammare eller mindre direkta rutter och kan kännas mindre bekväm när ankomsttid är huvudprioritet. Dess utmärkande aspekt är att det är bilprofilen för \"rimlig effektivitet\" snarare än maximal hastighet.</string>
+    <string name="profile_info_car_eco_nocost_title">Bil, eco (grund)</string>
+    <string name="profile_info_car_eco_nocost_description">En förenklad ekonomibilvariant. Dess styrka är att den behåller en ekonomiskt inriktad bilmodell samtidigt som ytterligare preferensbaserade påföljder minskas, vilket gör den användbar som en renare jämförelseprofil. Dess svaghet är att den kan vara mindre förfinad för verklig navigation eftersom den tar bort en del av kostnadslogiken som normalt hjälper till att forma praktisk ruttkvalitet. Dess särdrag är att den bäst ses som en teknisk baslinje: användbar för jämförelse med `car-eco`, mindre användbar som huvudprofil för användaren.</string>
+    <string name="profile_info_car_fast_title">Bil, snabb</string>
+    <string name="profile_info_car_fast_description">En bilrutterprofil fokuserad på hastighet och restid. Dess styrka är att den tenderar att föredra snabbare vägar och mer direkta tidseffektiva rutter. Dess svaghet är att den kan vara mindre ekonomisk, mindre tyst, mindre naturskön och ibland mindre lämplig där OSM bilrestriktioner eller lokal vägkontext är ofullständig. Dess utmärkande aspekt är att det är den mest uppenbara bilprofilen för användare som helt enkelt vill komma fram snabbt.</string>
+    <string name="profile_info_car_fast_nocost_title">Bil, snabb (bas)</string>
+    <string name="profile_info_car_fast_nocost_description">En förenklad snabbbilvariant. Dess styrka är att den fokuserar mer direkt på hastighetsmodellens beteende, vilket gör den användbar för testning, jämförelse eller förutsägbara försök med snabbaste vägen. Dess svaghet är att den kan vara mindre nyanserad än `bil-snabb`, eftersom extra straff och preferenser är reducerade. Dess särdrag är att det är en basversion av snabb bil-ruttplanering: bra för teknisk jämförelse, mindre idealisk som standardbilprofil.</string>
+    <string name="profile_info_car_vario_title">Bil, variabel hastighet</string>
+    <string name="profile_info_car_vario_description">Den främsta flexibla bilprofilen. Dess styrka är anpassningsförmåga: genom att ändra parametrar kan den bete sig mer som snabb bilruttplanering eller mer som energimedveten/eko-ruttplanering. Den stöder preferenser såsom att undvika vägavgifter, grusvägar, motorvägar och vissa miljöer. Dess svaghet är att den fortfarande är enklare än en fullständig kommersiell bilnavigeringsmotor och är starkt beroende av kvaliteten på OSM-taggar. Dess utmärkande drag är att den använder en fysisk/kinematisk modell snarare än enbart enkla vägklassprioriteringar.</string>
+    <string name="profile_info_car_vario_nocost_title">Bil, variabel (bas)</string>
+    <string name="profile_info_car_vario_nocost_description">En enklare bilruttervariant baserad främst på den kinematiska hastighetsmodellen. Dess styrka är att den ger en renare baslinje för bilrutter, vilket är användbart för jämförelse, testning eller fall där extra sceniska eller preferensbaserade kostnader inte bör dominera. Dess svaghet är att den är mindre uttrycksfull och mindre användarvänlig än car-vario för vanlig navigering. Dess särskilda aspekt är att den är mer av en teknisk baslinje än en rik preferensprofil.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Snabb liggcykel</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">En profil för snabba liggcyklar. Dess styrka är att den bättre återspeglar behovet hos liggcyklister än en normal landsvägsprofil: effektiva asfalterade vägar, undvikande av dåliga ytor, noggrann hantering av höjdskillnader och straff för trappor eller avstigningssektioner. Dess svaghet är att den är för specialiserad för vanliga cyklar och kan undvika infrastruktur som upprättcyklister skulle acceptera. Dess utmärkande aspekt är att den modellerar en liggcykel som sin egen fordonstyp, inte bara som en snabbare cykel.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Snabb velomobil</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">En profil för snabba velomobiler. Dess styrka är ruttplanering för mycket effektiva, tunga, låg-drag mänskligt drivna fordon som behöver släta ytor, få stopp, få hinder och goda rullförhållanden. Dess svaghet är att den inte passar vanliga cyklar eftersom den starkt straffar smala, ojämna, stopp-tunga eller avstignings-tunga rutter. Dess utmärkande aspekt är att det är den mest fordons-specifika människodrivna profilen i paketet, anpassad för velomobilegenskaper snarare än generisk cykling.</string>
+    <string name="profile_info_car_eco_de_title">Bil, eco (Tyskland)</string>
+    <string name="profile_info_car_eco_de_description">En variant av `car-eco` historiskt kopplad till alternativ eller sekundär ruttdata. Dess styrka är att den kan vara användbar för felsökning eller testning av bilrutter mot en annan datasnapshot eller särskild väg-nätverksförberedelse. Dess svaghet är att det inte är en vanlig vardaglig bilprofil och kan kräva särskild sekundärdatakonfiguration. Dess utmärkande aspekt är att den beter sig som en ekonomisk bilprofil men är mest användbar när den sekundära datainställningen medvetet är tillgänglig.</string>
+    <string name="profile_info_moped_title">Moped</string>
+    <string name="profile_info_moped_description">Ett experimentellt profil för moped-liknande ruttning. Dess styrka är att den modellerar motoriserad tvåhjulsaccess mer naturligt än en cykelprofil. Dess svaghet är viktig: den är inte tillräckligt pålitlig för verklig navigering eftersom svängbegränsningar och vissa trafikrestriktioner kan saknas. Dess distinkta aspekt är att den ligger mellan cykel- och billogik, men bör behandlas som experimentell eller dold för vanliga användare.</string>
+    <string name="profile_info_dummy_title">Tagginspektion</string>
+    <string name="profile_info_dummy_description">En felsökningsprofil för att inspektera vilka OSM-taggar BRouter ser på ruttsegment. Dess styrka är transparens: den hjälper utvecklare att förstå tillgängliga ruttdata och oanvända taggar. Dess svaghet är att den inte är designad för att producera högkvalitativa eller meningsfulla rutter. Dess särdrag är att den huvudsakligen är en diagnostisk profil för profilutveckling och datainspektion.</string>
+    <string name="profile_info_rail_title">Järnvägar</string>
+    <string name="profile_info_rail_description">En profil för rutter över järnväg, spårvagn, tunnelbana, Lättbanor och liknande spårobjekt. Dess styrka är att spåra spårnäts topologi och kontrollera spåranslutning i OSM-data. Dess svaghet är att den inte representerar passagerarresor: inga tidtabeller, byten, stationslogik, service tillgänglighet eller biljettbegränsningar. Dess särdrag är att den är användbar för spårdataanalys, inte för vanlig navigation.</string>
+    <string name="profile_info_river_title">Floder / kanaler</string>
+    <string name="profile_info_river_description">En profil för ruttplanering längs vattenvägar såsom floder, kanaler, farleder och slussar. Dess styrka är spårning av vattenvägsnätverk och OSM-datainsamling. Dess svaghet är att den är för enkel för verklig nautisk navigation eftersom den inte modellerar båttyp, djup, ström, lagliga begränsningar, faror eller operativa slussbegränsningar. Dess särskiljande aspekt är att den behandlar vattenvägar som ett rutterbart nätverk, men endast på en grundläggande topologinivå.</string>
+    <string name="title_edit_destination_name">Redigera destinationsnamn</string>
+    <string name="title_save_route">• Spara rutt</string>
+    <string name="title_restore_route">• Återställ rutt</string>
+    <string name="title_edit_route_name">Redigera ruttnamn</string>
+    <string name="title_restore_route_confirm">Återställ rutt?</string>
+    <string name="msg_restore_route_confirm">Ersätt den nuvarande destinationen och stoppen med \"%1$s\"?</string>
+    <string name="title_map_picker_destination">Välj destination på karta</string>
+    <string name="title_map_picker_stop">Välj stopp %1$d på karta</string>
+    <string name="nav_no_route">Ingen rutt</string>
+    <string name="nav_waiting_for_location_title">Väntar på plats</string>
+    <string name="nav_waiting_for_location_body">Väntar på en användbar positionsfixering för att beräkna rutten.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Väntar på en användbar positionsfix för raklinjeguide.</string>
+    <string name="nav_calculating_route_title">Beräknar rutt</string>
+    <string name="nav_calculating_route_body">Hämtar vägbeskrivning från BRouter.</string>
+    <string name="nav_route_unavailable_title">Rutt inte tillgänglig</string>
+    <string name="format_nav_route_unavailable_body">Rutt inte tillgänglig: %1$s \n Kontrollera BRouter för tillgängliga segment.</string>
+    <string name="nav_route_unavailable_generic">okänt fel</string>
+    <string name="nav_start_invalid_request">Navigeringsförfrågan är ofullständig</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Kunde inte hitta en alternativ rutt runt det blockerade området. Behåller nuvarande rutt.</string>
+    <string name="nav_route_notice_no_route_found">Ingen rutt hittades till denna destination.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Rutttjänst inte tillgänglig. Behåller nuvarande rutt.</string>
+    <string name="nav_route_notice_service_unavailable">Rutttjänst inte tillgänglig.</string>
+    <string name="nav_route_notice_invalid_profile">Ruttprofilen är ogiltig.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Kunde inte uppdatera rutten. Behåller nuvarande rutt.</string>
+    <string name="nav_route_notice_unavailable">Kunde inte beräkna en rutt.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Blockerad väg tillagd. Beräknar om rutten.</string>
+    <string name="nav_paused_notice">Navigeringen är pausad. Tryck på Återuppta navigering för att fortsätta vägledningen i realtid.</string>
+    <string name="notification_channel_nav">Navigering</string>
+    <string name="notification_channel_alert">Vägledningsvarningar</string>
+    <string name="notification_channel_turn_left">Sväng (vänster)</string>
+    <string name="notification_channel_turn_right">Sväng (höger)</string>
+    <string name="notification_nav_running">Navigering pågår</string>
+    <string name="notification_nav_running_text">ViBRo Navigator navigerar i bakgrunden</string>
+    <string name="notification_nav_paused">Navigering pausad</string>
+    <string name="notification_nav_paused_text">ViBRo Navigator navigering är pausad</string>
+    <string name="notification_off_route_title">Avväg från rutten</string>
+    <string name="notification_wrong_direction_title">Fel riktning</string>
+    <string name="notification_symbol_test_left_title">testa alla vänstervarningar</string>
+    <string name="notification_symbol_test_other_title">testa alla andra varningar</string>
+    <string name="notification_symbol_test_right_title">testa alla högervarningar</string>
+    <string name="direction_continue">Fortsätt</string>
+    <string name="direction_keep_left">Håll vänster</string>
+    <string name="direction_keep_right">Håll höger</string>
+    <string name="direction_turn_left">Sväng vänster</string>
+    <string name="direction_turn_right">Sväng höger</string>
+    <string name="direction_slight_left">Sväng svagt vänster</string>
+    <string name="direction_slight_right">Sväng svagt höger</string>
+    <string name="direction_sharp_left">Sväng skarpt vänster</string>
+    <string name="direction_sharp_right">Sväng skarpt höger</string>
+    <string name="direction_uturn_left">Gör en U-sväng åt vänster</string>
+    <string name="direction_uturn">Gör en U-sväng</string>
+    <string name="direction_uturn_right">Gör en U-sväng åt höger</string>
+    <string name="direction_roundabout_exit">Ta avfart %1$d i rondellen</string>
+    <string name="direction_roundabout_exit_left">Ta avfart %1$d i rondellen</string>
+    <string name="direction_beeline">Fågelvägen</string>
+    <string name="direction_exit_left">Ta avfarten åt vänster</string>
+    <string name="direction_exit_right">Ta avfarten åt höger</string>
+    <string name="direction_offroute">Avväg från rutten</string>
+    <string name="direction_arrive">Målet nått</string>
+    <string name="direction_intermediate_arrive">Mellanmål nått</string>
+    <string name="direction_unknown">Okänd riktning</string>
+    <string name="direction_side_left">åt vänster</string>
+    <string name="direction_side_right">åt höger</string>
+    <string name="format_speed_limit_content_description">Hastighetsgräns %1$s</string>
+    <string name="title_nav_gps_details">GPS detaljer</string>
+    <string name="format_nav_gps_details">Hastighet: %1$s\n Höjd: %2$s\n Noggrannhet: %3$s\n GPS-tid: %4$s\n Satelliter: %5$s\n Intervall: %6$s\n Senaste fix ålder: %10$s\n GPS-fixar: %7$s\n GPS-riktning: %8$s\n Riktningens noggrannhet: %9$s</string>
+    <string name="title_nav_directions_details">Vägbeskrivning</string>
+    <string name="nav_directions_unavailable">Inga kommande vägbeskrivningar</string>
+    <string name="title_nav_trip_stats">Resestatistik</string>
+    <string name="format_nav_trip_stats_details">Förfluten tid: %1$s\nDistans: %2$s\nRörlig tid: %3$s\nStillastående tid: %4$s\nGenomsnittlig hastighet: %5$s\nRörligt genomsnitt: %6$s\nMaxhastighet: %7$s\nSkärm på: %8$s\nSkärm av: %9$s\nBatteri används: %10$s\nBatterifall: %11$s</string>
+    <string name="speech_off_route_recalculating">Utanför rutt. Beräknar om</string>
+    <string name="speech_off_route">Avväg från rutten</string>
+    <string name="speech_wrong_direction_turn_back">Fel riktning. Vänd tillbaka</string>
+    <string name="format_off_route_off_track_notification">Avvikelse från spår upptäckt. Distans %1$s, tröskel %2$s. Beräknar om rutt.</string>
+    <string name="format_off_route_bearing_notification">Avvikelse i riktning upptäckt. Diff %1$s, förväntat %2$s, faktiskt %3$s. Beräknar om rutt.</string>
+    <string name="format_off_route_off_track_notice_only">Avvikelse från spår upptäckt. Distans %1$s, tröskel %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Avvikelse i riktning upptäckt. Diff %1$s, förväntat %2$s, faktiskt %3$s.</string>
+    <string name="format_wrong_direction_notification">Fel riktning upptäckt. Mål %1$s, faktiskt %2$s, diff %3$s.</string>
+    <string name="format_startup_orientation_notification">Vänd dig %1$s %2$s för att möta rutten.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s kursprov</string>
+    <string name="nav_destination_reached">Målet nått</string>
+    <string name="format_version">Version %1$s %2$s</string>
+    <string name="about_short_description">En lättvikts-, batterisnål och offline-först GPS navigationsapp som vibrerar riktningar, byggd kring BRouter.</string>
+    <string name="about_homepage_link">
+        <u>Startsida</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Betygsätt på Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Källkod på GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Rapportera ett problem</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>Ändringslogg</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>ZSekretesspolicy</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>ZTjänstevillkor</u>
+    </string>
+    <string name="about_legal">Upphovsrätt © 2026 Damiano Falcioni.\nMIT-licens</string>
+    <string name="about_credits">Krediter: BRouter för routning. POI-sökning och koordinatreversgeokodning använder OpenStreetMap Nominatim, eller Google Maps Geocoding i Google Play-byggnader när Google-sökning är aktiverad med en sparad API-nyckel. Kart-POI:er använder OpenStreetMap Overpass. Kartplattor och geodata av OpenStreetMap-bidragsgivare: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Inställningar</string>
+    <string name="about_settings_category_display">Visning</string>
+    <string name="about_settings_category_guidance">Vägledning</string>
+    <string name="about_settings_category_compass">Kompass</string>
+    <string name="about_settings_category_search_input">Sök &amp; Inmatning</string>
+    <string name="about_settings_category_advanced">Avancerat</string>
+    <string name="label_log_enabled">Loggar</string>
+    <string name="title_log_output_folder">Loggmapp</string>
+    <string name="label_permission_output_folder">ViBRo nedladdningsmapp</string>
+    <string name="title_output_browser">ViBRo filer</string>
+    <string name="title_gpx_output_folder">GPX mapp</string>
+    <string name="format_output_folder">Aktuell mapp: %1$s</string>
+    <string name="action_clear_output_folder">• Radera</string>
+    <string name="action_open_output_folder">Öppna</string>
+    <string name="msg_output_viewer_unavailable">Ingen app är tillgänglig för att öppna denna mapp eller fil.</string>
+    <string name="hint_clear_log_output_folder">Ta permanent bort ViBRo loggfiler från:\n%1$s\n\n Andra filer och undermappar kommer att behållas. Detta kan inte ångras. Om loggning är aktiverad kommer en ny logg med systemdetaljer att startas.</string>
+    <string name="hint_clear_gpx_output_folder">Permanenta ta bort ViBRo GPX-exporter från:\n%1$s\n\n Andra filer och undermappar kommer att behållas. Detta kan inte ångras.</string>
+    <string name="msg_output_folder_cleared">ViBRo filer raderade.</string>
+    <string name="msg_output_folder_clear_failed">Kunde inte radera alla ViBRo filer. Kontrollera mappåtkomst i Diagnostik.</string>
+    <string name="label_external_storage_enabled">Använd extern lagring</string>
+    <string name="about_setting_external_storage_info">Spara GPX-exporter, loggar och databassäkerhetskopior till ett SD-kort istället för telefonens lagring. Endast tillgängligt för ett monterat, stöds SD-kort; USB-enheter är uteslutna. Android 6–9 kräver mappåtkomst även när loggning och GPX-sparande är avaktiverade. Om kortet blir otillgängligt stoppas sparandet tills det blir tillgängligt igen. Äldre filer stannar i sina ursprungliga mappar.</string>
+    <string name="hint_sd_download_access">Ge åtkomst till SD-kortmappen:\n%1$s\n\nVälj Ladda ner, dess ViBRo-undermapp eller SD-kortets rotmapp. ViBRo kommer att använda Download/ViBRo/gpx, Download/ViBRo/logs och Download/ViBRo/backup. Sparande kräver åtkomst till denna mapp.</string>
+    <string name="msg_sd_storage_unavailable">Inget stöds skrivbart SD-kort är tillgängligt.</string>
+    <string name="msg_sd_storage_enabled">GPX-exporter, loggar och databassäkerhetskopior kommer att använda SD-kortet.</string>
+    <string name="msg_output_folder_failed">Kunde inte skriva till denna mapp. Den tidigare inställningen är oförändrad.</string>
+    <string name="msg_output_access_required">Sparande är avstängt eftersom den valda utdata-mappen inte är tillgänglig eller åtkomst inte beviljades.</string>
+    <string name="msg_output_folder_picker_unavailable">Ingen mappväljare är tillgänglig.</string>
+    <string name="label_auto_save_gpx_enabled">Autospara GPX</string>
+    <string name="label_fused_location_enabled">Google Sammanslagen plats</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Dynamiskt GPS intervall</string>
+    <string name="label_imperial_units_enabled">Imperiella enheter (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Ljust tema</string>
+    <string name="label_compass_surrounding_streets_enabled">Omgivande gator</string>
+    <string name="action_configure_surrounding_street_types">Välj omgivande gatutyper</string>
+    <string name="title_surrounding_street_types">Omgivande gatutyper</string>
+    <string name="hint_surrounding_street_types">Kategoribrytare döljer eller visar hela färggruppen utan att ändra individuella val. Synlighet baserad på hastighet gäller fortfarande.</string>
+    <string name="street_category_highway">Huvudvägar</string>
+    <string name="street_category_normal">Normala gator</string>
+    <string name="street_category_walking_cycling">Promenad / Cykling</string>
+    <string name="street_category_special_routing">Specialvägar</string>
+    <string name="street_type_motorway">Motorvägar</string>
+    <string name="street_type_motorway_info">Snabbvägar med kontrollerad tillgång.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Motorvägsramp</string>
+    <string name="street_type_motorway_link_info">Anslutningar som går in på eller lämnar en motorväg.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Stamnätvägar</string>
+    <string name="street_type_trunk_info">Större genomfartsleder under motorvägsnivå.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Stamnätslänkar</string>
+    <string name="street_type_trunk_link_info">Anslutningar som går in på eller lämnar en stamnätväg.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Primära vägar</string>
+    <string name="street_type_primary_info">Viktiga vägar som förbinder städer och regioner.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Länkar för primära vägar</string>
+    <string name="street_type_primary_link_info">Anslutningar som går in på eller lämnar en primär väg.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Sekundära vägar</string>
+    <string name="street_type_secondary_info">Vägar som förbinder mindre städer och områden.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Länkar för sekundära vägar</string>
+    <string name="street_type_secondary_link_info">Anslutningar som går in på eller lämnar en sekundär väg.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Tertiära vägar</string>
+    <string name="street_type_tertiary_info">Lokala vägar som förbinder närliggande bosättningar eller områden.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Tertiära vägförbindelser</string>
+    <string name="street_type_tertiary_link_info">Förbindelser som går in i eller lämnar en tertiär väg.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Mindre allmänna vägar</string>
+    <string name="street_type_unclassified_info">Allmänna vägar under tertiär nivå, ofta utanför bostadsområden.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Bostadsgator</string>
+    <string name="street_type_residential_info">Gator som huvudsakligen används för bostäder.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Delade bostadsgator</string>
+    <string name="street_type_living_street_info">Låg-hastighetsgator där gång och andra användningar delar utrymmet.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Infartsvägar</string>
+    <string name="street_type_service_info">Vägar som ger tillgång till byggnader, parkeringsplatser eller anläggningar.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Stigar</string>
+    <string name="street_type_track_info">Spår huvudsakligen använda för jordbruks- eller skogstillgång.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Ospecificerade vägar</string>
+    <string name="street_type_road_info">Vägar vars exakta typ är okänd.\n\nOSM/BRouter: highway=road eller highway=yes.</string>
+    <string name="street_type_busway">Bussvägar</string>
+    <string name="street_type_busway_info">Vägar främst avsedda för bussar.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Gågator</string>
+    <string name="street_type_pedestrian_info">Gator eller områden främst avsedda för fotgängare.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Gångbanor</string>
+    <string name="street_type_footway_info">Stigar avsedda för promenader.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Stigar</string>
+    <string name="street_type_path_info">Allmänna stigar som kan användas för promenad, cykling eller annan icke-motortrafik.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Cykelvägar</string>
+    <string name="street_type_cycleway_info">Stigar avsedda för cykling.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Ridstigar</string>
+    <string name="street_type_bridleway_info">Stigar avsedda för ridning. \n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Trappsteg</string>
+    <string name="street_type_steps_info">Trappor längs en rutt. \n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Transitplattformar</string>
+    <string name="street_type_platform_info">Gångbara plattformar vid hållplatser för kollektivtrafik. \n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Inomhuskorridorer</string>
+    <string name="street_type_corridor_info">Passager inuti byggnader. \n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Rastplatser vid vägen</string>
+    <string name="street_type_rest_area_info">Väganslutning inom rastplatser. \n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Vägtjänster</string>
+    <string name="street_type_services_info">Väganslutning inom serviceområden. \n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Hissar</string>
+    <string name="street_type_elevator_info">Hissanlutningar mellan gångbara nivåer. \n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Via ferrata-rutter</string>
+    <string name="street_type_via_ferrata_info">Skyddade klätterleder med fasta hjälpmedel. \n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Racingbanor</string>
+    <string name="street_type_raceway_info">Vägbanor avsedda för tävling.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Järnvägar</string>
+    <string name="street_type_railway_info">All järnvägsgeometri i lokala BRouter-segment.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">Vattenvägar</string>
+    <string name="street_type_waterway_info">All vattenvägsgeometri i lokala BRouter-segment.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Annan ruttgeometri</string>
+    <string name="street_type_other_info">Geometri utan en erkänd gata eller stödd rutt-typ.\n\nOSM/BRouter: ingen erkänd highway=*, railway=*, waterway=* eller stödd route=*-värde.</string>
+    <string name="street_type_route_ferry">Färjerutter</string>
+    <string name="street_type_route_ferry_info">Rutter som transporteras med färja.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Vandringsleder</string>
+    <string name="street_type_route_hiking_foot_info">Markerade rutter för vandring eller promenad.\n\nOSM/BRouter: route=hiking eller route=foot.</string>
+    <string name="street_type_route_bicycle">Cykelleder</string>
+    <string name="street_type_route_bicycle_info">Markerade rutter för cykling.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Skid-/pistleder</string>
+    <string name="street_type_route_ski_piste_info">Skidleder och pister för andra aktiviteter, såsom pulkaåkning eller vandring. BRouter lagrar båda taggarna som ett värde, så de delar denna omkopplare. \n\nOSM/BRouter: route=ski eller route=piste.</string>
+    <string name="street_type_route_mtb">Mountainbikeleder</string>
+    <string name="street_type_route_mtb_info">Markerade leder för mountainbike.\n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Kanotleder</string>
+    <string name="street_type_route_canoe_info">Markerade rutter för kanotpaddling.\n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Busslinjer</string>
+    <string name="street_type_route_bus_info">Busruttgeometri i lokala BRouter-segment.\n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Omedelbar kompasszoom</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Automatisk utzoomning</string>
+    <string name="label_compass_fullscreen_route_enabled">Fullskärmsrutt</string>
+    <string name="label_compass_distance_circles_enabled">Avståndscirklar</string>
+    <string name="label_compass_central_perspective_enabled">Perspektiv 3D-vy</string>
+    <string name="label_show_hint_panel">Visa hintpanel</string>
+    <string name="label_navigation_notifications_enabled">Aviseringar</string>
+    <string name="label_single_instruction_mode_enabled">Enstaka instruktioner-läge</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI kategorifilter</string>
+    <string name="hint_poi_categories_filter">Välj vilka POI-kategorier som visas i kartväljaren när filtret är aktiverat. Redigera kategorinamnen, slå på eller av dem, eller använd + för att lägga till fler.</string>
+    <string name="hint_poi_category_name">POI Kategorinamn</string>
+    <string name="label_speech_recognition">Taligenkänning</string>
+    <string name="label_speech_recognition_language">Språk</string>
+    <string name="label_speech_recognition_language_system_default">Systemstandard</string>
+    <string name="label_maneuver_voice">Talriktningar</string>
+    <string name="label_maneuver_voice_spinner">Röst</string>
+    <string name="label_maneuver_voice_disabled">Inaktiverad</string>
+    <string name="label_maneuver_voice_system_default">Systemstandard</string>
+    <string name="format_maneuver_voice_variant_code">Röst %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Kvinna</string>
+    <string name="label_maneuver_voice_gender_male">Man</string>
+    <string name="label_google_poi_api_key">Google Maps API nyckel</string>
+    <string name="label_navigation_custom_button">Anpassad knapp</string>
+    <string name="label_navigation_custom_button_target">Inställning</string>
+    <string name="label_setting_enabled">aktiverad</string>
+    <string name="label_setting_disabled">inaktiverad</string>
+    <string name="hint_google_poi_api_key">Valfri Google Maps nyckel</string>
+    <string name="format_about_setting_info_content_description">Visa hjälp för %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">Växla %1$s (%2$s)</string>
+    <string name="about_setting_log_info">Behåller en detaljerad beteendelogg som kan hjälpa till att diagnostisera problem. Lämna detta avstängt om du inte behöver dela information för support. När den valda mappen är tillgänglig skapar krascher och oväntade navigeringsstopp fortfarande en tidsstämplad logg med systemdetaljer när denna omkopplare är avstängd. Ett tvångsavslut kan endast rapporteras efter att appen startas igen; den exakta orsaken kan vara otillgänglig.</string>
+    <string name="about_setting_auto_save_gpx_info">Sparar den aktiva rutten som en GPX-fil när du stoppar navigering med Stopp-knappen. Använder Download/ViBRo/gpx på telefonen eller SD-kortet som valts med Använd extern lagring. Att slå på detta begär åtkomst till saknad mapp. Sparandet förblir avstängt om åtkomst nekas eller om den valda lagringen är otillgänglig.</string>
+    <string name="about_setting_fused_location_info">Använder Google-plats när den är tillgänglig. Detta kan förbättra platsuppdateringar på vissa telefoner.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Sparar batteri genom att kontrollera din plats mer sällan men fortfarande på ett pålitligt sätt. Stäng av för kontinuerliga platsuppdateringar.</string>
+    <string name="about_setting_imperial_units_info">Visar avstånd och hastigheter i fot, miles och mph istället för meter och km/h.</string>
+    <string name="about_setting_light_theme_info">Växlar appen från standard mörkt utseende till ett ljust utseende.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Visar närliggande gator och annan ruttgeometri i kompassen när lokal kartdata är tillgänglig.\n\nFärglegend:\n■ — huvudvägar och motorvägar\n■ — vanliga gator\n■ — promenad- och cykelgator samt rutter\n■ — järnvägar, vattenvägar, färjor, skid-/kanot-/busrutter, ridleder, tävlingsbanor och via ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">Hoppar över kompassens zoomanimation så att växling mellan ruttöversikt och vy med rörlig skala blir omedelbar.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Visar hela rutten i kompassen när du står stilla. Stäng av den för att behålla den senaste zoomnivån för rörelse när du står still.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Expanderar ruttkompassvyn bakom hela navigationsskärmen medan kontroller och riktningstext hålls synliga framför.</string>
+    <string name="about_setting_compass_distance_circles_info">Visar avståndscirklar med tids- och avståndsetiketter, kurs-pilen samt kursnoggrannhetslinjer och bågar i kompass- och helskärmsvyer.</string>
+    <string name="about_setting_compass_central_perspective_info">Använder perspektiv i 3D-kompassvyn: närliggande rutter och gator visas större, medan avlägsna krymper mot toppen. Stäng av detta för att använda den enhetliga ortografiska lutningen.</string>
+    <string name="about_setting_show_hint_panel_info">Visar gesteråd och gatufärglegend när telefonnavigering öppnas.</string>
+    <string name="about_setting_navigation_notifications_info">Visar svängvarningar och navigationsvarningar som notifikationer. Den pågående navigationsnotifikationen påverkas inte och kommer att förbli synlig under navigering.</string>
+    <string name="about_setting_single_instruction_mode_info">Använder en manövervarning ungefär 10 sekunder före varje kommande instruktion och undertrycker start-, 20-sekunders- och 5-sekundersvarningar för manövrering. Ankomst- och varningsnotifikationer påverkas inte.</string>
+    <string name="about_setting_navigation_custom_button_info">Visar en extra knapp i navigationskompassen som växlar den valda inställningen medan navigeringen är öppen.</string>
+    <string name="about_setting_android_auto_info">Låter kompatibla bildskärmar i bilen visa navigation genom Android Auto. Vissa värdenheter uppdaterar app-listan först efter att Android Auto återansluts. I riktiga fordon visar Android Auto denna typ av app endast när den är installerad från en betrodd källa som Google Play eller Intern App-delning.</string>
+    <string name="about_setting_poi_categories_info">Väljer vilka platser som kan visas på kartväljaren, såsom bensin, parkering eller toaletter.</string>
+    <string name="about_setting_speech_recognition_info">Visar mikrofonknappar för destination och stoppar röstingång samt väljer det begärda igenkänningsspråket. Android kan använda sitt standardvärde om den valda taligenkänningen inte stödjer det begärda språket.</string>
+    <string name="about_setting_maneuver_voice_info">Läser upp kommande instruktioner högt med en Android-röst.</string>
+    <string name="about_setting_google_poi_api_key_info">Låter destinationssökning använda Google Maps när du anger en giltig nyckel.</string>
+    <string name="about_setting_export_database_info">Sparar dina appdata, inklusive historik, sparade rutter, inställningar och profilval, som JSON i Download/ViBRo/backup på telefonen eller det SD-kort som valts med Använd extern lagring. Visar det sparade filnamnet utan att fråga efter en mapp. På Android 6–9, ställ in lagringstillgång i Diagnostik först.</string>
+    <string name="about_setting_import_database_info">Återställer dina appdata från en JSON-säkerhetskopia skapad av den här appen. Filväljaren startar i Download/ViBRo/backup på telefonen eller det SD-kort som valts med Använd extern lagring på Android 8 och senare. Du kan också bläddra till en annan mapp.</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps API-nyckel sparad.</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps API-nyckel raderad.</string>
+    <string name="msg_google_poi_api_key_required">Lägg till en Google Maps API-nyckel innan du aktiverar Google-sökning.</string>
+    <string name="msg_google_poi_api_key_validating">Validerar Google Maps API-nyckel…</string>
+    <string name="msg_google_poi_api_key_invalid">Google Maps API-nyckeln är inte giltig.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Kunde inte validera Google Maps API-nyckeln.</string>
+    <string name="about_diagnostic_title">Diagnostik</string>
+    <string name="about_permission_status_title">Obligatorisk åtkomst</string>
+    <string name="about_sensor_status_title">Sensorstatus</string>
+    <string name="label_direction_notification_tests">Tester av riktning notifikationer</string>
+    <string name="label_permission_location">Platsbehörighet</string>
+    <string name="label_permission_location_services">Enhetens plats</string>
+    <string name="label_permission_notifications">Aviseringar</string>
+    <string name="label_permission_battery">Batterioptimering</string>
+    <string name="label_permission_surrounding_street_storage">BRouter-gatlager</string>
+    <string name="label_permission_brouter_profile_storage">BRouter-profillagring</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Tryck för att åtgärda.</string>
+    <string name="label_sensor_fused_provider">Google sammanslagen leverantör</string>
+    <string name="label_sensor_gps_provider">GPS-leverantör</string>
+    <string name="label_sensor_network_provider">Nätverksleverantör</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Geomagnetisk rotationsvektor</string>
+    <string name="label_sensor_rotation_vector">Rotationsvektor</string>
+    <string name="label_sensor_orientation">Orienteringssensor</string>
+    <string name="label_sensor_linear_acceleration">Linjär accelerationssensor</string>
+    <string name="label_sensor_accelerometer">Accelerometer</string>
+    <string name="sensor_status_enabled">aktiverad</string>
+    <string name="sensor_status_disabled">inaktiverad</string>
+    <string name="sensor_status_available">tillgänglig</string>
+    <string name="sensor_status_unavailable">otillgänglig</string>
+    <string name="sensor_status_permission_denied">tillstånd nekas</string>
+    <string name="auto_no_active_navigation_title">Ingen aktiv navigation</string>
+    <string name="auto_no_active_navigation_text">Starta navigation på telefonen för att visa vägledning här.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Tryck var som helst för att stänga eller vänta %1$d sekund</item>
+        <item quantity="other">Tryck var som helst för att stänga eller vänta %1$d sekunder</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Vrid dig %1$d grad %2$s</item>
+        <item quantity="other">Vrid dig %1$d grader %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d sekund</item>
+        <item quantity="other">%1$d sekunder</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d minut</item>
+        <item quantity="other">%1$d minuter</item>
+    </plurals>
+</resources>

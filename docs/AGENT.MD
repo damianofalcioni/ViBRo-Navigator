@@ -5,7 +5,7 @@ Treat them as the source of truth unless the user explicitly changes a decision.
 
 Last packaged revision: **v173**. Routine workspace edits do not require a new package revision.
 
-Current shared asset queries: CSS **v=182**, JavaScript **v=178** across all six public HTML pages. Public pages load `styles.min.css` and `index.min.js`. Keep current guidance here; use Git history for superseded revision notes.
+Current shared asset queries: CSS **v=183**, JavaScript **v=178** across all six public HTML pages. Public pages load `styles.min.css` and `index.min.js`. Keep current guidance here; use Git history for superseded revision notes.
 
 ## Project
 
@@ -268,10 +268,11 @@ The hint:
 ### Quick facts
 
 - keep the `.quick-facts` grid background transparent; the translucent `.fact` cells must composite directly over the page so their theme fade follows the same visual path as the other cards
-- do not add per-cell theme shadows or a changing parent fill behind the four cells
+- keep all five facts on one desktop row; do not add per-cell theme shadows or a changing parent fill behind the cells
 - Offline routing / BRouter-powered
 - ~400 KB / F-Droid APK
 - Android 6+ / min SDK 23
+- Multilingual / 18 languages
 - Pure Java / minimal dependencies
 
 ### Positioning

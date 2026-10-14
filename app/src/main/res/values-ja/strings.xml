@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">システム言語を使用する</string>
+    <string name="action_configure_app_language">アプリの言語を設定する</string>
+    <string name="title_app_language">アプリの言語</string>
+    <string name="label_app_language">言語</string>
+    <string name="hint_app_language">「システム言語を使用する」がオフの場合、選択した言語が使用されます。</string>
+    <string name="about_setting_language_info">デバイスの言語設定で最初にサポートされている言語、または利用できない場合は英語を使用します。設定ボタンで選択した言語を使用するには、これをオフにしてください。初期選択はシステム言語と一致します。</string>
+    <string name="nav_gesture_map_controls_title">ジェスチャーマップの操作</string>
+    <string name="nav_gesture_views_body">
+        <b>ビューを切り替えます。</b> 全ルート、2D および 3D ビュー間を移動するにはダブルタップまたは左右にスワイプします</string>
+    <string name="nav_gesture_zoom_body">
+        <b>ズームイン / アウト。</b> 2D および 3D ビューをピンチまたは広げて ±2 のズームレベルに調整します</string>
+    <string name="nav_gesture_tilt_body">
+        <b> 3D ビューを傾けます。</b> 2本の指で上下にスワイプして 3D ビューを傾けます</string>
+    <string name="nav_gesture_map_legend_title">マップの凡例</string>
+    <string name="nav_gesture_current_route">現在のルート</string>
+    <string name="nav_gesture_current_position_accuracy">現在の位置と精度</string>
+    <string name="nav_gesture_dont_show_again">今後表示しない</string>
+    <string name="nav_gesture_dismiss">閉じるには画面のどこかをタッチしてください</string>
+    <string name="welcome_title">ViBRoへようこそ</string>
+    <string name="welcome_tldr">要約：BRouterをインストールし、ローカルルーティングデータをダウンロードし、権限を付与してください。</string>
+    <string name="welcome_intro">ViBRo Navigator（振動/バイブコード対応 BRouter ナビゲーター）は、BRouter上に構築された軽量でオフライン優先、バッテリー効率の高いAndroid GPSナビゲーションアプリです。地図なしでのナビゲーションを目的としており、振動と最小限の画面表示や音声案内で方向を提供することで、注意散漫を防ぎ、画面オフでも使用可能です。</string>
+    <string name="welcome_setup_title">初期設定</string>
+    <string name="welcome_brouter_body">• 提供されたリンクを使ってBRouterをインストールし、開いて自分の地域のルーティングデータをダウンロードしてください。</string>
+    <string name="welcome_permissions_body">• このウェルカムとオプションのBRouterインストールのプロンプトの後で、位置情報、マイク（音声入力用）、通知、および要求されたストレージアクセスを許可してください。プロンプトが出たらデバイスの位置情報を有効にしてください。リクエストをスキップして後でアクセスを有効にすることもできます。</string>
+    <string name="welcome_storage_body">• プロンプトが表示されたらprofiles2フォルダへのアクセス、または古いAndroidバージョンではストレージの権限を付与してください。</string>
+    <string name="welcome_battery_body">• 画面オフ時にも信頼できるガイダンスを提供するために、オプションのバッテリー最適化免除を許可してください。</string>
+    <string name="welcome_optional_access_body">• マイクへのアクセスは音声検索が要求された場合のみ必要です。</string>
+    <string name="action_about">• 情報</string>
+    <string name="action_start_navigation">• ナビゲーションを開始</string>
+    <string name="action_pause_navigation">• ナビゲーションを一時停止</string>
+    <string name="action_resume_navigation">• ナビゲーションを再開</string>
+    <string name="action_stop_navigation">• ナビゲーションを停止</string>
+    <string name="action_save_route">• ルートを保存</string>
+    <string name="action_restore_route">• ルートを復元</string>
+    <string name="action_add_stop">• 停留所を追加</string>
+    <string name="action_remove_stop">• 停留所を削除</string>
+    <string name="action_blocked_road">• 通行止めの道</string>
+    <string name="action_skip_beeline_target">• 直線目標をスキップ</string>
+    <string name="action_delete">• 削除</string>
+    <string name="action_edit">編集</string>
+    <string name="action_open_settings">設定を開く</string>
+    <string name="action_open_tts_settings">テキスト読み上げ設定を開く</string>
+    <string name="action_open_speech_directions_settings">音声案内設定を開く</string>
+    <string name="action_open_speech_recognition_settings">音声認識設定を開く</string>
+    <string name="action_open_android_stt_settings">Android 音声入力設定を開く</string>
+    <string name="action_continue">続行</string>
+    <string name="action_enable_speech_recognition">音声認識ボタンを表示</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">音声案内テスト</string>
+    <string name="action_voice_search_destination">目的地を話す</string>
+    <string name="action_voice_search_stop">停止を話す</string>
+    <string name="action_clear_poi_search">検索テキストをクリア</string>
+    <string name="action_save">キーを保存</string>
+    <string name="action_save_poi_categories">保存</string>
+    <string name="action_open_map">地図</string>
+    <string name="action_cancel">キャンセル</string>
+    <string name="action_use_selected_point">選択した地点を使用</string>
+    <string name="action_map_poi_categories">POI カテゴリ</string>
+    <string name="action_open_map_position">地図上の位置を開く</string>
+    <string name="action_test_left_notification">左</string>
+    <string name="action_test_other_notification">その他</string>
+    <string name="action_test_right_notification">右</string>
+    <string name="action_current_location">現在地</string>
+    <string name="action_edit_poi_categories">POI カテゴリを編集</string>
+    <string name="action_edit_google_poi_api_key">Google Maps API キーを編集</string>
+    <string name="action_configure_navigation_custom_button">カスタムボタンを設定</string>
+    <string name="action_enable_google_poi_search">Google 検索を有効化</string>
+    <string name="action_add_poi_category">POIカテゴリを追加</string>
+    <string name="action_remove_poi_category">POIカテゴリを削除</string>
+    <string name="action_enable_poi_category">POIカテゴリを有効化</string>
+    <string name="action_export_database">データベースをエクスポート</string>
+    <string name="action_import_database">データベースをインポート</string>
+    <string name="action_export_route">GPXをエクスポート</string>
+    <string name="action_profile_info">プロフィール情報</string>
+    <string name="action_setting_info">設定情報</string>
+    <string name="action_poi_details">POIの詳細</string>
+    <string name="action_search_google_maps">Google Mapsで検索</string>
+    <string name="action_profile_settings">プロフィール設定</string>
+    <string name="action_reset_defaults">デフォルトをリセット</string>
+    <string name="label_vehicle_profile">プロフィール</string>
+    <string name="label_route_mode_route">ルートモード</string>
+    <string name="label_route_mode_round_trip">周回モード</string>
+    <string name="label_route_mode_straight_line">直線モード</string>
+    <string name="label_destination">目的地</string>
+    <string name="label_poi_entrance">入口</string>
+    <string name="label_poi_entrances">複数の入口</string>
+    <string name="label_poi_entrance_type">タイプ</string>
+    <string name="label_poi_coordinates">座標</string>
+    <string name="label_poi_extra_tags">追加タグ</string>
+    <string name="label_poi_address_details">住所</string>
+    <string name="label_round_trip_distance_km">平均往復距離 (km)</string>
+    <string name="label_round_trip_distance_mi">平均往復距離 (mi)</string>
+    <string name="label_round_trip_direction">往復方向 (°)</string>
+    <string name="label_round_trip_direction_compass">往復方向コンパス</string>
+    <string name="label_profile_attention_icon">実験用またはデバッグ用プロフィール</string>
+    <string name="format_profile_info_content_description">%1$sの情報を表示</string>
+    <string name="format_route_mode_info_content_description">%1$sのモード情報を表示</string>
+    <string name="format_poi_details_content_description">%1$sのPOI詳細を表示</string>
+    <string name="format_poi_search_info_content_description">%1$sの検索情報を表示</string>
+    <string name="format_poi_entrance_heading">%1$d 入場</string>
+    <string name="format_poi_entrance_type">入場：%1$s</string>
+    <string name="format_stop_label">%1$d 停止</string>
+    <string name="format_default_saved_route_name">%1$s ルート</string>
+    <string name="hint_search_destination">目的地を検索</string>
+    <string name="hint_search_stop">停留所を検索</string>
+    <string name="prompt_speech_destination">目的地を言う</string>
+    <string name="prompt_speech_stop">停留所を言う</string>
+    <string name="hint_saved_route_name">ルート名</string>
+    <string name="msg_missing_destination">目的地を選択</string>
+    <string name="msg_invalid_destination_name">目的地名を入力</string>
+    <string name="msg_invalid_route_name">ルート名を入力</string>
+    <string name="msg_invalid_coordinates">座標で場所を選択</string>
+    <string name="msg_invalid_stop">座標で停留所を削除または選択</string>
+    <string name="msg_invalid_round_trip_distance">有効な往復距離を入力</string>
+    <string name="msg_invalid_round_trip_direction">有効な往復方向を入力</string>
+    <string name="msg_round_trip_requires_brouter_profile">往復モードのためにBRouterプロファイルを選択</string>
+    <string name="msg_brouter_not_found">BRouterはインストールされていません</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouterは周辺の通りに必要です。</string>
+    <string name="title_brouter_not_found">BRouter必要</string>
+    <string name="title_stop_navigation_confirm">ナビゲーションを止めますか?</string>
+    <string name="msg_brouter_install_prompt">BRouterインストールされていません。アプリのページをPlay Storeで開いてみてF-Droid?</string>
+    <string name="msg_location_disabled">位置情報は無効になっています。ナビゲートを有効にしてください。</string>
+    <string name="msg_permission_required">許可が必要です</string>
+    <string name="msg_stop_navigation_confirm">ナビゲーションを止めてこの画面を閉じたいですか?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigatorナビゲーションやバイブ指示を把握するために位置情報アクセスが必要です。</string>
+    <string name="msg_permission_notifications_rationale">通知は次のターンを知らせるために使われます。</string>
+    <string name="msg_enable_notifications">ターンアラートの通知を有効にしてください。</string>
+    <string name="msg_battery_opt_rationale">信頼性の高いバックグラウンドナビゲーションのために、バッテリー最適化を無視ViBRo Navigator許可してください。</string>
+    <string name="msg_open_settings_failed">このデバイスで設定が開けませんでした。</string>
+    <string name="msg_open_brouter_store_failed">このデバイスでBRouterストアページを開くことができませんでした。</string>
+    <string name="msg_intent_unrecognized">共有場所が認識されていません</string>
+    <string name="msg_gpx_import_failed">ウェイポイントGPX読み込めませんでした。</string>
+    <string name="msg_gpx_import_blocked_navigation">GPX ルートを開く前にナビゲーションを停止してください。</string>
+    <string name="msg_speech_input_unavailable">音声認識サービスが有効になっていません。Google アプリまたは Android 音声入力を有効にしてください。</string>
+    <string name="msg_speech_input_listening">聴取中…</string>
+    <string name="msg_speech_input_empty">音声が認識されませんでした。</string>
+    <string name="msg_speech_input_failed">音声入力に失敗しました。もう一度試してください。</string>
+    <string name="msg_speech_input_unresponsive">音声認識が開始されませんでした。Google アプリまたは Android 音声入力を有効にしてください。</string>
+    <string name="msg_speech_permission_required">音声入力にはマイクの許可が必要です。</string>
+    <string name="msg_select_custom_profile">カスタム BRouter .brf ファイルを選択してください</string>
+    <string name="msg_invalid_custom_profile">有効な BRouter .brf ファイルを選択してください</string>
+    <string name="msg_profile_parameters_empty">このプロファイルは編集可能なパラメータを公開していません。</string>
+    <string name="msg_profile_parameters_not_localized">パラメータは BRouter プロファイルファイルから動的に抽出されるため、名前、説明、およびオプションは翻訳されません。</string>
+    <string name="msg_profile_parameters_saved">プロファイル設定が保存されました。</string>
+    <string name="msg_profile_parameters_reset">プロファイル設定がプロファイルのデフォルトにリセットされました。</string>
+    <string name="msg_profile_parameter_invalid_number">有効な数字を入力してください。</string>
+    <string name="msg_profile_parameter_invalid_text">の値には ?, &amp;, または = を含めることはできません。</string>
+    <string name="msg_poi_details_unavailable">追加の詳細は利用できません。</string>
+    <string name="msg_poi_details_map_check_hint">この場所が意図した場所であることを確認するために地図を使用してください。</string>
+    <string name="msg_poi_google_maps_search_info">この POI 検索フィールドのテキストを使用して Google Maps を開きます。Google Maps で場所を選択した後、その場所を共有し、ViBRo Navigator を選択して結果をここに戻します。</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">ローカルの BRouter の通りを読むにはストレージアクセスが必要です。</string>
+    <string name="title_brouter_segments_storage_access">BRouter 通りのストレージ</string>
+    <string name="msg_brouter_segments_storage_access_prompt">周辺の通りには BRouter segments4 フォルダへのアクセスが必要です。次の画面で %1$s に移動し、フォルダアクセスを確認してください。その場所が利用できない場合は、BRouter が .rd5 ファイルを保存しているフォルダを選択してください。</string>
+    <string name="msg_brouter_profiles_storage_permission_required">BRouter プロフィールファイルを読むにはストレージアクセスが必要です。</string>
+    <string name="title_brouter_profiles_storage_access">BRouter プロフィールのストレージ</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter プロファイルは profiles2 フォルダーへのアクセスが必要です。次の画面で %1$s に移動し、フォルダーアクセスを確認してください。その場所が利用できない場合は、BRouter が .brf プロファイルを保存するフォルダーを選択してください。</string>
+    <string name="msg_symbol_test_notification_sent">シンボルテスト通知が送信されました。</string>
+    <string name="msg_map_location_searching">現在地を検索中…</string>
+    <string name="msg_map_location_unavailable">現在地は利用できません。</string>
+    <string name="msg_map_selection_required">まず地図上のポイントを選択してください。</string>
+    <string name="msg_map_position_unavailable">地図の位置は利用できません。</string>
+    <string name="msg_map_position_no_app">地図の位置を開けるアプリはありません。</string>
+    <string name="msg_map_position_open_failed">地図の位置を開けませんでした。</string>
+    <string name="msg_map_poi_loading">POI を読み込み中…</string>
+    <string name="msg_map_poi_unavailable">POI は利用できません。</string>
+    <string name="msg_map_poi_zoom_in">POI を読み込むには拡大してください。</string>
+    <string name="msg_map_poi_empty">この地図ビューには有効な POI がありません。</string>
+    <string name="msg_map_poi_categories_empty">この地図ビューには POI カテゴリーがありません。</string>
+    <string name="msg_database_exported">データベースを保存しました: %1$s</string>
+    <string name="msg_database_export_failed">データベースをエクスポートできませんでした。</string>
+    <string name="msg_database_imported">データベースをインポートしました。</string>
+    <string name="msg_database_import_failed">データベースをインポートできませんでした。</string>
+    <string name="msg_saved_route_saved">ルートを保存しました。</string>
+    <string name="msg_saved_route_restored">ルートを復元しました。</string>
+    <string name="msg_saved_routes_empty">保存されたルートはありません。</string>
+    <string name="msg_route_export_unavailable">エクスポートできるアクティブルートはありません。</string>
+    <string name="msg_route_export_failed">ルートをエクスポートできませんでした。</string>
+    <string name="msg_route_export_no_app">GPXルートを開けるアプリはありません。</string>
+    <string name="msg_google_maps_search_open_failed">Google Maps検索を開けませんでした。</string>
+    <string name="msg_open_url_failed">このデバイスでリンクを開けませんでした。</string>
+    <string name="label_exported_route_gpx">ViBRoルート GPX</string>
+    <string name="gpx_passed_route_track_name">通過したルート</string>
+    <string name="format_gpx_gps_fix_name">GPS修正 %1$d</string>
+    <string name="label_vehicle_profile_custom">カスタム</string>
+    <string name="label_vehicle_profile_custom_with_name">カスタム (%1$s)</string>
+    <string name="title_profile_parameters">プロフィール設定: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">プロフィール設定をリセットしますか？</string>
+    <string name="msg_profile_parameters_reset_confirm">このプロフィールの設定をプロフィールで定義された値に復元しますか？</string>
+    <string name="format_profile_parameter_info_content_description">%1$sのパラメータ情報を表示</string>
+    <string name="route_mode_info_route_description">現在位置から任意の停止地点を経由して目的地までのBRouterルートを計算します。</string>
+    <string name="route_mode_info_round_trip_description">選択したプロファイルと平均走行距離を使用して、現在の位置から円形のBRouterルートを計算します。</string>
+    <string name="route_mode_info_straight_line_description">BRouterをスキップし、目的地に向かって直接案内し、直線距離と方向で停止します。</string>
+    <string name="profile_info_trekking_title">トレッキングバイク</string>
+    <string name="profile_info_trekking_description">日常のサイクリング、ツーリング、実用的なナビゲーションのためのバランスの取れた自転車ルーティング。その主な強みは多用途性です：交通量の多い車道を避け、サイクルルートをサポートし、標高を考慮し、通常は一般的なサイクリストにとって適切に感じられるルートを生成します。その弱点は、専門性が高くないことです：ロードサイクリストには `fastbike` より遅く感じられるかもしれず、オフロードライダーには `mtb` や `gravel` と比べて保守的すぎるかもしれません。その特徴は、最も安全な汎用自転車プロファイルであり、ほとんどのユーザーにとっておそらく最適なデフォルトであるという点です。</string>
+    <string name="profile_info_trekking_ignore_cr_title">トレッキング、自転車ルートを無視する</string>
+    <string name="profile_info_trekking_ignore_cr_description">サイクルトートとして自転車ルートの関係を無視するトレッキングバイクのバリエーション。その強みは、標識付きや地図に載っているサイクルルートが間接的で風景重視であったり、古くなっていたり、現在の旅行には実際に役立たない場合でも、過剰に優先することを避けられる点にあります。その弱点は、通常のトレッキングプロファイルの主な利点の一つ、すなわち存在する場合は良い自転車ネットワークに従うことを失う点です。特徴的な点は、特定の問題に答えることです：「自転車ルートに属しているからといって道路を優先しない」。</string>
+    <string name="profile_info_trekking_noferries_title">トレッキング、フェリーを使わない</string>
+    <string name="profile_info_trekking_noferries_description">フェリー接続を避けるトレッキングバイクのバリアント。その強みは予測可能性にあります：フェリーの運行スケジュール、季節運行、チケット、待ち時間、あるいは不確実な運行状況に依存するルートを避けます。その弱みは、フェリーが実用的な接続手段である川、湖、島、沿岸地域では、非常に長いルートになる可能性があることです。その特徴は、陸路のみでのルートを望むユーザー向けのトレッキングプロファイルであることです。</string>
+    <string name="profile_info_trekking_nosteps_title">トレッキング、階段なし</string>
+    <string name="profile_info_trekking_nosteps_description">階段を避けるトレッキングバイクのバリアントです。その強みは、特に荷物の多いツーリングバイク、電動自転車、カーゴバイク、子供用トレーラー、または自転車を持ち運びたくないユーザーにとって実用的な走行性です。その弱みは、短い歩行者／自転車用の近道を避ける可能性があり、都市や丘陵地帯では遠回りになることがある点です。その特徴は、通常のトレッキングバランスを保ちつつ、自転車ルートで最も迷惑なサプライズの一つである階段を取り除くことです。</string>
+    <string name="profile_info_trekking_steep_title">トレッキング、急な登り</string>
+    <string name="profile_info_trekking_steep_description">急な登りがより許容されるルート向けのトレッキングバイクのバリアントです。その強みは、高低差を避けすぎることなく、より直接的または丘陵地のルートを選択できる点です。その弱みは、カジュアルなライダー、重い自転車、トレーラー、またはバッテリー残量の少ない電動自転車の旅には不快または不向きである可能性がある点です。その特徴は、トレッキングの性格を維持しつつ、通常のトレッキングプロファイルより急な地形を恐れない点です。</string>
+    <string name="profile_info_fastbike_title">ロードバイク</string>
+    <string name="profile_info_fastbike_description">は、舗装された道路での高速サイクリング、レーシングバイク、フィットネスバイク、スピードペデレック向けに最適化されています。その強みはスピードです：効率的で良質な道路を好み、単に静かで景色の良い道を探すのではなく、移動時間を重視したモデルを使用します。その弱みは、カジュアルライダーや家族、交通量の少ないルートを強く求めるユーザーには、道志向が強すぎると感じることです。特徴的な点は、パフォーマンス志向の自転車プロファイルであることです：`トレッキング`よりも速く、より直接的ですが、それでも自転車を意識しています。</string>
+    <string name="profile_info_fastbike_lowtraffic_title">ロードバイク、交通量の少ない道</string>
+    <string name="profile_info_fastbike_lowtraffic_description">通常の `fastbike` よりも交通回避を重視しつつ、パフォーマンス志向を維持する高速自転車プロファイルです。その強みは、速さを求めつつも常に混雑した道路に案内されることを避けたいライダーにとって良い妥協点であることです。弱点は、`fastbike` よりもわずかに遅かったり、ルートが直接的でなかったりする場合があり、`fastbike-verylowtraffic` よりも交通回避が少ないことです。特徴は、純粋に高速ルートを選ぶものと、交通を非常に意識した高速ルートの中間オプションであることです。</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">ロードバイク、最も交通量が少ない</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">できるだけ車やトラックを避けたいロードバイクやスピードペデレックのユーザー向けの、交通量の少ない強化型ルート。その強みは、特にソロライド、雨天、夜間走行、または交通量が多い地域での、より安全で落ち着いた高速サイクリングです。その弱みは、大きく迂回する場合があり、交通量が多い場合には他の高速道路を避けることがある点です。特徴としては、速い自転車向けの特性を保ちながら、非常に交通量の少ないルートを優先する点にあります。</string>
+    <string name="profile_info_fastbike_asia_pacific_title">ロードバイク、アジア太平洋</string>
+    <string name="profile_info_fastbike_asia_pacific_description">「fastbike」の地域別バリアントで、ヨーロッパにおける幹線道路、高速道路、自転車制限に関する前提が必ずしも当てはまらない国向けです。その強みは、日本、オーストラリア、その他のアジア太平洋地域のように、道路分類や自転車アクセスがヨーロッパと異なる場合でも、fast-bikeルーティングをより使いやすくできる点です。弱みは、汎用のデフォルトプロファイルとしては適していないことです。特徴的な点は、fast-bikeのロジックを維持しつつ、アジア太平洋地域での使用に合わせて道路アクセスの前提を調整していることです。</string>
+    <string name="profile_info_safety_title">より安全なサイクリング</string>
+    <string name="profile_info_safety_description">安全で落ち着いた経路に重点を置いた自転車のプロファイルです。その強みは、通常の高速ルートよりも不快または危険な道路を避けることを優先するため、慎重なライダー、家族、都市でのサイクリング、または速度より快適さを重視するユーザーに役立つ点です。弱点は、より遅く、長く、または回り道の多いルートを生成する可能性があることです。特徴的なのは、最も明確に「安全第一」の自転車オプションであり、ユーザーの優先事項が時間短縮ではなく、ストレスの多い交通を避けることにある場合に有用です。</string>
+    <string name="profile_info_gravel_title">グラベルバイク</string>
+    <string name="profile_info_gravel_description">はグラベルバイクや混合路面ライド向けに設計されています。その強みは、圧縮された砂利道、トラック、交通量の少ない未舗装路を含むルートを見つけつつ、表面が粗すぎる、泥濘んでいる、急すぎる、または遅すぎる箇所を避けることができる点です。その弱点は、純粋なロードバイクには理想的ではないことです。なぜなら、意図的に未舗装区間を選ぶ場合があり、真のMTBプロファイルほどトレイル指向ではないからです。その特徴的な点は、ロードサイクリングとマウンテンバイクの中間に位置することです：`fastbike` より冒険的で、`mtb` より技術的ではありません。</string>
+    <string name="profile_info_mtb_title">マウンテンバイク</string>
+    <string name="profile_info_mtb_description">マウンテンバイクやトレイルライディング向けのオフロード志向の自転車プロファイルです。その強みは、通常の自転車プロファイルよりも道、トラック、未舗装路、MTBに適した地形を優先できることです。その弱みは、ユーザーが実際に荒れた道を望んでいない場合、ツーリング、通勤、ロードバイクに適さないルートを生成する可能性があることです。その特徴的な点は、MTB特有の挙動で、道の優先度、路面の質、滑らかさ、湿潤条件、坂道での挙動、オフロード適性を考慮することです。</string>
+    <string name="profile_info_hiking_mountain_title">山岳ハイキング</string>
+    <string name="profile_info_hiking_mountain_description">ハイキングや山道向けの歩行プロファイルです。その強みは、自転車や車の前提ではなく、徒歩での移動、ハイキングルート、道の難易度、山特有の条件に基づいて設計されている点です。その弱みは、特にアルプス地域などの山岳地帯で、道、アクセス、ハイキングルート、難易度レベルに関する良好なOSMタグ付けに大きく依存している点です。特徴的な点は、交通効率よりも山歩きを明確に重視したバンドルプロファイルであることです。</string>
+    <string name="profile_info_skating_title">スケート</string>
+    <string name="profile_info_skating_description">はインラインスケートや類似の長距離スケート活動に最適化されています。その強みは路面への感度で、滑らかで舗装された流れるようなルートを強く好み、路面、障害物、信号、横断歩道、スケートのリズムを壊す急な途切れを避けます。弱みは非常に専門的であり、自転車や歩行者には許容されるルートでもスケートには不向きと判断する場合があることです。特徴的な点は、単に法的アクセスや距離だけでなく、スケートの流れを重視してルートを設定することです。</string>
+    <string name="profile_info_shortest_title">最短ルート</string>
+    <string name="profile_info_shortest_description">主にルート距離を最小化しようとする最小限のプロファイルです。その強みはシンプルさにあります：ユーザーが明示的に可能な限り最短のルートを望む場合や、ルートの形状を比較する場合に役立ちます。その弱点は、最短ルートが必ずしも最良ではないことです：安全でない、快適でない、急勾配や荒れた路面、交通量の多い区間を選ぶ可能性があります。特徴的な点は、快適さや好みのロジックをほとんど無視しているため、優れたデフォルトとしてではなく、参照用のプロファイルとして有用であることです。</string>
+    <string name="profile_info_car_eco_title">車、エコ</string>
+    <string name="profile_info_car_eco_description">不要な速度、エネルギー消費、非効率な運転パターンの削減に焦点を当てた経済的な車のルートプロファイル。その強みは、単に最速の道路を追いかけるのではなく、よりエネルギーに優しいルートを好む点にあります。弱点は、より遅いまたは直接性の低いルートを選び、到着時間を最優先にすると不便に感じることがある点です。その特徴は、最高速度ではなく「合理的な効率」を重視する車のプロファイルである点です。</string>
+    <string name="profile_info_car_eco_nocost_title">車、エコ(ベース)</string>
+    <string name="profile_info_car_eco_nocost_description">経済的な車の簡略化されたバリアントです。その強みは、経済性重視の車モデルを維持しつつ、追加の好みに基づくペナルティを減らすことで、よりクリーンな比較プロファイルとして役立つ点です。その弱みは、通常は実際のルート品質を形成するのに役立つコストロジックの一部を削除しているため、実際のナビゲーションでは洗練されていない可能性があることです。その特徴的な点は、技術的なベースラインとして最も有用であることです：`car-eco`と比較するには役立ちますが、主要なユーザー向け車両プロファイルとしてはあまり有用ではありません。</string>
+    <string name="profile_info_car_fast_title">車、速い</string>
+    <string name="profile_info_car_fast_description">車のルート設定プロファイルで、速度と移動時間に重点を置いています。強みは、より速い道路や直接的で時間効率の高いルートを好む傾向があることです。弱みは、経済的でない場合があること、静かでない場合があること、景観が良くない場合があること、またOSMの車両制限や地域の道路状況が不完全な場合には適さないことがある点です。特徴的な点は、単に早く到着したいユーザーにとって最も明らかな車のプロファイルであることです。</string>
+    <string name="profile_info_car_fast_nocost_title">車、速い（基本）</string>
+    <string name="profile_info_car_fast_nocost_description">簡略化された高速車バリアントです。その強みは、速度モデルの挙動に直接的に焦点を当てているため、テスト、比較、または予測可能な最速道路実験に有用であることです。その弱みは、`car-fast` よりもニュアンスが少なくなる可能性があることです。これは、追加のペナルティや優先事項が減少しているためです。その特徴は、高速車ルーティングのベースラインバージョンであることです：技術的比較には適していますが、デフォルトの車両プロファイルとしては理想的ではありません。</string>
+    <string name="profile_info_car_vario_title">車、可変速度</string>
+    <string name="profile_info_car_vario_description">主な柔軟な車両プロファイルです。その強みは適応性にあります：パラメータを変更することで、高速車両ルーティングのように振る舞わせたり、エネルギー意識・エコルーティングのように振る舞わせたりできます。通行料金、未舗装道路、高速道路、特定の環境を避けるなどの好みに対応しています。その弱点は、依然として商用の完全なカーナビエンジンよりもシンプルであり、OSMのタグ付け品質に大きく依存する点です。特徴的なのは、単純な道路クラスの優先度だけでなく、物理的・運動学的モデルを使用している点です。</string>
+    <string name="profile_info_car_vario_nocost_title">車両、可変（ベース）</string>
+    <string name="profile_info_car_vario_nocost_description">主に運動学的速度モデルに基づいた、より単純な車両ルーティングのバリアントです。その強みは、車両ルーティングのためのよりクリーンな基準点を提供し、比較、テスト、または追加の景観や好みに基づくコストが支配的になるべきでない場合に役立つ点です。弱みは、通常のナビゲーションにおいて car-vario より表現力が低く、ユーザーフレンドリーでないことです。特徴的な点は、豊富な好みのプロファイルというよりも技術的な基準点であることです。</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">高速リカンベント</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">高速リカンベントバイクのためのプロフィールです。その強みは、通常のロードバイクのプロフィールよりもリカンベントライダーのニーズをよりよく反映していることです：舗装道路での効率、悪路の回避、起伏の慎重な取り扱い、段差や降車区間のペナルティ。その弱みは、通常の自転車には専門的すぎることであり、立ち乗りサイクリストが受け入れるインフラを避ける可能性があることです。特徴的な点は、リカンベントバイクを単なる速い自転車としてではなく、独自の車両タイプとしてモデル化していることです。</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">高速ベロモービル</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">高速ベロモービル用のプロフィールです。その強みは、非常に効率的で重く、低抵抗の人力車両向けのルーティングにあり、滑らかな路面、少ない停止、少ない障害物、良好な走行条件が必要です。その弱みは、通常の自転車には不向きであることです。狭く、でこぼこ道が多く、停止が多い、または降車が多いルートに対して強くペナルティを与えるためです。その特徴は、バンドル内で最も車両特化型の人力プロフィールであり、汎用サイクリングではなくベロモービルの制約に合わせて調整されている点です。</string>
+    <string name="profile_info_car_eco_de_title">自動車、エコ（ドイツ）</string>
+    <string name="profile_info_car_eco_de_description">「car-eco」の派生で、歴史的に代替または二次的なルーティングデータに関連しています。その強みは、異なるデータスナップショットや特別な道路ネットワークの準備に対して、自動車のルーティングをデバッグやテストする際に役立つことです。弱みは、単純な日常の自動車プロフィールではなく、特別な二次データの設定が必要な場合があることです。その特徴は、経済的な自動車プロフィールのように振る舞いますが、主に二次データの設定が意図的に利用可能な場合に有用であることです。</string>
+    <string name="profile_info_moped_title">モペット</string>
+    <string name="profile_info_moped_description">モペッドのようなルーティング向けの実験的なプロファイルです。その強みは、自転車のプロファイルよりもモーター付き二輪車のアクセスを自然にモデル化できる点です。弱点として重要なのは、ターン制限や一部の交通規則が欠けている可能性があるため、実際のナビゲーションには十分に信頼できないことです。その特徴は、自転車と自動車のロジックの中間に位置する点であり、実験的または通常のユーザーには非表示として扱うべきです。</string>
+    <string name="profile_info_dummy_title">タグの検査</string>
+    <string name="profile_info_dummy_description">ルート区間で BRouter がどの OSM タグを認識するかを調べるためのデバッグプロファイルです。その長所は透明性にあり、開発者が利用可能なルーティングデータや未使用のタグを理解するのに役立ちます。その短所は、高品質または意味のあるルートを生成するように設計されていないことです。特徴的な点は、主にプロファイル開発やデータ検査のための診断用プロファイルであることです。</string>
+    <string name="profile_info_rail_title">鉄道</string>
+    <string name="profile_info_rail_description">鉄道、路面電車、地下鉄、ライトレール、および類似の鉄道オブジェクトを経由するためのルーティング用プロファイルです。その強みは、鉄道ネットワークのトポロジーを追跡し、OSMデータで鉄道の接続性を確認できることです。その弱点は、乗客の移動を表さないことです：時刻表、乗り換え、駅のロジック、サービスの可用性、またはチケット制約は含まれていません。その特徴的な側面は、通常のナビゲーションではなく鉄道データ分析に有用であることです。</string>
+    <string name="profile_info_river_title">河川 / 運河</string>
+    <string name="profile_info_river_description">河川、運河、水路、閘門などの水路に沿ったルーティング用のプロファイル。強みは、水路ネットワークの追跡とOSMデータ探索です。弱みは、ボートの種類、深さ、流れ、法的制限、危険、操作上の閘門制約などをモデル化していないため、実際の航海ナビゲーションには簡単すぎることです。特徴的なのは、水路をルート可能なネットワークとして扱う点ですが、基本的なトポロジーレベルに限られます。</string>
+    <string name="title_edit_destination_name">目的地名を編集</string>
+    <string name="title_save_route">• ルートを保存</string>
+    <string name="title_restore_route">• ルートを復元</string>
+    <string name="title_edit_route_name">ルート名を編集</string>
+    <string name="title_restore_route_confirm">ルートを復元しますか？</string>
+    <string name="msg_restore_route_confirm">現在の目的地と停止地点を\"%1$s\"に置き換えますか？</string>
+    <string name="title_map_picker_destination">地図上で目的地を選択</string>
+    <string name="title_map_picker_stop">地図上で停止地点%1$dを選択</string>
+    <string name="nav_no_route">ルートなし</string>
+    <string name="nav_waiting_for_location_title">位置情報待機中</string>
+    <string name="nav_waiting_for_location_body">ルートを計算するために使用可能な位置情報を待っています。</string>
+    <string name="nav_waiting_for_location_straight_line_body">直線ナビゲーションのために使用可能な位置情報を待っています。</string>
+    <string name="nav_calculating_route_title">ルートを計算中</string>
+    <string name="nav_calculating_route_body">BRouter からの経路を取得しています。</string>
+    <string name="nav_route_unavailable_title">ルートが利用できません</string>
+    <string name="format_nav_route_unavailable_body">ルートが利用できません: %1$s \n 利用可能なセグメントについては BRouter を確認してください。</string>
+    <string name="nav_route_unavailable_generic">不明なエラー</string>
+    <string name="nav_start_invalid_request">ナビゲーションリクエストが不完全です</string>
+    <string name="nav_route_notice_no_alternative_keep_current">通行止めエリアの迂回ルートを見つけることができませんでした。現在のルートを維持します。</string>
+    <string name="nav_route_notice_no_route_found">この目的地へのルートが見つかりません。</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">ルーティングサービスが利用できません。現在のルートを維持します。</string>
+    <string name="nav_route_notice_service_unavailable">ルーティングサービスが利用できません。</string>
+    <string name="nav_route_notice_invalid_profile">ルーティングプロファイルが無効です。</string>
+    <string name="nav_route_notice_update_failed_keep_current">ルートを更新できませんでした。現在のルートを維持します。</string>
+    <string name="nav_route_notice_unavailable">ルートを計算できませんでした。</string>
+    <string name="nav_route_notice_blocked_road_recalculating">通行止めの道路が追加されました。ルートを再計算しています。</string>
+    <string name="nav_paused_notice">ナビゲーションは一時停止中です。ライブ案内を続けるには「ナビゲーションを再開」をタップしてください。</string>
+    <string name="notification_channel_nav">ナビゲーション</string>
+    <string name="notification_channel_alert">案内アラート</string>
+    <string name="notification_channel_turn_left">左折</string>
+    <string name="notification_channel_turn_right">右折</string>
+    <string name="notification_nav_running">ナビゲーション実行中</string>
+    <string name="notification_nav_running_text">ViBRo Navigator がバックグラウンドでナビゲートしています</string>
+    <string name="notification_nav_paused">ナビゲーション一時停止中</string>
+    <string name="notification_nav_paused_text">ViBRo Navigator のナビゲーションは一時停止中です</string>
+    <string name="notification_off_route_title">ルート外</string>
+    <string name="notification_wrong_direction_title">逆方向</string>
+    <string name="notification_symbol_test_left_title">すべての左折通知をテスト</string>
+    <string name="notification_symbol_test_other_title">すべてのその他の通知をテスト</string>
+    <string name="notification_symbol_test_right_title">すべての右折通知をテスト</string>
+    <string name="direction_continue">続行</string>
+    <string name="direction_keep_left">左側を進んでください</string>
+    <string name="direction_keep_right">右側を進んでください</string>
+    <string name="direction_turn_left">左折してください</string>
+    <string name="direction_turn_right">右折してください</string>
+    <string name="direction_slight_left">少し左へ曲がってください</string>
+    <string name="direction_slight_right">少し右へ曲がってください</string>
+    <string name="direction_sharp_left">大きく左へ曲がってください</string>
+    <string name="direction_sharp_right">大きく右へ曲がってください</string>
+    <string name="direction_uturn_left">左にUターンしてください</string>
+    <string name="direction_uturn">Uターンしてください</string>
+    <string name="direction_uturn_right">右にUターンしてください</string>
+    <string name="direction_roundabout_exit">ロータリーで%1$d番目の出口を出てください</string>
+    <string name="direction_roundabout_exit_left">ロータリーで%1$d番目の出口を出てください</string>
+    <string name="direction_beeline">直線案内</string>
+    <string name="direction_exit_left">左の出口へ進んでください</string>
+    <string name="direction_exit_right">右の出口へ進んでください</string>
+    <string name="direction_offroute">ルート外</string>
+    <string name="direction_arrive">目的地に到着</string>
+    <string name="direction_intermediate_arrive">中間目的地に到達</string>
+    <string name="direction_unknown">方向不明</string>
+    <string name="direction_side_left">左</string>
+    <string name="direction_side_right">右</string>
+    <string name="format_speed_limit_content_description">速度制限 %1$s</string>
+    <string name="title_nav_gps_details">GPS の詳細</string>
+    <string name="format_nav_gps_details">速度: %1$s\n 高度: %2$s\n 精度: %3$s\n GPS 時間: %4$s\n 衛星: %5$s\n 間隔: %6$s\n 最終修正からの経過時間: %10$s\n GPS 修正点: %7$s\n GPS 進行方向: %8$s\n 進行方向の精度: %9$s</string>
+    <string name="title_nav_directions_details">ルート案内</string>
+    <string name="nav_directions_unavailable">今後の案内はありません</string>
+    <string name="title_nav_trip_stats">旅行統計</string>
+    <string name="format_nav_trip_stats_details">経過時間: %1$s\n 距離: %2$s\n 移動時間: %3$s\n 停止時間: %4$s\n 平均速度: %5$s\n 移動中平均速度: %6$s\n 最高速度: %7$s\n 画面オン: %8$s\n 画面オフ: %9$s\n 消費バッテリー: %10$s\n バッテリー低下: %11$s</string>
+    <string name="speech_off_route_recalculating">ルート外です。再計算中</string>
+    <string name="speech_off_route">ルート外</string>
+    <string name="speech_wrong_direction_turn_back">逆方向です。引き返してください</string>
+    <string name="format_off_route_off_track_notification">コース外を検出しました。距離 %1$s、閾値 %2$s。ルートを再計算中。</string>
+    <string name="format_off_route_bearing_notification">方位の不一致を検出しました。差 %1$s、期待 %2$s、実際 %3$s。ルートを再計算中。</string>
+    <string name="format_off_route_off_track_notice_only">コース外を検出しました。距離 %1$s、閾値 %2$s。</string>
+    <string name="format_off_route_bearing_notice_only">方位の不一致を検出しました。差 %1$s、期待 %2$s、実際 %3$s。</string>
+    <string name="format_wrong_direction_notification">逆方向を検出しました。目標 %1$s、実際 %2$s、差 %3$s。</string>
+    <string name="format_startup_orientation_notification">ルートの方を向く%1$s %2$s体を向けてください。</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$sベアリングサンプル</string>
+    <string name="nav_destination_reached">目的地に到着</string>
+    <string name="format_version">バージョン%1$s %2$s</string>
+    <string name="about_short_description">軽量でバッテリー効率が良く、オフライン先のGPSナビゲーションアプリで、BRouterを中心に振動する方向指示を送ります。</string>
+    <string name="about_homepage_link">
+        <u>ホームページ</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Play Storeで評価</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>GitHubのソースコード</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>問題を報告</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>変更履歴</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>プライバシーポリシー</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>利用規約</u>
+    </string>
+    <string name="about_legal">著作権 © 2026 Damiano Falcioni.\nMIT ライセンス</string>
+    <string name="about_credits">クレジット：経路計算はBRouter。POI検索と座標の逆ジオコーディングにはOpenStreetMap Nominatimを使用します。Google Play版では、保存したAPIキーでGoogle検索を有効にした場合、Google Maps Geocodingを使用します。地図上のPOIにはOpenStreetMap Overpassを使用します。地図タイルと地理データ：OpenStreetMapの貢献者。https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">設定</string>
+    <string name="about_settings_category_display">ディスプレイ</string>
+    <string name="about_settings_category_guidance">ガイダンス</string>
+    <string name="about_settings_category_compass">コンパス</string>
+    <string name="about_settings_category_search_input">検索と入力</string>
+    <string name="about_settings_category_advanced">高度な設定</string>
+    <string name="label_log_enabled">ログ</string>
+    <string name="title_log_output_folder">ログフォルダー</string>
+    <string name="label_permission_output_folder">ViBRo ダウンロードフォルダー</string>
+    <string name="title_output_browser">ViBRo ファイル</string>
+    <string name="title_gpx_output_folder">GPX フォルダー</string>
+    <string name="format_output_folder">現在のフォルダー: %1$s</string>
+    <string name="action_clear_output_folder">• 削除</string>
+    <string name="action_open_output_folder">開く</string>
+    <string name="msg_output_viewer_unavailable">このフォルダーまたはファイルを開くアプリはありません。</string>
+    <string name="hint_clear_log_output_folder">ViBRo ログファイルを次から完全に削除します: \n%1$s\n\n 他のファイルおよびサブフォルダーは保持されます。この操作は元に戻せません。ログが有効な場合、システム詳細を含む新しいログが開始されます。</string>
+    <string name="hint_clear_gpx_output_folder">ViBRo GPX のエクスポートを永久に削除します: \n%1$s\n\n 他のファイルおよびサブフォルダーは保持されます。これは元に戻すことはできません。</string>
+    <string name="msg_output_folder_cleared">ViBRo ファイルがクリアされました。</string>
+    <string name="msg_output_folder_clear_failed">すべての ViBRo ファイルをクリアできませんでした。診断でフォルダーへのアクセスを確認してください。</string>
+    <string name="label_external_storage_enabled">外部ストレージを使用する</string>
+    <string name="about_setting_external_storage_info">GPX のエクスポート、ログ、およびデータベースのバックアップを、電話のストレージではなく SD カードに保存します。サポートされておりマウントされた SD カードのみ利用可能です。USB ドライブは対象外です。Android 6–9 では、ログ記録および GPX の保存が無効でもフォルダーアクセスが必要です。カードが利用できなくなると、再び利用可能になるまで保存が停止します。古いファイルは元のフォルダーに残ります。</string>
+    <string name="hint_sd_download_access">SD カードフォルダーへのアクセスを許可します: \n%1$s\n\n ダウンロード、その ViBRo サブフォルダー、または SD カードのルートを選択します。ViBRo は Download/ViBRo/gpx、Download/ViBRo/logs、および Download/ViBRo/backup を使用します。保存にはこのフォルダーへのアクセスが必要です。</string>
+    <string name="msg_sd_storage_unavailable">対応する書き込み可能な SD カードが利用できません。</string>
+    <string name="msg_sd_storage_enabled">GPX のエクスポート、ログ、およびデータベースのバックアップは SD カードを使用します。</string>
+    <string name="msg_output_folder_failed">このフォルダーに書き込めませんでした。以前の設定は変更されません。</string>
+    <string name="msg_output_access_required">選択された出力フォルダーが利用できないか、アクセスが許可されていないため保存はオフです。</string>
+    <string name="msg_output_folder_picker_unavailable">フォルダーピッカーは利用できません。</string>
+    <string name="label_auto_save_gpx_enabled">自動保存 GPX</string>
+    <string name="label_fused_location_enabled">Google 融合位置</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">動的 GPS 間隔</string>
+    <string name="label_imperial_units_enabled">インペリアル単位 (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">ライトテーマ</string>
+    <string name="label_compass_surrounding_streets_enabled">周囲の道路</string>
+    <string name="action_configure_surrounding_street_types">周囲の道路タイプを選択</string>
+    <string name="title_surrounding_street_types">周囲の道路タイプ</string>
+    <string name="hint_surrounding_street_types">カテゴリのスイッチは、個別の選択を変更せずに色のグループ全体を表示/非表示にします。速度に基づく表示は引き続き適用されます。</string>
+    <string name="street_category_highway">主要道路</string>
+    <string name="street_category_normal">一般道路</string>
+    <string name="street_category_walking_cycling">徒歩 / 自転車</string>
+    <string name="street_category_special_routing">特別な経路</string>
+    <string name="street_type_motorway">高速道路</string>
+    <string name="street_type_motorway_info">管理されたアクセスを持つ高速道路.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">高速道路のランプ</string>
+    <string name="street_type_motorway_link_info">高速道路に入るまたは高速道路から出る接続。\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">幹線道路</string>
+    <string name="street_type_trunk_info">高速道路レベル以下の主要道路。\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">幹線道路リンク</string>
+    <string name="street_type_trunk_link_info">幹線道路に入るまたは幹線道路から出る接続。\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">主要道路</string>
+    <string name="street_type_primary_info">町や地域を結ぶ重要な道路。\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">主要道路リンク</string>
+    <string name="street_type_primary_link_info">主要道路に入るまたは主要道路から出る接続。\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">二次道路</string>
+    <string name="street_type_secondary_info">小さな町や地域を結ぶ道路。\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">二次道路リンク</string>
+    <string name="street_type_secondary_link_info">二次道路に入るまたは二次道路から出る接続。\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">三次道路</string>
+    <string name="street_type_tertiary_info">近隣の集落や地区を結ぶ地方道路。\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">第三種道路の連絡</string>
+    <string name="street_type_tertiary_link_info">第三種道路に出入りする接続。\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">小規模公道</string>
+    <string name="street_type_unclassified_info">第三種道路以下の公道で、多くは住宅地外にある。\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">住宅街の通り</string>
+    <string name="street_type_residential_info">主に住宅への通行に使われる通り。\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">共有住宅街通り</string>
+    <string name="street_type_living_street_info">歩行やその他の利用が共存する低速道路。\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">アクセス道路</string>
+    <string name="street_type_service_info">建物、駐車場、施設へのアクセスを提供する道路。\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">トラック</string>
+    <string name="street_type_track_info">主に農業や林業のアクセスに使用される道路。\n\nOSM/BRouter: highway=track。</string>
+    <string name="street_type_road">指定されていない道路</string>
+    <string name="street_type_road_info">正確な種類が不明な道路。\n\nOSM/BRouter: highway=roadまたはhighway=yes。</string>
+    <string name="street_type_busway">バスウェイ</string>
+    <string name="street_type_busway_info">主にバス用に指定された道路。\n\nOSM/BRouter: highway=busway。</string>
+    <string name="street_type_pedestrian">歩行者専用道路</string>
+    <string name="street_type_pedestrian_info">主に歩行者用に指定された通りやエリア。\n\nOSM/BRouter: highway=pedestrian。</string>
+    <string name="street_type_footway">歩道</string>
+    <string name="street_type_footway_info">歩行用に指定された道。\n\nOSM/BRouter: highway=footway。</string>
+    <string name="street_type_path">小道</string>
+    <string name="street_type_path_info">歩行、自転車、その他の非自動車交通に使用される一般的な小道。\n\nOSM/BRouter: highway=path。</string>
+    <string name="street_type_cycleway">自転車道</string>
+    <string name="street_type_cycleway_info">自転車用に指定された道。\n\nOSM/BRouter: highway=cycleway。</string>
+    <string name="street_type_bridleway">乗馬道</string>
+    <string name="street_type_bridleway_info">馬乗り用に指定された道。\n\nOSM/BRouter: highway=bridleway。</string>
+    <string name="street_type_steps">階段</string>
+    <string name="street_type_steps_info">ルートに沿った階段。\n\nOSM/BRouter: highway=steps。</string>
+    <string name="street_type_platform">乗換プラットフォーム</string>
+    <string name="street_type_platform_info">公共交通機関の停留所にある歩行可能なプラットフォーム。\n\nOSM/BRouter: highway=platform。</string>
+    <string name="street_type_corridor">室内通路</string>
+    <string name="street_type_corridor_info">建物内の通路。\n\nOSM/BRouter: highway=corridor。</string>
+    <string name="street_type_rest_area">道路沿いの休憩所</string>
+    <string name="street_type_rest_area_info">休憩所内の道路アクセス。\n\nOSM/BRouter: highway=rest_area。</string>
+    <string name="street_type_services">道路沿いのサービス</string>
+    <string name="street_type_services_info">サービスエリア内の道路アクセス。\n\nOSM/BRouter: highway=services。</string>
+    <string name="street_type_elevator">エレベーター</string>
+    <string name="street_type_elevator_info">歩行可能な階の間をつなぐエレベーター。\n\nOSM/BRouter: highway=elevator。</string>
+    <string name="street_type_via_ferrata">ヴィア・フェラータルート</string>
+    <string name="street_type_via_ferrata_info">固定具のある保護された登攀ルート。\n\nOSM/BRouter: highway=via_ferrata。</string>
+    <string name="street_type_raceway">レーストラック</string>
+    <string name="street_type_raceway_info">レーシング用のロードコース。\n\nOSM/BRouter：highway=raceway。</string>
+    <string name="street_type_railway">鉄道</string>
+    <string name="street_type_railway_info">ローカルBRouterセグメント内のすべての鉄道ジオメトリ。\n\nOSM/BRouter：railway=*。</string>
+    <string name="street_type_waterway">水路</string>
+    <string name="street_type_waterway_info">ローカルBRouterセグメント内のすべての水路ジオメトリ。\n\nOSM/BRouter：waterway=*。</string>
+    <string name="street_type_other">その他のルートジオメトリ</string>
+    <string name="street_type_other_info">認識された通りやサポートされているルートタイプを持たないジオメトリ。\n\nOSM/BRouter：認識されているhighway=*、railway=*、waterway=*、またはサポートされているroute=*値なし。</string>
+    <string name="street_type_route_ferry">フェリールート</string>
+    <string name="street_type_route_ferry_info">フェリーで運ばれるルート。\n\nOSM/BRouter：route=ferry。</string>
+    <string name="street_type_route_hiking_foot">徒歩ルート</string>
+    <string name="street_type_route_hiking_foot_info">ハイキングまたは徒歩用に標示されたルート。\n\nOSM/BRouter：route=hikingまたはroute=foot。</string>
+    <string name="street_type_route_bicycle">自転車ルート</string>
+    <string name="street_type_route_bicycle_info">サイクリング用に標示されたルート。\n\nOSM/BRouter：route=bicycle。</string>
+    <string name="street_type_route_ski_piste">スキー／コースルート</string>
+    <string name="street_type_route_ski_piste_info">そり遊びやハイキングなど他のアクティビティ用のスキーコースとルート。BRouter は両方のタグを1つの値として保存するため、このスイッチを共有します。\n\nOSM/BRouter: route=ski または route=piste。</string>
+    <string name="street_type_route_mtb">マウンテンバイクルート</string>
+    <string name="street_type_route_mtb_info">マウンテンバイク用の標示ルート。\n\nOSM/BRouter: route=mtb。</string>
+    <string name="street_type_route_canoe">カヌールート</string>
+    <string name="street_type_route_canoe_info">カヌー用の標示ルート。\n\nOSM/BRouter: route=canoe。</string>
+    <string name="street_type_route_bus">バスルート</string>
+    <string name="street_type_route_bus_info">現地の BRouter セグメントにおけるバスルートの形状。\n\nOSM/BRouter: route=bus。</string>
+    <string name="label_compass_instant_zoom_enabled">即時コンパスズーム</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">自動ズームアウト</string>
+    <string name="label_compass_fullscreen_route_enabled">ルートを全画面表示</string>
+    <string name="label_compass_distance_circles_enabled">距離円</string>
+    <string name="label_compass_central_perspective_enabled">パースペクティブ 3D ビュー</string>
+    <string name="label_show_hint_panel">ヒントパネルを表示</string>
+    <string name="label_navigation_notifications_enabled">通知</string>
+    <string name="label_single_instruction_mode_enabled">単一指示モード</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI カテゴリーフィルター</string>
+    <string name="hint_poi_categories_filter">フィルターが有効なときに、マップピッカーに表示する POI カテゴリーを選択します。カテゴリー名を編集したり、オンまたはオフに切り替えたり、+ を使って追加することができます。</string>
+    <string name="hint_poi_category_name">POI カテゴリー名</string>
+    <string name="label_speech_recognition">音声認識</string>
+    <string name="label_speech_recognition_language">言語</string>
+    <string name="label_speech_recognition_language_system_default">システムデフォルト</string>
+    <string name="label_maneuver_voice">音声の指示</string>
+    <string name="label_maneuver_voice_spinner">音声</string>
+    <string name="label_maneuver_voice_disabled">無効</string>
+    <string name="label_maneuver_voice_system_default">システムデフォルト</string>
+    <string name="format_maneuver_voice_variant_code">音声 %1$s</string>
+    <string name="label_maneuver_voice_gender_female">女性</string>
+    <string name="label_maneuver_voice_gender_male">男性</string>
+    <string name="label_google_poi_api_key">Google Maps API キー</string>
+    <string name="label_navigation_custom_button">カスタムボタン</string>
+    <string name="label_navigation_custom_button_target">設定</string>
+    <string name="label_setting_enabled">有効</string>
+    <string name="label_setting_disabled">無効</string>
+    <string name="hint_google_poi_api_key">任意の Google Maps キー</string>
+    <string name="format_about_setting_info_content_description">%1$s のヘルプを表示</string>
+    <string name="format_action_toggle_custom_button_setting">%1$s (%2$s) を切り替え</string>
+    <string name="about_setting_log_info">は、問題の診断に役立つ詳細な行動ログを保持します。サポート用に詳細を共有する必要がない限り、これをオフにしておいてください。選択したフォルダーにアクセスできる場合でも、クラッシュや予期しないナビゲーション停止は、このスイッチがオフでもシステムの詳細を含むタイムスタンプ付きログを作成します。強制停止はアプリが再起動した後にのみ報告できます。正確な原因は利用できない場合があります。</string>
+    <string name="about_setting_auto_save_gpx_info">は、ナビゲーションを停止ボタンで停止したときに、アクティブルートを GPX ファイルとして保存します。電話の場合は Download/ViBRo/gpx、または『外部ストレージを使用』で選択された SD カードを使用します。これをオンにすると、欠落しているフォルダーアクセスが要求されます。アクセスが拒否されるか選択されたストレージが利用できない場合、保存はオフのままです。</string>
+    <string name="about_setting_fused_location_info">は、利用可能な場合に Google の位置情報を使用します。これにより、一部の電話で位置情報の更新が改善されることがあります。</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">は、位置情報の取得回数を減らすことでバッテリーを節約しますが、信頼性は維持します。連続的な位置情報更新を希望する場合はオフにしてください。</string>
+    <string name="about_setting_imperial_units_info">は、距離や速度をメートルおよびkm/hではなく、フィート、マイル、mphで表示します。</string>
+    <string name="about_setting_light_theme_info">は、アプリのデフォルトのダークモードからライトモードに切り替えます。</string>
+    <string name="about_setting_compass_surrounding_streets_info">は、ローカルマップデータが利用可能な場合、コンパスに近くの通りやその他のルーティング情報を表示します。\n\nカラーレジェンド:\n■ — 主要道路と高速道路\n■ — 通常の通り\n■ — 歩行者および自転車用の通りとルート\n■ — 鉄道、水路、フェリー、スキー/カヌー/バスルート、乗馬道、レースウェイ、ヴィアフェラータ</string>
+    <string name="about_setting_compass_instant_zoom_info">は、コンパスのズームアニメーションをスキップするため、ルート概要ビューとスケール可変ビューの切り替えが即座に行えます。</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">は、停止中にコンパスでルート全体を表示します。停止中も最後の移動スケールのズームを維持したい場合はオフにしてください。</string>
+    <string name="about_setting_compass_fullscreen_route_info">は、フルナビゲーション画面の裏側でルートコンパスビューを拡大表示し、前面に操作コントロールと方向テキストを維持します。</string>
+    <string name="about_setting_compass_distance_circles_info">は、距離サークルに時間と距離のラベル、方位矢印、コンパスおよび全画面ビューでの方位精度線とアークを表示します。</string>
+    <string name="about_setting_compass_central_perspective_info">は、3D コンパスビューでパースペクティブを使用します：近くのルートや通りは大きく表示され、遠くのものは上方に向かって縮小されます。均一の正射投影の傾斜を使用したい場合はオフにしてください。</string>
+    <string name="about_setting_show_hint_panel_info">は、電話ナビゲーションを開いたときにジェスチャーのヒントと通りの色の凡例を表示します。</string>
+    <string name="about_setting_navigation_notifications_info">は、曲がり角のアラートやナビゲーション警告を通知として表示します。進行中のナビゲーション通知には影響せず、ナビゲート中は表示されたままになります。</string>
+    <string name="about_setting_single_instruction_mode_info">は、次の指示の約10秒前に1回だけ操作アラートを使用し、起動時、20秒前、5秒前の操作アラートを抑制します。到着や警告の通知には影響しません。</string>
+    <string name="about_setting_navigation_custom_button_info">は、ナビゲーションが開いているときに選択した設定を切り替える追加ボタンをナビゲーションコンパスに表示します。</string>
+    <string name="about_setting_android_auto_info">は、対応する車両ディスプレイで Android Auto を通じてナビゲーションを表示できるようにします。 一部のホストは Android Auto が再接続された後にのみアプリリストを更新します。 実際の車両では、Android Auto は Google Play や内部アプリ共有などの信頼できるソースからインストールされた場合にのみこのタイプのアプリを表示します。</string>
+    <string name="about_setting_poi_categories_info">は、燃料、駐車場、トイレなど、マップピッカーに表示できる場所を選択します。</string>
+    <string name="about_setting_speech_recognition_info">は、目的地と停止の音声入力用のマイクボタンを表示し、要求された認識言語を選択します。選択した音声認識が要求された言語をサポートしていない場合、Android はデフォルトを使用することがあります。</string>
+    <string name="about_setting_maneuver_voice_info">は、Android 音声を使用して、次の方向指示を音声で読み上げます。</string>
+    <string name="about_setting_google_poi_api_key_info">は、有効なキーを提供した場合、目的地検索で Google Maps を使用できるようにします。</string>
+    <string name="about_setting_export_database_info">履歴、保存されたルート、設定、プロフィールの選択など、アプリのデータを電話のDownload/ViBRo/backup内のJSONとして、または「外部ストレージを使用」で選択したSDカードに保存します。フォルダを尋ねずに保存されたファイル名を表示します。Android 6–9では、まず診断でストレージアクセスを設定してください。</string>
+    <string name="about_setting_import_database_info">このアプリによって作成されたJSONバックアップからアプリデータを復元します。ファイルピッカーは、Android 8以降で『外部ストレージを使用』が選択されている場合は電話のDownload/ViBRo/backupまたはSDカードで開始します。他のフォルダを参照することもできます。</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps APIキーが保存されました。</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps APIキーがクリアされました。</string>
+    <string name="msg_google_poi_api_key_required">Google検索を有効にする前に、Google Maps APIキーを追加してください。</string>
+    <string name="msg_google_poi_api_key_validating">Google Maps APIキーを検証しています…</string>
+    <string name="msg_google_poi_api_key_invalid">Google Maps APIキーは有効ではありません。</string>
+    <string name="msg_google_poi_api_key_validation_failed">Google Maps APIキーを検証できませんでした。</string>
+    <string name="about_diagnostic_title">診断</string>
+    <string name="about_permission_status_title">必要なアクセス</string>
+    <string name="about_sensor_status_title">センサーの状態</string>
+    <string name="label_direction_notification_tests">方向通知テスト</string>
+    <string name="label_permission_location">位置情報の許可</string>
+    <string name="label_permission_location_services">デバイスの位置情報</string>
+    <string name="label_permission_notifications">通知</string>
+    <string name="label_permission_battery">バッテリー最適化</string>
+    <string name="label_permission_surrounding_street_storage">BRouter 通りのストレージ</string>
+    <string name="label_permission_brouter_profile_storage">BRouter プロフィールのストレージ</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s。タップして解決します。</string>
+    <string name="label_sensor_fused_provider">Google統合プロバイダー</string>
+    <string name="label_sensor_gps_provider">GPSプロバイダー</string>
+    <string name="label_sensor_network_provider">ネットワークプロバイダー</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">地磁気回転ベクトル</string>
+    <string name="label_sensor_rotation_vector">回転ベクトル</string>
+    <string name="label_sensor_orientation">方位センサー</string>
+    <string name="label_sensor_linear_acceleration">線形加速度センサー</string>
+    <string name="label_sensor_accelerometer">加速度計</string>
+    <string name="sensor_status_enabled">有効</string>
+    <string name="sensor_status_disabled">無効</string>
+    <string name="sensor_status_available">利用可能</string>
+    <string name="sensor_status_unavailable">利用不可</string>
+    <string name="sensor_status_permission_denied">許可が拒否されました</string>
+    <string name="auto_no_active_navigation_title">アクティブなナビゲーションはありません</string>
+    <string name="auto_no_active_navigation_text">ここに案内を表示するには、電話でナビゲーションを開始してください。</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="other">画面のどこかをタップして閉じるか、%1$d秒待ってください</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="other">%2$sに%1$d度向いてください</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="other">%1$d秒</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="other">%1$d分</item>
+    </plurals>
+</resources>

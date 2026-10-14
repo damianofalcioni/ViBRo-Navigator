@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Utilitzar l\'idioma del sistema</string>
+    <string name="action_configure_app_language">Configurar l\'idioma de l\'aplicació</string>
+    <string name="title_app_language">Idioma de l\'aplicació</string>
+    <string name="label_app_language">Idioma</string>
+    <string name="hint_app_language">L\'idioma seleccionat s\'utilitza quan l\'opció Utilitzar l\'idioma del sistema està desactivada.</string>
+    <string name="about_setting_language_info">Utilitza el primer idioma compatible de les preferències d\'idioma del dispositiu, o l\'anglès si no n\'hi ha cap disponible. Desactiva-ho per utilitzar l\'idioma seleccionat amb el botó de configuració. La selecció inicial coincideix amb l\'idioma del sistema.</string>
+    <string name="nav_gesture_map_controls_title">Controls del mapa de gestos</string>
+    <string name="nav_gesture_views_body">
+        <b>Canviar vistes.</b> Toqueu dues vegades o llisqueu a l\'esquerra / dreta per passar de les vistes de ruta completa, 2D, i 3D</string>
+    <string name="nav_gesture_zoom_body">
+        <b>Zoom in / out.</b> Feu pinça o estireu la vista 2D i 3D per a ±2 nivells de zoom</string>
+    <string name="nav_gesture_tilt_body">
+        <b>Inclinar la vista 3D.</b> Lliscament cap amunt / avall amb dos dits per inclinar la vista 3D</string>
+    <string name="nav_gesture_map_legend_title">Llegenda del mapa</string>
+    <string name="nav_gesture_current_route">Ruta actual</string>
+    <string name="nav_gesture_current_position_accuracy">Posició actual i precisió</string>
+    <string name="nav_gesture_dont_show_again">No mostrar de nou</string>
+    <string name="nav_gesture_dismiss">Toca a qualsevol lloc per tancar</string>
+    <string name="welcome_title">Benvingut a ViBRo</string>
+    <string name="welcome_tldr">Resum: Instala BRouter, descarrega les dades de rutes locals i concedeix permisos.</string>
+    <string name="welcome_intro">ViBRo Navigator (BRouter Navigator amb vibració/codificació per vibració) és una aplicació de navegació Android GPS lleugera, pensada per funcionar principalment sense connexió i eficient en bateria, construïda sobre BRouter. Està dissenyada per a la navegació sense mapa, oferint direccions mitjançant vibracions i guiatge mínim en pantalla i per veu, permetent un ús sense distraccions i amb la pantalla apagada.</string>
+    <string name="welcome_setup_title">Configuració inicial</string>
+    <string name="welcome_brouter_body">• Instala BRouter mitjançant els enllaços proporcionats, després obre l\'aplicació i descarrega les dades de rutes de la teva àrea.</string>
+    <string name="welcome_permissions_body">• Després d\'aquest missatge de benvinguda i de la sol·licitud d\'instal·lació opcional de BRouter, permet la ubicació, el micròfon (per a entrada per veu), les notificacions i qualsevol accés d\'emmagatzematge sol·licitat. Activa la ubicació del dispositiu quan se\'t demani. Pots saltar-te una sol·licitud i habilitar l\'accés més tard.</string>
+    <string name="welcome_storage_body">• Concedeix accés a la carpeta profiles2 quan se\'t demani, o permís d\'emmagatzematge a les versions més antigues Android.</string>
+    <string name="welcome_battery_body">• Permet l\'exempció opcional d\'optimització de bateria per a una guia fiable amb la pantalla apagada.</string>
+    <string name="welcome_optional_access_body">• L\'accés al micròfon només és necessari si es demana per a la cerca per veu.</string>
+    <string name="action_about">Sobre</string>
+    <string name="action_start_navigation">Iniciar navegació</string>
+    <string name="action_pause_navigation">Pausar navegació</string>
+    <string name="action_resume_navigation">Reprendre navegació</string>
+    <string name="action_stop_navigation">Aturar navegació</string>
+    <string name="action_save_route">Desa la ruta</string>
+    <string name="action_restore_route">Restaura la ruta</string>
+    <string name="action_add_stop">Afegeix parada</string>
+    <string name="action_remove_stop">Elimina parada</string>
+    <string name="action_blocked_road">Camí bloquejat</string>
+    <string name="action_skip_beeline_target">Salta l\'objectiu directe</string>
+    <string name="action_delete">Suprimeix</string>
+    <string name="action_edit">Edita</string>
+    <string name="action_open_settings">Obre la configuració</string>
+    <string name="action_open_tts_settings">Obre la configuració de text a veu</string>
+    <string name="action_open_speech_directions_settings">Obre la configuració de direccions de veu</string>
+    <string name="action_open_speech_recognition_settings">Obre la configuració de reconeixement de veu</string>
+    <string name="action_open_android_stt_settings">Obre la configuració de veu a text Android</string>
+    <string name="action_continue">Continua</string>
+    <string name="action_enable_speech_recognition">Mostra els botons de reconeixement de veu</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Prova la veu de direccions per veu</string>
+    <string name="action_voice_search_destination">Pronuncia destí</string>
+    <string name="action_voice_search_stop">Pronuncia aturada</string>
+    <string name="action_clear_poi_search">Neteja el text de cerca</string>
+    <string name="action_save">Desa la clau</string>
+    <string name="action_save_poi_categories">Desa</string>
+    <string name="action_open_map">Mapa</string>
+    <string name="action_cancel">Cancel·la</string>
+    <string name="action_use_selected_point">Utilitza el punt seleccionat</string>
+    <string name="action_map_poi_categories">categories POI</string>
+    <string name="action_open_map_position">Obre posició del mapa</string>
+    <string name="action_test_left_notification">Esquerres</string>
+    <string name="action_test_other_notification">Altres</string>
+    <string name="action_test_right_notification">Drets</string>
+    <string name="action_current_location">Ubicació actual</string>
+    <string name="action_edit_poi_categories">Edita categories POI</string>
+    <string name="action_edit_google_poi_api_key">Edita clau Google Maps API</string>
+    <string name="action_configure_navigation_custom_button">Configura botó personalitzat</string>
+    <string name="action_enable_google_poi_search">Activa la cerca Google</string>
+    <string name="action_add_poi_category">Afegeix categoria POI</string>
+    <string name="action_remove_poi_category">Elimina categoria POI</string>
+    <string name="action_enable_poi_category">Activa categoria POI</string>
+    <string name="action_export_database">Exporta base de dades</string>
+    <string name="action_import_database">Importa base de dades</string>
+    <string name="action_export_route">Exporta GPX</string>
+    <string name="action_profile_info">Informació del perfil</string>
+    <string name="action_setting_info">Informació de la configuració</string>
+    <string name="action_poi_details">Detalls de POI</string>
+    <string name="action_search_google_maps">Cerca a Google Maps</string>
+    <string name="action_profile_settings">Configuració del perfil</string>
+    <string name="action_reset_defaults">Restableix valors predeterminats</string>
+    <string name="label_vehicle_profile">Perfil</string>
+    <string name="label_route_mode_route">Mode de ruta</string>
+    <string name="label_route_mode_round_trip">Mode de ruta circular</string>
+    <string name="label_route_mode_straight_line">Mode en línia recta</string>
+    <string name="label_destination">Destinació</string>
+    <string name="label_poi_entrance">Entrada</string>
+    <string name="label_poi_entrances">Entrades</string>
+    <string name="label_poi_entrance_type">Tipus</string>
+    <string name="label_poi_coordinates">Coordenades</string>
+    <string name="label_poi_extra_tags">Etiquetes addicionals</string>
+    <string name="label_poi_address_details">Adreça</string>
+    <string name="label_round_trip_distance_km">Distància mitjana d\'anada i tornada (km)</string>
+    <string name="label_round_trip_distance_mi">Distància mitjana d\'anada i tornada (mi)</string>
+    <string name="label_round_trip_direction">Direcció d\'anada i tornada (°)</string>
+    <string name="label_round_trip_direction_compass">Brúixola de direcció d\'anada i tornada</string>
+    <string name="label_profile_attention_icon">Perfil experimental o de depuració</string>
+    <string name="format_profile_info_content_description">Mostra informació de %1$s</string>
+    <string name="format_route_mode_info_content_description">Mostra informació del mode per a %1$s</string>
+    <string name="format_poi_details_content_description">Mostra detalls de POI per a %1$s</string>
+    <string name="format_poi_search_info_content_description">Mostra informació de cerca per a %1$s</string>
+    <string name="format_poi_entrance_heading">Entrada %1$d</string>
+    <string name="format_poi_entrance_type">Entrada: %1$s</string>
+    <string name="format_stop_label">Atura %1$d</string>
+    <string name="format_default_saved_route_name">Ruta %1$s</string>
+    <string name="hint_search_destination">Cerca el destí</string>
+    <string name="hint_search_stop">Cerca l’aturada</string>
+    <string name="prompt_speech_destination">Digues el destí</string>
+    <string name="prompt_speech_stop">Digues l’aturada</string>
+    <string name="hint_saved_route_name">Nom de la ruta</string>
+    <string name="msg_missing_destination">Selecciona un destí</string>
+    <string name="msg_invalid_destination_name">Introdueix un nom de destí</string>
+    <string name="msg_invalid_route_name">Introdueix un nom de ruta</string>
+    <string name="msg_invalid_coordinates">Selecciona un lloc amb coordenades</string>
+    <string name="msg_invalid_stop">Elimina o selecciona una aturada amb coordenades</string>
+    <string name="msg_invalid_round_trip_distance">Introdueix una distància de viatge d’anada i tornada vàlida</string>
+    <string name="msg_invalid_round_trip_direction">Introdueix una direcció de viatge d’anada i tornada vàlida</string>
+    <string name="msg_round_trip_requires_brouter_profile">Selecciona un perfil de BRouter per al mode de viatge d’anada i tornada</string>
+    <string name="msg_brouter_not_found">BRouter no està instal·lat</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter és necessari per als carrers del voltant.</string>
+    <string name="title_brouter_not_found">BRouter necessari</string>
+    <string name="title_stop_navigation_confirm">Parar la navegació?</string>
+    <string name="msg_brouter_install_prompt">BRouter no està instal·lat. Obrir la seva pàgina d\'aplicació a Play Store o F-Droid?</string>
+    <string name="msg_location_disabled">La ubicació està desactivada. Activeu-la per navegar.</string>
+    <string name="msg_permission_required">Permís requerit</string>
+    <string name="msg_stop_navigation_confirm">Voleu parar la navegació i tancar aquesta pantalla?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator necessita accés a la ubicació per navegar i vibrar les indicacions.</string>
+    <string name="msg_permission_notifications_rationale">Les notificacions s\'utilitzen per avisar de les girs imminents.</string>
+    <string name="msg_enable_notifications">Activeu les notificacions per avisos de girs.</string>
+    <string name="msg_battery_opt_rationale">Per a una navegació fiable en segon pla, permeteu a ViBRo Navigator ignorar les optimitzacions de bateria.</string>
+    <string name="msg_open_settings_failed">No s\'ha pogut obrir la configuració en aquest dispositiu.</string>
+    <string name="msg_open_brouter_store_failed">No s\'ha pogut obrir una pàgina d\'emmagatzematge de BRouter en aquest dispositiu.</string>
+    <string name="msg_intent_unrecognized">Ubicació compartida no reconeguda</string>
+    <string name="msg_gpx_import_failed">No s\'ha pogut carregar els punts de ruta de GPX.</string>
+    <string name="msg_gpx_import_blocked_navigation">Atura la navegació abans d\'obrir una ruta GPX.</string>
+    <string name="msg_speech_input_unavailable">Cap servei de reconeixement de veu està habilitat. Activa l\'aplicació Google o l\'entrada de veu Android.</string>
+    <string name="msg_speech_input_listening">Escoltant…</string>
+    <string name="msg_speech_input_empty">No s\'ha reconegut cap veu.</string>
+    <string name="msg_speech_input_failed">L\'entrada de veu ha fallat. Torna-ho a provar.</string>
+    <string name="msg_speech_input_unresponsive">No s\'ha iniciat el reconeixement de veu. Activa l\'aplicació Google o l\'entrada de veu Android.</string>
+    <string name="msg_speech_permission_required">Es necessita permís del micròfon per a la introducció de veu.</string>
+    <string name="msg_select_custom_profile">Selecciona un fitxer BRouter .brf personalitzat</string>
+    <string name="msg_invalid_custom_profile">Selecciona un fitxer BRouter .brf vàlid</string>
+    <string name="msg_profile_parameters_empty">Aquest perfil no exposa paràmetres editables.</string>
+    <string name="msg_profile_parameters_not_localized">Els paràmetres s\'extreuen dinàmicament del fitxer de perfil BRouter, per tant els seus noms, descripcions i opcions no estan traduïts.</string>
+    <string name="msg_profile_parameters_saved">Configuració del perfil desada.</string>
+    <string name="msg_profile_parameters_reset">Configuració del perfil restablerta als valors predeterminats del perfil.</string>
+    <string name="msg_profile_parameter_invalid_number">Introdueix un nombre vàlid.</string>
+    <string name="msg_profile_parameter_invalid_text">Els valors no poden contenir ?, &amp;, o =.</string>
+    <string name="msg_poi_details_unavailable">No hi ha detalls addicionals disponibles.</string>
+    <string name="msg_poi_details_map_check_hint">Utilitzeu el mapa per comprovar que aquesta és la ubicació prevista.</string>
+    <string name="msg_poi_google_maps_search_info">Obre Google Maps amb el text d\'aquest camp de cerca POI. Després de triar un lloc a Google Maps, comparteix aquest lloc i selecciona ViBRo Navigator per portar el resultat aquí.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">Cal accés a l\'emmagatzematge per llegir els carrers locals BRouter.</string>
+    <string name="title_brouter_segments_storage_access">Emmagatzematge de carrers BRouter</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Els carrers de l\'entorn necessiten accés a la carpeta segments4 de BRouter. A la següent pantalla, navegueu fins a %1$s i confirmeu l\'accés a la carpeta. Si aquesta ubicació no està disponible, seleccioneu la carpeta on BRouter desa els seus fitxers .rd5.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">Cal accés a l\'emmagatzematge per llegir fitxers de perfil BRouter.</string>
+    <string name="title_brouter_profiles_storage_access">Emmagatzematge de perfils BRouter</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter necessiten accés a la carpeta profiles2. A la següent pantalla, navega a %1$s i confirma l\'accés a la carpeta. Si aquesta ubicació no està disponible, selecciona la carpeta on BRouter desa els seus perfils .brf.\n\nNotificació de prova de símbol</string>
+    <string name="msg_symbol_test_notification_sent">enviada.</string>
+    <string name="msg_map_location_searching">Buscant la ubicació actual…\n\nLa ubicació actual no està disponible</string>
+    <string name="msg_map_location_unavailable">.\n\nSelecciona primer un punt al mapa</string>
+    <string name="msg_map_selection_required">.\n\nPosició del mapa no disponible</string>
+    <string name="msg_map_position_unavailable">.\n\nCap aplicació pot obrir posicions del mapa</string>
+    <string name="msg_map_position_no_app">.\n\nNo s\'ha pogut obrir la posició del mapa</string>
+    <string name="msg_map_position_open_failed">.\n\nCarregant POIs…</string>
+    <string name="msg_map_poi_loading">POIs no disponibles</string>
+    <string name="msg_map_poi_unavailable">.\n\nAmplia el mapa per carregar POIs</string>
+    <string name="msg_map_poi_zoom_in">.\n\nNo hi ha POIs habilitats en aquesta vista del mapa</string>
+    <string name="msg_map_poi_empty">No hi ha punts d\'interès habilitats en aquesta vista del mapa.</string>
+    <string name="msg_map_poi_categories_empty">.\n\nBase de dades guardada: POI</string>
+    <string name="msg_database_exported">Base de dades desada: %1$s</string>
+    <string name="msg_database_export_failed">.\n\nBase de dades importada</string>
+    <string name="msg_database_imported">.\n\nNo s\'ha pogut importar la base de dades</string>
+    <string name="msg_database_import_failed">.</string>
+    <string name="msg_saved_route_saved">Ruta desada.</string>
+    <string name="msg_saved_route_restored">Ruta restaurada.</string>
+    <string name="msg_saved_routes_empty">Cap ruta desada.</string>
+    <string name="msg_route_export_unavailable">No hi ha cap ruta activa per exportar.</string>
+    <string name="msg_route_export_failed">No s\'ha pogut exportar la ruta.</string>
+    <string name="msg_route_export_no_app">Cap aplicació pot obrir rutes GPX.</string>
+    <string name="msg_google_maps_search_open_failed">No s\'ha pogut obrir la cerca Google Maps.</string>
+    <string name="msg_open_url_failed">No s\'ha pogut obrir l\'enllaç en aquest dispositiu.</string>
+    <string name="label_exported_route_gpx">Ruta ViBRo GPX</string>
+    <string name="gpx_passed_route_track_name">Ruta passada</string>
+    <string name="format_gpx_gps_fix_name">Arreglar GPS %1$d</string>
+    <string name="label_vehicle_profile_custom">Personalitzat</string>
+    <string name="label_vehicle_profile_custom_with_name">Personalitzat (%1$s)</string>
+    <string name="title_profile_parameters">Configuració del perfil: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Restablir la configuració del perfil?</string>
+    <string name="msg_profile_parameters_reset_confirm">Restaurar la configuració d\'aquest perfil als valors definits en el perfil?</string>
+    <string name="format_profile_parameter_info_content_description">Mostra la informació del paràmetre per %1$s</string>
+    <string name="route_mode_info_route_description">Calcula una ruta BRouter des de la teva posició actual passant per qualsevol parada fins a la destinació.</string>
+    <string name="route_mode_info_round_trip_description">Calcula una ruta circular BRouter des de la teva posició actual utilitzant el perfil seleccionat i la distància mitjana del viatge.</string>
+    <string name="route_mode_info_straight_line_description">Salta BRouter i guia directament cap a la destinació, aturant-se amb la distància i direcció recta.</string>
+    <string name="profile_info_trekking_title">Bicicleta de trekking</string>
+    <string name="profile_info_trekking_description">Enrutament equilibrat per a bicicletes per al ciclisme diari, turisme i navegació pràctica. El seu principal punt fort és la versatilitat: evita el trànsit intens de cotxes, suporta rutes ciclistes, considera l’elevació i normalment produeix rutes que resulten raonables per als ciclistes normals. La seva debilitat és que no està altament especialitzat: els ciclistes de carretera poden trobar-lo més lent que `fastbike`, mentre que els ciclistes fora de carretera poden considerar-lo massa conservador comparat amb `mtb` o `gravel`. El seu aspecte distintiu és que és el perfil de bicicleta polivalent més segur i probablement el millor per defecte per a la majoria d’usuaris.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Trekking, ignora rutes</string>
+    <string name="profile_info_trekking_ignore_cr_description">Una variant de bicicleta de trekking que ignora les relacions amb rutes ciclistes. El seu avantatge és que evita sobreprioritzar les rutes ciclistes senyalitzades o mapejades quan aquestes rutes són indirectes, panoràmiques, obsoletes o realment no útils per al viatge actual. La seva debilitat és que perd un dels principals avantatges del perfil normal de trekking: seguir bones xarxes ciclistes quan existeixen. El seu aspecte distintiu és que respon a un problema específic: \"no prefereixis un camí només perquè forma part d\'una ruta ciclista.\"</string>
+    <string name="profile_info_trekking_noferries_title">Trekking, sense ferris</string>
+    <string name="profile_info_trekking_noferries_description">Una variant de bicicleta de trekking que evita connexions amb ferris. La seva fortalesa és la previsibilitat: evita rutes que depenen dels horaris dels ferris, funcionament estacional, emissió de bitllets, temps d’espera o disponibilitat incerta. La seva feblesa és que pot produir rutes molt més llargues en zones de riu, llac, illa o costa on els ferris són la connexió pràctica. El seu aspecte distintiu és que és el perfil de trekking per a usuaris que volen rutes només per terra.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, sense escales</string>
+    <string name="profile_info_trekking_nosteps_description">Una variant de bicicleta de trekking que evita els escalons. La seva força és la facilitat pràctica de conducció, especialment per a bicicletes de turisme carregades, bicicletes elèctriques, bicicletes de càrrega, remolcs infantils o usuaris que no volen portar la bicicleta. La seva debilitat és que pot evitar curtcircuits per a vianants o ciclistes i produir desviaments més llargs en ciutats o zones amb pendents. El seu aspecte distintiu és que manté l\'equilibri normal de trekking però elimina una de les sorpreses més molestes de l\'itinerari de bicicletes: les escales.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, pujades pronunciades</string>
+    <string name="profile_info_trekking_steep_description">Una variant de bicicleta de trekking per a rutes on les pujades més empinades són més acceptables. La seva força és que pot triar rutes més directes o amb més pujades en lloc d\'evitar l\'elevació de manera intensa. La seva debilitat és que pot ser incòmoda o inadequada per a ciclistes ocasional, bicicletes pesades, remolcs o viatges amb bicicleta elèctrica amb poca bateria. El seu aspecte distintiu és que manté el caràcter de trekking però té menys por del terreny empinat que el perfil de trekking normal.</string>
+    <string name="profile_info_fastbike_title">Bicicleta de carretera</string>
+    <string name="profile_info_fastbike_description">Optimitzat per a ciclisme ràpid en carreteres asfaltades, bicicletes de cursa, bicicletes de fitness i speed-pedelecs. La seva força és la velocitat: prefereix carreteres eficients i de bona qualitat i utilitza un model orientat al temps de viatge en lloc de simplement buscar camins tranquils o pintorescos. La seva debilitat és que pot semblar massa orientat a carretera per a ciclistes ocasionals, famílies o usuaris que volen fortament rutes amb poc trànsit. El seu aspecte distintiu és que és el perfil de bicicleta orientat al rendiment: més ràpid i directe que `trekking`, però encara conscient de la bicicleta.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Bicicleta de carretera, poc trànsit</string>
+    <string name="profile_info_fastbike_lowtraffic_description">Un perfil de bicicleta ràpida que dóna més importància a evitar el trànsit que el `fastbike` normal, tot i que continua sent orientat al rendiment. La seva fortalesa és que és un bon compromís per a ciclistes que volen velocitat però no volen ser desviats constantment cap a carreteres molt transitades. La seva debilitat és que pot ser lleugerament més lenta o menys directa que `fastbike`, i menys evitadora de trànsit que `fastbike-verylowtraffic`. El seu aspecte distintiu és que és l’opció intermèdia entre un enrutament purament ràpid i un enrutament de bicicleta ràpida molt sensible al trànsit.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Bicicleta de carretera, mínim trànsit</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">Una variant més forta de baix trànsit per a usuaris de bicicleta de carretera o speed-pedelec que volen evitar cotxes i camions tant com sigui possible. La seva fortalesa és un ciclisme ràpid més segur i tranquil, especialment per a passejades en solitari, pluja, conducció nocturna o zones de trànsit dens. La seva debilitat és que pot provocar desviaments més grans i pot rebutjar carreteres ràpides si tenen molt trànsit. El seu aspecte distintiu és que conserva el caràcter de bicicleta ràpida però fa de la ruta de molt baix trànsit la prioritat central.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Bicicleta de carretera, Àsia-Pacífic</string>
+    <string name="profile_info_fastbike_asia_pacific_description">Una variant regional de `fastbike` per a països on les pressupòsits europeus sobre carreteres principals, autopistes i restriccions per a bicicletes no sempre s\'ajusten. El seu punt fort és que pot fer que la planificació de rutes amb bicicleta ràpida sigui més útil en regions com el Japó, Austràlia i altres contextos d’Àsia-Pacífic on la classificació de carreteres i l’accés per a bicicletes poden diferir de l’Europa. La seva debilitat és que és menys adequada com a perfil predeterminat universal. El seu aspecte distintiu és que manté la lògica de bicicleta ràpida però adapta les pressupòsits d’accés a carreteres per a l’ús a l’Àsia-Pacífic.</string>
+    <string name="profile_info_safety_title">Ciclisme més segur</string>
+    <string name="profile_info_safety_description">Un perfil de bicicleta centrat en rutes més segures i tranquiles. La seva força és que prioritza evitar carreteres desagradables o perilloses més que la ruta ràpida normal, fent-lo útil per a ciclistes prudents, famílies, ciclisme urbà o usuaris que prefereixen la comoditat a la rapidesa. La seva feblesa és que pot produir rutes més lentes, llargues o menys directes. El seu aspecte distintiu és que és l\'opció de bicicleta més clarament \"seguretat primer\", útil quan la prioritat de l\'usuari és evitar trànsit estressant en lloc de minimitzar el temps.</string>
+    <string name="profile_info_gravel_title">Bicicleta de grava</string>
+    <string name="profile_info_gravel_description">Dissenyat per a bicicletes de grava i passejades en superfícies mixtes. La seva força és trobar rutes que poden incloure grava compacta, senders i camins sense paviment amb poc trànsit, alhora que evita superfícies massa rugoses, fangoses, empinades o lentes. La seva debilitat és que no és ideal per a bicicletes purament de carretera, perquè pot seleccionar seccions sense asfaltar de manera intencionada, i no és tan orientat al trail com un perfil de MTB veritable. El seu aspecte distintiu és que se situa entre el ciclisme de carretera i el de muntanya: més aventurer que `fastbike`, menys tècnic que `mtb`.</string>
+    <string name="profile_info_mtb_title">Bicicleta de muntanya</string>
+    <string name="profile_info_mtb_description">Un perfil de bicicleta orientat a terrenys fora de carretera per a ciclisme de muntanya i conducció per senders. La seva força és que pot donar preferència a camins, pistes, senders no asfaltats i terrenys adequats per MTB molt més que els perfils de bicicleta normals. La seva debilitat és que pot produir rutes que no són adequades per a turisme, desplaçaments o bicicletes de carretera, especialment si l\'usuari en realitat no desitja camins accidentats. El seu aspecte distintiu és el seu comportament específic per a MTB: té en compte la preferència de camí, la qualitat de la superfície, la suavitat, les condicions humides, el comportament a les pujades i la idoneïtat per fora de carretera.</string>
+    <string name="profile_info_hiking_mountain_title">Senderisme de muntanya</string>
+    <string name="profile_info_hiking_mountain_description">Un perfil de caminada per a senderisme i camins de muntanya. El seu punt fort és que està dissenyat al voltant del desplaçament a peu, les rutes de senderisme, la dificultat dels camins i les condicions específiques de muntanya en lloc de les suposicions de bicicleta o cotxe. La seva debilitat és que depèn molt de l’etiquetatge correcte OSM per als camins, l’accés, les rutes de senderisme i els nivells de dificultat, especialment a les zones alpines. El seu aspecte distintiu és que és el perfil inclòs que es centra més clarament en la caminada de muntanya en lloc de l’eficiència del transport.</string>
+    <string name="profile_info_skating_title">Patinatge</string>
+    <string name="profile_info_skating_description">Optimitzat per a patinatge en línia o activitats similars de llarga distància en patins. La seva fortalesa és la sensibilitat a la superfície: prefereix molt les rutes suaus, pavimentades i fluides, i evita superfícies, barreres, semàfors, passos de vianants i interrupcions brusques que trenquen el ritme del patinatge. La seva debilitat és que és molt especialitzat i pot rebutjar rutes que són acceptables per bicicletes o vianants però dolentes per als patins. El seu aspecte distintiu és que traça rutes pensant en el flux del patinatge, no només en l\'accés legal o la distància.</string>
+    <string name="profile_info_shortest_title">Ruta més curta</string>
+    <string name="profile_info_shortest_description">Un perfil mínim que principalment intenta minimitzar la distància de la ruta. La seva força és la simplicitat: és útil quan l’usuari vol explícitament la ruta accessible més curta possible o quan compara la geometria de la ruta. La seva debilitat és que la més curta sovint no és la millor: pot triar segments insegurs, desagradables, empinats, irregulars o amb molt trànsit. El seu aspecte distintiu és que gairebé ignora la lògica de comoditat i preferència, fent-lo útil com a perfil de referència més que com a valor predeterminat adequat.</string>
+    <string name="profile_info_car_eco_title">Cotxe, ecològic</string>
+    <string name="profile_info_car_eco_description">Un perfil de conducció de cotxe econòmic centrat a reduir la velocitat innecessària, l’ús d’energia i els patrons de conducció ineficients. El seu fort és que pot preferir rutes més conscients amb l’energia en lloc de simplement buscar la carretera més ràpida. La seva feblesa és que pot triar rutes més lentes o menys directes i pot semblar menys còmode quan l’hora d’arribada és la prioritat principal. El seu aspecte distintiu és que és el perfil de cotxe per a la “eficiència raonable” més que per a la velocitat màxima.</string>
+    <string name="profile_info_car_eco_nocost_title">Cotxe, eco (base)</string>
+    <string name="profile_info_car_eco_nocost_description">Una variant econòmica simplificada de cotxe. El seu punt fort és que manté un model de cotxe orientat a l\'economia mentre redueix les penalitzacions addicionals basades en preferències, fent-lo útil com a perfil de comparació més net. La seva debilitat és que pot ser menys refinat per a la navegació real perquè elimina part de la lògica de cost que normalment ajuda a definir la qualitat pràctica de la ruta. El seu aspecte distintiu és que és millor considerar-lo com una base tècnica: útil per comparar amb `car-eco`, menys útil com el perfil principal per a l\'usuari.</string>
+    <string name="profile_info_car_fast_title">Cotxe, ràpid</string>
+    <string name="profile_info_car_fast_description">Un perfil de conducció de cotxe enfocat en la velocitat i el temps de viatge. La seva fortalesa és que tendeix a preferir carreteres més ràpides i rutes més directes i eficients en temps. La seva debilitat és que pot ser menys econòmic, menys silenciós, menys pintoresc i, de vegades, menys adequat quan les restriccions de cotxe OSM o el context local de la carretera són incomplets. El seu aspecte distintiu és que és el perfil de cotxe més evident per als usuaris que simplement volen arribar ràpidament.</string>
+    <string name="profile_info_car_fast_nocost_title">Cotxe, ràpid (base)</string>
+    <string name="profile_info_car_fast_nocost_description">Una variant simplificada de cotxe ràpid. La seva força és que se centra més directament en el comportament del model de velocitat, fet que el fa útil per a proves, comparacions o experiments de carretera més ràpida previsibles. La seva debilitat és que pot ser menys matisat que `car-fast`, perquè es redueixen els penalitzacions i preferències addicionals. El seu aspecte distintiu és que és una versió de referència del ruteig de cotxe ràpid: bo per a comparacions tècniques, menys ideal com a perfil de cotxe per defecte.</string>
+    <string name="profile_info_car_vario_title">Cotxe, velocitat variable</string>
+    <string name="profile_info_car_vario_description">El perfil principal de cotxe flexible. La seva força és l\'adaptabilitat: canviant paràmetres, pot comportar-se més com un enrutament de cotxe ràpid o més com un enrutament conscient de l\'energia/eco. Suporta preferències com evitar peatges, camins no pavimentats, autopistes i certs entorns. La seva debilitat és que encara és més senzill que un motor de navegació de cotxe comercial complet i depèn molt de la qualitat de l\'etiquetatge OSM. El seu aspecte distintiu és que utilitza un model físic/cinemàtic en lloc d\'únicament prioritats simples de classificació de carreteres.</string>
+    <string name="profile_info_car_vario_nocost_title">Cotxe, variable (base)</string>
+    <string name="profile_info_car_vario_nocost_description">Una variant més senzilla de rutes de cotxe basada principalment en el model de velocitat cinemàtica. La seva força és que proporciona una línia de base més neta per a la planificació de rutes en cotxe, útil per a comparacions, proves o casos en què els costos addicionals escènics o basats en preferències no haurien de predominar. La seva feblesa és que és menys expressiva i menys amigable per a l\'usuari que car-vario per a la navegació normal. El seu aspecte distintiu és que és més una línia de base tècnica que un perfil de preferències ric.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Bicicleta reclinada ràpida</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">Un perfil per a bicicletes reclinades ràpides. El seu fort és que reflecteix millor les necessitats dels ciclistes reclinats que un perfil normal de bicicleta de carretera: carreteres pavimentades eficients, evitació de superfícies dolentes, maneig cuidat de l\'elevació i penalitzacions per passos o seccions per baixar de la bicicleta. La seva debilitat és que és massa especialitzat per a bicicletes normals i pot evitar infraestructures que els ciclistes verticals acceptarien. El seu aspecte distintiu és que modela una bicicleta reclinada com el seu propi tipus de vehicle, no només com una bicicleta més ràpida.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Velomòbil ràpid</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">Un perfil per a velomòbils ràpids. La seva fortalesa és la planificació de rutes per a vehicles pesants, de baixa resistència aerodinàmica i propulsats per humans, molt eficients, que necessiten superfícies suaus, poques parades, pocs obstacles i bones condicions de rodament. La seva debilitat és que s’adapta poc a bicicletes normals, ja que penalitza fortament rutes estretes, irregulars, amb moltes parades o amb moltes baixades del vehicle. El seu aspecte distintiu és que és el perfil més específic per a vehicles propulsats per humans del conjunt, ajustat a les limitacions dels velomòbils més que al ciclisme genèric.</string>
+    <string name="profile_info_car_eco_de_title">Cotxe, ecològic (Alemanya)</string>
+    <string name="profile_info_car_eco_de_description">Una variant de `car-eco` històricament vinculada a dades de ruta alternatives o secundàries. La seva força és que pot ser útil per a la depuració o per provar el traçat de cotxes amb una altra instantània de dades o una preparació especial de la xarxa de carreteres. La seva debilitat és que no és simplement un perfil de cotxe normal del dia a dia i pot requerir una configuració especial de dades secundàries. El seu aspecte distintiu és que es comporta com un perfil de cotxe econòmic però és principalment útil quan la configuració de dades secundàries està intencionadament disponible.</string>
+    <string name="profile_info_moped_title">Scooter</string>
+    <string name="profile_info_moped_description">Un perfil experimental per a rutes tipus ciclomotor. El seu punt fort és que modela l’accés amb dos rodes motoritzades de manera més natural que un perfil de bicicleta. La seva debilitat és important: no és prou fiable per a la navegació real perquè poden faltar restriccions de gir i algunes limitacions de trànsit. El seu aspecte distintiu és que es troba entre la lògica de bicicleta i cotxe, però s’hauria de tractar com a experimental o ocult per als usuaris normals.</string>
+    <string name="profile_info_dummy_title">Inspecció d’etiquetes</string>
+    <string name="profile_info_dummy_description">Un perfil de depuració per inspeccionar quins etiquetes OSM veu BRouter en els segments de ruta. La seva fortalesa és la transparència: ajuda els desenvolupadors a entendre les dades de ruta disponibles i les etiquetes no utilitzades. La seva feblesa és que no està dissenyat per produir rutes d’alta qualitat o significatives. El seu aspecte distintiu és que és principalment un perfil de diagnòstic per al desenvolupament de perfils i la inspecció de dades.</string>
+    <string name="profile_info_rail_title">Ferrocarrils</string>
+    <string name="profile_info_rail_description">Un perfil per a l\'enrutament sobre ferrocarril, tramvia, metro, tren lleuger i objectes ferroviaris similars. La seva fortalesa és rastrejar la topologia de la xarxa ferroviària i comprovar la connectivitat ferroviària en dades OSM. La seva feblesa és que no representa els viatges de passatgers: cap horari, transbordaments, lògica d\'estació, disponibilitat del servei ni restriccions de bitllets. El seu aspecte distintiu és que és útil per a l\'anàlisi de dades ferroviàries, no per a la navegació normal.</string>
+    <string name="profile_info_river_title">Rius / canals</string>
+    <string name="profile_info_river_description">Un perfil per al routing al llarg de vies navegables com rius, canals, canals d\'entrada i escluses. La seva fortalesa és el traçat de la xarxa de vies navegables i l\'exploració de dades OSM. La seva debilitat és que és massa simple per a la navegació nàutica real perquè no modela el tipus d\'embarcació, la profunditat, el corrent, les restriccions legals, els perills ni les restriccions operatives de les esluses. El seu aspecte distintiu és que tracta les vies navegables com una xarxa enllaçable, però només a un nivell bàsic de topologia.</string>
+    <string name="title_edit_destination_name">Edita el nom de la destinació</string>
+    <string name="title_save_route">Desa la ruta</string>
+    <string name="title_restore_route">Restaura la ruta</string>
+    <string name="title_edit_route_name">Edita el nom de la ruta</string>
+    <string name="title_restore_route_confirm">Restaurar la ruta?</string>
+    <string name="msg_restore_route_confirm">Substituir la destinació actual i les parades per \"%1$s\"?</string>
+    <string name="title_map_picker_destination">Selecciona la destinació al mapa</string>
+    <string name="title_map_picker_stop">Selecciona la parada %1$d al mapa</string>
+    <string name="nav_no_route">Sense ruta</string>
+    <string name="nav_waiting_for_location_title">Esperant ubicació</string>
+    <string name="nav_waiting_for_location_body">Esperant una fixació d\'ubicació útil per a calcular la ruta.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Esperant una fixació de localització utilitzable per a la guia en línia recta.</string>
+    <string name="nav_calculating_route_title">Calculant ruta</string>
+    <string name="nav_calculating_route_body">Obtenint indicacions de BRouter.</string>
+    <string name="nav_route_unavailable_title">Ruta no disponible</string>
+    <string name="format_nav_route_unavailable_body">Ruta no disponible: %1$s \n Comproveu BRouter per trams disponibles.</string>
+    <string name="nav_route_unavailable_generic">error desconegut</string>
+    <string name="nav_start_invalid_request">la sol·licitud de navegació està incompleta</string>
+    <string name="nav_route_notice_no_alternative_keep_current">No s\'ha pogut trobar una ruta alternativa al voltant de l\'àrea bloquejada. Es manté la ruta actual.</string>
+    <string name="nav_route_notice_no_route_found">No s\'ha trobat cap ruta per a aquesta destinació.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Servei de rutes no disponible. Es manté la ruta actual.</string>
+    <string name="nav_route_notice_service_unavailable">Servei de rutes no disponible.</string>
+    <string name="nav_route_notice_invalid_profile">El perfil de rutes no és vàlid.</string>
+    <string name="nav_route_notice_update_failed_keep_current">No s\'ha pogut actualitzar la ruta. Es manté la ruta actual.</string>
+    <string name="nav_route_notice_unavailable">No s\'ha pogut calcular una ruta.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">S\'ha afegit una carretera bloquejada. Recalculant ruta.</string>
+    <string name="nav_paused_notice">La navegació està en pausa. Toqueu Reprendre navegació per continuar amb la guia en temps real.</string>
+    <string name="notification_channel_nav">Navegació</string>
+    <string name="notification_channel_alert">Alertes de guia</string>
+    <string name="notification_channel_turn_left">Gira (esquerra)</string>
+    <string name="notification_channel_turn_right">Gira (dreta)</string>
+    <string name="notification_nav_running">Navegació en funcionament</string>
+    <string name="notification_nav_running_text">ViBRo Navigator està navegant en segon pla</string>
+    <string name="notification_nav_paused">Navegació en pausa</string>
+    <string name="notification_nav_paused_text">Navegació de ViBRo Navigator en pausa</string>
+    <string name="notification_off_route_title">Fora de ruta</string>
+    <string name="notification_wrong_direction_title">Direcció incorrecta</string>
+    <string name="notification_symbol_test_left_title">prova totes les notificacions d\'esquerres</string>
+    <string name="notification_symbol_test_other_title">prova totes les altres notificacions</string>
+    <string name="notification_symbol_test_right_title">prova totes les notificacions de dretes</string>
+    <string name="direction_continue">Continua</string>
+    <string name="direction_keep_left">Mantén-te a l’esquerra</string>
+    <string name="direction_keep_right">Mantén-te a la dreta</string>
+    <string name="direction_turn_left">Gira a l’esquerra</string>
+    <string name="direction_turn_right">Gira a la dreta</string>
+    <string name="direction_slight_left">Gira lleugerament a l’esquerra</string>
+    <string name="direction_slight_right">Gira lleugerament a la dreta</string>
+    <string name="direction_sharp_left">Gira pronunciadament a l’esquerra</string>
+    <string name="direction_sharp_right">Gira pronunciadament a la dreta</string>
+    <string name="direction_uturn_left">Fes un canvi de sentit a l’esquerra</string>
+    <string name="direction_uturn">Fes un canvi de sentit</string>
+    <string name="direction_uturn_right">Fes un canvi de sentit a la dreta</string>
+    <string name="direction_roundabout_exit">A la rotonda, pren la sortida %1$d</string>
+    <string name="direction_roundabout_exit_left">A la rotonda, pren la sortida %1$d</string>
+    <string name="direction_beeline">Línia recta</string>
+    <string name="direction_exit_left">Pren la sortida a l’esquerra</string>
+    <string name="direction_exit_right">Pren la sortida a la dreta</string>
+    <string name="direction_offroute">Fora de ruta</string>
+    <string name="direction_arrive">Destinació assolida</string>
+    <string name="direction_intermediate_arrive">Destinació intermèdia assolida</string>
+    <string name="direction_unknown">Direcció desconeguda</string>
+    <string name="direction_side_left">a l’esquerra</string>
+    <string name="direction_side_right">a la dreta</string>
+    <string name="format_speed_limit_content_description">Límits de velocitat %1$s</string>
+    <string name="title_nav_gps_details">Detalls GPS</string>
+    <string name="format_nav_gps_details">Velocitat: %1$s\n\nAltitud: %2$s\n\nPrecisió: %3$s\n\nHora GPS: %4$s\n\nSatèl·lits: %5$s\n\nInterval: %6$s\n\nEdat de l’últim fix: %10$s\n\nFixos GPS: %7$s\n\nRumb GPS: %8$s\n\nPrecisió del rumb: %9$s</string>
+    <string name="title_nav_directions_details">Direccions</string>
+    <string name="nav_directions_unavailable">No hi ha pròximes direccions</string>
+    <string name="title_nav_trip_stats">Estadístiques del viatge</string>
+    <string name="format_nav_trip_stats_details">Transcorregut: %1$s\nDistància: %2$s\nTemps en moviment: %3$s\nTemps estacionari: %4$s\nVelocitat mitjana: %5$s\nMitjana en moviment: %6$s\nVelocitat màxima: %7$s\nPantalla encesa: %8$s\nPantalla apagada: %9$s\nBateria consumida: %10$s\nCaiguda de bateria: %11$s</string>
+    <string name="speech_off_route_recalculating">Fora de ruta. Recalculant</string>
+    <string name="speech_off_route">Fora de ruta</string>
+    <string name="speech_wrong_direction_turn_back">Direcció incorrecta. Torna enrere</string>
+    <string name="format_off_route_off_track_notification">Fora de pista detectat. Distància %1$s, llindar %2$s. Recalculant ruta.</string>
+    <string name="format_off_route_bearing_notification">Discrepància de rumb detectada. Diferència %1$s, esperat %2$s, actual %3$s. Recalculant ruta.</string>
+    <string name="format_off_route_off_track_notice_only">Fora de pista detectat. Distància %1$s, llindar %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Discrepància de rumb detectada. Diferència %1$s, esperat %2$s, actual %3$s.</string>
+    <string name="format_wrong_direction_notification">Direcció incorrecta detectada. Objectiu %1$s, actual %2$s, diferència %3$s.</string>
+    <string name="format_startup_orientation_notification">Gira\'t %1$s %2$s per afrontar la ruta.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s mostra de rumb</string>
+    <string name="nav_destination_reached">Destinació assolida</string>
+    <string name="format_version">Versió %1$s %2$s</string>
+    <string name="about_short_description">Una aplicació de navegació GPS lleugera, eficient amb la bateria i pensada per a ús offline que vibra les direccions, construïda al voltant de BRouter.</string>
+    <string name="about_homepage_link">
+        <u>Inici</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Valora a Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Codi font a GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Reporta un problema</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>MNotes de versions</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>Politica de privadesa</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>Termes de servei</u>
+    </string>
+    <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nLlicència MIT</string>
+    <string name="about_credits">Crèdits: BRouter per a l\'enrutament. POI cerca i geocodificació inversa de coordenades utilitzen OpenStreetMap Nominatim, o Google Maps Geocoding en compres de Google Play quan Google cerca està habilitada amb una clau API guardada. Els POI del mapa utilitzen OpenStreetMap Overpass. Els mosaics de mapa i les geodades són dels contribuïdors de OpenStreetMap: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Configuració</string>
+    <string name="about_settings_category_display">Visualització</string>
+    <string name="about_settings_category_guidance">Guia</string>
+    <string name="about_settings_category_compass">Brúixola</string>
+    <string name="about_settings_category_search_input">Cerca i Entrada</string>
+    <string name="about_settings_category_advanced">Avançat</string>
+    <string name="label_log_enabled">Registres</string>
+    <string name="title_log_output_folder">Carpeta de registres</string>
+    <string name="label_permission_output_folder">Carpeta de descàrrega ViBRo</string>
+    <string name="title_output_browser">Fitxers ViBRo</string>
+    <string name="title_gpx_output_folder">Carpeta GPX</string>
+    <string name="format_output_folder">Carpeta actual: %1$s</string>
+    <string name="action_clear_output_folder">Suprimeix</string>
+    <string name="action_open_output_folder">Obre</string>
+    <string name="msg_output_viewer_unavailable">Cap aplicació està disponible per obrir aquesta carpeta o fitxer.</string>
+    <string name="hint_clear_log_output_folder">Suprimeix permanentment els fitxers de registre ViBRo de: \n%1$s\n\nAltres fitxers i subcarpetes es conservaran. Això no es pot desfer. Si el registre està habilitat, s\'iniciarà un registre nou amb detalls del sistema.</string>
+    <string name="hint_clear_gpx_output_folder">Suprimeix permanentment les exportacions ViBRo GPX de: \n%1$s\n\nAltres fitxers i subcarpetes es conservaran. Això no es pot desfer.</string>
+    <string name="msg_output_folder_cleared">Fitxers ViBRo esborrats.</string>
+    <string name="msg_output_folder_clear_failed">No s\'han pogut esborrar tots els fitxers ViBRo. Comprova l\'accés a la carpeta a Diagnòstics.</string>
+    <string name="label_external_storage_enabled">Utilitza emmagatzematge extern</string>
+    <string name="about_setting_external_storage_info">Desa les exportacions, registres i còpies de seguretat de la base de dades de GPX en una targeta SD en lloc de l\'emmagatzematge del telèfon. Disponible només per a una targeta SD muntada i compatible; les unitats USB queden excloses. Android 6–9 requereixen accés a la carpeta fins i tot quan la creació de registres i la desada GPX estan desactivades. Si la targeta deixa d\'estar disponible, la desada s\'atura fins que torni a estar disponible. Els fitxers antics es mantenen a les seves carpetes originals.</string>
+    <string name="hint_sd_download_access">Concedeix accés a la carpeta de la targeta SD: \n%1$s\n\n Selecciona Descarregar, la seva subcarpeta ViBRo o l\'arrel de la targeta SD. ViBRo utilitzarà Download/ViBRo/gpx, Download/ViBRo/logs i Download/ViBRo/backup. La desada requereix accés a aquesta carpeta.</string>
+    <string name="msg_sd_storage_unavailable">No hi ha cap targeta SD compatible amb escriptura disponible.</string>
+    <string name="msg_sd_storage_enabled">Les exportacions, registres i còpies de seguretat de la base de dades de GPX utilitzaran la targeta SD.</string>
+    <string name="msg_output_folder_failed">No s\'ha pogut escriure en aquesta carpeta. La configuració anterior roman sense canvis.</string>
+    <string name="msg_output_access_required">Desar està desactivat perquè la carpeta de sortida seleccionada no està disponible o no s\'ha concedit accés.</string>
+    <string name="msg_output_folder_picker_unavailable">No hi ha cap selector de carpetes disponible.</string>
+    <string name="label_auto_save_gpx_enabled">Desar automàtic GPX</string>
+    <string name="label_fused_location_enabled">Google Ubicació fusionada</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Interval dinàmic GPS</string>
+    <string name="label_imperial_units_enabled">Unitats imperials (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Tema clar</string>
+    <string name="label_compass_surrounding_streets_enabled">Carrers circumdants</string>
+    <string name="action_configure_surrounding_street_types">Tria els tipus de carrers circumdants</string>
+    <string name="title_surrounding_street_types">Tipus de carrers circumdants</string>
+    <string name="hint_surrounding_street_types">Els commutadors de categoria amaguen o mostren tot el grup de color sense canviar les seleccions individuals. La visibilitat basada en la velocitat segueix aplicant-se.</string>
+    <string name="street_category_highway">Carreteres principals</string>
+    <string name="street_category_normal">Carrers normals</string>
+    <string name="street_category_walking_cycling">Caminant / Ciclisme</string>
+    <string name="street_category_special_routing">Camins especials</string>
+    <string name="street_type_motorway">Autopistes</string>
+    <string name="street_type_motorway_info">Carreteres d\'alta velocitat amb accés controlat.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Ramals d\'autopista</string>
+    <string name="street_type_motorway_link_info">Connexions que entren o surten d\'una autopista.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Vies principals</string>
+    <string name="street_type_trunk_info">Gran vies de trànsit per sota del nivell de l\'autopista.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Enllaços de vies principals</string>
+    <string name="street_type_trunk_link_info">Connexions que entren o surten d\'una via principal.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Carreteres primàries</string>
+    <string name="street_type_primary_info">Carreteres importants que connecten ciutats i regions.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Enllaços de carreteres primàries</string>
+    <string name="street_type_primary_link_info">Connexions que entren o surten d\'una carretera primària.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Carreteres secundàries</string>
+    <string name="street_type_secondary_info">Carreteres que connecten ciutats i àrees més petites.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Enllaços de carreteres secundàries</string>
+    <string name="street_type_secondary_link_info">Connexions que entren o surten d\'una carretera secundària.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Carreteres terciàries</string>
+    <string name="street_type_tertiary_info">Carreteres locals que connecten assentaments o barris propers.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Enllaços de carreteres terciàries</string>
+    <string name="street_type_tertiary_link_info">Connexions que entren o surten d\'una carretera terciària.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Carreteres públiques menors</string>
+    <string name="street_type_unclassified_info">Carreteres públiques per sota del nivell terciari, sovint fora de zones residencials.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Carrers residencials</string>
+    <string name="street_type_residential_info">Carrers que serveixen principalment a habitatges.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Carrers residencials compartits</string>
+    <string name="street_type_living_street_info">Carrers de baixa velocitat on caminar i altres usos comparteixen l’espai.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Carreteres d’accés</string>
+    <string name="street_type_service_info">Carreteres que proporcionen accés a edificis, aparcaments o instal·lacions.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Camins</string>
+    <string name="street_type_track_info">Pistes principalment utilitzades per a l\'accés agrícola o forestal.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Carreteres no especificades</string>
+    <string name="street_type_road_info">Carreteres del tipus exacte desconegut.\n\nOSM/BRouter: highway=road o highway=yes.</string>
+    <string name="street_type_busway">Carrils-bus</string>
+    <string name="street_type_busway_info">Carreteres principalment destinades per a autobusos.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Carrers per a vianants</string>
+    <string name="street_type_pedestrian_info">Carrers o zones principalment destinades a persones a peu.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Voreres</string>
+    <string name="street_type_footway_info">Camins destinats a caminar.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Camins</string>
+    <string name="street_type_path_info">Camins d\'ús general que poden servir per caminar, anar en bicicleta o altre trànsit no motoritzat.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Carrils bici</string>
+    <string name="street_type_cycleway_info">Camins destinats al ciclisme.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Camins per a cavalls</string>
+    <string name="street_type_bridleway_info">Camins destinats a la pràctica de l\'equitació.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Escales</string>
+    <string name="street_type_steps_info">Escalinates al llarg d\'una ruta.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Plataformes de trànsit</string>
+    <string name="street_type_platform_info">Plataformes transitables a les parades de transport públic.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Passadissos interiors</string>
+    <string name="street_type_corridor_info">Passadissos dins dels edificis.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Àrees de descans al costat de la carretera</string>
+    <string name="street_type_rest_area_info">Accés a la carretera dins d\'àrees de descans.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Serveis al costat de la carretera</string>
+    <string name="street_type_services_info">Accés a la carretera dins d\'àrees de servei.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Ascensors</string>
+    <string name="street_type_elevator_info">Connexions d\'ascensor entre nivells transitable.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Rutes de via ferrata</string>
+    <string name="street_type_via_ferrata_info">Rutes d\'escalada protegides amb elements fixos.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Pistes de curses</string>
+    <string name="street_type_raceway_info">Pistes de carretera destinades a curses.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Ferrocarrils</string>
+    <string name="street_type_railway_info">Tota la geometria ferroviària en segments locals BRouter.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">Vies navegables</string>
+    <string name="street_type_waterway_info">Tota la geometria de la via fluvial en segments locals BRouter.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Altres geometries de la ruta</string>
+    <string name="street_type_other_info">Geometria sense un carrer reconegut o tipus de ruta compatible.\n\nOSM/BRouter: cap highway=*, railway=*, waterway=* reconegut, o valor route=* compatible.</string>
+    <string name="street_type_route_ferry">Rutes de ferri</string>
+    <string name="street_type_route_ferry_info">Rutes transportades per un ferri.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Rutes de caminada</string>
+    <string name="street_type_route_hiking_foot_info">Rutes senyalitzades per a senderisme o caminades.\n\nOSM/BRouter: route=hiking o route=foot.</string>
+    <string name="street_type_route_bicycle">Rutes de ciclisme</string>
+    <string name="street_type_route_bicycle_info">Rutes senyalitzades per anar amb bicicleta.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Rutes d\'esquí/pistes</string>
+    <string name="street_type_route_ski_piste_info">Rutes d\'esquí i pistes per a altres activitats, com ara el trineu o el senderisme. BRouter emmagatzema ambdues etiquetes com un valor, per la qual cosa comparteixen aquest interruptor. \n\nOSM/BRouter: route=ski o route=piste.</string>
+    <string name="street_type_route_mtb">Rutes de BTT</string>
+    <string name="street_type_route_mtb_info">Rutes marcades per al ciclisme de muntanya.\n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Rutes de canoa</string>
+    <string name="street_type_route_canoe_info">Rutes marcades per fer caiac.\n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Rutes d\'autobús</string>
+    <string name="street_type_route_bus_info">Geometria de la ruta d\'autobús en segments locals BRouter.\n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Zoom de brúixola instantani</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Desenvolupament automàtic</string>
+    <string name="label_compass_fullscreen_route_enabled">Ruta de pantalla completa</string>
+    <string name="label_compass_distance_circles_enabled">Cercle de distància</string>
+    <string name="label_compass_central_perspective_enabled">Vista de perspectiva 3D</string>
+    <string name="label_show_hint_panel">Mostra el panell d\'indicis</string>
+    <string name="label_navigation_notifications_enabled">Notificacions</string>
+    <string name="label_single_instruction_mode_enabled">Mode d\'instrucció única</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">Filtre de categories POI</string>
+    <string name="hint_poi_categories_filter">Trieu quines categories POI apareixen al selector de mapa quan el filtre està activat. Editeu els noms de les categories, activeu-les o desactiveu-les, o utilitzeu + per afegir-ne més.</string>
+    <string name="hint_poi_category_name">Nom de la categoria POI</string>
+    <string name="label_speech_recognition">Reconeixement de veu</string>
+    <string name="label_speech_recognition_language">Idioma</string>
+    <string name="label_speech_recognition_language_system_default">Predeterminada del sistema</string>
+    <string name="label_maneuver_voice">Instruccions de discurs</string>
+    <string name="label_maneuver_voice_spinner">Veu</string>
+    <string name="label_maneuver_voice_disabled">Desactivat</string>
+    <string name="label_maneuver_voice_system_default">Predeterminada del sistema</string>
+    <string name="format_maneuver_voice_variant_code">Veu %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Femení</string>
+    <string name="label_maneuver_voice_gender_male">Home</string>
+    <string name="label_google_poi_api_key">Google Maps API clau</string>
+    <string name="label_navigation_custom_button">Botó personalitzat</string>
+    <string name="label_navigation_custom_button_target">Configuració</string>
+    <string name="label_setting_enabled">activat</string>
+    <string name="label_setting_disabled">desactivat</string>
+    <string name="hint_google_poi_api_key">Clau Google Maps opcional</string>
+    <string name="format_about_setting_info_content_description">Mostra ajuda per %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">Canvia %1$s (%2$s)</string>
+    <string name="about_setting_log_info">Manté un registre detallat del comportament que pot ajudar a diagnosticar problemes. Deixa-ho desactivat tret que necessitis compartir detalls per a suport. Quan la carpeta seleccionada és accessible, les fallades i aturades inesperades de la navegació encara creen un registre amb data i hora amb detalls del sistema quan aquest interruptor està apagat. Una aturada forçada només es pot informar després que l\'aplicació es torni a iniciar; la causa exacte podria no estar disponible.</string>
+    <string name="about_setting_auto_save_gpx_info">Desa la ruta activa com un fitxer GPX quan atures la navegació amb el botó Atura. Utilitza Download/ViBRo/gpx al telèfon o la targeta SD seleccionada per Utilitzar emmagatzematge extern. Activar aquesta opció sol·licita accés a les carpetes mancants. La salvaguarda es manté desactivada si l\'accés és denegat o l\'emmagatzematge seleccionat no està disponible.</string>
+    <string name="about_setting_fused_location_info">Utilitza la ubicació Google quan està disponible. Això pot millorar les actualitzacions de ubicació en alguns telèfons.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Estalvia bateria comprovant la teva ubicació menys sovint però de manera fiable. Desactiva-ho per a actualitzacions contínues de la ubicació.</string>
+    <string name="about_setting_imperial_units_info">Mostra distàncies i velocitats en peus, milles i mph en lloc de metres i km/h.</string>
+    <string name="about_setting_light_theme_info">Canvia l\'aplicació del tema fosc per defecte a un tema clar.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Mostra carrers propers i altra geometria de rutes a la brúixola quan hi ha dades de mapes locals disponibles.\n\nLlegenda de colors:\n■ — carreteres principals i autovies\n■ — carrers normals\n■ — carrers i rutes per a vianants i ciclistes\n■ — vies fèrries, canals, transbords, rutes d’esquí/canoa/autobús, camins de cavalls, pistes de carreres i vies ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">S’omet l’animació de zoom de la brúixola per tal que el canvi entre la vista general de la ruta i les vistes amb escala mòbil sigui immediat.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Mostra la ruta completa a la brúixola quan estàs immòbil. Apaga-ho per mantenir l\'últim zoom a escala de moviment quan estiguis aturat.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Amplia la visualització de la brúixola de la ruta darrere de la pantalla completa de navegació mentre manté els controls i el text de direcció visibles al davant.</string>
+    <string name="about_setting_compass_distance_circles_info">Mostra cercles de distància amb etiquetes de temps i distància, la fletxa de cap, i línies i arcs de precisió del cap en les vistes de la brúixola i de pantalla completa.</string>
+    <string name="about_setting_compass_central_perspective_info">Fa servir perspectiva a la vista de brúixola 3D: les rutes i carrers propers apareixen més grans, mentre que els llunyans s’encongeixen cap a la part superior. Apaga-ho per utilitzar la inclinació ortogràfica uniforme.</string>
+    <string name="about_setting_show_hint_panel_info">Mostra consells de gestos i la llegenda de colors dels carrers quan s\'obre la navegació al telèfon.</string>
+    <string name="about_setting_navigation_notifications_info">Mostra alertes de gir i advertències de navegació com a notificacions. La notificació de navegació en curs no es veu afectada i es mantindrà visible mentre es navega.</string>
+    <string name="about_setting_single_instruction_mode_info">Utilitza una alerta de maniobra uns 10 segons abans de cada instrucció pròxima i suprimeix les alertes d\'arrencada, de 20 segons i de 5 segons de maniobra. Les notificacions d\'arribada i d\'advertència no es veuen afectades.</string>
+    <string name="about_setting_navigation_custom_button_info">Mostra un botó addicional en la brúixola de navegació que commuta la configuració seleccionada mentre la navegació està oberta.</string>
+    <string name="about_setting_android_auto_info">Permet que les pantalles de cotxes compatibles mostrin la navegació a través de Android Auto. Alguns dispositius amfitrió actualitzen la llista d\'aplicacions només després que Android Auto es torni a connectar. En vehicles reals, Android Auto mostra aquest tipus d\'aplicació només quan s\'instal·la des d\'una font de confiança com Google Play o Internal App Sharing.</string>
+    <string name="about_setting_poi_categories_info">Tria quins llocs poden aparèixer en el selector de mapa, com ara combustible, aparcament o serveis.</string>
+    <string name="about_setting_speech_recognition_info">Mostra els botons de micròfon per al destí i atura la introducció per veu, i tria l\'idioma de reconeixement sol·licitat. Android pot utilitzar el seu predeterminat si el reconeixedor de veu seleccionat no admet l\'idioma sol·licitat.</string>
+    <string name="about_setting_maneuver_voice_info">Llegeix en veu alta les indicacions de direcció pròximes utilitzant una veu Android.</string>
+    <string name="about_setting_google_poi_api_key_info">Permet que la cerca de destinació utilitzi Google Maps quan proporciones una clau vàlida.</string>
+    <string name="about_setting_export_database_info">Desa les dades de l\'aplicació, incloent-hi l\'historial, les rutes desades, la configuració i les opcions de perfil, com JSON a Download/ViBRo/backup al telèfon o a la targeta SD seleccionada per Usa emmagatzematge extern. Mostra el nom del fitxer desat sense demanar una carpeta. A Android 6–9, configura l\'accés a l\'emmagatzematge prèviament a Diagnòstics.</string>
+    <string name="about_setting_import_database_info">Restaura les dades de l\'aplicació des d\'una còpia de seguretat JSON creada per aquesta aplicació. El selector d\'arxius comença a Download/ViBRo/backup al telèfon o a la targeta SD seleccionada per Utilitzar emmagatzematge extern a Android 8 i posteriors. També pots navegar a una altra carpeta.</string>
+    <string name="msg_google_poi_api_key_saved">Clau Google Maps API desada.</string>
+    <string name="msg_google_poi_api_key_cleared">Clau Google Maps API esborrada.</string>
+    <string name="msg_google_poi_api_key_required">Afegeix una clau Google Maps API abans d\'habilitar la cerca Google.</string>
+    <string name="msg_google_poi_api_key_validating">Validant clau Google Maps API…</string>
+    <string name="msg_google_poi_api_key_invalid">La clau Google Maps API no és vàlida.</string>
+    <string name="msg_google_poi_api_key_validation_failed">No s\'ha pogut validar la clau Google Maps API.</string>
+    <string name="about_diagnostic_title">Diagnòstic</string>
+    <string name="about_permission_status_title">Accés requerit</string>
+    <string name="about_sensor_status_title">Estat del sensor</string>
+    <string name="label_direction_notification_tests">Proves de notificacions de direccions</string>
+    <string name="label_permission_location">Permís de localització</string>
+    <string name="label_permission_location_services">Localització del dispositiu</string>
+    <string name="label_permission_notifications">Notificacions</string>
+    <string name="label_permission_battery">Optimització de la bateria</string>
+    <string name="label_permission_surrounding_street_storage">Emmagatzematge de carrers BRouter</string>
+    <string name="label_permission_brouter_profile_storage">Emmagatzematge de perfils BRouter</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Toca per resoldre.</string>
+    <string name="label_sensor_fused_provider">Proveïdor fusionat Google</string>
+    <string name="label_sensor_gps_provider">Proveïdor GPS</string>
+    <string name="label_sensor_network_provider">Proveïdor de xarxa</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Vector de rotació geomagnètica</string>
+    <string name="label_sensor_rotation_vector">Vector de rotació</string>
+    <string name="label_sensor_orientation">Sensor d\'orientació</string>
+    <string name="label_sensor_linear_acceleration">Sensor d\'acceleració lineal</string>
+    <string name="label_sensor_accelerometer">Acceleròmetre</string>
+    <string name="sensor_status_enabled">activat</string>
+    <string name="sensor_status_disabled">desactivat</string>
+    <string name="sensor_status_available">disponible</string>
+    <string name="sensor_status_unavailable">no disponible</string>
+    <string name="sensor_status_permission_denied">permís denegat</string>
+    <string name="auto_no_active_navigation_title">No hi ha navegació activa</string>
+    <string name="auto_no_active_navigation_text">Inicia la navegació al telèfon per mostrar la guia aquí.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Toca qualsevol lloc per tancar o espera %1$d segon</item>
+        <item quantity="many">Toca qualsevol lloc per tancar o espera %1$d segons</item>
+        <item quantity="other">Toca qualsevol lloc per tancar o espera %1$d segons</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Gira %1$d grau %2$s</item>
+        <item quantity="many">Gira %1$d graus %2$s</item>
+        <item quantity="other">Gira %1$d graus %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d segon</item>
+        <item quantity="many">%1$d segons</item>
+        <item quantity="other">%1$d segons</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d minut</item>
+        <item quantity="many">%1$d minuts</item>
+        <item quantity="other">%1$d minuts</item>
+    </plurals>
+</resources>

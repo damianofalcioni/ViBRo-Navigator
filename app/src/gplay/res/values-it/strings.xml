@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="about_credits">Crediti: BRouter per i percorsi. La ricerca dei POI e la geocodifica inversa delle coordinate usano Google Maps Geocoding quando la ricerca Google è attiva con una chiave API salvata, altrimenti OpenStreetMap Nominatim. Mappe e dati geografici dei collaboratori di OpenStreetMap: https://www.openstreetmap.org/copyright</string>
-    <string name="auto_no_active_navigation_title">Nessuna navigazione attiva</string>
-    <string name="auto_no_active_navigation_text">Avvia la navigazione sul telefono per mostrare qui le indicazioni.</string>
-</resources>

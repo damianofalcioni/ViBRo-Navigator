@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="label_use_system_language">Use system language</string>
     <string name="action_configure_app_language">Configure app language</string>
     <string name="title_app_language">App language</string>
@@ -413,7 +413,11 @@
     <string name="about_privacy_policy_link"><u>Privacy Policy</u></string>
     <string name="about_terms_of_service_link"><u>Terms of Service</u></string>
     <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT License</string>
-    <string name="about_credits">Credits: BRouter for routing. POI search and coordinate reverse geocoding use OpenStreetMap Nominatim; map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
+    <string name="about_credits">Credits: BRouter for routing. POI search and coordinate reverse geocoding use OpenStreetMap Nominatim, or Google Maps Geocoding in Google Play builds when Google search is enabled with a saved API key. Map POIs use OpenStreetMap Overpass. Map tiles and geodata by OpenStreetMap contributors: https://www.openstreetmap.org/copyright</string>
+    <!-- Used by the gplay car UI; shared here to keep one translation file per language. -->
+    <string name="auto_title" translatable="false" tools:ignore="UnusedResources">ViBRo Navigator</string>
+    <string name="auto_no_active_navigation_title" tools:ignore="UnusedResources">No active navigation</string>
+    <string name="auto_no_active_navigation_text" tools:ignore="UnusedResources">Start navigation on the phone to show guidance here.</string>
     <string name="about_settings_title">Settings</string>
     <string name="about_settings_category_display">Display</string>
     <string name="about_settings_category_guidance">Guidance</string>

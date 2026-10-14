@@ -17,7 +17,7 @@ Core product constraints:
 - The current repository baseline is `compileSdk 37` and `targetSdk 37` while keeping `minSdk 23`
 - Use a black theme by default and provide a settings switch for an optional light theme
 - Do not hardcode user-facing text in code
-- Support English, Italian, and German, following the system language by default and allowing a saved manual app language in Display settings
+- Support at least the BRouter Android language catalog: Arabic, Catalan, Chinese, Czech, Danish, Dutch, English, French, German, Greek, Hungarian, Italian, Japanese, Korean, Polish, Portuguese, Spanish, and Swedish, following the system language by default and allowing a saved manual app language in Display settings
 - Support both portrait and landscape orientations
 - Check and request all required permissions before starting navigation, when they are needed
 - When navigation startup depends on system settings, route the user to a reachable settings screen that stays open on supported OEM builds, even if the device requires a generic settings page instead of a per-app approval dialog
@@ -769,7 +769,7 @@ The navigation UI must show the following in large text:
 - Android Auto controls must use the existing navigation binder/service actions for blocked-road, pause/resume, and stop, so phone and car surfaces stay consistent.
 - Turning Android Auto integration off from phone settings while a car session or system car mode is active must clear navigation from the Android Auto screen and stop rebinding to the navigation service. The component disable must be deferred until the active host session and car mode have ended to avoid Android Auto host error screens; turning the setting back on before then cancels the pending disable.
 - Android Auto launcher visibility is host-controlled after service component state changes, so the settings help text should make clear that some hosts refresh the app list only after Android Auto reconnects.
-- Android Auto text must come from flavor resources and must not be hardcoded in Java.
+- Android Auto text must come from shared string resources and must not be hardcoded in Java. Maintain one common translation file per language for both flavors; only non-translatable build identities belong in flavor overlays.
 
 ### 4.6 Background behavior
 
@@ -901,7 +901,7 @@ The navigation UI must show the following in large text:
 
 - The first entry under Settings → Display must be a Use system language switch, enabled by default, before Light Theme and imperial units. Include an icon-only configuration button immediately left of the switch, styled like the other settings configuration buttons, and a right-side help button.
 - Automatic language selection must use the first supported language in the device's ordered language preferences. Match regional variants to their supported language, such as Italian for `it-CH` and German for `de-AT`; fall back to English when none of the device languages is supported.
-- The configuration button must remain available whether Use system language is on or off. Its dialog must contain a spinner offering English, Italiano, and Deutsch with capitalized names in their own languages, with the Language label on the same row and vertically centered, a short explanation, and OK/Cancel actions. Use the same themed spinner field, popup, and item layouts as the other app spinners.
+- The configuration button must remain available whether Use system language is on or off. Its dialog must contain a spinner offering every supported language with capitalized names in their own languages, such as English, Italiano, Deutsch, Français, and العربية, with the Language label on the same row and vertically centered, a short explanation, and OK/Cancel actions. Use the same themed spinner field, popup, and item layouts as the other app spinners.
 - Before a manual choice has been saved, the spinner must select the supported system language, or English for an unsupported system language. After a choice has been saved, reopening the dialog must select that saved language. OK saves the selection; Cancel leaves the saved selection unchanged.
 - While Use system language is enabled, saving a spinner selection must retain it for later manual use without changing the effective app language. Turning the switch off must use the saved selection; if no selection exists yet, capture the current supported system language so subsequent device-language changes do not alter the manual choice. Reenabling automatic selection must retain the manual choice.
 - Persist both preferences across launches and include them in app settings database export/import. Refresh the switch and effective language after import. Language preferences must remain independent of the speech-recognition language and speech-direction voice preferences.
@@ -949,7 +949,7 @@ The navigation UI must show the following in large text:
 - Consistent dialog actions throughout the app: OK, Cancel, and additional actions must use the same compact platform dialog text-button styles and be right-aligned. Keep every action visible outside scrollable content; when longer labels require another row, place additional actions above the Cancel/OK row while preserving the same style in both themes, all supported languages, and both orientations.
 - Consistent spinners throughout the app: reuse the shared themed field and popup backgrounds and selected/dropdown item layouts. Inline spinner labels must use consistent typography, theme colors, and spacing, appear to the left of their spinner, and be vertically centered with it; keep the row readable with longer translations and larger system fonts.
 - Offline-first routing through BRouter
-- Complete English, Italian, and German text resources, including localized plural forms and preserved formatting placeholders
+- Complete text resources for every supported language in both flavors, including localized plural forms, right-to-left Arabic layout, preserved formatting placeholders, and unchanged OSM/BRouter identifiers
 - Orientation-safe layouts
 - Robust permission handling before navigation starts
 - Robust OEM-compatible redirects for required system settings and battery-optimization exemption requests

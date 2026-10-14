@@ -26,6 +26,7 @@ import java.util.Locale;
 
 import vibro.navigator.R;
 import vibro.navigator.brouter.BRouterProfileParameter;
+import vibro.navigator.settings.AppLanguageSettings;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {23, 35})
@@ -33,14 +34,14 @@ public class ProfileParameterDialogLayoutTest {
 
     @Test
     public void translatedButtonsRemainVisibleOnNarrowScreensWithLargeText() {
-        for (String language : new String[]{"en", "it", "de"}) {
+        for (String language : AppLanguageSettings.availableLanguageTags()) {
             assertDialogLayout(language, 2f, 320, 480);
         }
     }
 
     @Test
     public void translatedButtonsRemainVisibleInLandscape() {
-        for (String language : new String[]{"en", "it", "de"}) {
+        for (String language : AppLanguageSettings.availableLanguageTags()) {
             assertDialogLayout(language, 1.3f, 560, 300);
         }
     }
@@ -81,10 +82,15 @@ public class ProfileParameterDialogLayoutTest {
         Rect resetBounds = bounds(decor, decor.findViewById(R.id.profileParameterResetButton));
         Rect cancelBounds = bounds(decor, decor.findViewById(R.id.profileParameterCancelButton));
         Rect saveBounds = bounds(decor, decor.findViewById(R.id.profileParameterSaveButton));
-        assertEquals(resetBounds.right, saveBounds.right);
+        if (decor.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL) {
+            assertEquals(resetBounds.left, saveBounds.left);
+            assertTrue(saveBounds.right <= cancelBounds.left);
+        } else {
+            assertEquals(resetBounds.right, saveBounds.right);
+            assertTrue(cancelBounds.right <= saveBounds.left);
+        }
         assertEquals(cancelBounds.top, saveBounds.top);
         assertTrue(resetBounds.bottom <= cancelBounds.top);
-        assertTrue(cancelBounds.right <= saveBounds.left);
         for (int id : new int[]{R.id.profileParameterResetButton,
                 R.id.profileParameterCancelButton, R.id.profileParameterSaveButton}) {
             Button button = decor.findViewById(id);

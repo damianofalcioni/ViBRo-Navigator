@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Rendszer nyelvének használata</string>
+    <string name="action_configure_app_language">Alkalmazás nyelvének beállítása</string>
+    <string name="title_app_language">Alkalmazás nyelve</string>
+    <string name="label_app_language">Nyelv</string>
+    <string name="hint_app_language">A kiválasztott nyelvet akkor használja, amikor a Rendszer nyelvének használata ki van kapcsolva.</string>
+    <string name="about_setting_language_info">Az eszköz nyelvi beállításaiban legelső támogatott nyelvet használja, vagy angolt, ha nincs elérhető. Kapcsolja ki ezt a beállítást a konfigurációs gombbal kiválasztott nyelv használatához. A kezdeti választás megegyezik a rendszer nyelvével.</string>
+    <string name="nav_gesture_map_controls_title">Gesztus térkép vezérlők</string>
+    <string name="nav_gesture_views_body">
+        <b> Nézetek váltása.</b> Dupla koppintás vagy balra/jobbra húzás a teljes útvonal, 2D és 3D nézetek között</string>
+    <string name="nav_gesture_zoom_body">
+        <b> Nagyítás/kicsinyítés.</b> Csippentés vagy szétterjesztés a 2D és 3D nézetekben ±2 zoom szintig</string>
+    <string name="nav_gesture_tilt_body">
+        <b> A 3D nézet dőlésének módosítása.</b> Húzza fel/le két ujjal a 3D nézet dőléséhez</string>
+    <string name="nav_gesture_map_legend_title">Térkép jelmagyarázat</string>
+    <string name="nav_gesture_current_route">Jelenlegi útvonal</string>
+    <string name="nav_gesture_current_position_accuracy">Jelenlegi helyzet és pontosság</string>
+    <string name="nav_gesture_dont_show_again">Ne mutasd újra</string>
+    <string name="nav_gesture_dismiss">Érintse meg bárhol az elvetéshez</string>
+    <string name="welcome_title">Üdvözöljük a ViBRo alkalmazásban</string>
+    <string name="welcome_tldr">Röviden: Telepítse a BRouter alkalmazást, töltse le a helyi útvonal-adatokat, és adja meg a szükséges engedélyeket.</string>
+    <string name="welcome_intro">A ViBRo Navigator (Rezgető/rezgéssel kódolt BRouter Navigátor) egy könnyű, offline-előnyös és energiatakarékos Android GPS navigációs alkalmazás, a BRouter alapjaira építve. Térkép nélküli navigációra tervezték, iránymutatásokat biztosít rezgéseken és minimális képernyő- és hangalapú útmutatáson keresztül, lehetővé téve a figyelemelterelés nélküli és képernyő kikapcsolt állapotban történő használatot.</string>
+    <string name="welcome_setup_title">Kezdő beállítás</string>
+    <string name="welcome_brouter_body">• Telepítse a BRouter alkalmazást a megadott hivatkozások segítségével, majd nyissa meg és töltse le az útvonal-adatokat a saját területére.</string>
+    <string name="welcome_permissions_body">• Ez a köszöntés és az opcionális BRouter telepítési kérés után engedélyezze a hely, a mikrofon (hangalapú bevitelhez), az értesítések és a kért tárhelyhozzáférés használatát. A felkéréskor engedélyezze az eszköz helyzetét. Egy kérést kihagyhat, és később engedélyezheti a hozzáférést.</string>
+    <string name="welcome_storage_body">• Adja meg a profiles2 mappához való hozzáférést a felkéréskor, vagy a tárhelyhozzáférést a régebbi Android verziókon.</string>
+    <string name="welcome_battery_body">• Engedélyezze az opcionális akkumulátor-optimalizálás alóli kivételt a megbízható útmutatásért a képernyő kikapcsolt állapotában.</string>
+    <string name="welcome_optional_access_body">• A mikrofonhoz való hozzáférés csak akkor szükséges, ha hangkereséshez kérték.</string>
+    <string name="action_about">Névjegy</string>
+    <string name="action_start_navigation">Navigáció indítása</string>
+    <string name="action_pause_navigation">Navigáció szüneteltetése</string>
+    <string name="action_resume_navigation">Navigáció folytatása</string>
+    <string name="action_stop_navigation">Navigáció leállítása</string>
+    <string name="action_save_route">Útvonal mentése</string>
+    <string name="action_restore_route">Útvonal visszaállítása</string>
+    <string name="action_add_stop">Megálló hozzáadása</string>
+    <string name="action_remove_stop">Megálló eltávolítása</string>
+    <string name="action_blocked_road">Útlezárás</string>
+    <string name="action_skip_beeline_target">Egyenesen cél kihagyása</string>
+    <string name="action_delete">Törlés</string>
+    <string name="action_edit">Szerkesztés</string>
+    <string name="action_open_settings">Beállítások megnyitása</string>
+    <string name="action_open_tts_settings">Szöveg-beszéd beállítások megnyitása</string>
+    <string name="action_open_speech_directions_settings">Beszéd irányelvek beállításainak megnyitása</string>
+    <string name="action_open_speech_recognition_settings">Beszédfelismerés beállításainak megnyitása</string>
+    <string name="action_open_android_stt_settings">Android beszéd-szöveg beállításainak megnyitása</string>
+    <string name="action_continue">Folytatás</string>
+    <string name="action_enable_speech_recognition">Beszédfelismerés gombok megjelenítése</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Beszéd irányelvek hangjának tesztelése</string>
+    <string name="action_voice_search_destination">Cél beszélése</string>
+    <string name="action_voice_search_stop">Állj beszélni</string>
+    <string name="action_clear_poi_search">Keresési szöveg törlése</string>
+    <string name="action_save">Kulcs mentése</string>
+    <string name="action_save_poi_categories">Mentés</string>
+    <string name="action_open_map">Térkép</string>
+    <string name="action_cancel">Mégse</string>
+    <string name="action_use_selected_point">Kiválasztott pont használata</string>
+    <string name="action_map_poi_categories">POI kategóriák</string>
+    <string name="action_open_map_position">Térkép pozíció megnyitása</string>
+    <string name="action_test_left_notification">Baloldalak</string>
+    <string name="action_test_other_notification">Egyéb</string>
+    <string name="action_test_right_notification">Jobboldalak</string>
+    <string name="action_current_location">Jelenlegi hely</string>
+    <string name="action_edit_poi_categories">POI kategóriák szerkesztése</string>
+    <string name="action_edit_google_poi_api_key">Google Maps API kulcs szerkesztése</string>
+    <string name="action_configure_navigation_custom_button">Egyéni gomb konfigurálása</string>
+    <string name="action_enable_google_poi_search">Google keresés engedélyezése</string>
+    <string name="action_add_poi_category">POI kategória hozzáadása</string>
+    <string name="action_remove_poi_category">POI kategória eltávolítása</string>
+    <string name="action_enable_poi_category">POI kategória engedélyezése</string>
+    <string name="action_export_database">Adatbázis exportálása</string>
+    <string name="action_import_database">Adatbázis importálása</string>
+    <string name="action_export_route">GPX exportálása</string>
+    <string name="action_profile_info">Profil információ</string>
+    <string name="action_setting_info">Beállítás információ</string>
+    <string name="action_poi_details">POI részletek</string>
+    <string name="action_search_google_maps">Keresés a Google Maps-ben</string>
+    <string name="action_profile_settings">Profil beállítások</string>
+    <string name="action_reset_defaults">Alapértelmezések visszaállítása</string>
+    <string name="label_vehicle_profile">Profil</string>
+    <string name="label_route_mode_route">Útvonal mód</string>
+    <string name="label_route_mode_round_trip">Körút mód</string>
+    <string name="label_route_mode_straight_line">Egyenes vonal mód</string>
+    <string name="label_destination">Célállomás</string>
+    <string name="label_poi_entrance">Bejárat</string>
+    <string name="label_poi_entrances">Bejáratok</string>
+    <string name="label_poi_entrance_type">Típus</string>
+    <string name="label_poi_coordinates">Koordináták</string>
+    <string name="label_poi_extra_tags">Extra címkék</string>
+    <string name="label_poi_address_details">Cím</string>
+    <string name="label_round_trip_distance_km">Átlagos körutazás távolsága (km)</string>
+    <string name="label_round_trip_distance_mi">Átlagos körutazás távolsága (mi)</string>
+    <string name="label_round_trip_direction">Körutazás iránya (°)</string>
+    <string name="label_round_trip_direction_compass">Körutazás iránya iránytűn</string>
+    <string name="label_profile_attention_icon">Kísérleti vagy hibakereső profil</string>
+    <string name="format_profile_info_content_description">Információk megjelenítése a %1$s-hez</string>
+    <string name="format_route_mode_info_content_description">Módinformációk megjelenítése a %1$s-hez</string>
+    <string name="format_poi_details_content_description">POI részleteinek megjelenítése a %1$s-hez</string>
+    <string name="format_poi_search_info_content_description">Keresési információk megjelenítése a %1$s-hez</string>
+    <string name="format_poi_entrance_heading">Bejárat %1$d</string>
+    <string name="format_poi_entrance_type">Bejárat: %1$s</string>
+    <string name="format_stop_label">Megálló %1$d</string>
+    <string name="format_default_saved_route_name">Útvonal %1$s</string>
+    <string name="hint_search_destination">Cél keresése</string>
+    <string name="hint_search_stop">Megálló keresése</string>
+    <string name="prompt_speech_destination">Mondja a célállomást</string>
+    <string name="prompt_speech_stop">Mondja a megállót</string>
+    <string name="hint_saved_route_name">Útvonal neve</string>
+    <string name="msg_missing_destination">Válasszon egy célt</string>
+    <string name="msg_invalid_destination_name">Adja meg a célállomás nevét</string>
+    <string name="msg_invalid_route_name">Adja meg az útvonal nevét</string>
+    <string name="msg_invalid_coordinates">Válasszon ki egy helyet koordinátákkal</string>
+    <string name="msg_invalid_stop">Távolítson el vagy válasszon ki egy megállót koordinátákkal</string>
+    <string name="msg_invalid_round_trip_distance">Adjon meg érvényes oda-vissza távolságot</string>
+    <string name="msg_invalid_round_trip_direction">Adjon meg érvényes oda-vissza irányt</string>
+    <string name="msg_round_trip_requires_brouter_profile">Válasszon ki egy BRouter profilt az oda-vissza módhoz</string>
+    <string name="msg_brouter_not_found">A BRouter nincs telepítve</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter szükséges a környező utcákhoz.</string>
+    <string name="title_brouter_not_found">BRouter szükséges</string>
+    <string name="title_stop_navigation_confirm">Leállítja a navigációt?</string>
+    <string name="msg_brouter_install_prompt">BRouter nincs telepítve. Megnyitja az alkalmazás oldalát a Play Store-ben vagy a F-Droid-ben?</string>
+    <string name="msg_location_disabled">A helymeghatározás ki van kapcsolva. Engedélyezze a navigációhoz.</string>
+    <string name="msg_permission_required">Engedély szükséges</string>
+    <string name="msg_stop_navigation_confirm">Le szeretné állítani a navigációt és bezárni ezt a képernyőt?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator-nek hozzáférésre van szüksége a helyhez a navigációhoz és az iránymutatások rezgetéséhez.</string>
+    <string name="msg_permission_notifications_rationale">Az értesítések a közelgő kanyarok figyelmeztetésére szolgálnak.</string>
+    <string name="msg_enable_notifications">Engedélyezze az értesítéseket a kanyarjelzésekhez.</string>
+    <string name="msg_battery_opt_rationale">A megbízható háttér-navigáció érdekében engedélyezze, hogy a ViBRo Navigator figyelmen kívül hagyja az akkumulátor optimalizálásokat.</string>
+    <string name="msg_open_settings_failed">Nem sikerült megnyitni a beállításokat ezen az eszközön.</string>
+    <string name="msg_open_brouter_store_failed">Nem sikerült megnyitni a BRouter áruházi oldalát ezen az eszközön.</string>
+    <string name="msg_intent_unrecognized">A megosztott hely nem ismert</string>
+    <string name="msg_gpx_import_failed">Nem sikerült betölteni a GPX útvonalpontjait.</string>
+    <string name="msg_gpx_import_blocked_navigation">Állítsd meg a navigációt, mielőtt megnyitnád a GPX útvonalat.</string>
+    <string name="msg_speech_input_unavailable">Nincs beszédfelismerő szolgáltatás engedélyezve. Kapcsold be a Google alkalmazást vagy Android hangbemenetet.</string>
+    <string name="msg_speech_input_listening">Hallgatok…</string>
+    <string name="msg_speech_input_empty">Beszédet nem ismertek el.</string>
+    <string name="msg_speech_input_failed">A beszédbevitelek meghibásodott. Próbáld újra.</string>
+    <string name="msg_speech_input_unresponsive">A beszédfelismerés nem indult. Kapcsold be a Google alkalmazást vagy Android hangbemenetet.</string>
+    <string name="msg_speech_permission_required">Mikrofon engedély szükséges a beszédbemenethez.</string>
+    <string name="msg_select_custom_profile">Válasszon egy egyedi BRouter .brf fájlt</string>
+    <string name="msg_invalid_custom_profile">Válassz érvényes BRouter .brf fájlt</string>
+    <string name="msg_profile_parameters_empty">Ez a profil nem fedi ki szerkeszthető paramétereket.</string>
+    <string name="msg_profile_parameters_not_localized">Paraméterek dinamikusan kihúzzák a BRouter profilfájlból, így a nevük, leírásuk és opcióik nem kerülnek lefordításra.</string>
+    <string name="msg_profile_parameters_saved">Profilbeállítások mentve vannak.</string>
+    <string name="msg_profile_parameters_reset">A profilbeállítások visszaállítása a profil alapértelmezettjeire.</string>
+    <string name="msg_profile_parameter_invalid_number">Írj be érvényes számot.</string>
+    <string name="msg_profile_parameter_invalid_text">Az értékek nem tartalmazhatnak ?, &amp;, vagy = jelet.</string>
+    <string name="msg_poi_details_unavailable">Nincsenek további részletek.</string>
+    <string name="msg_poi_details_map_check_hint">Használja a térképet, hogy ellenőrizze, valóban ez a kívánt hely.</string>
+    <string name="msg_poi_google_maps_search_info">Megnyitja a Google Maps-t a POI keresési mező szövegével. Miután kiválasztott egy helyet a Google Maps-ban, ossza meg azt a helyet, és válassza a ViBRo Navigator-t az eredmény idehozásához.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">A helyi BRouter utcák olvasásához tárolási hozzáférés szükséges.</string>
+    <string name="title_brouter_segments_storage_access">BRouter utca tárolás</string>
+    <string name="msg_brouter_segments_storage_access_prompt">A környező utcákhoz hozzáférés szükséges a BRouter segments4 mappához. A következő képernyőn tallózzon a %1$s mappához, és erősítse meg a mappa hozzáférést. Ha a hely nem elérhető, válassza azt a mappát, ahol a BRouter tárolja a .rd5 fájlokat.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">A BRouter profil fájlok olvasásához tárolási hozzáférés szükséges.</string>
+    <string name="title_brouter_profiles_storage_access">BRouter profil tárolás</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiloknak hozzáférésre van szükségük a profiles2 mappához. A következő képernyőn böngésszen a %1$s mappához, és erősítse meg a mappa-hozzáférést. Ha ez a hely nem elérhető, válassza ki azt a mappát, ahol a BRouter tárolja a .brf profiljait.</string>
+    <string name="msg_symbol_test_notification_sent">Szimbólum teszt értesítés elküldve.</string>
+    <string name="msg_map_location_searching">Aktuális hely keresése…</string>
+    <string name="msg_map_location_unavailable">Az aktuális hely nem elérhető.</string>
+    <string name="msg_map_selection_required">Először válasszon ki egy pontot a térképen.</string>
+    <string name="msg_map_position_unavailable">A térképen lévő pozíció nem elérhető.</string>
+    <string name="msg_map_position_no_app">Egyik alkalmazás sem tud térképpozíciót megnyitni.</string>
+    <string name="msg_map_position_open_failed">Nem sikerült megnyitni a térképpozíciót.</string>
+    <string name="msg_map_poi_loading">POI-k betöltése…</string>
+    <string name="msg_map_poi_unavailable">A POI-k nem elérhetők.</string>
+    <string name="msg_map_poi_zoom_in">Nagyítson rá a POI-k betöltéséhez.</string>
+    <string name="msg_map_poi_empty">Nincsenek engedélyezett POI-k ebben a térképnézetben.</string>
+    <string name="msg_map_poi_categories_empty">Nincs POI kategória ebben a térképnézetben.</string>
+    <string name="msg_database_exported">Adatbázis mentve: %1$s</string>
+    <string name="msg_database_export_failed">Nem sikerült exportálni az adatbázist.</string>
+    <string name="msg_database_imported">Adatbázis importálva.</string>
+    <string name="msg_database_import_failed">Nem sikerült importálni az adatbázist.</string>
+    <string name="msg_saved_route_saved">Útvonal mentve.</string>
+    <string name="msg_saved_route_restored">Útvonal visszaállítva.</string>
+    <string name="msg_saved_routes_empty">Nincsenek mentett útvonalak.</string>
+    <string name="msg_route_export_unavailable">Nincs aktív útvonal exportáláshoz.</string>
+    <string name="msg_route_export_failed">Az útvonal exportálása nem sikerült.</string>
+    <string name="msg_route_export_no_app">Egyik alkalmazás sem tudja megnyitni a GPX útvonalakat.</string>
+    <string name="msg_google_maps_search_open_failed">Nem sikerült megnyitni a Google Maps keresést.</string>
+    <string name="msg_open_url_failed">Nem sikerült megnyitni a linket ezen az eszközön.</string>
+    <string name="label_exported_route_gpx">ViBRo útvonal GPX</string>
+    <string name="gpx_passed_route_track_name">Teljesített útvonal</string>
+    <string name="format_gpx_gps_fix_name">GPS javítás %1$d</string>
+    <string name="label_vehicle_profile_custom">Egyedi</string>
+    <string name="label_vehicle_profile_custom_with_name">Egyedi (%1$s)</string>
+    <string name="title_profile_parameters">Profilbeállítások: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Visszaállítja a profilbeállításokat?</string>
+    <string name="msg_profile_parameters_reset_confirm">Visszaállítja ennek a profilnak a beállításait a profilban meghatározott értékekre?</string>
+    <string name="format_profile_parameter_info_content_description">Paraméterinformáció megjelenítése a %1$s esetében</string>
+    <string name="route_mode_info_route_description">Kisúlyoz egy BRouter útvonalat a jelenlegi pozíciódból az összes megállón keresztül a célállomásig.</string>
+    <string name="route_mode_info_round_trip_description">Kiszámít egy kerek BRouter útvonalat a jelenlegi helyzetedből a kiválasztott profil és az átlagos útvonalhossz alapján.</string>
+    <string name="route_mode_info_straight_line_description">Kihagyja a BRouter-t, és közvetlenül az úti cél felé irányít, majd megáll a legrövidebb távolság és irány szerint.</string>
+    <string name="profile_info_trekking_title">Túra kerékpár</string>
+    <string name="profile_info_trekking_description">Kiegyensúlyozott kerékpárútvonal minden napi kerékpározáshoz, túrázáshoz és praktikus navigációhoz. Fő erőssége a sokoldalúság: elkerüli a nagy forgalmú gépjárműveket, támogatja a kerékpárutakat, figyelembe veszi a domborzatot, és általában olyan útvonalakat hoz létre, amelyek a normál kerékpárosok számára ésszerűnek tűnnek. Gyengesége, hogy nem kifejezetten specializált: az országúti kerékpárosok lassabbnak találhatják a `fastbike` profilnál, míg az off-road kerékpárosok túl konzervatívnak találhatják az `mtb` vagy a `gravel` profilokhoz képest. Megkülönböztető jellemzője, hogy a legbiztonságosabb általános célú kerékpárprofil, és valószínűleg a legjobb alapértelmezett választás a legtöbb felhasználónak.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Túra, útvonalak figyelmen kívül hagyása</string>
+    <string name="profile_info_trekking_ignore_cr_description">Egy trekking-kerékpár változat, amely figyelmen kívül hagyja a kerékpárút kapcsolatait. Az erőssége, hogy elkerüli az aláírt vagy térképen jelölt kerékpárutak túlzott előnyben részesítését, amikor ezek az utak közvetettek, látványosak, elavultak, vagy valójában nem hasznosak az aktuális út során. A gyengesége, hogy elveszíti a normál trekking-profil egyik fő előnyét: a jó kerékpáros hálózatok követését, ahol azok léteznek. Megkülönböztető jellemzője, hogy egy konkrét problémára ad választ: \"ne részesíts előnyben egy utat csak azért, mert az egy kerékpárúthoz tartozik.\"</string>
+    <string name="profile_info_trekking_noferries_title">Túra, kompok kihagyása</string>
+    <string name="profile_info_trekking_noferries_description">Egy trekking-kerékpár változat, amely elkerüli a kompkapcsolatokat. Erőssége a kiszámíthatóság: elkerüli azokat az útvonalakat, amelyek a kompszolgáltatások menetrendjétől, szezonális működésétől, jegyvásárlástól, várakozási időtől vagy bizonytalan elérhetőségtől függenek. Gyengesége, hogy sokkal hosszabb útvonalakat eredményezhet folyók, tavak, szigetek vagy tengerparti régiók esetében, ahol a komp használata a praktikus összeköttetés. Egyedi jellemzője, hogy ez a trekking-profil azoknak a felhasználóknak szól, akik csak szárazföldi útvonalakat szeretnének.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, lépcsők nélkül</string>
+    <string name="profile_info_trekking_nosteps_description">Egy olyan trekking-kerékpár változat, amely elkerüli a lépcsőket. Erőssége a gyakorlati terhelhetőség, különösen rakott túrakerékpárok, elektromos kerékpárok, teherszállító kerékpárok, gyerek utánfutók vagy azok számára, akik nem akarják cipelni a kerékpárt. Gyengesége, hogy elkerülheti a rövid gyalogos/kerékpáros rövidítéseket, és hosszabb kerülőutakat eredményezhet városokban vagy dombos területeken. Jellegzetessége, hogy megtartja a normál trekking egyensúlyt, de eltávolítja az egyik legbosszantóbb kerékpárútvonal-meglepetést: a lépcsőket.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, meredek emelkedők</string>
+    <string name="profile_info_trekking_steep_description">Egy trekking-kerékpár változat olyan útvonalakhoz, ahol a meredekebb emelkedők jobban elfogadhatók. Az erőssége, hogy választhat közvetlenebb vagy dombosabb útvonalakat a nagyobb elkerülés helyett. A gyengesége, hogy kényelmetlen lehet vagy nem megfelelő alkalmi kerékpárosoknak, nehéz kerékpároknak, utánfutóknak vagy alacsony akkumulátorral rendelkező e-kerékpáros utazásokhoz. Jellemzője, hogy megőrzi a trekking karaktert, de kevésbé fél a meredek tereptől, mint a normál trekking profil.</string>
+    <string name="profile_info_fastbike_title">Országúti kerékpár</string>
+    <string name="profile_info_fastbike_description">Gyors, kikövezett kerékpározáshoz, versenykerékpárokhoz, fitneszkerékpárokhoz és speed-pedelecekhez optimalizálva. Erőssége a sebesség: hatékony, jó minőségű utakat részesít előnyben, és az utazási időre orientált modellt használ, ahelyett hogy egyszerűen csendes vagy festői útvonalakat keresne. Gyengesége, hogy a hétköznapi kerékpárosok, családok vagy az erősen alacsony forgalmat kedvelő felhasználók számára túlzottan útorientáltnak tűnhet. Különlegessége, hogy a teljesítmény-orientált kerékpárprofil: gyorsabb és közvetlenebb, mint a „túra”, de még mindig kerékpárbarát.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Országúti kerékpár, alacsony forgalom</string>
+    <string name="profile_info_fastbike_lowtraffic_description">Egy gyorskerékpár-profil, amely nagyobb hangsúlyt fektet a forgalom elkerülésére, mint a normál `fastbike`, miközben továbbra is teljesítményorientált marad. Erőssége, hogy jó kompromisszumot kínál azoknak a kerékpárosoknak, akik gyorsat szeretnének, de nem akarnak állandóan forgalmas utakra kerülni. Gyengesége, hogy kissé lassabb vagy kevésbé közvetlen lehet, mint a `fastbike`, és kevésbé forgalomkerülő, mint a `fastbike-verylowtraffic`. Jellegzetessége, hogy a tiszta gyors útvonal és a nagyon forgalomérzékeny gyorskerékpár-útvonal közötti középső lehetőség.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Országúti kerékpár, legkevésbé forgalmas</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">Egy erősebb, alacsony forgalmú változat országúti kerékpárosok vagy gyors pedelec felhasználók számára, akik a lehető legjobban szeretnék elkerülni az autókat és a teherautókat. Erőssége a biztonságosabb és nyugodtabb gyors kerékpározás, különösen egyéni tekerésekhez, esőben, éjszakai kerékpározásnál vagy sűrű forgalmú területeken. Gyengesége, hogy nagyobb kerülőket tehet szükségessé, és elutasíthatja a gyors utakat, ha túl nagy a forgalom. Jellegzetessége, hogy megőrzi a gyors kerékpáros jellegét, de a nagyon alacsony forgalmú útvonaltervezést helyezi középpontba.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Országúti kerékpár, Ázsia–Csendes-óceáni térség</string>
+    <string name="profile_info_fastbike_asia_pacific_description">A `fastbike` területi változata azoknak az országoknak, ahol az európai feltételezések az országutakról, autópályákról és a kerékpáros korlátozásokról nem mindig érvényesek. Erőssége, hogy a gyorskerékpáros útvonaltervezést használhatóbbá teheti olyan régiókban, mint Japán, Ausztrália és más ázsia-csendes-óceáni környezetek, ahol az útosztályozás és a kerékpárhoz való hozzáférés eltérhet Európától. Gyengesége, hogy kevésbé alkalmas univerzális alapértelmezett profilnak. Megkülönböztető jellemzője, hogy megtartja a gyorskerékpáros logikát, de az ázsia-csendes-óceáni használathoz igazítja az út-hozzáférési feltételezéseket.</string>
+    <string name="profile_info_safety_title">Biztonságosabb kerékpározás</string>
+    <string name="profile_info_safety_description">Egy kerékpáros profil, amely a biztonságosabb és nyugodtabb útvonalakra összpontosít. Az erőssége, hogy erősebben részesíti előnyben az kellemetlen vagy veszélyes utak elkerülését, mint a normál gyors útvonaltervezés, így hasznos óvatos kerékpárosok, családok, városi kerékpározás, vagy azok számára, akik a kényelmet részesítik előnyben a sebességgel szemben. A gyengesége, hogy lassabb, hosszabb vagy kevésbé közvetlen útvonalakat eredményezhet. Jellegzetessége, hogy a leginkább „biztonság-első” kerékpáros opció, hasznos, amikor a felhasználó prioritása a stresszes forgalom elkerülése, nem pedig az idő minimalizálása.</string>
+    <string name="profile_info_gravel_title">Murvás kerékpár</string>
+    <string name="profile_info_gravel_description">Kő- és vegyes talajú utakra tervezve. Erőssége, hogy útvonalakat találhat, amelyek tartalmazhatnak tömörített kavicsot, nyomvonalakat és alacsony forgalmú földutakat, miközben elkerüli az olyan felületeket, amelyek túl durvák, sárosak, meredekek vagy lassúak. Gyengesége, hogy nem ideális tiszta országúti kerékpárokhoz, mert szándékosan választhat földutat, és nem annyira ösvényorientált, mint egy igazán MTB profil. Jellegzetessége, hogy az országúti kerékpározás és a hegyi kerékpározás között helyezkedik el: kalandosabb, mint a `fastbike`, kevésbé technikás, mint az `mtb`.</string>
+    <string name="profile_info_mtb_title">Hegyi kerékpár</string>
+    <string name="profile_info_mtb_description">Egy terepre tervezett kerékpárprofil hegyi kerékpározáshoz és ösvényalapú túrázáshoz. Az erőssége, hogy sokkal inkább előnyben részesíti az ösvényeket, nyomvonalakat, burkolatlan utakat és az MTB-re alkalmas terepeket, mint a normál kerékpárprofilok. A gyengesége, hogy olyan útvonalakat is generálhat, amelyek nem alkalmasak túrázásra, ingázásra vagy országúti kerékpározásra, különösen, ha a felhasználó valójában nem szeretne durva ösvényeket. Jellegzetessége az MTB-specifikus viselkedése: figyelembe veszi az ösvénypreferenciát, a felszín minőségét, a simaságot, a nedves körülményeket, a domborzati viselkedést és a terepre való alkalmasságot.</string>
+    <string name="profile_info_hiking_mountain_title">Hegyi túrázás</string>
+    <string name="profile_info_hiking_mountain_description">Egy sétáló profil túrázáshoz és hegyi utakhoz. Az erőssége, hogy a gyalogos közlekedésre, túraútvonalakra, útvonalak nehézségére és hegyi specifikus körülményekre épült, nem a kerékpár- vagy autófeltételezésekre. A gyengesége, hogy nagymértékben támaszkodik a jó OSM címkézésre az utak, hozzáférések, túraútvonalak és nehézségi szintek esetében, különösen az alpesi területeken. Jellegzetessége, hogy ez az összecsomagolt profil a leginkább a hegyvidéki sétálásra összpontosít, nem a közlekedési hatékonyságra.</string>
+    <string name="profile_info_skating_title">Korcsolyázás</string>
+    <string name="profile_info_skating_description">Optimalizált görkorcsolyázásra vagy hasonló hosszú távú korcsolyázási tevékenységekre. Erőssége a felületérzékenység: erősen előnyben részesíti a sima, burkolt, folyékony útvonalakat, és kerüli azokat a felületeket, akadályokat, közlekedési lámpákat, átkelőket és éles megszakításokat, amelyek megtörik a korcsolyázási ritmust. Gyengesége, hogy nagyon specializált, és elutasíthat olyan útvonalakat, amelyek kerékpárosok vagy gyalogosok számára elfogadhatóak, de görkorcsolyához rosszak. Megkülönböztető jellemzője, hogy a korcsolyázási folyamatot veszi figyelembe az útvonaltervezésnél, nem csupán a jogszerű hozzáférést vagy a távolságot.</string>
+    <string name="profile_info_shortest_title">Legrövidebb útvonal</string>
+    <string name="profile_info_shortest_description">Egy minimális profil, amely elsősorban a útvonal távolságának minimalizálására törekszik. Erőssége az egyszerűség: hasznos, ha a felhasználó kifejezetten a lehető legrövidebb elérhető útvonalat akarja, vagy az útvonal geometriáját hasonlítja össze. Gyengesége, hogy a legrövidebb út gyakran nem a legjobb: választhat veszélyes, kellemetlen, meredek, durva vagy forgalmas szakaszokat. Megkülönböztető vonása, hogy legtöbbször figyelmen kívül hagyja a kényelmet és az előnyben részesítési logikát, így inkább referencia profilnak hasznos, mint jó alapértelmezettként.</string>
+    <string name="profile_info_car_eco_title">Autó, környezetbarát</string>
+    <string name="profile_info_car_eco_description">Egy gazdaságos autóútvonal-profil, amely a felesleges sebesség, energiafelhasználás és nem hatékony vezetési minták csökkentésére összpontosít. Erőssége, hogy energiatakarékosabb útvonalakat részesíthet előnyben a leggyorsabb út keresése helyett. Gyengesége, hogy lassabb vagy kevésbé közvetlen útvonalakat választhat, és kevésbé kényelmesnek érezhető, ha az érkezési idő a fő prioritás. Jellemzője, hogy a „ésszerű hatékonyság” autóprofilja, nem a maximális sebesség.</string>
+    <string name="profile_info_car_eco_nocost_title">Autó, öko (alap)</string>
+    <string name="profile_info_car_eco_nocost_description">Egy egyszerűsített gazdaságos autóváltozat. Erőssége, hogy megőrzi a gazdaságos orientációjú autómodellt, miközben csökkenti a további preferencia-alapú hátrányokat, így hasznosabb tisztább összehasonlítási profilként. Gyengesége, hogy kevésbé lehet kifinomult a valós navigációhoz, mert eltávolítja annak egy részét, ami általában segít a gyakorlati útvonalminőség kialakításában. Megkülönböztető vonása, hogy leginkább technikai alapnak tekinthető: hasznos a `car-eco`-val való összehasonlításhoz, kevésbé hasznos a fő, felhasználó felőli autóprofilként.</string>
+    <string name="profile_info_car_fast_title">Autó, gyors</string>
+    <string name="profile_info_car_fast_description">Egy autóútvonal-profil, amely a sebességre és az utazási időre összpontosít. Az erőssége, hogy általában a gyorsabb utakat és az időhatékonyabb, közvetlenebb útvonalakat részesíti előnyben. A gyengesége, hogy kevésbé lehet gazdaságos, kevésbé csendes, kevésbé festői, és néha kevésbé alkalmas, ha a OSM autóra vonatkozó korlátozások vagy a helyi útviszonyok hiányosan vannak feltüntetve. Kiemelkedő jellemzője, hogy a legnyilvánvalóbb autós profil azok számára, akik egyszerűen gyorsan szeretnének célba érni.</string>
+    <string name="profile_info_car_fast_nocost_title">Autó, gyors (alap)</string>
+    <string name="profile_info_car_fast_nocost_description">Egy egyszerűsített gyorsautó változat. Erőssége, hogy közvetlenebben a sebességmodell viselkedésére összpontosít, így hasznos tesztelésre, összehasonlításra vagy kiszámítható leggyorsabb útvonal kísérletekre. Gyengesége, hogy kevésbé lehet árnyalt, mint a `car-fast`, mivel a plusz büntetések és preferenciák csökkentve vannak. Megkülönböztető jellemzője, hogy a gyorsautó útvonaltervezés alapkoncepciója: jó technikai összehasonlításra, kevésbé ideális alapértelmezett autóprofilként.</string>
+    <string name="profile_info_car_vario_title">Autó, változó sebesség</string>
+    <string name="profile_info_car_vario_description">A fő rugalmas autóprofil. Erőssége az alkalmazkodóképesség: a paraméterek változtatásával viselkedhet inkább gyors autós útvonaltervezésként vagy inkább energia-tudatos/ökó útvonaltervezésként. Támogatja az olyan preferenciákat, mint a fizetős utak, burkolatlan utak, autópályák és bizonyos környezetek kerülése. Gyengesége, hogy még mindig egyszerűbb, mint egy teljes kereskedelmi autós navigációs motor, és erősen függ a OSM címkézés minőségétől. Jellegzetessége, hogy fizikai/kinematikai modellt használ, nem csak egyszerű útosztály-prioritásokat.</string>
+    <string name="profile_info_car_vario_nocost_title">Autó, változó (alap)</string>
+    <string name="profile_info_car_vario_nocost_description">Egy egyszerűbb autós útvonal-tervező változat, amely főként a kinematikai sebességmodellen alapul. Erőssége, hogy tisztább kiindulási alapot biztosít az autós útvonal-tervezéshez, hasznos összehasonlításhoz, teszteléshez vagy olyan esetekben, amikor a további látványosságok vagy preferencia-alapú költségek nem dominálhatnak. Gyengesége, hogy kevésbé kifejező és kevésbé felhasználóbarát, mint a car-vario a normál navigációhoz. Jellegzetessége, hogy inkább technikai kiindulási alap, mint gazdag preferencia-profil.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Gyors fekvőkerékpár</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">Profil gyors fekvő kerékpárokhoz. Erőssége, hogy jobban tükrözi a fekvő kerékpárosok igényeit, mint egy normál országúti kerékpár profil: hatékony aszfaltozott utak, a rossz felületek kerülése, a szintkülönbségek óvatos kezelése és a lépcsők vagy leszállós szakaszok büntetései. Gyengesége, hogy túl specializált a normál kerékpárokhoz, és előfordulhat, hogy elkerüli azokat az infrastruktúrákat, amelyeket a függőleges kerékpárosok elfogadnának. Jellegzetessége, hogy a fekvő kerékpárt saját járműtípusaként modellezi, nem csupán gyorsabb kerékpárként.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Gyors velomobil</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">Gyors velomobile-okhoz készült profil. Erőssége, hogy nagyon hatékony, nehéz, alacsony légellenállású emberi erővel hajtott járművekhez ad útvonaltervezést, amelyek számára sima felületek, kevés megállás, kevés akadály és jó gördülési feltételek szükségesek. Gyengesége, hogy a normál kerékpárokhoz nem megfelelő, mert erősen bünteti a keskeny, durva, sok megállást igénylő vagy leszállást igénylő útvonalakat. Jellegzetessége, hogy ez a leginkább járműspecifikus, emberi erővel hajtott profil a csomagban, a velomobile-ok korlátaihoz hangolva, nem pedig általános kerékpározáshoz.</string>
+    <string name="profile_info_car_eco_de_title">Autó, öko (Németország)</string>
+    <string name="profile_info_car_eco_de_description">Egy `car-eco` változat, amely történelmileg alternatív vagy másodlagos útvonal-adatokhoz kapcsolódik. Az előnye, hogy hasznos lehet az autós útvonaltervezés hibakereséséhez vagy teszteléséhez egy másik adatpillanattal vagy speciális úthálózat-előkészítéssel szemben. A hátránya, hogy nem egyszerű, mindennapi autós profil, és speciális másodlagos adatkonfigurációt igényelhet. Jellemzője, hogy úgy viselkedik, mint egy gazdaságos autóprofil, de főként akkor hasznos, ha a másodlagos adatbeállítás szándékosan rendelkezésre áll.</string>
+    <string name="profile_info_moped_title">Robogó</string>
+    <string name="profile_info_moped_description">Kísérleti profil robogószerű útvonaltervezéshez. Az erőssége, hogy a motoros kétkerekű hozzáférést természetesebben modellezi, mint a kerékpár profil. A gyengesége fontos: nem elég megbízható a tényleges navigációhoz, mert bizonyos kanyarodási korlátozások és forgalmi szabályok hiányozhatnak. Jellegzetessége, hogy a kerékpár- és autólogika között helyezkedik el, de kísérleti jellegűnek kell tekinteni, vagy el kell rejteni a normál felhasználók elől.</string>
+    <string name="profile_info_dummy_title">Címkeellenőrzés</string>
+    <string name="profile_info_dummy_description">Egy hibakeresési profil annak ellenőrzésére, hogy a BRouter milyen OSM címkéket lát az útvonal szegmensein. Az erőssége az átláthatóság: segít a fejlesztőknek megérteni az elérhető útvonaladatokat és a fel nem használt címkéket. A gyengesége, hogy nem arra tervezték, hogy magas minőségű vagy értelmes útvonalakat állítson elő. Megkülönböztető jellemzője, hogy főként diagnosztikai profil a profilfejlesztéshez és az adatok ellenőrzéséhez.</string>
+    <string name="profile_info_rail_title">Vasutak</string>
+    <string name="profile_info_rail_description">Egy profil vasúti, villamos-, metró-, könnyűvasúti és hasonló vasúti objektumok fölötti útvonaltervezéshez. Erőssége a vasúti hálózati topológia követése és a vasúti összeköttetés ellenőrzése OSM adatokban. Gyengesége, hogy nem reprezentálja az utasforgalmat: nincsenek menetrendek, átszállások, állomáslogika, szolgáltatások elérhetősége vagy jegykezelési korlátozások. Jellegzetessége, hogy a vasúti adatok elemzésére alkalmas, nem pedig a normál navigációra.</string>
+    <string name="profile_info_river_title">Folyók / csatornák</string>
+    <string name="profile_info_river_description">Egy profil a vízi útvonalak, például folyók, csatornák, hajózási utak és zsilipelések szerinti útvonaltervezéshez. Erőssége a vízi úthálózat nyomvonalának követése és a OSM adatok feltérképezése. Gyengesége, hogy túl egyszerű a tényleges tengeri navigációhoz, mivel nem modellezi a hajótípust, a mélységet, az áramlatot, a jogi korlátozásokat, a veszélyeket vagy a működési zsilipkorlátozásokat. Különlegessége, hogy a vízi utakat útvonaltervezhető hálózatként kezeli, de csak alapvető topológiai szinten.</string>
+    <string name="title_edit_destination_name">Célállomás nevének szerkesztése</string>
+    <string name="title_save_route">Útvonal mentése</string>
+    <string name="title_restore_route">Útvonal visszaállítása</string>
+    <string name="title_edit_route_name">Útvonal nevének szerkesztése</string>
+    <string name="title_restore_route_confirm">Útvonal visszaállítása?</string>
+    <string name="msg_restore_route_confirm">A jelenlegi célállomás és megállók cseréje „%1$s”-re?</string>
+    <string name="title_map_picker_destination">Célállomás kiválasztása a térképen</string>
+    <string name="title_map_picker_stop">Megálló %1$d kiválasztása a térképen</string>
+    <string name="nav_no_route">Nincs útvonal</string>
+    <string name="nav_waiting_for_location_title">Helyzetre várakozás</string>
+    <string name="nav_waiting_for_location_body">Használható helymeghatározásra várakozás az útvonal kiszámításához.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Várakozás egy használható helymeghatározásra az egyenesvonalú navigációhoz.</string>
+    <string name="nav_calculating_route_title">Útvonal számítása</string>
+    <string name="nav_calculating_route_body">Irányok lekérése a(z) BRouter szolgáltatótól.</string>
+    <string name="nav_route_unavailable_title">Útvonal nem elérhető</string>
+    <string name="format_nav_route_unavailable_body">Útvonal nem elérhető: %1$s \n Ellenőrizze a(z) BRouter elérhető szegmenseit.</string>
+    <string name="nav_route_unavailable_generic">ismeretlen hiba</string>
+    <string name="nav_start_invalid_request">a navigációs kérés nem teljes</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Nem található alternatív útvonal a lezárt terület körül. A jelenlegi útvonal megtartása.</string>
+    <string name="nav_route_notice_no_route_found">Nem található útvonal ehhez a célhoz.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Útvonalkalkuláló szolgáltatás nem elérhető. A jelenlegi útvonal megtartása.</string>
+    <string name="nav_route_notice_service_unavailable">Útvonalkalkuláló szolgáltatás nem elérhető.</string>
+    <string name="nav_route_notice_invalid_profile">Az útvonalprofil érvénytelen.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Nem sikerült frissíteni az útvonalat. A jelenlegi útvonal megtartása.</string>
+    <string name="nav_route_notice_unavailable">Nem sikerült kiszámítani az útvonalat.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Lezárt út hozzáadva. Útvonal újraszámítása.</string>
+    <string name="nav_paused_notice">A navigáció szünetel. A folyamatos útmutatás folytatásához koppintson a Navigáció folytatása gombra.</string>
+    <string name="notification_channel_nav">Navigáció</string>
+    <string name="notification_channel_alert">Útmutatási riasztások</string>
+    <string name="notification_channel_turn_left">Forduljon balra</string>
+    <string name="notification_channel_turn_right">Forduljon jobbra</string>
+    <string name="notification_nav_running">Navigáció folyamatban</string>
+    <string name="notification_nav_running_text">A ViBRo Navigator a háttérben navigál</string>
+    <string name="notification_nav_paused">Navigáció szünetel</string>
+    <string name="notification_nav_paused_text">A ViBRo Navigator navigációja szünetel</string>
+    <string name="notification_off_route_title">Útról letérve</string>
+    <string name="notification_wrong_direction_title">Rossz irány</string>
+    <string name="notification_symbol_test_left_title">Az összes balra mutató értesítés tesztelése</string>
+    <string name="notification_symbol_test_other_title">Az összes egyéb értesítés tesztelése</string>
+    <string name="notification_symbol_test_right_title">Az összes jobbra mutató értesítés tesztelése</string>
+    <string name="direction_continue">Folytatás</string>
+    <string name="direction_keep_left">Tartson balra</string>
+    <string name="direction_keep_right">Tartson jobbra</string>
+    <string name="direction_turn_left">Forduljon balra</string>
+    <string name="direction_turn_right">Forduljon jobbra</string>
+    <string name="direction_slight_left">Forduljon enyhén balra</string>
+    <string name="direction_slight_right">Forduljon enyhén jobbra</string>
+    <string name="direction_sharp_left">Forduljon élesen balra</string>
+    <string name="direction_sharp_right">Forduljon élesen jobbra</string>
+    <string name="direction_uturn_left">Forduljon vissza balra</string>
+    <string name="direction_uturn">Forduljon vissza</string>
+    <string name="direction_uturn_right">Forduljon vissza jobbra</string>
+    <string name="direction_roundabout_exit">A körforgalomban hajtson ki a(z) %1$d. kijáraton</string>
+    <string name="direction_roundabout_exit_left">A körforgalomban hajtson ki a(z) %1$d. kijáraton</string>
+    <string name="direction_beeline">Légvonal</string>
+    <string name="direction_exit_left">Hajtson ki balra</string>
+    <string name="direction_exit_right">Hajtson ki jobbra</string>
+    <string name="direction_offroute">Útról letérve</string>
+    <string name="direction_arrive">Úti cél elérve</string>
+    <string name="direction_intermediate_arrive">Közbülső úti cél elérve</string>
+    <string name="direction_unknown">Ismeretlen irány</string>
+    <string name="direction_side_left">balra</string>
+    <string name="direction_side_right">jobbra</string>
+    <string name="format_speed_limit_content_description">Sebességhatár %1$s</string>
+    <string name="title_nav_gps_details">GPS részletek</string>
+    <string name="format_nav_gps_details">Sebesség: %1$s\nMagasság: %2$s\nPontosság: %3$s\nGPS idő: %4$s\nSzatelliták: %5$s\nIntervallum: %6$s\nUtolsó pozíció: %10$s\nGPS rögzítések: %7$s\nGPS irány: %8$s\nIrány pontosság: %9$s</string>
+    <string name="title_nav_directions_details">Útvonalak</string>
+    <string name="nav_directions_unavailable">Nincsenek következő útvonalak</string>
+    <string name="title_nav_trip_stats">Utazás statisztikák</string>
+    <string name="format_nav_trip_stats_details">El telt idő: %1$s\nTávolság: %2$s\nMozgásban töltött idő: %3$s\nÁlló idő: %4$s\nÁtlagsebesség: %5$s\nMozgás közbeni átlag: %6$s\nMaximális sebesség: %7$s\nKépernyő be: %8$s\nKépernyő ki: %9$s\nAkkumulátor fogyasztás: %10$s\nAkkumulátor csökkenés: %11$s</string>
+    <string name="speech_off_route_recalculating">Útvonalon kívül. Újratervezés</string>
+    <string name="speech_off_route">Útról letérve</string>
+    <string name="speech_wrong_direction_turn_back">Rossz irány. Fordulj vissza</string>
+    <string name="format_off_route_off_track_notification">Útvonalon kívüli észlelés. Távolság %1$s, küszöbérték %2$s. Újratervezés.</string>
+    <string name="format_off_route_bearing_notification">Irányeltérés észlelve. Különbség %1$s, várt %2$s, tényleges %3$s. Újratervezés.</string>
+    <string name="format_off_route_off_track_notice_only">Útvonalon kívüli észlelés. Távolság %1$s, küszöbérték %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Irányeltérés észlelve. Különbség %1$s, várt %2$s, tényleges %3$s.</string>
+    <string name="format_wrong_direction_notification">Rossz irány észlelve. Cél %1$s, tényleges %2$s, különbség %3$s.</string>
+    <string name="format_startup_orientation_notification">Fordulj meg %1$s %2$s, hogy a útvonal felé nézz.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s iránymintája</string>
+    <string name="nav_destination_reached">Úti cél elérve</string>
+    <string name="format_version">Verzió %1$s %2$s</string>
+    <string name="about_short_description">Egy könnyű, akkumulátorkímélő és offline-prioritású GPS navigációs alkalmazás, amely rezgéssel ad iránymutatást, a BRouter köré építve.</string>
+    <string name="about_homepage_link">
+        <u>Főoldal</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Értékelés a Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Forráskód a GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Hiba bejelentése</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>Változási napló</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>Adatvédelmi szabályzat</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>Szolgáltatási feltételek</u>
+    </string>
+    <string name="about_legal">Szerzői jog © 2026 Damiano Falcioni.\nMIT Licenc</string>
+    <string name="about_credits">Hitel: BRouter az irányításhoz. A POI keresés és koordináta visszafejtés a OpenStreetMap Nominatim-et, vagy a Google Maps Geocoding-et használja a Google Play kiadásokban, amikor a Google keresés engedélyezve van egy mentett API kulccsal. A térkép POI-k a OpenStreetMap Overpass-et használják. Térképlapok és földrajzi adatok a OpenStreetMap közreműködőitől: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Beállítások</string>
+    <string name="about_settings_category_display">Kijelzés</string>
+    <string name="about_settings_category_guidance">Útmutatás</string>
+    <string name="about_settings_category_compass">Iránytű</string>
+    <string name="about_settings_category_search_input">Keresés és bevitel</string>
+    <string name="about_settings_category_advanced">Haladó</string>
+    <string name="label_log_enabled">Naplók</string>
+    <string name="title_log_output_folder">Napló mappa</string>
+    <string name="label_permission_output_folder">ViBRo letöltési mappa</string>
+    <string name="title_output_browser">ViBRo fájlok</string>
+    <string name="title_gpx_output_folder">GPX mappa</string>
+    <string name="format_output_folder">Aktuális mappa: %1$s</string>
+    <string name="action_clear_output_folder">Törlés</string>
+    <string name="action_open_output_folder">Megnyitás</string>
+    <string name="msg_output_viewer_unavailable">Nincs elérhető alkalmazás ezen mappa vagy fájl megnyitásához.</string>
+    <string name="hint_clear_log_output_folder">Törölje végleg a ViBRo naplófájlokat innen: \n%1$s\n\n A többi fájl és almappa megmarad. Ez nem vonható vissza. Ha a naplózás engedélyezve van, egy új napló a rendszer adataival elindul.</string>
+    <string name="hint_clear_gpx_output_folder">Tartósan törölje a ViBRo GPX exportokat innen: \n%1$s\n\n. A többi fájl és almappa megmarad. Ezt nem lehet visszavonni.</string>
+    <string name="msg_output_folder_cleared">ViBRo fájlok törölve.</string>
+    <string name="msg_output_folder_clear_failed">Nem sikerült törölni az összes ViBRo fájlt. Ellenőrizze a mappához való hozzáférést a Diagnosztikában.</string>
+    <string name="label_external_storage_enabled">Külső tároló használata</string>
+    <string name="about_setting_external_storage_info">Mentse a GPX exportokat, naplókat és adatbázis-backupokat egy SD kártyára a telefon tárolása helyett. Csak egy csatlakoztatott, támogatott SD kártya esetén érhető el; az USB-meghajtók kizártak. Android 6–9 esetén mappahozzáférés szükséges, még akkor is, ha a naplózás és a GPX mentés ki van kapcsolva. Ha a kártya elérhetetlenné válik, a mentés leáll, amíg újra elérhetővé nem válik. A régebbi fájlok az eredeti mappáikban maradnak.</string>
+    <string name="hint_sd_download_access">Engedélyezze a hozzáférést a SD kártya mappájához: \n%1$s\n\n Válassza a Letöltés, annak ViBRo almappáját vagy a SD kártya gyökérmappáját. ViBRo használni fogja a Download/ViBRo/gpx, Download/ViBRo/logs és Download/ViBRo/backup. A mentéshez hozzáférés szükséges ehhez a mappához.</string>
+    <string name="msg_sd_storage_unavailable">Nincs elérhető támogatott, írható SD kártya.</string>
+    <string name="msg_sd_storage_enabled">A GPX exportok, naplók és adatbázis-backupok a SD kártyát fogják használni.</string>
+    <string name="msg_output_folder_failed">Nem sikerült írni ebbe a mappába. Az előző beállítás változatlan marad.</string>
+    <string name="msg_output_access_required">A mentés ki van kapcsolva, mert a kiválasztott kimeneti mappa nem elérhető, vagy a hozzáférés nem lett engedélyezve.</string>
+    <string name="msg_output_folder_picker_unavailable">Nem áll rendelkezésre mappaválasztó.</string>
+    <string name="label_auto_save_gpx_enabled">Automatikus mentés GPX</string>
+    <string name="label_fused_location_enabled">Google Egyesített hely</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Dinamikus GPS időköz</string>
+    <string name="label_imperial_units_enabled">Birodalmi mértékegységek (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Világos téma</string>
+    <string name="label_compass_surrounding_streets_enabled">Környező utcák</string>
+    <string name="action_configure_surrounding_street_types">Válassza ki a környező utcák típusát</string>
+    <string name="title_surrounding_street_types">Környező utcák típusai</string>
+    <string name="hint_surrounding_street_types">A kategória kapcsolók az egész színcsoportot elrejtik vagy megjelenítik anélkül, hogy a egyéni kiválasztások változnának. A sebességtől függő láthatóság továbbra is érvényes.</string>
+    <string name="street_category_highway">Fő utak</string>
+    <string name="street_category_normal">Normál utcák</string>
+    <string name="street_category_walking_cycling">Gyalog / Kerékpár</string>
+    <string name="street_category_special_routing">Különleges utak</string>
+    <string name="street_type_motorway">Autópályák</string>
+    <string name="street_type_motorway_info">Nagysebességű, ellenőrzött hozzáférésű utak.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Autópálya felhajtók</string>
+    <string name="street_type_motorway_link_info">Autópályába belépő vagy onnan kilépő csatlakozások.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Főutak</string>
+    <string name="street_type_trunk_info">Jelentős áthaladó utak az autópálya szintje alatt.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Főúti összeköttetések</string>
+    <string name="street_type_trunk_link_info">Főútra belépő vagy onnan kilépő csatlakozások.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Elsődleges utak</string>
+    <string name="street_type_primary_info">Fontos utak, amelyek városokat és régiókat kapcsolnak össze.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Elsődleges úti összeköttetések</string>
+    <string name="street_type_primary_link_info">Elsődleges útra belépő vagy onnan kilépő csatlakozások.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Másodlagos utak</string>
+    <string name="street_type_secondary_info">Utak kisebb városokat és területeket összekötve.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Másodlagos úti összeköttetések</string>
+    <string name="street_type_secondary_link_info">Másodlagos útra belépő vagy onnan kilépő csatlakozások.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Harmadlagos utak</string>
+    <string name="street_type_tertiary_info">Helyi utak, amelyek közeli településeket vagy városrészeket kötnek össze.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Harmadlagos úthálózati kapcsolatok</string>
+    <string name="street_type_tertiary_link_info">Kapcsolatok, amelyek egy harmadlagos útra vezetnek be vagy onnan ki.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Kisebb közutak</string>
+    <string name="street_type_unclassified_info">Közutak a harmadlagos szint alatt, gyakran lakóövezeteken kívül.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Lakóutak</string>
+    <string name="street_type_residential_info">Olyan utcák, amelyek főként lakóházakat szolgálnak.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Megosztott lakóutak</string>
+    <string name="street_type_living_street_info">Alacsony sebességű utcák, ahol a gyaloglás és egyéb használatok megosztják a teret.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Hozzáférési utak</string>
+    <string name="street_type_service_info">Olyan utak, amelyek épületekhez, parkolókhoz vagy létesítményekhez biztosítanak hozzáférést.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Ösvények</string>
+    <string name="street_type_track_info">Főként mezőgazdasági vagy erdészeti megközelítésre használt utak.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Meghatározatlan utak</string>
+    <string name="street_type_road_info">Olyan utak, amelyek pontos típusa ismeretlen.\n\nOSM/BRouter: highway=road vagy highway=yes.</string>
+    <string name="street_type_busway">Buszsávok</string>
+    <string name="street_type_busway_info">Főként buszoknak kijelölt utak.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Gyalogos utcák</string>
+    <string name="street_type_pedestrian_info">Főként gyalogosoknak kijelölt utcák vagy területek.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Gyalogutak</string>
+    <string name="street_type_footway_info">Sétálásra kijelölt utak.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Ösvények</string>
+    <string name="street_type_path_info">Általános használatú ösvények, amelyek gyaloglásra, kerékpározásra vagy egyéb motor nélküli közlekedésre szolgálhatnak.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Kerékpárutak</string>
+    <string name="street_type_cycleway_info">Kerékpározásra kijelölt utak.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Lovasutak</string>
+    <string name="street_type_bridleway_info">Lovas utak.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Lépcsők</string>
+    <string name="street_type_steps_info">Lépcsősorok egy útvonal mentén.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Átmeneti platformok</string>
+    <string name="street_type_platform_info">Járható platformok a tömegközlekedési megállóknál.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Beltéri folyosók</string>
+    <string name="street_type_corridor_info">Átjárók épületek belsejében.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Úti pihenők</string>
+    <string name="street_type_rest_area_info">Úthoz való hozzáférés a pihenőhelyeken.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Úti szolgáltatások</string>
+    <string name="street_type_services_info">Úthoz való hozzáférés a szolgáltatóhelyeken.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Felvonók</string>
+    <string name="street_type_elevator_info">Felvonókapcsolatok járható szintek között.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Via ferrata útvonalak</string>
+    <string name="street_type_via_ferrata_info">Védett mászóútvonalak rögzített segédeszközökkel.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Versenypályák</string>
+    <string name="street_type_raceway_info">Versenyzésre szánt útvonalak.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Vasutak</string>
+    <string name="street_type_railway_info">Minden vasúti geometria a helyi BRouter szegmensekben.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">Vízi útvonalak</string>
+    <string name="street_type_waterway_info">Minden vízi útvonal geometria a helyi BRouter szegmensekben.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Egyéb útvonal-geometria</string>
+    <string name="street_type_other_info">Geometria, amelynek nincs felismerhető utcája vagy támogatott útvonal típusa.\n\nOSM/BRouter: nincs felismerhető highway=*, railway=*, waterway=*, vagy támogatott route=* érték.</string>
+    <string name="street_type_route_ferry">Kompútvonalak</string>
+    <string name="street_type_route_ferry_info">Útvonalak, amelyeket komp visz.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Gyalogos útvonalak</string>
+    <string name="street_type_route_hiking_foot_info">Jelzett útvonalak túrázáshoz vagy gyalogláshoz.\n\nOSM/BRouter: route=hiking vagy route=foot.</string>
+    <string name="street_type_route_bicycle">Kerékpáros útvonalak</string>
+    <string name="street_type_route_bicycle_info">Jelzett útvonalak kerékpározáshoz.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Sí- és pályaútvonalak</string>
+    <string name="street_type_route_ski_piste_info">Síútvonalakat és pályákat más tevékenységekhez, például szánkozáshoz vagy túrázáshoz. BRouter mindkét címkét egy értékként tárolja, így megosztják ezt a kapcsolót. \n\nOSM/BRouter: route=ski vagy route=piste.</string>
+    <string name="street_type_route_mtb">Hegyikerékpáros útvonalak</string>
+    <string name="street_type_route_mtb_info">Kijelölt hegyikerékpáros útvonalak. \n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Kenuútvonalak</string>
+    <string name="street_type_route_canoe_info">Kijelölve a kenuzási útvonalak. \n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Buszjáratok</string>
+    <string name="street_type_route_bus_info">Buszútvonal geometriája helyi BRouter szegmensekben. \n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Azonnali iránytűzoom</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Automatikus zoom</string>
+    <string name="label_compass_fullscreen_route_enabled">Teljes képernyős útvonal</string>
+    <string name="label_compass_distance_circles_enabled">Távolsági körök</string>
+    <string name="label_compass_central_perspective_enabled">Nézőpont 3D nézőpont</string>
+    <string name="label_show_hint_panel">Mutató táplap</string>
+    <string name="label_navigation_notifications_enabled">értesítések</string>
+    <string name="label_single_instruction_mode_enabled">Egyetlen utasítás mód</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI kategóriák szűrő</string>
+    <string name="hint_poi_categories_filter">Válaszd ki, mely POI kategóriák jelenjenek meg a térképválasztóban, amikor a szűrő be van kapcsolva. Szerkeszd a kategória neveket, kapcsold be vagy ki őket, vagy használd a + jelet új hozzáadásához.</string>
+    <string name="hint_poi_category_name">POI Kategória neve</string>
+    <string name="label_speech_recognition">Beszédfelismerés</string>
+    <string name="label_speech_recognition_language">Nyelv</string>
+    <string name="label_speech_recognition_language_system_default">Rendszer alapértelmezett</string>
+    <string name="label_maneuver_voice">Beszédirányok</string>
+    <string name="label_maneuver_voice_spinner">Hang</string>
+    <string name="label_maneuver_voice_disabled">Letiltva</string>
+    <string name="label_maneuver_voice_system_default">Rendszer alapértelmezett</string>
+    <string name="format_maneuver_voice_variant_code">Hang %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Nő</string>
+    <string name="label_maneuver_voice_gender_male">Férfi</string>
+    <string name="label_google_poi_api_key">Google Maps API gomb</string>
+    <string name="label_navigation_custom_button">Egyéni gomb</string>
+    <string name="label_navigation_custom_button_target">Beállítás</string>
+    <string name="label_setting_enabled">engedélyezve</string>
+    <string name="label_setting_disabled">letiltva</string>
+    <string name="hint_google_poi_api_key">Opcionális Google Maps gomb</string>
+    <string name="format_about_setting_info_content_description">Segítség megjelenítése %1$s-hoz</string>
+    <string name="format_action_toggle_custom_button_setting">%1$s (%2$s) váltása</string>
+    <string name="about_setting_log_info">Részletes viselkedési naplót vezet, amely segíthet a problémák diagnosztizálásában. Kapcsolja ki, hacsak nem kell megosztania részleteket a támogatás számára. Amikor a kiválasztott mappa elérhető, a rendszerleállások és a váratlan navigációmegszakítások továbbra is létrehoznak időbélyeggel ellátott naplót a rendszer részleteivel, amikor ez a kapcsoló ki van kapcsolva. Az erőltetett leállítás csak az alkalmazás újraindítása után jelenthető; a pontos ok lehet, hogy nem elérhető.</string>
+    <string name="about_setting_auto_save_gpx_info">Menteni az aktív útvonalat mint GPX fájl, amikor leállítja a navigációt a Stop gombbal. A telefont Download/ViBRo/gpx használja, vagy a Használja külső tárolót által kiválasztott SD kártyát. Ennek bekapcsolása kéri az elveszett mappa-hozzáférést. A mentés ki van kapcsolva, ha a hozzáférés megtagadva vagy a kiválasztott tároló nem elérhető.</string>
+    <string name="about_setting_fused_location_info">A Google helyet használja, ha elérhető. Ez javíthatja a helyfrissítéseket néhány telefonon.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Az akkumulátort úgy kíméli, hogy ritkábban ellenőrzi a helyzetedet, de még mindig megbízható módon. Kapcsold ki a folyamatos helyfrissítéshez.</string>
+    <string name="about_setting_imperial_units_info">A távolságokat és sebességeket lábban, mérföldben és mph-ben mutatja méter és km/h helyett.</string>
+    <string name="about_setting_light_theme_info">Az alkalmazást az alapértelmezett sötét kinézetről világos kinézetre váltja.</string>
+    <string name="about_setting_compass_surrounding_streets_info">A közeli utcákat és egyéb útvonal-geometriát a kompason mutatja, ha helyi térképadatok elérhetők. \n\n Színjelmagyarázat: \n■ — főbb utak és autópályák \n■ — normál utcák \n■ — sétáló- és kerékpárutak, útvonalak \n■ — vasutak, víziutak, kompok, sí-/kanoe-/buszútvonalak, lovasutak, versenypályák és via ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">Kihagyja a kompasz nagyítási animációját, így az útvonaláttekintő és a mozgó méretarányú nézetek közötti váltás azonnali.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Megjeleníti a teljes útvonalat az iránytűn, amikor áll. Kapcsolja ki a funkciót, hogy a legutóbbi mozgás-skála nagyítást tartsa meg megálláskor.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Kiterjeszti az útvonal iránytű nézetét a teljes navigációs képernyő mögött, miközben az irányítási elemek és az irányszöveg látható marad elöl.</string>
+    <string name="about_setting_compass_distance_circles_info">Megjeleníti a távolságköröket idő- és távolság címkékkel, az irány nyilat, valamint az irány pontossági vonalakat és íveket az iránytűn és a teljes képernyős nézetben.</string>
+    <string name="about_setting_compass_central_perspective_info">Perspektívát használ a 3D iránytű nézetben: a közeli útvonalak és utcák nagyobbnak, míg a távoliak apróbbnak tűnnek a tetejük felé. Kapcsolja ki a funkciót az egységes ortográfiai dőlés használatához.</string>
+    <string name="about_setting_show_hint_panel_info">Megjeleníti a gesztus tippeket és az utcák színjelmagyarázatát, amikor a telefon navigációt megnyitja.</string>
+    <string name="about_setting_navigation_notifications_info">Értesítésekként jeleníti meg az irányváltoztatási riasztásokat és a navigációs figyelmeztetéseket. A folyamatban lévő navigációs értesítés nem érintett, és navigáció közben látható marad.</string>
+    <string name="about_setting_single_instruction_mode_info">Egy manőverriasztást használ kb. 10 másodperccel az egyes közelgő utasítások előtt, és elnyomja a kezdési, 20 másodperces és 5 másodperces manőverriasztásokat. A megérkezési és figyelmeztető értesítések nem érintettek.</string>
+    <string name="about_setting_navigation_custom_button_info">Egy extra gombot jelenít meg a navigációs iránytűn, amely a kiválasztott beállítást kapcsolja, amíg a navigáció nyitva van.</string>
+    <string name="about_setting_android_auto_info">Lehetővé teszi, hogy a kompatibilis autós kijelzők a Android Auto-en keresztül jelenítsék meg a navigációt. Néhány host csak akkor frissíti az alkalmazáslistát, miután a Android Auto újracsatlakozik. Valódi járművekben a Android Auto csak akkor jeleníti meg ezt a típusú alkalmazást, ha az megbízható forrásból van telepítve, például Google Play-ből vagy Internal App Sharingből.</string>
+    <string name="about_setting_poi_categories_info">Kiválasztja, mely helyek jelenhetnek meg a térképválasztóban, például üzemanyag, parkoló vagy WC.</string>
+    <string name="about_setting_speech_recognition_info">Megjeleníti a mikrofon gombokat a célállomás és a hangbevitel leállításához, és kiválasztja a kért felismerési nyelvet. Android alapértelmezett értékét használhatja, ha a kiválasztott beszédfelismerő nem támogatja a kért nyelvet.</string>
+    <string name="about_setting_maneuver_voice_info">Felolvasza a következő irányelveket Android hangon.</string>
+    <string name="about_setting_google_poi_api_key_info">Lehetővé teszi a célkeresést Google Maps használatával, ha érvényes kulcsot ad meg.</string>
+    <string name="about_setting_export_database_info">Menteni az alkalmazás adatait, beleértve az előzményeket, mentett útvonalakat, beállításokat és profilválasztásokat, JSON formátumban a telefonon lévő Download/ViBRo/backup-re vagy az Use external storage által kiválasztott SD kártyára. Megjeleníti a mentett fájl nevét anélkül, hogy mappát kérne. Android 6–9 esetén előbb állítsa be a tárhely-hozzáférést a Diagnosztikában.</string>
+    <string name="about_setting_import_database_info">Helyreállítja az alkalmazásadataidat egy ezzel az alkalmazással létrehozott JSON biztonsági mentésből. A fájlválasztó a telefonon a Download/ViBRo/backup mappában indul, vagy a Android 8-tól kezdve a Használja a külső tárolót opcióval kiválasztott SD kártyán. Böngészhetsz egy másik mappát is.</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps API kulcs mentve.</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps API kulcs törölve.</string>
+    <string name="msg_google_poi_api_key_required">Adj hozzá egy Google Maps API kulcsot, mielőtt engedélyeznéd a Google keresést.</string>
+    <string name="msg_google_poi_api_key_validating">A Google Maps API kulcs érvényesítése…</string>
+    <string name="msg_google_poi_api_key_invalid">A Google Maps API kulcs nem érvényes.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Nem sikerült érvényesíteni a Google Maps API kulcsot.</string>
+    <string name="about_diagnostic_title">Diagnosztika</string>
+    <string name="about_permission_status_title">Szükséges hozzáférés</string>
+    <string name="about_sensor_status_title">Szenzor állapota</string>
+    <string name="label_direction_notification_tests">Irányok értesítési tesztek</string>
+    <string name="label_permission_location">Helymeghatározási engedély</string>
+    <string name="label_permission_location_services">Eszköz helyzete</string>
+    <string name="label_permission_notifications">értesítések</string>
+    <string name="label_permission_battery">Akkumulátor optimalizálás</string>
+    <string name="label_permission_surrounding_street_storage">BRouter utca tárolás</string>
+    <string name="label_permission_brouter_profile_storage">BRouter profil tárolás</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Koppints a megoldáshoz.</string>
+    <string name="label_sensor_fused_provider">Google fúziós szolgáltató</string>
+    <string name="label_sensor_gps_provider">GPS szolgáltató</string>
+    <string name="label_sensor_network_provider">Hálózati szolgáltató</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Geomágneses forgásvektor</string>
+    <string name="label_sensor_rotation_vector">Forgásvektor</string>
+    <string name="label_sensor_orientation">Tájékozódási érzékelő</string>
+    <string name="label_sensor_linear_acceleration">Lineáris gyorsulás érzékelő</string>
+    <string name="label_sensor_accelerometer">Gyorsulásmérő</string>
+    <string name="sensor_status_enabled">engedélyezve</string>
+    <string name="sensor_status_disabled">letiltva</string>
+    <string name="sensor_status_available">elérhető</string>
+    <string name="sensor_status_unavailable">nem elérhető</string>
+    <string name="sensor_status_permission_denied">engedély megtagadva</string>
+    <string name="auto_no_active_navigation_title">Nincs aktív navigáció</string>
+    <string name="auto_no_active_navigation_text">Indítsa el a telefonon a navigációt, hogy az útmutatás itt jelenjen meg.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Koppintson bárhová a bezáráshoz, vagy várjon %1$d másodpercet</item>
+        <item quantity="other">Koppintson bárhová a bezáráshoz, vagy várjon %1$d másodpercet</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Forduljon %1$d fokot %2$s</item>
+        <item quantity="other">Forduljon %1$d fokot %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d másodperc</item>
+        <item quantity="other">%1$d másodperc</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d perc</item>
+        <item quantity="other">%1$d perc</item>
+    </plurals>
+</resources>

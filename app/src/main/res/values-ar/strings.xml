@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">استخدام لغة النظام</string>
+    <string name="action_configure_app_language">تكوين لغة التطبيق</string>
+    <string name="title_app_language">لغة التطبيق</string>
+    <string name="label_app_language">اللغة</string>
+    <string name="hint_app_language">يتم استخدام اللغة المحددة عند إيقاف استخدام لغة النظام.</string>
+    <string name="about_setting_language_info">يستخدم أول لغة مدعومة في تفضيلات لغة جهازك، أو الإنجليزية إذا لم تتوفر أي لغة. قم بإيقاف هذا الخيار لاستخدام اللغة المحددة بزر التكوين. يتوافق الاختيار الأولي مع لغة النظام الخاصة بك.</string>
+    <string name="nav_gesture_map_controls_title">ضوابط خريطة الإيماءات</string>
+    <string name="nav_gesture_views_body">
+        <b>تبديل العروض.</b> اضغط مرتين أو اسحب لليسار / لليمين للانتقال من عرض المسار الكامل، 2D، و3D</string>
+    <string name="nav_gesture_zoom_body">
+        <b>تكبير / تصغير.</b> قم بالتقريب أو التباعد في عرض 2D و3D لمستويين ± للتكبير</string>
+    <string name="nav_gesture_tilt_body">
+        <b>إمالة عرض 3D. </b> اسحب للأعلى / للأسفل بإصبعين لإمالة عرض 3D</string>
+    <string name="nav_gesture_map_legend_title">مفتاح خريطة</string>
+    <string name="nav_gesture_current_route">المسار الحالي</string>
+    <string name="nav_gesture_current_position_accuracy">الموقع الحالي والدقة</string>
+    <string name="nav_gesture_dont_show_again">لا تُظهر مرة أخرى</string>
+    <string name="nav_gesture_dismiss">المس أي مكان لإلغاء الإشعار</string>
+    <string name="welcome_title">مرحبًا بك في ViBRo</string>
+    <string name="welcome_tldr">باختصار: قم بتثبيت BRouter، وحمل بيانات التوجيه المحلية، ومنح الأذونات.</string>
+    <string name="welcome_intro">ViBRo Navigator (مُوجِّه BRouter المهتز/المشفّر بالذبذبات) هو تطبيق تنقل خفيف الوزن، يعمل بدون اتصال بالإنترنت أولاً، وموفر للطاقة، بناءً على Android GPS، ومبني على BRouter. صُمم للتنقل بدون خرائط، ويقدّم الاتجاهات عبر الاهتزازات، وتوجيه قليل على الشاشة والصوت، مما يتيح استخدامًا دون تشتيت وبدون الحاجة لتشغيل الشاشة.</string>
+    <string name="welcome_setup_title">الإعداد الأولي</string>
+    <string name="welcome_brouter_body">• قم بتثبيت BRouter باستخدام الروابط المقدمة، ثم افتحه وحمّل بيانات التوجيه لمنطقتك.</string>
+    <string name="welcome_permissions_body">• بعد هذا الترحيب ومطالبة التثبيت الاختيارية لـ BRouter، اسمح بالموقع والميكروفون (لإدخال الصوت) والإشعارات وأي وصول إلى التخزين مطلوب. قم بتمكين موقع الجهاز عند الطلب. يمكنك تخطي الطلب وتمكين الوصول لاحقًا.</string>
+    <string name="welcome_storage_body">• امنح الوصول إلى مجلد profiles2 عند الطلب، أو أذونات التخزين على إصدارات Android الأقدم.</string>
+    <string name="welcome_battery_body">• اسمح بالإعفاء الاختياري من تحسين البطارية للحصول على إرشادات موثوقة مع إيقاف تشغيل الشاشة.</string>
+    <string name="welcome_optional_access_body">• الوصول إلى الميكروفون مطلوب فقط إذا تم الطلب للبحث الصوتي.</string>
+    <string name="action_about">حول</string>
+    <string name="action_start_navigation">بدء التنقل</string>
+    <string name="action_pause_navigation">إيقاف مؤقت للتنقل</string>
+    <string name="action_resume_navigation">استئناف التنقل</string>
+    <string name="action_stop_navigation">إيقاف التنقل</string>
+    <string name="action_save_route">حفظ المسار</string>
+    <string name="action_restore_route">استعادة المسار</string>
+    <string name="action_add_stop">إضافة توقف</string>
+    <string name="action_remove_stop">إزالة توقف</string>
+    <string name="action_blocked_road">طريق مسدود</string>
+    <string name="action_skip_beeline_target">تخطي هدف المسار المباشر</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_edit">تحرير</string>
+    <string name="action_open_settings">فتح الإعدادات</string>
+    <string name="action_open_tts_settings">فتح إعدادات تحويل النص إلى كلام</string>
+    <string name="action_open_speech_directions_settings">فتح إعدادات تعليمات الصوت</string>
+    <string name="action_open_speech_recognition_settings">فتح إعدادات التعرف على الكلام</string>
+    <string name="action_open_android_stt_settings">فتح إعدادات تحويل الصوت إلى نص لـ Android</string>
+    <string name="action_continue">متابعة</string>
+    <string name="action_enable_speech_recognition">عرض أزرار التعرف على الكلام</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">اختبار صوت تعليمات الكلام</string>
+    <string name="action_voice_search_destination">تحدث عن الوجهة</string>
+    <string name="action_voice_search_stop">تحدث عن التوقف</string>
+    <string name="action_clear_poi_search">مسح نص البحث</string>
+    <string name="action_save">حفظ المفتاح</string>
+    <string name="action_save_poi_categories">حفظ</string>
+    <string name="action_open_map">خريطة</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_use_selected_point">استخدم النقطة المحددة</string>
+    <string name="action_map_poi_categories">فئات POI</string>
+    <string name="action_open_map_position">فتح موقع الخريطة</string>
+    <string name="action_test_left_notification">اليسار</string>
+    <string name="action_test_other_notification">أخرى</string>
+    <string name="action_test_right_notification">اليمين</string>
+    <string name="action_current_location">الموقع الحالي</string>
+    <string name="action_edit_poi_categories">تحرير فئات POI</string>
+    <string name="action_edit_google_poi_api_key">تحرير مفتاح Google Maps API</string>
+    <string name="action_configure_navigation_custom_button">تكوين زر مخصص</string>
+    <string name="action_enable_google_poi_search">تمكين بحث Google</string>
+    <string name="action_add_poi_category">إضافة فئة POI</string>
+    <string name="action_remove_poi_category">إزالة فئة POI</string>
+    <string name="action_enable_poi_category">تمكين فئة POI</string>
+    <string name="action_export_database">تصدير قاعدة البيانات</string>
+    <string name="action_import_database">استيراد قاعدة البيانات</string>
+    <string name="action_export_route">تصدير GPX</string>
+    <string name="action_profile_info">معلومات الملف الشخصي</string>
+    <string name="action_setting_info">معلومات الإعداد</string>
+    <string name="action_poi_details">تفاصيل POI</string>
+    <string name="action_search_google_maps">البحث في Google Maps</string>
+    <string name="action_profile_settings">إعدادات الملف الشخصي</string>
+    <string name="action_reset_defaults">إعادة ضبط الإعدادات الافتراضية</string>
+    <string name="label_vehicle_profile">الملف الشخصي</string>
+    <string name="label_route_mode_route">وضع المسار</string>
+    <string name="label_route_mode_round_trip">وضع الجولة الدائرية</string>
+    <string name="label_route_mode_straight_line">وضع الخط المستقيم</string>
+    <string name="label_destination">الوجهة</string>
+    <string name="label_poi_entrance">المدخل</string>
+    <string name="label_poi_entrances">المداخل</string>
+    <string name="label_poi_entrance_type">النوع</string>
+    <string name="label_poi_coordinates">الإحداثيات</string>
+    <string name="label_poi_extra_tags">العلامات الإضافية</string>
+    <string name="label_poi_address_details">العنوان</string>
+    <string name="label_round_trip_distance_km">متوسط مسافة الذهاب والإياب (km)</string>
+    <string name="label_round_trip_distance_mi">متوسط مسافة الذهاب والإياب (mi)</string>
+    <string name="label_round_trip_direction">اتجاه الذهاب والإياب (°)</string>
+    <string name="label_round_trip_direction_compass">بوصلة اتجاه الذهاب والإياب</string>
+    <string name="label_profile_attention_icon">ملف تجريبي أو لتصحيح الأخطاء</string>
+    <string name="format_profile_info_content_description">عرض معلومات لـ %1$s</string>
+    <string name="format_route_mode_info_content_description">عرض معلومات الوضع لـ %1$s</string>
+    <string name="format_poi_details_content_description">عرض تفاصيل POI لـ %1$s</string>
+    <string name="format_poi_search_info_content_description">عرض معلومات البحث لـ %1$s</string>
+    <string name="format_poi_entrance_heading">مدخل %1$d</string>
+    <string name="format_poi_entrance_type">مدخل: %1$s</string>
+    <string name="format_stop_label">أوقف %1$d</string>
+    <string name="format_default_saved_route_name">مسار %1$s</string>
+    <string name="hint_search_destination">بحث عن الوجهة</string>
+    <string name="hint_search_stop">بحث عن المحطة</string>
+    <string name="prompt_speech_destination">قل الوجهة</string>
+    <string name="prompt_speech_stop">قل المحطة</string>
+    <string name="hint_saved_route_name">اسم المسار</string>
+    <string name="msg_missing_destination">اختر وجهة</string>
+    <string name="msg_invalid_destination_name">أدخل اسم الوجهة</string>
+    <string name="msg_invalid_route_name">أدخل اسم المسار</string>
+    <string name="msg_invalid_coordinates">اختر مكانًا بالإحداثيات</string>
+    <string name="msg_invalid_stop">أزل أو اختر محطة بالإحداثيات</string>
+    <string name="msg_invalid_round_trip_distance">أدخل مسافة رحلة ذهاب وإياب صالحة</string>
+    <string name="msg_invalid_round_trip_direction">أدخل اتجاه رحلة ذهاب وإياب صالح</string>
+    <string name="msg_round_trip_requires_brouter_profile">اختر ملف تعريف BRouter لوضع الرحلة ذهاب وإياب</string>
+    <string name="msg_brouter_not_found">BRouter غير مثبت</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter مطلوب للشوارع المحيطة.</string>
+    <string name="title_brouter_not_found">BRouter مطلوب</string>
+    <string name="title_stop_navigation_confirm">هل تريد إيقاف التنقل؟</string>
+    <string name="msg_brouter_install_prompt">BRouter غير مثبت. هل تريد فتح صفحة التطبيق الخاصة به في Play Store أو F-Droid؟</string>
+    <string name="msg_location_disabled">الموقع معطل. قم بتمكينه للتنقل.</string>
+    <string name="msg_permission_required">مطلوب إذن</string>
+    <string name="msg_stop_navigation_confirm">هل تريد إيقاف التنقل وإغلاق هذه الشاشة؟</string>
+    <string name="msg_permission_location_rationale">يحتاج ViBRo Navigator إلى الوصول إلى الموقع للتنقل وإعطاء إشارات الاهتزاز للاتجاهات.</string>
+    <string name="msg_permission_notifications_rationale">يتم استخدام الإشعارات لتنبيهك بالانعطافات القادمة.</string>
+    <string name="msg_enable_notifications">قم بتمكين الإشعارات لتنبيهات الانعطاف.</string>
+    <string name="msg_battery_opt_rationale">من أجل التنقل في الخلفية بشكل موثوق، اسمح لـ ViBRo Navigator بتجاهل تحسينات البطارية.</string>
+    <string name="msg_open_settings_failed">لم نتمكن من فتح الإعدادات على هذا الجهاز.</string>
+    <string name="msg_open_brouter_store_failed">لم نتمكن من فتح صفحة متجر BRouter على هذا الجهاز.</string>
+    <string name="msg_intent_unrecognized">الموقع المشترك غير معروف</string>
+    <string name="msg_gpx_import_failed">لم نتمكن من تحميل نقاط طريق GPX.</string>
+    <string name="msg_gpx_import_blocked_navigation">أوقف التنقل قبل فتح مسار GPX.</string>
+    <string name="msg_speech_input_unavailable">لم يتم تمكين خدمة التعرف على الكلام. قم بتمكين تطبيق Google أو إدخال الصوت Android.</string>
+    <string name="msg_speech_input_listening">الاستماع…</string>
+    <string name="msg_speech_input_empty">لم يتم التعرف على أي كلام.</string>
+    <string name="msg_speech_input_failed">فشل إدخال الكلام. حاول مرة أخرى.</string>
+    <string name="msg_speech_input_unresponsive">لم يبدأ التعرف على الكلام. قم بتمكين تطبيق Google أو إدخال الصوت Android.</string>
+    <string name="msg_speech_permission_required">يلزم إذن الميكروفون لإدخال الكلام.</string>
+    <string name="msg_select_custom_profile">حدد ملف BRouter .brf مخصص</string>
+    <string name="msg_invalid_custom_profile">حدد ملف BRouter .brf صالح</string>
+    <string name="msg_profile_parameters_empty">هذا الملف الشخصي لا يكشف عن معلمات قابلة للتحرير.</string>
+    <string name="msg_profile_parameters_not_localized">يتم استخراج المعلمات ديناميكيًا من ملف ملف التعريف BRouter، لذا فإن أسمائها ووصفها وخياراتها غير مترجمة.</string>
+    <string name="msg_profile_parameters_saved">تم حفظ إعدادات الملف الشخصي.</string>
+    <string name="msg_profile_parameters_reset">تم إعادة إعدادات الملف الشخصي إلى إعدادات الملف الافتراضية.</string>
+    <string name="msg_profile_parameter_invalid_number">أدخل رقمًا صالحًا.</string>
+    <string name="msg_profile_parameter_invalid_text">لا يمكن للقيم أن تحتوي على ? أو &amp; أو =.</string>
+    <string name="msg_poi_details_unavailable">لا تتوفر تفاصيل إضافية.</string>
+    <string name="msg_poi_details_map_check_hint">استخدم الخريطة للتحقق من أن هذا هو الموقع المقصود.</string>
+    <string name="msg_poi_google_maps_search_info">يفتح Google Maps بالنص من حقل البحث هذا في POI. بعد اختيار مكان في Google Maps، شارك هذا المكان وحدد ViBRo Navigator لإرجاع النتيجة هنا.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">يلزم الوصول إلى التخزين لقراءة شوارع BRouter المحلية.</string>
+    <string name="title_brouter_segments_storage_access">تخزين شوارع BRouter</string>
+    <string name="msg_brouter_segments_storage_access_prompt">تحتاج الشوارع المحيطة إلى الوصول إلى مجلد BRouter segments4. في الشاشة التالية، تصفح إلى %1$s وتأكد من الوصول إلى المجلد. إذا لم يكن هذا الموقع متاحًا، حدد المجلد الذي يخزن فيه BRouter ملفات .rd5.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">يلزم الوصول إلى التخزين لقراءة ملفات ملفات تعريف BRouter.</string>
+    <string name="title_brouter_profiles_storage_access">تخزين ملفات تعريف BRouter</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter إلى الوصول إلى مجلد profiles2. في الشاشة التالية، تصفح إلى %1$s وتأكد من الوصول إلى المجلد. إذا لم يكن ذلك الموقع متاحاً، فاختر المجلد الذي يخزن فيه BRouter ملفات تعريف .brf.\n\nتم إرسال إشعار اختبار الرمز</string>
+    <string name="msg_symbol_test_notification_sent">.</string>
+    <string name="msg_map_location_searching">جاري البحث عن الموقع الحالي…</string>
+    <string name="msg_map_location_unavailable">الموقع الحالي غير متوفر.</string>
+    <string name="msg_map_selection_required">حدد نقطة على الخريطة أولاً.</string>
+    <string name="msg_map_position_unavailable">موقع الخريطة غير متوفر.</string>
+    <string name="msg_map_position_no_app">لا يمكن لأي تطبيق فتح مواقع الخريطة.</string>
+    <string name="msg_map_position_open_failed">لم يُتمكن من فتح موقع الخريطة.</string>
+    <string name="msg_map_poi_loading">جاري تحميل نقاط الاهتمام…</string>
+    <string name="msg_map_poi_unavailable">نقاط الاهتمام غير متوفرة.</string>
+    <string name="msg_map_poi_zoom_in">قم بالتكبير لتحميل نقاط الاهتمام.</string>
+    <string name="msg_map_poi_empty">لا توجد نقاط اهتمام مفعلة في عرض الخريطة هذا.</string>
+    <string name="msg_map_poi_categories_empty">لا توجد فئات POI في عرض الخريطة هذا.</string>
+    <string name="msg_database_exported">تم حفظ قاعدة البيانات: %1$s</string>
+    <string name="msg_database_export_failed">لم يُتمكن من تصدير قاعدة البيانات.</string>
+    <string name="msg_database_imported">تم استيراد قاعدة البيانات.</string>
+    <string name="msg_database_import_failed">لم يُتمكن من استيراد قاعدة البيانات.</string>
+    <string name="msg_saved_route_saved">تم حفظ المسار.</string>
+    <string name="msg_saved_route_restored">تم استعادة المسار.</string>
+    <string name="msg_saved_routes_empty">لا توجد مسارات محفوظة.</string>
+    <string name="msg_route_export_unavailable">لا يوجد مسار نشط للتصدير.</string>
+    <string name="msg_route_export_failed">لم يتمكن من تصدير المسار.</string>
+    <string name="msg_route_export_no_app">لا يوجد تطبيق يمكنه فتح مسارات GPX.</string>
+    <string name="msg_google_maps_search_open_failed">لم يتمكن من فتح بحث Google Maps.</string>
+    <string name="msg_open_url_failed">لم يتمكن من فتح الرابط على هذا الجهاز.</string>
+    <string name="label_exported_route_gpx">مسار ViBRo GPX</string>
+    <string name="gpx_passed_route_track_name">المسار المارّ</string>
+    <string name="format_gpx_gps_fix_name">إصلاح GPS %1$d</string>
+    <string name="label_vehicle_profile_custom">مخصص</string>
+    <string name="label_vehicle_profile_custom_with_name">مخصص (%1$s)</string>
+    <string name="title_profile_parameters">إعدادات الملف الشخصي: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">إعادة تعيين إعدادات الملف الشخصي؟</string>
+    <string name="msg_profile_parameters_reset_confirm">استعادة إعدادات هذا الملف الشخصي إلى القيم المحددة في الملف الشخصي؟</string>
+    <string name="format_profile_parameter_info_content_description">عرض معلومات المعلمة لـ %1$s</string>
+    <string name="route_mode_info_route_description">يحسب مسار BRouter من موقعك الحالي عبر أي محطات إلى الوجهة.</string>
+    <string name="route_mode_info_round_trip_description">يحسب مسارًا دائريًا BRouter من موقعك الحالي باستخدام الملف الشخصي المحدد ومتوسط مسافة الرحلة.</string>
+    <string name="route_mode_info_straight_line_description">يتجاوز BRouter ويوجهك مباشرة نحو الوجهة ويتوقف عند المسافة والاتجاه المستقيم.</string>
+    <string name="profile_info_trekking_title">دراجة الترحال</string>
+    <string name="profile_info_trekking_description">توجيه الدراجة المتوازن لركوب الدراجات اليومية، والجولات، والملاحة العملية. قوته الرئيسية هي تعددية الاستخدام: يتجنب المرور الكثيف للسيارات، ويدعم مسارات الدراجات، ويأخذ بعين الاعتبار الارتفاع، وعادةً ما ينتج مسارات تبدو معقولة للدراجين العاديين. ضعفه هو أنه ليس متخصصًا بدرجة عالية: قد يجد راكبو الطرق أنه أبطأ من `fastbike`، بينما قد يجد راكبو الطرق الوعرة أنه محافظ جدًا مقارنة بـ `mtb` أو `gravel`. الجانب المميز له هو أنه الملف الشخصي الأكثر أمانًا للدراجة متعددة الأغراض وربما الأفضل كإعداد افتراضي لمعظم المستخدمين.</string>
+    <string name="profile_info_trekking_ignore_cr_title">المشي لمسافات طويلة، تجاهل المسارات</string>
+    <string name="profile_info_trekking_ignore_cr_description">نسخة الدراجة للتنزه التي تتجاهل علاقات مسار الدراجة. قوتها أنها تتجنب إعطاء أولوية مفرطة للمسارات المحددة أو المرسومة للدراجات عندما تكون هذه المسارات غير مباشرة أو ذات مناظر طبيعية أو قديمة أو غير مفيدة بالفعل للرحلة الحالية. ضعفها أنها تفقد إحدى المزايا الرئيسية للملف الشخصي العادي للتنزه: متابعة شبكات الدراجات الجيدة حيثما وجدت. جانبها المميز هو أنها تجيب عن مشكلة محددة: \"لا تفضل طريقًا لمجرد أنه ينتمي إلى مسار الدراجة.\"</string>
+    <string name="profile_info_trekking_noferries_title">المشي لمسافات طويلة، بدون عبّارات</string>
+    <string name="profile_info_trekking_noferries_description">نسخة من دراجة الرحلات التي تتجنب استخدام العبارات. قوتها هي القدرة على التنبؤ: فهي تتجنب الطرق التي تعتمد على جداول العبارات، التشغيل الموسمي، التذاكر، وقت الانتظار، أو التوافر غير المؤكد. ضعفها هو أنها قد تنتج طرقًا أطول بكثير في المناطق النهرية، والبحرية، والجزرية، أو الساحلية حيث تعد العبارات وسيلة الاتصال العملية. الجانب المميز فيها هو أنها ملف الرحلات للمستخدمين الذين يرغبون في التنقل على الأرض فقط.</string>
+    <string name="profile_info_trekking_nosteps_title">رحلات، بدون خطوات</string>
+    <string name="profile_info_trekking_nosteps_description">نسخة من دراجة الترحال تتجنب الدرج. قوتها هي قابلية القيادة العملية، خاصة للدراجات السياحية المحملة، والدراجات الكهربائية، ودراجات البضائع، والمقطورات للأطفال، أو للمستخدمين الذين لا يرغبون في حمل الدراجة. ضعفها هو أنها قد تتجنب الاختصارات القصيرة للمشاة/الدراجات وتنتج تحويلات أطول في المدن أو المناطق التلالية. الجانب المميز فيها هو أنها تحافظ على توازن الترحال الطبيعي لكنها تزيل أحد أكثر مفاجآت مسارات الدراجة إزعاجًا: الدرج.</string>
+    <string name="profile_info_trekking_steep_title">الترحال، التسلقات الحادة</string>
+    <string name="profile_info_trekking_steep_description">نسخة من دراجة الترحال للمسارات حيث تكون المرتفعات الحادة أكثر قبولًا. قوتها أنها تستطيع اختيار مسارات أكثر مباشرة أو أكثر تلالاً بدلاً من تجنب الارتفاع بشكل كبير. ضعفها أنها قد تكون غير مريحة أو غير مناسبة للمتسابقين العاديين، أو الدراجات الثقيلة، أو العربات المرفقة، أو رحلات الدراجات الكهربائية ذات البطاريات المنخفضة. الجانب المميز لها هو أنها تحافظ على الطابع الترحالي لكنها أقل خوفًا من التضاريس الحادة مقارنة بالملف الشخصي الترحالي العادي.</string>
+    <string name="profile_info_fastbike_title">دراجة طريق</string>
+    <string name="profile_info_fastbike_description">لركوب الدراجات السريعة على الطرق الممهدة، دراجات السباق، دراجات اللياقة البدنية، والدراجات الكهربائية السريعة. قوته هي السرعة: يفضل الطرق الفعالة وعالية الجودة ويستخدم نموذجًا يركز على وقت الرحلة بدلاً من البحث فقط عن مسارات هادئة أو ذات مناظر جميلة. ضعفه هو أنه قد يشعر بأنه موجه جدًا للطريق بالنسبة للركاب العاديين، العائلات، أو المستخدمين الذين يرغبون بشدة في مسارات منخفضة الحركة. جانبه المميز هو أنه الملف الشخصي للدراجات الموجه للأداء: أسرع وأكثر مباشرة من `trekking`، ولكنه لا يزال واعيًا بالدراجات.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">دراجة طريق، منخفضة الحركة</string>
+    <string name="profile_info_fastbike_lowtraffic_description">ملف تعريف الدراجة السريعة الذي يعطي وزناً أكبر لتجنب المرور مقارنة بـ `fastbike` العادي، بينما يظل موجهًا نحو الأداء. قوته هي أنه حل وسط جيد للركاب الذين يريدون السرعة ولكنهم لا يريدون أن يتم توجيههم باستمرار إلى الطرق المزدحمة. ضعفه هو أنه قد يكون أبطأ قليلاً أو أقل مباشرةً من `fastbike`، وأقل مراعاة للمرور من `fastbike-verylowtraffic`. الجانب المميز له هو أنه الخيار الوسيط بين التوجيه السريع الخالص والتوجيه السريع الحساس جدًا للمرور.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">دراجة طريق، أقل ازدحامًا</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">نسخة أقوى منخفضة الحركة المرورية لمستخدمي الدراجة الطرقية أو الدراجة الكهربائية السريعة الذين يرغبون في تجنب السيارات والشاحنات قدر الإمكان. قوتها هي ركوب أسرع أكثر أمانًا وهدوءًا، خاصة للرحلات الفردية، أو أثناء المطر، أو القيادة الليلية، أو في مناطق الازدحام المروري الكثيف. ضعفها هو أنها قد تسبب تحويلات أكبر وقد ترفض الطرق السريعة إذا كان بها حركة مرور كثيفة. الجانب المميز لها هو أنها تحافظ على طابع الدراجة السريعة لكنها تجعل مسار منخفض الحركة المرورية أولوية مركزية.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">دراجة طرق، آسيا والمحيط الهادئ</string>
+    <string name="profile_info_fastbike_asia_pacific_description">هو نسخة إقليمية من `fastbike` للدول التي لا تتناسب فيها الافتراضات الأوروبية حول الطرق السريعة والطرق الرئيسية وقيود الدراجات دائمًا. قوته تكمن في أنه يمكن أن يجعل توجيه الدراجات السريعة أكثر قابلية للاستخدام في مناطق مثل اليابان وأستراليا وسياقات آسيا والمحيط الهادئ الأخرى حيث قد تختلف تصنيفات الطرق وإمكانية الوصول إلى الدراجات عن أوروبا. ضعفه هو أنه أقل ملاءمة كملف تعريف افتراضي عالمي. الجانب المميز له هو أنه يحتفظ بمنطق الدراجات السريعة ولكنه يكيف افتراضات الوصول للطريق لاستخدام آسيا والمحيط الهادئ.</string>
+    <string name="profile_info_safety_title">ركوب الدراجات بشكل أكثر أمانًا</string>
+    <string name="profile_info_safety_description">ملف تعريف الدراجة يركز على الطرق الأكثر أمانًا وهدوءًا. قوته تكمن في أنه يعطي أولوية لتجنب الطرق غير المرغوبة أو الخطرة بشكل أكبر من التوجيه السريع العادي، مما يجعله مفيدًا للركاب الحذرين، والعائلات، وركوب الدراجات في المدن، أو المستخدمين الذين يفضلون الراحة على السرعة. ضعفه هو أنه قد ينتج مسارات أبطأ، أو أطول، أو أقل مباشرة. الجوانب المميزة له هي أنه الخيار الأكثر وضوحًا \"السلامة أولاً\" للدراجات، مفيد عندما تكون أولوية المستخدم تجنب حركة المرور المجهدة بدلاً من تقليل الوقت.</string>
+    <string name="profile_info_gravel_title">دراجة جمبل</string>
+    <string name="profile_info_gravel_description">للدراجات على الحصى وركوب الأسطح المختلطة. قوته تكمن في العثور على مسارات يمكن أن تشمل الحصى المضغوط والمسارات والطرق غير المعبدة قليلة الحركة مع تجنب الأسطح الخشنة جدًا أو الطينية أو الشديدة الانحدار أو البطيئة. ضعفه هو أنه غير مثالي للدراجات الطرقية النقية، لأنه قد يختار نواقل غير معبدة عمدًا، وهو ليس مخصصًا للمسارات بقدر ما هو ملف MTB حقيقي. جانبه المميز هو أنه يقع بين ركوب الدراجات على الطرق وركوب الدراجات الجبلية: أكثر مغامرة من `fastbike`، أقل تقنية من `mtb`.</string>
+    <string name="profile_info_mtb_title">دراجة جبلية</string>
+    <string name="profile_info_mtb_description">ملف تعريف دراجة مخصص للطرق الوعرة لركوب الدراجات الجبلية وركوب المسارات. قوتها هي أنها يمكن أن تفضل المسارات والممرات والطرق غير المعبدة والأراضي المناسبة للدراجات الجبلية أكثر بكثير من ملفات تعريف الدراجات العادية. ضعفها هو أنها قد تنتج مسارات غير مناسبة للجولات أو التنقل أو دراجات الطرق، خاصة إذا لم يرغب المستخدم فعليًا في المسارات الوعرة. جانبها المميز هو سلوكها الخاص بالدراجات الجبلية: فهي تأخذ في الاعتبار تفضيل المسار، جودة السطح، السلاسة، الظروف الرطبة، سلوك التلال، ومدى ملاءمتها للطرق الوعرة.</string>
+    <string name="profile_info_hiking_mountain_title">التنزه الجبلي</string>
+    <string name="profile_info_hiking_mountain_description">ملف تعريف للمشي لمسارات المشي والتسلق الجبلي. قوته تكمن في أنه مصمم حول التنقل سيراً على الأقدام، ومسارات المشي، وصعوبة المسار، والظروف الخاصة بالجبال بدلاً من افتراضات الدراجة أو السيارة. ضعفه أنه يعتمد بشكل كبير على الوسم الجيد OSM للمسارات، والوصول، ومسارات المشي، ومستويات الصعوبة، خاصة في المناطق الجبلية. الجانب المميز فيه هو أنه الملف المرفق الذي يركز بوضوح على المشي في الجبال بدلاً من كفاءة النقل.</string>
+    <string name="profile_info_skating_title">التزلج</string>
+    <string name="profile_info_skating_description">مُحسَّن للتزلج الداخلي أو أنشطة التزلج على مسافات طويلة المماثلة. قوته هي حساسية السطح: يفضل بشكل كبير الطرق المعبدة والناعمة والمتدفقة ويتجنب الأسطح والعوائق وإشارات المرور والممرات والتوقفات الحادة التي تكسر إيقاع التزلج. ضعفه هو أنه متخصص جدًا وقد يرفض المسارات المقبولة للدراجات أو المشاة لكنها ضعيفة للتزلج. الجانب المميز فيه هو أنه يوجه من أجل انسيابية التزلج، وليس فقط الوصول القانوني أو المسافة.</string>
+    <string name="profile_info_shortest_title">أقصر طريق</string>
+    <string name="profile_info_shortest_description">ملف شخصي صغير يحاول بشكل أساسي تقليل مسافة الطريق. قوته هي البساطة: فهو مفيد عندما يريد المستخدم صراحة أقصر طريق ممكن يمكن الوصول إليه أو عند مقارنة هندسة الطريق. ضعفه هو أن الأقصر غالبًا ليس الأفضل: فقد يختار مقاطع غير آمنة، غير مريحة، شديدة الانحدار، وعرة، أو مزدحمة بالمرور. الجانب المميز فيه هو أنه يتجاهل غالبًا الراحة ومنطق التفضيل، مما يجعله مفيدًا كملف شخصي مرجعي بدلاً من أن يكون الافتراضي الجيد.</string>
+    <string name="profile_info_car_eco_title">سيارة، اقتصادي</string>
+    <string name="profile_info_car_eco_description">ملف توجيه السيارة الاقتصادي يركز على تقليل السرعة غير الضرورية، واستهلاك الطاقة، وأنماط القيادة غير الفعالة. قوته تكمن في أنه يمكن أن يفضل الطرق الأكثر وعيًا بالطاقة بدلاً من مجرد مطاردة الطريق الأسرع. ضعفه أنه قد يختار طرقًا أبطأ أو أقل مباشرة وقد يشعر أنه أقل ملاءمة عندما يكون الوقت المحدد للوصول هو الأولوية الرئيسية. جانبه المميز هو أنه ملف تعريف السيارة لـ \"الكفاءة المعقولة\" بدلاً من السرعة القصوى.</string>
+    <string name="profile_info_car_eco_nocost_title">سيارة، بيئية (أساسية)</string>
+    <string name="profile_info_car_eco_nocost_description">نسخة مبسطة من السيارة الاقتصادية. قوتها تكمن في أنها تحافظ على نموذج سيارة موجهة نحو الاقتصاد مع تقليل العقوبات الإضافية القائمة على التفضيلات، مما يجعلها مفيدة كملف مقارنة أنظف. ضعفها هو أنها قد تكون أقل دقة للتنقل الفعلي لأنها تزيل جزءًا من منطق التكلفة الذي يساعد عادة في تشكيل جودة المسار العملية. الجانب المميز لها هو أنها تُرى بشكل أفضل كأساس تقني: مفيدة للمقارنة مع `car-eco`، وأقل فائدة كملف أساسي يواجه المستخدم.</string>
+    <string name="profile_info_car_fast_title">سيارة، سريعة</string>
+    <string name="profile_info_car_fast_description">ملف توجيه للسيارات يركز على السرعة ووقت السفر. قوته تكمن في أنه يميل إلى تفضيل الطرق الأسرع والمسارات المباشرة الأكثر كفاءة من حيث الوقت. ضعفه أنه قد يكون أقل اقتصادية، أقل هدوءًا، أقل جمالًا، وأحيانًا أقل ملاءمة حيث تكون قيود السيارة OSM أو سياق الطرق المحلي غير مكتملة. جانبه المميز هو أنه الملف الأكثر وضوحًا للسيارات للمستخدمين الذين يرغبون ببساطة في الوصول بسرعة.</string>
+    <string name="profile_info_car_fast_nocost_title">سيارة، سريعة (أساسي)</string>
+    <string name="profile_info_car_fast_nocost_description">نسخة مبسطة من سيارة سريعة. قوتها تكمن في أنها تركز بشكل أكبر على سلوك نموذج السرعة، مما يجعلها مفيدة للاختبار، أو المقارنة، أو التجارب المتوقعة لأسرع طريق. ضعفها هو أنه قد يكون أقل دقة من `car-fast`، لأن العقوبات والتفضيلات الإضافية تم تقليلها. جانبها المميز هو أنها نسخة أساسية من توجيه السيارات السريعة: جيدة للمقارنة التقنية، وأقل مثالية كملف تعريف افتراضي للسيارة.</string>
+    <string name="profile_info_car_vario_title">سيارة، سرعة متغيرة</string>
+    <string name="profile_info_car_vario_description">الملف الشخصي الرئيسي للسيارة المرنة. قوته هي القدرة على التكيف: من خلال تغيير المعلمات، يمكن أن يتصرف بشكل أقرب لتوجيه السيارات السريعة أو بشكل أقرب لتوجيه السيارات الواعية للطاقة / البيئية. يدعم التفضيلات مثل تجنب الرسوم الطرقية، الطرق غير المعبدة، الطرق السريعة، وبعض البيئات. ضعفه هو أنه لا يزال أبسط من محرك ملاحة سيارات تجاري كامل ويتوقف بشدة على جودة وسم OSM. الجانب المميز له هو أنه يستخدم نموذجًا فيزيائيًا / حركيًا بدلاً من مجرد أولويات فئة الطريق البسيطة.</string>
+    <string name="profile_info_car_vario_nocost_title">سيارة، متغيرة (أساسي)</string>
+    <string name="profile_info_car_vario_nocost_description">نسخة أبسط لتوجيه السيارات تعتمد أساسًا على نموذج السرعة الحركية. قوتها تكمن في أنها توفر خط أساس أنظف لتوجيه السيارات، مفيد للمقارنة أو الاختبار أو الحالات التي يجب ألا تهيمن فيها التكاليف الإضافية المتعلقة بالمناظر أو التفضيلات. ضعفها هو أنها أقل تعبيرًا وأقل سهولة في الاستخدام مقارنة بـ car-vario للملاحة العادية. الجانب المميز فيها هو أنها تُعد أكثر كخط أساس تقني من كونها ملف تفضيلات غني.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">دراجة استلقاء سريعة</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">ملف تعريف للدراجات المستلقية السريعة. قوته تكمن في أنه يعكس احتياجات ركاب الدراجات المستلقية بشكل أفضل من ملف تعريف الدراجة العادية: الطرق المعبدة بكفاءة، تجنب الأسطح السيئة، التعامل بحذر مع الارتفاعات، والعقوبات على الدرجات أو أقسام النزول. ضعفه هو أنه متخصص جدًا للدراجات العادية وقد يتجنب البنية التحتية التي قد يقبلها راكبو الدراجات المستقيمة. جانبه المميز هو أنه يصور الدراجة المستلقية كنوع مركبة خاص بها، وليس فقط كدراجة أسرع.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">دراجة طائرة سريعة</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">ملف شخصي للسيارات البشرية السريعة. قوته تكمن في التخطيط لمسارات فعّالة جدًا للمركبات البشرية الثقيلة والمنخفضة المقاومة للهواء والتي تحتاج إلى أسطح ناعمة، وقليل من التوقفات، وقليل من العقبات، وظروف دحرجة جيدة. ضعفه هو أنه غير مناسب للدراجات العادية لأنه يعاقب بشدة على الطرق الضيقة والخشنة، التي تحتوي على الكثير من التوقفات، أو التي تتطلب النزول المتكرر. الجانب المميز فيه هو أنه الملف الشخصي الأكثر تحديدًا للمركبات البشرية في المجموعة، مصمم وفق قيود السيارات البشرية بدلًا من ركوب الدراجات العامة.</string>
+    <string name="profile_info_car_eco_de_title">سيارة، اقتصادية (ألمانيا)</string>
+    <string name="profile_info_car_eco_de_description">هو نسخة من `car-eco` مرتبطة تاريخيًا ببيانات التوجيه البديلة أو الثانوية. قوته تكمن في أنه قد يكون مفيدًا للتصحيح أو اختبار توجيه السيارة مقابل لقطة بيانات مختلفة أو إعداد خاص لشبكة الطرق. ضعفه هو أنه ليس ببساطة ملف تعريف سيارة عادي يومي وقد يتطلب تكوين بيانات ثانوية خاص. الجانب المميز له هو أنه يتصرف مثل ملف تعريف سيارة اقتصادية ولكنه يكون مفيدًا بشكل رئيسي عندما يكون إعداد البيانات الثانوية متاحًا عن قصد.</string>
+    <string name="profile_info_moped_title">دراجة بخارية</string>
+    <string name="profile_info_moped_description">ملف تجريبي لتوجيه يشبه الدراجة البخارية. قوته تكمن في أنه يحاكي وصول المركبات ذات العجلتين بمحرك بشكل أكثر طبيعية من ملف الدراجة. ضعفه مهم: فهو غير موثوق بما يكفي للملاحة الواقعية لأن قيود الانعطاف وبعض قيود المرور قد تكون مفقودة. الجانب المميز له هو أنه يقع بين منطق الدراجة والسيارة، ولكنه يجب أن يُعامل كتجريبي أو مخفي عن المستخدمين العاديين.</string>
+    <string name="profile_info_dummy_title">فحص الوسوم</string>
+    <string name="profile_info_dummy_description">ملف تعريف تصحيح لفحص العلامات OSM التي تراها BRouter على مقاطع الطريق. قوته هي الشفافية: فهو يساعد المطورين على فهم بيانات التوجيه المتاحة والعلامات غير المستخدمة. ضعفه هو أنه غير مصمم لإنتاج طرق عالية الجودة أو ذات معنى. جانبه المميز هو أنه يمثل أساسًا ملف تعريف تشخيصي لتطوير الملف الشخصي وفحص البيانات.</string>
+    <string name="profile_info_rail_title">السكك الحديدية</string>
+    <string name="profile_info_rail_description">ملف شخصي للتوجيه عبر السكك الحديدية، الترام، المترو، السكك الخفيفة ومثل هذه الطرق الحديدية. قوته تكمن في تتبع طوبولوجيا شبكة السكك الحديدية والتحقق من الاتصال بالسكك الحديدية في بيانات OSM. ضعفه هو أنه لا يمثل سفر الركاب: لا جداول زمنية، لا تحويلات، لا منطق المحطات، لا توفر الخدمة، ولا قيود التذاكر. جانبه المميز هو أنه مفيد لتحليل بيانات السكك الحديدية، وليس للملاحة العادية.</string>
+    <string name="profile_info_river_title">أنهار / قنوات</string>
+    <string name="profile_info_river_description">ملف تعريف للتوجيه على طول الممرات المائية مثل الأنهار والقنوات والممرات والمقاليع. قوته هي تتبع شبكة الممرات المائية واستكشاف بيانات OSM. نقطته الضعف هي أنه بسيط للغاية للملاحة البحرية الحقيقية لأنه لا يحاكي نوع القارب، العمق، التيار، القيود القانونية، المخاطر، أو قيود تشغيل المقاليع. الجانب المميز له هو أنه يتعامل مع الممرات المائية كشبكة قابلة للتوجيه، ولكن فقط على مستوى طوبولوجيا أساسي.</string>
+    <string name="title_edit_destination_name">تعديل اسم الوجهة</string>
+    <string name="title_save_route">حفظ المسار</string>
+    <string name="title_restore_route">استعادة المسار</string>
+    <string name="title_edit_route_name">تعديل اسم المسار</string>
+    <string name="title_restore_route_confirm">استعادة المسار؟</string>
+    <string name="msg_restore_route_confirm">استبدال الوجهة الحالية والمحطات بـ \"%1$s\"؟</string>
+    <string name="title_map_picker_destination">اختيار الوجهة على الخريطة</string>
+    <string name="title_map_picker_stop">اختيار محطة %1$d على الخريطة</string>
+    <string name="nav_no_route">لا يوجد مسار</string>
+    <string name="nav_waiting_for_location_title">انتظار الموقع</string>
+    <string name="nav_waiting_for_location_body">انتظار الحصول على موقع قابل للاستخدام لحساب المسار.</string>
+    <string name="nav_waiting_for_location_straight_line_body">في انتظار تحديد موقع صالح لتوجيه خط مستقيم.</string>
+    <string name="nav_calculating_route_title">جاري حساب الطريق</string>
+    <string name="nav_calculating_route_body">الحصول على الاتجاهات من BRouter.</string>
+    <string name="nav_route_unavailable_title">الطريق غير متاح</string>
+    <string name="format_nav_route_unavailable_body">الطريق غير متاح: %1$s \n تحقق من BRouter للقطاعات المتاحة.</string>
+    <string name="nav_route_unavailable_generic">خطأ غير معروف</string>
+    <string name="nav_start_invalid_request">طلب الملاحة غير مكتمل</string>
+    <string name="nav_route_notice_no_alternative_keep_current">تعذر العثور على طريق بديل حول المنطقة المحجوبة. سيتم الاستمرار في الطريق الحالي.</string>
+    <string name="nav_route_notice_no_route_found">لم يتم العثور على طريق لهذا الوجهة.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">خدمة توجيه الطريق غير متاحة. سيتم الاستمرار في الطريق الحالي.</string>
+    <string name="nav_route_notice_service_unavailable">خدمة توجيه الطريق غير متاحة.</string>
+    <string name="nav_route_notice_invalid_profile">ملف تعريف التوجيه غير صالح.</string>
+    <string name="nav_route_notice_update_failed_keep_current">تعذر تحديث الطريق. سيتم الاستمرار في الطريق الحالي.</string>
+    <string name="nav_route_notice_unavailable">تعذر حساب الطريق.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">تم إضافة طريق محجوب. جاري إعادة حساب الطريق.</string>
+    <string name="nav_paused_notice">تم إيقاف الملاحة مؤقتًا. اضغط على استئناف الملاحة لمتابعة التوجيه المباشر.</string>
+    <string name="notification_channel_nav">الملاحة</string>
+    <string name="notification_channel_alert">تنبيهات التوجيه</string>
+    <string name="notification_channel_turn_left">انعطاف (يسار)</string>
+    <string name="notification_channel_turn_right">انعطاف (يمين)</string>
+    <string name="notification_nav_running">الملاحة تعمل</string>
+    <string name="notification_nav_running_text">ViBRo Navigator تقوم بالملاحة في الخلفية</string>
+    <string name="notification_nav_paused">تم إيقاف الملاحة مؤقتًا</string>
+    <string name="notification_nav_paused_text">تم إيقاف ملاحة ViBRo Navigator مؤقتًا</string>
+    <string name="notification_off_route_title">خارج الطريق</string>
+    <string name="notification_wrong_direction_title">الاتجاه خاطئ</string>
+    <string name="notification_symbol_test_left_title">اختبار جميع التنبيهات لليسار</string>
+    <string name="notification_symbol_test_other_title">اختبار جميع التنبيهات الأخرى</string>
+    <string name="notification_symbol_test_right_title">اختبار جميع التنبيهات لليمين</string>
+    <string name="direction_continue">متابعة</string>
+    <string name="direction_keep_left">الزم اليسار</string>
+    <string name="direction_keep_right">الزم اليمين</string>
+    <string name="direction_turn_left">انعطف يسارًا</string>
+    <string name="direction_turn_right">انعطف يمينًا</string>
+    <string name="direction_slight_left">انعطف قليلًا يسارًا</string>
+    <string name="direction_slight_right">انعطف قليلًا يمينًا</string>
+    <string name="direction_sharp_left">انعطف بحدة يسارًا</string>
+    <string name="direction_sharp_right">انعطف بحدة يمينًا</string>
+    <string name="direction_uturn_left">استدر للخلف يسارًا</string>
+    <string name="direction_uturn">استدر للخلف</string>
+    <string name="direction_uturn_right">استدر للخلف يمينًا</string>
+    <string name="direction_roundabout_exit">عند الدوار، اسلك المخرج رقم %1$d</string>
+    <string name="direction_roundabout_exit_left">عند الدوار، اسلك المخرج رقم %1$d</string>
+    <string name="direction_beeline">توجيه بخط مستقيم</string>
+    <string name="direction_exit_left">اسلك المخرج يسارًا</string>
+    <string name="direction_exit_right">اسلك المخرج يمينًا</string>
+    <string name="direction_offroute">خارج الطريق</string>
+    <string name="direction_arrive">تم الوصول إلى الوجهة</string>
+    <string name="direction_intermediate_arrive">تم الوصول إلى الوجهة الوسيطة</string>
+    <string name="direction_unknown">اتجاه غير معروف</string>
+    <string name="direction_side_left">يسارًا</string>
+    <string name="direction_side_right">يمينًا</string>
+    <string name="format_speed_limit_content_description">حدود السرعة %1$s</string>
+    <string name="title_nav_gps_details">تفاصيل GPS</string>
+    <string name="format_nav_gps_details">السرعة: %1$s\n\nالارتفاع: %2$s\n\nالدقة: %3$s\n\nوقت GPS: %4$s\n\nالأقمار الصناعية: %5$s\n\nالفاصل الزمني: %6$s\n\nعمر آخر تحديد: %10$s\n\nتحديدات GPS: %7$s\n\nاتجاه GPS: %8$s\n\nدقة الاتجاه: %9$s</string>
+    <string name="title_nav_directions_details">الاتجاهات</string>
+    <string name="nav_directions_unavailable">لا توجد اتجاهات قادمة</string>
+    <string name="title_nav_trip_stats">إحصائيات الرحلة</string>
+    <string name="format_nav_trip_stats_details">الوقت المنقضي: %1$s\n المسافة: %2$s\n وقت الحركة: %3$s\n وقت التوقف: %4$s\n السرعة المتوسطة: %5$s\n متوسط الحركة: %6$s\n أقصى سرعة: %7$s\n الشاشة مفعلة: %8$s\n الشاشة مطفأة: %9$s\n البطارية المستخدمة: %10$s\n انخفاض البطارية: %11$s</string>
+    <string name="speech_off_route_recalculating">خارج المسار. إعادة الحساب</string>
+    <string name="speech_off_route">خارج الطريق</string>
+    <string name="speech_wrong_direction_turn_back">في الاتجاه الخاطئ. العودة</string>
+    <string name="format_off_route_off_track_notification">تم اكتشاف الخروج عن المسار. المسافة %1$s، الحد %2$s. إعادة حساب المسار.</string>
+    <string name="format_off_route_bearing_notification">تم اكتشاف اختلاف الاتجاه. الفرق %1$s، المتوقع %2$s، الفعلي %3$s. إعادة حساب المسار.</string>
+    <string name="format_off_route_off_track_notice_only">تم اكتشاف الخروج عن المسار. المسافة %1$s، الحد %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">تم اكتشاف اختلاف الاتجاه. الفرق %1$s، المتوقع %2$s، الفعلي %3$s.</string>
+    <string name="format_wrong_direction_notification">تم اكتشاف الاتجاه الخاطئ. الهدف %1$s، الفعلي %2$s، الفرق %3$s.</string>
+    <string name="format_startup_orientation_notification">وجه نفسك %1$s %2$s لمواجهة الطريق.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s عينة الاتجاه</string>
+    <string name="nav_destination_reached">تم الوصول إلى الوجهة</string>
+    <string name="format_version">الإصدار %1$s %2$s</string>
+    <string name="about_short_description">تطبيق ملاحة خفيف الوزن وموفر للطاقة ويعمل دون اتصال GPS يهتز لإعطاء الاتجاهات، مبني حول BRouter.</string>
+    <string name="about_homepage_link">
+        <u>الصفحة الرئيسية</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>قيم على Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>كود المصدر على GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>أبلغ عن مشكلة</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>سجل التغييرات</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>سياسة الخصوصية</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>شروط الخدمة</u>
+    </string>
+    <string name="about_legal">حقوق النشر © 2026 Damiano Falcioni.\nرخصة MIT</string>
+    <string name="about_credits">حقوق الفضل: BRouter للتوجيه. البحث POI والتنسيق العكسي للجغرافيا يستخدم OpenStreetMap Nominatim، أو Google Maps Geocoding في إصدارات Google Play عندما يكون البحث Google ممكّنًا باستخدام مفتاح API المحفوظ. نقاط الاهتمام على الخريطة تستخدم OpenStreetMap Overpass. بلاطات الخريطة والبيانات الجغرافية بواسطة مساهمي OpenStreetMap: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">الإعدادات</string>
+    <string name="about_settings_category_display">العرض</string>
+    <string name="about_settings_category_guidance">إرشاد</string>
+    <string name="about_settings_category_compass">بوصلة</string>
+    <string name="about_settings_category_search_input">البحث والإدخال</string>
+    <string name="about_settings_category_advanced">متقدم</string>
+    <string name="label_log_enabled">سجلات</string>
+    <string name="title_log_output_folder">مجلد السجلات</string>
+    <string name="label_permission_output_folder">مجلد تنزيلات ViBRo</string>
+    <string name="title_output_browser">ملفات ViBRo</string>
+    <string name="title_gpx_output_folder">مجلد GPX</string>
+    <string name="format_output_folder">المجلد الحالي: %1$s</string>
+    <string name="action_clear_output_folder">حذف</string>
+    <string name="action_open_output_folder">فتح</string>
+    <string name="msg_output_viewer_unavailable">لا يوجد تطبيق متاح لفتح هذا المجلد أو الملف.</string>
+    <string name="hint_clear_log_output_folder">حذف ملفات سجل ViBRo بشكل دائم من: \n%1$s\n\n. سيتم الاحتفاظ بالملفات والمجلدات الفرعية الأخرى. لا يمكن التراجع عن هذا. إذا كان التسجيل ممكّنًا، فسيتم بدء سجل جديد بتفاصيل النظام.</string>
+    <string name="hint_clear_gpx_output_folder">حذف تصديرات ViBRo GPX نهائيًا من: \n%1$s\n\n سيتم الاحتفاظ بالملفات والمجلدات الفرعية الأخرى. لا يمكن التراجع عن هذا.</string>
+    <string name="msg_output_folder_cleared">تم حذف ملفات ViBRo.</string>
+    <string name="msg_output_folder_clear_failed">تعذر حذف جميع ملفات ViBRo. تحقق من صلاحية الوصول إلى المجلد في التشخيص.</string>
+    <string name="label_external_storage_enabled">استخدم التخزين الخارجي</string>
+    <string name="about_setting_external_storage_info">حفظ تصديرات GPX، السجلات، ونسخ احتياطية من قاعدة البيانات على بطاقة SD بدلاً من تخزين الهاتف. متاح فقط للبطاقة SD المثبتة والمدعومة؛ محركات USB مستبعدة. Android من 6–9 تتطلب الوصول إلى المجلد حتى عند تعطيل التسجيل والحفظ GPX. إذا أصبحت البطاقة غير متاحة، يتوقف الحفظ حتى تصبح متاحة مرة أخرى. الملفات القديمة تبقى في مجلداتها الأصلية.</string>
+    <string name="hint_sd_download_access">منح الوصول إلى مجلد بطاقة SD: \n%1$s\n\n حدد التنزيل، أو المجلد الفرعي ViBRo الخاص به، أو جذر البطاقة SD. ViBRo سيستخدم Download/ViBRo/gpx، Download/ViBRo/logs، وDownload/ViBRo/backup. الحفظ يتطلب الوصول إلى هذا المجلد.</string>
+    <string name="msg_sd_storage_unavailable">لا توجد بطاقة SD مدعومة وقابلة للكتابة متاحة.</string>
+    <string name="msg_sd_storage_enabled">تصديرات GPX، السجلات، ونسخ قاعدة البيانات الاحتياطية ستستخدم بطاقة SD.</string>
+    <string name="msg_output_folder_failed">لم يمكن الكتابة إلى هذا المجلد. الإعداد السابق لم يتغير.</string>
+    <string name="msg_output_access_required">الحفظ متوقف لأن المجلد المحدد للإخراج غير متاح أو لم يتم منح الوصول.</string>
+    <string name="msg_output_folder_picker_unavailable">لا يوجد محدد مجلد متاح.</string>
+    <string name="label_auto_save_gpx_enabled">الحفظ التلقائي GPX</string>
+    <string name="label_fused_location_enabled">Google الموقع المدمج</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">فترة GPS الديناميكية</string>
+    <string name="label_imperial_units_enabled">وحدات القياس الإمبراطورية (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">السمة الفاتحة</string>
+    <string name="label_compass_surrounding_streets_enabled">الشوارع المحيطة</string>
+    <string name="action_configure_surrounding_street_types">اختر أنواع الشوارع المحيطة</string>
+    <string name="title_surrounding_street_types">أنواع الشوارع المحيطة</string>
+    <string name="hint_surrounding_street_types">تقوم مفاتيح الفئة بإخفاء أو عرض مجموعة الألوان الكاملة دون تغيير الاختيارات الفردية. ما زال التطبيق يعتمد على الرؤية بناءً على السرعة.</string>
+    <string name="street_category_highway">الطرق الرئيسية</string>
+    <string name="street_category_normal">الشوارع العادية</string>
+    <string name="street_category_walking_cycling">المشي / ركوب الدراجات</string>
+    <string name="street_category_special_routing">الطرق الخاصة</string>
+    <string name="street_type_motorway">الطرق السريعة</string>
+    <string name="street_type_motorway_info">الطرق السريعة ذات السرعة العالية مع الوصول المحكوم. \n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">مخارج الطريق السريع</string>
+    <string name="street_type_motorway_link_info">وصلات الدخول أو الخروج من طريق سريع.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">الطرق الرئيسية</string>
+    <string name="street_type_trunk_info">الطرق الكبيرة عبوراً تحت مستوى الطريق السريع.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">روابط الطرق الرئيسية</string>
+    <string name="street_type_trunk_link_info">وصلات الدخول أو الخروج من طريق رئيسي.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">الطرق الأولية</string>
+    <string name="street_type_primary_info">الطرق المهمة التي تربط المدن والمناطق.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">روابط الطرق الأولية</string>
+    <string name="street_type_primary_link_info">وصلات الدخول أو الخروج من طريق أولي.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">الطرق الثانوية</string>
+    <string name="street_type_secondary_info">الطرق التي تربط المدن الصغيرة والمناطق.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">روابط الطرق الثانوية</string>
+    <string name="street_type_secondary_link_info">وصلات الدخول أو الخروج من طريق ثانوي.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">الطرق الثلاثية</string>
+    <string name="street_type_tertiary_info">الطرق المحلية التي تربط المستوطنات أو الأحياء القريبة.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">روابط الطرق الثلاثية</string>
+    <string name="street_type_tertiary_link_info">الاتصالات التي تدخل أو تخرج من طريق ثلاثي.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">الطرق العامة الثانوية</string>
+    <string name="street_type_unclassified_info">الطرق العامة دون المستوى الثلاثي، غالبًا خارج المناطق السكنية.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">شوارع سكنية</string>
+    <string name="street_type_residential_info">الشوارع التي تخدم المنازل بشكل رئيسي.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">شوارع سكنية مشتركة</string>
+    <string name="street_type_living_street_info">شوارع منخفضة السرعة حيث يشارك المشي واستخدامات أخرى نفس المكان.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">طرق الوصول</string>
+    <string name="street_type_service_info">طرق توفر الوصول إلى المباني أو مواقف السيارات أو المرافق.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">مسارات</string>
+    <string name="street_type_track_info">المسارات المستخدمة أساسًا للوصول إلى الأراضي الزراعية أو الغابات.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">طرق غير محددة</string>
+    <string name="street_type_road_info">طرق نوعها الدقيق غير معروف.\n\nOSM/BRouter: highway=road أو highway=yes.</string>
+    <string name="street_type_busway">مسارات الحافلات</string>
+    <string name="street_type_busway_info">طرق مخصصة أساسًا للحافلات.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">شوارع المشاة</string>
+    <string name="street_type_pedestrian_info">شوارع أو مناطق مخصصة أساسًا للأشخاص سيرًا على الأقدام.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">ممرات المشاة</string>
+    <string name="street_type_footway_info">مسارات مخصصة للمشي.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">مسارات</string>
+    <string name="street_type_path_info">مسارات للاستخدام العام قد تخدم المشي أو ركوب الدراجات أو أي حركة مرور غير آلية.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">مسارات الدراجات</string>
+    <string name="street_type_cycleway_info">مسارات مخصصة لركوب الدراجات.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">مسارات الخيول</string>
+    <string name="street_type_bridleway_info">مسارات مخصصة لركوب الخيل. \n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">درجات</string>
+    <string name="street_type_steps_info">سلالم على طول الطريق. \n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">منصات انتقال</string>
+    <string name="street_type_platform_info">منصات قابلة للمشي عند محطات النقل العام. \n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">ممرات داخلية</string>
+    <string name="street_type_corridor_info">ممرات داخل المباني. \n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">مناطق استراحة على جانب الطريق</string>
+    <string name="street_type_rest_area_info">الوصول إلى الطرق ضمن مناطق الاستراحة. \n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">خدمات جانب الطريق</string>
+    <string name="street_type_services_info">الوصول إلى الطرق ضمن مناطق الخدمة. \n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">المصاعد</string>
+    <string name="street_type_elevator_info">وصلات المصاعد بين المستويات القابلة للمشي. \n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">مسارات فيا فيراتا</string>
+    <string name="street_type_via_ferrata_info">مسارات تسلق محمية مع وسائل مساعدة مثبتة. \n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">حلبات السباق</string>
+    <string name="street_type_raceway_info">المسارات الطرقية المخصصة للسباقات.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">السكك الحديدية</string>
+    <string name="street_type_railway_info">كل هندسة السكك الحديدية في مقاطع BRouter المحلية.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">المجاري المائية</string>
+    <string name="street_type_waterway_info">جميع هندسة الممرات المائية في المقاطع المحلية BRouter.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">الهندسة الطرقيّة الأخرى</string>
+    <string name="street_type_other_info">الهندسة بدون شارع معترف به أو نوع طريق مدعوم. \n\nOSM/BRouter: لا يوجد highway=*، railway=*، waterway=* معروف، أو قيمة route=* مدعومة.</string>
+    <string name="street_type_route_ferry">مسارات العبّارات</string>
+    <string name="street_type_route_ferry_info">المسارات التي تنقلها العبارة.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">مسارات المشي</string>
+    <string name="street_type_route_hiking_foot_info">مسارات محددة للمشي أو التنزه.\n\nOSM/BRouter: route=hiking أو route=foot.</string>
+    <string name="street_type_route_bicycle">مسارات ركوب الدراجات</string>
+    <string name="street_type_route_bicycle_info">مسارات محددة لركوب الدراجات.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">طرق التزلج/المسارات</string>
+    <string name="street_type_route_ski_piste_info">طرق ومسارات التزلج للأنشطة الأخرى، مثل التزحلق أو المشي. BRouter يخزن كلتا العلامتين كقيمة واحدة، لذلك يشاركان هذا المفتاح. \n\nOSM/BRouter: route=ski أو route=piste.</string>
+    <string name="street_type_route_mtb">مسارات ركوب الدراجات الجبلية</string>
+    <string name="street_type_route_mtb_info">المسارات المعلمة لركوب الدراجات الجبلية. \n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">مسارات الكانو</string>
+    <string name="street_type_route_canoe_info">المسارات المعلمة للكانو. \n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">مسارات الحافلات</string>
+    <string name="street_type_route_bus_info">هندسة مسار الحافلة في مقاطع محلية ل BRouter. \n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">تكبير البوصلة الفوري</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">التكبير التلقائي للخارج</string>
+    <string name="label_compass_fullscreen_route_enabled">المسار بملء الشاشة</string>
+    <string name="label_compass_distance_circles_enabled">دوائر المسافة</string>
+    <string name="label_compass_central_perspective_enabled">عرض منظور 3D</string>
+    <string name="label_show_hint_panel">إظهار لوحة التلميحات</string>
+    <string name="label_navigation_notifications_enabled">الإشعارات</string>
+    <string name="label_single_instruction_mode_enabled">وضع التعليمات الفردية</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">فلتر فئات POI</string>
+    <string name="hint_poi_categories_filter">اختر أي فئات POI تظهر في أداة اختيار الخريطة عند تمكين الفلتر. حرر أسماء الفئات، قم بتشغيلها أو إيقافها، أو استخدم + لإضافة المزيد.</string>
+    <string name="hint_poi_category_name">اسم فئة POI</string>
+    <string name="label_speech_recognition">التعرف على الكلام</string>
+    <string name="label_speech_recognition_language">اللغة</string>
+    <string name="label_speech_recognition_language_system_default">افتراضي النظام</string>
+    <string name="label_maneuver_voice">اتجاهات الكلام</string>
+    <string name="label_maneuver_voice_spinner">صوت</string>
+    <string name="label_maneuver_voice_disabled">معاق</string>
+    <string name="label_maneuver_voice_system_default">افتراضي النظام</string>
+    <string name="format_maneuver_voice_variant_code">صوت %1$s</string>
+    <string name="label_maneuver_voice_gender_female">أنثى</string>
+    <string name="label_maneuver_voice_gender_male">ذكر</string>
+    <string name="label_google_poi_api_key">Google Maps API مفتاح</string>
+    <string name="label_navigation_custom_button">زر مخصص</string>
+    <string name="label_navigation_custom_button_target">إعداد</string>
+    <string name="label_setting_enabled">مُمكّن</string>
+    <string name="label_setting_disabled">معاق</string>
+    <string name="hint_google_poi_api_key">مفتاح اختياري Google Maps</string>
+    <string name="format_about_setting_info_content_description">عرض المساعدة لـ %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">تبديل %1$s (%2$s)</string>
+    <string name="about_setting_log_info">يحتفظ بسجل سلوك مفصل يمكن أن يساعد في تشخيص المشاكل. اترك هذا الخيار مغلقًا ما لم تكن بحاجة إلى مشاركة التفاصيل للدعم. عندما يكون المجلد المحدد قابلًا للوصول، فإن الأعطال والتصفح غير المتوقع المتوقف لا يزال ينشئ سجلًا موسومًا بالوقت مع تفاصيل النظام عندما يكون هذا التبديل مغلقًا. يمكن الإبلاغ عن إيقاف إجباري فقط بعد أن يبدأ التطبيق مرة أخرى؛ السبب الدقيق قد لا يكون متاحًا.</string>
+    <string name="about_setting_auto_save_gpx_info">يحفظ المسار النشط كملف GPX عند إيقاف التنقل باستخدام زر الإيقاف. يستخدم Download/ViBRo/gpx على الهاتف أو SD على البطاقة المحددة بواسطة استخدام التخزين الخارجي. تفعيل هذا الخيار يطلب الوصول إلى المجلد المفقود. يبقى الحفظ متوقفًا إذا تم رفض الوصول أو إذا كان التخزين المحدد غير متاح.</string>
+    <string name="about_setting_fused_location_info">يستخدم موقع Google عندما يكون متاحًا. هذا يمكن أن يحسن تحديثات الموقع على بعض الهواتف.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">يوفر البطارية عن طريق التحقق من موقعك بتردد أقل ولكن بطريقة موثوقة. أوقفه للحصول على تحديثات مستمرة للموقع.</string>
+    <string name="about_setting_imperial_units_info">يعرض المسافات والسرعات بالأقدام والأميال وmph بدلاً من الأمتار وkm/h.</string>
+    <string name="about_setting_light_theme_info">يبدل التطبيق من المظهر الداكن الافتراضي إلى مظهر فاتح.</string>
+    <string name="about_setting_compass_surrounding_streets_info">يعرض الشوارع القريبة والهندسة الأخرى للمسار في البوصلة عندما تكون بيانات الخريطة المحلية متاحة.\n\n\nتفسير الألوان:\n\n■ — الطرق الرئيسية والطرق السريعة\n\n■ — الشوارع العادية\n\n■ — شوارع ومسارات المشي وركوب الدراجات\n\n■ — السكك الحديدية والممرات المائية والعبارات ومسارات التزلج/التجديف/الحافلات، والمسارات الخاصة بالخيول، والمسارات السباقية، وطريق فيا فيراتا</string>
+    <string name="about_setting_compass_instant_zoom_info">يتخطى تأثير تكبير وتصغير البوصلة بحيث يكون التبديل بين نظرة عامة على المسار وعرض المقاييس المتحركة سريعًا.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">يعرض الطريق الكامل على البوصلة عندما تكون ثابتًا. أوقف تشغيله للحفاظ على آخر تكبير بمقياس متحرك عند التوقف.</string>
+    <string name="about_setting_compass_fullscreen_route_info">يوسع عرض طريق البوصلة خلف شاشة الملاحة الكاملة مع إبقاء عناصر التحكم ونص الاتجاه مرئيًا في الأمام.</string>
+    <string name="about_setting_compass_distance_circles_info">يعرض دوائر المسافة مع تسميات الوقت والمسافة، وسهم التوجه، وخطوط وأقواس دقة التوجه في عرض البوصلة وعرض الشاشة الكاملة.</string>
+    <string name="about_setting_compass_central_perspective_info">يستخدم المنظور في عرض بوصلة 3D: تظهر الطرق والشوارع القريبة أكبر، بينما تتقلص الطرق البعيدة نحو الأعلى. أوقف تشغيل هذا لاستخدام الانحراف المتساوي القياس.</string>
+    <string name="about_setting_show_hint_panel_info">يعرض نصائح الإيماءات والأسطورة الملونة للشوارع عند فتح التنقل على الهاتف.</string>
+    <string name="about_setting_navigation_notifications_info">يعرض تنبيهات الدوران وتحذيرات الملاحة كإشعارات. إشعار الملاحة الجاري لا يتأثر وسيظل مرئيًا أثناء التنقل.</string>
+    <string name="about_setting_single_instruction_mode_info">يستخدم تنبيهًا واحدًا للمناورة قبل حوالي 10 ثوانٍ من كل تعليمات قادمة ويقوم بإلغاء تنبيهات بدء التشغيل وتنبيهات المناورة لمدة 20 ثانية و5 ثوانٍ. إشعارات الوصول والتحذير لا تتأثر.</string>
+    <string name="about_setting_navigation_custom_button_info">يعرض زرًا إضافيًا في بوصلة الملاحة يقوم بتبديل الإعداد المحدد أثناء فتح الملاحة.</string>
+    <string name="about_setting_android_auto_info">يسمح لشاشات السيارات المتوافقة بعرض الملاحة من خلال Android Auto. بعض الأجهزة المضيفة تقوم بتحديث قائمة التطبيقات فقط بعد إعادة اتصال Android Auto. في السيارات الحقيقية، تعرض Android Auto هذا النوع من التطبيقات فقط عند تثبيته من مصدر موثوق مثل Google Play أو مشاركة التطبيقات الداخلية.</string>
+    <string name="about_setting_poi_categories_info">يختار الأماكن التي يمكن أن تظهر في منتقي الخريطة، مثل الوقود أو مواقف السيارات أو دورات المياه.</string>
+    <string name="about_setting_speech_recognition_info">يعرض أزرار الميكروفون للوجهة وإيقاف إدخال الصوت ويختار لغة التعرف المطلوبة. قد يستخدم Android الافتراضية إذا لم يدعم متعرف الصوت المحدد اللغة المطلوبة.</string>
+    <string name="about_setting_maneuver_voice_info">يقرأ تعليمات الاتجاهات المقبلة بصوت عالٍ باستخدام صوت Android.</string>
+    <string name="about_setting_google_poi_api_key_info">يسمح لبحث الوجهة باستخدام Google Maps عند تقديم مفتاح صالح.</string>
+    <string name="about_setting_export_database_info">يحفظ بيانات التطبيق الخاصة بك، بما في ذلك التاريخ، والمسارات المحفوظة، والإعدادات، وخيارات الملف الشخصي، بصيغة JSON في Download/ViBRo/backup على الهاتف أو بطاقة SD المحددة بواسطة استخدام التخزين الخارجي. يعرض اسم الملف المحفوظ دون طلب مجلد. على Android 6–9، قم بإعداد وصول التخزين في التشخيصات أولاً.</string>
+    <string name="about_setting_import_database_info">يستعيد بيانات تطبيقك من نسخة احتياطية JSON تم إنشاؤها بواسطة هذا التطبيق. يبدأ منتقي الملفات في Download/ViBRo/backup على الهاتف أو بطاقة SD المحددة بواسطة استخدام التخزين الخارجي على Android 8 وما بعده. يمكنك أيضًا التصفح إلى مجلد آخر.</string>
+    <string name="msg_google_poi_api_key_saved">تم حفظ مفتاح Google Maps API.</string>
+    <string name="msg_google_poi_api_key_cleared">تم مسح مفتاح Google Maps API.</string>
+    <string name="msg_google_poi_api_key_required">أضف مفتاح Google Maps API قبل تمكين البحث Google.</string>
+    <string name="msg_google_poi_api_key_validating">جاري التحقق من صحة مفتاح Google Maps API…</string>
+    <string name="msg_google_poi_api_key_invalid">مفتاح Google Maps API غير صالح.</string>
+    <string name="msg_google_poi_api_key_validation_failed">تعذر التحقق من صحة مفتاح Google Maps API.</string>
+    <string name="about_diagnostic_title">التشخيص</string>
+    <string name="about_permission_status_title">الوصول المطلوب</string>
+    <string name="about_sensor_status_title">حالة المستشعر</string>
+    <string name="label_direction_notification_tests">اختبارات إشعارات الاتجاهات</string>
+    <string name="label_permission_location">إذن الموقع</string>
+    <string name="label_permission_location_services">موقع الجهاز</string>
+    <string name="label_permission_notifications">الإشعارات</string>
+    <string name="label_permission_battery">تحسين البطارية</string>
+    <string name="label_permission_surrounding_street_storage">تخزين شوارع BRouter</string>
+    <string name="label_permission_brouter_profile_storage">تخزين ملفات تعريف BRouter</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. اضغط للحل.</string>
+    <string name="label_sensor_fused_provider">مزود Google المدمج</string>
+    <string name="label_sensor_gps_provider">مزود GPS</string>
+    <string name="label_sensor_network_provider">مزود الشبكة</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">متجه دوران المجال المغناطيسي الأرضي</string>
+    <string name="label_sensor_rotation_vector">متجه الدوران</string>
+    <string name="label_sensor_orientation">مستشعر الاتجاه</string>
+    <string name="label_sensor_linear_acceleration">مستشعر التسارع الخطي</string>
+    <string name="label_sensor_accelerometer">مقياس التسارع</string>
+    <string name="sensor_status_enabled">مُمكّن</string>
+    <string name="sensor_status_disabled">معاق</string>
+    <string name="sensor_status_available">متاح</string>
+    <string name="sensor_status_unavailable">غير متاح</string>
+    <string name="sensor_status_permission_denied">تم رفض الإذن</string>
+    <string name="auto_no_active_navigation_title">لا يوجد تنقل نشط</string>
+    <string name="auto_no_active_navigation_text">ابدأ التنقل على الهاتف لعرض الإرشادات هنا.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="zero">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
+        <item quantity="one">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
+        <item quantity="two">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
+        <item quantity="few">المس أي مكان للإغلاق أو انتظر %1$d ثوانٍ</item>
+        <item quantity="many">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
+        <item quantity="other">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="zero">استدر %1$d درجة %2$s</item>
+        <item quantity="one">استدر %1$d درجة %2$s</item>
+        <item quantity="two">استدر %1$d درجة %2$s</item>
+        <item quantity="few">استدر %1$d درجات %2$s</item>
+        <item quantity="many">استدر %1$d درجة %2$s</item>
+        <item quantity="other">استدر %1$d درجة %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="zero">%1$d ثانية</item>
+        <item quantity="one">%1$d ثانية</item>
+        <item quantity="two">%1$d ثانية</item>
+        <item quantity="few">%1$d ثوانٍ</item>
+        <item quantity="many">%1$d ثانية</item>
+        <item quantity="other">%1$d ثانية</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="zero">%1$d دقيقة</item>
+        <item quantity="one">%1$d دقيقة</item>
+        <item quantity="two">%1$d دقيقة</item>
+        <item quantity="few">%1$d دقائق</item>
+        <item quantity="many">%1$d دقيقة</item>
+        <item quantity="other">%1$d دقيقة</item>
+    </plurals>
+</resources>

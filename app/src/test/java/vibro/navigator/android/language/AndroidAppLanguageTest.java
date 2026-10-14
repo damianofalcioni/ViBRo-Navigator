@@ -6,6 +6,7 @@ import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.view.View;
 import android.widget.TextView;
 
 import java.util.Locale;
@@ -39,9 +40,25 @@ public class AndroidAppLanguageTest {
 
     @Test
     public void matchesFirstSupportedSystemLanguageOrEnglish() {
-        assertEquals("de", AndroidAppLanguage.matchSystemLanguages("fr-FR,de-AT,it-IT"));
+        assertEquals("de", AndroidAppLanguage.matchSystemLanguages("fi-FI,de-AT,it-IT"));
         assertEquals("it", AndroidAppLanguage.matchSystemLanguages("it-CH,de-DE"));
-        assertEquals("en", AndroidAppLanguage.matchSystemLanguages("fr-FR,es-ES"));
+        assertEquals("en", AndroidAppLanguage.matchSystemLanguages("fi-FI,ru-RU"));
+        assertEquals("fr", AndroidAppLanguage.matchSystemLanguages("fr-CA,de-DE"));
+        assertEquals("pt", AndroidAppLanguage.matchSystemLanguages("pt-BR,es-ES"));
+        assertEquals("zh", AndroidAppLanguage.matchSystemLanguages("zh-Hans-CN,en-US"));
+        assertEquals("ar", AndroidAppLanguage.matchSystemLanguages("ar-EG,en-US"));
+    }
+
+    @Test
+    public void arabicUsesRightToLeftAndSwitchingBackRestoresLeftToRight() {
+        manualLanguage("ar");
+        assertEquals(View.LAYOUT_DIRECTION_RTL,
+                AndroidAppLanguage.configuration(application).getLayoutDirection());
+        assertEquals("انعطف يسارًا", application.getString(R.string.direction_turn_left));
+        manualLanguage("fr");
+        assertEquals(View.LAYOUT_DIRECTION_LTR,
+                AndroidAppLanguage.configuration(application).getLayoutDirection());
+        assertEquals("Paramètres", application.getString(R.string.about_settings_title));
     }
 
     @Test

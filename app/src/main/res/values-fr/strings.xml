@@ -1,0 +1,584 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Utiliser la langue du système</string>
+    <string name="action_configure_app_language">Configurer la langue de l\'application</string>
+    <string name="title_app_language">Langue de l\'application</string>
+    <string name="label_app_language">Langue</string>
+    <string name="hint_app_language">La langue sélectionnée est utilisée lorsque l\'option Utiliser la langue du système est désactivée.</string>
+    <string name="about_setting_language_info">Utilise la première langue prise en charge dans les préférences de langue de votre appareil, ou l\'anglais si aucune n\'est disponible. Désactivez cette option pour utiliser la langue sélectionnée avec le bouton de configuration. La sélection initiale correspond à la langue de votre système.</string>
+    <string name="nav_gesture_map_controls_title">Contrôles de la carte gestuelle</string>
+    <string name="nav_gesture_views_body">
+        <b>Changer de vues.</b> Touchez deux fois ou faites glisser vers la gauche / droite pour passer des vues itinéraire complet, 2D et 3D</string>
+    <string name="nav_gesture_zoom_body">
+        <b>Zoomer avant / arrière.</b> Pincez ou écartez la vue 2D et 3D jusqu\'à ±2 niveaux de zoom</string>
+    <string name="nav_gesture_tilt_body">
+        <b>Ajuster l\'inclinaison de la vue 3D.</b> Faites glisser vers le haut / bas avec deux doigts pour incliner la vue 3D</string>
+    <string name="nav_gesture_map_legend_title">Légende de la carte</string>
+    <string name="nav_gesture_current_route">Itinéraire actuel</string>
+    <string name="nav_gesture_current_position_accuracy">Position actuelle et précision</string>
+    <string name="nav_gesture_dont_show_again">Ne plus afficher</string>
+    <string name="nav_gesture_dismiss">Touchez n\'importe où pour fermer</string>
+    <string name="welcome_title">Bienvenue sur ViBRo</string>
+    <string name="welcome_tldr">TL;DR : Installez BRouter, téléchargez les données de routage locales et accordez les permissions.</string>
+    <string name="welcome_intro">ViBRo Navigator (Navigateur BRouter Vibrant/Code Vibration) est une application de navigation Android GPS légère, principalement hors ligne et économe en batterie, construite sur BRouter. Elle est conçue pour la navigation sans carte, fournissant des directions par vibrations et un guidage minimal à l\'écran et vocal, permettant une utilisation sans distraction et écran éteint.</string>
+    <string name="welcome_setup_title">Configuration initiale</string>
+    <string name="welcome_brouter_body">• Installez BRouter en utilisant les liens fournis, puis ouvrez-la et téléchargez les données de routage pour votre région.</string>
+    <string name="welcome_permissions_body">• Après cet accueil et l\'invite d\'installation facultative de BRouter, autorisez la localisation, le microphone (pour la saisie vocale), les notifications et tout accès au stockage demandé. Activez la localisation de l\'appareil lorsqu\'on vous le demande. Vous pouvez ignorer une demande et activer l\'accès plus tard.</string>
+    <string name="welcome_storage_body">• Accordez l\'accès au dossier profiles2 lorsqu\'on vous le demande, ou l\'autorisation de stockage sur les versions plus anciennes de Android.</string>
+    <string name="welcome_battery_body">• Autorisez l\'exemption optionnelle d\'optimisation de la batterie pour un guidage fiable avec l\'écran éteint.</string>
+    <string name="welcome_optional_access_body">• L\'accès au microphone n\'est nécessaire que s\'il est demandé pour la recherche vocale.</string>
+    <string name="action_about">À propos</string>
+    <string name="action_start_navigation">Démarrer la navigation</string>
+    <string name="action_pause_navigation">Mettre la navigation en pause</string>
+    <string name="action_resume_navigation">Reprendre la navigation</string>
+    <string name="action_stop_navigation">Arrêter la navigation</string>
+    <string name="action_save_route">Enregistrer l\'itinéraire</string>
+    <string name="action_restore_route">Restaurer l\'itinéraire</string>
+    <string name="action_add_stop">Ajouter un arrêt</string>
+    <string name="action_remove_stop">Supprimer un arrêt</string>
+    <string name="action_blocked_road">Route bloquée</string>
+    <string name="action_skip_beeline_target">Ignorer la cible en ligne droite</string>
+    <string name="action_delete">Supprimer</string>
+    <string name="action_edit">Modifier</string>
+    <string name="action_open_settings">Ouvrir les paramètres</string>
+    <string name="action_open_tts_settings">Ouvrir les paramètres de synthèse vocale</string>
+    <string name="action_open_speech_directions_settings">Ouvrir les paramètres des directions vocales</string>
+    <string name="action_open_speech_recognition_settings">Ouvrir les paramètres de reconnaissance vocale</string>
+    <string name="action_open_android_stt_settings">Ouvrir les paramètres de Android de la parole au texte</string>
+    <string name="action_continue">Continuer</string>
+    <string name="action_enable_speech_recognition">Afficher les boutons de reconnaissance vocale</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Tester la voix des directions vocales</string>
+    <string name="action_voice_search_destination">Prononcer la destination</string>
+    <string name="action_voice_search_stop">Prononcer l\'arrêt</string>
+    <string name="action_clear_poi_search">Effacer le texte de recherche</string>
+    <string name="action_save">Enregistrer la clé</string>
+    <string name="action_save_poi_categories">Enregistrer</string>
+    <string name="action_open_map">Carte</string>
+    <string name="action_cancel">Annuler</string>
+    <string name="action_use_selected_point">Utiliser le point sélectionné</string>
+    <string name="action_map_poi_categories">Catégories POI</string>
+    <string name="action_open_map_position">Ouvrir la position sur la carte</string>
+    <string name="action_test_left_notification">Gauches</string>
+    <string name="action_test_other_notification">Autres</string>
+    <string name="action_test_right_notification">Droites</string>
+    <string name="action_current_location">Emplacement actuel</string>
+    <string name="action_edit_poi_categories">Modifier les catégories POI</string>
+    <string name="action_edit_google_poi_api_key">Modifier la clé Google Maps API</string>
+    <string name="action_configure_navigation_custom_button">Configurer un bouton personnalisé</string>
+    <string name="action_enable_google_poi_search">Activer la recherche Google</string>
+    <string name="action_add_poi_category">Ajouter la catégorie POI</string>
+    <string name="action_remove_poi_category">Supprimer la catégorie POI</string>
+    <string name="action_enable_poi_category">Activer la catégorie POI</string>
+    <string name="action_export_database">Exporter la base de données</string>
+    <string name="action_import_database">Importer la base de données</string>
+    <string name="action_export_route">Exporter GPX</string>
+    <string name="action_profile_info">Informations du profil</string>
+    <string name="action_setting_info">Informations de configuration</string>
+    <string name="action_poi_details">Détails de POI</string>
+    <string name="action_search_google_maps">Rechercher dans Google Maps</string>
+    <string name="action_profile_settings">Paramètres du profil</string>
+    <string name="action_reset_defaults">Réinitialiser les valeurs par défaut</string>
+    <string name="label_vehicle_profile">Profil</string>
+    <string name="label_route_mode_route">Mode itinéraire</string>
+    <string name="label_route_mode_round_trip">Mode circuit</string>
+    <string name="label_route_mode_straight_line">Mode ligne droite</string>
+    <string name="label_destination">Destination</string>
+    <string name="label_poi_entrance">Entrée</string>
+    <string name="label_poi_entrances">Entrées</string>
+    <string name="label_poi_entrance_type">Type</string>
+    <string name="label_poi_coordinates">Coordonnées</string>
+    <string name="label_poi_extra_tags">Étiquettes supplémentaires</string>
+    <string name="label_poi_address_details">Adresse</string>
+    <string name="label_round_trip_distance_km">Distance moyenne aller-retour (km)</string>
+    <string name="label_round_trip_distance_mi">Distance moyenne aller-retour (mi)</string>
+    <string name="label_round_trip_direction">Direction aller-retour (°)</string>
+    <string name="label_round_trip_direction_compass">Boussole de direction aller-retour</string>
+    <string name="label_profile_attention_icon">Profil expérimental ou de débogage</string>
+    <string name="format_profile_info_content_description">Afficher les informations pour %1$s</string>
+    <string name="format_route_mode_info_content_description">Afficher les informations de mode pour %1$s</string>
+    <string name="format_poi_details_content_description">Afficher les détails de POI pour %1$s</string>
+    <string name="format_poi_search_info_content_description">Afficher les informations de recherche pour %1$s</string>
+    <string name="format_poi_entrance_heading">Entrée %1$d</string>
+    <string name="format_poi_entrance_type">Entrée : %1$s</string>
+    <string name="format_stop_label">Arrêter %1$d</string>
+    <string name="format_default_saved_route_name">Itinéraire %1$s</string>
+    <string name="hint_search_destination">Rechercher la destination</string>
+    <string name="hint_search_stop">Rechercher l’arrêt</string>
+    <string name="prompt_speech_destination">Indiquer la destination</string>
+    <string name="prompt_speech_stop">Indiquer l’arrêt</string>
+    <string name="hint_saved_route_name">Nom de l’itinéraire</string>
+    <string name="msg_missing_destination">Sélectionner une destination</string>
+    <string name="msg_invalid_destination_name">Saisir un nom de destination</string>
+    <string name="msg_invalid_route_name">Saisir un nom d’itinéraire</string>
+    <string name="msg_invalid_coordinates">Sélectionner un lieu avec des coordonnées</string>
+    <string name="msg_invalid_stop">Supprimer ou sélectionner un arrêt avec des coordonnées</string>
+    <string name="msg_invalid_round_trip_distance">Saisir une distance aller-retour valide</string>
+    <string name="msg_invalid_round_trip_direction">Saisir une direction aller-retour valide</string>
+    <string name="msg_round_trip_requires_brouter_profile">Sélectionner un profil BRouter pour le mode aller-retour</string>
+    <string name="msg_brouter_not_found">BRouter n\'est pas installé</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter est requis pour les rues environnantes.</string>
+    <string name="title_brouter_not_found">BRouter requis</string>
+    <string name="title_stop_navigation_confirm">Arrêter la navigation ?</string>
+    <string name="msg_brouter_install_prompt">BRouter n\'est pas installé. Ouvrir sa page d\'application dans Play Store ou F-Droid ?</string>
+    <string name="msg_location_disabled">La localisation est désactivée. Activez-la pour naviguer.</string>
+    <string name="msg_permission_required">Autorisation requise</string>
+    <string name="msg_stop_navigation_confirm">Voulez-vous arrêter la navigation et fermer cet écran ?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator a besoin d\'accéder à la localisation pour naviguer et vibrer les directions.</string>
+    <string name="msg_permission_notifications_rationale">Les notifications sont utilisées pour alerter des prochains virages.</string>
+    <string name="msg_enable_notifications">Activez les notifications pour les alertes de virage.</string>
+    <string name="msg_battery_opt_rationale">Pour une navigation fiable en arrière-plan, autorisez ViBRo Navigator à ignorer les optimisations de batterie.</string>
+    <string name="msg_open_settings_failed">Impossible d\'ouvrir les paramètres sur cet appareil.</string>
+    <string name="msg_open_brouter_store_failed">Impossible d\'ouvrir une page de magasin BRouter sur cet appareil.</string>
+    <string name="msg_intent_unrecognized">Localisation partagée non reconnue</string>
+    <string name="msg_gpx_import_failed">Impossible de charger les points de passage GPX.</string>
+    <string name="msg_gpx_import_blocked_navigation">Arrêtez la navigation avant d\'ouvrir un itinéraire GPX.</string>
+    <string name="msg_speech_input_unavailable">Aucun service de reconnaissance vocale n\'est activé. Activez l\'application Google ou la saisie vocale Android.</string>
+    <string name="msg_speech_input_listening">Écoute…</string>
+    <string name="msg_speech_input_empty">Aucun discours n\'a été reconnu.</string>
+    <string name="msg_speech_input_failed">Échec de la saisie vocale. Réessayez.</string>
+    <string name="msg_speech_input_unresponsive">La reconnaissance vocale n\'a pas démarré. Activez l\'application Google ou la saisie vocale Android.</string>
+    <string name="msg_speech_permission_required">L\'autorisation du microphone est nécessaire pour la saisie vocale.</string>
+    <string name="msg_select_custom_profile">Sélectionnez un fichier BRouter .brf personnalisé</string>
+    <string name="msg_invalid_custom_profile">Sélectionnez un fichier BRouter .brf valide</string>
+    <string name="msg_profile_parameters_empty">Ce profil n\'expose pas de paramètres modifiables.</string>
+    <string name="msg_profile_parameters_not_localized">Les paramètres sont extraits dynamiquement du fichier de profil BRouter, donc leurs noms, descriptions et options ne sont pas traduits.</string>
+    <string name="msg_profile_parameters_saved">Paramètres du profil enregistrés.</string>
+    <string name="msg_profile_parameters_reset">Paramètres du profil réinitialisés aux valeurs par défaut du profil.</string>
+    <string name="msg_profile_parameter_invalid_number">Entrez un numéro valide.</string>
+    <string name="msg_profile_parameter_invalid_text">Les valeurs ne peuvent pas contenir ?, &amp; ou =.</string>
+    <string name="msg_poi_details_unavailable">Aucun détail supplémentaire disponible.</string>
+    <string name="msg_poi_details_map_check_hint">Utilisez la carte pour vérifier que c\'est bien l\'emplacement souhaité.</string>
+    <string name="msg_poi_google_maps_search_info">Ouvre Google Maps avec le texte de ce champ de recherche POI. Après avoir choisi un endroit dans Google Maps, partagez cet endroit et sélectionnez ViBRo Navigator pour ramener le résultat ici.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">L\'accès au stockage est nécessaire pour lire les rues locales BRouter.</string>
+    <string name="title_brouter_segments_storage_access">Stockage des rues BRouter</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Les rues environnantes ont besoin d\'accès au dossier segments4 de BRouter. Sur l\'écran suivant, naviguez vers %1$s et confirmez l\'accès au dossier. Si cet emplacement n\'est pas disponible, sélectionnez le dossier où BRouter stocke ses fichiers .rd5.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">L\'accès au stockage est nécessaire pour lire les fichiers de profil BRouter.</string>
+    <string name="title_brouter_profiles_storage_access">Stockage du profil BRouter</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter ont besoin d\'accéder au dossier profiles2. Sur l\'écran suivant, naviguez jusqu\'à %1$s et confirmez l\'accès au dossier. Si cet emplacement n\'est pas disponible, sélectionnez le dossier où BRouter stocke ses profils .brf.\n\nNotification de test de symbole</string>
+    <string name="msg_symbol_test_notification_sent">envoyée.</string>
+    <string name="msg_map_location_searching">Recherche de la localisation actuelle…</string>
+    <string name="msg_map_location_unavailable">La localisation actuelle n\'est pas disponible.</string>
+    <string name="msg_map_selection_required">Sélectionnez d\'abord un point sur la carte.</string>
+    <string name="msg_map_position_unavailable">La position sur la carte est indisponible.</string>
+    <string name="msg_map_position_no_app">Aucune application ne peut ouvrir les positions sur la carte.</string>
+    <string name="msg_map_position_open_failed">Impossible d\'ouvrir la position sur la carte.</string>
+    <string name="msg_map_poi_loading">Chargement des POI…</string>
+    <string name="msg_map_poi_unavailable">POI indisponibles.</string>
+    <string name="msg_map_poi_zoom_in">Zoomez pour charger les POI.</string>
+    <string name="msg_map_poi_empty">Aucun POI activé dans cette vue de carte.</string>
+    <string name="msg_map_poi_categories_empty">Aucune catégorie POI dans cette vue de carte.</string>
+    <string name="msg_database_exported">Base de données enregistrée : %1$s</string>
+    <string name="msg_database_export_failed">Impossible d\'exporter la base de données.</string>
+    <string name="msg_database_imported">Base de données importée.</string>
+    <string name="msg_database_import_failed">Impossible d\'importer la base de données.</string>
+    <string name="msg_saved_route_saved">Itinéraire enregistré.</string>
+    <string name="msg_saved_route_restored">Itinéraire restauré.</string>
+    <string name="msg_saved_routes_empty">Aucun itinéraire enregistré.</string>
+    <string name="msg_route_export_unavailable">Aucun itinéraire actif à exporter.</string>
+    <string name="msg_route_export_failed">Impossible d\'exporter l\'itinéraire.</string>
+    <string name="msg_route_export_no_app">Aucune application ne peut ouvrir les itinéraires GPX.</string>
+    <string name="msg_google_maps_search_open_failed">Impossible d\'ouvrir la recherche Google Maps.</string>
+    <string name="msg_open_url_failed">Impossible d\'ouvrir le lien sur cet appareil.</string>
+    <string name="label_exported_route_gpx">Itinéraire ViBRo GPX</string>
+    <string name="gpx_passed_route_track_name">Itinéraire passé</string>
+    <string name="format_gpx_gps_fix_name">Correction GPS %1$d</string>
+    <string name="label_vehicle_profile_custom">Personnalisé</string>
+    <string name="label_vehicle_profile_custom_with_name">Personnalisé (%1$s)</string>
+    <string name="title_profile_parameters">Paramètres de profil : %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Réinitialiser les paramètres du profil ?</string>
+    <string name="msg_profile_parameters_reset_confirm">Restaurer les paramètres de ce profil aux valeurs définies dans le profil ?</string>
+    <string name="format_profile_parameter_info_content_description">Afficher les informations sur le paramètre pour %1$s</string>
+    <string name="route_mode_info_route_description">Calcule un itinéraire BRouter depuis votre position actuelle en passant par les arrêts jusqu\'à la destination.</string>
+    <string name="route_mode_info_round_trip_description">Calcule un itinéraire circulaire BRouter à partir de votre position actuelle en utilisant le profil sélectionné et la distance moyenne du trajet.</string>
+    <string name="route_mode_info_straight_line_description">Ignore BRouter et guide directement vers la destination en s\'arrêtant à la distance et la direction en ligne droite.</string>
+    <string name="profile_info_trekking_title">Vélo de trekking</string>
+    <string name="profile_info_trekking_description">Itinéraire de vélo équilibré pour le cyclisme quotidien, le tourisme et la navigation pratique. Sa principale force est la polyvalence : il évite le trafic routier intense, supporte les pistes cyclables, prend en compte le dénivelé et produit généralement des itinéraires qui semblent raisonnables pour les cyclistes normaux. Sa faiblesse est qu\'il n\'est pas très spécialisé : les cyclistes sur route peuvent le trouver plus lent que `fastbike`, tandis que les cyclistes tout-terrain peuvent le trouver trop prudent comparé à `mtb` ou `gravel`. Son aspect distinctif est qu\'il s\'agit du profil de vélo général le plus sûr et probablement le meilleur choix par défaut pour la plupart des utilisateurs.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Trekking, ignorer les itinéraires</string>
+    <string name="profile_info_trekking_ignore_cr_description">Une variante du vélo de trekking qui ignore les relations avec les itinéraires cyclables. Sa force est qu\'elle évite de privilégier excessivement les itinéraires cyclables balisés ou cartographiés lorsque ces itinéraires sont indirects, panoramiques, obsolètes ou en réalité peu utiles pour le trajet en cours. Sa faiblesse est qu\'elle perd l\'un des principaux avantages du profil normal de trekking : suivre de bons réseaux cyclables là où ils existent. Son aspect distinctif est qu\'elle répond à un problème spécifique : « ne pas préférer une route simplement parce qu\'elle fait partie d\'un itinéraire cyclable. »</string>
+    <string name="profile_info_trekking_noferries_title">Trekking, sans ferries</string>
+    <string name="profile_info_trekking_noferries_description">Une variante de vélo de trekking qui évite les traversées en ferry. Sa force est la prévisibilité : elle évite les itinéraires qui dépendent des horaires de ferry, de la saison, de la billetterie, du temps d\'attente ou de la disponibilité incertaine. Sa faiblesse est qu\'elle peut produire des itinéraires beaucoup plus longs dans les régions fluviales, lacustres, insulaires ou côtières où les ferries sont la connexion pratique. Son aspect distinctif est qu\'il s\'agit du profil de trekking pour les utilisateurs qui veulent un itinéraire uniquement terrestre.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, sans marches</string>
+    <string name="profile_info_trekking_nosteps_description">Une variante de vélo de trekking qui évite les escaliers. Sa force est sa maniabilité pratique, en particulier pour les vélos de randonnée chargés, les vélos électriques, les vélos cargo, les remorques pour enfants ou les utilisateurs qui ne veulent pas porter le vélo. Sa faiblesse est qu\'il peut éviter de courts raccourcis piétons/cyclistes et engendrer de plus longs détours en ville ou dans les zones vallonnées. Son aspect distinctif est qu\'il conserve l\'équilibre normal du trekking mais supprime l\'une des surprises de l\'itinéraire vélo les plus ennuyeuses : les escaliers.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, montées raides</string>
+    <string name="profile_info_trekking_steep_description">Une variante de vélo de trekking pour les itinéraires où les montées plus raides sont plus acceptables. Sa force est qu\'il peut choisir des itinéraires plus directs ou plus vallonnés au lieu d\'éviter fortement les dénivelés. Sa faiblesse est qu\'il peut être inconfortable ou inadapté pour les cyclistes occasionnels, les vélos lourds, les remorques ou les trajets à vélo électrique avec une batterie faible. Son aspect distinctif est qu\'il conserve le caractère de trekking mais est moins effrayé par le terrain escarpé que le profil de trekking normal.</string>
+    <string name="profile_info_fastbike_title">Vélo de route</string>
+    <string name="profile_info_fastbike_description">Optimisé pour le cyclisme rapide sur routes goudronnées, les vélos de course, les vélos de fitness et les speed-pedelecs. Sa force est la vitesse : il privilégie les routes efficaces et de bonne qualité et utilise un modèle orienté sur le temps de trajet plutôt que de rechercher simplement des chemins calmes ou pittoresques. Sa faiblesse est qu\'il peut sembler trop axé sur la route pour les cyclistes occasionnels, les familles ou les utilisateurs qui souhaitent fortement des itinéraires à faible trafic. Son aspect distinctif est qu\'il s\'agit du profil de vélo orienté performance : plus rapide et plus direct que `trekking`, mais toujours conscient du vélo.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Vélo de route, faible trafic</string>
+    <string name="profile_info_fastbike_lowtraffic_description">Un profil de vélo rapide qui accorde plus d\'importance à l\'évitement du trafic que le `fastbike` normal, tout en restant orienté performance. Sa force est qu\'il constitue un bon compromis pour les cyclistes qui veulent la vitesse mais ne veulent pas être constamment dirigés vers des routes fréquentées. Sa faiblesse est qu\'il peut être légèrement plus lent ou moins direct que le `fastbike`, et moins orienté vers l\'évitement du trafic que le `fastbike-verylowtraffic`. Son aspect distinctif est qu\'il représente l\'option intermédiaire entre un routage rapide pur et un routage rapide très sensible au trafic.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Vélo de route, trafic le plus faible</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">Une variante plus robuste à faible trafic pour les utilisateurs de vélo de route ou de speed-pedelec qui souhaitent éviter autant que possible les voitures et les camions. Son point fort est un cyclisme rapide plus sûr et plus calme, particulièrement pour les sorties en solo, sous la pluie, la nuit, ou dans des zones à circulation dense. Son point faible est qu\'il peut entraîner de plus grands détours et peut rejeter des routes autrement rapides si elles sont très fréquentées. Son aspect distinctif est qu\'il conserve le caractère du vélo rapide tout en faisant de l\'itinéraire à très faible trafic la priorité centrale.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Vélo de route, Asie-Pacifique</string>
+    <string name="profile_info_fastbike_asia_pacific_description">Une variante régionale de `fastbike` pour les pays où les hypothèses européennes concernant les routes principales, les autoroutes et les restrictions pour les vélos ne correspondent pas toujours. Sa force est qu\'elle peut rendre l\'itinéraire à vélo rapide plus utilisable dans des régions telles que le Japon, l\'Australie et d\'autres contextes Asie-Pacifique où la classification des routes et l\'accès aux vélos peuvent différer de l\'Europe. Sa faiblesse est qu\'elle est moins adaptée comme profil par défaut universel. Son aspect distinctif est qu\'elle conserve la logique de fast-bike mais adapte les hypothèses d\'accès aux routes pour l\'utilisation en Asie-Pacifique.</string>
+    <string name="profile_info_safety_title">Vélo en toute sécurité</string>
+    <string name="profile_info_safety_description">Un profil de vélo axé sur des itinéraires plus sûrs et plus calmes. Sa force est qu\'il privilégie l\'évitement des routes désagréables ou dangereuses plus fortement qu\'un itinéraire rapide normal, ce qui le rend utile pour les cyclistes prudents, les familles, le vélo urbain ou les utilisateurs qui préfèrent le confort à la vitesse. Son point faible est qu\'il peut produire des itinéraires plus lents, plus longs ou moins directs. Son aspect distinctif est qu\'il s\'agit de l\'option de vélo la plus clairement « sécurité d\'abord », utile lorsque la priorité de l\'utilisateur est d\'éviter le trafic stressant plutôt que de minimiser le temps.</string>
+    <string name="profile_info_gravel_title">Vélo de gravel</string>
+    <string name="profile_info_gravel_description">Conçu pour les vélos de gravel et les sorties sur surfaces mixtes. Sa force est de trouver des itinéraires pouvant inclure du gravier compacté, des pistes et des chemins peu fréquentés, tout en évitant les surfaces trop accidentées, boueuses, raides ou lentes. Sa faiblesse est qu\'il n\'est pas idéal pour les vélos de route pur, car il peut sélectionner intentionnellement des sections non pavées, et il n\'est pas aussi orienté sentier qu\'un véritable profil VTT. Son aspect distinctif est qu\'il se situe entre le cyclisme sur route et le VTT : plus aventureux que `fastbike`, moins technique que `mtb`.</string>
+    <string name="profile_info_mtb_title">VTT</string>
+    <string name="profile_info_mtb_description">Un profil de vélo orienté tout-terrain pour le VTT et la pratique sur sentiers. Sa force est qu\'il peut privilégier les chemins, pistes, voies non pavées et terrains adaptés au VTT beaucoup plus que les profils de vélo normaux. Sa faiblesse est qu\'il peut générer des itinéraires inadaptés pour le tourisme, les trajets quotidiens ou les vélos de route, surtout si l\'utilisateur ne souhaite pas réellement des chemins accidentés. Son aspect distinctif est son comportement spécifique au VTT : il prend en compte la préférence pour les chemins, la qualité de la surface, la fluidité, les conditions humides, le comportement en montée et l\'aptitude tout-terrain.</string>
+    <string name="profile_info_hiking_mountain_title">Randonnée en montagne</string>
+    <string name="profile_info_hiking_mountain_description">Un profil de marche pour la randonnée et les sentiers de montagne. Sa force est qu\'il est conçu autour du déplacement à pied, des itinéraires de randonnée, de la difficulté des sentiers et des conditions spécifiques à la montagne, plutôt que sur des hypothèses liées au vélo ou à la voiture. Sa faiblesse est qu\'il dépend fortement d\'un bon étiquetage OSM pour les sentiers, l\'accès, les itinéraires de randonnée et les niveaux de difficulté, en particulier en zones alpines. Son aspect distinctif est qu\'il s\'agit du profil inclus le plus clairement axé sur la marche en montagne plutôt que sur l\'efficacité des transports.</string>
+    <string name="profile_info_skating_title">Patinage</string>
+    <string name="profile_info_skating_description">Optimisé pour le roller en ligne ou des activités similaires de patinage sur de longues distances. Sa force est la sensibilité à la surface : il préfère fortement les itinéraires lisses, pavés et fluides et évite les surfaces, barrières, feux de circulation, passages et interruptions brusques qui brisent le rythme du patinage. Sa faiblesse est qu\'il est très spécialisé et peut rejeter des itinéraires qui sont acceptables pour les vélos ou les piétons mais mauvais pour les patins. Son aspect distinctif est qu\'il trace des itinéraires pour le flux du patinage, pas seulement pour l\'accès légal ou la distance.</string>
+    <string name="profile_info_shortest_title">Itinéraire le plus court</string>
+    <string name="profile_info_shortest_description">Un profil minimal qui cherche principalement à minimiser la distance de l\'itinéraire. Sa force est la simplicité : il est utile lorsque l\'utilisateur souhaite explicitement l\'itinéraire accessible le plus court possible ou pour comparer la géométrie des itinéraires. Sa faiblesse est que le plus court n\'est souvent pas le meilleur : il peut choisir des segments dangereux, désagréables, raides, accidentés ou très fréquentés. Son aspect distinctif est qu\'il ignore principalement le confort et la logique de préférence, ce qui le rend utile comme profil de référence plutôt que comme valeur par défaut.</string>
+    <string name="profile_info_car_eco_title">Voiture, éco</string>
+    <string name="profile_info_car_eco_description">Un profil de routage automobile économique axé sur la réduction des vitesses inutiles, de la consommation d\'énergie et des comportements de conduite inefficaces. Son point fort est qu\'il peut privilégier des itinéraires plus économes en énergie plutôt que de simplement rechercher la route la plus rapide. Son point faible est qu\'il peut choisir des itinéraires plus lents ou moins directs et peut sembler moins pratique lorsque le temps d\'arrivée est la priorité principale. Son aspect distinctif est qu\'il s\'agit du profil automobile pour une « efficacité raisonnable » plutôt que pour la vitesse maximale.</string>
+    <string name="profile_info_car_eco_nocost_title">Voiture, éco (de base)</string>
+    <string name="profile_info_car_eco_nocost_description">Une variante simplifiée de voiture économique. Sa force est qu\'elle conserve un modèle de voiture orienté vers l\'économie tout en réduisant les pénalités supplémentaires basées sur les préférences, ce qui la rend utile comme profil de comparaison plus clair. Sa faiblesse est qu\'elle peut être moins raffinée pour la navigation réelle, car elle supprime une partie de la logique de coût qui aide normalement à façonner la qualité pratique des itinéraires. Son aspect distinctif est qu\'elle est mieux considérée comme une référence technique : utile pour comparer avec `car-eco`, moins utile comme profil de voiture principal destiné à l\'utilisateur.</string>
+    <string name="profile_info_car_fast_title">Voiture, rapide</string>
+    <string name="profile_info_car_fast_description">Un profil de routage pour voiture axé sur la vitesse et le temps de trajet. Son point fort est qu\'il a tendance à préférer les routes plus rapides et les itinéraires plus directs et efficaces en termes de temps. Son point faible est qu\'il peut être moins économique, moins silencieux, moins pittoresque, et parfois moins adapté lorsque les restrictions pour voitures OSM ou le contexte local des routes sont incomplets. Son aspect distinctif est qu\'il s\'agit du profil de voiture le plus évident pour les utilisateurs qui veulent simplement arriver rapidement.</string>
+    <string name="profile_info_car_fast_nocost_title">Voiture, rapide (de base)</string>
+    <string name="profile_info_car_fast_nocost_description">Une variante simplifiée de voiture rapide. Sa force est qu\'elle se concentre plus directement sur le comportement des modèles de vitesse, ce qui la rend utile pour les tests, les comparaisons ou les expériences de route la plus rapide prévisibles. Sa faiblesse est qu\'elle peut être moins nuancée que `car-fast`, car les pénalités et préférences supplémentaires sont réduites. Son aspect distinctif est qu\'il s\'agit d\'une version de référence du routage des voitures rapides : bonne pour la comparaison technique, moins idéale en tant que profil de voiture par défaut.</string>
+    <string name="profile_info_car_vario_title">Voiture, vitesse variable</string>
+    <string name="profile_info_car_vario_description">Le profil de voiture flexible principal. Sa force est son adaptabilité : en changeant les paramètres, il peut se comporter davantage comme un itinéraire pour voiture rapide ou davantage comme un itinéraire soucieux de l\'énergie/éco. Il prend en charge des préférences telles que l\'évitement des péages, des routes non revêtues, des autoroutes et de certains environnements. Sa faiblesse est qu\'il reste plus simple qu\'un moteur de navigation automobile commercial complet et dépend fortement de la qualité du marquage OSM. Son aspect distinctif est qu\'il utilise un modèle physique/kinématique plutôt que seulement des priorités simples de classes de routes.</string>
+    <string name="profile_info_car_vario_nocost_title">Voiture, variable (de base)</string>
+    <string name="profile_info_car_vario_nocost_description">Une variante plus simple de l\'itinéraire automobile basée principalement sur le modèle de vitesse cinématique. Sa force est qu\'elle fournit une ligne de base plus claire pour l\'itinéraire automobile, utile pour les comparaisons, les tests ou les cas où les coûts supplémentaires liés au paysage ou aux préférences ne doivent pas dominer. Sa faiblesse est qu\'elle est moins expressive et moins conviviale que car-vario pour la navigation normale. Son aspect distinctif est qu\'il s\'agit davantage d\'une ligne de base technique qu\'un profil de préférences riche.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Vélo couché rapide</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">Un profil pour les vélos couchés rapides. Sa force est qu\'il reflète mieux les besoins des cyclistes couchés qu\'un profil de vélo de route normal : routes pavées efficaces, évitement des mauvaises surfaces, gestion prudente des dénivelés, et pénalités pour les marches ou sections nécessitant de descendre du vélo. Sa faiblesse est qu\'il est trop spécialisé pour les bicyclettes normales et peut éviter des infrastructures que les cyclistes en position verticale accepteraient. Son aspect distinctif est qu\'il modélise un vélo couché comme son propre type de véhicule, pas seulement comme un vélo plus rapide.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Vélo-car rapide</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">Un profil pour vélomobiles rapides. Sa force réside dans le routage pour des véhicules humains très efficaces, lourds et à faible traînée qui nécessitent des surfaces lisses, peu d\'arrêts, peu d\'obstacles et de bonnes conditions de roulement. Sa faiblesse est qu\'il est peu adapté aux vélos classiques car il pénalise fortement les itinéraires étroits, irréguliers, avec de nombreux arrêts ou nécessitant des descentes fréquentes. Son aspect distinctif est qu\'il s\'agit du profil le plus spécifique au véhicule parmi le lot, optimisé pour les contraintes des vélomobiles plutôt que pour le cyclisme générique.</string>
+    <string name="profile_info_car_eco_de_title">Voiture, éco (Allemagne)</string>
+    <string name="profile_info_car_eco_de_description">Une variante de `car-eco` historiquement liée à des données de routage alternatives ou secondaires. Son point fort est qu\'elle peut être utile pour le débogage ou pour tester le routage automobile par rapport à un autre instantané de données ou à une préparation spéciale du réseau routier. Son point faible est qu\'il ne s\'agit pas simplement d\'un profil automobile normal du quotidien et peut nécessiter une configuration spéciale des données secondaires. Son aspect distinctif est qu\'il se comporte comme un profil de voiture économique mais qu\'il est principalement utile lorsque la configuration des données secondaires est intentionnellement disponible.</string>
+    <string name="profile_info_moped_title">Cyclomoteur</string>
+    <string name="profile_info_moped_description">Un profil expérimental pour une navigation de type cyclomoteur. Son point fort est qu\'il modélise l\'accès des deux-roues motorisés de manière plus naturelle qu\'un profil vélo. Son point faible est important : il n\'est pas suffisamment fiable pour une navigation réelle car certaines restrictions de virage et contraintes de circulation peuvent manquer. Son aspect distinctif est qu\'il se situe entre la logique vélo et voiture, mais devrait être considéré comme expérimental ou caché aux utilisateurs normaux.</string>
+    <string name="profile_info_dummy_title">Inspection des balises</string>
+    <string name="profile_info_dummy_description">Un profil de débogage pour inspecter quels tags OSM BRouter voit sur les segments d\'itinéraire. Sa force est la transparence : il aide les développeurs à comprendre les données de routage disponibles et les tags non utilisés. Sa faiblesse est qu\'il n\'est pas conçu pour produire des itinéraires de haute qualité ou significatifs. Son aspect distinctif est qu\'il s\'agit principalement d\'un profil de diagnostic pour le développement de profils et l\'inspection des données.</string>
+    <string name="profile_info_rail_title">Chemins de fer</string>
+    <string name="profile_info_rail_description">Un profil pour le routage sur les chemins de fer, tramways, métros, trains légers et autres objets ferroviaires similaires. Sa force est de tracer la topologie du réseau ferroviaire et de vérifier la connectivité ferroviaire dans les données OSM. Sa faiblesse est qu\'il ne représente pas les déplacements des passagers : pas d\'horaires, de correspondances, de logique de station, de disponibilité des services ou de contraintes de billetterie. Son aspect distinctif est qu\'il est utile pour l\'analyse des données ferroviaires, pas pour la navigation normale.</string>
+    <string name="profile_info_river_title">Rivières / canaux</string>
+    <string name="profile_info_river_description">Un profil pour l’acheminement le long des voies navigables telles que les rivières, les canaux, les chenaux et les écluses. Sa force réside dans le traçage du réseau de voies navigables et l\'exploration des données OSM. Sa faiblesse est qu’il est trop simple pour une navigation nautique réelle car il ne modélise pas le type de bateau, la profondeur, le courant, les restrictions légales, les dangers ou les contraintes opérationnelles des écluses. Son aspect distinctif est qu’il traite les voies navigables comme un réseau routable, mais seulement à un niveau topologique de base.</string>
+    <string name="title_edit_destination_name">Modifier le nom de la destination</string>
+    <string name="title_save_route">Enregistrer l\'itinéraire</string>
+    <string name="title_restore_route">Restaurer l\'itinéraire</string>
+    <string name="title_edit_route_name">Modifier le nom de l’itinéraire</string>
+    <string name="title_restore_route_confirm">Restaurer l’itinéraire ?</string>
+    <string name="msg_restore_route_confirm">Remplacer la destination et les arrêts actuels par « %1$s » ?</string>
+    <string name="title_map_picker_destination">Choisir la destination sur la carte</string>
+    <string name="title_map_picker_stop">Choisir l’arrêt %1$d sur la carte</string>
+    <string name="nav_no_route">Aucun itinéraire</string>
+    <string name="nav_waiting_for_location_title">En attente de la localisation</string>
+    <string name="nav_waiting_for_location_body">En attente d’une position utilisable pour calculer l’itinéraire.</string>
+    <string name="nav_waiting_for_location_straight_line_body">En attente d\'une localisation utilisable pour la navigation en ligne droite.</string>
+    <string name="nav_calculating_route_title">Calcul de l\'itinéraire</string>
+    <string name="nav_calculating_route_body">Obtention des directions depuis BRouter.</string>
+    <string name="nav_route_unavailable_title">Itinéraire indisponible</string>
+    <string name="format_nav_route_unavailable_body">Itinéraire indisponible : %1$s \n Vérifiez BRouter pour les segments disponibles.</string>
+    <string name="nav_route_unavailable_generic">erreur inconnue</string>
+    <string name="nav_start_invalid_request">la demande de navigation est incomplète</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Impossible de trouver un itinéraire alternatif autour de la zone bloquée. Conservation de l\'itinéraire actuel.</string>
+    <string name="nav_route_notice_no_route_found">Aucun itinéraire trouvé pour cette destination.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Service d\'itinéraire indisponible. Conservation de l\'itinéraire actuel.</string>
+    <string name="nav_route_notice_service_unavailable">Service d\'itinéraire indisponible.</string>
+    <string name="nav_route_notice_invalid_profile">Profil d\'itinéraire invalide.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Impossible de mettre à jour l\'itinéraire. Conservation de l\'itinéraire actuel.</string>
+    <string name="nav_route_notice_unavailable">Impossible de calculer un itinéraire.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Route bloquée ajoutée. Recalcul de l\'itinéraire.</string>
+    <string name="nav_paused_notice">La navigation est en pause. Appuyez sur Reprendre la navigation pour continuer la guidage en direct.</string>
+    <string name="notification_channel_nav">Navigation</string>
+    <string name="notification_channel_alert">Alertes de guidage</string>
+    <string name="notification_channel_turn_left">Tourner (gauche)</string>
+    <string name="notification_channel_turn_right">Tourner (droite)</string>
+    <string name="notification_nav_running">Navigation en cours</string>
+    <string name="notification_nav_running_text">ViBRo Navigator navigue en arrière-plan</string>
+    <string name="notification_nav_paused">Navigation en pause</string>
+    <string name="notification_nav_paused_text">La navigation ViBRo Navigator est en pause</string>
+    <string name="notification_off_route_title">Hors itinéraire</string>
+    <string name="notification_wrong_direction_title">Mauvaise direction</string>
+    <string name="notification_symbol_test_left_title">tester toutes les notifications à gauche</string>
+    <string name="notification_symbol_test_other_title">tester toutes les autres notifications</string>
+    <string name="notification_symbol_test_right_title">tester toutes les notifications à droite</string>
+    <string name="direction_continue">Continuer</string>
+    <string name="direction_keep_left">Restez à gauche</string>
+    <string name="direction_keep_right">Restez à droite</string>
+    <string name="direction_turn_left">Tournez à gauche</string>
+    <string name="direction_turn_right">Tournez à droite</string>
+    <string name="direction_slight_left">Tournez légèrement à gauche</string>
+    <string name="direction_slight_right">Tournez légèrement à droite</string>
+    <string name="direction_sharp_left">Tournez fortement à gauche</string>
+    <string name="direction_sharp_right">Tournez fortement à droite</string>
+    <string name="direction_uturn_left">Faites demi-tour à gauche</string>
+    <string name="direction_uturn">Faites demi-tour</string>
+    <string name="direction_uturn_right">Faites demi-tour à droite</string>
+    <string name="direction_roundabout_exit">Au rond-point, prenez la sortie %1$d</string>
+    <string name="direction_roundabout_exit_left">Au rond-point, prenez la sortie %1$d</string>
+    <string name="direction_beeline">Ligne droite</string>
+    <string name="direction_exit_left">Prenez la sortie à gauche</string>
+    <string name="direction_exit_right">Prenez la sortie à droite</string>
+    <string name="direction_offroute">Hors itinéraire</string>
+    <string name="direction_arrive">Destination atteinte</string>
+    <string name="direction_intermediate_arrive">Destination intermédiaire atteinte</string>
+    <string name="direction_unknown">Direction inconnue</string>
+    <string name="direction_side_left">à gauche</string>
+    <string name="direction_side_right">à droite</string>
+    <string name="format_speed_limit_content_description">Limite de vitesse %1$s</string>
+    <string name="title_nav_gps_details">Détails GPS</string>
+    <string name="format_nav_gps_details">Vitesse : %1$s\n\nAltitude : %2$s\n\nPrécision : %3$s\n\nHeure GPS : %4$s\n\nSatellites : %5$s\n\nIntervalle : %6$s\n\nDernier correctif : %10$s\n\nCorrectifs GPS : %7$s\n\nCap GPS : %8$s\n\nPrécision du cap : %9$s</string>
+    <string name="title_nav_directions_details">Directions</string>
+    <string name="nav_directions_unavailable">Aucune direction prochaine</string>
+    <string name="title_nav_trip_stats">Statistiques du trajet</string>
+    <string name="format_nav_trip_stats_details">Écoulé : %1$s\nDistance : %2$s\nTemps en mouvement : %3$s\nTemps immobile : %4$s\nVitesse moyenne : %5$s\nMoyenne en mouvement : %6$s\nVitesse maximale : %7$s\nÉcran allumé : %8$s\nÉcran éteint : %9$s\nBatterie utilisée : %10$s\nChute de batterie : %11$s</string>
+    <string name="speech_off_route_recalculating">Hors itinéraire. Recalcul en cours</string>
+    <string name="speech_off_route">Hors itinéraire</string>
+    <string name="speech_wrong_direction_turn_back">Mauvaise direction. Faites demi-tour</string>
+    <string name="format_off_route_off_track_notification">Déviation détectée. Distance %1$s, seuil %2$s. Recalcul de l\'itinéraire.</string>
+    <string name="format_off_route_bearing_notification">Décalage de cap détecté. Diff %1$s, attendu %2$s, réel %3$s. Recalcul de l\'itinéraire.</string>
+    <string name="format_off_route_off_track_notice_only">Déviation détectée. Distance %1$s, seuil %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Décalage de cap détecté. Diff %1$s, attendu %2$s, réel %3$s.</string>
+    <string name="format_wrong_direction_notification">Mauvaise direction détectée. Cible %1$s, réelle %2$s, diff %3$s.</string>
+    <string name="format_startup_orientation_notification">Tournez-vous %1$s %2$s pour faire face à l\'itinéraire.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s exemple de cap</string>
+    <string name="nav_destination_reached">Destination atteinte</string>
+    <string name="format_version">Version %1$s %2$s</string>
+    <string name="about_short_description">Une application de navigation GPS légère, économe en batterie et prioritairement hors ligne qui vibre pour indiquer les directions, construite autour de BRouter.</string>
+    <string name="about_homepage_link">
+        <u>Page d\'accueil</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Évaluer sur Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Code source sur GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Signaler un problème</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>Journal des modifications</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>Politique de confidentialité</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>Conditions d\'utilisation</u>
+    </string>
+    <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nLicence MIT</string>
+    <string name="about_credits">Crédits : BRouter pour le routage. Recherche POI et géocodage inverse coordonné utilisent OpenStreetMap Nominatim, ou Google Maps Geocoding dans les versions Google Play lorsque la recherche Google est activée avec une clé API enregistrée. Les POI de la carte utilisent OpenStreetMap Overpass. Tuiles de carte et géodonnées par les contributeurs OpenStreetMap : https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Paramètres</string>
+    <string name="about_settings_category_display">Affichage</string>
+    <string name="about_settings_category_guidance">Guide</string>
+    <string name="about_settings_category_compass">Boussole</string>
+    <string name="about_settings_category_search_input">Recherche et saisie</string>
+    <string name="about_settings_category_advanced">Avancé</string>
+    <string name="label_log_enabled">Journaux</string>
+    <string name="title_log_output_folder">Dossier de journaux</string>
+    <string name="label_permission_output_folder">Dossier de téléchargement ViBRo</string>
+    <string name="title_output_browser">Fichiers ViBRo</string>
+    <string name="title_gpx_output_folder">Dossier GPX</string>
+    <string name="format_output_folder">Dossier actuel : %1$s</string>
+    <string name="action_clear_output_folder">Supprimer</string>
+    <string name="action_open_output_folder">Ouvrir</string>
+    <string name="msg_output_viewer_unavailable">Aucune application n\'est disponible pour ouvrir ce dossier ou fichier.</string>
+    <string name="hint_clear_log_output_folder">Supprimer définitivement les fichiers journaux ViBRo de : \n%1$s\n\n D\'autres fichiers et sous-dossiers seront conservés. Cette action est irréversible. Si la journalisation est activée, un nouveau journal avec les détails du système sera lancé.</string>
+    <string name="hint_clear_gpx_output_folder">Supprimer définitivement les exports ViBRo GPX de : \n%1$s\n\n Les autres fichiers et sous-dossiers seront conservés. Cela ne peut pas être annulé.</string>
+    <string name="msg_output_folder_cleared">Fichiers ViBRo effacés.</string>
+    <string name="msg_output_folder_clear_failed">Impossible d\'effacer tous les fichiers ViBRo. Vérifiez l\'accès au dossier dans Diagnostics.</string>
+    <string name="label_external_storage_enabled">Utiliser un stockage externe</string>
+    <string name="about_setting_external_storage_info">Enregistrez les exportations, les journaux et les sauvegardes de base de données GPX sur une carte SD au lieu du stockage du téléphone. Disponible uniquement pour une carte SD montée et compatible ; les clés USB sont exclues. Android 6–9 nécessitent un accès au dossier même lorsque la journalisation et l\'enregistrement GPX sont désactivés. Si la carte devient indisponible, l\'enregistrement cesse jusqu\'à ce qu\'elle soit de nouveau disponible. Les anciens fichiers restent dans leurs dossiers d\'origine.</string>
+    <string name="hint_sd_download_access">Accorder l\'accès au dossier de la carte SD : \n%1$s\n\n Sélectionnez Télécharger, son sous-dossier ViBRo, ou la racine de la carte SD. ViBRo utilisera Download/ViBRo/gpx, Download/ViBRo/logs et Download/ViBRo/backup. L\'enregistrement nécessite l\'accès à ce dossier.</string>
+    <string name="msg_sd_storage_unavailable">Aucune carte SD supportée et inscriptible n\'est disponible.</string>
+    <string name="msg_sd_storage_enabled">Les exports, journaux et sauvegardes de base de données GPX utiliseront la carte SD.</string>
+    <string name="msg_output_folder_failed">Impossible d\'écrire dans ce dossier. Le paramètre précédent reste inchangé.</string>
+    <string name="msg_output_access_required">L\'enregistrement est désactivé car le dossier de sortie sélectionné est indisponible ou l\'accès n\'a pas été accordé.</string>
+    <string name="msg_output_folder_picker_unavailable">Aucun sélecteur de dossier n\'est disponible.</string>
+    <string name="label_auto_save_gpx_enabled">Enregistrement automatique GPX</string>
+    <string name="label_fused_location_enabled">Google Emplacement fusionné</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Intervalle dynamique GPS</string>
+    <string name="label_imperial_units_enabled">Unités impériales (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Thème clair</string>
+    <string name="label_compass_surrounding_streets_enabled">Rues environnantes</string>
+    <string name="action_configure_surrounding_street_types">Choisir les types de rues environnantes</string>
+    <string name="title_surrounding_street_types">Types de rues environnantes</string>
+    <string name="hint_surrounding_street_types">Les commutateurs de catégorie cachent ou affichent tout le groupe de couleurs sans changer les sélections individuelles. La visibilité en fonction de la vitesse s\'applique toujours.</string>
+    <string name="street_category_highway">Routes principales</string>
+    <string name="street_category_normal">Rues normales</string>
+    <string name="street_category_walking_cycling">Marche / Cyclisme</string>
+    <string name="street_category_special_routing">Chemins spéciaux</string>
+    <string name="street_type_motorway">Autoroutes</string>
+    <string name="street_type_motorway_info">Routes à grande vitesse avec accès contrôlé.\n\nOSM/BRouter : highway=motorway.</string>
+    <string name="street_type_motorway_link">Bretelles d\'autoroute</string>
+    <string name="street_type_motorway_link_info">Connexions entrant ou quittant une autoroute.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Routes principales</string>
+    <string name="street_type_trunk_info">Routes importantes passant sous le niveau de l\'autoroute.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Liaisons de routes principales</string>
+    <string name="street_type_trunk_link_info">Connexions entrant ou quittant une route principale.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Routes primaires</string>
+    <string name="street_type_primary_info">Routes importantes reliant les villes et les régions.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Liaisons de routes primaires</string>
+    <string name="street_type_primary_link_info">Connexions entrant ou quittant une route primaire.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Routes secondaires</string>
+    <string name="street_type_secondary_info">Routes reliant de plus petites villes et zones.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Liaisons de routes secondaires</string>
+    <string name="street_type_secondary_link_info">Connexions entrant ou quittant une route secondaire.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Routes tertiaires</string>
+    <string name="street_type_tertiary_info">Routes locales reliant sur des agglomérations ou quartiers voisins.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Liens de routes tertiaires</string>
+    <string name="street_type_tertiary_link_info">Connexions entrant ou sortant d\'une route tertiaire.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Routes publiques secondaires</string>
+    <string name="street_type_unclassified_info">Routes publiques en dessous du niveau tertiaire, souvent en dehors des zones résidentielles.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Rues résidentielles</string>
+    <string name="street_type_residential_info">Rues servant principalement des habitations.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Rues résidentielles partagées</string>
+    <string name="street_type_living_street_info">Rues à faible vitesse où la marche et d\'autres usages partagent l\'espace.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Routes d\'accès</string>
+    <string name="street_type_service_info">Routes fournissant l\'accès aux bâtiments, parkings ou installations.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Pistes</string>
+    <string name="street_type_track_info">Pistes principalement utilisées pour l\'accès agricole ou forestier.\n\nOSM/BRouter : highway=track.</string>
+    <string name="street_type_road">Routes non spécifiées</string>
+    <string name="street_type_road_info">Routes dont le type précis est inconnu.\n\nOSM/BRouter : highway=road ou highway=yes.</string>
+    <string name="street_type_busway">Voies de bus</string>
+    <string name="street_type_busway_info">Routes principalement destinées aux bus.\n\nOSM/BRouter : highway=busway.</string>
+    <string name="street_type_pedestrian">Rues piétonnes</string>
+    <string name="street_type_pedestrian_info">Rues ou zones principalement destinées aux piétons.\n\nOSM/BRouter : highway=pedestrian.</string>
+    <string name="street_type_footway">Trottoirs</string>
+    <string name="street_type_footway_info">Sentiers destinés à la marche.\n\nOSM/BRouter : highway=footway.</string>
+    <string name="street_type_path">Sentiers</string>
+    <string name="street_type_path_info">Sentiers à usage général pouvant servir à la marche, au vélo ou à tout autre trafic non motorisé.\n\nOSM/BRouter : highway=path.</string>
+    <string name="street_type_cycleway">Pistes cyclables</string>
+    <string name="street_type_cycleway_info">Sentiers destinés au cyclisme.\n\nOSM/BRouter : highway=cycleway.</string>
+    <string name="street_type_bridleway">Chemins de randonnée équestre</string>
+    <string name="street_type_bridleway_info">Sentiers désignés pour l\'équitation.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Escaliers</string>
+    <string name="street_type_steps_info">Escaliers le long d\'un itinéraire.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Plates-formes de transit</string>
+    <string name="street_type_platform_info">Plates-formes accessibles à pied aux arrêts de transport public.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Couloirs intérieurs</string>
+    <string name="street_type_corridor_info">Passages à l\'intérieur des bâtiments.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Aires de repos routières</string>
+    <string name="street_type_rest_area_info">Accès routier à l\'intérieur des aires de repos.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Services routiers</string>
+    <string name="street_type_services_info">Accès routier à l\'intérieur des aires de services.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Ascenseurs</string>
+    <string name="street_type_elevator_info">Connexions par ascenseur entre niveaux accessibles à pied.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Itinéraires de via ferrata</string>
+    <string name="street_type_via_ferrata_info">Itinéraires d\'escalade protégés avec des aides fixes.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Circuits de course</string>
+    <string name="street_type_raceway_info">Circuits routiers destinés à la course.\n\nOSM/BRouter : highway=raceway.</string>
+    <string name="street_type_railway">Chemins de fer</string>
+    <string name="street_type_railway_info">Toute la géométrie ferroviaire dans les segments locaux BRouter.\n\nOSM/BRouter : railway=*.</string>
+    <string name="street_type_waterway">Voies navigables</string>
+    <string name="street_type_waterway_info">Toute la géométrie des voies navigables dans les segments locaux BRouter.\n\nOSM/BRouter : waterway=*.</string>
+    <string name="street_type_other">Autre géométrie de l\'itinéraire</string>
+    <string name="street_type_other_info">Géométrie sans rue reconnue ou type de route pris en charge.\n\nOSM/BRouter : aucune valeur highway=*, railway=*, waterway=* ou route=* reconnue ou prise en charge.</string>
+    <string name="street_type_route_ferry">Lignes de ferry</string>
+    <string name="street_type_route_ferry_info">Itinéraires transportés par un ferry.\n\nOSM/BRouter : route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Sentiers de randonnée</string>
+    <string name="street_type_route_hiking_foot_info">Itinéraires balisés pour la randonnée ou la marche.\n\nOSM/BRouter : route=hiking ou route=foot.</string>
+    <string name="street_type_route_bicycle">Itinéraires cyclables</string>
+    <string name="street_type_route_bicycle_info">Itinéraires balisés pour le cyclisme.\n\nOSM/BRouter : route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Routes de ski/pistes</string>
+    <string name="street_type_route_ski_piste_info">Routes de ski et pistes pour d\'autres activités, telles que la luge ou la randonnée. BRouter stocke les deux balises comme une seule valeur, donc elles partagent cet interrupteur. \n\nOSM/BRouter : route=ski ou route=piste.</string>
+    <string name="street_type_route_mtb">Routes de VTT</string>
+    <string name="street_type_route_mtb_info">Routes balisées pour le VTT. \n\nOSM/BRouter : route=mtb.</string>
+    <string name="street_type_route_canoe">Routes de canoë</string>
+    <string name="street_type_route_canoe_info">Routes balisées pour le canoë. \n\nOSM/BRouter : route=canoe.</string>
+    <string name="street_type_route_bus">Lignes de bus</string>
+    <string name="street_type_route_bus_info">Géométrie des lignes de bus dans les segments locaux BRouter. \n\nOSM/BRouter : route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Zoom instantané de la boussole</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Zoom automatique arrière</string>
+    <string name="label_compass_fullscreen_route_enabled">Route en plein écran</string>
+    <string name="label_compass_distance_circles_enabled">Cercles de distance</string>
+    <string name="label_compass_central_perspective_enabled">Vue en perspective 3D</string>
+    <string name="label_show_hint_panel">Afficher le panneau d\'indications</string>
+    <string name="label_navigation_notifications_enabled">Notifications</string>
+    <string name="label_single_instruction_mode_enabled">Mode des instructions uniques</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">Filtre des catégories POI</string>
+    <string name="hint_poi_categories_filter">Choisissez quelles catégories POI apparaissent dans le sélecteur de carte lorsque le filtre est activé. Modifiez les noms des catégories, activez-les ou désactivez-les, ou utilisez + pour en ajouter davantage.</string>
+    <string name="hint_poi_category_name">Nom de la catégorie POI</string>
+    <string name="label_speech_recognition">Reconnaissance vocale</string>
+    <string name="label_speech_recognition_language">Langue</string>
+    <string name="label_speech_recognition_language_system_default">Paramètre système par défaut</string>
+    <string name="label_maneuver_voice">Directions vocales</string>
+    <string name="label_maneuver_voice_spinner">Voix</string>
+    <string name="label_maneuver_voice_disabled">Désactivé</string>
+    <string name="label_maneuver_voice_system_default">Paramètre système par défaut</string>
+    <string name="format_maneuver_voice_variant_code">Voix %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Femme</string>
+    <string name="label_maneuver_voice_gender_male">Homme</string>
+    <string name="label_google_poi_api_key">Clé Google Maps API</string>
+    <string name="label_navigation_custom_button">Bouton personnalisé</string>
+    <string name="label_navigation_custom_button_target">Paramètre</string>
+    <string name="label_setting_enabled">activé</string>
+    <string name="label_setting_disabled">désactivé</string>
+    <string name="hint_google_poi_api_key">Clé Google Maps optionnelle</string>
+    <string name="format_about_setting_info_content_description">Afficher l\'aide pour %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">Basculer %1$s (%2$s)</string>
+    <string name="about_setting_log_info">Maintient un journal détaillé du comportement qui peut aider à diagnostiquer les problèmes. Laissez cette option désactivée sauf si vous devez partager des détails pour le support. Lorsque le dossier sélectionné est accessible, les plantages et les navigations inattendues continuent de créer un journal horodaté avec les détails du système même lorsque ce commutateur est éteint. Un arrêt forcé ne peut être signalé qu\'après le redémarrage de l\'application ; la cause exacte peut être indisponible.</string>
+    <string name="about_setting_auto_save_gpx_info">Sauvegarde l\'itinéraire actif au format GPX lorsque vous arrêtez la navigation avec le bouton Arrêter. Utilise Download/ViBRo/gpx sur le téléphone ou la carte SD sélectionnée par Utiliser le stockage externe. L\'activation de cette option demande l\'accès au dossier manquant. La sauvegarde reste désactivée si l\'accès est refusé ou si le stockage sélectionné est indisponible.</string>
+    <string name="about_setting_fused_location_info">Utilise l\'emplacement Google lorsqu\'il est disponible. Cela peut améliorer les mises à jour de localisation sur certains téléphones.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Économise la batterie en vérifiant votre position moins souvent mais de manière fiable. Désactivez-le pour des mises à jour de localisation continues.</string>
+    <string name="about_setting_imperial_units_info">Affiche les distances et vitesses en pieds, miles et mph au lieu de mètres et km/h.</string>
+    <string name="about_setting_light_theme_info">Passe l\'application de l\'apparence sombre par défaut à une apparence claire.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Affiche les rues à proximité et d\'autres géométries de l\'itinéraire dans la boussole lorsque les données cartographiques locales sont disponibles.\n\nLégende des couleurs :\n■ — routes principales et autoroutes\n■ — rues normales\n■ — rues et itinéraires pour la marche et le vélo\n■ — voies ferrées, voies navigables, ferries, itinéraires de ski/canoë/bus, sentiers équestres, circuits de course et via ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">Ignore l\'animation de zoom de la boussole afin que le passage entre l\'aperçu de l\'itinéraire et les vues à échelle variable soit immédiat.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Affiche l\'itinéraire complet dans la boussole lorsque vous êtes immobile. Éteignez-le pour conserver le dernier zoom à échelle mobile lorsque vous êtes arrêté.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Développe la vue de la boussole de l\'itinéraire derrière l\'écran de navigation complet tout en gardant les contrôles et le texte de direction visibles au premier plan.</string>
+    <string name="about_setting_compass_distance_circles_info">Affiche des cercles de distance avec des étiquettes de temps et de distance, la flèche de cap, et les lignes et arcs de précision de cap dans les vues de la boussole et plein écran.</string>
+    <string name="about_setting_compass_central_perspective_info">Utilise la perspective dans la vue boussole 3D : les itinéraires et rues proches apparaissent plus grands, tandis que les plus éloignés rétrécissent vers le haut. Éteignez cela pour utiliser l\'inclinaison orthographique uniforme.</string>
+    <string name="about_setting_show_hint_panel_info">Affiche des astuces de gestes et la légende des couleurs de rue lorsque la navigation téléphonique s\'ouvre.</string>
+    <string name="about_setting_navigation_notifications_info">Affiche les alertes de virage et les avertissements de navigation sous forme de notifications. La notification de navigation en cours n\'est pas affectée et restera visible pendant la navigation.</string>
+    <string name="about_setting_single_instruction_mode_info">Utilise une alerte de manœuvre environ 10 secondes avant chaque instruction à venir et supprime les alertes de manœuvre de démarrage, de 20 secondes et de 5 secondes. Les notifications d\'arrivée et d\'avertissement ne sont pas affectées.</string>
+    <string name="about_setting_navigation_custom_button_info">Affiche un bouton supplémentaire dans la boussole de navigation qui active le paramètre sélectionné lorsque la navigation est ouverte.</string>
+    <string name="about_setting_android_auto_info">Permet aux écrans de voiture compatibles d\'afficher la navigation via Android Auto. Certains hôtes actualisent la liste des applications uniquement après que Android Auto se reconnecte. Dans les véhicules réels, Android Auto affiche ce type d\'application uniquement lorsqu\'elle est installée à partir d\'une source fiable telle que Google Play ou le Partage d\'applications interne.</string>
+    <string name="about_setting_poi_categories_info">Choisit quels lieux peuvent apparaître sur le sélecteur de carte, tels que carburant, parking ou toilettes.</string>
+    <string name="about_setting_speech_recognition_info">Affiche les boutons du microphone pour la destination et pour arrêter la saisie vocale et choisit la langue de reconnaissance demandée. Android peut utiliser sa valeur par défaut si le reconnaisseur vocal sélectionné ne prend pas en charge la langue demandée.</string>
+    <string name="about_setting_maneuver_voice_info">Lit à voix haute les prochaines instructions de direction en utilisant une voix Android.</string>
+    <string name="about_setting_google_poi_api_key_info">Permet à la recherche de destination d’utiliser Google Maps lorsque vous fournissez une clé valide.</string>
+    <string name="about_setting_export_database_info">Sauvegarde vos données d’application, y compris l’historique, les itinéraires enregistrés, les paramètres et les choix de profil, en tant que JSON dans Download/ViBRo/backup sur le téléphone ou sur la carte SD sélectionnée par Utiliser le stockage externe. Affiche le nom de fichier sauvegardé sans demander de dossier. Sur Android 6–9, configurez d’abord l’accès au stockage dans Diagnostics.</string>
+    <string name="about_setting_import_database_info">Restaure vos données d\'application à partir d\'une sauvegarde JSON créée par cette application. Le sélecteur de fichiers démarre dans Download/ViBRo/backup sur le téléphone ou dans la carte SD sélectionnée par Utiliser le stockage externe sur Android 8 et versions ultérieures. Vous pouvez également naviguer vers un autre dossier.</string>
+    <string name="msg_google_poi_api_key_saved">Clé Google Maps API enregistrée.</string>
+    <string name="msg_google_poi_api_key_cleared">Clé Google Maps API supprimée.</string>
+    <string name="msg_google_poi_api_key_required">Ajoutez une clé Google Maps API avant d\'activer la recherche Google.</string>
+    <string name="msg_google_poi_api_key_validating">Validation de la clé Google Maps API…</string>
+    <string name="msg_google_poi_api_key_invalid">La clé Google Maps API n\'est pas valide.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Impossible de valider la clé Google Maps API.</string>
+    <string name="about_diagnostic_title">Diagnostic</string>
+    <string name="about_permission_status_title">Accès requis</string>
+    <string name="about_sensor_status_title">État du capteur</string>
+    <string name="label_direction_notification_tests">Tests de notifications de directions</string>
+    <string name="label_permission_location">Autorisation de localisation</string>
+    <string name="label_permission_location_services">Localisation de l\'appareil</string>
+    <string name="label_permission_notifications">Notifications</string>
+    <string name="label_permission_battery">Optimisation de la batterie</string>
+    <string name="label_permission_surrounding_street_storage">Stockage des rues BRouter</string>
+    <string name="label_permission_brouter_profile_storage">Stockage du profil BRouter</string>
+    <string name="format_about_permission_status_content_description">%1$s : %2$s. Appuyez pour résoudre.</string>
+    <string name="label_sensor_fused_provider">Fournisseur Google fusionné</string>
+    <string name="label_sensor_gps_provider">Fournisseur GPS</string>
+    <string name="label_sensor_network_provider">Fournisseur de réseau</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Vecteur de rotation géomagnétique</string>
+    <string name="label_sensor_rotation_vector">Vecteur de rotation</string>
+    <string name="label_sensor_orientation">Capteur d\'orientation</string>
+    <string name="label_sensor_linear_acceleration">Capteur d\'accélération linéaire</string>
+    <string name="label_sensor_accelerometer">Accéléromètre</string>
+    <string name="sensor_status_enabled">activé</string>
+    <string name="sensor_status_disabled">désactivé</string>
+    <string name="sensor_status_available">disponible</string>
+    <string name="sensor_status_unavailable">indisponible</string>
+    <string name="sensor_status_permission_denied">permission refusée</string>
+    <string name="auto_no_active_navigation_title">Pas de navigation active</string>
+    <string name="auto_no_active_navigation_text">Démarrez la navigation sur le téléphone pour afficher les instructions ici.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Touchez n’importe où pour fermer ou attendez %1$d seconde</item>
+        <item quantity="many">Touchez n’importe où pour fermer ou attendez %1$d secondes</item>
+        <item quantity="other">Touchez n’importe où pour fermer ou attendez %1$d secondes</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Tournez de %1$d degré %2$s</item>
+        <item quantity="many">Tournez de %1$d degrés %2$s</item>
+        <item quantity="other">Tournez de %1$d degrés %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d seconde</item>
+        <item quantity="many">%1$d secondes</item>
+        <item quantity="other">%1$d secondes</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d minute</item>
+        <item quantity="many">%1$d minutes</item>
+        <item quantity="other">%1$d minutes</item>
+    </plurals>
+</resources>

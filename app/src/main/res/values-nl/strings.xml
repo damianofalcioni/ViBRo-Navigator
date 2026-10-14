@@ -1,0 +1,580 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Initial machine translations with reviewed navigation prompts and plural forms. -->
+<resources>
+    <string name="label_use_system_language">Gebruik systeemtaal</string>
+    <string name="action_configure_app_language">Stel app-taal in</string>
+    <string name="title_app_language">App-taal</string>
+    <string name="label_app_language">Taal</string>
+    <string name="hint_app_language">De geselecteerde taal wordt gebruikt wanneer Gebruik systeemtaal is uitgeschakeld.</string>
+    <string name="about_setting_language_info">Gebruikt de eerste ondersteunde taal in uw apparaattaalvoorkeuren, of Engels als er geen beschikbaar is. Schakel dit uit om de taal te gebruiken die is geselecteerd met de configuratieknop. De eerste selectie komt overeen met uw systeemtaal.</string>
+    <string name="nav_gesture_map_controls_title">Gebarenkaartbediening</string>
+    <string name="nav_gesture_views_body">
+        <b> Wissel van weergave. </b> Dubbel tik of veeg naar links/rechts om te schakelen tussen volledige route, 2D en 3D weergaven</string>
+    <string name="nav_gesture_zoom_body">
+        <b> In-/uitzoomen. </b> Knijp of spreid de 2D en 3D weergave tot ±2 zoomniveaus</string>
+    <string name="nav_gesture_tilt_body">
+        <b> Kantel de 3D weergave. </b> Veeg met twee vingers omhoog/omlaag om de 3D weergave te kantelen</string>
+    <string name="nav_gesture_map_legend_title">Kaartlegenda</string>
+    <string name="nav_gesture_current_route">Huidige route</string>
+    <string name="nav_gesture_current_position_accuracy">Huidige positie en nauwkeurigheid</string>
+    <string name="nav_gesture_dont_show_again">Niet meer laten zien</string>
+    <string name="nav_gesture_dismiss">Tik ergens om te sluiten</string>
+    <string name="welcome_title">Welkom bij ViBRo</string>
+    <string name="welcome_tldr">TL;DR: Installeer BRouter, download lokale routegegevens en geef permissies.</string>
+    <string name="welcome_intro">ViBRo Navigator (Trillende/Vibe-gecodeerde BRouter Navigator) is een lichte, offline-eerst en energiezuinige Android GPS navigatie-app gebouwd bovenop BRouter. Het is ontworpen voor navigatie zonder kaart, levert aanwijzingen via trillingen en minimale scherm- en spraakbegeleiding, waardoor gebruik zonder afleiding en met uitgeschermd scherm mogelijk is.</string>
+    <string name="welcome_setup_title">Initiële setup</string>
+    <string name="welcome_brouter_body">• Installeer BRouter via de verstrekte links, open vervolgens de app en download routegegevens voor jouw regio.</string>
+    <string name="welcome_permissions_body">• Na dit welkom en de optionele BRouter-installatieprompt, sta locatie, microfoon (voor spraakinput), meldingen en eventuele gevraagde opslagtoegang toe. Schakel apparaatlokaal in wanneer hierom wordt gevraagd. Je kunt een verzoek overslaan en later toegang inschakelen.</string>
+    <string name="welcome_storage_body">• Verleen profiles2-toegang tot de map wanneer hierom wordt gevraagd, of opslagtoestemming op oudere Android-versies.</string>
+    <string name="welcome_battery_body">• Sta de optionele batterijoptimalisatie-uitzondering toe voor betrouwbare begeleiding met het scherm uit.</string>
+    <string name="welcome_optional_access_body">• Microfoontoegang is alleen nodig als deze wordt gevraagd voor spraakzoekopdrachten.</string>
+    <string name="action_about">Over</string>
+    <string name="action_start_navigation">Start navigatie</string>
+    <string name="action_pause_navigation">Pauzeer navigatie</string>
+    <string name="action_resume_navigation">Hervat navigatie</string>
+    <string name="action_stop_navigation">Stop navigatie</string>
+    <string name="action_save_route">Sla route op</string>
+    <string name="action_restore_route">Herstel route</string>
+    <string name="action_add_stop">Voeg stop toe</string>
+    <string name="action_remove_stop">Verwijder stop</string>
+    <string name="action_blocked_road">Geblokkeerde weg</string>
+    <string name="action_skip_beeline_target">Sla doel in rechte lijn over</string>
+    <string name="action_delete">Verwijderen</string>
+    <string name="action_edit">Bewerken</string>
+    <string name="action_open_settings">Open instellingen</string>
+    <string name="action_open_tts_settings">Open tekst-naar-spraak instellingen</string>
+    <string name="action_open_speech_directions_settings">Open spraakrichting instellingen</string>
+    <string name="action_open_speech_recognition_settings">Open spraakherkenning instellingen</string>
+    <string name="action_open_android_stt_settings">Open Android spraak-naar-tekst instellingen</string>
+    <string name="action_continue">Doorgaan</string>
+    <string name="action_enable_speech_recognition">Toon spraakherkenningsknoppen</string>
+    <string name="action_android_tts_settings_short">Android TTS</string>
+    <string name="action_android_stt_settings_short">Android STT</string>
+    <string name="action_test_maneuver_voice">Test spraakrichting stem</string>
+    <string name="action_voice_search_destination">Spreek bestemming uit</string>
+    <string name="action_voice_search_stop">Spreek stop uit</string>
+    <string name="action_clear_poi_search">Wis zoektekst</string>
+    <string name="action_save">Sla sleutel op</string>
+    <string name="action_save_poi_categories">Opslaan</string>
+    <string name="action_open_map">Kaart</string>
+    <string name="action_cancel">Annuleren</string>
+    <string name="action_use_selected_point">Gebruik geselecteerd punt</string>
+    <string name="action_map_poi_categories">POI categorieën</string>
+    <string name="action_open_map_position">Open kaartpositie</string>
+    <string name="action_test_left_notification">Links</string>
+    <string name="action_test_other_notification">Overigen</string>
+    <string name="action_test_right_notification">Rechts</string>
+    <string name="action_current_location">Huidige locatie</string>
+    <string name="action_edit_poi_categories">Bewerk POI categorieën</string>
+    <string name="action_edit_google_poi_api_key">Bewerk Google Maps API sleutel</string>
+    <string name="action_configure_navigation_custom_button">Configureer aangepaste knop</string>
+    <string name="action_enable_google_poi_search">Schakel Google zoeken in</string>
+    <string name="action_add_poi_category">Voeg POI-categorie toe</string>
+    <string name="action_remove_poi_category">Verwijder POI-categorie</string>
+    <string name="action_enable_poi_category">Schakel POI-categorie in</string>
+    <string name="action_export_database">Exporteer database</string>
+    <string name="action_import_database">Importeer database</string>
+    <string name="action_export_route">Exporteer GPX</string>
+    <string name="action_profile_info">Profielinformatie</string>
+    <string name="action_setting_info">Instellingsinformatie</string>
+    <string name="action_poi_details">POI-gegevens</string>
+    <string name="action_search_google_maps">Zoeken in Google Maps</string>
+    <string name="action_profile_settings">Profielinstellingen</string>
+    <string name="action_reset_defaults">Standaardinstellingen herstellen</string>
+    <string name="label_vehicle_profile">Profiel</string>
+    <string name="label_route_mode_route">Routemodus</string>
+    <string name="label_route_mode_round_trip">Rondritmodus</string>
+    <string name="label_route_mode_straight_line">Rechte lijn-modus</string>
+    <string name="label_destination">Bestemming</string>
+    <string name="label_poi_entrance">Ingang</string>
+    <string name="label_poi_entrances">Ingangen</string>
+    <string name="label_poi_entrance_type">Type</string>
+    <string name="label_poi_coordinates">Coördinaten</string>
+    <string name="label_poi_extra_tags">Extra tags</string>
+    <string name="label_poi_address_details">Adres</string>
+    <string name="label_round_trip_distance_km">Gemiddelde retourafstand (km)</string>
+    <string name="label_round_trip_distance_mi">Gemiddelde retourafstand (mi)</string>
+    <string name="label_round_trip_direction">Retourrichting (°)</string>
+    <string name="label_round_trip_direction_compass">Kompas voor retourrichting</string>
+    <string name="label_profile_attention_icon">Experimenteel of debug-profiel</string>
+    <string name="format_profile_info_content_description">Toon informatie voor %1$s</string>
+    <string name="format_route_mode_info_content_description">Toon mode-informatie voor %1$s</string>
+    <string name="format_poi_details_content_description">Toon POI-details voor %1$s</string>
+    <string name="format_poi_search_info_content_description">Toon zoekinformatie voor %1$s</string>
+    <string name="format_poi_entrance_heading">Ingang %1$d</string>
+    <string name="format_poi_entrance_type">Ingang: %1$s</string>
+    <string name="format_stop_label">Stop %1$d</string>
+    <string name="format_default_saved_route_name">Route %1$s</string>
+    <string name="hint_search_destination">Zoek bestemming</string>
+    <string name="hint_search_stop">Zoek stop</string>
+    <string name="prompt_speech_destination">Zeg de bestemming</string>
+    <string name="prompt_speech_stop">Zeg de stop</string>
+    <string name="hint_saved_route_name">Route naam</string>
+    <string name="msg_missing_destination">Selecteer een bestemming</string>
+    <string name="msg_invalid_destination_name">Voer een bestemmingsnaam in</string>
+    <string name="msg_invalid_route_name">Voer een routenaam in</string>
+    <string name="msg_invalid_coordinates">Selecteer een plaats met coördinaten</string>
+    <string name="msg_invalid_stop">Verwijder of selecteer een stop met coördinaten</string>
+    <string name="msg_invalid_round_trip_distance">Voer een geldige retourafstand in</string>
+    <string name="msg_invalid_round_trip_direction">Voer een geldige retourrichting in</string>
+    <string name="msg_round_trip_requires_brouter_profile">Selecteer een BRouter-profiel voor retourmodus</string>
+    <string name="msg_brouter_not_found">BRouter is niet geïnstalleerd</string>
+    <string name="msg_surrounding_streets_brouter_required">BRouter is vereist voor omliggende straten.</string>
+    <string name="title_brouter_not_found">BRouter vereist</string>
+    <string name="title_stop_navigation_confirm">Navigatie stoppen?</string>
+    <string name="msg_brouter_install_prompt">BRouter is niet geïnstalleerd. Open de app-pagina in Play Store of F-Droid?</string>
+    <string name="msg_location_disabled">Locatie is uitgeschakeld. Schakel het in om te navigeren.</string>
+    <string name="msg_permission_required">Toestemming vereist</string>
+    <string name="msg_stop_navigation_confirm">Wilt u de navigatie stoppen en dit scherm sluiten?</string>
+    <string name="msg_permission_location_rationale">ViBRo Navigator heeft locatie toegang nodig om te navigeren en richtingen te trillen.</string>
+    <string name="msg_permission_notifications_rationale">Meldingen worden gebruikt om komende bochten aan te geven.</string>
+    <string name="msg_enable_notifications">Schakel meldingen in voor bochtwaarschuwingen.</string>
+    <string name="msg_battery_opt_rationale">Voor betrouwbare achtergrondnavigatie, sta ViBRo Navigator toe om batterijoptimalisaties te negeren.</string>
+    <string name="msg_open_settings_failed">Kon de instellingen op dit apparaat niet openen.</string>
+    <string name="msg_open_brouter_store_failed">Kon geen BRouter-winkelpagina op dit apparaat openen.</string>
+    <string name="msg_intent_unrecognized">Gedeelde locatie niet herkend</string>
+    <string name="msg_gpx_import_failed">Kon GPX-waypoints niet laden.</string>
+    <string name="msg_gpx_import_blocked_navigation">Stop met navigeren voordat u een GPX-route opent.</string>
+    <string name="msg_speech_input_unavailable">Er is geen spraakherkenningsservice ingeschakeld. Schakel de Google-app of Android spraakinvoer in.</string>
+    <string name="msg_speech_input_listening">Luisteren…</string>
+    <string name="msg_speech_input_empty">Er is geen spraak herkend.</string>
+    <string name="msg_speech_input_failed">Spraakinvoer mislukt. Probeer het opnieuw.</string>
+    <string name="msg_speech_input_unresponsive">Spraakherkenning is niet gestart. Schakel de Google-app of Android spraakinvoer in.</string>
+    <string name="msg_speech_permission_required">Microfoonmachtiging is nodig voor spraakinvoer.</string>
+    <string name="msg_select_custom_profile">Selecteer een aangepast BRouter .brf-bestand</string>
+    <string name="msg_invalid_custom_profile">Selecteer een geldig BRouter .brf-bestand</string>
+    <string name="msg_profile_parameters_empty">Dit profiel biedt geen bewerkbare parameters.</string>
+    <string name="msg_profile_parameters_not_localized">Parameters worden dynamisch uit het BRouter-profielbestand gehaald, dus hun namen, beschrijvingen en opties zijn niet vertaald.</string>
+    <string name="msg_profile_parameters_saved">Profielinstellingen opgeslagen.</string>
+    <string name="msg_profile_parameters_reset">Profielinstellingen teruggezet naar profielstandaarden.</string>
+    <string name="msg_profile_parameter_invalid_number">Voer een geldig nummer in.</string>
+    <string name="msg_profile_parameter_invalid_text">Waarden mogen geen ?, &amp; of = bevatten.</string>
+    <string name="msg_poi_details_unavailable">Geen extra details beschikbaar.</string>
+    <string name="msg_poi_details_map_check_hint">Gebruik de kaart om te controleren of dit de bedoelde locatie is.</string>
+    <string name="msg_poi_google_maps_search_info">Opent Google Maps met de tekst uit dit POI zoekveld. Nadat u een locatie in Google Maps hebt gekozen, deel die locatie en selecteer ViBRo Navigator om het resultaat hier terug te brengen.</string>
+    <string name="msg_compass_surrounding_streets_storage_permission_required">Toegang tot opslag is nodig om lokale BRouter-straten te kunnen lezen.</string>
+    <string name="title_brouter_segments_storage_access">BRouter straatopslag</string>
+    <string name="msg_brouter_segments_storage_access_prompt">Aanliggende straten hebben toegang nodig tot de BRouter segments4-map. Navigeer op het volgende scherm naar %1$s en bevestig de maptoegang. Als die locatie niet beschikbaar is, selecteer de map waar BRouter zijn .rd5-bestanden opslaat.</string>
+    <string name="msg_brouter_profiles_storage_permission_required">Toegang tot opslag is nodig om BRouter-profielbestanden te kunnen lezen.</string>
+    <string name="title_brouter_profiles_storage_access">BRouter profielopslag</string>
+    <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profielen hebben toegang nodig tot de profiles2-map. Blader op het volgende scherm naar %1$s en bevestig de toegang tot de map. Als die locatie niet beschikbaar is, selecteer dan de map waarin BRouter zijn .brf-profielen opslaat.</string>
+    <string name="msg_symbol_test_notification_sent">Symbol-testmelding verzonden.</string>
+    <string name="msg_map_location_searching">Huidige locatie opzoeken…</string>
+    <string name="msg_map_location_unavailable">Huidige locatie is niet beschikbaar.</string>
+    <string name="msg_map_selection_required">Selecteer eerst een punt op de kaart.</string>
+    <string name="msg_map_position_unavailable">Kaartpositie is niet beschikbaar.</string>
+    <string name="msg_map_position_no_app">Geen enkele app kan kaartposities openen.</string>
+    <string name="msg_map_position_open_failed">Kon kaartpositie niet openen.</string>
+    <string name="msg_map_poi_loading">POI\'s laden…</string>
+    <string name="msg_map_poi_unavailable">POI\'s niet beschikbaar.</string>
+    <string name="msg_map_poi_zoom_in">Zoom in om POI\'s te laden.</string>
+    <string name="msg_map_poi_empty">Geen ingeschakelde POI\'s in dit kaartweergave.</string>
+    <string name="msg_map_poi_categories_empty">Geen POI-categorieën in dit kaartweergave.</string>
+    <string name="msg_database_exported">Database opgeslagen: %1$s</string>
+    <string name="msg_database_export_failed">Kon database niet exporteren.</string>
+    <string name="msg_database_imported">Database geïmporteerd.</string>
+    <string name="msg_database_import_failed">Kon database niet importeren.</string>
+    <string name="msg_saved_route_saved">Route opgeslagen.</string>
+    <string name="msg_saved_route_restored">Route hersteld.</string>
+    <string name="msg_saved_routes_empty">Geen opgeslagen routes.</string>
+    <string name="msg_route_export_unavailable">Geen actieve route om te exporteren.</string>
+    <string name="msg_route_export_failed">Kon de route niet exporteren.</string>
+    <string name="msg_route_export_no_app">Geen enkele app kan GPX-routes openen.</string>
+    <string name="msg_google_maps_search_open_failed">Kon Google Maps-zoekopdracht niet openen.</string>
+    <string name="msg_open_url_failed">Kon de link niet op dit apparaat openen.</string>
+    <string name="label_exported_route_gpx">ViBRo-route GPX</string>
+    <string name="gpx_passed_route_track_name">Gepasseerde route</string>
+    <string name="format_gpx_gps_fix_name">GPS-fix %1$d</string>
+    <string name="label_vehicle_profile_custom">Aangepast</string>
+    <string name="label_vehicle_profile_custom_with_name">Aangepast (%1$s)</string>
+    <string name="title_profile_parameters">Profielinstellingen: %1$s</string>
+    <string name="title_profile_parameters_reset_confirm">Profielinstellingen resetten?</string>
+    <string name="msg_profile_parameters_reset_confirm">De instellingen van dit profiel herstellen naar de waarden zoals gedefinieerd in het profiel?</string>
+    <string name="format_profile_parameter_info_content_description">Toon parameterinformatie voor %1$s</string>
+    <string name="route_mode_info_route_description">Berekent een BRouter-route vanuit uw huidige positie via eventuele tussenstops naar de bestemming.</string>
+    <string name="route_mode_info_round_trip_description">Berekent een cirkelvormige BRouter-route vanaf je huidige positie met gebruik van het geselecteerde profiel en de gemiddelde reisafstand.</string>
+    <string name="route_mode_info_straight_line_description">Slaat BRouter over en gidst rechtstreeks naar de bestemming en stopt met loodrechte afstand en richting.</string>
+    <string name="profile_info_trekking_title">Trekfiets</string>
+    <string name="profile_info_trekking_description">Gebalanceerde fiets-routing voor dagelijks fietsen, toeren en praktische navigatie. De belangrijkste kracht is veelzijdigheid: het vermijdt zwaar autoverkeer, ondersteunt fietsroutes, houdt rekening met hoogteverschillen en genereert doorgaans routes die redelijk aanvoelen voor normale fietsers. Het zwakke punt is dat het niet zeer gespecialiseerd is: wielrenners kunnen het langzamer vinden dan `fastbike`, terwijl offroad-rijders het te conservatief kunnen vinden vergeleken met `mtb` of `gravel`. Het onderscheidende aspect is dat het het veiligste algemene fietsprofiel is en waarschijnlijk de beste standaardoptie voor de meeste gebruikers.</string>
+    <string name="profile_info_trekking_ignore_cr_title">Trekking, negeer routes</string>
+    <string name="profile_info_trekking_ignore_cr_description">Een trekking-fietsvariant die fietsroute-relaties negeert. Het sterke punt is dat het voorkomt dat overmatig de voorkeur wordt gegeven aan aangegeven of ingetekende fietsroutes wanneer die routes indirect, schilderachtig, verouderd of eigenlijk niet nuttig zijn voor de huidige tocht. Het zwakke punt is dat het een van de belangrijkste voordelen van het normale trekking-profiel verliest: het volgen van goede fietsroutenetwerken waar die bestaan. Het onderscheidende aspect is dat het een specifiek probleem oplost: \"negeer een weg niet alleen omdat het bij een fietstocht hoort.\"</string>
+    <string name="profile_info_trekking_noferries_title">Trekking, geen veerboten</string>
+    <string name="profile_info_trekking_noferries_description">Een trekking-fietsvariant die veerbootverbindingen vermijdt. Het sterke punt is voorspelbaarheid: het vermijdt routes die afhankelijk zijn van veerbootschema\'s, seizoensgebonden werking, ticketing, wachttijd of onzekere beschikbaarheid. Het zwakke punt is dat het veel langere routes kan opleveren in rivier-, meer-, eiland- of kustgebieden waar veerboten de praktische verbinding zijn. Het onderscheidende aspect is dat het het trekkingprofiel is voor gebruikers die alleen landroutes willen.</string>
+    <string name="profile_info_trekking_nosteps_title">Trekking, geen trappen</string>
+    <string name="profile_info_trekking_nosteps_description">Een trekkingfietsvariant die trappen vermijdt. Zijn kracht is praktische berijdbaarheid, vooral voor zwaar beladen touringfietsen, e-bikes, bakfietsen, kinderaanhangers of gebruikers die de fiets niet willen dragen. Zijn zwakte is dat hij mogelijk korte voetgangers-/fietspadjes vermijdt en langere omwegen in steden of heuvelachtige gebieden kan veroorzaken. Het opvallende aspect is dat hij de normale trekkingbalans behoudt, maar een van de meest vervelende verrassingen bij fietsroutes verwijdert: trappen.</string>
+    <string name="profile_info_trekking_steep_title">Trekking, steile beklimmingen</string>
+    <string name="profile_info_trekking_steep_description">Een trekkingfietsvariant voor routes waar steilere beklimmingen meer acceptabel zijn. De kracht ervan is dat hij directere of heuvelachtigere routes kan kiezen in plaats van hoogteverschillen sterk te vermijden. Het zwakke punt is dat hij oncomfortabel of ongeschikt kan zijn voor toeristische rijders, zware fietsen, aanhangers of e-bike tochten met weinig batterij. Het onderscheidende aspect is dat hij het trekkingkarakter behoudt maar minder bang is voor steil terrein dan het normale trekkingprofiel.</string>
+    <string name="profile_info_fastbike_title">Racefiets</string>
+    <string name="profile_info_fastbike_description">Geoptimaliseerd voor snel fietsen op verharde wegen, racefietsen, fitnessfietsen en speed-pedelecs. Zijn kracht is snelheid: het geeft de voorkeur aan efficiënte, goede kwaliteit wegen en gebruikt een op reistijd gericht model in plaats van simpelweg te zoeken naar stille of schilderachtige paden. Zijn zwakte is dat het te weggericht kan aanvoelen voor recreatieve fietsers, gezinnen of gebruikers die sterk de voorkeur geven aan routes met weinig verkeer. Zijn onderscheidende aspect is dat het het prestatiegerichte fietsprofiel is: sneller en directer dan `trekking`, maar nog steeds bewust van de fiets.</string>
+    <string name="profile_info_fastbike_lowtraffic_title">Racefiets, weinig verkeer</string>
+    <string name="profile_info_fastbike_lowtraffic_description">Een snel-fietsprofiel dat meer nadruk legt op het vermijden van verkeer dan een normaal `fastbike`, terwijl het toch prestatiegericht blijft. Het sterke punt is dat het een goed compromis is voor rijders die snelheid willen, maar niet constant over drukke wegen willen worden geleid. Het zwakke punt is dat het iets trager of minder direct kan zijn dan `fastbike`, en minder verkeersvermijdend dan `fastbike-verylowtraffic`. Het onderscheidende aspect is dat het de middenoptie is tussen puur snelle routes en zeer verkeersgevoelige snel-fiets-routing.</string>
+    <string name="profile_info_fastbike_verylowtraffic_title">Racefiets, minst verkeer</string>
+    <string name="profile_info_fastbike_verylowtraffic_description">Een sterkere versie met weinig verkeer voor racefiets- of speed-pedelec-gebruikers die auto\'s en vrachtwagens zoveel mogelijk willen vermijden. Het sterke punt is veiliger en rustiger snel fietsen, vooral voor solo ritten, regen, nachtfietsen of gebieden met dicht verkeer. Het zwakke punt is dat het grotere omwegen kan maken en anders snelle wegen kan vermijden als deze druk zijn. Het onderscheidende aspect is dat het het snelle-fiets karakter behoudt, maar routing met zeer weinig verkeer de centrale prioriteit maakt.</string>
+    <string name="profile_info_fastbike_asia_pacific_title">Racefiets, Azië-Pacific</string>
+    <string name="profile_info_fastbike_asia_pacific_description">Een regionale variant van `fastbike` voor landen waar Europese aannames over hoofdwegen, snelwegen en fietsbeperkingen niet altijd van toepassing zijn. Het sterke punt is dat het het fastbike-routingsysteem bruikbaarder kan maken in regio\'s zoals Japan, Australië en andere Aziatisch-Pacifische contexten waar wegclassificatie en fiets toegang kunnen verschillen van Europa. Het zwakke punt is dat het minder geschikt is als universeel standaardprofiel. Het onderscheidende aspect is dat het de fast-bike logica behoudt maar de wegtoegangs aannames aanpast voor gebruik in de Aziatisch-Pacifische regio.</string>
+    <string name="profile_info_safety_title">Veiliger fietsen</string>
+    <string name="profile_info_safety_description">Een fietsprofiel gericht op veiligere en rustigere routes. Het sterke punt is dat het het vermijden van onaangename of gevaarlijke wegen sterker prioriteert dan normale snelle routing, waardoor het nuttig is voor voorzichtige rijders, gezinnen, stadsfietsers of gebruikers die comfort boven snelheid verkiezen. Het zwakke punt is dat het tragere, langere of minder directe routes kan opleveren. Het onderscheidende aspect is dat het de duidelijkst \"veiligheid-voorop\" fietsoptie is, nuttig wanneer de prioriteit van de gebruiker het vermijden van stressvol verkeer is in plaats van het minimaliseren van tijd.</string>
+    <string name="profile_info_gravel_title">Gravelbike</string>
+    <string name="profile_info_gravel_description">Ontworpen voor gravelfietsen en ritten op gemengde ondergronden. Zijn sterkte ligt in het vinden van routes die gecompacteerd grind, paden en wegen met weinig verkeer kunnen omvatten, terwijl het toch oppervlakken vermijdt die te ruw, modderig, steil of traag zijn. Zijn zwakte is dat het niet ideaal is voor pure racefietsen, omdat het bewust onverharde secties kan kiezen, en het is niet zo trailgericht als een echt MTB-profiel. Het onderscheidende aspect is dat het zich bevindt tussen wegwielrennen en mountainbiken: avontuurlijker dan `fastbike`, minder technisch dan `mtb`.</string>
+    <string name="profile_info_mtb_title">Mountainbike</string>
+    <string name="profile_info_mtb_description">Een op off-road gericht fietsprofiel voor mountainbiken en trail-rijden. Het sterke punt is dat het paden, tracks, onverharde wegen en MTB-geschikt terrein veel meer kan prefereren dan normale fietsprofielen. Het zwakke punt is dat het routes kan genereren die niet geschikt zijn voor toeren, woon-werkverkeer of racefietsen, vooral als de gebruiker eigenlijk geen ruwe paden wil. Het onderscheidende aspect is het MTB-specifieke gedrag: het houdt rekening met voorkeur voor paden, oppervlaktekwaliteit, soepelheid, natte omstandigheden, heuvelgedrag en off-road geschiktheid.</string>
+    <string name="profile_info_hiking_mountain_title">Bergwandelen</string>
+    <string name="profile_info_hiking_mountain_description">Een wandelprofiel voor wandel- en bergroutes. Het sterke punt is dat het is ontworpen rond voetvervoer, wandelroutes, moeilijkheidsgraad van paden en bergspecifieke omstandigheden in plaats van aannames voor fiets of auto. Het zwakke punt is dat het sterk afhankelijk is van goede OSM-tagging voor paden, toegang, wandelroutes en moeilijkheidsniveaus, vooral in alpine gebieden. Het onderscheidende aspect is dat het het bundelprofiel is dat het duidelijkst is gericht op bergwandelen in plaats van transportefficiëntie.</string>
+    <string name="profile_info_skating_title">Skaten</string>
+    <string name="profile_info_skating_description">Geoptimaliseerd voor inline skaten of soortgelijke langeafstands-skateactiviteiten. De kracht ligt in de oppervlakgevoeligheid: het geeft sterk de voorkeur aan gladde, verharde en vloeiende routes en vermijdt oppervlakken, obstakels, stoplichten, oversteekplaatsen en scherpe onderbrekingen die het skaterytme doorbreken. Het zwakke punt is dat het zeer gespecialiseerd is en mogelijk routes afwijst die voor fietsen of voetgangers acceptabel zijn, maar slecht voor skates. Het onderscheidende aspect is dat het routes plant voor skatestroom, niet alleen voor wettelijke toegang of afstand.</string>
+    <string name="profile_info_shortest_title">Kortste route</string>
+    <string name="profile_info_shortest_description">Een minimaal profiel dat voornamelijk probeert de routeafstand te minimaliseren. Het sterke punt is eenvoud: het is nuttig wanneer de gebruiker expliciet de kortst mogelijke toegankelijke route wil of bij het vergelijken van routegeometrie. Het zwakke punt is dat kortste vaak niet het beste is: het kan onveilige, onaangename, steile, ruwe of drukke segments kiezen. Het onderscheidende aspect is dat het comfort en voorkeurlogica grotendeels negeert, waardoor het nuttig is als referentieprofiel in plaats van als een goed standaardprofiel.</string>
+    <string name="profile_info_car_eco_title">Auto, eco</string>
+    <string name="profile_info_car_eco_description">Een economisch auto-routeprofiel gericht op het verminderen van onnodige snelheid, energieverbruik en inefficiënte rijpatronen. Het voordeel is dat het energiezuinigere routes kan verkiezen in plaats van simpelweg de snelste weg te volgen. Het nadeel is dat het mogelijk tragere of minder directe routes kiest en minder handig kan aanvoelen wanneer aankomsttijd de belangrijkste prioriteit is. Het onderscheidende aspect is dat het het autoprofiel is voor \"redelijke efficiëntie\" in plaats van maximale snelheid.</string>
+    <string name="profile_info_car_eco_nocost_title">Auto, eco (basis)</string>
+    <string name="profile_info_car_eco_nocost_description">Een vereenvoudigde economische autovariant. Het sterke punt is dat het een economie-georiënteerd automodel behoudt terwijl het extra op voorkeur gebaseerde straffen vermindert, waardoor het nuttig is als een schoner vergelijkingsprofiel. Het zwakke punt is dat het mogelijk minder verfijnd is voor echte navigatie omdat een deel van de kostlogica wordt verwijderd die normaal helpt bij het vormen van de praktische routekwaliteit. Het onderscheidende aspect is dat het het beste kan worden gezien als een technische basislijn: nuttig om mee te vergelijken met `car-eco`, minder nuttig als het hoofdprofiel voor de gebruiker.</string>
+    <string name="profile_info_car_fast_title">Auto, snel</string>
+    <string name="profile_info_car_fast_description">Een auto-routeprofiel gericht op snelheid en reistijd. De sterkte ervan is dat het de neiging heeft om snellere wegen en meer directe, tijdsefficiënte routes te verkiezen. Het zwakke punt is dat het mogelijk minder zuinig, minder rustig, minder schilderachtig en soms minder geschikt is wanneer OSM autobeperkingen of de lokale wegsituatie onvolledig zijn. Het onderscheidende aspect is dat het het meest voor de hand liggende autoproﬁel is voor gebruikers die gewoon snel willen aankomen.</string>
+    <string name="profile_info_car_fast_nocost_title">Auto, snel (basis)</string>
+    <string name="profile_info_car_fast_nocost_description">Een vereenvoudigde variant van een snelle auto. Het sterke punt is dat het meer direct gericht is op het snelheidsgedrag van het model, waardoor het nuttig is voor testen, vergelijken of voorspelbare snelste-weg experimenten. Het zwakke punt is dat het minder genuanceerd kan zijn dan `car-fast`, omdat extra straffen en voorkeuren worden verminderd. Het onderscheidende aspect is dat het een baseline-versie van snelle autoroutevorming is: goed voor technische vergelijking, minder ideaal als standaard autoprofiel.</string>
+    <string name="profile_info_car_vario_title">Auto, variabele snelheid</string>
+    <string name="profile_info_car_vario_description">Het belangrijkste flexibele autoprofield. De kracht ervan is aanpasbaarheid: door parameters te wijzigen, kan het zich meer gedragen als snelle autorouting of meer als energie-/eco-georiënteerde routing. Het ondersteunt voorkeuren zoals het vermijden van tolwegen, onverharde wegen, snelwegen en bepaalde omgevingen. Het zwakke punt is dat het nog steeds eenvoudiger is dan een volledige commerciële autonavigatie-engine en sterk afhankelijk is van de tagkwaliteit van OSM. Het onderscheidende aspect is dat het een fysisch/kinematisch model gebruikt in plaats van alleen eenvoudige wegklasseprioriteiten.</string>
+    <string name="profile_info_car_vario_nocost_title">Auto, variabel (basis)</string>
+    <string name="profile_info_car_vario_nocost_description">Een eenvoudigere variant van autorouting die voornamelijk is gebaseerd op het kinematische snelheidsmodel. Het sterke punt is dat het een schonere basislijn voor autorouting biedt, nuttig voor vergelijking, testen of gevallen waarin extra scenische of op voorkeur gebaseerde kosten niet overheersen. Het zwakke punt is dat het minder expressief en minder gebruiksvriendelijk is dan car-vario voor normaal navigeren. Het onderscheidende aspect is dat het meer een technische basislijn is dan een uitgebreid voorkeursprofiel.</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_title">Snelle ligfiets</string>
+    <string name="profile_info_vm_forum_liegerad_schnell_description">Een profiel voor snelle ligfietsen. Het sterke punt is dat het beter de behoeften van ligfietsers weerspiegelt dan een normaal racefietsprofiel: efficiënte verharde wegen, vermijden van slechte oppervlakken, zorgvuldig omgaan met hoogteverschillen en straffen voor trappen of afstapsecties. Het zwakke punt is dat het te gespecialiseerd is voor normale fietsen en infrastructuur kan vermijden die rechtop fietsenders zouden accepteren. Het onderscheidende aspect is dat het een ligfiets als een eigen voertuigtype modelleert, niet alleen als een snellere fiets.</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_title">Snelle velomobiel</string>
+    <string name="profile_info_vm_forum_velomobil_schnell_description">Een profiel voor snelle velomobielen. De kracht ligt in het routen voor zeer efficiënte, zware, aerodynamisch gunstige voertuigen die door mensen worden aangedreven en die gladde oppervlakken, weinig stops, weinig obstakels en goede rollende omstandigheden nodig hebben. Het zwakke punt is dat het een slechte keuze is voor normale fietsen omdat het smalle, ruwe, stop-rijke of afstap-rijke routes sterk straft. Het onderscheidende aspect is dat het het meest voertuig-specifieke door mensen aangedreven profiel in de bundel is, afgestemd op de beperkingen van velomobielen in plaats van op algemeen fietsen.</string>
+    <string name="profile_info_car_eco_de_title">Auto, eco (Duitsland)</string>
+    <string name="profile_info_car_eco_de_description">Een variant van `car-eco` die historisch gekoppeld is aan alternatieve of secundaire routeringsgegevens. Het sterke punt is dat het nuttig kan zijn voor het debuggen of testen van auto-routering tegen een andere gegevenssnapshot of speciale wegennetvoorbereiding. Het zwakke punt is dat het niet eenvoudigweg een normaal dagelijks autoprofield is en speciale secundaire gegevensconfiguratie kan vereisen. Het onderscheidende aspect is dat het zich gedraagt als een economisch autoprofield, maar voornamelijk nuttig is wanneer de secundaire gegevensopzet opzettelijk beschikbaar is.</string>
+    <string name="profile_info_moped_title">Bromfiets</string>
+    <string name="profile_info_moped_description">Een experimenteel profiel voor routing vergelijkbaar met een bromfiets. Het sterke punt is dat het gemotoriseerde tweewielertoegang natuurlijker modelleert dan een fietsprofiel. Het zwakke punt is belangrijk: het is niet betrouwbaar genoeg voor echte navigatie omdat draaibeperkingen en enkele verkeersbeperkingen mogelijk ontbreken. Het onderscheidende aspect is dat het tussen fiets- en autologica zit, maar het moet als experimenteel worden beschouwd of verborgen voor normale gebruikers.</string>
+    <string name="profile_info_dummy_title">Taginspectie</string>
+    <string name="profile_info_dummy_description">Een debugprofiel voor het inspecteren van welke OSM-tags BRouter ziet op route-segmenten. Het sterke punt is transparantie: het helpt ontwikkelaars de beschikbare routeringsgegevens en ongebruikte tags te begrijpen. Het zwakke punt is dat het niet is ontworpen om routes van hoge kwaliteit of betekenisvolle routes te produceren. Het onderscheidende aspect is dat het voornamelijk een diagnostisch profiel is voor profielontwikkeling en data-inspectie.</string>
+    <string name="profile_info_rail_title">Spoorwegen</string>
+    <string name="profile_info_rail_description">Een profiel voor routering over spoorwegen, trams, metro, lichtspoor en vergelijkbare spoorobjecten. Het sterke punt is het volgen van de topologie van het spoorwegnet en het controleren van de spoorverbindingen in OSM-gegevens. Het zwakke punt is dat het geen passagiersreis weergeeft: geen dienstregelingen, overstappen, stationslogica, beschikbaarheid van diensten of ticketbeperkingen. Het onderscheidende aspect is dat het nuttig is voor analyse van spoorweggegevens, maar niet voor normaal navigeren.</string>
+    <string name="profile_info_river_title">Rivieren / kanalen</string>
+    <string name="profile_info_river_description">Een profiel voor het routen langs waterwegen zoals rivieren, kanalen, vaargeulen en sluizen. Het sterke punt is het traceren van het waterwegennetwerk en OSM gegevensverkenning. Het zwakke punt is dat het te eenvoudig is voor echt nautisch navigeren omdat het geen boottype, diepte, stroming, wettelijke beperkingen, gevaren of operationele sluisbeperkingen modelleert. Het bijzondere aspect is dat het waterwegen als een routeerbaar netwerk behandelt, maar alleen op een basis topologieniveau.</string>
+    <string name="title_edit_destination_name">Bewerk naam van bestemming</string>
+    <string name="title_save_route">Sla route op</string>
+    <string name="title_restore_route">Herstel route</string>
+    <string name="title_edit_route_name">Bewerk naam van route</string>
+    <string name="title_restore_route_confirm">Route herstellen?</string>
+    <string name="msg_restore_route_confirm">Huidige bestemming en stops vervangen door \"%1$s\"?</string>
+    <string name="title_map_picker_destination">Kies bestemming op kaart</string>
+    <string name="title_map_picker_stop">Kies stop %1$d op kaart</string>
+    <string name="nav_no_route">Geen route</string>
+    <string name="nav_waiting_for_location_title">Wachten op locatie</string>
+    <string name="nav_waiting_for_location_body">Wachten op een bruikbare locatiefix om de route te berekenen.</string>
+    <string name="nav_waiting_for_location_straight_line_body">Wachten op een bruikbare locatiefix voor rechtlijnige begeleiding.</string>
+    <string name="nav_calculating_route_title">Route berekenen</string>
+    <string name="nav_calculating_route_body">Routebeschrijving ophalen van BRouter.</string>
+    <string name="nav_route_unavailable_title">Route niet beschikbaar</string>
+    <string name="format_nav_route_unavailable_body">Route niet beschikbaar: %1$s \n Controleer BRouter voor beschikbare segmenten.</string>
+    <string name="nav_route_unavailable_generic">onbekende fout</string>
+    <string name="nav_start_invalid_request">navigatieverzoek is onvolledig</string>
+    <string name="nav_route_notice_no_alternative_keep_current">Kon geen alternatieve route rond het geblokkeerde gebied vinden. Huidige route behouden.</string>
+    <string name="nav_route_notice_no_route_found">Geen route gevonden voor deze bestemming.</string>
+    <string name="nav_route_notice_service_unavailable_keep_current">Routeservice niet beschikbaar. Huidige route behouden.</string>
+    <string name="nav_route_notice_service_unavailable">Routeservice niet beschikbaar.</string>
+    <string name="nav_route_notice_invalid_profile">Routeprofiel is ongeldig.</string>
+    <string name="nav_route_notice_update_failed_keep_current">Kon de route niet bijwerken. Huidige route behouden.</string>
+    <string name="nav_route_notice_unavailable">Kon geen route berekenen.</string>
+    <string name="nav_route_notice_blocked_road_recalculating">Geblokkeerde weg toegevoegd. Route opnieuw berekenen.</string>
+    <string name="nav_paused_notice">Navigatie is gepauzeerd. Tik op Hervat navigatie om live begeleiding voort te zetten.</string>
+    <string name="notification_channel_nav">Navigatie</string>
+    <string name="notification_channel_alert">Begeleidingswaarschuwingen</string>
+    <string name="notification_channel_turn_left">Sla linksaf</string>
+    <string name="notification_channel_turn_right">Sla rechtsaf</string>
+    <string name="notification_nav_running">Navigatie actief</string>
+    <string name="notification_nav_running_text">ViBRo Navigator navigeert op de achtergrond</string>
+    <string name="notification_nav_paused">Navigatie gepauzeerd</string>
+    <string name="notification_nav_paused_text">ViBRo Navigator navigatie is gepauzeerd</string>
+    <string name="notification_off_route_title">Buiten de route</string>
+    <string name="notification_wrong_direction_title">Verkeerde richting</string>
+    <string name="notification_symbol_test_left_title">test van alle linkerwaarschuwingen</string>
+    <string name="notification_symbol_test_other_title">test van alle andere waarschuwingen</string>
+    <string name="notification_symbol_test_right_title">test van alle rechterwaarschuwingen</string>
+    <string name="direction_continue">Doorgaan</string>
+    <string name="direction_keep_left">Houd links aan</string>
+    <string name="direction_keep_right">Houd rechts aan</string>
+    <string name="direction_turn_left">Sla linksaf</string>
+    <string name="direction_turn_right">Sla rechtsaf</string>
+    <string name="direction_slight_left">Buig licht linksaf</string>
+    <string name="direction_slight_right">Buig licht rechtsaf</string>
+    <string name="direction_sharp_left">Sla scherp linksaf</string>
+    <string name="direction_sharp_right">Sla scherp rechtsaf</string>
+    <string name="direction_uturn_left">Keer om naar links</string>
+    <string name="direction_uturn">Keer om</string>
+    <string name="direction_uturn_right">Keer om naar rechts</string>
+    <string name="direction_roundabout_exit">Neem op de rotonde afslag %1$d</string>
+    <string name="direction_roundabout_exit_left">Neem op de rotonde afslag %1$d</string>
+    <string name="direction_beeline">Rechte lijn</string>
+    <string name="direction_exit_left">Neem de afslag links</string>
+    <string name="direction_exit_right">Neem de afslag rechts</string>
+    <string name="direction_offroute">Buiten de route</string>
+    <string name="direction_arrive">Bestemming bereikt</string>
+    <string name="direction_intermediate_arrive">Tussentijdse bestemming bereikt</string>
+    <string name="direction_unknown">Onbekende richting</string>
+    <string name="direction_side_left">naar links</string>
+    <string name="direction_side_right">naar rechts</string>
+    <string name="format_speed_limit_content_description">Snelheidslimiet %1$s</string>
+    <string name="title_nav_gps_details">GPS details</string>
+    <string name="format_nav_gps_details">Snelheid: %1$s\n Hoogte: %2$s\n Nauwkeurigheid: %3$s\n GPS tijd: %4$s\n Satellieten: %5$s\n Interval: %6$s\n Leeftijd laatste correctie: %10$s\n GPS-correcties: %7$s\n GPS-richting: %8$s\n Richtingsnauwkeurigheid: %9$s</string>
+    <string name="title_nav_directions_details">Routeaanwijzingen</string>
+    <string name="nav_directions_unavailable">Geen aankomende routeaanwijzingen</string>
+    <string name="title_nav_trip_stats">Reisstatistieken</string>
+    <string name="format_nav_trip_stats_details">Verstreken: %1$s\nAfstand: %2$s\nBewegende tijd: %3$s\nStilstaan tijd: %4$s\nGemiddelde snelheid: %5$s\nGemiddelde beweging: %6$s\nMaximale snelheid: %7$s\nScherm aan: %8$s\nScherm uit: %9$s\nBatterij gebruikt: %10$s\nBatterij daling: %11$s</string>
+    <string name="speech_off_route_recalculating">Buiten route. Herberekenen</string>
+    <string name="speech_off_route">Buiten de route</string>
+    <string name="speech_wrong_direction_turn_back">Verkeerde richting. Keer om</string>
+    <string name="format_off_route_off_track_notification">Off-track gedetecteerd. Afstand %1$s, drempel %2$s. Route herberekenen.</string>
+    <string name="format_off_route_bearing_notification">Koersafwijking gedetecteerd. Verschil %1$s, verwacht %2$s, feitelijk %3$s. Route herberekenen.</string>
+    <string name="format_off_route_off_track_notice_only">Off-track gedetecteerd. Afstand %1$s, drempel %2$s.</string>
+    <string name="format_off_route_bearing_notice_only">Koersafwijking gedetecteerd. Verschil %1$s, verwacht %2$s, feitelijk %3$s.</string>
+    <string name="format_wrong_direction_notification">Verkeerde richting gedetecteerd. Doel %1$s, feitelijk %2$s, verschil %3$s.</string>
+    <string name="format_startup_orientation_notification">Draai jezelf %1$s %2$s om naar de route te kijken.</string>
+    <string name="format_notification_symbol_test_bearing_line">%1$s kompasrichtingvoorbeeld</string>
+    <string name="nav_destination_reached">Bestemming bereikt</string>
+    <string name="format_version">Versie %1$s %2$s</string>
+    <string name="about_short_description">Een lichtgewicht, batterij-efficiënt en offline-eerst GPS navigatie-app die richtingen trilt, gebouwd rond BRouter.</string>
+    <string name="about_homepage_link">
+        <u>Startpagina</u>
+    </string>
+    <string name="about_play_store_link">
+        <u>Beoordeel op Play Store</u>
+    </string>
+    <string name="about_source_code_link">
+        <u>Broncode op GitHub</u>
+    </string>
+    <string name="about_report_issue_link">
+        <u>Meld een probleem</u>
+    </string>
+    <string name="about_changelog_link">
+        <u>Wijzigingslog</u>
+    </string>
+    <string name="about_privacy_policy_link">
+        <u>Privacybeleid</u>
+    </string>
+    <string name="about_terms_of_service_link">
+        <u>Gebruiksvoorwaarden</u>
+    </string>
+    <string name="about_legal">Copyright © 2026 Damiano Falcioni.\nMIT-licentie</string>
+    <string name="about_credits">Credits: BRouter voor routering. POI-zoekopdracht en coördinaten-omgekeerd geocoderen gebruiken OpenStreetMap Nominatim, of Google Maps Geocoding in Google Play-builds wanneer Google-zoekopdracht is ingeschakeld met een opgeslagen API-sleutel. Kaart-POI\'s gebruiken OpenStreetMap Overpass. Kaarttegels en geogegevens door OpenStreetMap-bijdragers: https://www.openstreetmap.org/copyright</string>
+    <string name="about_settings_title">Instellingen</string>
+    <string name="about_settings_category_display">Weergave</string>
+    <string name="about_settings_category_guidance">Richtlijnen</string>
+    <string name="about_settings_category_compass">Kompas</string>
+    <string name="about_settings_category_search_input">Zoeken &amp; Invoeren</string>
+    <string name="about_settings_category_advanced">Geavanceerd</string>
+    <string name="label_log_enabled">Logboeken</string>
+    <string name="title_log_output_folder">Logmap</string>
+    <string name="label_permission_output_folder">ViBRo downloadmap</string>
+    <string name="title_output_browser">ViBRo bestanden</string>
+    <string name="title_gpx_output_folder">GPX map</string>
+    <string name="format_output_folder">Huidige map: %1$s</string>
+    <string name="action_clear_output_folder">Verwijderen</string>
+    <string name="action_open_output_folder">Openen</string>
+    <string name="msg_output_viewer_unavailable">Geen app beschikbaar om deze map of bestand te openen.</string>
+    <string name="hint_clear_log_output_folder">Verwijder permanent ViBRo logbestanden van:\n%1$s\n\nAndere bestanden en submappen zullen behouden blijven. Dit kan niet ongedaan worden gemaakt. Als logging is ingeschakeld, zal een nieuw logboek met systeemspecificaties worden gestart.</string>
+    <string name="hint_clear_gpx_output_folder">Verwijder permanent ViBRo GPX exports van:\n%1$s\n\nAndere bestanden en submappen zullen behouden blijven. Dit kan niet ongedaan worden gemaakt.</string>
+    <string name="msg_output_folder_cleared">ViBRo bestanden verwijderd.</string>
+    <string name="msg_output_folder_clear_failed">Niet alle ViBRo bestanden konden worden verwijderd. Controleer de toegang tot de map in Diagnostiek.</string>
+    <string name="label_external_storage_enabled">Externe opslag gebruiken</string>
+    <string name="about_setting_external_storage_info">Sla GPX-exporten, logboeken en databaseback-ups op een SD-kaart op in plaats van in de telefoonopslag. Alleen beschikbaar voor een gemonteerde, ondersteunde SD-kaart; USB-stations zijn uitgesloten. Android 6–9 vereisen toegang tot de map, zelfs wanneer loggen en GPX-opslag zijn uitgeschakeld. Als de kaart niet beschikbaar is, stopt het opslaan totdat deze weer beschikbaar is. Oudere bestanden blijven in hun originele mappen.</string>
+    <string name="hint_sd_download_access">Verleen toegang tot de SD-kaartmap: \n%1$s\n\n Selecteer Download, de ViBRo-submap of de root van de SD-kaart. ViBRo zal Download/ViBRo/gpx, Download/ViBRo/logs en Download/ViBRo/backup gebruiken. Opslaan vereist toegang tot deze map.</string>
+    <string name="msg_sd_storage_unavailable">Er is geen ondersteunde schrijfbare SD-kaart beschikbaar.</string>
+    <string name="msg_sd_storage_enabled">GPX-exporten, logboeken en databaseback-ups zullen de SD-kaart gebruiken.</string>
+    <string name="msg_output_folder_failed">Kon niet naar deze map schrijven. De vorige instelling is ongewijzigd.</string>
+    <string name="msg_output_access_required">Opslaan is uitgeschakeld omdat de geselecteerde uitvoermap niet beschikbaar is of toegang niet is verleend.</string>
+    <string name="msg_output_folder_picker_unavailable">Geen mapkiezer beschikbaar.</string>
+    <string name="label_auto_save_gpx_enabled">Automatisch opslaan GPX</string>
+    <string name="label_fused_location_enabled">Google Samengevoegde locatie</string>
+    <string name="label_dynamic_gps_fix_interval_enabled">Dynamische GPS interval</string>
+    <string name="label_imperial_units_enabled">Imperiale eenheden (ft/mi/mph)</string>
+    <string name="label_light_theme_enabled">Licht thema</string>
+    <string name="label_compass_surrounding_streets_enabled">Omringende straten</string>
+    <string name="action_configure_surrounding_street_types">Kies typen omringende straten</string>
+    <string name="title_surrounding_street_types">Typen omringende straten</string>
+    <string name="hint_surrounding_street_types">Categorie-schakelaars verbergen of tonen de hele kleurgroep zonder individuele selecties te wijzigen. Snelheidsgebaseerde zichtbaarheid blijft van toepassing.</string>
+    <string name="street_category_highway">Hoofdwegen</string>
+    <string name="street_category_normal">Normale straten</string>
+    <string name="street_category_walking_cycling">Wandelen / Fietsen</string>
+    <string name="street_category_special_routing">Speciale paden</string>
+    <string name="street_type_motorway">Snelwegen</string>
+    <string name="street_type_motorway_info">Hoogtesnelheidswegen met gecontroleerde toegang.\n\nOSM/BRouter: highway=motorway.</string>
+    <string name="street_type_motorway_link">Snelwegrijbanen</string>
+    <string name="street_type_motorway_link_info">Verbindingen die een snelweg oprijden of verlaten.\n\nOSM/BRouter: highway=motorway_link.</string>
+    <string name="street_type_trunk">Hoofdwegen</string>
+    <string name="street_type_trunk_info">Belangrijke doorgaande wegen onder snelwegniveau.\n\nOSM/BRouter: highway=trunk.</string>
+    <string name="street_type_trunk_link">Hoofdwegverbindingen</string>
+    <string name="street_type_trunk_link_info">Verbindingen die een hoofdweg oprijden of verlaten.\n\nOSM/BRouter: highway=trunk_link.</string>
+    <string name="street_type_primary">Primaire wegen</string>
+    <string name="street_type_primary_info">Belangrijke wegen die steden en regio\'s verbinden.\n\nOSM/BRouter: highway=primary.</string>
+    <string name="street_type_primary_link">Primaire wegverbindingen</string>
+    <string name="street_type_primary_link_info">Verbindingen die een primaire weg oprijden of verlaten.\n\nOSM/BRouter: highway=primary_link.</string>
+    <string name="street_type_secondary">Secundaire wegen</string>
+    <string name="street_type_secondary_info">Wegen die kleinere steden en gebieden verbinden.\n\nOSM/BRouter: highway=secondary.</string>
+    <string name="street_type_secondary_link">Secundaire wegverbindingen</string>
+    <string name="street_type_secondary_link_info">Verbindingen die een secundaire weg oprijden of verlaten.\n\nOSM/BRouter: highway=secondary_link.</string>
+    <string name="street_type_tertiary">Tertiaire wegen</string>
+    <string name="street_type_tertiary_info">Lokale wegen die nabijgelegen nederzettingen of buurten verbinden.\n\nOSM/BRouter: highway=tertiary.</string>
+    <string name="street_type_tertiary_link">Verbindingen van tertiaire wegen</string>
+    <string name="street_type_tertiary_link_info">Verbindingswegen die een tertiaire weg binnengaan of verlaten.\n\nOSM/BRouter: highway=tertiary_link.</string>
+    <string name="street_type_unclassified">Kleine openbare wegen</string>
+    <string name="street_type_unclassified_info">Openbare wegen onder het tertiaire niveau, vaak buiten woonwijken.\n\nOSM/BRouter: highway=unclassified.</string>
+    <string name="street_type_residential">Woonstraten</string>
+    <string name="street_type_residential_info">Straten die voornamelijk woningen bedienen.\n\nOSM/BRouter: highway=residential.</string>
+    <string name="street_type_living_street">Gedeelde woonstraten</string>
+    <string name="street_type_living_street_info">Straten met lage snelheid waar lopen en andere activiteiten de ruimte delen.\n\nOSM/BRouter: highway=living_street.</string>
+    <string name="street_type_service">Toegangswegen</string>
+    <string name="street_type_service_info">Wegen die toegang bieden tot gebouwen, parkeerplaatsen of faciliteiten.\n\nOSM/BRouter: highway=service.</string>
+    <string name="street_type_track">Paden</string>
+    <string name="street_type_track_info">Sporen hoofdzakelijk gebruikt voor landbouw- of bosbouwtoegang.\n\nOSM/BRouter: highway=track.</string>
+    <string name="street_type_road">Onbepaalde wegen</string>
+    <string name="street_type_road_info">Wegen waarvan het precieze type onbekend is.\n\nOSM/BRouter: highway=road of highway=yes.</string>
+    <string name="street_type_busway">Busbanen</string>
+    <string name="street_type_busway_info">Wegen hoofdzakelijk bestemd voor bussen.\n\nOSM/BRouter: highway=busway.</string>
+    <string name="street_type_pedestrian">Voetgangersstraten</string>
+    <string name="street_type_pedestrian_info">Straten of gebieden hoofdzakelijk bestemd voor voetgangers.\n\nOSM/BRouter: highway=pedestrian.</string>
+    <string name="street_type_footway">Voetpaden</string>
+    <string name="street_type_footway_info">Paden bestemd om te wandelen.\n\nOSM/BRouter: highway=footway.</string>
+    <string name="street_type_path">Paden</string>
+    <string name="street_type_path_info">Algemeen gebruikte paden die dienst kunnen doen voor wandelen, fietsen of ander verkeer zonder motor.\n\nOSM/BRouter: highway=path.</string>
+    <string name="street_type_cycleway">Fietspaden</string>
+    <string name="street_type_cycleway_info">Paden bestemd om te fietsen.\n\nOSM/BRouter: highway=cycleway.</string>
+    <string name="street_type_bridleway">Ruiterpaden</string>
+    <string name="street_type_bridleway_info">Paden bestemd voor paardrijden.\n\nOSM/BRouter: highway=bridleway.</string>
+    <string name="street_type_steps">Stappen</string>
+    <string name="street_type_steps_info">Trappen langs een route.\n\nOSM/BRouter: highway=steps.</string>
+    <string name="street_type_platform">Transplatforms</string>
+    <string name="street_type_platform_info">Beloopbare platforms bij haltes van het openbaar vervoer.\n\nOSM/BRouter: highway=platform.</string>
+    <string name="street_type_corridor">Binnencorridors</string>
+    <string name="street_type_corridor_info">Gangen binnen gebouwen.\n\nOSM/BRouter: highway=corridor.</string>
+    <string name="street_type_rest_area">Rustplaatsen langs de weg</string>
+    <string name="street_type_rest_area_info">Wegtoegang binnen rustplaatsen.\n\nOSM/BRouter: highway=rest_area.</string>
+    <string name="street_type_services">Wegdiensten</string>
+    <string name="street_type_services_info">Wegtoegang binnen servicegebieden.\n\nOSM/BRouter: highway=services.</string>
+    <string name="street_type_elevator">Liften</string>
+    <string name="street_type_elevator_info">Liftverbindingen tussen beloopbare niveaus.\n\nOSM/BRouter: highway=elevator.</string>
+    <string name="street_type_via_ferrata">Via ferrata routes</string>
+    <string name="street_type_via_ferrata_info">Beschermde klimroutes met vaste hulpmiddelen.\n\nOSM/BRouter: highway=via_ferrata.</string>
+    <string name="street_type_raceway">Racebanen</string>
+    <string name="street_type_raceway_info">Wegenparcours bedoeld voor racen.\n\nOSM/BRouter: highway=raceway.</string>
+    <string name="street_type_railway">Spoorwegen</string>
+    <string name="street_type_railway_info">Alle spoorweggeometrie in lokale BRouter segmenten.\n\nOSM/BRouter: railway=*.</string>
+    <string name="street_type_waterway">Waterwegen</string>
+    <string name="street_type_waterway_info">Alle waterweggeometrie in lokale BRouter segmenten.\n\nOSM/BRouter: waterway=*.</string>
+    <string name="street_type_other">Andere routegeometrie</string>
+    <string name="street_type_other_info">Geometrie zonder een erkende straat of ondersteund ruitetype.\n\nOSM/BRouter: geen erkende highway=*, railway=*, waterway=*, of ondersteunde route=* waarde.</string>
+    <string name="street_type_route_ferry">Veerbootroutes</string>
+    <string name="street_type_route_ferry_info">Routes die door een veerboot worden vervoerd.\n\nOSM/BRouter: route=ferry.</string>
+    <string name="street_type_route_hiking_foot">Wandelroutes</string>
+    <string name="street_type_route_hiking_foot_info">Gemarkeerde routes voor wandelen of trektochten.\n\nOSM/BRouter: route=hiking of route=foot.</string>
+    <string name="street_type_route_bicycle">Fietsroutes</string>
+    <string name="street_type_route_bicycle_info">Gemarkeerde routes voor fietsen.\n\nOSM/BRouter: route=bicycle.</string>
+    <string name="street_type_route_ski_piste">Ski-/pisteroutes</string>
+    <string name="street_type_route_ski_piste_info">Ski-routes en pistes voor andere activiteiten, zoals sleeën of wandelen. BRouter slaat beide labels op als één waarde, zodat ze deze schakelaar delen.\n\nOSM/BRouter: route=ski of route=piste.</string>
+    <string name="street_type_route_mtb">Mountainbikeroutes</string>
+    <string name="street_type_route_mtb_info">Gemarkeerde routes voor mountainbiken.\n\nOSM/BRouter: route=mtb.</string>
+    <string name="street_type_route_canoe">Kano-routes</string>
+    <string name="street_type_route_canoe_info">Gemarkeerde routes voor kanoën.\n\nOSM/BRouter: route=canoe.</string>
+    <string name="street_type_route_bus">Busroutes</string>
+    <string name="street_type_route_bus_info">Busroute-geometrie in lokale BRouter-segmenten.\n\nOSM/BRouter: route=bus.</string>
+    <string name="label_compass_instant_zoom_enabled">Directe kompaszoom</string>
+    <string name="label_compass_stationary_full_route_zoom_enabled">Automatisch uitzoomen</string>
+    <string name="label_compass_fullscreen_route_enabled">Volledig scherm route</string>
+    <string name="label_compass_distance_circles_enabled">Afstandscirkels</string>
+    <string name="label_compass_central_perspective_enabled">Perspectief 3D-weergave</string>
+    <string name="label_show_hint_panel">Toon hintpaneel</string>
+    <string name="label_navigation_notifications_enabled">Meldingen</string>
+    <string name="label_single_instruction_mode_enabled">Enkel instructiemodus</string>
+    <string name="label_android_auto_integration_enabled">Android Auto</string>
+    <string name="label_poi_categories">POI categorieën filter</string>
+    <string name="hint_poi_categories_filter">Kies welke POI categorieën verschijnen in de kaartkiezer wanneer het filter is ingeschakeld. Bewerk categorienamen, schakel ze aan of uit, of gebruik + om meer toe te voegen.</string>
+    <string name="hint_poi_category_name">POI Categorienaam</string>
+    <string name="label_speech_recognition">Spraakherkenning</string>
+    <string name="label_speech_recognition_language">Taal</string>
+    <string name="label_speech_recognition_language_system_default">Standaard van het systeem</string>
+    <string name="label_maneuver_voice">Spreekrichtingen</string>
+    <string name="label_maneuver_voice_spinner">Stem</string>
+    <string name="label_maneuver_voice_disabled">Uitgeschakeld</string>
+    <string name="label_maneuver_voice_system_default">Standaard van het systeem</string>
+    <string name="format_maneuver_voice_variant_code">Stem %1$s</string>
+    <string name="label_maneuver_voice_gender_female">Vrouw</string>
+    <string name="label_maneuver_voice_gender_male">Man</string>
+    <string name="label_google_poi_api_key">Google Maps API toets</string>
+    <string name="label_navigation_custom_button">Aangepaste knop</string>
+    <string name="label_navigation_custom_button_target">Instelling</string>
+    <string name="label_setting_enabled">ingeschakeld</string>
+    <string name="label_setting_disabled">uitgeschakeld</string>
+    <string name="hint_google_poi_api_key">Optionele Google Maps toets</string>
+    <string name="format_about_setting_info_content_description">Toon hulp voor %1$s</string>
+    <string name="format_action_toggle_custom_button_setting">Schakel %1$s in/uit (%2$s)</string>
+    <string name="about_setting_log_info">Houdt een gedetailleerd gedragslogboek bij dat kan helpen bij het diagnosticeren van problemen. Laat dit uit tenzij je details moet delen voor ondersteuning. Wanneer de geselecteerde map toegankelijk is, creëren crashes en onverwachte navigatiestops nog steeds een logboek met tijdstempel en systeemdetails wanneer deze schakelaar uit staat. Een geforceerde stop kan pas worden gerapporteerd nadat de app opnieuw is gestart; de exacte oorzaak kan mogelijk niet beschikbaar zijn.</string>
+    <string name="about_setting_auto_save_gpx_info">Slaat de actieve route op als een GPX-bestand wanneer je de navigatie stopt met de Stop-knop. Gebruikt Download/ViBRo/gpx op de telefoon of de SD-kaart geselecteerd door Externe opslag gebruiken. Het inschakelen hiervan vraagt toegang tot ontbrekende mappen. Opslaan blijft uit als toegang wordt geweigerd of de geselecteerde opslag niet beschikbaar is.</string>
+    <string name="about_setting_fused_location_info">Gebruikt Google-locatie wanneer beschikbaar. Dit kan de locatie-updates op sommige telefoons verbeteren.</string>
+    <string name="about_setting_dynamic_gps_fix_interval_info">Bespaart batterij door je locatie minder vaak te controleren, maar nog steeds op een betrouwbare manier. Zet het uit voor continue locatie-updates.</string>
+    <string name="about_setting_imperial_units_info">Toont afstanden en snelheden in voeten, mijlen en mph in plaats van meters en km/h.</string>
+    <string name="about_setting_light_theme_info">Schakelt de app van de standaard donkere weergave naar een lichte weergave.</string>
+    <string name="about_setting_compass_surrounding_streets_info">Toont nabijgelegen straten en andere routeringsgeometrie in het kompas wanneer lokale kaartgegevens beschikbaar zijn.\n\nKleurlegenda:\n■ — hoofdwegen en snelwegen\n■ — normale straten\n■ — wandel- en fietspaden en -routes\n■ — spoorwegen, vaarwegen, veerboten, ski-/kan-/busroutes, ruiterpaden, racebanen en via ferrata</string>
+    <string name="about_setting_compass_instant_zoom_info">Slaat de compas-zoomanimatie over zodat het schakelen tussen routeoverzicht en bewegende-schaalweergaven onmiddellijk is.</string>
+    <string name="about_setting_compass_stationary_full_route_zoom_info">Toont de volledige route in het kompas wanneer je stil staat. Zet het uit om de laatste bewegende schaalzoom te behouden wanneer gestopt.</string>
+    <string name="about_setting_compass_fullscreen_route_info">Vergroot de routekompasweergave achter het volledige navigatiescherm terwijl de bedieningselementen en richtingsomschrijving zichtbaar blijven aan de voorkant.</string>
+    <string name="about_setting_compass_distance_circles_info">Toont afstandscirkels met tijd- en afstandsetiketten, de koerspijl en lijnen en bogen voor koersnauwkeurigheid in kompas- en volledige schermweergaven.</string>
+    <string name="about_setting_compass_central_perspective_info">Gebruikt perspectief in de 3D-kompasweergave: nabijgelegen routes en straten lijken groter, terwijl verre routes naar de bovenkant toe krimpen. Zet dit uit om de uniforme orthografische helling te gebruiken.</string>
+    <string name="about_setting_show_hint_panel_info">Toont gebarenaanwijzingen en de straatskleurlegenda wanneer telefoon-navigatie wordt geopend.</string>
+    <string name="about_setting_navigation_notifications_info">Toont bochtmeldingen en navigatiewaarschuwingen als meldingen. De lopende navigatiemelding wordt niet beïnvloed en blijft zichtbaar tijdens het navigeren.</string>
+    <string name="about_setting_single_instruction_mode_info">Gebruikt één manoeuvrewaarschuwing ongeveer 10 seconden voor elke komende instructie en onderdrukt de start-, 20-seconden- en 5-seconden manoeuvrewaarschuwingen. Aankomst- en waarschuwingsmeldingen worden niet beïnvloed.</string>
+    <string name="about_setting_navigation_custom_button_info">Toont een extra knop in het navigatiekompas die de geselecteerde instelling schakelt terwijl de navigatie geopend is.</string>
+    <string name="about_setting_android_auto_info">Laat compatibele autodisplays navigatie zien via Android Auto. Sommige hosts verversen de applijst pas nadat Android Auto opnieuw is verbonden. In echte voertuigen toont Android Auto dit type app alleen wanneer het is geïnstalleerd vanuit een betrouwbare bron zoals Google Play of Interne Appdeling.</string>
+    <string name="about_setting_poi_categories_info">Kies welke plaatsen kunnen verschijnen op de kaartkiezer, zoals brandstof, parkeren of toiletten.</string>
+    <string name="about_setting_speech_recognition_info">Toont microfoonknoppen voor bestemming en stop spraakopname en kiest de gevraagde herkenningstaal. Android kan zijn standaard gebruiken als de geselecteerde spraakherkenner de gevraagde taal niet ondersteunt.</string>
+    <string name="about_setting_maneuver_voice_info">Leest aankomende richtingaanwijzingen hardop voor met een Android-stem.</string>
+    <string name="about_setting_google_poi_api_key_info">Laat bestemming zoeken Google Maps gebruiken wanneer u een geldige sleutel opgeeft.</string>
+    <string name="about_setting_export_database_info">Slaat uw app-gegevens op, inclusief geschiedenis, opgeslagen routes, instellingen en profielkeuzes, als JSON in Download/ViBRo/backup op de telefoon of de SD-kaart geselecteerd door Externe opslag gebruiken. Toont de opgeslagen bestandsnaam zonder te vragen naar een map. Op Android 6–9, stel eerst de opslagtoegang in via Diagnostiek.</string>
+    <string name="about_setting_import_database_info">Herstelt uw app-gegevens van een JSON-back-up die door deze app is gemaakt. De bestandskiezer start in Download/ViBRo/backup op de telefoon of op de SD-kaart geselecteerd met Gebruik externe opslag op Android 8 en later. U kunt ook naar een andere map bladeren.</string>
+    <string name="msg_google_poi_api_key_saved">Google Maps API-sleutel opgeslagen.</string>
+    <string name="msg_google_poi_api_key_cleared">Google Maps API-sleutel gewist.</string>
+    <string name="msg_google_poi_api_key_required">Voeg een Google Maps API-sleutel toe voordat u Google-zoekopdracht inschakelt.</string>
+    <string name="msg_google_poi_api_key_validating">Bezig met valideren van Google Maps API-sleutel…</string>
+    <string name="msg_google_poi_api_key_invalid">Google Maps API-sleutel is niet geldig.</string>
+    <string name="msg_google_poi_api_key_validation_failed">Kon Google Maps API-sleutel niet valideren.</string>
+    <string name="about_diagnostic_title">Diagnostiek</string>
+    <string name="about_permission_status_title">Vereiste toegang</string>
+    <string name="about_sensor_status_title">Sensorstatus</string>
+    <string name="label_direction_notification_tests">Tests van route-meldingen</string>
+    <string name="label_permission_location">Locatietoestemming</string>
+    <string name="label_permission_location_services">Apparaatlocatie</string>
+    <string name="label_permission_notifications">Meldingen</string>
+    <string name="label_permission_battery">Batterijoptimalisatie</string>
+    <string name="label_permission_surrounding_street_storage">BRouter straatopslag</string>
+    <string name="label_permission_brouter_profile_storage">BRouter profielopslag</string>
+    <string name="format_about_permission_status_content_description">%1$s: %2$s. Tik om op te lossen.</string>
+    <string name="label_sensor_fused_provider">Google fused-provider</string>
+    <string name="label_sensor_gps_provider">GPS-provider</string>
+    <string name="label_sensor_network_provider">Netwerkprovider</string>
+    <string name="label_sensor_geomagnetic_rotation_vector">Geomagnetische rotatievector</string>
+    <string name="label_sensor_rotation_vector">Rotatievector</string>
+    <string name="label_sensor_orientation">Oriëntatiesensor</string>
+    <string name="label_sensor_linear_acceleration">Lineaire versnellingssensor</string>
+    <string name="label_sensor_accelerometer">Versnellingsmeter</string>
+    <string name="sensor_status_enabled">ingeschakeld</string>
+    <string name="sensor_status_disabled">uitgeschakeld</string>
+    <string name="sensor_status_available">beschikbaar</string>
+    <string name="sensor_status_unavailable">niet beschikbaar</string>
+    <string name="sensor_status_permission_denied">toestemming geweigerd</string>
+    <string name="auto_no_active_navigation_title">Geen actieve navigatie</string>
+    <string name="auto_no_active_navigation_text">Start navigatie op de telefoon om hier begeleiding te tonen.</string>
+    <plurals name="nav_gesture_dismiss_countdown">
+        <item quantity="one">Tik ergens om te sluiten of wacht %1$d seconde</item>
+        <item quantity="other">Tik ergens om te sluiten of wacht %1$d seconden</item>
+    </plurals>
+    <plurals name="format_stationary_orientation_speech">
+        <item quantity="one">Draai %1$d graad %2$s</item>
+        <item quantity="other">Draai %1$d graden %2$s</item>
+    </plurals>
+    <plurals name="format_time_speech_seconds">
+        <item quantity="one">%1$d seconde</item>
+        <item quantity="other">%1$d seconden</item>
+    </plurals>
+    <plurals name="format_time_speech_minutes">
+        <item quantity="one">%1$d minuut</item>
+        <item quantity="other">%1$d minuten</item>
+    </plurals>
+</resources>
