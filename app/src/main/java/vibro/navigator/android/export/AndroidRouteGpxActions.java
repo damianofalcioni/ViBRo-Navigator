@@ -14,6 +14,7 @@ import java.util.concurrent.Executors;
 
 import vibro.navigator.R;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.export.NavigationRouteGpxSource;
 import vibro.navigator.android.storage.AndroidOutputFolderCleaner;
 import vibro.navigator.settings.AppOutputFolderSettings.Kind;
 
@@ -56,9 +57,18 @@ public final class AndroidRouteGpxActions {
     }
 
     public static void autoSave(Context context, String gpx) {
+        autoSave(context, () -> gpx);
+    }
+
+    public static void autoSave(Context context, NavigationRouteGpxSource source) {
         Context appContext = context.getApplicationContext();
         WORKER.execute(() -> {
             try {
+                String gpx = source.build();
+                if (gpx == null) {
+                    AppLogger.w(TAG, "Auto-save GPX skipped because no active route is available");
+                    return;
+                }
                 AppLogger.i(TAG, "Auto-saved route GPX uri="
                         + AndroidRouteGpxAutoSaver.saveUri(appContext, gpx));
             } catch (IOException | RuntimeException e) {

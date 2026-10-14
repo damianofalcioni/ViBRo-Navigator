@@ -20,6 +20,11 @@ public final class AppGpxSettings {
         return isAutoSaveOnStopEnabled(prefs(context));
     }
 
+    /** Storage authorization is checked by the writer, away from the Stop confirmation. */
+    public static boolean isAutoSaveOnStopRequested(@NonNull Context context) {
+        return isAutoSaveOnStopEnabled(prefs(context));
+    }
+
     static boolean isAutoSaveOnStopEnabled(@NonNull SharedPreferences preferences) {
         return preferences.getBoolean(KEY_AUTO_SAVE_ON_STOP_ENABLED, true);
     }

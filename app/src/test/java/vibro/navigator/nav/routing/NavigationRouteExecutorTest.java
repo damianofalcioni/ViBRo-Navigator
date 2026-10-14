@@ -465,16 +465,17 @@ public class NavigationRouteExecutorTest {
     }
 
     @Test
-    public void shutdownClosesClosableRouteCalculator() {
+    public void shutdownClosesClosableRouteCalculator() throws Exception {
         AtomicInteger closeCount = new AtomicInteger();
+        CountDownLatch closed = new CountDownLatch(1);
         NavigationRouteExecutor executor = new NavigationRouteExecutor(
-                new ClosableRouteCalculator(closeCount),
+                new ClosableRouteCalculator(closeCount, closed),
                 Executors.newSingleThreadExecutor(),
                 Runnable::run
         );
 
         executor.shutdown();
-
+        assertTrue(closed.await(3, TimeUnit.SECONDS));
         assertEquals(1, closeCount.get());
     }
 
@@ -818,9 +819,11 @@ public class NavigationRouteExecutorTest {
             implements NavigationRouteExecutor.RouteCalculator, AutoCloseable {
 
         private final AtomicInteger closeCount;
+        private final CountDownLatch closed;
 
-        private ClosableRouteCalculator(AtomicInteger closeCount) {
+        private ClosableRouteCalculator(AtomicInteger closeCount, CountDownLatch closed) {
             this.closeCount = closeCount;
+            this.closed = closed;
         }
 
         @Override
@@ -842,6 +845,7 @@ public class NavigationRouteExecutorTest {
         @Override
         public void close() {
             closeCount.incrementAndGet();
+            closed.countDown();
         }
     }
 

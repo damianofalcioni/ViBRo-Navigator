@@ -21,6 +21,12 @@ final class NavigationAcceptedFixHistory {
     }
 
     @NonNull
+    List<NavigationLocation> snapshotForExport() {
+        // Stored fixes are owned copies and never mutated; the export worker makes its own value copies.
+        return Collections.unmodifiableList(new ArrayList<>(acceptedFixes));
+    }
+
+    @NonNull
     List<NavigationLocation> snapshot() {
         if (acceptedFixes.isEmpty()) {
             return Collections.emptyList();

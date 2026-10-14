@@ -15,6 +15,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public final class NavigationRouteExecutor {
 
@@ -130,6 +132,7 @@ public final class NavigationRouteExecutor {
     private static final String TAG = "NavRouteExecutor";
     private static final int DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES = 2;
     private static final long DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS = 400L;
+    private static final Executor CLEANUP_WORKER = Executors.newSingleThreadExecutor();
 
     private final RouteCalculator routeCalculator;
     private final ExecutorService executorService;
@@ -245,13 +248,18 @@ public final class NavigationRouteExecutor {
         }
     }
 
-    public void shutdown() {
+    public synchronized void shutdown() {
+        if (shutdown) {
+            return;
+        }
         shutdown = true;
         executorService.shutdownNow();
-        if (!awaitExecutorTermination()) {
-            AppLogger.w(TAG, "Route executor did not terminate cleanly before cleanup");
-        }
-        closeRouteCalculator();
+        CLEANUP_WORKER.execute(() -> {
+            if (!awaitExecutorTermination()) {
+                AppLogger.w(TAG, "Route executor did not terminate cleanly before cleanup");
+            }
+            closeRouteCalculator();
+        });
     }
 
     private void deliverRouteApplied(

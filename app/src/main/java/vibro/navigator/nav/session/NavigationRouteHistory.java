@@ -24,6 +24,11 @@ final class NavigationRouteHistory {
     private final NavigationTravelInstructions instructions = new NavigationTravelInstructions();
     private long revision;
 
+    NavigationRouteHistoryExportSnapshot snapshotForExport() {
+        return new NavigationRouteHistoryExportSnapshot(travelHistory.snapshotForExport(),
+                instructions.snapshot(), connectedPath(rerouteFixPath.snapshot()), directLegEndMeters);
+    }
+
     void reset() {
         revision++;
         travelHistory.reset();
@@ -191,12 +196,7 @@ final class NavigationRouteHistory {
     }
 
     List<List<LatLon>> orderedSegmentsSnapshot() {
-        List<List<LatLon>> result = travelHistory.orderedSegmentsSnapshot();
-        List<LatLon> live = connectedPath(rerouteFixPath.snapshot());
-        if (live.size() >= 2) {
-            result.add(live);
-        }
-        return result;
+        return snapshotForExport().orderedSegments();
     }
 
     @Nullable

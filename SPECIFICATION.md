@@ -660,7 +660,7 @@ The navigation UI must show the following in large text:
 - For straight-line navigation, the exported GPX must also include the passed beeline path connecting accepted GPS fixes as an additional passed-route track segment when at least two accepted fixes are available
 - When the active route has no explicit destination-arrival voice hint, the exported GPX should include a synthetic destination-reached waypoint at the final route point
 - The export flow must write the generated GPX XML into the application log before launching the chooser
-- When Auto-save GPX on stop is enabled, confirming Stop captures the current exportable GPX before stopping navigation and queues the write off the UI thread. Manual exports use the same worker and destination. Missing access or a failed write disables automatic saving and reports export failure; remove partial files and pending MediaStore rows after failed writes. Manual permission grants do not enable automatic saving.
+- When Auto-save GPX on stop is enabled, confirming Stop captures independent route/history inputs before stopping navigation. Route slicing, GPX serialization, storage authorization, and writing run on the export worker so the confirmation can close promptly. The captured export must survive service destruction and an immediately started new trip. Manual exports use the same worker and destination. Missing access or a failed write disables automatic saving and reports export failure; remove partial files and pending MediaStore rows after failed writes. Manual permission grants do not enable automatic saving.
 - With Use external storage off, GPX exports use phone Download/ViBRo/gpx. With it on, they use the same layout on the selected SD card. Logs use the sibling logs folder. No custom output-folder setting is exposed.
 - Expose saved GPX through a content URI with a temporary read grant: MediaStore on Android 10+, SAF on legacy SD cards, and the read-only file provider for legacy phone Downloads. Limit new public-directory provider roots to ViBRo's gpx, logs, and backup folders. Request WRITE_EXTERNAL_STORAGE only on Android 6–9 when phone Downloads access is needed.
 - If no active route exists, the navigation UI must show a short failure message instead of opening an empty GPX file
@@ -727,6 +727,7 @@ The navigation UI must show the following in large text:
 - In that bottom action row, the stop button must sit between the blocked-road button and the pause/resume button
 - Pressing it must first show a confirmation dialog before stopping the active navigation session
 - Confirming the dialog must stop navigation and return to the previous UI
+- Stop must disable route callbacks immediately and perform blocking route-executor termination and calculator cleanup off the UI thread. Persist the clean-stop diagnostics marker on a serialized worker, ordered before any subsequent navigation-start marker; service destruction must not record the stop twice.
 - Canceling the dialog must leave the current navigation session running and keep the navigation UI open
 - Destination and intermediate stops must be kept
 

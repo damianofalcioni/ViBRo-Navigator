@@ -15,6 +15,7 @@ import java.util.List;
 import vibro.navigator.R;
 import vibro.navigator.brouter.NogoPoint;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.export.NavigationRouteGpxSource;
 
 public final class NavigationServiceBinder extends Binder {
 
@@ -64,6 +65,9 @@ public final class NavigationServiceBinder extends Binder {
 
         @Nullable
         String buildCurrentRouteGpx();
+
+        @Nullable
+        NavigationRouteGpxSource captureCurrentRouteGpx();
 
         @NonNull
         List<String> buildCurrentDirectionDetails();
@@ -164,6 +168,11 @@ public final class NavigationServiceBinder extends Binder {
     @Nullable
     public String buildCurrentRouteGpx() {
         return host.buildCurrentRouteGpx();
+    }
+
+    @Nullable
+    public NavigationRouteGpxSource captureCurrentRouteGpx() {
+        return host.captureCurrentRouteGpx();
     }
 
     @NonNull

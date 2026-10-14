@@ -126,7 +126,7 @@ final class NavigationActivityCommands {
                     NavigationServiceBinder binder = binderProvider.current();
                     if (binder != null) {
                         AppLogger.i(TAG, "Stop navigation requested from UI");
-                        NavigationStopGpxAutoSave.saveIfEnabled(activity, binder::buildCurrentRouteGpx);
+                        NavigationStopGpxAutoSave.saveIfEnabled(activity, binder::captureCurrentRouteGpx);
                         binder.stop();
                     } else {
                         AppLogger.w(TAG, "Stop navigation confirmed before service binding completed");

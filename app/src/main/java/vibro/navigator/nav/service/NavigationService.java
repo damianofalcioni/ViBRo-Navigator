@@ -237,7 +237,7 @@ public class NavigationService extends AndroidLocalizedService {
     }
 
     private void stopNavigation() {
-        AppExitDiagnostics.navigationStopped(this);
+        AppExitDiagnostics.navigationStoppedAsync(this, navigationSession.isStarted());
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
         navigationSession.stop();

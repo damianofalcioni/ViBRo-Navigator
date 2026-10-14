@@ -1,5 +1,8 @@
 package vibro.navigator.nav.service;
 
+import vibro.navigator.nav.export.NavigationRouteGpxSource;
+import vibro.navigator.nav.session.NavigationSessionRouteExporter;
+
 
 import vibro.navigator.nav.foreground.NavigationForegroundCoordinator;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
@@ -176,6 +179,12 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     @Nullable
     public String buildCurrentRouteGpx() {
         return navigationSession.buildCurrentRouteGpx(context);
+    }
+
+    @Override
+    @Nullable
+    public NavigationRouteGpxSource captureCurrentRouteGpx() {
+        return NavigationSessionRouteExporter.capture(navigationSession, new AndroidNavigationTextResources(context));
     }
 
     @Override

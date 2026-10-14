@@ -75,6 +75,29 @@ public class AppExitDiagnosticsTest {
     }
 
     @Test
+    public void asynchronousStopIsDurableBeforeNextProcessStart() {
+        AppExitDiagnostics.onProcessStart(context, 101, 1000L, (unused, pid, since) -> null);
+        AppExitDiagnostics.navigationStarted(context);
+        AppExitDiagnostics.navigationStoppedAsync(context, true);
+
+        AppExitDiagnostics.onProcessStart(context, 202, 2000L, (unused, pid, since) -> null);
+
+        assertEquals(initialLogFileCount, logFileCount());
+    }
+
+    @Test
+    public void queuedStopCannotClearANewNavigationStart() throws Exception {
+        AppExitDiagnostics.onProcessStart(context, 101, 1000L, (unused, pid, since) -> null);
+        AppExitDiagnostics.navigationStarted(context);
+        AppExitDiagnostics.navigationStoppedAsync(context, true);
+        AppExitDiagnostics.navigationStarted(context);
+
+        AppExitDiagnostics.onProcessStart(context, 202, 2000L, (unused, pid, since) -> null);
+
+        assertTrue(readLog().contains("Previous navigation ended without a clean stop"));
+    }
+
+    @Test
     public void unrelatedNormalExitIsIgnoredButCrashIsReported() throws Exception {
         AppExitDiagnostics.onProcessStart(context, 101, 1000L, (unused, pid, since) -> null);
         AppExitDiagnostics.onProcessStart(context, 202, 2000L, (unused, pid, since) ->

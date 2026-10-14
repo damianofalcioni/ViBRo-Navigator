@@ -9,6 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.android.logging.AndroidProcessExitReader;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class AppExitDiagnostics {
     private static final String TAG = "AppExitDiagnostics";
@@ -17,6 +21,7 @@ public final class AppExitDiagnostics {
     private static final String KEY_PROCESS_STARTED_AT = "process_started_at";
     private static final String KEY_NAVIGATION_ACTIVE = "navigation_active";
     private static final String KEY_NAVIGATION_STARTED_AT = "navigation_started_at";
+    private static final ExecutorService MARKER_WORKER = Executors.newSingleThreadExecutor();
 
     interface ExitReader {
         @Nullable AppProcessExit find(@NonNull Context context, int pid, long startedAtMs);
@@ -29,7 +34,7 @@ public final class AppExitDiagnostics {
         onProcessStart(context, Process.myPid(), System.currentTimeMillis(), AndroidProcessExitReader::findPrevious);
     }
 
-    // Keep process/navigation markers durable before returning, even if the process is terminated immediately afterward.
+    // Startup remains durable; drain any queued Stop marker before reading the previous session.
     @SuppressLint("ApplySharedPref")
     static void onProcessStart(
             @NonNull Context context,
@@ -37,6 +42,7 @@ public final class AppExitDiagnostics {
             long nowMs,
             @NonNull ExitReader exitReader
     ) {
+        awaitMarker(MARKER_WORKER.submit(() -> null));
         SharedPreferences prefs = preferences(context);
         int previousPid = prefs.getInt(KEY_PROCESS_PID, 0);
         long previousStartMs = prefs.getLong(KEY_PROCESS_STARTED_AT, 0L);
@@ -90,18 +96,54 @@ public final class AppExitDiagnostics {
 
     @SuppressLint("ApplySharedPref")
     public static void navigationStarted(@NonNull Context context) {
-        preferences(context).edit()
+        Context appContext = context.getApplicationContext();
+        long startedAtMs = System.currentTimeMillis();
+        awaitMarker(MARKER_WORKER.submit(() -> preferences(appContext).edit()
                 .putBoolean(KEY_NAVIGATION_ACTIVE, true)
-                .putLong(KEY_NAVIGATION_STARTED_AT, System.currentTimeMillis())
-                .commit();
+                .putLong(KEY_NAVIGATION_STARTED_AT, startedAtMs)
+                .commit()));
+    }
+
+    public static void navigationStopped(@NonNull Context context) {
+        Context appContext = context.getApplicationContext();
+        awaitMarker(MARKER_WORKER.submit(() -> writeStoppedMarker(appContext)));
+    }
+
+    public static void navigationStoppedAsync(@NonNull Context context, boolean navigationWasStarted) {
+        if (!navigationWasStarted) {
+            return;
+        }
+        Context appContext = context.getApplicationContext();
+        MARKER_WORKER.execute(() -> writeStoppedMarker(appContext));
     }
 
     @SuppressLint("ApplySharedPref")
-    public static void navigationStopped(@NonNull Context context) {
+    private static void writeStoppedMarker(Context context) {
         preferences(context).edit()
                 .putBoolean(KEY_NAVIGATION_ACTIVE, false)
                 .remove(KEY_NAVIGATION_STARTED_AT)
                 .commit();
+    }
+
+    private static void awaitMarker(Future<?> marker) {
+        boolean interrupted = false;
+        try {
+            boolean completed = false;
+            while (!completed) {
+                try {
+                    marker.get();
+                    completed = true;
+                } catch (InterruptedException e) {
+                    interrupted = true;
+                }
+            }
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Could not persist navigation diagnostics", e);
+        } finally {
+            if (interrupted) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     @NonNull

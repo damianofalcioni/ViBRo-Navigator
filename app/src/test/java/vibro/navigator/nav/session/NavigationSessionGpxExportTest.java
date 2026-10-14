@@ -21,6 +21,10 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.VoiceHint;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.export.NavigationRouteGpxSource;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class NavigationSessionGpxExportTest {
     private static final String DESTINATION = "Destination";
@@ -35,7 +39,7 @@ public class NavigationSessionGpxExportTest {
     private static final String FIRST_GPS_FIX_ELEVATION = "<ele>188.5</ele>";
 
     @Test
-    public void buildCurrentRouteGpx_exportsStraightLinePointsAndStraightRouteOnly() {
+    public void buildCurrentRouteGpx_exportsStraightLinePointsAndStraightRouteOnly() throws Exception {
         NavigationTextResources textResources = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         LatLon stop = new LatLon(0.0, 0.001);
@@ -56,7 +60,7 @@ public class NavigationSessionGpxExportTest {
                 locationWithSpeedAndAltitude(0.0, 0.0, nowMs, 2f, 188.5),
                 nowMs
         );
-        String gpx = session.buildCurrentRouteGpx(textResources);
+        String gpx = exportCapturedAfterSessionReset(session, textResources);
 
         assertNotNull(gpx);
         assertEquals(3, countOccurrences(gpx, GPX_ROUTE_POINT));
@@ -106,7 +110,7 @@ public class NavigationSessionGpxExportTest {
     }
 
     @Test
-    public void buildCurrentRouteGpx_exportsPassedRouteHistoryAndAcceptedFixes() {
+    public void buildCurrentRouteGpx_exportsPassedRouteHistoryAndAcceptedFixes() throws Exception {
         NavigationTextResources textResources = TestNavigationTextResources.metric();
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest(
@@ -148,7 +152,7 @@ public class NavigationSessionGpxExportTest {
                 16_000L
         );
 
-        String gpx = session.buildCurrentRouteGpx(textResources);
+        String gpx = exportCapturedAfterSessionReset(session, textResources);
 
         assertNotNull(gpx);
         // The untravelled old route is replaced by the recorded connector and remaining plan.
@@ -160,6 +164,21 @@ public class NavigationSessionGpxExportTest {
         assertTrue(gpx.contains("Turn right"));
         assertTrue(gpx.contains(TYPE_GPS_FIX));
         assertTrue(gpx.contains(FIRST_GPS_FIX_TIME));
+    }
+
+    private static String exportCapturedAfterSessionReset(NavigationSession session,
+            NavigationTextResources textResources) throws Exception {
+        NavigationRouteGpxSource captured = NavigationSessionRouteExporter.capture(session, textResources);
+        assertNotNull(captured);
+        session.stop();
+        session.loadRequest(new NavigationRequest(null, null, null, Collections.emptyList()));
+        assertFalse(NavigationSessionResourceAdapter.start(session, textResources, 100_000L));
+        ExecutorService worker = Executors.newSingleThreadExecutor();
+        try {
+            return worker.submit(captured::build).get(3, TimeUnit.SECONDS);
+        } finally {
+            worker.shutdownNow();
+        }
     }
 
     @Test

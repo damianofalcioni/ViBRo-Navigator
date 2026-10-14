@@ -9,6 +9,7 @@ import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.export.NavigationRouteGpxExporter;
 import vibro.navigator.nav.export.NavigationRouteGpxExportHistory;
+import vibro.navigator.nav.export.NavigationRouteGpxSource;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.route.GeoJsonRoute;
@@ -16,8 +17,17 @@ import vibro.navigator.nav.route.GeoJsonRoute;
 import java.util.Collections;
 import java.util.List;
 
-final class NavigationSessionRouteExporter {
+public final class NavigationSessionRouteExporter {
     private NavigationSessionRouteExporter() {
+    }
+
+    /** Call on the session's main thread; build the returned source on the export worker. */
+    @Nullable
+    public static NavigationRouteGpxSource capture(@NonNull NavigationSession session,
+            @NonNull NavigationTextResources textResources) {
+        return capture(textResources, session.components.routeState, session.components.straightLineState,
+                session.components.locationState.getLastFilteredLocation(),
+                session.components.acceptedFixHistory.snapshotForExport(), session.currentRequest);
     }
 
     @Nullable
@@ -48,20 +58,36 @@ final class NavigationSessionRouteExporter {
             @NonNull List<NavigationLocation> acceptedFixes,
             @NonNull NavigationRequest request
     ) {
+        NavigationRouteGpxSource source = capture(textResources, routeState, straightLineState,
+                currentLocation, acceptedFixes, request);
+        return source == null ? null : source.build();
+    }
+
+    @Nullable
+    static NavigationRouteGpxSource capture(NavigationTextResources textResources,
+            NavigationSessionRouteState routeState, StraightLineNavigationState straightLineState,
+            NavigationLocation currentLocation, List<NavigationLocation> acceptedFixes,
+            NavigationRequest request) {
         if (request.isStraightLine()) {
-            return exportStraightLine(textResources, straightLineState, currentLocation, acceptedFixes, request);
+            GeoJsonRoute route = straightLineState.buildExportRoute(request, currentLocation);
+            if (request.destination == null || route == null || route.track.isEmpty()) {
+                return null;
+            }
+            return () -> NavigationRouteGpxExporter.exportStraightLine(textResources, route,
+                    request.stops, request.destination,
+                    new NavigationRouteGpxExportHistory(Collections.emptyList(), acceptedFixes));
         }
-        return exportRoute(textResources, routeState, acceptedFixes, request);
+        NavigationRouteHistoryExportSnapshot history = routeState.historyForExport().snapshotForExport();
+        return () -> exportRoute(textResources, history, acceptedFixes, request);
     }
 
     @Nullable
     private static String exportRoute(
             @NonNull NavigationTextResources textResources,
-            @NonNull NavigationSessionRouteState routeState,
+            @NonNull NavigationRouteHistoryExportSnapshot history,
             @NonNull List<NavigationLocation> acceptedFixes,
             @NonNull NavigationRequest request
     ) {
-        NavigationRouteHistory history = routeState.historyForExport();
         GeoJsonRoute route = history.remainingRoute();
         if (route == null || route.track.isEmpty()) {
             return null;
@@ -70,36 +96,7 @@ final class NavigationSessionRouteExporter {
                 textResources,
                 route,
                 request.stops,
-                new NavigationRouteGpxExportHistory(
-                        history.passedRoutesSnapshot(),
-                        history.recalculationBridgeSegmentsSnapshot(),
-                        acceptedFixes,
-                        history.orderedSegmentsSnapshot()
-                )
-        );
-    }
-
-    @Nullable
-    private static String exportStraightLine(
-            @NonNull NavigationTextResources textResources,
-            @NonNull StraightLineNavigationState straightLineState,
-            @Nullable NavigationLocation currentLocation,
-            @NonNull List<NavigationLocation> acceptedFixes,
-            @NonNull NavigationRequest request
-    ) {
-        if (request.destination == null) {
-            return null;
-        }
-        GeoJsonRoute route = straightLineState.buildExportRoute(request, currentLocation);
-        if (route == null || route.track.isEmpty()) {
-            return null;
-        }
-        return NavigationRouteGpxExporter.exportStraightLine(
-                textResources,
-                route,
-                request.stops,
-                request.destination,
-                new NavigationRouteGpxExportHistory(Collections.emptyList(), acceptedFixes)
+                history.history(acceptedFixes)
         );
     }
 }

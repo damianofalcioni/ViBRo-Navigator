@@ -20,6 +20,19 @@ final class NavigationRouteTravelHistory {
     private PolylineIndex.Match lastActiveMatch;
     private double entryMeters;
 
+    NavigationRouteTravelHistory snapshotForExport() {
+        NavigationRouteTravelHistory copy = new NavigationRouteTravelHistory();
+        // Archived sections, bridge points and route geometry are immutable after insertion.
+        copy.archived.addAll(archived);
+        copy.bridges.addAll(bridges);
+        copy.ordered.addAll(ordered);
+        copy.activeRoute = activeRoute;
+        copy.activeIndex = activeIndex;
+        copy.lastActiveMatch = lastActiveMatch;
+        copy.entryMeters = entryMeters;
+        return copy;
+    }
+
     void reset() {
         archived.clear();
         bridges.clear();
