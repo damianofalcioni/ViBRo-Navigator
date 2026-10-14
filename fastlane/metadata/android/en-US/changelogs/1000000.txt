@@ -1,0 +1,6 @@
+First stable release of ViBRo Navigator.
+- Offline BRouter routes, round trips and straight-line guidance.
+- Vibration and optional voice directions, including screen-off navigation.
+- Destination search, saved routes, GPX import/export and settings backup.
+- 18 languages and dark/light themes.
+- Separate FOSS and Google Play apps; Google Play adds fused location, Android Auto and optional Google POI search with your own API key.

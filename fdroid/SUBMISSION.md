@@ -19,11 +19,13 @@ Before opening the official F-Droid merge request, complete these steps:
 2. Enable GitHub Pages from the repository `docs/` folder so the public
    store-document URLs are live.
 3. Prepare local release metadata without creating a commit or tag:
-   `.\gradlew.bat prepareRelease --release-version=0.1.16`.
+   `.\gradlew.bat prepareRelease --release-version=1.0.0`.
+   This derives Android `versionCode` as `major * 1000000 + minor * 1000 + patch`;
+   `1.0.0` uses `1000000`. Minor and patch must each be `0..999`.
 4. Review the console changelog summary, `docs/CHANGELOG/index.html`, and
    `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`.
 5. Commit the current F-Droid prep changes.
-6. Create and push a release tag matching `versionName`, for example `v0.1.16`.
+6. Create and push a release tag matching `versionName`, for example `v1.0.0`.
    Publish a stable GitHub Release for that tag. The `Build and Publish Release`
    workflow checks/builds the tagged source and attaches only the signed FOSS
    (`fdroid`) APK. Google Play artifacts remain in CI for Play publishing.

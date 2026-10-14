@@ -978,6 +978,7 @@ The navigation UI must show the following in large text:
   requested semantic version without creating a commit or tag. The task should
   summarize generated changelog additions in the console so maintainers can
   review them before committing.
+- Android version codes must follow `major * 1_000_000 + minor * 1_000 + patch`, with minor and patch each limited to `0..999`. Version `1.0.0` uses code `1000000`. The release-prep task must derive and validate the code, reject values outside the positive Google Play range (maximum `2100000000`), and prevent codes decreasing or remaining unchanged for a different version. Re-preparing the same version may retain its code. A new store upload requires a new semantic version rather than an independent code increment.
 - Upstream app-store metadata should be maintained in the source repository using the `fastlane/metadata/android/en-US/...` layout so F-Droid can reuse the app description, changelog, icon, and screenshots directly from upstream.
 - Public store-facing legal and disclosure documents must live under `docs/` so GitHub Pages can serve stable public URLs for the Privacy Policy, Terms of Service, local data-deletion instructions, and maintainer store-disclosure notes.
 - The repository should provide maintainer-facing submission documentation for official F-Droid inclusion. That documentation is an operator runbook for project maintainers and should not be treated as end-user product documentation.

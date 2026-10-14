@@ -10,6 +10,21 @@ abstract class PrepareReleaseTask extends DefaultTask {
     private String baseRef
     private String releaseTag
 
+    static int versionCodeFor(String version) {
+        if (!(version ==~ /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)) {
+            throw new GradleException("releaseVersion must use MAJOR.MINOR.PATCH format without leading zeros, for example 1.0.0.")
+        }
+        def parts = version.split(/\./).collect { new BigInteger(it) }
+        if (parts[1] > 999 || parts[2] > 999) {
+            throw new GradleException("Minor and patch versions must each be between 0 and 999.")
+        }
+        def code = parts[0] * 1_000_000 + parts[1] * 1_000 + parts[2]
+        if (code < 1 || code > 2_100_000_000) {
+            throw new GradleException("Calculated versionCode must be between 1 and Google Play's maximum of 2100000000.")
+        }
+        code.intValue()
+    }
+
     @Option(option = "release-version", description = "Release version to prepare, for example 0.2.0.")
     void setReleaseVersion(String targetVersion) {
         this.targetVersion = targetVersion
@@ -20,7 +35,7 @@ abstract class PrepareReleaseTask extends DefaultTask {
         targetVersion
     }
 
-    @Option(option = "version-code", description = "Android versionCode to write. Defaults to the current versionCode plus one.")
+    @Option(option = "version-code", description = "Optional assertion: must equal major * 1000000 + minor * 1000 + patch.")
     void setTargetVersionCode(String targetVersionCode) {
         this.targetVersionCode = targetVersionCode
     }
@@ -175,16 +190,14 @@ def updatedReleaseChangelog = { File changelogFile, String versionName, String s
 
 tasks.register("prepareRelease", PrepareReleaseTask) {
     group = "release"
-    description = "Updates local version metadata and changelogs. Usage: ./gradlew prepareRelease --release-version=0.2.0 [--version-code=2] [--base-ref=v0.1.0]"
+    description = "Updates local version metadata and changelogs, deriving versionCode as major * 1000000 + minor * 1000 + patch. Usage: ./gradlew prepareRelease --release-version=1.0.0 [--base-ref=v0.1.0]"
 
     doLast {
         def releaseVersion = getTargetVersion()?.trim()
         if (!releaseVersion) {
             throw new GradleException("Missing release version. Run: ./gradlew prepareRelease --release-version=0.2.0")
         }
-        if (!(releaseVersion ==~ /^\d+\.\d+\.\d+$/)) {
-            throw new GradleException("releaseVersion must use MAJOR.MINOR.PATCH format, for example 0.2.0.")
-        }
+        def releaseVersionCode = PrepareReleaseTask.versionCodeFor(releaseVersion)
 
         def appBuildText = readUtf8(releaseAppBuildFile)
         def currentVersionName = firstGroup(
@@ -202,15 +215,12 @@ tasks.register("prepareRelease", PrepareReleaseTask) {
         if (requestedVersionCode && !(requestedVersionCode ==~ /^\d+$/)) {
             throw new GradleException("releaseVersionCode must be a positive integer.")
         }
-        def releaseVersionCode = requestedVersionCode
-                ? requestedVersionCode.toInteger()
-                : (currentVersionName == releaseVersion ? currentVersionCode : currentVersionCode + 1)
-
-        if (releaseVersionCode < 1) {
-            throw new GradleException("releaseVersionCode must be a positive integer.")
+        if (requestedVersionCode && new BigInteger(requestedVersionCode) != releaseVersionCode) {
+            throw new GradleException("--version-code must match the calculated versionCode ${releaseVersionCode} for ${releaseVersion}.")
         }
-        if (currentVersionName != releaseVersion && releaseVersionCode <= currentVersionCode) {
-            throw new GradleException("releaseVersionCode must be greater than current versionCode ${currentVersionCode}.")
+        if (releaseVersionCode < currentVersionCode ||
+                (currentVersionName != releaseVersion && releaseVersionCode == currentVersionCode)) {
+            throw new GradleException("Calculated versionCode must be greater than current versionCode ${currentVersionCode} for a new version; preparing the same version again may retain its code.")
         }
 
         def releaseTag = getReleaseTag()?.trim() ?: "v${releaseVersion}"
@@ -300,5 +310,28 @@ tasks.register("prepareRelease", PrepareReleaseTask) {
             logger.lifecycle(" - ... ${commitMessages.size() - 20} more entry/entries")
         }
         logger.lifecycle("No commit or tag was created. Review the files, then commit and tag ${releaseTag} manually.")
+    }
+}
+
+tasks.register("verifyReleaseVersionCode") {
+    group = "verification"
+    description = "Checks release version-code calculation, component limits, and overflow handling."
+    doLast {
+        ["1.0.0": 1_000_000, "1.0.1": 1_000_001, "1.1.0": 1_001_000,
+         "1.999.999": 1_999_999, "2.0.0": 2_000_000, "0.0.1": 1,
+         "2099.999.999": 2_099_999_999, "2100.0.0": 2_100_000_000].each { version, expected ->
+            assert PrepareReleaseTask.versionCodeFor(version) == expected : "Incorrect code for ${version}"
+        }
+        ["0.0.0", "1.1000.0", "1.0.1000", "2100.0.1", "2101.0.0",
+         "999999999999999999999.0.0", "1.0", "1.0.0-beta", "-1.0.0", "01.0.0"].each { version ->
+            boolean rejected = false
+            try {
+                PrepareReleaseTask.versionCodeFor(version)
+            } catch (GradleException expected) {
+                rejected = true
+            }
+            assert rejected : "Invalid release version was accepted: ${version}"
+        }
+        logger.lifecycle("Release version-code checks passed (8 valid and 10 invalid versions).")
     }
 }

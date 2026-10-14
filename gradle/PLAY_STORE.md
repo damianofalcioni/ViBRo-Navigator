@@ -72,6 +72,9 @@ for service account and first-upload details.
 ### Publish a release manually
 
 Prepare the version with `prepareRelease` and review its changelogs first.
+The task derives `versionCode` as `major * 1000000 + minor * 1000 + patch`
+(`1.0.0` becomes `1000000`), with minor and patch each limited to `0..999`.
+Use a new semantic version for a new upload; do not increment the code separately.
 Play requires a new versionCode for each new upload; the publisher deliberately
 keeps the versionCode from `app/build.gradle`.
 

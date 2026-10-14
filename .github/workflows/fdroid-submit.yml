@@ -6,7 +6,7 @@ on:
       release_ref:
         description: "Published v<versionName> release tag with app-fdroid-release.apk attached"
         required: true
-        default: "v0.1.16"
+        default: "v1.0.0"
       fdroiddata_branch:
         description: "Branch name in your GitLab fdroiddata fork"
         required: true

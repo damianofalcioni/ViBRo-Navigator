@@ -81,6 +81,7 @@ CI lives in `.github/workflows/build-apk.yml` and runs on pushes, pull requests,
 
 Distribution-related workflows:
 
+- Android `versionCode` is derived from `versionName` as `major * 1_000_000 + minor * 1_000 + patch`: `1.0.0` = `1000000`, `1.0.1` = `1000001`, and `1.1.0` = `1001000`. Minor and patch must each stay within `0..999`; versions use three numeric components without leading zeros. The calculated code must be positive, at most Google Play's `2100000000`, and increase for every new released version/upload. Bump the semantic version for a new upload; do not increment the code independently. Both flavors share this mapping. `prepareRelease` enforces it; `--version-code`, if supplied, must match the formula. Run `.\gradlew.bat verifyReleaseVersionCode` after changing the calculation.
 - `.\gradlew.bat prepareRelease --release-version=0.2.0` is the local
   release-prep task. It updates `app/build.gradle`,
   `fdroid/vibro.navigator.foss.yml`, `docs/CHANGELOG/index.html`, and the Fastlane changelog
