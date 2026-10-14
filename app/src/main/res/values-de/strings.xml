@@ -343,7 +343,7 @@
     <string name="format_startup_orientation_notification">Drehe dich %1$s %2$s, um dich zur Route auszurichten.</string>
     <string name="format_notification_symbol_test_bearing_line">Richtungsbeispiel %1$s</string>
     <string name="nav_destination_reached">Ziel erreicht</string>
-    <string name="format_version">Version %1$s</string>
+    <string name="format_version">Version %1$s %2$s</string>
     <string name="about_short_description">Eine leichte, batteriesparende GPS-Navigationsapp auf Basis von BRouter, die vorrangig offline arbeitet und Richtungshinweise durch Vibrationen gibt.</string>
     <string name="about_homepage_link"><u>Webseite</u></string>
     <string name="about_play_store_link"><u>Im Play Store bewerten</u></string>

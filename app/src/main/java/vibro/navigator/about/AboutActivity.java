@@ -54,7 +54,8 @@ public class AboutActivity extends AndroidLocalizedActivity {
         TextView version = findViewById(R.id.aboutVersion);
         AboutProjectLinks.configure(this);
 
-        version.setText(getString(R.string.format_version, BuildConfig.VERSION_NAME));
+        version.setText(getString(R.string.format_version,
+                BuildConfig.VERSION_NAME, getString(R.string.about_build_distribution)));
         if (shouldScrollToSettings()) {
             initializeSettingsSection();
         } else {

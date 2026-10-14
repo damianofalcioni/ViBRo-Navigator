@@ -347,7 +347,7 @@
     <string name="format_startup_orientation_notification">Ruota di %1$s %2$s per orientarti verso il percorso.</string>
     <string name="format_notification_symbol_test_bearing_line">Esempio di direzione %1$s</string>
     <string name="nav_destination_reached">Destinazione raggiunta</string>
-    <string name="format_version">Versione %1$s</string>
+    <string name="format_version">Versione %1$s %2$s</string>
     <string name="about_short_description">Un’app di navigazione GPS leggera, efficiente nel consumo della batteria e pensata per l’uso offline, che fornisce indicazioni tramite vibrazioni e si basa su BRouter.</string>
     <string name="about_homepage_link"><u>Sito web</u></string>
     <string name="about_play_store_link"><u>Valuta su Play Store</u></string>

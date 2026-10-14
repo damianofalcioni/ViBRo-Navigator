@@ -794,7 +794,7 @@ The navigation UI must show the following in large text:
 - A small button showing only the app logo must be displayed at the very top center of the main UI
 - Pressing it must open an about page
 - The about page must contain:
-  - The app version
+  - The app version followed inline by the build distribution, separated by a space: FOSS for the `fdroid` flavor or GPlay for the `gplay` flavor
   - A concise in-app product summary aligned with the README's description of the app and its core behavior
   - Links immediately after the summary, starting with the project homepage and a simple home icon before the Google Play rating link (when available) and project source code, followed by the GitHub new-issue page, the changelog for the installed app version, the public Privacy Policy, and the public Terms of Service
   - The Changelog link must follow Report an issue, reuse the Terms of Service list icon, and open `https://damianofalcioni.github.io/ViBRo-Navigator/CHANGELOG/#v<version>` using the app's version name
