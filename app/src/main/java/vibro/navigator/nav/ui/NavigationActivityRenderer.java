@@ -128,6 +128,10 @@ final class NavigationActivityRenderer {
         afterNext.setClickable(true);
         afterNext.setFocusable(true);
         afterNext.setOnClickListener(directionsClickListener);
+        activity.findViewById(R.id.nextDirectionPrefixText).setOnClickListener(directionsClickListener);
+        activity.findViewById(R.id.afterNextDirectionPrefixText).setOnClickListener(directionsClickListener);
+        activity.findViewById(R.id.nextDirectionSeparatorText).setOnClickListener(directionsClickListener);
+        activity.findViewById(R.id.afterNextDirectionSeparatorText).setOnClickListener(directionsClickListener);
         destination.setClickable(true);
         destination.setFocusable(true);
         destination.setOnClickListener(v -> detailsDialogs.showTripStats(currentState));
@@ -136,10 +140,14 @@ final class NavigationActivityRenderer {
     void render(@NonNull NavState state, @Nullable NavigationServiceBinder navBinder) {
         currentState = state;
         currentBinder = navBinder;
-        setTextIfChanged(next, state.routeStatus.guidance.nextLine);
-        setTextIfChanged(afterNext, state.routeStatus.guidance.afterNextLine);
-        next.setTextColor(AndroidAppTheme.navigationInstructionColor(activity, state.routeStatus.guidance.nextUncertain));
-        afterNext.setTextColor(AndroidAppTheme.navigationInstructionColor(activity, state.routeStatus.guidance.afterNextUncertain));
+        NavigationInstructionRow.render(activity.findViewById(R.id.nextDirectionPrefixText),
+                activity.findViewById(R.id.nextDirectionSeparatorText), next,
+                state.routeStatus.guidance.nextLine,
+                AndroidAppTheme.navigationInstructionColor(activity, state.routeStatus.guidance.nextUncertain));
+        NavigationInstructionRow.render(activity.findViewById(R.id.afterNextDirectionPrefixText),
+                activity.findViewById(R.id.afterNextDirectionSeparatorText), afterNext,
+                state.routeStatus.guidance.afterNextLine,
+                AndroidAppTheme.navigationInstructionColor(activity, state.routeStatus.guidance.afterNextUncertain));
         setTextIfChanged(destination, state.routeStatus.displayStatusBlock());
         renderCompassState();
         renderSpeedLimitIfChanged(state);

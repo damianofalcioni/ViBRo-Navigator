@@ -41,10 +41,15 @@ public class NavigationLandscapeTextLayoutRobolectricTest {
             layout(activity, 640, 360);
 
             assertFullyVisibleAndWrapped(gps);
-            assertFullyVisibleAndWrapped(next);
+            assertEquals(1, next.getLayout().getLineCount());
+            assertEquals(next.getText().length(), next.getLayout().getLineEnd(0));
+            assertEquals(0, next.getLayout().getEllipsisCount(0));
+            assertTrue(next.getWidth() > ((View) next.getParent()).getWidth());
             assertTrue(directions.getTop() >= gps.getBottom());
             assertTrue(directions.getBottom() <= destination.getTop());
-            assertEquals(directions.getHeight() / 2f, (next.getTop() + following.getBottom()) / 2f, 2f);
+            View nextRow = (View) next.getParent().getParent();
+            View followingRow = (View) following.getParent().getParent();
+            assertEquals(directions.getHeight() / 2f, (nextRow.getTop() + followingRow.getBottom()) / 2f, 2f);
             assertTrue(destination.getBottom() <= activity.findViewById(R.id.navigationActionRow).getTop());
         }
     }

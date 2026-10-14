@@ -35,6 +35,8 @@ final class ViBRoAutoTextColumnPainter {
     private final RectF gpsStatusBounds = new RectF();
     private final RectF directionsBounds = new RectF();
     private final RectF statusBounds = new RectF();
+    private final ViBRoAutoInstructionPainter nextInstruction = new ViBRoAutoInstructionPainter();
+    private final ViBRoAutoInstructionPainter followingInstruction = new ViBRoAutoInstructionPainter();
 
     ViBRoAutoTextColumnPainter(
             @NonNull CarContext carContext,
@@ -69,6 +71,7 @@ final class ViBRoAutoTextColumnPainter {
         float y = top;
         y = drawGpsStatusLine(canvas, state, left, y, width, scale) + dp(14f, scale);
         if (detailPanelSelection.isVisible()) {
+            resetInstructionScrolling();
             directionsBounds.setEmpty();
             statusBounds.setEmpty();
             detailPanelPainter.draw(
@@ -92,6 +95,7 @@ final class ViBRoAutoTextColumnPainter {
     }
 
     void drawMessage(@NonNull Canvas canvas, @NonNull Rect area, @NonNull String message, float scale) {
+        resetInstructionScrolling();
         textPaint.setTextSize(sp(20f, scale));
         textPaint.setTextAlign(Paint.Align.CENTER);
         Paint.FontMetrics metrics = textPaint.getFontMetrics();
@@ -104,6 +108,25 @@ final class ViBRoAutoTextColumnPainter {
             return true;
         }
         return detailPanelSelection.handleClick(x, y, gpsStatusBounds, directionsBounds, statusBounds);
+    }
+
+    boolean isInstructionScrolling() {
+        return nextInstruction.isScrolling() || followingInstruction.isScrolling();
+    }
+
+    long nextInstructionRefreshDelayMs() {
+        if (isInstructionScrolling()) {
+            return 33L;
+        }
+        long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
+        long delay = Math.min(nextInstruction.nextMetricRefreshDelayMs(nowMs),
+                followingInstruction.nextMetricRefreshDelayMs(nowMs));
+        return delay == Long.MAX_VALUE ? 0L : delay;
+    }
+
+    void resetInstructionScrolling() {
+        nextInstruction.reset();
+        followingInstruction.reset();
     }
 
     private float drawGpsStatusLine(
@@ -135,20 +158,27 @@ final class ViBRoAutoTextColumnPainter {
     private void drawDirections(@NonNull Canvas canvas, @NonNull NavState state,
             float left, float top, float width, float scale) {
         float bottom = statusBounds.top - dp(8f, scale);
+        if (bottom <= top) {
+            directionsBounds.setEmpty();
+            resetInstructionScrolling();
+            return;
+        }
         float gap = dp(10f, scale);
-        float availableHeight = Math.max(0f, bottom - top - gap);
-        boolean hasFollowing = !state.routeStatus.guidance.afterNextLine.trim().isEmpty();
-        float nextHeight = hasFollowing ? availableHeight / 2f : availableHeight;
         textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.nextUncertain));
-        StaticLayout next = ViBRoAutoWrappedText.create(state.routeStatus.guidance.nextLine.trim(),
-                textPaint, width, sp(24f, scale), nextHeight);
+        nextInstruction.prepare(state.routeStatus.guidance.nextLine.trim(), textPaint, sp(24f, scale), width);
         textPaint.setColor(AndroidAppTheme.navigationInstructionColor(carContext, state.routeStatus.guidance.afterNextUncertain));
-        StaticLayout following = ViBRoAutoWrappedText.create(state.routeStatus.guidance.afterNextLine.trim(),
-                textPaint, width, sp(19f, scale), availableHeight - nextHeight);
-        float blockHeight = ViBRoAutoWrappedText.height(next) + ViBRoAutoWrappedText.height(following) + gap;
+        followingInstruction.prepare(state.routeStatus.guidance.afterNextLine.trim(), textPaint, sp(19f, scale), width);
+        float blockHeight = nextInstruction.height() + followingInstruction.height() + gap;
         float directionsTop = top + Math.max(0f, (bottom - top - blockHeight) / 2f);
-        float y = ViBRoAutoWrappedText.draw(canvas, next, left, directionsTop) + gap;
-        float directionsBottom = ViBRoAutoWrappedText.draw(canvas, following, left, y);
+        long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
+        float speed = dp(36f, scale);
+        int save = canvas.save();
+        canvas.clipRect(left, top, left + width, Math.max(top, bottom));
+        nextInstruction.draw(canvas, left, directionsTop, nowMs, speed);
+        float y = directionsTop + nextInstruction.height() + gap;
+        followingInstruction.draw(canvas, left, y, nowMs, speed);
+        canvas.restoreToCount(save);
+        float directionsBottom = y + followingInstruction.height();
         directionsBounds.set(left, directionsTop, left + width,
                 Math.min(bottom, Math.max(directionsBottom, directionsTop + dp(GPS_STATUS_MIN_TOUCH_HEIGHT_DP, scale))));
         textPaint.setColor(textPrimaryColor());

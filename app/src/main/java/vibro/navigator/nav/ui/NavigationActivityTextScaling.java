@@ -32,20 +32,9 @@ final class NavigationActivityTextScaling {
             @NonNull TextView gpsStatus,
             @NonNull TextView speedLimit
     ) {
-        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                next,
-                10,
-                22,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-        );
-        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
-                afterNext,
-                12,
-                18,
-                1,
-                TypedValue.COMPLEX_UNIT_SP
-        );
+        // Instructions scroll at their readable layout sizes instead of shrinking to fit.
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(next, TextViewCompat.AUTO_SIZE_TEXT_TYPE_NONE);
+        TextViewCompat.setAutoSizeTextTypeWithDefaults(afterNext, TextViewCompat.AUTO_SIZE_TEXT_TYPE_NONE);
         TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(
                 gpsStatus,
                 10,

@@ -27,8 +27,8 @@ import vibro.navigator.settings.AppThemeSettings;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class NavigationInstructionColorTest {
-    private static final String NEXT = "Continue";
-    private static final String FOLLOWING = "Turn left";
+    private static final String NEXT = "↑ 100 m - 10 s - Continue";
+    private static final String FOLLOWING = "↰ 300 m - 30 s - Turn left";
 
     @Test
     public void darkThemeChangesColorWithoutAddingText() {
@@ -55,22 +55,31 @@ public class NavigationInstructionColorTest {
                 activity, AndroidTaskScheduler.main(), () -> 1_000L, () -> {});
         TextView next = activity.findViewById(R.id.nextDirectionText);
         TextView following = activity.findViewById(R.id.afterNextDirectionText);
+        TextView nextPrefix = activity.findViewById(R.id.nextDirectionPrefixText);
+        TextView followingPrefix = activity.findViewById(R.id.afterNextDirectionPrefixText);
         int orange = ContextCompat.getColor(activity, R.color.compass_accent);
         int normal = AndroidAppTheme.color(activity, R.attr.vibroTextPrimaryColor);
 
         renderer.render(state(new NavGuidanceStatus(NEXT, FOLLOWING, true, false)), null);
-        assertEquals(NEXT, next.getText().toString());
+        assertEquals("Continue", next.getText().toString());
+        assertEquals("↑ 100 m", nextPrefix.getText().toString());
+        assertEquals(NEXT, next.getContentDescription());
         assertEquals(orange, next.getCurrentTextColor());
+        assertEquals(orange, nextPrefix.getCurrentTextColor());
         assertEquals(normal, following.getCurrentTextColor());
+        assertEquals(normal, followingPrefix.getCurrentTextColor());
 
         renderer.render(state(new NavGuidanceStatus(NEXT, FOLLOWING, false, false)), null);
-        assertEquals(NEXT, next.getText().toString());
+        assertEquals("Continue", next.getText().toString());
         assertEquals(normal, next.getCurrentTextColor());
+        assertEquals(normal, nextPrefix.getCurrentTextColor());
 
         NavGuidanceStatus uncertain = new NavGuidanceStatus(NEXT, FOLLOWING, true, true);
         renderer.render(state(uncertain), null);
-        assertEquals(FOLLOWING, following.getText().toString());
+        assertEquals("Turn left", following.getText().toString());
+        assertEquals("↰ 300 m", followingPrefix.getText().toString());
         assertEquals(orange, following.getCurrentTextColor());
+        assertEquals(orange, followingPrefix.getCurrentTextColor());
 
         renderer.render(state(uncertain.withDisplayedLines("Arrive", "")), null);
         assertEquals(normal, next.getCurrentTextColor());

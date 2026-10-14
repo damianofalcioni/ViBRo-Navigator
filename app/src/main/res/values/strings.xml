@@ -371,6 +371,7 @@
     <string name="format_nav_battery_used_mah" translatable="false">%1$.1f mAh</string>
     <string name="format_nav_battery_drop_percent" translatable="false">%1$d%%</string>
     <string name="format_nav_trip_stats_details">Elapsed: %1$s\nDistance: %2$s\nMoving time: %3$s\nStationary time: %4$s\nAverage speed: %5$s\nMoving average: %6$s\nMax speed: %7$s\nScreen on: %8$s\nScreen off: %9$s\nBattery used: %10$s\nBattery drop: %11$s</string>
+    <string name="nav_instruction_separator" translatable="false">" - "</string>
     <string name="format_turn_notification" translatable="false">%1$s %2$s - %3$s - %4$s</string>
     <string name="format_turn_speech" translatable="false">%1$s, %2$s</string>
     <string name="speech_off_route_recalculating">Off route. Recalculating</string>

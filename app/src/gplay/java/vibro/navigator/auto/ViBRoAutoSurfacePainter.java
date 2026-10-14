@@ -81,7 +81,12 @@ final class ViBRoAutoSurfacePainter {
         return compassPainter.isTransitionInProgress();
     }
 
+    long nextInstructionRefreshDelayMs() {
+        return textColumnPainter.nextInstructionRefreshDelayMs();
+    }
+
     void dispose() {
+        textColumnPainter.resetInstructionScrolling();
         compassPainter.dispose();
     }
 
@@ -113,6 +118,7 @@ final class ViBRoAutoSurfacePainter {
     }
 
     void resetCompass() {
+        textColumnPainter.resetInstructionScrolling();
         compassPainter.reset();
     }
 

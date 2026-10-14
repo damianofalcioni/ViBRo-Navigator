@@ -37,7 +37,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
     private final ViBRoAutoCompassStreetViewportSink compassStreetViewportSink;
     private ViBRoAutoSurfacePainter painter;
     private final Rect stableArea = new Rect();
-    private final Runnable compassTransitionTicker = this::renderOnMainThread;
+    private final Runnable surfaceAnimationTicker = this::renderOnMainThread;
 
     @Nullable
     private SurfaceContainer surfaceContainer;
@@ -84,7 +84,7 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
         surfaceContainer = null;
         painter.resetCompass();
         compassStreetViewportSink.clearCompassStreetViewport();
-        clearCompassCallbacks();
+        clearAnimationCallbacks();
     }
 
     void dispose() {
@@ -170,17 +170,27 @@ final class ViBRoAutoSurfaceRenderer implements SurfaceCallback {
                 surface.unlockCanvasAndPost(canvas);
             }
         }
-        scheduleCompassTransitionIfNeeded();
+        scheduleAnimationIfNeeded();
     }
 
-    private void scheduleCompassTransitionIfNeeded() {
-        clearCompassCallbacks();
+    private void scheduleAnimationIfNeeded() {
+        clearAnimationCallbacks();
         if (painter.isCompassTransitionInProgress()) {
-            uiScheduler.postAnimationFrame(compassTransitionTicker);
+            uiScheduler.postAnimationFrame(surfaceAnimationTicker);
+        } else {
+            scheduleInstructionRefresh();
         }
     }
 
-    private void clearCompassCallbacks() {
-        uiScheduler.cancelAnimationFrame(compassTransitionTicker);
+    private void scheduleInstructionRefresh() {
+        long delay = painter.nextInstructionRefreshDelayMs();
+        if (delay > 0L) {
+            uiScheduler.postDelayed(surfaceAnimationTicker, delay);
+        }
+    }
+
+    private void clearAnimationCallbacks() {
+        uiScheduler.cancelAnimationFrame(surfaceAnimationTicker);
+        uiScheduler.removeCallbacks(surfaceAnimationTicker);
     }
 }
