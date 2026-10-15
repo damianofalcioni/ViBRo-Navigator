@@ -90,6 +90,15 @@ jobs:
           set -euo pipefail
           git rev-parse --verify "${RELEASE_REF}^{commit}" >/dev/null
 
+      - name: Install F-Droid metadata tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv "${RUNNER_TEMP}/fdroid-tools"
+          "${RUNNER_TEMP}/fdroid-tools/bin/pip" install --disable-pip-version-check \
+            'fdroidserver @ https://gitlab.com/fdroid/fdroidserver/-/archive/5806784d0d43bed7b938fd4b327162da68927060/fdroidserver-5806784d0d43bed7b938fd4b327162da68927060.tar.gz' \
+            ruamel.yaml==0.18.10
+
       - name: Render fdroiddata metadata
         id: render
         shell: bash
@@ -165,6 +174,8 @@ jobs:
           METADATA_PATH: ${{ steps.render.outputs.metadata_path }}
           VERSION_NAME: ${{ steps.render.outputs.version_name }}
           VERSION_CODE: ${{ steps.render.outputs.version_code }}
+          # fdroiddata's public config references this environment variable.
+          serverwebroot: ${{ runner.temp }}
         run: |
           set -euo pipefail
 
@@ -186,6 +197,8 @@ jobs:
           fi
 
           cp "${METADATA_PATH}" "metadata/${APP_ID}.yml"
+          "${RUNNER_TEMP}/fdroid-tools/bin/fdroid" rewritemeta "${APP_ID}"
+          "${RUNNER_TEMP}/fdroid-tools/bin/fdroid" lint "${APP_ID}"
 
           # Stage first: git diff alone ignores a new app's untracked metadata.
           git add "metadata/${APP_ID}.yml"
@@ -217,8 +230,10 @@ jobs:
           import json
           import os
           import sys
+          import time
           import urllib.parse
           import urllib.request
+          from pathlib import Path
           from urllib.error import HTTPError
 
           token = os.environ["GITLAB_TOKEN"]
@@ -231,7 +246,7 @@ jobs:
           version_code = os.environ["VERSION_CODE"]
           changed = os.environ.get("CHANGED", "")
 
-          def api(method, path, data=None):
+          def api(method, path, data=None, allowed_statuses=()):
               url = "https://gitlab.com/api/v4" + path
               headers = {"PRIVATE-TOKEN": token}
               body = None
@@ -243,6 +258,8 @@ jobs:
                   with urllib.request.urlopen(req) as response:
                       return json.loads(response.read().decode("utf-8"))
               except HTTPError as error:
+                  if error.code in allowed_statuses:
+                      return None
                   detail = error.read().decode("utf-8", errors="replace")
                   raise SystemExit(f"GitLab API {method} {path.split('?')[0]} failed (HTTP {error.code}): {detail}") from None
 
@@ -252,13 +269,31 @@ jobs:
           source_project = api("GET", f"/projects/{source_project_path}")
           target_project_info = api("GET", f"/projects/{target_project_path}")
 
+          # F-Droid requires successful fork CI before a submission is opened.
+          source_branch = api("GET", f"/projects/{source_project['id']}/repository/branches/{urllib.parse.quote(branch, safe='')}")
+          pipeline_query = urllib.parse.urlencode({"ref": branch, "sha": source_branch["commit"]["id"], "per_page": 10})
+          for attempt in range(120):
+              pipelines = api("GET", f"/projects/{source_project['id']}/pipelines?{pipeline_query}")
+              if pipelines:
+                  pipeline = pipelines[0]
+                  status = pipeline["status"]
+                  if status == "success":
+                      break
+                  if status in ("failed", "canceled", "skipped", "manual"):
+                      raise SystemExit(f"F-Droid fork CI is {status}: {pipeline['web_url']}. Fix it before submitting; no merge request was opened.")
+              if attempt % 4 == 0:
+                  print("Waiting for F-Droid fork CI to pass...", flush=True)
+              time.sleep(30)
+          else:
+              raise SystemExit("Timed out waiting for F-Droid fork CI; no merge request was opened.")
+
           existing = api(
               "GET",
               "/projects/{}/merge_requests?{}".format(
                   source_project["id"],
                   urllib.parse.urlencode(
                       {
-                          "state": "opened",
+                          "state": "all",
                           "source_branch": branch,
                           "target_branch": target_branch,
                           "target_project_id": target_project_info["id"],
@@ -266,19 +301,29 @@ jobs:
                   ),
               ),
           )
+          existing = [mr for mr in existing if mr["state"] in ("opened", "closed")]
 
           if existing:
+              if existing[0]["state"] == "closed":
+                  raise SystemExit(f"A reviewer closed this merge request: {existing[0]['web_url']}. Address the review and reopen that request manually; no duplicate was created.")
               print(f"Existing merge request: {existing[0]['web_url']}")
               sys.exit(0)
 
-          title = f"New App: {app_id}" if changed == "true" else f"Update {app_id} to {version_name} ({version_code})"
-          description = (
-              "Automated metadata sync from GitHub Actions.\n\n"
-              f"Upstream app id: `{app_id}`\n"
-              f"Requested release ref: `{os.environ['RELEASE_REF']}`\n"
-              f"App version: `{version_name}` ({version_code})\n\n"
-              "Please review metadata/build details before merge."
-          )
+          metadata_file = urllib.parse.quote(f"metadata/{app_id}.yml", safe="")
+          target_metadata = api("GET", f"/projects/{target_project_info['id']}/repository/files/{metadata_file}?ref={urllib.parse.quote(target_branch, safe='')}", allowed_statuses=(404,))
+          new_app = target_metadata is None
+          title = "New app: ViBRo Navigator FOSS" if new_app else f"ViBRo Navigator FOSS: update to {version_name} ({version_code})"
+          template = "fdroid/APP_INCLUSION.md" if new_app else "fdroid/APP_UPDATE.md"
+          description = Path(template).read_text(encoding="utf-8")
+          for key, value in {
+              "RELEASE_REF": os.environ["RELEASE_REF"],
+              "VERSION_NAME": version_name,
+              "VERSION_CODE": version_code,
+              "PIPELINE_URL": pipeline["web_url"],
+          }.items():
+              description = description.replace("{{" + key + "}}", value)
+          if "{{" in description or "}}" in description:
+              raise SystemExit("Unresolved placeholders in the F-Droid merge-request template")
 
           created = api(
               "POST",

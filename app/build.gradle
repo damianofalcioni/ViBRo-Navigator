@@ -61,6 +61,11 @@ android {
     namespace = "vibro.navigator"
     compileSdk = 37
 
+    // F-Droid rejects the encrypted dependency-information APK signing block.
+    dependenciesInfo {
+        includeInApk = false
+    }
+
     defaultConfig {
         applicationId = "vibro.navigator"
         minSdk = 23

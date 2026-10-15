@@ -133,6 +133,12 @@ Notes:
   upstream APK. Publish the `fdroid` flavor under the exact filename
   `app-fdroid-release.apk` at every `v<versionName>` GitHub Release. The
   `gplay` APK contains Google dependencies and cannot substitute for it.
+- Keep listing text in upstream Fastlane files rather than a YAML `Summary`.
+  The recipe uses a list for `rm`, removing `docs-tools` and `local.properties`
+  only from F-Droid's build checkout. `docs-tools` contains website-only npm
+  tooling and is not an Android dependency. The explicit `output` selects
+  the unsigned FOSS APK under `app/build/outputs/apk/fdroid/release/`, since
+  the Gradle command runs at the repository root.
 - The F-Droid `WebSite` field should point to the GitHub Pages app site, while
   `SourceCode` and `IssueTracker` should point to GitHub.
 
@@ -144,8 +150,18 @@ after the signed FOSS APK has been attached. It performs these steps:
 - run the `F-Droid Readiness` gate for the requested `release_ref`
 - verify that the public release APK has the expected signature, package and version
 - render the final `metadata/vibro.navigator.foss.yml`
+- format/lint the recipe with pinned F-Droid tools
 - push it to your GitLab `fdroiddata` fork
+- wait for the fork's pipeline to pass before opening a submission
 - create or reuse a merge request against `fdroid/fdroiddata`
+
+New app requests use [APP_INCLUSION.md](APP_INCLUSION.md), completed from
+F-Droid's required App inclusion template, and the title
+`New app: ViBRo Navigator FOSS`. Existing-app requests use
+[APP_UPDATE.md](APP_UPDATE.md). Review the template facts before dispatching;
+the workflow fills the release/version and successful pipeline URL. If a
+reviewer closed an existing request, address the feedback and reopen that
+same request manually after its checks pass; do not open a duplicate.
 
 The [initial prerequisites](#initial-prerequisites) explain how to obtain and
 add the GitLab and signing secrets. Play upload and F-Droid submission run
@@ -209,3 +225,12 @@ The [metadata reference](https://f-droid.org/en/docs/Build_Metadata_Reference/#b
 documents the versioned URL substitutions. `%v` is `versionName`; this
 repository's release URL convention requires a leading `v` in the tag.
 Keep the same signing key for future releases so users can install updates.
+
+The Android build disables `dependenciesInfo.includeInApk`, because F-Droid's
+APK scanner rejects the encrypted dependency-information signing block.
+For a legacy APK already built with that block, the upstream
+[`apksigtool` cleanup](https://github.com/obfusk/apksigtool#clean) can remove it
+without replacing the signing identity. Work on a copy, verify the result
+with `apksigner`, and compare every ZIP entry with the original. After
+replacing the release asset, rerun F-Droid's build/reference comparison and
+APK scan; the build job's old artifacts may still contain the previous APK.
