@@ -170,6 +170,12 @@ workflow. Set `release_ref` to the existing published tag (for example,
 another branch in your fork. The workflow rechecks the public release APK
 and opens or reuses the merge request; a new release or tag is unnecessary.
 
+For an initial submission, the workflow stages the new metadata file before
+checking for changes; an unstaged `git diff` would overlook it and leave the
+submission branch absent. A GitLab HTTP 400 while creating the merge request
+can result from that missing branch. Check the reported API response and
+confirm the branch exists in your fork before retrying.
+
 Use **Re-run failed jobs** on the original release run only if every failed
 store job should be retried. In particular, if the Play bundle was already
 uploaded manually or automatically, use the F-Droid-only retry to avoid

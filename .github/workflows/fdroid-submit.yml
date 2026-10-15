@@ -187,12 +187,13 @@ jobs:
 
           cp "${METADATA_PATH}" "metadata/${APP_ID}.yml"
 
-          if git diff --quiet -- "metadata/${APP_ID}.yml"; then
+          # Stage first: git diff alone ignores a new app's untracked metadata.
+          git add "metadata/${APP_ID}.yml"
+          if git diff --cached --quiet -- "metadata/${APP_ID}.yml"; then
             echo "changed=false" >> "${GITHUB_OUTPUT}"
             exit 0
           fi
 
-          git add "metadata/${APP_ID}.yml"
           git commit -m "Update ${APP_ID} to ${VERSION_NAME} (${VERSION_CODE})"
           git push origin "${FDROIDDATA_BRANCH}"
 
@@ -218,6 +219,7 @@ jobs:
           import sys
           import urllib.parse
           import urllib.request
+          from urllib.error import HTTPError
 
           token = os.environ["GITLAB_TOKEN"]
           namespace = os.environ["GITLAB_NAMESPACE"]
@@ -237,8 +239,12 @@ jobs:
                   body = urllib.parse.urlencode(data).encode("utf-8")
                   headers["Content-Type"] = "application/x-www-form-urlencoded"
               req = urllib.request.Request(url, data=body, method=method, headers=headers)
-              with urllib.request.urlopen(req) as response:
-                  return json.loads(response.read().decode("utf-8"))
+              try:
+                  with urllib.request.urlopen(req) as response:
+                      return json.loads(response.read().decode("utf-8"))
+              except HTTPError as error:
+                  detail = error.read().decode("utf-8", errors="replace")
+                  raise SystemExit(f"GitLab API {method} {path.split('?')[0]} failed (HTTP {error.code}): {detail}") from None
 
           source_project_path = urllib.parse.quote(f"{namespace}/fdroiddata", safe="")
           target_project_path = urllib.parse.quote(target_project, safe="")
