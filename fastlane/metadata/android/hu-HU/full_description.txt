@@ -1,0 +1,18 @@
+A ViBRo Navigator egy könnyű, akkumulátorkímélő navigációs alkalmazás, amely a BRouterre épül, és elsősorban offline használatra készült.
+
+Kövesse az útmutatást térképnézegetés nélkül, rezgésmintákkal, értesítésekkel, választható rövid hangutasításokkal és egyszerű képernyős jelzésekkel. Az útvonalszámítás és a kanyarodási utasítások előállítása offline működik. Az úti célok kereséséhez internet kell.
+
+Funkciók:
+• Offline útvonaltervezés BRouterrel és választható útvonalprofilok.
+• Rezgéses kanyarodási jelzések és választható hangutasítások.
+• Navigáció a háttérben és kikapcsolt képernyővel.
+• Útvonalak egy célhoz, körutak és egyenes vonalú navigáció.
+• Köztes megállók és újratervezés a lezárt utak elkerüléséhez.
+• Korábbi úti célok, koordináták és térképhivatkozások kezelése.
+• Helyek és érdekes pontok keresése OpenStreetMappel.
+• Közeli utcák a BRouter adataiból, útvonalak és GPS-helyzetek exportálása GPX-be.
+• Dinamikus GPS-helymeghatározás az akkumulátor kíméléséhez.
+
+Az útvonalvezetéshez külön telepíteni kell a BRoutert, és le kell tölteni a régió útvonaladatait. Az egyenes vonalú navigáció BRouter nélkül is működik.
+
+Az F-Droid-változat, a ViBRo Navigator FOSS nem igényel Google-szolgáltatásokat, és a Google Play-változat mellé is telepíthető, külön adatokkal és engedélyekkel.

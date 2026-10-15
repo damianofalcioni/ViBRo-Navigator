@@ -1,0 +1,18 @@
+ViBRo Navigator ist eine schlanke, akkuschonende Navigations-App auf Basis von BRouter, die vorrangig offline arbeitet.
+
+Folge den Richtungsangaben ohne Blick auf eine Karte: mit Vibrationsmustern, Benachrichtigungen, optionalen kurzen Sprachansagen und einer reduzierten Bildschirmanzeige. Routenberechnung und Abbiegehinweise funktionieren offline. Die Zielsuche benötigt Internet.
+
+Funktionen:
+• Offline-Routen mit BRouter und Auswahl von Routingprofilen.
+• Abbiegehinweise durch Vibration und optionale Sprachausgabe.
+• Navigation im Hintergrund und bei ausgeschaltetem Bildschirm.
+• Routen zu einem Ziel, Rundtouren und Luftliniennavigation.
+• Zwischenstopps und Neuberechnung bei gesperrten Straßen.
+• Zielverlauf sowie Unterstützung für Koordinaten und Kartenlinks.
+• Orts- und POI-Suche mit OpenStreetMap.
+• Straßen in der Nähe aus BRouter-Daten und GPX-Export von Routen und GPS-Positionen.
+• Dynamische GPS-Ortung zur Verringerung des Akkuverbrauchs.
+
+Für die Routenführung müssen BRouter und die Routingdaten der Region separat installiert bzw. heruntergeladen werden. Luftliniennavigation funktioniert ohne BRouter.
+
+Die F-Droid-Version ViBRo Navigator FOSS benötigt keine Google-Dienste und kann neben der Google-Play-Version installiert werden, mit unabhängigen Daten und Berechtigungen.

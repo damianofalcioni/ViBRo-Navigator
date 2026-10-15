@@ -1,0 +1,18 @@
+ViBRo Navigator är en lätt och batterisnål navigeringsapp som bygger på BRouter och främst är utformad för att fungera offline.
+
+Följ anvisningar utan att titta på en karta med vibrationsmönster, aviseringar, valfria korta röstinstruktioner och enkel skärminformation. Ruttberäkning och svänganvisningar fungerar offline. Sökning efter resmål kräver internet.
+
+Funktioner:
+• Rutter offline via BRouter och val av ruttprofiler.
+• Svänganvisningar med vibrationer och valfri röst.
+• Navigering i bakgrunden och med släckt skärm.
+• Rutter till ett mål, rundturer och navigering fågelvägen.
+• Mellanstopp och omberäkning för att undvika blockerade vägar.
+• Resmålshistorik, koordinater och kartlänkar.
+• Sökning efter platser och intressepunkter med OpenStreetMap.
+• Närliggande gator från BRouter-data samt export av rutter och GPS-positioner till GPX.
+• Dynamisk GPS-positionering för att minska batteriförbrukningen.
+
+Ruttvägledning kräver att BRouter installeras separat och att ruttdata för området laddas ned. Navigering fågelvägen fungerar utan BRouter.
+
+F-Droid-versionen, ViBRo Navigator FOSS, kräver inte Googles tjänster och kan installeras tillsammans med Google Play-versionen, med separata data och behörigheter.

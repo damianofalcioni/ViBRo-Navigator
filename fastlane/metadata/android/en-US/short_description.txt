@@ -1,1 +1,1 @@
-A lightweight, battery-efficient offline GPS navigation app powered by BRouter, with vibration-based turn guidance.
+Offline GPS navigation with vibration guidance and BRouter routes

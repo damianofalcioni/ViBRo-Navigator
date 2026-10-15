@@ -13,6 +13,56 @@ package. Export a database backup from the old installation and import it
 into FOSS to transfer settings, history, and saved routes. Grant permissions
 and folder access again for the new installation.
 
+## Initial prerequisites
+
+Complete the GitLab fork and credentials setup before publishing a stable
+GitHub Release, because that release automatically calls the submission
+workflow after attaching the signed FOSS APK.
+
+### Create the GitLab fork
+
+1. Sign in to [GitLab](https://gitlab.com/) and open
+   [fdroid/fdroiddata](https://gitlab.com/fdroid/fdroiddata).
+2. Select Fork, choose your user or group namespace, and keep the project slug
+   `fdroiddata`. Ensure the fork includes the upstream default branch,
+   `master`, which the workflow uses as its starting point. See
+   [GitLab's fork instructions](https://docs.gitlab.com/user/project/repository/forking_workflow/).
+3. Set `GITLAB_NAMESPACE` to the namespace portion of the fork's URL. For
+   `https://gitlab.com/example-user/fdroiddata`, the value is `example-user`;
+   for `https://gitlab.com/example-group/mobile/fdroiddata`, it is
+   `example-group/mobile`. Use the path, not a display name or the full URL.
+   Although this value is not confidential, the workflow expects it as a secret.
+
+### Create the GitLab token
+
+1. Open your avatar > Edit profile > Access > Personal access tokens.
+2. Choose Generate token > Legacy token if that choice is offered. Give it a
+   name such as `vibro-fdroid-publisher` and an expiration date.
+3. Select `api` and `write_repository` scopes. The workflow uses the token
+   for Git pushes to your fork and API calls that create an upstream merge
+   request. The account owning the token must have access to write to the fork.
+4. Generate the token and copy it immediately; it cannot be viewed again.
+   This value becomes `GITLAB_TOKEN`. See
+   [GitLab's token instructions](https://docs.gitlab.com/user/profile/personal_access_tokens/).
+
+### Add the repository secrets
+
+Follow [Add the secrets to GitHub](../gradle/PLAY_STORE.md#add-the-secrets-to-github)
+to add `GITLAB_NAMESPACE` and `GITLAB_TOKEN` as repository Actions secrets.
+Retain the existing `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
+`ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` signing secrets. Keep the
+token out of Git and update its GitHub secret when rotating it or before expiry.
+
+Google Play additionally requires `PLAY_SERVICE_ACCOUNT_JSON` and an initial
+app-bundle upload. An existing internal-test release already satisfies that
+upload prerequisite; production eligibility and unused version codes still
+need checking. See [Google Play initial prerequisites](../gradle/PLAY_STORE.md#initial-prerequisites).
+The store jobs run independently after the shared build. Missing GitLab
+credentials can prevent the reusable F-Droid workflow from starting even
+when the GitHub Release's build and APK attachment succeeded.
+
+## Prepare and submit a release
+
 Before opening the official F-Droid merge request, complete these steps:
 
 1. Push the repository to a public GitHub URL.
@@ -52,7 +102,8 @@ Before opening the official F-Droid merge request, complete these steps:
 
 Useful repository files already prepared upstream:
 
-- `fastlane/metadata/android/en-US/...`
+- `fastlane/metadata/android/<locale>/...` (English fallback: `en-US`;
+  [shared listing guide](../fastlane/README.md) covers translations and graphics)
 - `docs/`
 - `.github/workflows/fdroid-ready.yml`
 - `.github/workflows/fdroid-submit.yml`
@@ -63,7 +114,17 @@ Notes:
   Android signing secrets. The `F-Droid Readiness` workflow is reserved for
   manual maintainer checks and the automatic pre-submit gate in
   `Submit F-Droid Metadata`. Its separate tag-push trigger has been removed.
-- GitHub prereleases attach only the signed FOSS APK and do not submit to either store.
+- GitHub prereleases attach only the signed FOSS APK and upload the Google Play
+  bundle to a testing track (`alpha` by default, or `PLAY_PRERELEASE_TRACK`).
+  They do not submit official F-Droid metadata. See the
+  [Play prerelease guide](../gradle/PLAY_STORE.md#publish-a-betaprerelease).
+  Beta tags can use `v<versionName>-beta` or `v<versionName>-beta.N`; numeric
+  tags also support GitHub's prerelease checkbox. Because a numeric tag
+  alone does not identify a stable release, `AutoUpdateMode` and
+  `UpdateCheckMode` are `None`; stable updates come from the submission
+  workflow instead of F-Droid's independent tag discovery. Keep those fields
+  disabled when submitting the rendered metadata. See the
+  [F-Droid metadata reference](https://f-droid.org/docs/Build_Metadata_Reference/#autoupdatemode).
 - The Gradle build must run from the repository root, not `app/`, because the
   wrapper and `settings.gradle` live at the top level.
 - `local.properties` is excluded in the draft recipe because it is machine-
@@ -86,19 +147,10 @@ after the signed FOSS APK has been attached. It performs these steps:
 - push it to your GitLab `fdroiddata` fork
 - create or reuse a merge request against `fdroid/fdroiddata`
 
-Required GitHub Actions secrets:
-
-- `GITLAB_NAMESPACE`: your GitLab username or group that owns the `fdroiddata`
-  fork
-- `GITLAB_TOKEN`: a GitLab personal access token with `api` and
-  `write_repository`
-- The existing `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
-  `ANDROID_KEY_ALIAS`, and `ANDROID_KEY_PASSWORD` signing secrets are also
-  required by the release build and manual readiness builds.
-
-Google Play additionally needs `PLAY_SERVICE_ACCOUNT_JSON`; see
-`gradle/PLAY_STORE.md`. Play upload and F-Droid submission run independently
-after the shared build succeeds, so failure of one does not prevent the other.
+The [initial prerequisites](#initial-prerequisites) explain how to obtain and
+add the GitLab and signing secrets. Play upload and F-Droid submission run
+independently after the shared build succeeds, so failure of one does not
+prevent the other.
 
 Workflow inputs:
 
@@ -109,6 +161,20 @@ Workflow inputs:
 - `release_artifact`: reusable-workflow input supplied by the release caller
   to reuse its tested signed APKs. Leave it empty for standalone manual runs,
   which check and build the release source themselves.
+
+### Retry after adding credentials
+
+To retry only F-Droid, open GitHub Actions > Submit F-Droid Metadata > Run
+workflow. Set `release_ref` to the existing published tag (for example,
+`v1.0.0`) and keep `fdroiddata_branch` as `vibro.navigator.foss` unless using
+another branch in your fork. The workflow rechecks the public release APK
+and opens or reuses the merge request; a new release or tag is unnecessary.
+
+Use **Re-run failed jobs** on the original release run only if every failed
+store job should be retried. In particular, if the Play bundle was already
+uploaded manually or automatically, use the F-Droid-only retry to avoid
+uploading the same Play versionCode again. See
+[Play retry guidance](../gradle/PLAY_STORE.md#release-preparation-and-retries).
 
 This does not fully automate official inclusion. F-Droid maintainers still
 review the merge request and perform the final reproducible rebuild/publish steps on

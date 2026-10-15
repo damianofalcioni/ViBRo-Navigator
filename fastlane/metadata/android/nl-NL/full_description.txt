@@ -1,0 +1,18 @@
+ViBRo Navigator is een lichte, energiezuinige navigatieapp op basis van BRouter, ontworpen voor offline gebruik.
+
+Volg aanwijzingen zonder op een kaart te kijken, met trilpatronen, meldingen, optionele korte gesproken instructies en eenvoudige scherminformatie. Routeberekening en afslagaanwijzingen werken offline. Voor het zoeken naar bestemmingen is internet nodig.
+
+Functies:
+• Offline routes via BRouter en keuze uit routeprofielen.
+• Afslagaanwijzingen met trillingen en optionele spraak.
+• Navigatie op de achtergrond en met het scherm uit.
+• Routes naar een bestemming, rondritten en navigatie in een rechte lijn.
+• Tussenstops en herberekening om geblokkeerde wegen te vermijden.
+• Bestemmingsgeschiedenis, coördinaten en kaartlinks.
+• Plaatsen en nuttige locaties zoeken met OpenStreetMap.
+• Straten in de buurt uit BRouter-data en export van routes en GPS-posities naar GPX.
+• Dynamische GPS-positionering om de batterij te sparen.
+
+Installeer BRouter apart en download routegegevens voor de regio om routeaanwijzingen te gebruiken. Navigatie in een rechte lijn werkt zonder BRouter.
+
+De F-Droid-versie, ViBRo Navigator FOSS, heeft geen Google-diensten nodig en kan naast de Google Play-versie worden geïnstalleerd, met eigen gegevens en machtigingen.

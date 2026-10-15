@@ -26,8 +26,9 @@ Builds:
     gradle:
       - fdroid
 
-AutoUpdateMode: Version
-UpdateCheckMode: Tags ^v[0-9]+\.[0-9]+\.[0-9]+$
-UpdateCheckData: app/build.gradle|versionCode = (\d+)|.|versionName = "([^"]+)"
+# Numeric tags can also be GitHub prereleases. Only the stable-release
+# submission workflow updates this metadata; do not discover updates from tags.
+AutoUpdateMode: None
+UpdateCheckMode: None
 CurrentVersion: "1.0.0"
 CurrentVersionCode: 1000000

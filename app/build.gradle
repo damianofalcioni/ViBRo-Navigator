@@ -149,6 +149,8 @@ dependencies {
 }
 
 // Keep the publishing plugin out of normal builds and F-Droid's build environment.
+apply from: "$rootDir/gradle/play-listing.gradle"
+
 if (providers.gradleProperty("playPublishing").map { it.isEmpty() || it.toBoolean() }.getOrElse(false)) {
     apply plugin: "com.github.triplet.play"
     apply from: "$rootDir/gradle/play-publish.gradle"

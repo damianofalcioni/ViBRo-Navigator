@@ -1,0 +1,1 @@
+GPS-navigering offline med vibrationer och rutter från BRouter

@@ -1,0 +1,1 @@
+Navegação GPS offline com orientação por vibração e rotas do BRouter

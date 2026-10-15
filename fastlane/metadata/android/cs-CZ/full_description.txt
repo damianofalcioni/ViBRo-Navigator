@@ -1,0 +1,18 @@
+ViBRo Navigator je nenáročná navigační aplikace založená na BRouteru, která šetří baterii a upřednostňuje práci offline.
+
+Sledujte pokyny bez pohledu na mapu pomocí vibračních vzorů, oznámení, volitelných stručných hlasových pokynů a jednoduchého zobrazení. Výpočet tras i vytváření pokynů k odbočení fungují offline. Hledání cílů vyžaduje internet.
+
+Funkce:
+• Offline trasy přes BRouter a výběr profilů trasování.
+• Vibrační pokyny k odbočení a volitelná hlasová navigace.
+• Navigace na pozadí a s vypnutou obrazovkou.
+• Trasy k cíli, okružní trasy a navigace vzdušnou čarou.
+• Průjezdní body a přepočet trasy kolem zablokovaných cest.
+• Historie cílů, souřadnice a odkazy na mapy.
+• Hledání míst a bodů zájmu pomocí OpenStreetMap.
+• Blízké ulice z dat BRouteru a export tras a GPS poloh do GPX.
+• Dynamické získávání GPS polohy pro nižší spotřebu baterie.
+
+Pro navigaci po trase je nutné samostatně nainstalovat BRouter a stáhnout data pro danou oblast. Navigace vzdušnou čarou funguje bez BRouteru.
+
+Verze pro F-Droid, ViBRo Navigator FOSS, nepotřebuje služby Google a lze ji nainstalovat vedle verze z Google Play. Každá má vlastní data a oprávnění.

@@ -22,5 +22,5 @@ Important notes:
 
 * BRouter must be installed separately for routed turn guidance.
 * Straight-line navigation works without BRouter.
-* The app does not require Google services.
+* The F-Droid version does not require Google services.
 * The F-Droid version is named ViBRo Navigator FOSS and can be installed alongside the Google Play version, with independent app data and permissions.
