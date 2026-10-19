@@ -21,6 +21,10 @@
     <queries>
         <package android:name="btools.routingapp" />
         <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="content" android:mimeType="*/*" />
+        </intent>
+        <intent>
             <action android:name="android.speech.action.RECOGNIZE_SPEECH" />
         </intent>
         <intent>

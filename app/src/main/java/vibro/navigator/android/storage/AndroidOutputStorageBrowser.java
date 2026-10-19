@@ -50,7 +50,8 @@ public final class AndroidOutputStorageBrowser {
 
     static Intent pickerIntent(Intent launch) {
         Intent picker = IntentCompat.getParcelableExtra(launch, EXTRA_PICKER, Intent.class);
-        return picker == null ? AndroidDocumentAccess.openDocumentIntent(launch.getData()) : picker;
+        return picker == null ? AndroidDocumentAccess.openDocumentIntent(launch.getData())
+                .putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true) : picker;
     }
 
     static boolean returnResult(Activity host, int resultCode, Intent data) {

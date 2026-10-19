@@ -1,12 +1,17 @@
 package vibro.navigator.android.storage;
 
-import vibro.navigator.android.language.AndroidLocalizedActivity;
 import android.content.ActivityNotFoundException;
+import android.content.ClipData;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+
 import vibro.navigator.R;
+import vibro.navigator.android.language.AndroidLocalizedActivity;
 
 /** Hosts system file picking in its own task without creating an in-app file browser. */
 public final class AndroidOutputBrowserActivity extends AndroidLocalizedActivity {
@@ -34,10 +39,11 @@ public final class AndroidOutputBrowserActivity extends AndroidLocalizedActivity
         }
         try {
             if (!AndroidOutputStorageBrowser.returnResult(this, resultCode, data)
-                    && resultCode == RESULT_OK && data != null && data.getData() != null) {
-                startActivity(new Intent(Intent.ACTION_VIEW).setDataAndType(data.getData(),
-                        getContentResolver().getType(data.getData()))
-                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK));
+                    && resultCode == RESULT_OK && data != null) {
+                Intent action = selectionIntent(data);
+                if (action != null) {
+                    startActivity(action.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+                }
             }
         } catch (ActivityNotFoundException | SecurityException e) {
             unavailable();
@@ -45,6 +51,60 @@ public final class AndroidOutputBrowserActivity extends AndroidLocalizedActivity
             // This activity owns a separate picker task; remove its card from Recents too.
             finishAndRemoveTask();
         }
+    }
+
+    private Intent selectionIntent(Intent data) {
+        ArrayList<Uri> files = selectedUris(data);
+        if (files.isEmpty()) {
+            return null;
+        }
+        ClipData clip = ClipData.newRawUri("", files.get(0));
+        for (int i = 1; i < files.size(); i++) {
+            clip.addItem(new ClipData.Item(files.get(i)));
+        }
+        Intent action;
+        if (files.size() == 1) {
+            action = new Intent(Intent.ACTION_VIEW).setDataAndType(files.get(0),
+                    sharedMimeType(files));
+        } else {
+            action = new Intent(Intent.ACTION_SEND_MULTIPLE).setType(sharedMimeType(files))
+                    .putParcelableArrayListExtra(Intent.EXTRA_STREAM, files);
+        }
+        action.setClipData(clip);
+        action.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        // The chooser carries every URI grant before this host releases its picker grant.
+        return files.size() == 1 ? AndroidFileActionChooser.create(this, action,
+                getString(R.string.title_output_browser), null) : Intent.createChooser(action, null);
+    }
+
+    private static ArrayList<Uri> selectedUris(Intent data) {
+        LinkedHashSet<Uri> files = new LinkedHashSet<>();
+        if (data.getData() != null) {
+            files.add(data.getData());
+        }
+        ClipData clip = data.getClipData();
+        if (clip != null) {
+            for (int i = 0; i < clip.getItemCount(); i++) {
+                Uri uri = clip.getItemAt(i).getUri();
+                if (uri != null) {
+                    files.add(uri);
+                }
+            }
+        }
+        return new ArrayList<>(files);
+    }
+
+    private String sharedMimeType(ArrayList<Uri> files) {
+        String common = getContentResolver().getType(files.get(0));
+        if (common == null) {
+            return "*/*";
+        }
+        for (int i = 1; i < files.size(); i++) {
+            if (!common.equals(getContentResolver().getType(files.get(i)))) {
+                return "*/*";
+            }
+        }
+        return common;
     }
 
     private void unavailable() {

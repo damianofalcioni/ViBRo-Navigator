@@ -40,6 +40,7 @@ public class AndroidOutputBrowserActivityTest {
             shadowOf(activity).getNextStartedActivity();
             assertEquals(AndroidOutputBrowserActivity.REQUEST_OPEN_FILE, launch.requestCode);
             assertEquals(Intent.ACTION_OPEN_DOCUMENT, launch.intent.getAction());
+            assertTrue(launch.intent.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false));
             if (RuntimeEnvironment.getApiLevel() >= 26) {
                 assertEquals(FOLDER, IntentCompat.getParcelableExtra(
                         launch.intent, DocumentsContract.EXTRA_INITIAL_URI, Uri.class));
@@ -65,7 +66,7 @@ public class AndroidOutputBrowserActivityTest {
     }
 
     @Test
-    public void selectedFileOpensInViewerWithTemporaryReadAccessAndHostFinishes() {
+    public void selectedFileOffersSharingWithTemporaryReadAccessAndHostFinishes() {
         TestDownloadsProvider provider = TestDownloadsProvider.install(ApplicationProvider.getApplicationContext());
         ContentValues values = new ContentValues();
         values.put("mime_type", "application/gpx+xml");
@@ -75,12 +76,15 @@ public class AndroidOutputBrowserActivityTest {
             shadowOf(activity).getNextStartedActivity();
             activity.onActivityResult(AndroidOutputBrowserActivity.REQUEST_OPEN_FILE,
                     Activity.RESULT_OK, new Intent().setData(file));
-            Intent viewer = shadowOf(activity).getNextStartedActivity();
-            assertEquals(Intent.ACTION_VIEW, viewer.getAction());
-            assertEquals(file, viewer.getData());
-            assertEquals("application/gpx+xml", viewer.getType());
+            Intent chooser = shadowOf(activity).getNextStartedActivity();
+            assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+            Intent send = IntentCompat.getParcelableExtra(chooser, Intent.EXTRA_INTENT, Intent.class);
+            assertEquals(Intent.ACTION_SEND, send.getAction());
+            assertEquals(file, IntentCompat.getParcelableExtra(send, Intent.EXTRA_STREAM, Uri.class));
+            assertEquals("application/gpx+xml", send.getType());
+            assertEquals(file, send.getClipData().getItemAt(0).getUri());
             assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK,
-                    viewer.getFlags());
+                    chooser.getFlags());
             assertTrue(activity.isFinishing());
             assertTrue(((TestOutputBrowserActivity) shadowOf(activity)).taskRemoved);
         }
@@ -92,6 +96,8 @@ public class AndroidOutputBrowserActivityTest {
         try (ActivityController<AndroidOutputBrowserActivity> controller =
                      Robolectric.buildActivity(AndroidOutputBrowserActivity.class, launch).setup()) {
             AndroidOutputBrowserActivity activity = controller.get();
+            IntentForResult picker = shadowOf(activity).getNextStartedActivityForResult();
+            assertFalse(picker.intent.getBooleanExtra(Intent.EXTRA_ALLOW_MULTIPLE, false));
             shadowOf(activity).getNextStartedActivity();
             Uri file = Uri.parse("content://backups/document/backup.json");
             ClipData clip = ClipData.newRawUri("backup", file);
