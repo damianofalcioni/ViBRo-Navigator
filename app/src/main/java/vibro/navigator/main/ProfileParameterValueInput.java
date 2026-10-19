@@ -2,6 +2,7 @@ package vibro.navigator.main;
 
 import android.content.Context;
 import android.text.InputType;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -21,7 +22,7 @@ import vibro.navigator.brouter.BRouterProfileParameterOption;
 import vibro.navigator.brouter.BRouterProfileParameterValues;
 
 interface ProfileParameterValueInput {
-    int INPUT_WIDTH_DP = 164;
+    int INPUT_WIDTH_DP = 104;
 
     @NonNull
     View view();
@@ -53,7 +54,10 @@ interface ProfileParameterValueInput {
 
     @NonNull
     static LinearLayout.LayoutParams inputLayoutParams(@NonNull Context context) {
-        return new LinearLayout.LayoutParams(dp(context, INPUT_WIDTH_DP), ViewGroup.LayoutParams.WRAP_CONTENT);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                dp(context, INPUT_WIDTH_DP), ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMarginStart(dp(context, 8));
+        return params;
     }
 
     static int dp(@NonNull Context context, int value) {
@@ -69,7 +73,11 @@ final class BooleanParameterInput implements ProfileParameterValueInput {
     BooleanParameterInput(@NonNull Context context) {
         input = new Switch(context);
         input.setShowText(false);
-        input.setLayoutParams(ProfileParameterValueInput.inputLayoutParams(context));
+        input.setMinWidth(ProfileParameterValueInput.dp(context, 48));
+        input.setMinHeight(ProfileParameterValueInput.dp(context, 48));
+        LinearLayout.LayoutParams params = ProfileParameterValueInput.inputLayoutParams(context);
+        params.width = ViewGroup.LayoutParams.WRAP_CONTENT;
+        input.setLayoutParams(params);
     }
 
     @NonNull
@@ -107,6 +115,7 @@ final class TextParameterInput implements ProfileParameterValueInput {
         input.setSelectAllOnFocus(true);
         input.setLayoutParams(ProfileParameterValueInput.inputLayoutParams(context));
         input.setInputType(number ? numberInputType() : InputType.TYPE_CLASS_TEXT);
+        input.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
     }
 
     @NonNull
