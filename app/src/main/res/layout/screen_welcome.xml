@@ -67,6 +67,24 @@
             <TextView
                 style="@style/Widget.ViBRoNavigator.Welcome.Body"
                 android:text="@string/welcome_optional_access_body" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_welcome_disclaimer"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    style="@style/Widget.ViBRoNavigator.Welcome.Heading"
+                    android:layout_marginTop="0dp"
+                    android:text="@string/welcome_safety_title" />
+
+                <TextView
+                    style="@style/Widget.ViBRoNavigator.Welcome.Body"
+                    android:text="@string/welcome_safety_body" />
+            </LinearLayout>
         </LinearLayout>
     </ScrollView>
 

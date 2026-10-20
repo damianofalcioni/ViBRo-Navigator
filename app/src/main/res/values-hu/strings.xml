@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">Ne mutasd újra</string>
     <string name="nav_gesture_dismiss">Érintse meg bárhol az elvetéshez</string>
     <string name="welcome_title">Üdvözöljük a ViBRo alkalmazásban</string>
-    <string name="welcome_tldr">Röviden: Telepítse a BRouter alkalmazást, töltse le a helyi útvonal-adatokat, és adja meg a szükséges engedélyeket.</string>
+    <string name="welcome_tldr">Röviden: Telepítse a BRouter alkalmazást, töltse le a helyi útvonaladatokat, adja meg az engedélyeket, és használja felelősségteljesen.</string>
     <string name="welcome_intro">A ViBRo Navigator (Rezgető/rezgéssel kódolt BRouter Navigátor) egy könnyű, offline-előnyös és energiatakarékos Android GPS navigációs alkalmazás, a BRouter alapjaira építve. Térkép nélküli navigációra tervezték, iránymutatásokat biztosít rezgéseken és minimális képernyő- és hangalapú útmutatáson keresztül, lehetővé téve a figyelemelterelés nélküli és képernyő kikapcsolt állapotban történő használatot.</string>
     <string name="welcome_setup_title">Kezdő beállítás</string>
     <string name="welcome_brouter_body">• Telepítse a BRouter alkalmazást a megadott hivatkozások segítségével, majd nyissa meg és töltse le az útvonal-adatokat a saját területére.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Adja meg a profiles2 mappához való hozzáférést a felkéréskor, vagy a tárhelyhozzáférést a régebbi Android verziókon.</string>
     <string name="welcome_battery_body">• Engedélyezze az opcionális akkumulátor-optimalizálás alóli kivételt a megbízható útmutatásért a képernyő kikapcsolt állapotában.</string>
     <string name="welcome_optional_access_body">• A mikrofonhoz való hozzáférés csak akkor szükséges, ha hangkereséshez kérték.</string>
+    <string name="welcome_safety_title">Biztonság és felelősség</string>
+    <string name="welcome_safety_body">A helyadatok, az útvonalak és az utasítások pontatlanok vagy elavultak lehetnek. Ne kövesd őket vakon. Mindig figyeld az utat, a forgalmat, a táblákat és a környezetedet; tartsd be a helyi szabályokat, és használd a saját ítélőképességedet. Az alkalmazás kezelése előtt állj meg biztonságos helyen.\n\nA ViBRo Navigator alkalmazást saját felelősségedre használod. A jogszabályok által megengedett mértékben a fejlesztő és a közreműködők nem vállalnak felelősséget az alkalmazás használatából vagy az útmutatásaira való hagyatkozásból eredő sérülésekért, károkért, veszteségekért vagy egyéb következményekért.</string>
     <string name="action_about">Névjegy</string>
     <string name="action_start_navigation">Navigáció indítása</string>
     <string name="action_pause_navigation">Navigáció szüneteltetése</string>

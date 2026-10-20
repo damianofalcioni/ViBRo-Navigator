@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">Niet meer laten zien</string>
     <string name="nav_gesture_dismiss">Tik ergens om te sluiten</string>
     <string name="welcome_title">Welkom bij ViBRo</string>
-    <string name="welcome_tldr">TL;DR: Installeer BRouter, download lokale routegegevens en geef permissies.</string>
+    <string name="welcome_tldr">TL;DR: Installeer BRouter, download lokale routegegevens, geef toestemming en gebruik de app verantwoord.</string>
     <string name="welcome_intro">ViBRo Navigator (Trillende/Vibe-gecodeerde BRouter Navigator) is een lichte, offline-eerst en energiezuinige Android GPS navigatie-app gebouwd bovenop BRouter. Het is ontworpen voor navigatie zonder kaart, levert aanwijzingen via trillingen en minimale scherm- en spraakbegeleiding, waardoor gebruik zonder afleiding en met uitgeschermd scherm mogelijk is.</string>
     <string name="welcome_setup_title">Initiële setup</string>
     <string name="welcome_brouter_body">• Installeer BRouter via de verstrekte links, open vervolgens de app en download routegegevens voor jouw regio.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Verleen profiles2-toegang tot de map wanneer hierom wordt gevraagd, of opslagtoestemming op oudere Android-versies.</string>
     <string name="welcome_battery_body">• Sta de optionele batterijoptimalisatie-uitzondering toe voor betrouwbare begeleiding met het scherm uit.</string>
     <string name="welcome_optional_access_body">• Microfoontoegang is alleen nodig als deze wordt gevraagd voor spraakzoekopdrachten.</string>
+    <string name="welcome_safety_title">Veiligheid en verantwoordelijkheid</string>
+    <string name="welcome_safety_body">De locatie, routes en instructies kunnen onnauwkeurig of verouderd zijn. Volg ze niet blindelings. Let altijd op de weg, het verkeer, verkeersborden en je omgeving; houd je aan de plaatselijke regels en gebruik je eigen oordeel. Stop op een veilige plek voordat je de app bedient.\n\nJe gebruikt ViBRo Navigator op eigen risico. Voor zover wettelijk toegestaan zijn de ontwikkelaar en bijdragers niet aansprakelijk voor letsel, schade, verliezen of andere gevolgen van het gebruik van de app of het vertrouwen op de aanwijzingen ervan.</string>
     <string name="action_about">Over</string>
     <string name="action_start_navigation">Start navigatie</string>
     <string name="action_pause_navigation">Pauzeer navigatie</string>

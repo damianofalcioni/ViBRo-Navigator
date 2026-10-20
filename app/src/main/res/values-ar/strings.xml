@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">لا تُظهر مرة أخرى</string>
     <string name="nav_gesture_dismiss">المس أي مكان لإلغاء الإشعار</string>
     <string name="welcome_title">مرحبًا بك في ViBRo</string>
-    <string name="welcome_tldr">باختصار: قم بتثبيت BRouter، وحمل بيانات التوجيه المحلية، ومنح الأذونات.</string>
+    <string name="welcome_tldr">باختصار: ثبّت BRouter، وحمّل بيانات التوجيه المحلية، وامنح الأذونات، واستخدم التطبيق بمسؤولية.</string>
     <string name="welcome_intro">ViBRo Navigator (مُوجِّه BRouter المهتز/المشفّر بالذبذبات) هو تطبيق تنقل خفيف الوزن، يعمل بدون اتصال بالإنترنت أولاً، وموفر للطاقة، بناءً على Android GPS، ومبني على BRouter. صُمم للتنقل بدون خرائط، ويقدّم الاتجاهات عبر الاهتزازات، وتوجيه قليل على الشاشة والصوت، مما يتيح استخدامًا دون تشتيت وبدون الحاجة لتشغيل الشاشة.</string>
     <string name="welcome_setup_title">الإعداد الأولي</string>
     <string name="welcome_brouter_body">• قم بتثبيت BRouter باستخدام الروابط المقدمة، ثم افتحه وحمّل بيانات التوجيه لمنطقتك.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• امنح الوصول إلى مجلد profiles2 عند الطلب، أو أذونات التخزين على إصدارات Android الأقدم.</string>
     <string name="welcome_battery_body">• اسمح بالإعفاء الاختياري من تحسين البطارية للحصول على إرشادات موثوقة مع إيقاف تشغيل الشاشة.</string>
     <string name="welcome_optional_access_body">• الوصول إلى الميكروفون مطلوب فقط إذا تم الطلب للبحث الصوتي.</string>
+    <string name="welcome_safety_title">السلامة والمسؤولية</string>
+    <string name="welcome_safety_body">قد يكون الموقع والمسارات والتعليمات غير دقيقة أو قديمة. لا تتبعها بشكل أعمى. انتبه دائماً إلى الطريق وحركة المرور واللافتات ومحيطك؛ والتزم بالقواعد المحلية واستخدم تقديرك الشخصي. توقف في مكان آمن قبل التفاعل مع التطبيق.\n\nتستخدم ViBRo Navigator على مسؤوليتك الخاصة. إلى الحد الذي يسمح به القانون، لا يتحمل المطور والمساهمون أي مسؤولية عن الإصابات أو الأضرار أو الخسائر أو أي عواقب أخرى تنشأ عن استخدام التطبيق أو الاعتماد عليه.</string>
     <string name="action_about">حول</string>
     <string name="action_start_navigation">بدء التنقل</string>
     <string name="action_pause_navigation">إيقاف مؤقت للتنقل</string>

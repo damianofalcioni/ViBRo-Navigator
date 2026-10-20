@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">不再显示</string>
     <string name="nav_gesture_dismiss">点击任意位置以关闭</string>
     <string name="welcome_title">欢迎使用 ViBRo</string>
-    <string name="welcome_tldr">简而言之：安装 BRouter，下载本地路线数据，并授予权限。</string>
+    <string name="welcome_tldr">简而言之：安装 BRouter，下载本地路线数据，授予权限，并负责任地使用。</string>
     <string name="welcome_intro">ViBRo Navigator（振动/振动编码 BRouter 导航器）是一款轻量级、离线优先、节能的 Android GPS 导航应用，基于 BRouter 构建。它设计用于无需地图的导航，通过振动和最少的屏幕及语音指引提供路线，实现免分心和屏幕关闭状态的使用。</string>
     <string name="welcome_setup_title">初始设置</string>
     <string name="welcome_brouter_body">• 使用提供的链接安装 BRouter，然后打开并下载您所在区域的路线数据。</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• 提示时授予 profiles2 文件夹访问权限，或在较早的 Android 版本上授予存储权限。</string>
     <string name="welcome_battery_body">• 允许可选的电池优化豁免，以在屏幕关闭时获得可靠的导航。</string>
     <string name="welcome_optional_access_body">• 仅在请求语音搜索时需要麦克风访问权限。</string>
+    <string name="welcome_safety_title">安全与责任</string>
+    <string name="welcome_safety_body">位置、路线和导航指示可能不准确或已过时。请勿盲目遵循。请始终留意道路、交通、标志及周围环境，遵守当地规则，并自行判断。操作应用前，请先在安全的地方停下。\n\n使用 ViBRo Navigator 的风险由您自行承担。在法律允许的范围内，开发者及贡献者不对因使用或依赖本应用而造成的人身伤害、财产损害、损失或其他后果承担责任。</string>
     <string name="action_about">关于</string>
     <string name="action_start_navigation">开始导航</string>
     <string name="action_pause_navigation">暂停导航</string>

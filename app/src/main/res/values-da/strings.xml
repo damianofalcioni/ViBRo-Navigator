@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">Vis ikke igen</string>
     <string name="nav_gesture_dismiss">Tryk hvor som helst for at afvise</string>
     <string name="welcome_title">Velkommen til ViBRo</string>
-    <string name="welcome_tldr">Kort opsummering: Installer BRouter, download lokal rutedata, og giv tilladelser.</string>
+    <string name="welcome_tldr">Kort opsummering: Installer BRouter, download lokale rutedata, giv tilladelser, og brug appen ansvarligt.</string>
     <string name="welcome_intro">ViBRo Navigator (Vibrerende/Vibe-kodet BRouter Navigator) er en letvægts, offline-først og batteribesparende Android GPS navigationsapp bygget oven på BRouter. Den er designet til kortfri navigation, der leverer vejledning gennem vibrationer og minimal skærm- og stemmevejledning, hvilket muliggør distraktionsfri brug med slukket skærm.</string>
     <string name="welcome_setup_title">Første opsætning</string>
     <string name="welcome_brouter_body">• Installer BRouter ved hjælp af de angivne links, åbn derefter appen og download rutedata for dit område.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Giv profiles2 mappeadgang, når du bliver bedt om det, eller lager-tilladelse på ældre Android versioner.</string>
     <string name="welcome_battery_body">• Tillad den valgfrie undtagelse fra batterioptimering for pålidelig vejledning med skærmen slukket.</string>
     <string name="welcome_optional_access_body">• Mikrofontilgang er kun nødvendig, hvis den anmodes om til stemmesøgning.</string>
+    <string name="welcome_safety_title">Sikkerhed og ansvar</string>
+    <string name="welcome_safety_body">Position, ruter og anvisninger kan være unøjagtige eller forældede. Følg dem ikke blindt. Hold altid øje med vejen, trafikken, skilte og dine omgivelser; følg lokale regler, og brug din egen dømmekraft. Stands et sikkert sted, før du betjener appen.\n\nDu bruger ViBRo Navigator på eget ansvar. I det omfang loven tillader det, påtager udvikleren og bidragyderne sig intet ansvar for personskader, skader, tab eller andre følger af brug af appen eller tillid til dens anvisninger.</string>
     <string name="action_about">Om</string>
     <string name="action_start_navigation">Start navigation</string>
     <string name="action_pause_navigation">Pause navigation</string>

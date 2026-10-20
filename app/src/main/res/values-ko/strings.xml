@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">다시 표시하지 않기</string>
     <string name="nav_gesture_dismiss">해제하려면 아무 곳이나 터치하세요</string>
     <string name="welcome_title">ViBRo에 오신 것을 환영합니다</string>
-    <string name="welcome_tldr">요약: BRouter를 설치하고, 지역 경로 데이터를 다운로드하며, 권한을 부여하세요.</string>
+    <string name="welcome_tldr">요약: BRouter를 설치하고 지역 경로 데이터를 다운로드한 뒤 권한을 부여하고 책임감 있게 사용하세요.</string>
     <string name="welcome_intro">ViBRo Navigator(진동/진동 코드 BRouter 내비게이터)는 BRouter 위에 구축된 경량, 오프라인 우선, 배터리 효율적인 Android GPS 내비게이션 앱입니다. 지도를 사용하지 않는 내비게이션용으로 설계되어 있으며, 진동과 최소한의 화면 및 음성 안내를 통해 길 안내를 제공하여 주의 산만 없이 화면을 끄고도 사용할 수 있습니다.</string>
     <string name="welcome_setup_title">초기 설정</string>
     <string name="welcome_brouter_body">• 제공된 링크를 사용하여 BRouter를 설치한 후 열고 해당 지역의 경로 데이터를 다운로드하세요.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• 안내가 나오면 profiles2 폴더 접근을 허용하거나, 이전 Android 버전에서는 저장소 권한을 허용하세요.</string>
     <string name="welcome_battery_body">• 화면이 꺼진 상태에서도 안정적인 안내를 위해 선택적 배터리 최적화 예외를 허용하세요.</string>
     <string name="welcome_optional_access_body">• 음성 검색 요청이 있는 경우에만 마이크 접근이 필요합니다.</string>
+    <string name="welcome_safety_title">안전 및 책임</string>
+    <string name="welcome_safety_body">위치, 경로 및 안내가 부정확하거나 오래된 정보일 수 있습니다. 안내를 맹목적으로 따르지 마세요. 항상 도로, 교통, 표지판 및 주변 상황에 주의를 기울이고, 현지 규칙을 지키며 스스로 판단하세요. 앱을 조작하기 전에 안전한 곳에 멈추세요.\n\nViBRo Navigator는 본인의 책임하에 사용하세요. 법이 허용하는 범위 내에서 개발자와 기여자는 앱 사용 또는 안내에 대한 의존으로 발생하는 부상, 손해, 손실 또는 기타 결과에 대해 책임을 지지 않습니다.</string>
     <string name="action_about">정보</string>
     <string name="action_start_navigation">내비게이션 시작</string>
     <string name="action_pause_navigation">내비게이션 일시정지</string>

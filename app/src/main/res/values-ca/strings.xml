@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">No mostrar de nou</string>
     <string name="nav_gesture_dismiss">Toca a qualsevol lloc per tancar</string>
     <string name="welcome_title">Benvingut a ViBRo</string>
-    <string name="welcome_tldr">Resum: Instala BRouter, descarrega les dades de rutes locals i concedeix permisos.</string>
+    <string name="welcome_tldr">Resum: instal·la BRouter, descarrega les dades de rutes locals, concedeix permisos i fes-ne un ús responsable.</string>
     <string name="welcome_intro">ViBRo Navigator (BRouter Navigator amb vibració/codificació per vibració) és una aplicació de navegació Android GPS lleugera, pensada per funcionar principalment sense connexió i eficient en bateria, construïda sobre BRouter. Està dissenyada per a la navegació sense mapa, oferint direccions mitjançant vibracions i guiatge mínim en pantalla i per veu, permetent un ús sense distraccions i amb la pantalla apagada.</string>
     <string name="welcome_setup_title">Configuració inicial</string>
     <string name="welcome_brouter_body">• Instala BRouter mitjançant els enllaços proporcionats, després obre l\'aplicació i descarrega les dades de rutes de la teva àrea.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Concedeix accés a la carpeta profiles2 quan se\'t demani, o permís d\'emmagatzematge a les versions més antigues Android.</string>
     <string name="welcome_battery_body">• Permet l\'exempció opcional d\'optimització de bateria per a una guia fiable amb la pantalla apagada.</string>
     <string name="welcome_optional_access_body">• L\'accés al micròfon només és necessari si es demana per a la cerca per veu.</string>
+    <string name="welcome_safety_title">Seguretat i responsabilitat</string>
+    <string name="welcome_safety_body">La ubicació, les rutes i les indicacions poden ser inexactes o estar desactualitzades. No les segueixis a cegues. Para sempre atenció a la via, al trànsit, als senyals i al teu entorn; respecta les normes locals i fes servir el teu propi criteri. Atura’t en un lloc segur abans d’interactuar amb l’aplicació.\n\nFes servir ViBRo Navigator sota la teva responsabilitat. En la mesura permesa per la llei, el desenvolupador i els col·laboradors no es fan responsables de lesions, danys, pèrdues ni altres conseqüències derivades de l’ús de l’aplicació o de confiar en les seves indicacions.</string>
     <string name="action_about">Sobre</string>
     <string name="action_start_navigation">Iniciar navegació</string>
     <string name="action_pause_navigation">Pausar navegació</string>

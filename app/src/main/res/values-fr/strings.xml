@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">Ne plus afficher</string>
     <string name="nav_gesture_dismiss">Touchez n\'importe où pour fermer</string>
     <string name="welcome_title">Bienvenue sur ViBRo</string>
-    <string name="welcome_tldr">TL;DR : Installez BRouter, téléchargez les données de routage locales et accordez les permissions.</string>
+    <string name="welcome_tldr">TL;DR : Installez BRouter, téléchargez les données de routage locales, accordez les permissions et utilisez l’application de manière responsable.</string>
     <string name="welcome_intro">ViBRo Navigator (Navigateur BRouter Vibrant/Code Vibration) est une application de navigation Android GPS légère, principalement hors ligne et économe en batterie, construite sur BRouter. Elle est conçue pour la navigation sans carte, fournissant des directions par vibrations et un guidage minimal à l\'écran et vocal, permettant une utilisation sans distraction et écran éteint.</string>
     <string name="welcome_setup_title">Configuration initiale</string>
     <string name="welcome_brouter_body">• Installez BRouter en utilisant les liens fournis, puis ouvrez-la et téléchargez les données de routage pour votre région.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Accordez l\'accès au dossier profiles2 lorsqu\'on vous le demande, ou l\'autorisation de stockage sur les versions plus anciennes de Android.</string>
     <string name="welcome_battery_body">• Autorisez l\'exemption optionnelle d\'optimisation de la batterie pour un guidage fiable avec l\'écran éteint.</string>
     <string name="welcome_optional_access_body">• L\'accès au microphone n\'est nécessaire que s\'il est demandé pour la recherche vocale.</string>
+    <string name="welcome_safety_title">Sécurité et responsabilité</string>
+    <string name="welcome_safety_body">La position, les itinéraires et les instructions peuvent être inexacts ou obsolètes. Ne les suivez pas aveuglément. Faites toujours attention à la route, à la circulation, aux panneaux et à votre environnement ; respectez les règles locales et faites preuve de discernement. Arrêtez-vous en lieu sûr avant de manipuler l’application.\n\nVous utilisez ViBRo Navigator à vos propres risques. Dans les limites autorisées par la loi, le développeur et les contributeurs déclinent toute responsabilité pour les blessures, dommages, pertes ou autres conséquences liés à l’utilisation de l’application ou à la confiance accordée à ses indications.</string>
     <string name="action_about">À propos</string>
     <string name="action_start_navigation">Démarrer la navigation</string>
     <string name="action_pause_navigation">Mettre la navigation en pause</string>

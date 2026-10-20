@@ -20,7 +20,7 @@
         <item quantity="other">Zum Schließen irgendwo tippen oder %1$d Sekunden warten</item>
     </plurals>
     <string name="welcome_title">Willkommen bei ViBRo</string>
-    <string name="welcome_tldr">Kurzfassung: BRouter installieren, lokale Routendaten herunterladen und Berechtigungen erteilen.</string>
+    <string name="welcome_tldr">Kurzfassung: BRouter installieren, lokale Routendaten herunterladen, Berechtigungen erteilen und verantwortungsvoll nutzen.</string>
     <string name="welcome_intro">ViBRo Navigator (Vibrating/Vibe-coded BRouter Navigator) ist eine leichte, batteriesparende Android-App zur GPS-Navigation auf Basis von BRouter, die vorrangig offline arbeitet. Sie ist für die Navigation ohne Karte ausgelegt und gibt Hinweise durch Vibrationen sowie knappe Bildschirm- und Sprachanweisungen, auch bei ausgeschaltetem Bildschirm.</string>
     <string name="welcome_setup_title">Ersteinrichtung</string>
     <string name="welcome_brouter_body">• Installiere BRouter über die angegebenen Links, öffne die App und lade Routendaten für deine Region herunter.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Erlaube auf Anfrage den Zugriff auf den Ordner profiles2 bzw. die Speicherberechtigung auf älteren Android-Versionen.</string>
     <string name="welcome_battery_body">• Erlaube die optionale Ausnahme von der Akkuoptimierung für zuverlässige Navigation bei ausgeschaltetem Bildschirm.</string>
     <string name="welcome_optional_access_body">• Mikrofonzugriff wird nur benötigt, wenn er für die Sprachsuche angefragt wird.</string>
+    <string name="welcome_safety_title">Sicherheit und Verantwortung</string>
+    <string name="welcome_safety_body">Standort, Routen und Anweisungen können ungenau oder veraltet sein. Folge ihnen nicht blind. Achte immer auf die Straße, den Verkehr, Schilder und deine Umgebung; beachte die örtlichen Regeln und nutze dein eigenes Urteilsvermögen. Halte sicher an, bevor du die App bedienst.\n\nDu nutzt ViBRo Navigator auf eigenes Risiko. Soweit gesetzlich zulässig, übernehmen der Entwickler und die Mitwirkenden keine Haftung für Verletzungen, Schäden, Verluste oder andere Folgen der Nutzung der App oder des Vertrauens auf ihre Angaben.</string>
     <string name="action_about">Über die App</string>
     <string name="action_start_navigation">Navigation starten</string>
     <string name="action_pause_navigation">Navigation pausieren</string>

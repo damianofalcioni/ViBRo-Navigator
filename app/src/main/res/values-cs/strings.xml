@@ -20,7 +20,7 @@
     <string name="nav_gesture_dont_show_again">Už nezobrazovat</string>
     <string name="nav_gesture_dismiss">Klepněte kamkoli pro zavření</string>
     <string name="welcome_title">Vítejte v ViBRo</string>
-    <string name="welcome_tldr">Shrnutí: Nainstalujte BRouter, stáhněte si lokální data pro trasování a udělte oprávnění.</string>
+    <string name="welcome_tldr">Shrnutí: Nainstalujte BRouter, stáhněte si místní data pro trasování, udělte oprávnění a používejte aplikaci zodpovědně.</string>
     <string name="welcome_intro">ViBRo Navigator (Vibrační/Navigátor BRouter s vibračními kódy) je lehká, prioritně offline a úsporná aplikace pro navigaci Android GPS postavená na BRouter. Je navržena pro navigaci bez map, poskytuje pokyny prostřednictvím vibrací a minimálních vizuálních či hlasových pokynů, umožňuje používání bez rozptýlení a se zhasnutou obrazovkou.</string>
     <string name="welcome_setup_title">Počáteční nastavení</string>
     <string name="welcome_brouter_body">• Nainstalujte BRouter pomocí poskytnutých odkazů, poté ji otevřete a stáhněte data trasování pro svou oblast.</string>
@@ -28,6 +28,8 @@
     <string name="welcome_storage_body">• Udělte přístup ke složce profiles2, když budete vyzváni, nebo oprávnění k úložišti na starších verzích Android.</string>
     <string name="welcome_battery_body">• Umožněte volitelné vyloučení z optimalizace baterie pro spolehlivou navigaci s vypnutou obrazovkou.</string>
     <string name="welcome_optional_access_body">• Přístup k mikrofonu je potřeba pouze tehdy, pokud je vyžadován pro hlasové vyhledávání.</string>
+    <string name="welcome_safety_title">Bezpečnost a odpovědnost</string>
+    <string name="welcome_safety_body">Poloha, trasy a pokyny mohou být nepřesné nebo zastaralé. Neřiďte se jimi slepě. Vždy sledujte cestu, provoz, značky a své okolí; dodržujte místní předpisy a používejte vlastní úsudek. Před ovládáním aplikace bezpečně zastavte.\n\nViBRo Navigator používáte na vlastní nebezpečí. V rozsahu povoleném zákonem vývojář a přispěvatelé nenesou odpovědnost za zranění, škody, ztráty ani jiné následky používání aplikace nebo spoléhání se na její pokyny.</string>
     <string name="action_about">O aplikaci</string>
     <string name="action_start_navigation">Spustit navigaci</string>
     <string name="action_pause_navigation">Pozastavit navigaci</string>

@@ -40,7 +40,9 @@ The main UI must include a navigation-mode selector at the top, with the BRouter
 #### 1.0 First-open welcome
 
 - Before setup prompts or incoming route actions, show a full-screen welcome with the welcome title, a one-sentence TL;DR, one sentence introducing the app, an Initial setup heading, and short setup bullet points in that order.
+- The TL;DR must briefly summarize BRouter installation, local routing-data downloads, permissions, and responsible use.
 - Focus on BRouter installation and regional routing-data downloads, `profiles2` folder access or legacy storage permission, location and notification access at navigation startup, the optional battery optimization exemption, and conditional microphone access for voice search.
+- Below the setup tips, show a highlighted, localized safety and responsibility notice: location, routes, and instructions may be inaccurate or outdated; users must watch the road, traffic, signs, and surroundings, follow local rules, use their own judgment, and stop safely before interacting. State that use is at the user's own risk and, to the extent permitted by law, the developer and contributors accept no liability for injuries, damage, losses, or other consequences of use or reliance on the app.
 - Keep the welcome concise and focused on initial setup; leave navigation instructions and mode explanations to their existing in-app help.
 - Keep the text scrollable and Continue reachable in portrait, landscape, and with larger system fonts; follow the selected dark/light theme.
 - Persist completion only after Continue. Closing before completion must show the welcome on the next open, and activity recreation must retain the welcome and its scroll position. After completion, resume normal setup and preserve any incoming destination or GPX intent. Subsequent opens skip the welcome.
