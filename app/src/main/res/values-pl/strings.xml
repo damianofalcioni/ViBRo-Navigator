@@ -585,4 +585,9 @@
         <item quantity="many">%1$d minut</item>
         <item quantity="other">%1$d minut</item>
     </plurals>
+    <string name="action_restore_default_configuration">Przywróć konfigurację domyślną</string>
+    <string name="action_restore_defaults">Przywróć domyślne</string>
+    <string name="confirm_restore_default_configuration">Przywrócić wszystkie ustawienia do wartości domyślnych?</string>
+    <string name="about_setting_restore_defaults_info">Dotyczy to języka, motywu, kluczy API i folderów wyjściowych. Zapisane trasy i historia wyszukiwania zostaną zachowane.</string>
+    <string name="msg_default_configuration_restored">Przywrócono konfigurację domyślną</string>
 </resources>

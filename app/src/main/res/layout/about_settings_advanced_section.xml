@@ -163,4 +163,28 @@
             android:layout_marginStart="8dp"
             android:contentDescription="@string/action_setting_info" />
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/aboutRestoreDefaultsRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/aboutRestoreDefaultsButton"
+            style="@style/Widget.ViBRoNavigator.Button.Primary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/action_restore_default_configuration" />
+
+        <ImageButton
+            android:id="@+id/aboutRestoreDefaultsInfoButton"
+            style="@style/Widget.ViBRoNavigator.InfoButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/action_setting_info" />
+    </LinearLayout>
 </merge>

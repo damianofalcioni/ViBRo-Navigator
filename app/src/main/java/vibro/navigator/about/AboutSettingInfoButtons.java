@@ -118,6 +118,8 @@ final class AboutSettingInfoButtons {
         bind(R.id.aboutGooglePoiApiKeyInfoButton, R.string.label_google_poi_api_key, R.string.about_setting_google_poi_api_key_info);
         bind(R.id.aboutExportDatabaseInfoButton, R.string.action_export_database, R.string.about_setting_export_database_info);
         bind(R.id.aboutImportDatabaseInfoButton, R.string.action_import_database, R.string.about_setting_import_database_info);
+        bind(R.id.aboutRestoreDefaultsInfoButton, R.string.action_restore_default_configuration,
+                R.string.about_setting_restore_defaults_info);
     }
 
     private void bind(int buttonId, int titleResId, int messageResId) {

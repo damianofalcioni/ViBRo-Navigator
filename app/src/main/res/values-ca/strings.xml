@@ -581,4 +581,9 @@
         <item quantity="many">%1$d minuts</item>
         <item quantity="other">%1$d minuts</item>
     </plurals>
+    <string name="action_restore_default_configuration">Restaura la configuració predeterminada</string>
+    <string name="action_restore_defaults">Restaura els valors predeterminats</string>
+    <string name="confirm_restore_default_configuration">Vols restaurar tots els paràmetres als valors predeterminats?</string>
+    <string name="about_setting_restore_defaults_info">Això inclou la llengua, el tema, les claus API i les carpetes de sortida. Es conservaran les rutes desades i l’historial de cerca.</string>
+    <string name="msg_default_configuration_restored">S’ha restaurat la configuració predeterminada</string>
 </resources>

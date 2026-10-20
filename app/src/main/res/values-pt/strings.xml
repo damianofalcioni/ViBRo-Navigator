@@ -581,4 +581,9 @@
         <item quantity="many">%1$d minutos</item>
         <item quantity="other">%1$d minutos</item>
     </plurals>
+    <string name="action_restore_default_configuration">Restaurar configuração predefinida</string>
+    <string name="action_restore_defaults">Restaurar valores predefinidos</string>
+    <string name="confirm_restore_default_configuration">Restaurar todas as definições para os valores predefinidos?</string>
+    <string name="about_setting_restore_defaults_info">Isto inclui o idioma, o tema, as chaves API e as pastas de saída. As rotas guardadas e o histórico de pesquisa serão mantidos.</string>
+    <string name="msg_default_configuration_restored">Configuração predefinida restaurada</string>
 </resources>

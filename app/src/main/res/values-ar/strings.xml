@@ -593,4 +593,9 @@
         <item quantity="many">%1$d دقيقة</item>
         <item quantity="other">%1$d دقيقة</item>
     </plurals>
+    <string name="action_restore_default_configuration">استعادة الإعدادات الافتراضية</string>
+    <string name="action_restore_defaults">استعادة الإعدادات الافتراضية</string>
+    <string name="confirm_restore_default_configuration">هل تريد استعادة جميع الإعدادات إلى قيمها الافتراضية؟</string>
+    <string name="about_setting_restore_defaults_info">يشمل ذلك اللغة والمظهر ومفاتيح API ومجلدات الإخراج. سيتم الاحتفاظ بالمسارات المحفوظة وسجل البحث.</string>
+    <string name="msg_default_configuration_restored">تمت استعادة الإعدادات الافتراضية</string>
 </resources>

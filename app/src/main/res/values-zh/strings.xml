@@ -571,4 +571,9 @@
     <plurals name="format_time_speech_minutes">
         <item quantity="other">%1$d分钟</item>
     </plurals>
+    <string name="action_restore_default_configuration">恢复默认配置</string>
+    <string name="action_restore_defaults">恢复默认值</string>
+    <string name="confirm_restore_default_configuration">将所有设置恢复为默认值？</string>
+    <string name="about_setting_restore_defaults_info">这包括语言、主题、API 密钥和输出文件夹。已保存的路线和搜索历史将会保留。</string>
+    <string name="msg_default_configuration_restored">已恢复默认配置</string>
 </resources>

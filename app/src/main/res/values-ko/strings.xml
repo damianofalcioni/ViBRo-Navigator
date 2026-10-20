@@ -571,4 +571,9 @@
     <plurals name="format_time_speech_minutes">
         <item quantity="other">%1$d분</item>
     </plurals>
+    <string name="action_restore_default_configuration">기본 설정 복원</string>
+    <string name="action_restore_defaults">기본값 복원</string>
+    <string name="confirm_restore_default_configuration">모든 설정을 기본값으로 복원하시겠습니까?</string>
+    <string name="about_setting_restore_defaults_info">언어, 테마, API 키 및 출력 폴더가 포함됩니다. 저장된 경로와 검색 기록은 유지됩니다.</string>
+    <string name="msg_default_configuration_restored">기본 설정이 복원되었습니다</string>
 </resources>

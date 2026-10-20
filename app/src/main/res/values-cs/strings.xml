@@ -585,4 +585,9 @@
         <item quantity="many">%1$d minut</item>
         <item quantity="other">%1$d minut</item>
     </plurals>
+    <string name="action_restore_default_configuration">Obnovit výchozí konfiguraci</string>
+    <string name="action_restore_defaults">Obnovit výchozí nastavení</string>
+    <string name="confirm_restore_default_configuration">Obnovit výchozí hodnoty všech nastavení?</string>
+    <string name="about_setting_restore_defaults_info">To zahrnuje jazyk, motiv, klíče API a výstupní složky. Uložené trasy a historie hledání budou zachovány.</string>
+    <string name="msg_default_configuration_restored">Výchozí konfigurace obnovena</string>
 </resources>

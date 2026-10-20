@@ -74,6 +74,13 @@ final class AboutOutputSavingSettings {
         access.restoreState(state);
     }
 
+    void cancelPendingRequests() {
+        for (Kind kind : Kind.values()) {
+            access.cancel(kind);
+        }
+        flush();
+    }
+
     void flush() {
         try {
             WORKER.submit(() -> {}).get();

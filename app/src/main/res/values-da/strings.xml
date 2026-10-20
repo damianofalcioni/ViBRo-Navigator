@@ -577,4 +577,9 @@
         <item quantity="one">%1$d minut</item>
         <item quantity="other">%1$d minutter</item>
     </plurals>
+    <string name="action_restore_default_configuration">Gendan standardkonfiguration</string>
+    <string name="action_restore_defaults">Gendan standardindstillinger</string>
+    <string name="confirm_restore_default_configuration">Vil du gendanne alle indstillinger til standardværdierne?</string>
+    <string name="about_setting_restore_defaults_info">Dette omfatter sprog, tema, API-nøgler og outputmapper. Gemte ruter og søgehistorik bevares.</string>
+    <string name="msg_default_configuration_restored">Standardkonfiguration gendannet</string>
 </resources>

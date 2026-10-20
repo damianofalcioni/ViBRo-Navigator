@@ -117,6 +117,10 @@ public class AboutActivity extends AndroidLocalizedActivity {
         settingsControllers = new AboutSettingsControllers(this);
         settingsControllers.configure();
         databaseBackupActions.configure(exportDatabaseButton, importDatabaseButton);
+        AboutRestoreDefaultsAction.configure(this, () -> {
+            flushDeferredSettings();
+            outputSaving.cancelPendingRequests();
+        });
         new AboutSettingInfoButtons(this).configure();
     }
 

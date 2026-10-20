@@ -563,4 +563,9 @@
     <string name="sensor_status_permission_denied">Autorizzazione negata</string>
     <string name="auto_no_active_navigation_title">Nessuna navigazione attiva</string>
     <string name="auto_no_active_navigation_text">Avvia la navigazione sul telefono per mostrare qui le indicazioni.</string>
+    <string name="action_restore_default_configuration">Ripristina configurazione predefinita</string>
+    <string name="action_restore_defaults">Ripristina valori predefiniti</string>
+    <string name="confirm_restore_default_configuration">Ripristinare tutti i valori predefiniti delle impostazioni?</string>
+    <string name="about_setting_restore_defaults_info">Sono inclusi lingua, tema, chiavi API e cartelle di output. I percorsi salvati e la cronologia delle ricerche saranno mantenuti.</string>
+    <string name="msg_default_configuration_restored">Configurazione predefinita ripristinata</string>
 </resources>

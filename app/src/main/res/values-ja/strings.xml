@@ -573,4 +573,9 @@
     <plurals name="format_time_speech_minutes">
         <item quantity="other">%1$d分</item>
     </plurals>
+    <string name="action_restore_default_configuration">デフォルト設定に戻す</string>
+    <string name="action_restore_defaults">デフォルトに戻す</string>
+    <string name="confirm_restore_default_configuration">すべての設定をデフォルト値に戻しますか？</string>
+    <string name="about_setting_restore_defaults_info">言語、テーマ、API キー、出力フォルダーが含まれます。保存済みのルートと検索履歴は保持されます。</string>
+    <string name="msg_default_configuration_restored">デフォルト設定に戻しました</string>
 </resources>

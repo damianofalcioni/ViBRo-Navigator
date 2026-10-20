@@ -577,4 +577,9 @@
         <item quantity="one">%1$d minuut</item>
         <item quantity="other">%1$d minuten</item>
     </plurals>
+    <string name="action_restore_default_configuration">Standaardconfiguratie herstellen</string>
+    <string name="action_restore_defaults">Standaardwaarden herstellen</string>
+    <string name="confirm_restore_default_configuration">Alle instellingen terugzetten naar de standaardwaarden?</string>
+    <string name="about_setting_restore_defaults_info">Dit omvat taal, thema, API-sleutels en uitvoermappen. Opgeslagen routes en zoekgeschiedenis blijven behouden.</string>
+    <string name="msg_default_configuration_restored">Standaardconfiguratie hersteld</string>
 </resources>

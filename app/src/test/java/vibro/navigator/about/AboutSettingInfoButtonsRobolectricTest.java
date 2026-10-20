@@ -108,6 +108,7 @@ public class AboutSettingInfoButtonsRobolectricTest {
         assertInfoButton(activity, R.id.aboutGooglePoiApiKeyInfoButton, R.string.label_google_poi_api_key);
         assertInfoButton(activity, R.id.aboutExportDatabaseInfoButton, R.string.action_export_database);
         assertInfoButton(activity, R.id.aboutImportDatabaseInfoButton, R.string.action_import_database);
+        assertInfoButton(activity, R.id.aboutRestoreDefaultsInfoButton, R.string.action_restore_default_configuration);
         assertConditionalSettingRows(activity);
     }
 

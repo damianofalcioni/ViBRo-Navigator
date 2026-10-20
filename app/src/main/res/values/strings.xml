@@ -627,4 +627,9 @@
     <string name="sensor_status_unavailable">unavailable</string>
     <string name="sensor_status_permission_denied">permission denied</string>
     <string name="format_about_sensor_status_detail" translatable="false">%1$s: %2$s • %3$s</string>
+    <string name="action_restore_default_configuration">Restore default configuration</string>
+    <string name="action_restore_defaults">Restore defaults</string>
+    <string name="confirm_restore_default_configuration">Restore all settings to their default values?</string>
+    <string name="about_setting_restore_defaults_info">This includes language, theme, API keys, and output folders. Saved routes and search history will be kept.</string>
+    <string name="msg_default_configuration_restored">Default configuration restored</string>
 </resources>

@@ -50,7 +50,8 @@ public class AboutSettingsOrderRobolectricTest {
                 R.id.aboutFusedLocationRow,
                 R.id.aboutLogEnabledRow,
                 R.id.aboutExportDatabaseRow,
-                R.id.aboutImportDatabaseRow
+                R.id.aboutImportDatabaseRow,
+                R.id.aboutRestoreDefaultsRow
         );
     }
 

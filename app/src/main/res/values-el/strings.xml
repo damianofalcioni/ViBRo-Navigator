@@ -577,4 +577,9 @@
         <item quantity="one">%1$d λεπτό</item>
         <item quantity="other">%1$d λεπτά</item>
     </plurals>
+    <string name="action_restore_default_configuration">Επαναφορά προεπιλεγμένων ρυθμίσεων</string>
+    <string name="action_restore_defaults">Επαναφορά προεπιλογών</string>
+    <string name="confirm_restore_default_configuration">Επαναφορά όλων των ρυθμίσεων στις προεπιλεγμένες τιμές;</string>
+    <string name="about_setting_restore_defaults_info">Περιλαμβάνονται η γλώσσα, το θέμα, τα κλειδιά API και οι φάκελοι εξόδου. Οι αποθηκευμένες διαδρομές και το ιστορικό αναζήτησης θα διατηρηθούν.</string>
+    <string name="msg_default_configuration_restored">Έγινε επαναφορά προεπιλεγμένων ρυθμίσεων</string>
 </resources>

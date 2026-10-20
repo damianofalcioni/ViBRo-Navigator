@@ -14,6 +14,10 @@ public final class AppOutputFolderSettings {
     private AppOutputFolderSettings() {
     }
 
+    public static void restoreDefaults(@NonNull Context context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().clear().apply();
+    }
+
     @Nullable
     public static String get(@NonNull Context context, @NonNull Kind kind) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(kind.name(), null);

@@ -577,4 +577,9 @@
         <item quantity="one">%1$d minut</item>
         <item quantity="other">%1$d minuter</item>
     </plurals>
+    <string name="action_restore_default_configuration">Återställ standardkonfiguration</string>
+    <string name="action_restore_defaults">Återställ standardvärden</string>
+    <string name="confirm_restore_default_configuration">Återställ alla inställningar till standardvärdena?</string>
+    <string name="about_setting_restore_defaults_info">Detta omfattar språk, tema, API-nycklar och utdatamappar. Sparade rutter och sökhistorik behålls.</string>
+    <string name="msg_default_configuration_restored">Standardkonfiguration återställd</string>
 </resources>

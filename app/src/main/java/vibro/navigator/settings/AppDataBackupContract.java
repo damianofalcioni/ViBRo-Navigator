@@ -18,7 +18,7 @@ final class AppDataBackupContract {
     private static final String PREFS_APP_SETTINGS = "vibro.navigator.settings";
     private static final String PREFS_POI_HISTORY = "vibenavigator_poi_history";
     private static final String PREFS_BROUTER = "vibenavigator_brouter";
-    private static final String PREFS_LOGGING = "app_logging";
+    static final String PREFS_LOGGING = "app_logging";
     private static final String PREFS_SAVED_ROUTES = "vibenavigator_saved_routes";
     static final String[] OPTIONAL_BACKED_UP_PREFERENCES = {
             PREFS_SAVED_ROUTES

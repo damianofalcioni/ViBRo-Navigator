@@ -577,4 +577,9 @@
         <item quantity="one">%1$d perc</item>
         <item quantity="other">%1$d perc</item>
     </plurals>
+    <string name="action_restore_default_configuration">Alapértelmezett konfiguráció visszaállítása</string>
+    <string name="action_restore_defaults">Alapértékek visszaállítása</string>
+    <string name="confirm_restore_default_configuration">Visszaállítja az összes beállítás alapértelmezett értékét?</string>
+    <string name="about_setting_restore_defaults_info">Ez magában foglalja a nyelvet, a témát, az API-kulcsokat és a kimeneti mappákat. A mentett útvonalak és a keresési előzmények megmaradnak.</string>
+    <string name="msg_default_configuration_restored">Az alapértelmezett konfiguráció visszaállítva</string>
 </resources>
