@@ -17,20 +17,35 @@ final class NavigationLocationDebugLogger {
         if (!AppLogger.isLoggingEnabled()) {
             return;
         }
-        AppLogger.d(TAG, "Dropped NavigationLocation because no recent candidate is available raw="
+        AppLogger.d(TAG, "Dropped NavigationLocation reason=no_recent_valid_candidate raw="
                 + NavigationLocationFormatter.format(rawLocation));
     }
 
-    static void droppedUnchanged(
+    static void incoming(@NonNull NavigationLocation location, long nowMs, long intervalMs) {
+        if (AppLogger.isLoggingEnabled()) {
+            AppLogger.d(TAG, "Location callback incoming=" + NavigationLocationFormatter.format(location)
+                    + " incomingStatus=" + NavigationLocationFormatter.incomingStatus(location, nowMs)
+                    + " incomingAgeMs=" + (nowMs - location.getElapsedRealtimeOrTimeMs())
+                    + " nowElapsedMs=" + nowMs + " requestedIntervalMs=" + intervalMs);
+        }
+    }
+
+    static void dropped(
             @NonNull NavigationLocation rawLocation,
-            @NonNull NavigationLocation selected
+            @NonNull NavigationLocation selected,
+            long nowMs,
+            @NonNull String reason,
+            boolean positionCorrected
     ) {
         if (!AppLogger.isLoggingEnabled()) {
             return;
         }
-        AppLogger.d(TAG, "Dropped NavigationLocation because selected candidate is unchanged raw="
+        AppLogger.d(TAG, "Dropped NavigationLocation selectedDispatchReason=" + reason + " incoming="
                 + NavigationLocationFormatter.format(rawLocation)
-                + " selected=" + NavigationLocationFormatter.format(selected));
+                + " selected=" + NavigationLocationFormatter.format(selected)
+                + " incomingAgeMs=" + (nowMs - rawLocation.getElapsedRealtimeOrTimeMs())
+                + " selectedAgeMs=" + (nowMs - selected.getElapsedRealtimeOrTimeMs())
+                + " delayedPositionCorrection=" + positionCorrected);
     }
 
     static void reacquiringAfterLongGap(@NonNull NavigationLocation selected, long gapMs) {

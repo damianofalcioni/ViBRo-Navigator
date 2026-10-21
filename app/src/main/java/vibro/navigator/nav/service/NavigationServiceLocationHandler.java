@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.android.power.AndroidNavigationBatteryLogger;
 
 public final class NavigationServiceLocationHandler implements NavigationLocationListener {
 
@@ -56,6 +57,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private final SurroundingStreetLocationSink surroundingStreetLocationSink;
     private final Runnable stateEmitter;
     private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
+    private final AndroidNavigationBatteryLogger batteryLogger;
     @Nullable
     private Controllers controllers;
 
@@ -75,6 +77,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         this.currentLocationSeedPolicy = currentLocationSeedPolicy;
         this.surroundingStreetLocationSink = surroundingStreetLocationSink;
         this.stateEmitter = stateEmitter;
+        batteryLogger = new AndroidNavigationBatteryLogger(context);
     }
 
     public void attachControllers(
@@ -120,11 +123,13 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         }
         long expectedUpdateIntervalMs = controllers.locationController
                 .getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
+        long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
+        batteryLogger.record(nowMs, controllers.locationController.activeProviderSummary(), expectedUpdateIntervalMs);
         NavigationLocationUpdateResult result =
                 navigationSession.onRawLocationChanged(
                         context,
                         location,
-                        elapsedRealtimeClock.elapsedRealtimeMs(),
+                        nowMs,
                         expectedUpdateIntervalMs
                 );
         if (result.isDropped()) {

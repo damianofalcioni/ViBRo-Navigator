@@ -7,6 +7,17 @@ import org.junit.Test;
 
 public class NavigationLocationFormatterTest {
     @Test
+    public void incomingQualityUsesMonotonicAgeAndSeparatesInvalidFromStale() {
+        NavigationLocation location = new NavigationLocation("network");
+        location.setTime(1_700_000_000_000L, 1_000);
+        location.setAccuracy(20);
+        assertEquals("recent", NavigationLocationFormatter.incomingStatus(location, 16_000));
+        assertEquals("stale", NavigationLocationFormatter.incomingStatus(location, 16_001));
+        location.setAccuracy(Float.NaN);
+        assertEquals("invalid", NavigationLocationFormatter.incomingStatus(location, 1_001));
+    }
+
+    @Test
     public void absentAccuracyIsExplicitlyUnknownAndAbsentLocationIsNull() {
         String text = NavigationLocationFormatter.format(new NavigationLocation("gps"));
         assertTrue(text.contains("acc=unknown providerAcc=unknown"));

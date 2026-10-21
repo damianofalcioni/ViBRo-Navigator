@@ -19,11 +19,29 @@ public final class LatLonKalmanFilter {
     private double refLat;
     private double refLon;
     private double longitudeScale;
+    private long lastDelayedCorrectionTimeMs = Long.MIN_VALUE;
 
     public void reset() {
         lastRaw = null;
         jumpGate.reset();
         lastRejectionReason = null;
+        lastDelayedCorrectionTimeMs = Long.MIN_VALUE;
+    }
+
+    /** Refine the next chronological output without changing fix time, speed, course or jump history. */
+    public boolean correctDelayedNetworkPosition(@NonNull NavigationLocation network, long nowMs) {
+        double accuracy = DelayedNetworkCorrectionPolicy.effectiveAccuracy(
+                lastRaw, network, nowMs, lastDelayedCorrectionTimeMs);
+        if (!Double.isFinite(accuracy)) {
+            return false;
+        }
+        NavigationLocation observation = new NavigationLocation(network);
+        observation.setFilteredAccuracy((float) accuracy);
+        double variance = LocationFilterPolicy.measurementVariance(observation);
+        xFilter.update(normalizeLongitude(network.getLongitude() - refLon) * longitudeScale, variance);
+        yFilter.update((network.getLatitude() - refLat) * METERS_PER_DEGREE, variance);
+        lastDelayedCorrectionTimeMs = network.getElapsedRealtimeOrTimeMs();
+        return true;
     }
 
     @Nullable

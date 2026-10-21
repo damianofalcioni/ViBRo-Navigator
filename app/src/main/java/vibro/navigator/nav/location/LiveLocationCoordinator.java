@@ -138,13 +138,20 @@ public final class LiveLocationCoordinator {
         return shouldDispatch(candidate.fix, nowMs, expectedUpdateIntervalMs);
     }
 
+    @Nullable
+    public String dispatchRejectionReason(@NonNull Selection candidate, long nowMs, long expectedUpdateIntervalMs) {
+        long elapsedMs = lastDispatchedAtMs < 0L ? -1L : nowMs - lastDispatchedAtMs;
+        return LiveLocationDispatchPolicy.dispatchRejectionReason(lastDispatchedRawFix, candidate.fix,
+                elapsedMs, expectedUpdateIntervalMs);
+    }
+
     private boolean shouldDispatch(
             @NonNull NavigationLocationFix candidate,
             long nowMs,
             long expectedUpdateIntervalMs
     ) {
         long elapsedSinceLastDispatchMs = lastDispatchedAtMs < 0L ? -1L : nowMs - lastDispatchedAtMs;
-        return LiveLocationPolicy.shouldDispatchForRequestedInterval(
+        return LiveLocationDispatchPolicy.shouldDispatchForRequestedInterval(
                 lastDispatchedRawFix,
                 candidate,
                 elapsedSinceLastDispatchMs,
@@ -153,7 +160,7 @@ public final class LiveLocationCoordinator {
     }
 
     boolean shouldDispatch(@NonNull NavigationLocationFix candidate) {
-        return LiveLocationPolicy.shouldDispatch(lastDispatchedRawFix, candidate);
+        return LiveLocationDispatchPolicy.shouldDispatch(lastDispatchedRawFix, candidate);
     }
 
     public void markDispatched(@NonNull NavigationLocation location) {

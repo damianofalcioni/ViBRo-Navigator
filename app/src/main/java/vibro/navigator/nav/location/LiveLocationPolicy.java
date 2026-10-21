@@ -9,7 +9,6 @@ final class LiveLocationPolicy {
     private static final long LOCATION_TIME_TOLERANCE_MS = 1_000L;
     private static final float LOCATION_ACCURACY_BIAS_METERS = 15f;
     private static final float LOCATION_ACCURACY_IMPROVEMENT_METERS = 5f;
-    private static final long CROSS_PROVIDER_INTERVAL_TOLERANCE_MS = 500L;
 
     private LiveLocationPolicy() {
     }
@@ -25,59 +24,6 @@ final class LiveLocationPolicy {
         NavigationLocationFix recentNetwork = isRecentFix(network, nowMs) ? network : null;
         NavigationLocationFix recentFused = isRecentFix(fused, nowMs) ? fused : null;
         return resolveBestFix(resolveBestFix(recentGps, recentNetwork, nowMs), recentFused, nowMs);
-    }
-
-    static boolean shouldDispatch(
-            @Nullable NavigationLocationFix lastDispatched,
-            @NonNull NavigationLocationFix candidate
-    ) {
-        if (!isValidFix(candidate)) {
-            return false;
-        }
-        if (lastDispatched == null) {
-            return true;
-        }
-        long candidateTime = candidate.timeMs;
-        long lastTime = lastDispatched.timeMs;
-        if (candidateTime > lastTime + LOCATION_TIME_TOLERANCE_MS) {
-            return true;
-        }
-        if (candidateTime < lastTime) {
-            return false;
-        }
-
-        float candidateAccuracy = candidate.accuracyMeters;
-        float lastAccuracy = lastDispatched.accuracyMeters;
-        if (candidateAccuracy + LOCATION_ACCURACY_IMPROVEMENT_METERS < lastAccuracy) {
-            return true;
-        }
-        if (candidateTime == lastTime) {
-            return false;
-        }
-        return candidateAccuracy <= lastAccuracy + LOCATION_ACCURACY_BIAS_METERS;
-    }
-
-    static boolean shouldDispatchForRequestedInterval(
-            @Nullable NavigationLocationFix lastDispatched,
-            @NonNull NavigationLocationFix candidate,
-            long elapsedSinceLastDispatchMs,
-            long expectedUpdateIntervalMs
-    ) {
-        if (!shouldDispatch(lastDispatched, candidate)) {
-            return false;
-        }
-        if (lastDispatched == null) {
-            return true;
-        }
-        if (safeProvider(lastDispatched.provider).equals(safeProvider(candidate.provider))) {
-            return true;
-        }
-        boolean arrivedInsideRequestedInterval = elapsedSinceLastDispatchMs >= 0L
-                && elapsedSinceLastDispatchMs + CROSS_PROVIDER_INTERVAL_TOLERANCE_MS
-                < expectedUpdateIntervalMs;
-        return !arrivedInsideRequestedInterval
-                || candidate.accuracyMeters + LOCATION_ACCURACY_IMPROVEMENT_METERS
-                < lastDispatched.accuracyMeters;
     }
 
     static boolean isRecentFix(@Nullable NavigationLocationFix fix, long nowMs) {

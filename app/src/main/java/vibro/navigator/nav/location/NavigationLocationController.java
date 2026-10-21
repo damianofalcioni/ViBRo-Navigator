@@ -174,6 +174,11 @@ public final class NavigationLocationController {
         return lastRequestedLocationMinTimeMs > 0L ? lastRequestedLocationMinTimeMs : fallbackMinTimeMs;
     }
 
+    @NonNull
+    public String activeProviderSummary() {
+        return lastRequestedProvider == null ? "none" : lastRequestedProvider;
+    }
+
     public long getNextEvaluationDeadlineElapsedMs() {
         return nextEvaluationDeadlineElapsedMs;
     }

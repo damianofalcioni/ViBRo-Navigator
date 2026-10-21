@@ -9,6 +9,15 @@ public final class NavigationLocationFormatter {
     }
 
     @NonNull
+    public static String incomingStatus(@NonNull NavigationLocation location, long nowMs) {
+        NavigationLocationFix fix = NavigationLocationFix.from(location);
+        if (!LiveLocationPolicy.isValidFix(fix)) {
+            return "invalid";
+        }
+        return LiveLocationPolicy.isRecentFix(fix, nowMs) ? "recent" : "stale";
+    }
+
+    @NonNull
     public static String format(@Nullable NavigationLocation location) {
         if (location == null) {
             return "null";

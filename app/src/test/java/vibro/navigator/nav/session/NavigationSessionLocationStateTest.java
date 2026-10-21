@@ -286,6 +286,25 @@ public class NavigationSessionLocationStateTest {
         assertFalse(accepted.isReacquiringAfterLongGap());
     }
 
+    @Test
+    public void delayedNetworkCorrectionDoesNotAdvanceAcceptedMotionOrFixTime() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        NavigationLocation gps = location("gps", 100_000, 0, 0, 62);
+        gps.setSpeed(0);
+        NavigationSessionLocationState.Update initial = state.onRawLocationChanged(gps, 100_000, false, 3_000);
+        assertFalse(initial.isDropped());
+        NavigationLocation network = location("network", 97_973, 0, 20.0 / 111320, 20);
+        assertTrue(state.onRawLocationChanged(network, 100_600, false, 3_000).isDropped());
+        assertEquals(100_000, state.getLastFilteredLocation().getElapsedRealtimeOrTimeMs());
+        assertEquals(0, state.getLastFilteredLocation().getLongitude(), 0);
+        NavigationLocation next = location("gps", 103_000, 0, 0, 62);
+        next.setSpeed(0);
+        NavigationSessionLocationState.Update updated = state.onRawLocationChanged(next, 103_000, false, 3_000);
+        assertFalse(updated.isDropped());
+        assertTrue(updated.getFilteredLocation().getLongitude() > 0);
+        assertEquals(103_000, updated.getFilteredLocation().getElapsedRealtimeOrTimeMs());
+    }
+
     private static NavigationLocation location(long timeMs, double lat, double lon, float speedMps) {
         NavigationLocation location = new NavigationLocation(NavigationLocationProviders.GPS_PROVIDER);
         location.setLatitude(lat);

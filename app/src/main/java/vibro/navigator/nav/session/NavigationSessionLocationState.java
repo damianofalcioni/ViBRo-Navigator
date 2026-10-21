@@ -70,6 +70,7 @@ public final class NavigationSessionLocationState {
             boolean allowStartupFilterReset,
             long expectedUpdateIntervalMs
     ) {
+        NavigationLocationDebugLogger.incoming(rawLocation, nowMs, expectedUpdateIntervalMs);
         liveLocationCoordinator.remember(rawLocation);
         LiveLocationCoordinator.Selection selection = liveLocationCoordinator.selectBestLiveSelection(nowMs);
         if (selection == null) {
@@ -77,8 +78,10 @@ public final class NavigationSessionLocationState {
             return Update.dropped();
         }
         NavigationLocation selected = selection.location;
-        if (!liveLocationCoordinator.shouldDispatch(selection, nowMs, expectedUpdateIntervalMs)) {
-            NavigationLocationDebugLogger.droppedUnchanged(rawLocation, selected);
+        String rejectionReason = liveLocationCoordinator.dispatchRejectionReason(selection, nowMs, expectedUpdateIntervalMs);
+        if (rejectionReason != null) {
+            boolean corrected = kalman.correctDelayedNetworkPosition(rawLocation, nowMs);
+            NavigationLocationDebugLogger.dropped(rawLocation, selected, nowMs, rejectionReason, corrected);
             return Update.dropped();
         }
         boolean reacquiringAfterLongGap = reacquisitionTracker.isReacquiring(nowMs, expectedUpdateIntervalMs);
