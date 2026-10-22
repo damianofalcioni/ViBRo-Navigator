@@ -1,12 +1,26 @@
 package vibro.navigator.nav.guidance;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
 import vibro.navigator.nav.location.NavigationLocation;
 
 public class NavigationRouteProgressTrackerTest {
+    @Test
+    public void providerCorrectionDoesNotBecomeEtaSpeedOrAcceleration() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        NavigationLocation gps = new NavigationLocation("gps");
+        gps.setTime(1_000L, 1_000L);
+        tracker.resolveEtaMotion(gps, 10.0, 5f, false);
+        tracker.rememberAlongTrackSample(10.0, 1_000L);
+        NavigationLocation network = new NavigationLocation("network");
+        network.setTime(4_000L, 4_000L);
+        RouteMotionEstimate motion = tracker.resolveEtaMotion(network, 70.0, 20f, false);
+        assertEquals(0f, motion.speedMps, 0f);
+        assertTrue(Float.isNaN(motion.accelerationMps2));
+    }
 
     @Test
     public void rememberAndResolveSmoothedAccuracyMeters_returnsMedianOfRecentSamples() {

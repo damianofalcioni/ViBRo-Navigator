@@ -25,6 +25,7 @@ public final class NavigationLocationController {
     private String lastRequestedProvider;
     private long nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
     private boolean legacyRecoveryActive;
+    private final NavigationLocationAcquisition acquisition;
 
     public NavigationLocationController(
             @NonNull NavigationLocationProvider providerAccess,
@@ -38,6 +39,8 @@ public final class NavigationLocationController {
         this.fusedLocationUpdateClient = fusedLocationUpdateClient;
         this.fusedLocationUsePolicy = fusedLocationUsePolicy;
         this.elapsedRealtimeClock = elapsedRealtimeClock;
+        this.acquisition = new NavigationLocationAcquisition(providerAccess, elapsedRealtimeClock,
+                interval -> requestLocationUpdates(interval, Math.min(DEFAULT_UPDATE_INTERVAL_MS, interval)));
         this.updateRequester = new NavigationLocationUpdateRequester(
                 providerAccess,
                 fusedLocationUpdateClient,
@@ -49,6 +52,7 @@ public final class NavigationLocationController {
     }
 
     public void resetTrackingState() {
+        acquisition.reset();
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
@@ -60,6 +64,7 @@ public final class NavigationLocationController {
     }
 
     public void stopTracking() {
+        acquisition.reset();
         providerAccess.cancelPendingCurrentLocationRequests();
         fusedLocationUpdateClient.removeUpdates();
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
@@ -86,6 +91,9 @@ public final class NavigationLocationController {
             legacyRecoveryActive = true;
             AppLogger.w(TAG, "Fused updates stalled; activating legacy location recovery");
         }
+        acquisition.reset();
+        providerAccess.removeUpdates();
+        providerAccess.cancelPendingCurrentLocationRequests();
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;
         requestLocationUpdates(
@@ -99,6 +107,7 @@ public final class NavigationLocationController {
             return;
         }
         legacyRecoveryActive = true;
+        acquisition.reset();
         AppLogger.w(TAG, "Fused update request failed asynchronously; activating legacy location recovery");
         long activeMinTimeMs = getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_UPDATE_INTERVAL_MS);
         lastRequestedLocationMinTimeMs = -1L;
@@ -110,17 +119,17 @@ public final class NavigationLocationController {
         long requestedMinTimeMs = Math.max(minimumIntervalMs, minTimeMs);
         boolean preferFusedLocation = fusedLocationUsePolicy.shouldUseFusedLocation()
                 && !legacyRecoveryActive;
+        long networkMinTimeMs = acquisition.intervalForRequest(preferFusedLocation, requestedMinTimeMs);
         NavigationLocationUpdateRequester.Result result = updateRequester.request(
                 requestedMinTimeMs,
                 preferFusedLocation,
                 lastRequestedLocationMinTimeMs,
-                lastRequestedProvider
+                lastRequestedProvider,
+                networkMinTimeMs,
+                acquisition.lastNetworkIntervalMs()
         );
         if (result.shouldClearActiveRequest()) {
             clearActiveLocationRequest();
-            return;
-        }
-        if (!result.hasActiveRequest()) {
             return;
         }
         refreshNextEvaluationDeadline(requestedMinTimeMs);
@@ -130,6 +139,12 @@ public final class NavigationLocationController {
             legacyRecoveryActive = true;
             AppLogger.w(TAG, "Fused request failed; keeping legacy location recovery active");
         }
+        acquisition.requested(lastRequestedProvider, requestedMinTimeMs, networkMinTimeMs);
+    }
+
+    @NonNull
+    public NavigationLocationAcquisition acquisition() {
+        return acquisition;
     }
 
     public void requestCurrentLocationSeeds() {
@@ -218,10 +233,14 @@ public final class NavigationLocationController {
 
     @NonNull
     public String describeAvailability() {
-        return providerAccess.describeAvailability() + ", " + fusedLocationUpdateClient.describeAvailability();
+        return providerAccess.describeAvailability() + ", " + fusedLocationUpdateClient.describeAvailability()
+                + ", fusedPreferred=" + fusedLocationUsePolicy.shouldUseFusedLocation()
+                + ", activeProviders=" + activeProviderSummary()
+                + ", networkMinTimeMs=" + acquisition.lastNetworkIntervalMs();
     }
 
     private void clearActiveLocationRequest() {
+        acquisition.reset();
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;

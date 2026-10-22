@@ -7,7 +7,6 @@ final class LiveLocationPolicy {
     private static final long LOCATION_STALE_MS = 15_000L;
     private static final long LOCATION_FRESHNESS_BIAS_MS = 8_000L;
     private static final long LOCATION_TIME_TOLERANCE_MS = 1_000L;
-    private static final float LOCATION_ACCURACY_BIAS_METERS = 15f;
     private static final float LOCATION_ACCURACY_IMPROVEMENT_METERS = 5f;
 
     private LiveLocationPolicy() {
@@ -97,8 +96,12 @@ final class LiveLocationPolicy {
             float firstAccuracy,
             float secondAccuracy
     ) {
-        return secondAccuracy + LOCATION_ACCURACY_BIAS_METERS < firstAccuracy
+        return secondAccuracy + accuracyImprovementMeters(firstAccuracy) < firstAccuracy
                 && secondAgeMs <= firstAgeMs + LOCATION_TIME_TOLERANCE_MS;
+    }
+
+    static float accuracyImprovementMeters(float referenceAccuracy) {
+        return Math.max(LOCATION_ACCURACY_IMPROVEMENT_METERS, referenceAccuracy * 0.2f);
     }
 
     private static boolean isFreshnessDecisive(long firstAgeMs, long secondAgeMs) {

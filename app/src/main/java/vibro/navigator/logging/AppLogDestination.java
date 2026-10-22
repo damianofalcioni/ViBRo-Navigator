@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 
 import java.util.Date;
+import java.io.IOException;
 
 import vibro.navigator.android.logging.AndroidLogFolderWriter;
 
@@ -53,7 +54,25 @@ final class AppLogDestination {
     }
 
     String path() {
+        flush();
         return custom.path();
+    }
+
+    void flush() {
+        try {
+            if (custom != null) {
+                custom.flush();
+            }
+        } catch (IOException e) {
+            close();
+            AppLogger.setLoggingEnabled(context, false);
+        }
+    }
+
+    static void flush(@Nullable AppLogDestination destination) {
+        if (destination != null) {
+            destination.flush();
+        }
     }
 
     void close() {

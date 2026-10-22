@@ -14,6 +14,35 @@ public class LiveLocationCoordinatorTest {
     private static final String NETWORK_PROVIDER = "network";
 
     @Test
+    public void logExampleAcceptsFreshNetworkImprovementBelowOldFifteenMeterMargin() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        NavigationLocation gps = location(GPS_PROVIDER, 1L, NOW_MS - 2_547L, 37.56744f, 48.2, 16.37);
+        coordinator.remember(gps);
+        coordinator.markDispatched(gps, NOW_MS - 2_547L);
+        coordinator.remember(location(NETWORK_PROVIDER, 2L, NOW_MS - 99L, 23.95f, 48.2, 16.37));
+        LiveLocationCoordinator.Selection selection = coordinator.selectBestLiveSelection(NOW_MS);
+        assertNotNull(selection);
+        assertEquals(NETWORK_PROVIDER, selection.location.getProvider());
+        assertTrue(coordinator.shouldDispatch(selection, NOW_MS, 3_000L));
+    }
+
+    @Test
+    public void olderNetworkWithSmallerRadiusDoesNotReplaceFreshGps() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        coordinator.remember(newFix(GPS_PROVIDER, 197L, 61.346672f, 48.2, 16.37));
+        coordinator.remember(newFix(NETWORK_PROVIDER, 14_486L, 21.264f, 48.2, 16.37));
+        assertEquals(GPS_PROVIDER, coordinator.selectBestLiveFix(NOW_MS).provider);
+    }
+
+    @Test
+    public void marginalAccuracyDifferenceRetainsGps() {
+        LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
+        coordinator.remember(newFix(GPS_PROVIDER, 800L, 24f, 48.2, 16.37));
+        coordinator.remember(newFix(NETWORK_PROVIDER, 100L, 20f, 48.2, 16.37));
+        assertEquals(GPS_PROVIDER, coordinator.selectBestLiveFix(NOW_MS).provider);
+    }
+
+    @Test
     public void selectBestLiveLocation_prefersMoreAccurateGpsWhenFresh() {
         LiveLocationCoordinator coordinator = new LiveLocationCoordinator();
         coordinator.remember(newFix(NETWORK_PROVIDER, 500L, 35f, 48.20d, 16.37d));

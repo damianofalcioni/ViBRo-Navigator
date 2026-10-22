@@ -58,6 +58,34 @@ public class AppLoggerTest {
     }
 
     @Test
+    public void importantMessagesFlushBufferedDebugWithoutPathLookup() throws Exception {
+        AppLogger.setLoggingEnabled(context, true);
+        Uri uri = Uri.parse(AppLogger.getLogFilePath(context));
+        AppLogger.d(TEST_TAG, "buffered detail");
+        AppLogger.w(TEST_TAG, "important warning");
+        String content = downloads.read(uri);
+        assertTrue(content.contains("buffered detail"));
+        assertTrue(content.contains("important warning"));
+    }
+
+    @Test
+    public void anomalyFlushesImmediatelyWhenDetailedLoggingIsDisabled() throws Exception {
+        AppLogger.anomaly(context, TEST_TAG, "first anomaly", null);
+        Uri uri = Uri.parse(AppLogger.getLogFilePath(context));
+        AppLogger.anomaly(context, TEST_TAG, "immediate anomaly", null);
+        assertTrue(downloads.read(uri).contains("immediate anomaly"));
+    }
+
+    @Test
+    public void disablingLoggingFlushesPendingDebugOutput() throws Exception {
+        AppLogger.setLoggingEnabled(context, true);
+        Uri uri = Uri.parse(AppLogger.getLogFilePath(context));
+        AppLogger.d(TEST_TAG, "last debug before close");
+        AppLogger.setLoggingEnabled(context, false);
+        assertTrue(downloads.read(uri).contains("last debug before close"));
+    }
+
+    @Test
     public void disabledLoggingDoesNotRenderThrowable() {
         CountingThrowable throwable = new CountingThrowable();
 

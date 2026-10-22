@@ -124,6 +124,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         long expectedUpdateIntervalMs = controllers.locationController
                 .getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
+        controllers.locationController.acquisition().recordRawLocation(location);
         batteryLogger.record(nowMs, controllers.locationController.activeProviderSummary(), expectedUpdateIntervalMs);
         NavigationLocationUpdateResult result =
                 navigationSession.onRawLocationChanged(
@@ -252,6 +253,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onProviderStatusChanged(@Nullable String provider, int status) {
+        // The Android adapter emits transitions only; repeated statuses do not reach logging.
         AppLogger.d(TAG, "Location provider status changed provider=" + provider + " status=" + status);
     }
 

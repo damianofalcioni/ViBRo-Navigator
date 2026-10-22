@@ -2,10 +2,12 @@ package vibro.navigator.nav.session;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import java.util.Objects;
 
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationFormatter;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 
 final class NavigationLocationDebugLogger {
     private static final String TAG = "NavSessionLocation";
@@ -45,7 +47,26 @@ final class NavigationLocationDebugLogger {
                 + " selected=" + NavigationLocationFormatter.format(selected)
                 + " incomingAgeMs=" + (nowMs - rawLocation.getElapsedRealtimeOrTimeMs())
                 + " selectedAgeMs=" + (nowMs - selected.getElapsedRealtimeOrTimeMs())
+                + " incomingSelectionReason=" + selectionReason(rawLocation, selected, nowMs)
                 + " delayedPositionCorrection=" + positionCorrected);
+    }
+
+    static String selectionReason(NavigationLocation incoming, NavigationLocation selected, long nowMs) {
+        if (nowMs - incoming.getElapsedRealtimeOrTimeMs() > 15_000L) {
+            return "stale_incoming";
+        }
+        if (Objects.equals(incoming.getProvider(), selected.getProvider())
+                && incoming.getElapsedRealtimeOrTimeMs() == selected.getElapsedRealtimeOrTimeMs()) {
+            return "incoming_selected_dispatch_blocked";
+        }
+        if (!NavigationLocationProviders.NETWORK_PROVIDER.equals(incoming.getProvider())) {
+            return "retained_other_measurement";
+        }
+        if (incoming.getElapsedRealtimeOrTimeMs() + 1_000L < selected.getElapsedRealtimeOrTimeMs()) {
+            return "network_older_than_timing_tolerance";
+        }
+        return incoming.getAccuracy() < selected.getAccuracy()
+                ? "accuracy_improvement_below_switch_margin" : "selected_accuracy_or_provider_hysteresis";
     }
 
     static void reacquiringAfterLongGap(@NonNull NavigationLocation selected, long gapMs) {

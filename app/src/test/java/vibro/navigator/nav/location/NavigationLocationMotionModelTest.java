@@ -1,6 +1,7 @@
 package vibro.navigator.nav.location;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -9,6 +10,50 @@ import org.junit.Test;
 
 public class NavigationLocationMotionModelTest {
     private static final String GPS_PROVIDER = "gps";
+
+    @Test
+    public void positionCorrectionPreservesKnownMotionWithoutInventingSpeed() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation moving = location(1_000L, 1_000L, 48.2, 16.37, 1.4f);
+        moving.setSpeedAccuracyMetersPerSecond(0.1f);
+        model.recordFilteredLocation(moving);
+        assertFalse(model.isLikelyStationary());
+        NavigationLocation network = location(4_000L, 4_000L, 48.2002, 16.37);
+        network.setProvider("network");
+        model.recordFilteredLocation(network);
+        assertFalse(model.isLikelyStationary());
+        assertEquals(0f, model.speedMps(network), 0f);
+        NavigationLocation gps = location(7_000L, 7_000L, 48.2001, 16.37, 1.4f);
+        gps.setAccuracy(33f);
+        model.recordFilteredLocation(gps);
+        assertFalse(model.isLikelyStationary());
+        assertEquals(1.4f, model.speedMps(gps), 0f);
+    }
+
+    @Test
+    public void providerSwitchCannotBecomeFallbackSpeedOrCourse() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        model.recordFilteredLocation(location(1_000L, 1_000L, 48.2, 16.37, 1.4f));
+        NavigationLocation network = location(4_000L, 4_000L, 48.201, 16.37);
+        network.setProvider("network");
+        model.recordFilteredLocation(network);
+        assertEquals(0f, model.speedMps(network), 0f);
+        assertEquals(0f, model.displaySpeedMps(network), 0f);
+        assertNull(model.movementBearingDegrees(network));
+        assertNull(model.displayMovementCourse(network));
+    }
+
+    @Test
+    public void fusedFallbackTransitionAlsoResetsPositionDerivedMotion() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        NavigationLocation fused = location(1_000L, 1_000L, 48.2, 16.37);
+        fused.setProvider("fused");
+        model.recordFilteredLocation(fused);
+        NavigationLocation gps = location(4_000L, 4_000L, 48.201, 16.37);
+        model.recordFilteredLocation(gps);
+        assertEquals(0f, model.speedMps(gps), 0f);
+        assertNull(model.displayMovementCourse(gps));
+    }
 
     @Test
     public void speedMps_usesElapsedRealtimeWhenWallClockJumps() {

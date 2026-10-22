@@ -53,6 +53,13 @@ final class NavigationLocationUpdateRequester {
             long lastRequestedLocationMinTimeMs,
             @Nullable String lastRequestedProvider
     ) {
+        return request(minTimeMs, useFusedLocation, lastRequestedLocationMinTimeMs,
+                lastRequestedProvider, minTimeMs, lastRequestedLocationMinTimeMs);
+    }
+
+    @NonNull
+    Result request(long minTimeMs, boolean useFusedLocation, long lastRequestedLocationMinTimeMs,
+            @Nullable String lastRequestedProvider, long networkMinTimeMs, long lastNetworkMinTimeMs) {
         boolean fineGranted = providerAccess.hasFineLocationPermission();
         boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
         if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
@@ -67,7 +74,8 @@ final class NavigationLocationUpdateRequester {
                     + availabilityDescriptor.describeAvailability());
             return Result.clearActiveRequest();
         }
-        if (NavigationLocationProviders.shouldReuseActiveLocationRequest(
+        if ((useFusedLocation || networkMinTimeMs == lastNetworkMinTimeMs)
+                && NavigationLocationProviders.shouldReuseActiveLocationRequest(
                 minTimeMs,
                 desiredProviderSummary,
                 lastRequestedLocationMinTimeMs,
@@ -76,12 +84,20 @@ final class NavigationLocationUpdateRequester {
             return Result.active(desiredProviderSummary);
         }
 
-        fusedLocationUpdateClient.removeUpdates();
-        legacyUpdatesRemover.removeLegacyUpdates();
+        prepareRequest(useFusedLocation, lastRequestedProvider);
+        return registerUpdates(legacyProviders, minTimeMs, useFusedLocation, networkMinTimeMs, fineGranted, coarseGranted);
+    }
+
+    @NonNull
+    private Result registerUpdates(List<String> legacyProviders, long minTimeMs, boolean useFusedLocation,
+            long networkMinTimeMs, boolean fineGranted, boolean coarseGranted) {
         boolean fusedRequested = requestFusedUpdates(useFusedLocation, minTimeMs, fineGranted, coarseGranted);
+        if (useFusedLocation && !fusedRequested) {
+            fusedLocationUpdateClient.removeUpdates();
+        }
         List<String> requestedLegacyProviders = fusedRequested
                 ? Collections.emptyList()
-                : providerAccess.requestProviderUpdates(legacyProviders, minTimeMs);
+                : providerAccess.requestProviderUpdates(legacyProviders, minTimeMs, networkMinTimeMs);
         String activeProviderSummary = fusedRequested
                 ? LiveLocationCoordinator.FUSED_PROVIDER
                 : NavigationLocationProviders.join(requestedLegacyProviders);
@@ -95,8 +111,21 @@ final class NavigationLocationUpdateRequester {
         AppLogger.i(TAG, "Requested location updates provider="
                 + activeProviderSummary
                 + " minTimeMs="
-                + minTimeMs);
+                + minTimeMs + " networkMinTimeMs=" + (fusedRequested ? "managed_by_fused" : networkMinTimeMs));
         return Result.active(activeProviderSummary, fusedRequested);
+    }
+
+    private void prepareRequest(boolean useFusedLocation, @Nullable String lastRequestedProvider) {
+        if (useFusedLocation || lastRequestedProvider == null) {
+            legacyUpdatesRemover.removeLegacyUpdates();
+        }
+        if (useFusedLocation) {
+            providerAccess.cancelPendingCurrentLocationRequests();
+        }
+        if (!useFusedLocation && (lastRequestedProvider == null
+                || LiveLocationCoordinator.FUSED_PROVIDER.equals(lastRequestedProvider))) {
+            fusedLocationUpdateClient.removeUpdates();
+        }
     }
 
     private boolean requestFusedUpdates(

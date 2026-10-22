@@ -20,6 +20,72 @@ public class NavigationLocationControllerProviderModeTest {
     private static final String NETWORK_PROVIDER = "network";
 
     @Test
+    public void legacyStableGpsThrottlesOnlyNetworkAndRecoversWithoutCallbacks() {
+        Fixture fixture = new Fixture(false, true, GPS_PROVIDER, NETWORK_PROVIDER);
+        fixture.controller.requestLocationUpdates(3_000L);
+        recordGoodGps(fixture);
+        assertEquals(3_000L, fixture.provider.requestedMinTimeMs);
+        assertEquals(30_000L, fixture.provider.networkMinTimeMs);
+        assertEquals(30_000L, fixture.controller.acquisition().recoveryDeadlineMs());
+        fixture.clock.nowMs = 30_000L;
+        fixture.controller.acquisition().checkHealth();
+        assertEquals(3_000L, fixture.provider.networkMinTimeMs);
+        assertEquals(-1L, fixture.controller.acquisition().recoveryDeadlineMs());
+    }
+
+    @Test
+    public void healthyFusedStreamNeverActivatesLegacyHealthChecks() {
+        Fixture fixture = new Fixture(true, GPS_PROVIDER, NETWORK_PROVIDER);
+        fixture.controller.requestLocationUpdates(3_000L);
+        recordGoodGps(fixture);
+        fixture.clock.nowMs = 100_000L;
+        fixture.controller.acquisition().checkHealth();
+        assertTrue(fixture.provider.requestedProviders.isEmpty());
+        assertEquals(-1L, fixture.controller.acquisition().recoveryDeadlineMs());
+        assertEquals(1, fixture.fused.requestUpdatesCount);
+    }
+
+    @Test
+    public void slowCadenceAndGpsOnlyModeDoNotAddNetworkRecoveryWakeups() {
+        Fixture slow = new Fixture(false, true, GPS_PROVIDER, NETWORK_PROVIDER);
+        slow.controller.requestLocationUpdates(60_000L);
+        recordGoodGps(slow);
+        assertEquals(60_000L, slow.provider.networkMinTimeMs);
+        assertEquals(-1L, slow.controller.acquisition().recoveryDeadlineMs());
+        Fixture gpsOnly = new Fixture(false, true, GPS_PROVIDER);
+        gpsOnly.controller.requestLocationUpdates(3_000L);
+        recordGoodGps(gpsOnly);
+        assertEquals(-1L, gpsOnly.controller.acquisition().recoveryDeadlineMs());
+    }
+
+    @Test
+    public void fallbackRecoveryAndResumeResetGnssHealth() {
+        Fixture fixture = new Fixture(true, GPS_PROVIDER, NETWORK_PROVIDER);
+        fixture.controller.requestLocationUpdates(3_000L);
+        fixture.fused.failActiveRequest();
+        recordGoodGps(fixture);
+        assertEquals(30_000L, fixture.provider.networkMinTimeMs);
+        fixture.controller.restartActiveLocationUpdates(3_000L);
+        assertEquals(3_000L, fixture.provider.networkMinTimeMs);
+        recordGoodGps(fixture);
+        fixture.controller.stopTracking();
+        fixture.controller.requestLocationUpdates(3_000L);
+        assertEquals(3_000L, fixture.provider.networkMinTimeMs);
+    }
+
+    private static void recordGoodGps(Fixture fixture) {
+        long startMs = fixture.clock.nowMs;
+        for (long offset : new long[] {0L, 5_000L, 10_000L}) {
+            long time = startMs + offset;
+            fixture.clock.nowMs = time;
+            NavigationLocation gps = new NavigationLocation(GPS_PROVIDER);
+            gps.setTime(time, time);
+            gps.setAccuracy(20f);
+            fixture.controller.acquisition().recordRawLocation(gps);
+        }
+    }
+
+    @Test
     public void fusedPreference_keepsLegacyProvidersDormant() {
         Fixture fixture = new Fixture(true, GPS_PROVIDER, NETWORK_PROVIDER);
 
@@ -69,24 +135,30 @@ public class NavigationLocationControllerProviderModeTest {
         private final FakeLocationProvider provider;
         private final FakeFusedLocationUpdateClient fused;
         private final NavigationLocationController controller;
+        private final FixedClock clock = new FixedClock();
 
         Fixture(boolean fusedRequestSucceeds, @NonNull String... enabledProviders) {
+            this(true, fusedRequestSucceeds, enabledProviders);
+        }
+
+        Fixture(boolean useFused, boolean fusedRequestSucceeds, @NonNull String... enabledProviders) {
             provider = new FakeLocationProvider(enabledProviders);
             fused = new FakeFusedLocationUpdateClient(fusedRequestSucceeds);
             controller = new NavigationLocationController(
                     provider,
                     new FakeGnssTracker(),
                     fused,
-                    () -> true,
-                    new FixedClock()
+                    () -> useFused,
+                    clock
             );
         }
     }
 
     private static final class FixedClock implements ElapsedRealtimeClock {
+        private long nowMs = 5_000L;
         @Override
         public long elapsedRealtimeMs() {
-            return 5_000L;
+            return nowMs;
         }
     }
 
@@ -97,6 +169,13 @@ public class NavigationLocationControllerProviderModeTest {
         private List<String> requestedProviders = Collections.emptyList();
         private int requestProviderUpdatesCount;
         private long requestedMinTimeMs;
+        private long networkMinTimeMs;
+
+        @Override
+        public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs, long networkIntervalMs) {
+            networkMinTimeMs = networkIntervalMs;
+            return requestProviderUpdates(providers, minTimeMs);
+        }
 
         FakeLocationProvider(@NonNull String... enabledProviders) {
             this.enabledProviders = Arrays.asList(enabledProviders);

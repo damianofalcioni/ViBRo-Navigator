@@ -84,7 +84,7 @@ final class LiveLocationDispatchPolicy {
                 && elapsedSinceLastDispatchMs + CROSS_PROVIDER_INTERVAL_TOLERANCE_MS
                 < expectedUpdateIntervalMs;
         boolean permitted = !arrivedInsideRequestedInterval
-                || candidate.accuracyMeters + LOCATION_ACCURACY_IMPROVEMENT_METERS
+                || candidate.accuracyMeters + LiveLocationPolicy.accuracyImprovementMeters(lastDispatched.accuracyMeters)
                 < lastDispatched.accuracyMeters;
         return permitted ? null : "cross_provider_requested_interval_not_elapsed";
     }

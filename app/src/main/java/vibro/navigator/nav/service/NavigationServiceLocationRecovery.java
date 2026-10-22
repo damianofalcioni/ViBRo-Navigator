@@ -20,6 +20,8 @@ final class NavigationServiceLocationRecovery {
     private final NavigationLocationRecoveryScheduler recoveryScheduler;
     @NonNull
     private final ElapsedRealtimeClock clock;
+    private boolean running;
+    private boolean checking;
 
     NavigationServiceLocationRecovery(
             @NonNull NavigationLocationController locationController,
@@ -31,9 +33,11 @@ final class NavigationServiceLocationRecovery {
         this.stallMonitor = stallMonitor;
         recoveryScheduler = new NavigationLocationRecoveryScheduler(alarm);
         this.clock = clock;
+        locationController.acquisition().setStateListener(this::scheduleNextCheck);
     }
 
     void start() {
+        running = true;
         stallMonitor.start(clock.elapsedRealtimeMs());
         scheduleNextCheck();
     }
@@ -48,7 +52,21 @@ final class NavigationServiceLocationRecovery {
     }
 
     void recoverIfStalled() {
+        if (!running) {
+            return;
+        }
         recoveryScheduler.onAlarmTriggered();
+        checking = true;
+        try {
+            locationController.acquisition().checkHealth();
+            recoverStreamIfStalled();
+        } finally {
+            checking = false;
+            scheduleNextCheck();
+        }
+    }
+
+    private void recoverStreamIfStalled() {
         long nowMs = clock.elapsedRealtimeMs();
         long expectedIntervalMs = expectedIntervalMs();
         if (stallMonitor.shouldRecover(nowMs, expectedIntervalMs)) {
@@ -57,16 +75,21 @@ final class NavigationServiceLocationRecovery {
             locationController.restartActiveLocationUpdates(DEFAULT_UPDATE_INTERVAL_MS);
             stallMonitor.recordRecoveryAttempt(nowMs);
         }
-        scheduleNextCheck();
     }
 
     void stop() {
+        running = false;
         recoveryScheduler.cancel();
         stallMonitor.reset();
     }
 
     private void scheduleNextCheck() {
-        recoveryScheduler.schedule(stallMonitor.recoveryDeadlineMs(expectedIntervalMs()));
+        if (!running || checking) {
+            return;
+        }
+        long stallDeadline = stallMonitor.recoveryDeadlineMs(expectedIntervalMs());
+        long acquisitionDeadline = locationController.acquisition().recoveryDeadlineMs();
+        recoveryScheduler.schedule(acquisitionDeadline < 0L ? stallDeadline : Math.min(stallDeadline, acquisitionDeadline));
     }
 
     private long expectedIntervalMs() {

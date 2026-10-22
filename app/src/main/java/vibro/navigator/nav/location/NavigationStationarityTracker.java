@@ -24,6 +24,12 @@ final class NavigationStationarityTracker {
         return stationary;
     }
 
+    void recordProviderChange(@NonNull NavigationLocation location) {
+        // Preserve known motion/stop state while discarding the old coordinate reference.
+        stopReference = null;
+        record(location, location, false);
+    }
+
     void record(@NonNull NavigationLocation location, @Nullable NavigationLocation previous,
             boolean stationaryCandidate) {
         long sampleTimeMs = location.getElapsedRealtimeOrTimeMs();

@@ -109,6 +109,7 @@ public final class AppLogger {
             StringBuilder block = buildLogPrefix("ERROR", tag, message);
             appendThrowable(block, throwable);
             AppLogDestination.append(destination, block);
+            AppLogDestination.flush(destination);
         }
     }
 
@@ -124,6 +125,11 @@ public final class AppLogger {
         StringBuilder block = buildLogPrefix(level, tag, message);
         appendThrowable(block, throwable);
         appendBlock(block);
+        if (!"DEBUG".equals(level)) {
+            synchronized (LOCK) {
+                AppLogDestination.flush(destination);
+            }
+        }
     }
 
     private static void appendThrowable(@NonNull StringBuilder block, @Nullable Throwable throwable) {

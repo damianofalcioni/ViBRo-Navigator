@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Objects;
 
 public final class NavigationRouteProgressTracker {
 
@@ -18,10 +19,12 @@ public final class NavigationRouteProgressTracker {
 
     private final ArrayDeque<AccuracySample> recentAccuracySamples = new ArrayDeque<>();
     private final ArrayDeque<RouteProgressSample> recentAlongTrackSamples = new ArrayDeque<>();
+    private String motionProvider;
 
     public void reset() {
         recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
+        motionProvider = null;
     }
 
     public double rememberAndResolveSmoothedAccuracyMeters(float accuracyMeters, long nowMs) {
@@ -74,6 +77,7 @@ public final class NavigationRouteProgressTracker {
         if (location == null) {
             return RouteMotionEstimate.stationary();
         }
+        synchronizeMotionProvider(location.getProvider());
         return RouteEtaMotionEstimator.resolve(
                 recentAlongTrackSamples,
                 location.getElapsedRealtimeOrTimeMs(),
@@ -81,6 +85,14 @@ public final class NavigationRouteProgressTracker {
                 accuracyMeters,
                 likelyStationary
         );
+    }
+
+    private void synchronizeMotionProvider(@Nullable String provider) {
+        if (motionProvider != null && !Objects.equals(motionProvider, provider)) {
+            // A correction between provider coordinate frames is not route progress.
+            recentAlongTrackSamples.clear();
+        }
+        motionProvider = provider;
     }
 
     public float resolveEtaSpeedMps(

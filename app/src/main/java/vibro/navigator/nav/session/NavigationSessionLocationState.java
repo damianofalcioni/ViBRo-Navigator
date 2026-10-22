@@ -22,11 +22,13 @@ public final class NavigationSessionLocationState {
     private final NavigationLocationReacquisitionTracker reacquisitionTracker =
             new NavigationLocationReacquisitionTracker();
     private final NavigationGpsBearingTrustPolicy bearingTrustPolicy = new NavigationGpsBearingTrustPolicy();
+    private final NavigationLocationDiagnostics diagnostics = new NavigationLocationDiagnostics();
 
     private int locationUpdateCount;
     private int motionRevision;
 
     public void reset() {
+        diagnostics.reset();
         kalman.reset();
         motionModel.reset();
         motionRevision++;
@@ -71,9 +73,11 @@ public final class NavigationSessionLocationState {
             long expectedUpdateIntervalMs
     ) {
         NavigationLocationDebugLogger.incoming(rawLocation, nowMs, expectedUpdateIntervalMs);
+        diagnostics.incoming(rawLocation.getProvider(), nowMs);
         liveLocationCoordinator.remember(rawLocation);
         LiveLocationCoordinator.Selection selection = liveLocationCoordinator.selectBestLiveSelection(nowMs);
         if (selection == null) {
+            diagnostics.dropped(false);
             NavigationLocationDebugLogger.droppedNoRecentCandidate(rawLocation);
             return Update.dropped();
         }
@@ -81,6 +85,7 @@ public final class NavigationSessionLocationState {
         String rejectionReason = liveLocationCoordinator.dispatchRejectionReason(selection, nowMs, expectedUpdateIntervalMs);
         if (rejectionReason != null) {
             boolean corrected = kalman.correctDelayedNetworkPosition(rawLocation, nowMs);
+            diagnostics.dropped(corrected);
             NavigationLocationDebugLogger.dropped(rawLocation, selected, nowMs, rejectionReason, corrected);
             return Update.dropped();
         }
@@ -101,6 +106,7 @@ public final class NavigationSessionLocationState {
         }
         NavigationLocation filtered = kalman.update(selected);
         if (filtered == null) {
+            diagnostics.dropped(false);
             NavigationLocationDebugLogger.kalmanDropped(selected, kalman.getLastRejectionReason());
             return Update.dropped();
         }
@@ -108,6 +114,7 @@ public final class NavigationSessionLocationState {
         liveLocationCoordinator.markDispatched(selection, nowMs);
         motionModel.recordFilteredLocation(filtered);
         locationUpdateCount++;
+        diagnostics.accepted(selected.getProvider());
         reacquisitionTracker.recordAccepted(nowMs);
         NavigationLocationDebugLogger.accepted(locationUpdateCount, selected, filtered,
                 motionModel.isLikelyStationary(), motionModel.speedMps(filtered));

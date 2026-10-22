@@ -5,6 +5,7 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,11 +24,12 @@ public final class AndroidLogFolderWriter {
     private OutputStream stream;
     private long size;
     private boolean published;
+    private long lastFlushNanos;
 
     private AndroidLogFolderWriter(Context context, AndroidOutputFile file, OutputStream stream) {
         this.context = context;
         this.file = file;
-        this.stream = stream;
+        this.stream = new BufferedOutputStream(stream, 8192);
     }
 
     @Nullable
@@ -56,7 +58,10 @@ public final class AndroidLogFolderWriter {
             }
             byte[] bytes = block.toString().getBytes(StandardCharsets.UTF_8);
             stream.write(bytes);
-            stream.flush();
+            // Batch debug writes; flush on the next append after two seconds, without a timer.
+            if (!published || System.nanoTime() - lastFlushNanos >= 2_000_000_000L) {
+                flush();
+            }
             size += bytes.length;
             publish();
             return true;
@@ -80,7 +85,7 @@ public final class AndroidLogFolderWriter {
     private void trim() throws IOException {
         close();
         byte[] tail = readTail();
-        stream = file.open();
+        stream = new BufferedOutputStream(file.open(), 8192);
         stream.write(tail);
         size = tail.length;
     }
@@ -118,6 +123,13 @@ public final class AndroidLogFolderWriter {
 
     public String path() {
         return file.path();
+    }
+
+    public void flush() throws IOException {
+        if (stream != null) {
+            stream.flush();
+            lastFlushNanos = System.nanoTime();
+        }
     }
 
     public void close() {

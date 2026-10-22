@@ -5,7 +5,6 @@ import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -21,6 +20,8 @@ import vibro.navigator.nav.location.NavigationLocationProviders;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.Executor;
 
 public final class AndroidLocationProviderAccess implements NavigationLocationProvider {
@@ -33,6 +34,7 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
     private final LocationListener listener;
     private final Executor locationCallbackExecutor;
     private final AndroidCurrentLocationSeeder currentLocationSeeder;
+    private final AndroidLocationSubscriptions subscriptions;
 
     public AndroidLocationProviderAccess(
             @NonNull Context context,
@@ -43,6 +45,7 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
         this.locationManager = locationManager;
         this.listener = new AndroidLocationListenerAdapter(listener);
         this.locationCallbackExecutor = ContextCompat.getMainExecutor(context);
+        this.subscriptions = new AndroidLocationSubscriptions(locationManager, locationCallbackExecutor, listener);
         this.currentLocationSeeder = new AndroidCurrentLocationSeeder(
                 locationManager,
                 this.listener,
@@ -82,13 +85,13 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
     @Override
     @NonNull
     public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs) {
-        List<String> requestedProviders = new ArrayList<>(providers.size());
-        for (String provider : providers) {
-            if (requestProviderUpdates(provider, minTimeMs)) {
-                requestedProviders.add(provider);
-            }
-        }
-        return requestedProviders;
+        return requestProviderUpdates(providers, minTimeMs, minTimeMs);
+    }
+
+    @Override
+    @NonNull
+    public List<String> requestProviderUpdates(@NonNull List<String> providers, long minTimeMs, long networkMinTimeMs) {
+        return subscriptions.reconcile(providers, minTimeMs, networkMinTimeMs);
     }
 
     @Override
@@ -126,6 +129,7 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
     @Override
     public void removeUpdates() {
         removeLegacyUpdates(locationManager, listener);
+        subscriptions.clear();
     }
 
     @Override
@@ -177,24 +181,6 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
     }
 
     @SuppressLint("MissingPermission")
-    private boolean requestProviderUpdates(@NonNull String provider, long minTimeMs) {
-        if (locationManager == null) {
-            return false;
-        }
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                locationManager.requestLocationUpdates(provider, minTimeMs, 0f, locationCallbackExecutor, listener);
-            } else {
-                locationManager.requestLocationUpdates(provider, minTimeMs, 0f, listener);
-            }
-            return true;
-        } catch (SecurityException e) {
-            AppLogger.w(TAG, "Permission denied while requesting location updates provider=" + provider, e);
-            return false;
-        }
-    }
-
-    @SuppressLint("MissingPermission")
     private static void removeLegacyUpdates(
             @Nullable LocationManager locationManager,
             @NonNull LocationListener listener
@@ -208,9 +194,10 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
         }
     }
 
-    private static final class AndroidLocationListenerAdapter implements LocationListener {
+    static final class AndroidLocationListenerAdapter implements LocationListener {
         @NonNull
         private final NavigationLocationListener listener;
+        private final Map<String, Integer> lastStatuses = new HashMap<>();
 
         AndroidLocationListenerAdapter(@NonNull NavigationLocationListener listener) {
             this.listener = listener;
@@ -237,7 +224,10 @@ public final class AndroidLocationProviderAccess implements NavigationLocationPr
         @Override
         @SuppressWarnings("deprecation")
         public void onStatusChanged(@Nullable String provider, int status, @Nullable Bundle extras) {
-            listener.onProviderStatusChanged(provider, status);
+            Integer previous = lastStatuses.put(provider, status);
+            if (previous == null || previous != status) {
+                listener.onProviderStatusChanged(provider, status);
+            }
         }
     }
 }
