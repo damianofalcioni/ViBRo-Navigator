@@ -10,9 +10,13 @@ public final class BeelineRecoveryTracker {
     private static final double MAXIMUM_ACCURACY_METERS = 50;
     private static final long CONFIRMATION_MS = 10_000L;
     private static final long MAXIMUM_SAMPLE_GAP_MS = 10_000L;
-    private static final long RETRY_INTERVAL_MS = 30_000L;
+    private static final long MINIMUM_PROBE_INTERVAL_MS = 3_000L;
+    private static final long MOVING_PROBE_INTERVAL_MS = 30_000L;
+    private static final long RETRY_INTERVAL_MS = 5_000L;
     private double closestUpperDistance = Double.POSITIVE_INFINITY;
     private long divergenceSinceMs = -1;
+    private long movingSinceMs = -1;
+    private NavigationLocation movingStartLocation;
     private long lastSampleMs = -1;
     private long lastAttemptMs = -1;
     private NavigationLocation lastAttemptLocation;
@@ -26,6 +30,8 @@ public final class BeelineRecoveryTracker {
     public void resetEvidence() {
         closestUpperDistance = Double.POSITIVE_INFINITY;
         divergenceSinceMs = -1;
+        movingSinceMs = -1;
+        movingStartLocation = null;
         lastSampleMs = -1;
     }
 
@@ -36,7 +42,7 @@ public final class BeelineRecoveryTracker {
             return false;
         }
         boolean diverging = observe(target, fix, stationary, nowMs);
-        return diverging && canRetry(fix, nowMs);
+        return (diverging || shouldProbe(fix, nowMs)) && canRetry(fix, nowMs);
     }
 
     public void recordAttempt(NavigationLocation fix, long nowMs) {
@@ -58,6 +64,10 @@ public final class BeelineRecoveryTracker {
             resetEvidence();
         }
         lastSampleMs = nowMs;
+        if (movingSinceMs < 0) {
+            movingSinceMs = nowMs;
+            movingStartLocation = new NavigationLocation(fix);
+        }
         double distance = GeoMath.distanceMeters(fix.getLatitude(), fix.getLongitude(), target.lat, target.lon);
         closestUpperDistance = Math.min(closestUpperDistance, distance + fix.getAccuracy());
         return confirmGrowth(distance - fix.getAccuracy() - closestUpperDistance, nowMs);
@@ -79,7 +89,21 @@ public final class BeelineRecoveryTracker {
             return true;
         }
         return nowMs - lastAttemptMs >= RETRY_INTERVAL_MS
-                && lastAttemptLocation.distanceTo(fix) >= MINIMUM_GROWTH_METERS
-                        + lastAttemptLocation.getAccuracy() + fix.getAccuracy();
+                && hasMovedEnough(lastAttemptLocation, fix);
+    }
+
+    private boolean shouldProbe(NavigationLocation fix, long nowMs) {
+        if (movingStartLocation == null) {
+            return false;
+        }
+        long movingForMs = nowMs - movingSinceMs;
+        // Driving reaches a different road access point quickly; walking still has a timed fallback.
+        // Candidates must pass road-access validation before replacing current guidance.
+        return movingForMs >= MINIMUM_PROBE_INTERVAL_MS
+                && (movingForMs >= MOVING_PROBE_INTERVAL_MS || hasMovedEnough(movingStartLocation, fix));
+    }
+
+    private static boolean hasMovedEnough(NavigationLocation from, NavigationLocation to) {
+        return from.distanceTo(to) >= MINIMUM_GROWTH_METERS + from.getAccuracy() + to.getAccuracy();
     }
 }

@@ -1,6 +1,7 @@
 package vibro.navigator.nav.guidance;
 
 import org.junit.Test;
+import java.util.function.Consumer;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
 import static org.junit.Assert.*;
@@ -11,7 +12,8 @@ public class BeelineRecoveryTrackerTest {
     @Test
     public void walkingSizedGrowthNeedsTenSecondsBeyondUncertainty() {
         BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
-        assertFalse(observe(tracker, 100, 5, 1_000));
+        assertFalse(observe(tracker, 135, 5, 1_000));
+        assertFalse(observe(tracker, 100, 5, 2_000));
         for (long now = 4_000; now < 16_000; now += 3_000) {
             assertFalse(observe(tracker, 135, 5, now));
         }
@@ -28,23 +30,94 @@ public class BeelineRecoveryTrackerTest {
             observe(tracker, 135, 5, now);
         }
         tracker.recordAttempt(fix(135, 5), 16_000);
-        for (long now = 19_000; now < 46_000; now += 3_000) {
-            assertFalse(observe(tracker, 170, 5, now));
-        }
-        assertFalse(observe(tracker, 140, 5, 46_000));
-        assertTrue(observe(tracker, 170, 5, 49_000));
+        assertFalse(observe(tracker, 170, 5, 19_000));
+        assertFalse(observe(tracker, 140, 5, 22_000));
+        assertTrue(observe(tracker, 170, 5, 25_000));
     }
 
     @Test
-    public void uncertaintyAndShortDetoursDoNotConfirmGrowth() {
+    public void cityDrivingCanProbeAfterDisplacementExceedsAccuracyMargins() {
+        BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
+        assertFalse(observe(tracker, 100, 20, 1_000));
+        assertFalse(observe(tracker, 125, 20, 2_000));
+        assertFalse(observe(tracker, 150, 20, 4_000));
+        assertTrue(observe(tracker, 165, 20, 5_500));
+    }
+
+    @Test
+    public void fastDrivingStillNeedsThreeSecondsBeforeFirstProbe() {
+        BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
+        assertFalse(observe(tracker, 100, 20, 1_000));
+        assertFalse(observe(tracker, 170, 20, 3_000));
+        assertTrue(observe(tracker, 185, 20, 4_000));
+    }
+
+    @Test
+    public void drivingRetriesNeedFiveSecondsAndDisplacementFromTheLastAttempt() {
+        BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
+        observe(tracker, 100, 20, 1_000);
+        assertTrue(observe(tracker, 185, 20, 4_000));
+        tracker.recordAttempt(fix(185, 20), 4_000);
+        assertFalse(observe(tracker, 250, 20, 7_000));
+        assertFalse(observe(tracker, 220, 20, 9_000));
+        assertTrue(observe(tracker, 260, 20, 10_000));
+    }
+
+    @Test
+    public void displacementInsideAccuracyMarginsDoesNotTriggerEarlyProbe() {
         BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
         observe(tracker, 100, 20, 1_000);
         for (long now = 4_000; now < 25_000; now += 3_000) {
             assertFalse(observe(tracker, 150, 20, now));
         }
-        observe(tracker, 200, 20, 25_000);
+        assertFalse(observe(tracker, 150, 20, 25_000));
         assertFalse(observe(tracker, 110, 20, 28_000));
-        assertFalse(observe(tracker, 200, 20, 31_000));
+        assertFalse(observe(tracker, 150, 20, 30_000));
+    }
+
+    @Test
+    public void walkingWithBroadAccuracyGetsProbeWithoutConfirmedDivergence() {
+        BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
+        for (int step = 0; step < 10; step++) {
+            assertFalse(observe(tracker, 100 + step * 4, 30, 1_000 + step * 3_000L));
+        }
+        assertTrue(observe(tracker, 140, 30, 31_000));
+        tracker.recordAttempt(fix(140, 30), 31_000);
+        for (long now = 34_000; now <= 91_000; now += 3_000) {
+            assertFalse(observe(tracker, 180, 30, now));
+        }
+        assertTrue(observe(tracker, 230, 30, 94_000));
+    }
+
+    @Test
+    public void probeWaitRestartsAfterStationarityPoorAccuracyOrExplicitReset() {
+        assertProbeWaitRestarts((tracker) -> tracker.shouldRequest(TARGET, fix(100, 30), true, 25_000));
+        assertProbeWaitRestarts((tracker) -> observe(tracker, 100, 80, 25_000));
+        assertProbeWaitRestarts((tracker) -> tracker.resetEvidence());
+    }
+
+    @Test
+    public void probeWaitRestartsAfterLongSampleGap() {
+        BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
+        for (long now = 1_000; now <= 22_000; now += 3_000) {
+            assertFalse(observe(tracker, 100, 30, now));
+        }
+        for (long now = 40_000; now < 70_000; now += 3_000) {
+            assertFalse(observe(tracker, 100, 30, now));
+        }
+        assertTrue(observe(tracker, 100, 30, 70_000));
+    }
+
+    private static void assertProbeWaitRestarts(Consumer<BeelineRecoveryTracker> interrupt) {
+        BeelineRecoveryTracker tracker = new BeelineRecoveryTracker();
+        for (long now = 1_000; now <= 22_000; now += 3_000) {
+            assertFalse(observe(tracker, 100, 30, now));
+        }
+        interrupt.accept(tracker);
+        for (long now = 28_000; now < 58_000; now += 3_000) {
+            assertFalse(observe(tracker, 100, 30, now));
+        }
+        assertTrue(observe(tracker, 100, 30, 58_000));
     }
 
     @Test

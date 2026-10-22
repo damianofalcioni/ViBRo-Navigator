@@ -19,15 +19,15 @@ public class NativeBeelineRecoveryIntegrationTest {
         for (boolean intermediate : new boolean[] {true, false}) {
             NavigationSessionRouteState state = state(intermediate, NavigationRoutingMode.BROUTER);
             assertFalse(evaluate(state, 0).shouldSpeculativelyRecalculateRoute());
-            for (int step = 1; step < 10; step++) {
+            for (int step = 1; step < 6; step++) {
                 assertFalse(evaluate(state, step).shouldSpeculativelyRecalculateRoute());
             }
-            NavigationRouteEvaluation recovery = evaluate(state, 10);
+            NavigationRouteEvaluation recovery = evaluate(state, 6);
             assertTrue(recovery.shouldSpeculativelyRecalculateRoute());
             assertFalse(recovery.shouldRecalculateRoute());
             assertFalse(recovery.shouldCancelSpeculativeRouteRecalculation());
             assertEquals(intermediate ? 1 : 0, state.remainingIntermediateStops(Collections.emptyList()).size());
-            assertEquals(11, state.historyForExport().recalculationBridgeSegmentsSnapshot().get(0).size());
+            assertEquals(7, state.historyForExport().recalculationBridgeSegmentsSnapshot().get(0).size());
         }
     }
 

@@ -16,17 +16,40 @@ public class RouteStartDivergenceIntegrationTest {
     public void routeModeRequestsRecoveryAfterSustainedMovementAwayFromStart() {
         NavigationSessionRouteState state = startedState();
         assertFalse(evaluate(state, 0, 1_000).shouldSpeculativelyRecalculateRoute());
+        assertFalse(evaluate(state, 0.0006, 2_000).shouldSpeculativelyRecalculateRoute());
         for (long now = 4_000; now < 13_000; now += 3_000) {
-            assertFalse(evaluate(state, -0.002, now).shouldSpeculativelyRecalculateRoute());
+            assertFalse(evaluate(state, 0, now).shouldSpeculativelyRecalculateRoute());
         }
-        NavigationRouteEvaluation notification = evaluate(state, -0.002, 13_000);
-        assertEquals(1, notification.turnEvents.size());
-        assertEquals(16, notification.turnEvents.get(0).hint.command);
-        assertFalse(notification.shouldSpeculativelyRecalculateRoute());
-        NavigationRouteEvaluation recovery = evaluate(state, -0.002, 16_000);
+        assertFalse(evaluate(state, 0, 13_000).shouldSpeculativelyRecalculateRoute());
+        NavigationRouteEvaluation recovery = evaluate(state, 0, 16_000);
         assertFalse(recovery.shouldRecalculateRoute());
         assertTrue(recovery.shouldSpeculativelyRecalculateRoute());
         assertFalse(recovery.shouldCancelSpeculativeRouteRecalculation());
+        assertEquals(NavigationRouteRecalculationReason.BEELINE_RECOVERY, recovery.recalculationReason);
+    }
+
+    @Test
+    public void walkingApproachGetsSpeculativeProbeBeforeAccuracyMarginsConfirmDivergence() {
+        NavigationSessionRouteState state = startedState();
+        for (int step = 0; step < 10; step++) {
+            assertFalse(evaluate(state, -step * 0.00003, 1_000 + step * 3_000L)
+                    .shouldSpeculativelyRecalculateRoute());
+        }
+        NavigationRouteEvaluation recovery = evaluate(state, -0.0003, 31_000);
+        assertTrue(recovery.shouldSpeculativelyRecalculateRoute());
+        assertFalse(recovery.shouldRecalculateRoute());
+        assertFalse(recovery.shouldCancelSpeculativeRouteRecalculation());
+        assertEquals(NavigationRouteRecalculationReason.BEELINE_RECOVERY, recovery.recalculationReason);
+    }
+
+    @Test
+    public void drivingApproachCanRecoverBeforeTenSecondDivergenceConfirmation() {
+        NavigationSessionRouteState state = startedState();
+        assertFalse(evaluate(state, 0, 1_000).shouldSpeculativelyRecalculateRoute());
+        assertFalse(evaluate(state, -0.00025, 3_000).shouldSpeculativelyRecalculateRoute());
+        NavigationRouteEvaluation recovery = evaluate(state, -0.0006, 6_000);
+        assertTrue(recovery.shouldSpeculativelyRecalculateRoute());
+        assertFalse(recovery.shouldRecalculateRoute());
         assertEquals(NavigationRouteRecalculationReason.BEELINE_RECOVERY, recovery.recalculationReason);
     }
 
