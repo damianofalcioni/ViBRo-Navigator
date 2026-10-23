@@ -100,6 +100,7 @@ public class NavigationServiceLocationRecoveryTest {
         assertTrue(fixture.fused.active);
         assertEquals(1_000L, fixture.controller.getLastRequestedLocationMinTimeMsOrDefault(-1L));
         assertEquals(1, fixture.departureResets);
+        assertEquals(25_000L, fixture.sleepEndedAtMs);
         assertEquals(55_000L, fixture.alarm.deadlineMs);
     }
 
@@ -111,6 +112,7 @@ public class NavigationServiceLocationRecoveryTest {
         fixture.clock.nowMs = 52_000L;
         fixture.recovery.recoverIfStalled();
         assertFalse(fixture.controller.isStationarySuspended());
+        assertEquals(52_000L, fixture.sleepEndedAtMs);
         assertEquals(1_000L, fixture.provider.networkIntervalMs);
         fixture.acceptStationary(52_000L);
         fixture.acceptStationary(54_000L);
@@ -164,6 +166,20 @@ public class NavigationServiceLocationRecoveryTest {
     }
 
     @Test
+    public void stoppingSleepReportsItsEndOnceWithoutRestartingAcquisition() {
+        Fixture fixture = new Fixture(false);
+        fixture.enableSleep();
+        fixture.stationaryStop();
+        int requests = fixture.provider.requests;
+        fixture.clock.nowMs = 40_000L;
+        fixture.recovery.stop();
+        fixture.recovery.stop();
+        assertEquals(40_000L, fixture.sleepEndedAtMs);
+        assertEquals(1, fixture.departureResets);
+        assertEquals(requests, fixture.provider.requests);
+    }
+
+    @Test
     public void tenSecondFusedFixesWithoutNativeSpeedCanSleepVerifyAndWakeOnMotion() {
         Fixture fixture = new Fixture(true);
         fixture.enableSleep();
@@ -198,6 +214,7 @@ public class NavigationServiceLocationRecoveryTest {
         private final Motion motion = new Motion();
         private final Scheduler scheduler = new Scheduler();
         private int departureResets;
+        private long sleepEndedAtMs = -1L;
         private final NavigationLocationController controller;
         private final NavigationServiceLocationRecovery recovery;
 
@@ -209,7 +226,10 @@ public class NavigationServiceLocationRecoveryTest {
         }
 
         void enableSleep() {
-            recovery.enableStationarySleep(motion, scheduler, () -> departureResets++);
+            recovery.enableStationarySleep(motion, scheduler, nowMs -> {
+                departureResets++;
+                sleepEndedAtMs = nowMs;
+            });
         }
 
         void stationaryStop() {

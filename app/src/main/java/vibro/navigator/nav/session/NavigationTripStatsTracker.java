@@ -72,11 +72,18 @@ final class NavigationTripStatsTracker {
             boolean likelyStationary,
             boolean startNewSegment
     ) {
+        recordAcceptedLocation(location, nowElapsedMs, displaySpeedMps, likelyStationary, startNewSegment, -1L);
+    }
+
+    void recordAcceptedLocation(NavigationLocation location, long nowElapsedMs, float displaySpeedMps,
+            boolean likelyStationary, boolean startNewSegment, long stationarySleepEndedAtMs) {
         if (!started) {
             return;
         }
         boolean stationary = isStationary(displaySpeedMps, likelyStationary);
-        long intervalMs = acceptedIntervalMs(nowElapsedMs, startNewSegment);
+        long sleepMs = stationarySleepDurationMs(stationarySleepEndedAtMs, nowElapsedMs);
+        stationaryDurationMs += sleepMs;
+        long intervalMs = Math.max(0L, acceptedIntervalMs(nowElapsedMs, startNewSegment) - sleepMs);
         if (stationary) {
             stationaryDurationMs += intervalMs;
         } else {
@@ -145,6 +152,11 @@ final class NavigationTripStatsTracker {
             return 0L;
         }
         return Math.max(0L, nowElapsedMs - lastAcceptedFixElapsedMs);
+    }
+
+    private long stationarySleepDurationMs(long endedAtMs, long nowMs) {
+        return lastAcceptedFixElapsedMs == NO_ACCEPTED_FIX ? 0L
+                : Math.max(0L, Math.min(endedAtMs, nowMs) - lastAcceptedFixElapsedMs);
     }
 
     private double travelledDistanceMeters(@NonNull NavigationLocation location, boolean startNewSegment) {

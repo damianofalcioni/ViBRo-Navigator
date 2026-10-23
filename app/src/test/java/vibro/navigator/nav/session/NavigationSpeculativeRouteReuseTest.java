@@ -17,6 +17,38 @@ import static org.junit.Assert.assertNotNull;
 
 public class NavigationSpeculativeRouteReuseTest {
     @Test
+    public void confirmedRequestSurvivesRepeatedConfirmationExpiryMovementAndCancellationSignals() {
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest("trekking", "Destination", new LatLon(0, 0.01), Collections.emptyList()));
+        var text = TestNavigationTextResources.metric();
+        NavigationSessionResourceAdapter.start(session, text, 10_000);
+        NavigationLocation fix = location(0);
+        fix.setTime(10_000, 10_000);
+        fix.setAccuracy(5);
+        session.components.locationState.onRawLocationChanged(fix, 10_000);
+        var snapshot = session.speculativeRoutes().prepareRequest(false, 10_000,
+                NavigationRouteRecalculationReason.ROUTE_DEVIATION);
+        assertNotNull(snapshot);
+        assertEquals(NavigationSessionSpeculativeRoutes.Confirmation.IN_PROGRESS,
+                session.speculativeRoutes().confirmRecalculation(11_000));
+        NavigationLocation moved = location(0.001);
+        moved.setTime(30_000, 30_000);
+        moved.setAccuracy(5);
+        session.components.locationState.onRawLocationChanged(moved, 30_000);
+        assertEquals(NavigationSessionSpeculativeRoutes.Confirmation.IN_PROGRESS,
+                session.speculativeRoutes().confirmRecalculation(30_000));
+        assertFalse(session.speculativeRoutes().cancelRecalculation());
+        assertTrue(session.components.routeRequestManager.isCurrentRequest(snapshot));
+        GeoJsonRoute route = NavigationSessionRouteStateTestSupport.routeWithoutHints();
+        assertFalse(session.speculativeRoutes().handleUnconfirmedRouteResult(snapshot, route, 10_000, 31_000));
+        NavigationSessionResourceAdapter.applyRouteResult(session, text, snapshot, route, 10_000, 31_000);
+        assertTrue(session.hasActiveRoute());
+        assertFalse(session.isRouteCalculationInProgress());
+        assertEquals(NavigationSessionSpeculativeRoutes.Confirmation.NONE,
+                session.speculativeRoutes().confirmRecalculation(32_000));
+    }
+
+    @Test
     public void expiredCandidateCannotBePromotedWhenConfirmationArrives() {
         NavigationSession session = new NavigationSession();
         session.loadRequest(new NavigationRequest("trekking", "Destination", new LatLon(0, 0.01), Collections.emptyList()));

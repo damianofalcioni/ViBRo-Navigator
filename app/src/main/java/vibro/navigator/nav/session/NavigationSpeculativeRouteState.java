@@ -24,6 +24,10 @@ final class NavigationSpeculativeRouteState {
         return isActive() && !confirmed;
     }
 
+    boolean isConfirmed() {
+        return isActive() && confirmed;
+    }
+
     boolean canReuse(NavigationLocation location, long nowMs) {
         return !confirmed && activeSnapshot != null && location != null
                 && nowMs >= preparedAtMs && nowMs - preparedAtMs <= MAX_REUSE_AGE_MS

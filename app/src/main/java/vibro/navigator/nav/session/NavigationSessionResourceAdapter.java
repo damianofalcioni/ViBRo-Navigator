@@ -25,8 +25,8 @@ public final class NavigationSessionResourceAdapter {
     private NavigationSessionResourceAdapter() {
     }
 
-    public static void restartDepartureMonitoring(NavigationSession session) {
-        session.components.locationEvaluator.resetDepartureMonitoring();
+    public static void resumeAfterStationarySleep(NavigationSession session, long nowMs) {
+        session.components.locationEvaluator.resumeAfterStationarySleep(nowMs);
     }
 
     public static boolean start(

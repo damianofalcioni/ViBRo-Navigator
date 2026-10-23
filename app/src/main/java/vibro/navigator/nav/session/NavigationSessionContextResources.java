@@ -11,6 +11,8 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.location.NavigationLocationController;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationUpdateResult;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppNotificationSettings;
@@ -19,6 +21,14 @@ public final class NavigationSessionContextResources {
     private static final String TAG = "NavigationSession";
 
     private NavigationSessionContextResources() {
+    }
+
+    @NonNull
+    public static NavigationLocationUpdateResult onStartupLocationSeed(NavigationSession session, Context context,
+            NavigationLocation seed, long nowMs, long expectedUpdateIntervalMs) {
+        session.components.routeState.setSingleInstructionMode(NavigationSession.isSingleInstructionModeEnabled(context));
+        return session.components.locationEvaluator.onStartupLocationSeed(
+                textResources(session, context), session.currentRequest, seed, nowMs, expectedUpdateIntervalMs);
     }
 
     @NonNull

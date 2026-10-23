@@ -41,7 +41,7 @@ final class NavigationServiceRuntimeFactory {
         runtime.locationRecovery.enableStationarySleep(
                 new AndroidNavigationMotionTrigger(service, uiScheduler),
                 uiScheduler,
-                () -> NavigationSessionResourceAdapter.restartDepartureMonitoring(navigationSession)
+                nowMs -> NavigationSessionResourceAdapter.resumeAfterStationarySleep(navigationSession, nowMs)
         );
         return runtime;
     }

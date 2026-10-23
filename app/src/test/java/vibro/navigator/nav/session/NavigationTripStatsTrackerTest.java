@@ -11,6 +11,31 @@ import vibro.navigator.nav.power.NavigationBatterySnapshot;
 
 public class NavigationTripStatsTrackerTest {
     @Test
+    public void motionWakeCreditsSleepOnlyUntilWakeAndDoesNotCountItTwice() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L);
+        tracker.recordAcceptedLocation(location(0, 0), 1_000L, 0f, true, false);
+        tracker.recordAcceptedLocation(location(0, 0), 22_000L, 0f, true, false);
+        tracker.recordAcceptedLocation(location(0, 0.0001), 26_000L, 2f, false, false, 25_000L);
+        assertEquals(24_000L, tracker.snapshot().stationaryDurationMs);
+        assertEquals(1_000L, tracker.snapshot().movingDurationMs);
+        tracker.recordAcceptedLocation(location(0, 0.0002), 29_000L, 2f, false, false);
+        assertEquals(24_000L, tracker.snapshot().stationaryDurationMs);
+        assertEquals(4_000L, tracker.snapshot().movingDurationMs);
+    }
+
+    @Test
+    public void sleepCreditDoesNotTurnAnUnobservedRelocationIntoTravel() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L);
+        tracker.recordAcceptedLocation(location(0, 0), 1_000L, 0f, true, false);
+        tracker.recordAcceptedLocation(location(0, 0.01), 40_000L, 2f, false, true, 31_000L);
+        assertEquals(30_000L, tracker.snapshot().stationaryDurationMs);
+        assertEquals(0L, tracker.snapshot().movingDurationMs);
+        assertEquals(0d, tracker.snapshot().travelledDistanceMeters, 0d);
+    }
+
+    @Test
     public void recordAcceptedLocation_tracksTravelMovingAndStationaryTime() {
         NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
         tracker.start(1_000L);

@@ -9,6 +9,7 @@ import vibro.navigator.nav.orientation.NavigationOrientationController;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionContextResources;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import android.content.Context;
@@ -105,7 +106,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         NavigationLocation seed = controller.getBestStartupLastKnownLocation(nowMs);
         if (seed != null) {
             AppLogger.i(TAG, "Using last known location as seed " + NavigationLocationFormatter.format(seed));
-            onLocationChanged(seed);
+            handleLocation(seed, true);
         } else {
             AppLogger.w(TAG, "No usable cached location available at navigation start "
                     + controller.describeAvailability());
@@ -114,6 +115,10 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
 
     @Override
     public void onLocationChanged(@NonNull NavigationLocation location) {
+        handleLocation(location, false);
+    }
+
+    private void handleLocation(@NonNull NavigationLocation location, boolean startupSeed) {
         Controllers controllers = this.controllers;
         if (controllers == null) {
             return;
@@ -133,7 +138,9 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         navigationSession.setActiveLocationProviders(controllers.locationController.activeProviderSummary());
         batteryLogger.record(nowMs, controllers.locationController.activeProviderSummary(), expectedUpdateIntervalMs);
         NavigationLocationUpdateResult result =
-                navigationSession.onRawLocationChanged(
+                startupSeed ? NavigationSessionContextResources.onStartupLocationSeed(
+                        navigationSession, context, location, nowMs, expectedUpdateIntervalMs)
+                : navigationSession.onRawLocationChanged(
                         context,
                         location,
                         nowMs,

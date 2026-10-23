@@ -35,6 +35,7 @@ final class NavigationSessionLocationEvaluator {
     private final NavigationAcceptedFixHistory acceptedFixHistory;
     private int acquiredFixCount;
     private final NavigationDepartureMonitor departureMonitor = new NavigationDepartureMonitor();
+    private long stationarySleepEndedAtMs = -1L;
 
     NavigationSessionLocationEvaluator(
             @NonNull NavigationSessionLocationState locationState,
@@ -57,6 +58,12 @@ final class NavigationSessionLocationEvaluator {
     void reset() {
         acquiredFixCount = 0;
         departureMonitor.reset();
+        stationarySleepEndedAtMs = -1L;
+    }
+
+    void resumeAfterStationarySleep(long nowMs) {
+        resetDepartureMonitoring();
+        stationarySleepEndedAtMs = nowMs;
     }
 
     void resetDepartureMonitoring() {
@@ -112,6 +119,20 @@ final class NavigationSessionLocationEvaluator {
                 shouldAllowStartupFilterReset(currentRequest),
                 expectedUpdateIntervalMs
         );
+        return onLocationUpdate(textResources, currentRequest, update, nowMs, expectedUpdateIntervalMs);
+    }
+
+    @NonNull
+    NavigationLocationUpdateResult onStartupLocationSeed(NavigationTextResources textResources,
+            NavigationRequest currentRequest, NavigationLocation seed, long nowMs, long expectedUpdateIntervalMs) {
+        return onLocationUpdate(textResources, currentRequest,
+                locationState.onStartupLocationSeed(seed, nowMs, expectedUpdateIntervalMs), nowMs, expectedUpdateIntervalMs);
+    }
+
+    @NonNull
+    private NavigationLocationUpdateResult onLocationUpdate(NavigationTextResources textResources,
+            NavigationRequest currentRequest, NavigationSessionLocationState.Update update,
+            long nowMs, long expectedUpdateIntervalMs) {
         if (update.isDropped()) {
             return NavigationLocationUpdateResult.dropped();
         }
@@ -124,8 +145,10 @@ final class NavigationSessionLocationEvaluator {
                 nowMs,
                 locationState.displaySpeedMps(filtered),
                 locationState.isLikelyStationary(),
-                update.isReacquiringAfterLongGap()
+                update.isReacquiringAfterLongGap(),
+                stationarySleepEndedAtMs
         );
+        stationarySleepEndedAtMs = -1L;
         routeRequestManager.clearRouteFailure();
         if (!currentRequest.isComplete()) {
             routeRequestManager.markInvalidRequest(textResources);

@@ -59,8 +59,9 @@ public class NavigationStationaryRestartIntegrationTest {
     private static final class Fixture {
         private final NavigationSession session = new NavigationSession();
         private final Trigger trigger = new Trigger();
+        private long lastFixMs;
         private final NavigationStationarySleep sleep = new NavigationStationarySleep(trigger,
-                () -> NavigationSessionResourceAdapter.restartDepartureMonitoring(session));
+                () -> NavigationSessionResourceAdapter.resumeAfterStationarySleep(session, lastFixMs));
         private boolean readyToSleep;
 
         Fixture() {
@@ -76,6 +77,7 @@ public class NavigationStationaryRestartIntegrationTest {
         }
 
         NavigationLocationUpdateResult accept(long time, double distance, float speed) {
+            lastFixMs = time;
             NavigationLocation location = new NavigationLocation("gps");
             location.setTime(time, time);
             location.setLongitude(distance / 111_320d);

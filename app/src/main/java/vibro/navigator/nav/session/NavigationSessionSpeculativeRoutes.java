@@ -117,6 +117,9 @@ public final class NavigationSessionSpeculativeRoutes {
 
     @NonNull
     public Confirmation confirmRecalculation(long nowMs) {
+        if (session.components.speculativeRouteState.isConfirmed()) {
+            return session.components.speculativeRouteState.confirm();
+        }
         if (recoveryRequests.isActive() || !session.components.speculativeRouteState.canReuse(
                 session.components.locationState.getLastFilteredLocation(), nowMs)) {
             cancelRecalculation();
@@ -126,6 +129,9 @@ public final class NavigationSessionSpeculativeRoutes {
     }
 
     public boolean cancelRecalculation() {
+        if (session.components.speculativeRouteState.isConfirmed()) {
+            return false;
+        }
         recoveryRequests.clear();
         boolean canceled = session.components.speculativeRouteState.cancelUnconfirmed();
         boolean requestCanceled = session.components.routeRequestManager.cancelActiveSpeculativeRequest();

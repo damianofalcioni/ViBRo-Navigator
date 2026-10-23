@@ -8,6 +8,33 @@ import static org.junit.Assert.assertTrue;
 
 public class LocationProviderHandoverTest {
     private static final String FUSED = "fused";
+    private static final String GPS = "gps";
+
+    @Test
+    public void startupSeedCanUseLegacyCacheWithoutRetainingAnInactiveCandidate() {
+        for (String provider : new String[] {GPS, "network"}) {
+            NavigationSessionLocationState state = new NavigationSessionLocationState();
+            state.setActiveProviders(FUSED);
+            assertFalse(state.onStartupLocationSeed(fix(provider, 1_000), 1_000, 3_000).isDropped());
+            NavigationLocation fused = fix(FUSED, 5_000);
+            fused.setAccuracy(20);
+            assertFalse(state.onRawLocationChanged(fused, 5_000, false, 3_000).isDropped());
+            assertEquals(FUSED, state.getLastFilteredLocation().getProvider());
+            assertTrue(state.onRawLocationChanged(fix(provider, 6_000), 6_000).isDropped());
+            assertTrue(state.onStartupLocationSeed(fix(provider, 7_000), 7_000, 3_000).isDropped());
+        }
+    }
+
+    @Test
+    public void invalidOrOldStartupSeedDoesNotBypassQualityChecksOrBlockLiveFixes() {
+        NavigationSessionLocationState state = new NavigationSessionLocationState();
+        state.setActiveProviders(FUSED);
+        assertTrue(state.onStartupLocationSeed(fix(GPS, 1_000), 20_000, 3_000).isDropped());
+        NavigationLocation poor = fix(GPS, 20_000);
+        poor.setAccuracy(100);
+        assertTrue(state.onStartupLocationSeed(poor, 20_000, 3_000).isDropped());
+        assertFalse(state.onRawLocationChanged(fix(FUSED, 21_000), 21_000).isDropped());
+    }
     @Test
     public void retiredGpsCannotBlockNewFusedFixAndCachedMeasurementRemainsDuplicate() {
         NavigationSessionLocationState state = new NavigationSessionLocationState();

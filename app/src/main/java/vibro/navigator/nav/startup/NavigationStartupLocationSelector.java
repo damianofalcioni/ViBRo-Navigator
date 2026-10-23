@@ -38,6 +38,12 @@ public final class NavigationStartupLocationSelector {
         return isUsableForRouteStartFix(NavigationLocationFix.from(location), nowMs);
     }
 
+    public static boolean shouldResetFilter(@Nullable NavigationLocation previous, NavigationLocation selected,
+            long nowMs, boolean allowed) {
+        return allowed && previous != null && !isUsableForRouteStart(previous, nowMs)
+                && isUsableForRouteStart(selected, nowMs);
+    }
+
     @Nullable
     static NavigationLocationFix selectBestFix(
             @Nullable NavigationLocationFix gps,

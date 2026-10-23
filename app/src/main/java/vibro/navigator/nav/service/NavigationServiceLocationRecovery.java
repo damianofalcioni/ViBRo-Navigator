@@ -14,6 +14,10 @@ import vibro.navigator.nav.location.NavigationStationarySleep;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 final class NavigationServiceLocationRecovery {
+    interface StationarySleepListener {
+        void onSleepEnded(long nowMs);
+    }
+
     private static final String TAG = "NavLocationRecovery";
     private static final long DEFAULT_UPDATE_INTERVAL_MS = NavigationLocationController.DEFAULT_UPDATE_INTERVAL_MS;
 
@@ -29,7 +33,7 @@ final class NavigationServiceLocationRecovery {
     private boolean checking;
     @Nullable private NavigationStationarySleep stationarySleep;
     @Nullable private TaskScheduler scheduler;
-    private Runnable restartDeparture = () -> { };
+    private StationarySleepListener stationarySleepEnded = nowMs -> { };
     private final Runnable sleepCheck = this::recoverIfStalled;
 
     NavigationServiceLocationRecovery(
@@ -45,10 +49,11 @@ final class NavigationServiceLocationRecovery {
         locationController.acquisition().setStateListener(this::scheduleNextCheck);
     }
 
-    void enableStationarySleep(NavigationMotionTrigger trigger, TaskScheduler scheduler, Runnable restartDeparture) {
+    void enableStationarySleep(NavigationMotionTrigger trigger, TaskScheduler scheduler,
+            StationarySleepListener stationarySleepEnded) {
         stationarySleep = new NavigationStationarySleep(trigger, this::onMotion);
         this.scheduler = scheduler;
-        this.restartDeparture = restartDeparture;
+        this.stationarySleepEnded = stationarySleepEnded;
     }
 
     void start() {
@@ -106,7 +111,7 @@ final class NavigationServiceLocationRecovery {
             stationarySleep.reset();
         }
         if (running && locationController.isStationarySuspended()) {
-            restartDeparture.run();
+            stationarySleepEnded.onSleepEnded(clock.elapsedRealtimeMs());
             stallMonitor.start(clock.elapsedRealtimeMs());
             locationController.resumeAfterStationarySleep();
         }
@@ -142,7 +147,7 @@ final class NavigationServiceLocationRecovery {
         }
         cancelSleepCheck();
         sleep.beginCheck();
-        restartDeparture.run();
+        stationarySleepEnded.onSleepEnded(clock.elapsedRealtimeMs());
         stallMonitor.start(clock.elapsedRealtimeMs());
         locationController.resumeAfterStationarySleep();
         AppLogger.i(TAG, "Stationary fallback check; verifying fresh fixes before sleeping again");
@@ -160,6 +165,9 @@ final class NavigationServiceLocationRecovery {
     }
 
     void stop() {
+        if (running && locationController.isStationarySuspended()) {
+            stationarySleepEnded.onSleepEnded(clock.elapsedRealtimeMs());
+        }
         running = false;
         cancelSleepCheck();
         if (stationarySleep != null) {

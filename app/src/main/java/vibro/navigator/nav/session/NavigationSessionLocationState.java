@@ -7,6 +7,7 @@ import vibro.navigator.nav.location.NavigationLocationMotionModel;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
+import vibro.navigator.nav.startup.NavigationStartupLocationSeed;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -77,9 +78,21 @@ public final class NavigationSessionLocationState {
             boolean allowStartupFilterReset,
             long expectedUpdateIntervalMs
     ) {
+        return onSelectedLocation(rawLocation, selectRawLocation(rawLocation, nowMs), nowMs,
+                allowStartupFilterReset, expectedUpdateIntervalMs);
+    }
+
+    @NonNull
+    public Update onStartupLocationSeed(@NonNull NavigationLocation seed, long nowMs, long expectedUpdateIntervalMs) {
+        return onSelectedLocation(seed, NavigationStartupLocationSeed.select(seed, nowMs, locationUpdateCount,
+                activeProviders, liveLocationCoordinator), nowMs, true, expectedUpdateIntervalMs);
+    }
+
+    @NonNull
+    private Update onSelectedLocation(NavigationLocation rawLocation, @Nullable LiveLocationCoordinator.Selection selection,
+            long nowMs, boolean allowStartupFilterReset, long expectedUpdateIntervalMs) {
         debugLogger.incoming(rawLocation, nowMs, expectedUpdateIntervalMs, reacquisitionTracker.gapMs(nowMs));
         diagnostics.incoming(rawLocation.getProvider(), nowMs);
-        LiveLocationCoordinator.Selection selection = selectRawLocation(rawLocation, nowMs);
         if (selection == null) {
             diagnostics.dropped(false);
             NavigationLocationDebugLogger.droppedNoRecentCandidate(rawLocation, activeProviders);
@@ -102,7 +115,8 @@ public final class NavigationSessionLocationState {
                     selected,
                     reacquisitionTracker.gapMs(nowMs)
             );
-        } else if (shouldResetStartupFilter(allowStartupFilterReset, selected, nowMs)) {
+        } else if (NavigationStartupLocationSelector.shouldResetFilter(
+                motionModel.getLastFilteredLocation(), selected, nowMs, allowStartupFilterReset)) {
             kalman.reset();
             motionModel.reset();
             motionRevision++;
@@ -208,20 +222,6 @@ public final class NavigationSessionLocationState {
 
     public float accuracyMeters(@NonNull NavigationLocation location) {
         return location.hasAccuracy() ? location.getAccuracy() : Float.MAX_VALUE;
-    }
-
-    private boolean shouldResetStartupFilter(
-            boolean allowStartupFilterReset,
-            @NonNull NavigationLocation selected,
-            long nowMs
-    ) {
-        if (!allowStartupFilterReset) {
-            return false;
-        }
-        NavigationLocation lastFiltered = motionModel.getLastFilteredLocation();
-        return lastFiltered != null
-                && !NavigationStartupLocationSelector.isUsableForRouteStart(lastFiltered, nowMs)
-                && NavigationStartupLocationSelector.isUsableForRouteStart(selected, nowMs);
     }
 
     public static final class Update {
