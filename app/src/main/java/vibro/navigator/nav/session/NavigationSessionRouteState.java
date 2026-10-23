@@ -30,7 +30,7 @@ public final class NavigationSessionRouteState {
     }
 
     void clearMotionEvidence() {
-        components.deviationHandler.clearDeviationEvidence();
+        components.deviationHandler.reset();
         components.progressTracker.reset();
         components.directGuidance.state().clearMotionEvidence();
     }
@@ -252,7 +252,7 @@ public final class NavigationSessionRouteState {
             boolean likelyStationary,
             long beganAt
     ) {
-        components.deviationHandler.clearDeviationEvidence();
+        components.deviationHandler.reset();
         components.progressTracker.reset();
         boolean wasBeeline = isBeelineGuidanceActive();
         List<NavigationTurnEvent> events = components.routeResultApplier.applyRouteResult(new NavigationRouteResultInput(

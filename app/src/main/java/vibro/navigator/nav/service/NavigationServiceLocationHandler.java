@@ -41,8 +41,9 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         void cancelSpeculative();
     }
 
-    public interface SurroundingStreetLocationSink {
-        void onAcceptedLocation(@NonNull NavigationLocation location);
+    public interface AcceptedLocationSink {
+        void onAcceptedLocation(@NonNull NavigationLocation raw, @Nullable NavigationLocation filtered,
+                boolean stationarySleepEligible);
     }
 
     private static final String TAG = "NavigationService";
@@ -54,7 +55,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     private final NavigationServiceTurnEvents turnEvents;
     private final RouteRecalculator routeRecalculator;
     private final CurrentLocationSeedPolicy currentLocationSeedPolicy;
-    private final SurroundingStreetLocationSink surroundingStreetLocationSink;
+    private final AcceptedLocationSink acceptedLocationSink;
     private final Runnable stateEmitter;
     private final ElapsedRealtimeClock elapsedRealtimeClock = AndroidElapsedRealtimeClock.INSTANCE;
     private final AndroidNavigationBatteryLogger batteryLogger;
@@ -67,7 +68,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
             @NonNull NavigationServiceTurnEvents turnEvents,
             @NonNull RouteRecalculator routeRecalculator,
             @NonNull CurrentLocationSeedPolicy currentLocationSeedPolicy,
-            @NonNull SurroundingStreetLocationSink surroundingStreetLocationSink,
+            @NonNull AcceptedLocationSink acceptedLocationSink,
             @NonNull Runnable stateEmitter
     ) {
         this.context = context;
@@ -75,7 +76,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         this.turnEvents = turnEvents;
         this.routeRecalculator = routeRecalculator;
         this.currentLocationSeedPolicy = currentLocationSeedPolicy;
-        this.surroundingStreetLocationSink = surroundingStreetLocationSink;
+        this.acceptedLocationSink = acceptedLocationSink;
         this.stateEmitter = stateEmitter;
         batteryLogger = new AndroidNavigationBatteryLogger(context);
     }
@@ -117,6 +118,10 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         if (controllers == null) {
             return;
         }
+        if (controllers.locationController.isStationarySuspended()) {
+            AppLogger.d(TAG, "Ignoring late location update during stationary sleep");
+            return;
+        }
         if (navigationSession.isPaused()) {
             AppLogger.d(TAG, "Ignoring location update while navigation is paused");
             return;
@@ -125,6 +130,7 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
                 .getLastRequestedLocationMinTimeMsOrDefault(DEFAULT_LOCATION_UPDATE_INTERVAL_MS);
         long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
         controllers.locationController.acquisition().recordRawLocation(location);
+        navigationSession.setActiveLocationProviders(controllers.locationController.activeProviderSummary());
         batteryLogger.record(nowMs, controllers.locationController.activeProviderSummary(), expectedUpdateIntervalMs);
         NavigationLocationUpdateResult result =
                 navigationSession.onRawLocationChanged(
@@ -138,7 +144,8 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         }
         controllers.locationController.recordAcceptedLocationUpdate();
         applyRouteUpdateRequest(result, controllers);
-        surroundingStreetLocationSink.onAcceptedLocation(location);
+        acceptedLocationSink.onAcceptedLocation(location, navigationSession.getLastFilteredLocation(),
+                NavigationLocationUpdateRequestPolicy.canSleep(context, navigationSession));
         if (result.getWrongDirectionNotice() != null) {
             controllers.foregroundController.sendWrongDirectionNotification(result.getWrongDirectionNotice());
         }

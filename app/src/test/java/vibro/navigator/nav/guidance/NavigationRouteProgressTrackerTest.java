@@ -9,6 +9,20 @@ import vibro.navigator.nav.location.NavigationLocation;
 
 public class NavigationRouteProgressTrackerTest {
     @Test
+    public void walkingProgressAccumulatesWithoutReusingOppositeDirectionBeforeReversal() {
+        NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
+        tracker.rememberAlongTrackSample(0, 1_000);
+        tracker.rememberAlongTrackSample(3.6, 4_000);
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.FORWARD,
+                tracker.assessDirection(7.2, 7_000).status);
+        tracker.rememberAlongTrackSample(7.2, 7_000);
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.STALLED,
+                tracker.assessDirection(6, 10_000).status);
+        tracker.rememberAlongTrackSample(6, 10_000);
+        assertEquals(NavigationRouteProgressTracker.DirectionStatus.BACKWARD,
+                tracker.assessDirection(2.4, 13_000).status);
+    }
+    @Test
     public void providerCorrectionDoesNotBecomeEtaSpeedOrAcceleration() {
         NavigationRouteProgressTracker tracker = new NavigationRouteProgressTracker();
         NavigationLocation gps = new NavigationLocation("gps");

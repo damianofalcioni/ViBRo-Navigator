@@ -12,23 +12,31 @@ import vibro.navigator.nav.location.NavigationLocationProviders;
 final class NavigationLocationDebugLogger {
     private static final String TAG = "NavSessionLocation";
 
-    private NavigationLocationDebugLogger() {
+    private long lastCallbackAtMs = -1L;
+
+    void reset() {
+        lastCallbackAtMs = -1L;
     }
 
-    static void droppedNoRecentCandidate(@NonNull NavigationLocation rawLocation) {
+    static void droppedNoRecentCandidate(@NonNull NavigationLocation rawLocation, @Nullable String activeProviders) {
         if (!AppLogger.isLoggingEnabled()) {
             return;
         }
-        AppLogger.d(TAG, "Dropped NavigationLocation reason=no_recent_valid_candidate raw="
+        String reason = NavigationLocationProviders.isActive(activeProviders, rawLocation.getProvider())
+                ? "no_recent_valid_candidate" : "inactive_provider";
+        AppLogger.d(TAG, "Dropped NavigationLocation reason=" + reason + " raw="
                 + NavigationLocationFormatter.format(rawLocation));
     }
 
-    static void incoming(@NonNull NavigationLocation location, long nowMs, long intervalMs) {
+    void incoming(@NonNull NavigationLocation location, long nowMs, long intervalMs, long acceptedGapMs) {
+        long callbackGapMs = lastCallbackAtMs < 0 ? -1L : nowMs - lastCallbackAtMs;
+        lastCallbackAtMs = nowMs;
         if (AppLogger.isLoggingEnabled()) {
             AppLogger.d(TAG, "Location callback incoming=" + NavigationLocationFormatter.format(location)
                     + " incomingStatus=" + NavigationLocationFormatter.incomingStatus(location, nowMs)
                     + " incomingAgeMs=" + (nowMs - location.getElapsedRealtimeOrTimeMs())
-                    + " nowElapsedMs=" + nowMs + " requestedIntervalMs=" + intervalMs);
+                    + " nowElapsedMs=" + nowMs + " requestedIntervalMs=" + intervalMs
+                    + " actualCallbackGapMs=" + callbackGapMs + " acceptedFixGapMs=" + acceptedGapMs);
         }
     }
 
@@ -99,7 +107,8 @@ final class NavigationLocationDebugLogger {
             @NonNull NavigationLocation selected,
             @NonNull NavigationLocation filtered,
             boolean stationary,
-            float motionSpeedMps
+            float motionSpeedMps,
+            boolean departureChecks
     ) {
         if (!AppLogger.isLoggingEnabled()) {
             return;
@@ -108,6 +117,7 @@ final class NavigationLocationDebugLogger {
                 + " raw=" + NavigationLocationFormatter.format(selected)
                 + " filtered=" + NavigationLocationFormatter.format(filtered)
                 + " smoothingShiftMeters=" + selected.distanceTo(filtered)
-                + " stationary=" + stationary + " motionSpeed=" + motionSpeedMps);
+                + " stationary=" + stationary + " motionSpeed=" + motionSpeedMps
+                + " departureChecks=" + departureChecks);
     }
 }

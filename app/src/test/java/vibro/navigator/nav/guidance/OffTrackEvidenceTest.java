@@ -6,6 +6,15 @@ import static org.junit.Assert.*;
 
 public class OffTrackEvidenceTest {
     @Test
+    public void correctionTowardRouteRestartsTimeoutInsteadOfConfirmingResidualFilterLag() {
+        OffTrackEvidence evidence = new OffTrackEvidence();
+        assertFalse(evidence.supportsDeparture(fix(0, 0), 75, 1_000));
+        assertFalse(evidence.supportsDeparture(fix(0, 0.0003), 33, 3_200));
+        assertFalse(evidence.supportsDeparture(fix(0, 0.0005), 11, 4_200));
+        assertFalse(evidence.supportsDeparture(fix(0, 0.0006), 4, 5_200));
+        assertFalse(evidence.supportsDeparture(fix(0, 0.00065), 0.73, 7_100));
+    }
+    @Test
     public void fixes23To25DoNotConfirmAmbiguousDepartureBeforeCornerRecovery() {
         OffTrackEvidence evidence = new OffTrackEvidence();
         assertFalse(evidence.supportsDeparture(fix(40.308503, 17.668176), 6, 1_000));

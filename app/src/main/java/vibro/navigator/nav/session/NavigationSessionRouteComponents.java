@@ -76,7 +76,7 @@ final class NavigationSessionRouteComponents {
     void reset() {
         geometryState.reset();
         displayState.reset();
-        deviationHandler.clearDeviationEvidence();
+        deviationHandler.reset();
         progressTracker.reset();
         routeHistory.reset();
         blockedRouteState.reset();

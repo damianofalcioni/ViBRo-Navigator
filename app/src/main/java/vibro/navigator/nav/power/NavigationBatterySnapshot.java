@@ -4,6 +4,8 @@ import androidx.annotation.NonNull;
 
 public final class NavigationBatterySnapshot {
     private static final int UNKNOWN = Integer.MIN_VALUE;
+    // A phone reporting positive state of charge cannot plausibly have only a few hundred microamp-hours.
+    private static final int MIN_CHARGE_COUNTER_UAH = 1_000;
 
     public final int chargeCounterMicroAmpHours;
     public final int levelPercent;
@@ -36,7 +38,7 @@ public final class NavigationBatterySnapshot {
     }
 
     private static int cleanChargeCounter(int value) {
-        return value > 0 ? value : UNKNOWN;
+        return value >= MIN_CHARGE_COUNTER_UAH ? value : UNKNOWN;
     }
 
     private static int cleanLevelPercent(int value) {

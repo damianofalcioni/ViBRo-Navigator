@@ -114,7 +114,7 @@ public class NavigationServiceRouteCallbackTest {
         );
         callback.onSpeculativeRouteConfirmed(
                 confirmed.getRerouteNotice(),
-                session.speculativeRoutes().confirmRecalculation()
+                session.speculativeRoutes().confirmRecalculation(NOW_MS + 3_000L)
         );
 
         assertTrue(confirmed.shouldRecalculateRoute());

@@ -5,6 +5,7 @@ import vibro.navigator.nav.location.LiveLocationCoordinator;
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.location.NavigationLocationMotionModel;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationLocationProviders;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 
 import androidx.annotation.NonNull;
@@ -26,6 +27,8 @@ public final class NavigationSessionLocationState {
 
     private int locationUpdateCount;
     private int motionRevision;
+    private final NavigationLocationDebugLogger debugLogger = new NavigationLocationDebugLogger();
+    private String activeProviders;
 
     public void reset() {
         diagnostics.reset();
@@ -33,6 +36,8 @@ public final class NavigationSessionLocationState {
         motionModel.reset();
         motionRevision++;
         locationUpdateCount = 0;
+        debugLogger.reset();
+        activeProviders = null;
         reacquisitionTracker.reset();
         liveLocationCoordinator.reset();
     }
@@ -72,13 +77,12 @@ public final class NavigationSessionLocationState {
             boolean allowStartupFilterReset,
             long expectedUpdateIntervalMs
     ) {
-        NavigationLocationDebugLogger.incoming(rawLocation, nowMs, expectedUpdateIntervalMs);
+        debugLogger.incoming(rawLocation, nowMs, expectedUpdateIntervalMs, reacquisitionTracker.gapMs(nowMs));
         diagnostics.incoming(rawLocation.getProvider(), nowMs);
-        liveLocationCoordinator.remember(rawLocation);
-        LiveLocationCoordinator.Selection selection = liveLocationCoordinator.selectBestLiveSelection(nowMs);
+        LiveLocationCoordinator.Selection selection = selectRawLocation(rawLocation, nowMs);
         if (selection == null) {
             diagnostics.dropped(false);
-            NavigationLocationDebugLogger.droppedNoRecentCandidate(rawLocation);
+            NavigationLocationDebugLogger.droppedNoRecentCandidate(rawLocation, activeProviders);
             return Update.dropped();
         }
         NavigationLocation selected = selection.location;
@@ -117,12 +121,34 @@ public final class NavigationSessionLocationState {
         diagnostics.accepted(selected.getProvider());
         reacquisitionTracker.recordAccepted(nowMs);
         NavigationLocationDebugLogger.accepted(locationUpdateCount, selected, filtered,
-                motionModel.isLikelyStationary(), motionModel.speedMps(filtered));
+                motionModel.isLikelyStationary(), motionModel.speedMps(filtered), motionModel.needsDepartureChecks());
         return Update.accepted(filtered, reacquiringAfterLongGap);
+    }
+
+    private LiveLocationCoordinator.Selection selectRawLocation(NavigationLocation location, long nowMs) {
+        if (!NavigationLocationProviders.isActive(activeProviders, location.getProvider())) {
+            return null;
+        }
+        liveLocationCoordinator.remember(location);
+        return liveLocationCoordinator.selectBestLiveSelection(nowMs);
     }
 
     public boolean isLikelyStationary() {
         return motionModel.isLikelyStationary();
+    }
+
+    boolean needsDepartureChecks() {
+        return motionModel.needsDepartureChecks();
+    }
+
+    public void setActiveProviders(@NonNull String providers) {
+        activeProviders = providers;
+        for (String provider : new String[] {NavigationLocationProviders.GPS_PROVIDER,
+                NavigationLocationProviders.NETWORK_PROVIDER, LiveLocationCoordinator.FUSED_PROVIDER}) {
+            if (!NavigationLocationProviders.isActive(activeProviders, provider)) {
+                liveLocationCoordinator.clearProvider(provider);
+            }
+        }
     }
 
     int motionRevision() {

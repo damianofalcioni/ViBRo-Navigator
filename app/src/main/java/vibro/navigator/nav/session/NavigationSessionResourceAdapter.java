@@ -25,6 +25,10 @@ public final class NavigationSessionResourceAdapter {
     private NavigationSessionResourceAdapter() {
     }
 
+    public static void restartDepartureMonitoring(NavigationSession session) {
+        session.components.locationEvaluator.resetDepartureMonitoring();
+    }
+
     public static boolean start(
             @NonNull NavigationSession session,
             @NonNull NavigationTextResources textResources,

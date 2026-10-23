@@ -78,9 +78,9 @@ public class NavigationService extends AndroidLocalizedService {
             turnEvents,
             new NavigationServiceLocationRouteRecalculator(routeRecalculator),
             this::hasRunningNavigationSession,
-            location -> {
+            (raw, filtered, sleepEligible) -> {
                 if (runtime != null) {
-                    runtime.onAcceptedLocation(location);
+                    runtime.onAcceptedLocation(raw, filtered, sleepEligible);
                 }
             },
             this::emitState

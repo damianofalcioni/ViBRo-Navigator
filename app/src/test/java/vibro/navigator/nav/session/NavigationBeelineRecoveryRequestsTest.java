@@ -124,7 +124,7 @@ public class NavigationBeelineRecoveryRequestsTest {
         observe(session, 6_000);
         assertNotNull(prepare(session, 6_000));
         assertEquals(NavigationSessionSpeculativeRoutes.Confirmation.NONE,
-                session.speculativeRoutes().confirmRecalculation());
+                session.speculativeRoutes().confirmRecalculation(6_000));
         assertFalse(session.isRouteCalculationInProgress());
     }
 

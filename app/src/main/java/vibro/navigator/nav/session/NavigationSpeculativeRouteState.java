@@ -5,22 +5,40 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.geo.GeoMath;
 
 final class NavigationSpeculativeRouteState {
     private static final int NO_REQUEST_TOKEN = -1;
+    private static final long MAX_REUSE_AGE_MS = 15_000L;
+    private static final double MAX_REUSE_DISTANCE_METERS = 30;
 
     private int requestToken = NO_REQUEST_TOKEN;
     private boolean confirmed;
     @Nullable
     private PendingRouteResult pendingResult;
+    private NavigationRouteRequestSnapshot activeSnapshot;
+    private long preparedAtMs;
+
+    boolean hasUnconfirmedRequest() {
+        return isActive() && !confirmed;
+    }
+
+    boolean canReuse(NavigationLocation location, long nowMs) {
+        return !confirmed && activeSnapshot != null && location != null
+                && nowMs >= preparedAtMs && nowMs - preparedAtMs <= MAX_REUSE_AGE_MS
+                && GeoMath.distanceMeters(activeSnapshot.start.lat, activeSnapshot.start.lon,
+                        location.getLatitude(), location.getLongitude()) <= MAX_REUSE_DISTANCE_METERS;
+    }
 
     void reset() {
         requestToken = NO_REQUEST_TOKEN;
         confirmed = false;
         pendingResult = null;
+        activeSnapshot = null;
     }
 
-    void onRouteRequestPrepared(@Nullable NavigationRouteRequestSnapshot snapshot) {
+    void onRouteRequestPrepared(@Nullable NavigationRouteRequestSnapshot snapshot, long nowMs) {
         if (snapshot == null) {
             return;
         }
@@ -29,6 +47,8 @@ final class NavigationSpeculativeRouteState {
             return;
         }
         requestToken = snapshot.requestToken;
+        activeSnapshot = snapshot;
+        preparedAtMs = nowMs;
         confirmed = false;
         pendingResult = null;
     }

@@ -113,4 +113,23 @@ public class NavigationTripStatsTrackerTest {
         location.setAccuracy(5f);
         return location;
     }
+
+    @Test
+    public void risingDischargeCounterStaysUnreliableAfterLaterDecrease() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000, true, NavigationBatterySnapshot.of(3_000_000, 90));
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(3_000_100, 89));
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(2_999_000, 88));
+        assertTrue(Float.isNaN(tracker.snapshot().batteryUsedMilliAmpHours));
+        assertEquals(2, tracker.snapshot().batteryDropPercent);
+    }
+
+    @Test
+    public void tinyVendorCounterCannotBecomeAnEnergyEstimate() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000, true, NavigationBatterySnapshot.of(390, 75));
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(248, 56));
+        assertTrue(Float.isNaN(tracker.snapshot().batteryUsedMilliAmpHours));
+        assertEquals(19, tracker.snapshot().batteryDropPercent);
+    }
 }

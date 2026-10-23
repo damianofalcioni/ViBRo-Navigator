@@ -42,6 +42,46 @@ public class NavigationStationarityTrackerTest {
     }
 
     @Test
+    public void improvingAccuracyCannotMoveStopOriginAlongWalkingPath() {
+        record(1_000, 0, 0, 24);
+        for (int i = 1; i <= 8; i++) {
+            record(1_000 + i * 3_000L, i * 4, 1.3f, 24 - i);
+        }
+        assertFalse(model.isLikelyStationary());
+        assertFalse(model.needsDepartureChecks());
+    }
+
+    @Test
+    public void oneMeterAccuracyImprovementsCannotCreepStopOriginWithoutUsableNativeSpeed() {
+        record(1_000, 0, 0, 20);
+        for (int i = 1; i <= 40; i++) {
+            record(1_000 + i * 1_000L, i, 0.3f, 20 - i * 0.2f);
+        }
+        assertFalse(model.isLikelyStationary());
+    }
+
+    @Test
+    public void sustainedWalkingWithoutAccuracyMetadataRestoresDisplaySpeed() {
+        record(1_000, 0, 0, 19);
+        NavigationLocation last = null;
+        for (int i = 1; i <= 4; i++) {
+            last = record(1_000 + i * 3_000L, i * 3.6, 1.2f, 19);
+        }
+        assertFalse(model.isLikelyStationary());
+        assertEquals(1.2f, model.displaySpeedMps(last), 0f);
+    }
+
+    @Test
+    public void coherentNativeWalkingCanRecoverWhileFilterLagInflatesPositionUncertainty() {
+        record(1_000, 0, 0, 15);
+        for (int i = 1; i <= 4; i++) {
+            record(1_000 + i * 3_000L, i * 4, 1.3f, 45);
+        }
+        assertFalse(model.isLikelyStationary());
+        assertFalse(model.needsDepartureChecks());
+    }
+
+    @Test
     public void poorPositionJumpDoesNotReleaseStopButGoodDisplacementDoes() {
         record(1_000L, 0.0, 0f, 5f);
         record(61_000L, 200.0, 0.5f, 100f);

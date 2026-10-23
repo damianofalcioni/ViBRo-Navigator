@@ -15,16 +15,18 @@ final class NavigationLocationRecoveryScheduler {
         this.alarm = alarm;
     }
 
-    void schedule(long deadlineMs) {
+    boolean schedule(long deadlineMs) {
         if (deadlineMs < 0L) {
-            return;
+            return false;
         }
         if (deadlineMs == scheduledDeadlineMs) {
-            return;
+            return true;
         }
         if (alarm.schedule(deadlineMs)) {
             scheduledDeadlineMs = deadlineMs;
+            return true;
         }
+        return false;
     }
 
     void onAlarmTriggered() {

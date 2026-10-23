@@ -13,11 +13,16 @@ final class NavigationStationarityTracker {
     private long lastSampleTimeMs = Long.MIN_VALUE;
     @Nullable
     private NavigationLocation stopReference;
+    @Nullable
+    private NavigationLocation stopOrigin;
+    private boolean movementConfirmed;
 
     void reset() {
         stationary = false;
         lastSampleTimeMs = Long.MIN_VALUE;
         stopReference = null;
+        stopOrigin = null;
+        movementConfirmed = false;
     }
 
     boolean isStationary() {
@@ -27,26 +32,35 @@ final class NavigationStationarityTracker {
     void recordProviderChange(@NonNull NavigationLocation location) {
         // Preserve known motion/stop state while discarding the old coordinate reference.
         stopReference = null;
-        record(location, location, false);
+        stopOrigin = null;
+        movementConfirmed = false;
+        record(location, location, false, false);
     }
 
     void record(@NonNull NavigationLocation location, @Nullable NavigationLocation previous,
-            boolean stationaryCandidate) {
+            boolean stationaryCandidate, boolean coherentMovement) {
         long sampleTimeMs = location.getElapsedRealtimeOrTimeMs();
         if (sampleTimeMs <= lastSampleTimeMs) {
             return;
         }
         lastSampleTimeMs = sampleTimeMs;
         NavigationLocation reference = stopReference == null ? previous : stopReference;
-        if (hasConfidentMovingSpeed(location) || hasClearDisplacement(reference, location)) {
+        if (hasConfidentMovingSpeed(location) || hasClearDisplacement(reference, location) || coherentMovement) {
             stationary = false;
+            movementConfirmed = true;
             stopReference = null;
+            stopOrigin = null;
             return;
         }
         if (shouldRetainStop(location, previous, stationaryCandidate)) {
             stationary = true;
+            movementConfirmed = false;
             retainBestStopReference(location);
         }
+    }
+
+    boolean needsDepartureChecks() {
+        return stationary || !movementConfirmed;
     }
 
     private boolean shouldRetainStop(NavigationLocation location,
@@ -62,7 +76,13 @@ final class NavigationStationarityTracker {
 
     private void retainBestStopReference(NavigationLocation location) {
         // Keep the stop origin through ambiguous fixes so slow movement can accumulate.
-        if (stopReference == null || accuracyMeters(location) < accuracyMeters(stopReference)) {
+        if (stopReference == null) {
+            stopReference = new NavigationLocation(location);
+            stopOrigin = new NavigationLocation(location);
+            return;
+        }
+        if (accuracyMeters(location) < accuracyMeters(stopReference)
+                && stopOrigin.distanceTo(location) <= MIN_CONFIRMED_DISPLACEMENT_METERS) {
             stopReference = new NavigationLocation(location);
         }
     }

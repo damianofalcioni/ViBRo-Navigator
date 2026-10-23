@@ -69,6 +69,7 @@ public final class NavigationSession {
         }
         paused = false;
         components.headingResolver.clearRouteDisagreement();
+        components.locationEvaluator.resetDepartureMonitoring();
         return true;
     }
 
@@ -103,6 +104,10 @@ public final class NavigationSession {
 
     public void onProviderDisabled(@NonNull String provider) {
         components.locationState.onProviderDisabled(provider);
+    }
+
+    public void setActiveLocationProviders(@NonNull String providers) {
+        components.locationState.setActiveProviders(providers);
     }
 
     @Nullable
@@ -218,7 +223,7 @@ public final class NavigationSession {
                 inProgressNotice,
                 reason
         );
-        components.speculativeRouteState.onRouteRequestPrepared(snapshot);
+        components.speculativeRouteState.onRouteRequestPrepared(snapshot, nowMs);
         return snapshot;
     }
 

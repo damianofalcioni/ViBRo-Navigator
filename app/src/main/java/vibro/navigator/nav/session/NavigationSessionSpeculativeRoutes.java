@@ -38,6 +38,9 @@ public final class NavigationSessionSpeculativeRoutes {
             long nowMs,
             @NonNull NavigationRouteRecalculationReason reason
     ) {
+        if (reuseDepartureRequest(force, nowMs, reason)) {
+            return null;
+        }
         if (reason == NavigationRouteRecalculationReason.BEELINE_RECOVERY && !recoveryRequests.canPrepare(nowMs)) {
             return null;
         }
@@ -52,7 +55,7 @@ public final class NavigationSessionSpeculativeRoutes {
                 reason,
                 true
         );
-        session.components.speculativeRouteState.onRouteRequestPrepared(snapshot);
+        session.components.speculativeRouteState.onRouteRequestPrepared(snapshot, nowMs);
         if (snapshot != null) {
             recoveryRequests.clear();
             if (reason == NavigationRouteRecalculationReason.BEELINE_RECOVERY) {
@@ -60,6 +63,25 @@ public final class NavigationSessionSpeculativeRoutes {
             }
         }
         return snapshot;
+    }
+
+    private boolean reuseDepartureRequest(boolean force, long nowMs, NavigationRouteRecalculationReason reason) {
+        boolean reuse = !force && reason == NavigationRouteRecalculationReason.ROUTE_DEVIATION
+                && session.components.speculativeRouteState.canReuse(
+                        session.components.locationState.getLastFilteredLocation(), nowMs);
+        if (reuse) {
+            AppLogger.d(TAG, "Reusing current speculative route for the same departure");
+        } else {
+            cancelObsoleteDeparture(reason);
+        }
+        return reuse;
+    }
+
+    private void cancelObsoleteDeparture(NavigationRouteRecalculationReason reason) {
+        if (reason == NavigationRouteRecalculationReason.ROUTE_DEVIATION
+                && session.components.speculativeRouteState.hasUnconfirmedRequest()) {
+            cancelRecalculation();
+        }
     }
 
     public boolean handleUnconfirmedRouteResult(
@@ -94,8 +116,9 @@ public final class NavigationSessionSpeculativeRoutes {
     }
 
     @NonNull
-    public Confirmation confirmRecalculation() {
-        if (recoveryRequests.isActive()) {
+    public Confirmation confirmRecalculation(long nowMs) {
+        if (recoveryRequests.isActive() || !session.components.speculativeRouteState.canReuse(
+                session.components.locationState.getLastFilteredLocation(), nowMs)) {
             cancelRecalculation();
             return Confirmation.NONE;
         }

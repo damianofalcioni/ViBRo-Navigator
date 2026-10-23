@@ -52,7 +52,7 @@ public final class AndroidNavigationBatteryLogger {
             BatteryManager battery = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
             PowerManager power = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             Intent intent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-            return "levelPercent=" + property(battery, BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            return "powerReadings=unvalidated levelPercent=" + property(battery, BatteryManager.BATTERY_PROPERTY_CAPACITY)
                     + " chargeCounterUah=" + property(battery, BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
                     + " currentNowUa=" + property(battery, BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
                     + " currentAverageUa=" + property(battery, BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)

@@ -19,6 +19,7 @@ public final class NavigationRouteEvaluation {
     private final boolean shouldRecalculateRoute;
     private final boolean requestBeelineRecovery;
     private final boolean stableOnRouteSample;
+    private final boolean forwardProgress;
     private final long suggestedUpdateIntervalMs;
     @Nullable
     final NavigationRouteRecalculationReason recalculationReason;
@@ -50,6 +51,16 @@ public final class NavigationRouteEvaluation {
             RouteDeviationPolicy.Reason pendingDeviationReason, NavigationRerouteNotice rerouteNotice,
             NavigationWrongDirectionNotice wrongDirectionNotice, List<NavigationTurnEvent> turnEvents,
             boolean requestBeelineRecovery) {
+        this(shouldRecalculateRoute, stableOnRouteSample, suggestedUpdateIntervalMs, recalculationReason,
+                pendingDeviationReason, rerouteNotice, wrongDirectionNotice, turnEvents, requestBeelineRecovery, false);
+    }
+
+    private NavigationRouteEvaluation(boolean shouldRecalculateRoute, boolean stableOnRouteSample,
+            long suggestedUpdateIntervalMs, NavigationRouteRecalculationReason recalculationReason,
+            RouteDeviationPolicy.Reason pendingDeviationReason, NavigationRerouteNotice rerouteNotice,
+            NavigationWrongDirectionNotice wrongDirectionNotice, List<NavigationTurnEvent> turnEvents,
+            boolean requestBeelineRecovery, boolean forwardProgress) {
+        this.forwardProgress = forwardProgress;
         this.requestBeelineRecovery = requestBeelineRecovery;
         this.shouldRecalculateRoute = shouldRecalculateRoute;
         this.stableOnRouteSample = stableOnRouteSample;
@@ -153,6 +164,16 @@ public final class NavigationRouteEvaluation {
 
     public boolean isStableOnRouteSample() {
         return stableOnRouteSample;
+    }
+
+    boolean hasForwardProgress() {
+        return forwardProgress;
+    }
+
+    static NavigationRouteEvaluation keepForwardRoute(List<NavigationTurnEvent> turnEvents, long intervalMs,
+            boolean stable, boolean forward) {
+        return new NavigationRouteEvaluation(false, stable, intervalMs, null, null, null,
+                null, turnEvents, false, forward);
     }
 
     public long getSuggestedUpdateIntervalMs() {

@@ -3,7 +3,9 @@ package vibro.navigator.nav.service;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.dispatch.TaskScheduler;
+import vibro.navigator.android.sensor.AndroidNavigationMotionTrigger;
 import vibro.navigator.nav.session.NavigationSession;
+import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 
 final class NavigationServiceRuntimeFactory {
     private NavigationServiceRuntimeFactory() {
@@ -31,10 +33,16 @@ final class NavigationServiceRuntimeFactory {
                 routeRecalculator
         );
         uiVisibility.setScreenInteractive(dependencies.foreground.screenInteractive);
-        return new NavigationServiceRuntime(
+        NavigationServiceRuntime runtime = new NavigationServiceRuntime(
                 service,
                 dependencies,
                 NavigationServiceStreetOverlay.create(service, uiScheduler, stateEmitter)
         );
+        runtime.locationRecovery.enableStationarySleep(
+                new AndroidNavigationMotionTrigger(service, uiScheduler),
+                uiScheduler,
+                () -> NavigationSessionResourceAdapter.restartDepartureMonitoring(navigationSession)
+        );
+        return runtime;
     }
 }

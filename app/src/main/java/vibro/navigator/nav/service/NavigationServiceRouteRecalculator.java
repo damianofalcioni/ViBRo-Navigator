@@ -96,7 +96,7 @@ final class NavigationServiceRouteRecalculator {
 
     boolean confirmSpeculative(@Nullable NavigationRerouteNotice rerouteNotice) {
         NavigationSessionSpeculativeRoutes.Confirmation confirmation =
-                navigationSession.speculativeRoutes().confirmRecalculation();
+                navigationSession.speculativeRoutes().confirmRecalculation(elapsedRealtimeClock.elapsedRealtimeMs());
         if (confirmation == NavigationSessionSpeculativeRoutes.Confirmation.NONE) {
             return false;
         }

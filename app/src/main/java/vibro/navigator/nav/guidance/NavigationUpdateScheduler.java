@@ -189,7 +189,7 @@ public final class NavigationUpdateScheduler {
         return bestBucketMs;
     }
 
-    static long nextHigherBucket(long intervalMs) {
+    public static long nextHigherBucket(long intervalMs) {
         long boundedIntervalMs = Math.max(MIN_UPDATE_INTERVAL_MS, Math.min(MAX_UPDATE_INTERVAL_MS, intervalMs));
         for (int i = 0; i < UPDATE_INTERVAL_BUCKETS_MS.length; i++) {
             long candidateBucketMs = UPDATE_INTERVAL_BUCKETS_MS[i];

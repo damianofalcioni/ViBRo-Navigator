@@ -6,10 +6,17 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.settings.AppLocationSettings;
+import vibro.navigator.nav.session.NavigationSession;
 
 final class NavigationLocationUpdateRequestPolicy {
 
     private NavigationLocationUpdateRequestPolicy() {
+    }
+
+    static boolean canSleep(Context context, NavigationSession session) {
+        return AppLocationSettings.isDynamicGpsFixIntervalEnabled(context)
+                && session.isStarted() && !session.isPaused() && session.hasActiveRoute()
+                && !session.isRouteCalculationInProgress() && session.isLikelyStationaryForOrientation();
     }
 
     static void requestLocationUpdates(

@@ -97,6 +97,12 @@ final class NavigationRouteEvaluator {
                     NavigationRouteRecalculationReason.ROUTE_MATCH_FAILED
             );
         }
+        if (shouldVerifyPosition(filtered, match, accuracyMeters, nowMs)) {
+            deviationHandler.clearDeviationEvidence();
+            progressTracker.reset();
+            AppLogger.d(TAG, "Verifying off-route position before guidance distance=" + match.distanceToTrackMeters);
+            return NavigationRouteEvaluation.keepRoute(Collections.emptyList(), REACQUISITION_FOLLOW_UP_INTERVAL_MS, false);
+        }
         match = directGuidanceEvaluator.constrainRouteMatch(filtered, match);
         if (reacquiringAfterLongGap && !directGuidanceEvaluator.isRouteBeelineActive()) {
             return keepRouteWhileReacquiring(
@@ -121,6 +127,12 @@ final class NavigationRouteEvaluator {
                 fastChecksUntilMs,
                 singleInstructionMode
         );
+    }
+
+    private boolean shouldVerifyPosition(NavigationLocation location, PolylineIndex.Match match,
+            double accuracy, long nowMs) {
+        return deviationHandler.shouldVerifyPosition(location, match.distanceToTrackMeters, accuracy, nowMs)
+                && !directGuidanceEvaluator.isRouteBeelineActive();
     }
 
     @NonNull
@@ -383,10 +395,12 @@ final class NavigationRouteEvaluator {
                 fastChecksUntilMs,
                 singleInstructionMode
         );
-        return NavigationRouteEvaluation.keepRoute(
+        return NavigationRouteEvaluation.keepForwardRoute(
                 progress.turnEvents,
                 progress.suggestedUpdateIntervalMs,
-                stableOnRouteSample
+                stableOnRouteSample,
+                progressTracker.assessDirection(match.alongTrackMeters, nowMs).status
+                        == NavigationRouteProgressTracker.DirectionStatus.FORWARD
         );
     }
 

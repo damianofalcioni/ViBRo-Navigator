@@ -19,6 +19,7 @@ public final class NavigationLocationMotionModel {
     private final ArrayDeque<NavigationLocation> recentFilteredLocations = new ArrayDeque<>();
     private final NavigationDisplayCourseHistory displayCourseHistory = new NavigationDisplayCourseHistory();
     private final NavigationStationarityTracker stationarityTracker = new NavigationStationarityTracker();
+    private final NavigationMovementEvidence movementEvidence = new NavigationMovementEvidence();
 
     @Nullable
     private NavigationLocation lastFiltered;
@@ -31,6 +32,7 @@ public final class NavigationLocationMotionModel {
         recentFilteredLocations.clear();
         displayCourseHistory.reset();
         stationarityTracker.reset();
+        movementEvidence.reset();
     }
 
     @Nullable
@@ -45,6 +47,7 @@ public final class NavigationLocationMotionModel {
             lastFiltered = null;
             recentFilteredLocations.clear();
             displayCourseHistory.reset();
+            movementEvidence.reset();
         }
         boolean wasStationary = stationarityTracker.isStationary();
         previousFiltered = lastFiltered;
@@ -54,7 +57,7 @@ public final class NavigationLocationMotionModel {
         if (providerChanged) {
             stationarityTracker.recordProviderChange(filtered);
         } else {
-            stationarityTracker.record(filtered, previousFiltered, isStationaryCandidate());
+            stationarityTracker.record(filtered, previousFiltered, isStationaryCandidate(), movementEvidence.record(filtered));
         }
         if (!wasStationary && stationarityTracker.isStationary()) {
             // A departure may reverse direction. Approach fixes must not yield a confident
@@ -66,6 +69,10 @@ public final class NavigationLocationMotionModel {
 
     public boolean isLikelyStationary() {
         return stationarityTracker.isStationary();
+    }
+
+    public boolean needsDepartureChecks() {
+        return stationarityTracker.needsDepartureChecks();
     }
 
     private boolean isStationaryCandidate() {
@@ -97,7 +104,7 @@ public final class NavigationLocationMotionModel {
         pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
         return NavigationDisplaySpeedResolver.resolve(
                 location,
-                previousFiltered,
+                movementEvidence.reference() == null ? previousFiltered : movementEvidence.reference(),
                 isLikelyStationary(),
                 reportedOrFallbackSpeedMps(location)
         );

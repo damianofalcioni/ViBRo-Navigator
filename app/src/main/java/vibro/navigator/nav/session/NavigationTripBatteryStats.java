@@ -31,7 +31,8 @@ final class NavigationTripBatteryStats {
         if (latestSnapshot.hasSameReading(snapshot)) {
             return;
         }
-        chargeCounterReliable = chargeCounterReliable && snapshot.hasChargeCounter();
+        chargeCounterReliable = chargeCounterReliable && snapshot.hasChargeCounter()
+                && snapshot.chargeCounterMicroAmpHours <= latestSnapshot.chargeCounterMicroAmpHours;
         levelPercentReliable = levelPercentReliable && snapshot.hasLevelPercent();
         latestSnapshot = snapshot;
     }

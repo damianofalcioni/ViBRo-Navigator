@@ -13,6 +13,10 @@ public final class NavigationLocationProviders {
     private NavigationLocationProviders() {
     }
 
+    public static boolean isActive(@Nullable String providerSummary, @Nullable String provider) {
+        return providerSummary == null || (provider != null && ("+" + providerSummary + "+").contains("+" + provider + "+"));
+    }
+
     public static boolean hasAnyLocationPermission(boolean fineGranted, boolean coarseGranted) {
         return fineGranted || coarseGranted;
     }

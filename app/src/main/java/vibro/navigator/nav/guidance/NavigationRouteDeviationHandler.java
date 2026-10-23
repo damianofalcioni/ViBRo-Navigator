@@ -15,6 +15,16 @@ public final class NavigationRouteDeviationHandler {
     private final NavigationDeviationConfirmation deviationConfirmation = new NavigationDeviationConfirmation();
     private final NavigationRouteProgressTracker progressTracker;
     private final OffTrackEvidence offTrackEvidence = new OffTrackEvidence();
+    private final OffTrackPositionVerification positionVerification = new OffTrackPositionVerification();
+
+    public void reset() {
+        clearDeviationEvidence();
+        positionVerification.reset();
+    }
+
+    public boolean shouldVerifyPosition(NavigationLocation location, double distance, double accuracy, long nowMs) {
+        return positionVerification.shouldHold(location, distance, accuracy, nowMs);
+    }
 
     public NavigationRouteDeviationHandler(@NonNull NavigationRouteProgressTracker progressTracker) {
         this.progressTracker = progressTracker;

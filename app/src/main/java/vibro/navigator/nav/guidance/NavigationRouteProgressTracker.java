@@ -7,15 +7,12 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Objects;
 
 public final class NavigationRouteProgressTracker {
 
     private static final long MAX_ACCURACY_SAMPLE_AGE_MS = 5_000L;
-    private static final long DIRECTION_PROGRESS_WINDOW_MS = 3_000L;
     private static final long MAX_DIRECTION_PROGRESS_SAMPLE_AGE_MS = 10_000L;
-    private static final double MIN_DIRECTION_PROGRESS_METERS = 4.0;
 
     private final ArrayDeque<AccuracySample> recentAccuracySamples = new ArrayDeque<>();
     private final ArrayDeque<RouteProgressSample> recentAlongTrackSamples = new ArrayDeque<>();
@@ -133,40 +130,12 @@ public final class NavigationRouteProgressTracker {
     // Display handoffs can exclude earlier beeline samples without resetting guidance/ETA history.
     public DirectionAssessment assessDirection(double alongTrackMeters, long nowMs, long earliestAnchorMs) {
         pruneAlongTrackSamples(nowMs);
-        RouteProgressSample anchor = findDirectionAnchor(nowMs);
-        if (anchor == null || anchor.timeMs < earliestAnchorMs) {
-            return DirectionAssessment.unknown();
-        }
-        double deltaMeters = alongTrackMeters - anchor.alongTrackMeters;
-        if (deltaMeters >= MIN_DIRECTION_PROGRESS_METERS) {
-            return DirectionAssessment.forward(deltaMeters);
-        }
-        if (deltaMeters <= -MIN_DIRECTION_PROGRESS_METERS) {
-            return DirectionAssessment.backward(deltaMeters);
-        }
-        return DirectionAssessment.stalled(deltaMeters);
+        return RouteDirectionPolicy.assess(recentAlongTrackSamples, alongTrackMeters, nowMs, earliestAnchorMs);
     }
 
     public void rememberAlongTrackSample(double alongTrackMeters, long nowMs) {
         recentAlongTrackSamples.addLast(new RouteProgressSample(alongTrackMeters, nowMs));
         pruneAlongTrackSamples(nowMs);
-    }
-
-    @Nullable
-    private RouteProgressSample findDirectionAnchor(long nowMs) {
-        return latestEligibleAlongTrackSample(nowMs, DIRECTION_PROGRESS_WINDOW_MS);
-    }
-
-    @Nullable
-    private RouteProgressSample latestEligibleAlongTrackSample(long nowMs, long minimumAgeMs) {
-        Iterator<RouteProgressSample> candidates = recentAlongTrackSamples.descendingIterator();
-        while (candidates.hasNext()) {
-            RouteProgressSample candidate = candidates.next();
-            if (nowMs - candidate.timeMs >= minimumAgeMs) {
-                return candidate;
-            }
-        }
-        return null;
     }
 
     private void pruneAccuracySamples(long nowMs) {

@@ -70,6 +70,7 @@ final class NavigationServiceRuntime {
     }
 
     void resetTrackingState() {
+        locationRecovery.stop();
         tracking.locationController.resetTrackingState();
     }
 
@@ -77,9 +78,12 @@ final class NavigationServiceRuntime {
         streetOverlay.reset();
     }
 
-    void onAcceptedLocation(@NonNull NavigationLocation location) {
+    void onAcceptedLocation(@NonNull NavigationLocation location, @Nullable NavigationLocation filtered,
+            boolean sleepEligible) {
         streetOverlay.onAcceptedLocation(location);
-        locationRecovery.onAcceptedFix();
+        if (filtered != null) {
+            locationRecovery.onAcceptedFix(location, filtered, sleepEligible);
+        }
     }
 
     void onCompassStreetViewport(@Nullable NavCompassState compassState) {
@@ -96,6 +100,7 @@ final class NavigationServiceRuntime {
     }
 
     void requestLocationUpdates(long intervalMs) {
+        locationRecovery.wakeForNavigationChange();
         NavigationLocationUpdateRequestPolicy.requestLocationUpdates(
                 context,
                 tracking.locationController,
@@ -130,6 +135,7 @@ final class NavigationServiceRuntime {
     }
 
     void requestRoute(@NonNull NavigationRouteRequestSnapshot snapshot) {
+        locationRecovery.wakeForNavigationChange();
         routing.executor.requestRoute(snapshot, routing.callback);
     }
 

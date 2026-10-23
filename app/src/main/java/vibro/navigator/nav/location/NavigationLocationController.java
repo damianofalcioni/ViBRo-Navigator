@@ -25,7 +25,9 @@ public final class NavigationLocationController {
     private String lastRequestedProvider;
     private long nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
     private boolean legacyRecoveryActive;
+    private boolean stationarySuspended;
     private final NavigationLocationAcquisition acquisition;
+    private final NavigationLocationSeeds seeds;
 
     public NavigationLocationController(
             @NonNull NavigationLocationProvider providerAccess,
@@ -39,6 +41,7 @@ public final class NavigationLocationController {
         this.fusedLocationUpdateClient = fusedLocationUpdateClient;
         this.fusedLocationUsePolicy = fusedLocationUsePolicy;
         this.elapsedRealtimeClock = elapsedRealtimeClock;
+        seeds = new NavigationLocationSeeds(providerAccess, fusedLocationUpdateClient);
         this.acquisition = new NavigationLocationAcquisition(providerAccess, elapsedRealtimeClock,
                 interval -> requestLocationUpdates(interval, Math.min(DEFAULT_UPDATE_INTERVAL_MS, interval)));
         this.updateRequester = new NavigationLocationUpdateRequester(
@@ -52,6 +55,7 @@ public final class NavigationLocationController {
     }
 
     public void resetTrackingState() {
+        stationarySuspended = false;
         acquisition.reset();
         lastRequestedLocationMinTimeMs = -1L;
         lastRequestedProvider = null;
@@ -64,13 +68,30 @@ public final class NavigationLocationController {
     }
 
     public void stopTracking() {
+        stationarySuspended = false;
         acquisition.reset();
         providerAccess.cancelPendingCurrentLocationRequests();
+        fusedLocationUpdateClient.cancelCurrentLocationSeed();
         fusedLocationUpdateClient.removeUpdates();
         nextEvaluationDeadlineElapsedMs = NavState.NO_DEADLINE;
         lastRequestedProvider = null;
         gnssStatusTracker.reset();
         providerAccess.removeUpdates();
+    }
+
+    public void suspendForStationarySleep(long checkDeadlineMs) {
+        stopTracking();
+        stationarySuspended = true;
+        nextEvaluationDeadlineElapsedMs = checkDeadlineMs;
+    }
+
+    public boolean isStationarySuspended() {
+        return stationarySuspended;
+    }
+
+    public void resumeAfterStationarySleep() {
+        stationarySuspended = false;
+        requestFastLocationUpdates();
     }
 
     public void requestLocationUpdates(long minTimeMs) {
@@ -116,6 +137,9 @@ public final class NavigationLocationController {
     }
 
     private void requestLocationUpdates(long minTimeMs, long minimumIntervalMs) {
+        if (stationarySuspended) {
+            return;
+        }
         long requestedMinTimeMs = Math.max(minimumIntervalMs, minTimeMs);
         boolean preferFusedLocation = fusedLocationUsePolicy.shouldUseFusedLocation()
                 && !legacyRecoveryActive;
@@ -148,16 +172,7 @@ public final class NavigationLocationController {
     }
 
     public void requestCurrentLocationSeeds() {
-        boolean fineGranted = providerAccess.hasFineLocationPermission();
-        boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
-        if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
-            return;
-        }
-        if (fusedLocationUsePolicy.shouldUseFusedLocation() && !legacyRecoveryActive) {
-            fusedLocationUpdateClient.requestCurrentLocationSeed(fineGranted, coarseGranted);
-        } else {
-            providerAccess.requestCurrentLocationSeeds(fineGranted, coarseGranted);
-        }
+        seeds.request(stationarySuspended, fusedLocationUsePolicy.shouldUseFusedLocation() && !legacyRecoveryActive);
     }
 
     public void cancelCurrentLocationSeeds() {
@@ -171,18 +186,12 @@ public final class NavigationLocationController {
             boolean requestCurrentLocationSeed
     ) {
         requestLocationUpdates(fallbackMinTimeMs, DEFAULT_UPDATE_INTERVAL_MS);
-        requestSeedForEnabledProvider(provider, requestCurrentLocationSeed);
+        seeds.requestEnabled(provider, requestCurrentLocationSeed, stationarySuspended);
     }
 
     public void onProviderEnabledFast(@NonNull String provider, boolean requestCurrentLocationSeed) {
         requestFastLocationUpdates();
-        requestSeedForEnabledProvider(provider, requestCurrentLocationSeed);
-    }
-
-    private void requestSeedForEnabledProvider(@NonNull String provider, boolean requestCurrentLocationSeed) {
-        if (requestCurrentLocationSeed) {
-            providerAccess.requestSeedForEnabledProvider(provider);
-        }
+        seeds.requestEnabled(provider, requestCurrentLocationSeed, stationarySuspended);
     }
 
     public long getLastRequestedLocationMinTimeMsOrDefault(long fallbackMinTimeMs) {
@@ -216,19 +225,7 @@ public final class NavigationLocationController {
 
     @Nullable
     public NavigationLocation getBestStartupLastKnownLocation(long nowMs) {
-        boolean fineGranted = providerAccess.hasFineLocationPermission();
-        boolean coarseGranted = providerAccess.hasCoarseLocationPermission();
-        if (!NavigationLocationProviders.hasAnyLocationPermission(fineGranted, coarseGranted)) {
-            return null;
-        }
-        NavigationLocation best = LastKnownLocationSelector.findBestStartup(
-                providerAccess::getLastKnownLocationQuietly,
-                fineGranted,
-                coarseGranted,
-                nowMs
-        );
-        AppLogger.d(TAG, "Best last known NavigationLocation=" + NavigationLocationFormatter.format(best));
-        return best;
+        return seeds.bestStartup(nowMs);
     }
 
     @NonNull

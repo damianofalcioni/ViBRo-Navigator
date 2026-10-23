@@ -198,7 +198,7 @@ public class NavigationSessionTest {
         NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithBearing(0.0, 0.0, nowMs, 2f, 90f),
+                confirmedMovingLocation(0, nowMs),
                 nowMs
         );
         NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, nowMs);
@@ -211,7 +211,7 @@ public class NavigationSessionTest {
             result = NavigationSessionResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithBearing(0.0, i * 0.00001, sampleTimeMs, 2f, 90f),
+                    confirmedMovingLocation(i * 6, sampleTimeMs),
                     sampleTimeMs
             );
         }
@@ -219,12 +219,14 @@ public class NavigationSessionTest {
 
         long dynamicIntervalMs = result.getSuggestedUpdateIntervalMs();
         boolean stableDynamicBucket = false;
+        double distanceMeters = 36;
         for (int i = 0; i < 8; i++) {
             sampleTimeMs += dynamicIntervalMs;
+            distanceMeters += dynamicIntervalMs / 1000.0 * 2;
             NavigationLocationUpdateResult nextResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithBearing(0.0, 0.00007, sampleTimeMs, 2f, 90f),
+                    confirmedMovingLocation(distanceMeters, sampleTimeMs),
                     sampleTimeMs,
                     dynamicIntervalMs
             );
@@ -247,7 +249,7 @@ public class NavigationSessionTest {
         NavigationLocationUpdateResult longIntervalResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithBearing(0.0, 0.00007, expectedLongIntervalTimeMs, 2f, 90f),
+                confirmedMovingLocation(distanceMeters + dynamicIntervalMs / 1000.0 * 2, expectedLongIntervalTimeMs),
                 expectedLongIntervalTimeMs,
                 dynamicIntervalMs
         );
@@ -563,12 +565,12 @@ public class NavigationSessionTest {
 
         assertTrue(NavigationSessionResourceAdapter.start(session, context, nowMs));
         NavigationLocationUpdateResult result = null;
-        for (int i = 0; i < 6; i++) {
+        for (int i = 0; i < 12; i++) {
             long sampleTimeMs = nowMs + i * 3_000L;
             result = NavigationSessionResourceAdapter.onRawLocationChanged(
                     session,
                     context,
-                    locationWithBearing(0.0, i * 0.00001, sampleTimeMs, 2f, 90f),
+                    locationWithBearing(0.0, i * 0.00005, sampleTimeMs, 2f, 90f),
                     sampleTimeMs
             );
         }
@@ -839,6 +841,12 @@ public class NavigationSessionTest {
     }
 
     @NonNull
+    private static NavigationLocation confirmedMovingLocation(double distanceMeters, long timeMs) {
+        NavigationLocation location = locationWithBearing(0, distanceMeters / 111_320, timeMs, 2f, 90f);
+        location.setSpeedAccuracyMetersPerSecond(0.1f);
+        return location;
+    }
+
     private static NavigationLocation locationWithBearing(
             double lat,
             double lon,

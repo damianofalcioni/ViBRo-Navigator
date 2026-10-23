@@ -34,6 +34,7 @@ final class NavigationSessionLocationEvaluator {
     @NonNull
     private final NavigationAcceptedFixHistory acceptedFixHistory;
     private int acquiredFixCount;
+    private final NavigationDepartureMonitor departureMonitor = new NavigationDepartureMonitor();
 
     NavigationSessionLocationEvaluator(
             @NonNull NavigationSessionLocationState locationState,
@@ -55,6 +56,11 @@ final class NavigationSessionLocationEvaluator {
 
     void reset() {
         acquiredFixCount = 0;
+        departureMonitor.reset();
+    }
+
+    void resetDepartureMonitoring() {
+        departureMonitor.reset();
     }
 
     int acquiredFixCount() {
@@ -160,7 +166,7 @@ final class NavigationSessionLocationEvaluator {
                     evaluation.recalculationReason,
                     evaluation.getWrongDirectionNotice(),
                     evaluation.turnEvents,
-                    evaluation.getSuggestedUpdateIntervalMs()
+                    departureInterval(evaluation, nowMs, true)
             );
         }
 
@@ -201,11 +207,18 @@ final class NavigationSessionLocationEvaluator {
                 evaluation.recalculationReason,
                 null,
                 evaluation.turnEvents,
-                evaluation.getSuggestedUpdateIntervalMs()
+                departureInterval(evaluation, nowMs, false)
         );
     }
 
     private boolean shouldAllowStartupFilterReset(@NonNull NavigationRequest currentRequest) {
         return !currentRequest.isStraightLine() && !routeState.hasActiveRoute();
+    }
+
+    private long departureInterval(NavigationRouteEvaluation evaluation, long nowMs, boolean straightLine) {
+        boolean forward = evaluation.isStableOnRouteSample()
+                && (straightLine || evaluation.hasForwardProgress());
+        return departureMonitor.interval(evaluation.getSuggestedUpdateIntervalMs(),
+                locationState.needsDepartureChecks(), forward, nowMs);
     }
 }
