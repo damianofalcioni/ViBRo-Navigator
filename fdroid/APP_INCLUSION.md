@@ -44,7 +44,7 @@ As described in the upstream README, the app was created for an older Android 8 
 * [x] Metadata is valid YAML and passes schema validation.
 * [x] Metadata uses LF line endings.
 * [x] Descriptions, changelogs, icons, and screenshots remain in the upstream repository. This MR changes only the app's YAML recipe.
-* [x] Releases are tagged. Automatic tag discovery is intentionally disabled: numeric GitHub tags can also be marked as prereleases. Upstream automation submits only stable releases, preventing prereleases from entering F-Droid through tag discovery.
+* [x] Releases are tagged. F-Droid automatically discovers stable numeric `v<major>.<minor>.<patch>` tags; prereleases use `-beta` or `-beta.N` tags and are excluded.
 * [x] The issue tracker and upstream author profile provide contact routes.
 * [x] `AuthorName` is supplied.
 * [x] No external source repositories or srclibs are bundled. BRouter is installed separately.
@@ -62,6 +62,6 @@ As described in the upstream README, the app was created for an older Android 8 
 
 ## Build details
 
-The build runs Gradle from the repository root, selects only the `fdroid` flavor, and specifies the unsigned APK under `app/build/outputs/apk/fdroid/release/`. The recipe removes the development-only `docs-tools` directory from the checkout before scanning; it is website tooling and is not an Android dependency. Local signing credentials are not supplied to F-Droid.
+The build uses `subdir: app` with only the `fdroid` Gradle flavor so F-Droid discovers the unsigned APK automatically. Gradle loads the parent settings and build configuration. The recipe removes the development-only `docs-tools` directory from the checkout before scanning; it is website tooling and is not an Android dependency. Local signing credentials are not supplied to F-Droid.
 
 The APK permission report reflects navigation features: coarse/fine location provides GPS guidance; Internet access supports optional destination searches; microphone access supports user-initiated voice input; legacy storage permissions are limited to Android 9 and earlier for navigation data and files. Foreground-service, notification, and wake-lock permissions support ongoing, screen-off guidance and vibration notifications. Route calculation with downloaded BRouter data remains offline.

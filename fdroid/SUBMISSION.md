@@ -119,14 +119,18 @@ Notes:
   They do not submit official F-Droid metadata. See the
   [Play prerelease guide](../gradle/PLAY_STORE.md#publish-a-betaprerelease).
   Beta tags can use `v<versionName>-beta` or `v<versionName>-beta.N`; numeric
-  tags also support GitHub's prerelease checkbox. Because a numeric tag
-  alone does not identify a stable release, `AutoUpdateMode` and
-  `UpdateCheckMode` are `None`; stable updates come from the submission
-  workflow instead of F-Droid's independent tag discovery. Keep those fields
-  disabled when submitting the rendered metadata. See the
+  tags are reserved for stable releases; prereleases must use a beta suffix,
+  and CI rejects numeric tags marked as prereleases. The recipe enables
+  `AutoUpdateMode: Version` and restricts `UpdateCheckMode: Tags` to numeric
+  `v<major>.<minor>.<patch>` tags, excluding beta tags. `UpdateCheckData`
+  reads the numeric version code and version name from `app/build.gradle`
+  at each matching tag. Publish the signed APK at the expected URL for every
+  stable tag. F-Droid can then discover updates independently of the upstream
+  submission workflow. See the
   [F-Droid metadata reference](https://f-droid.org/docs/Build_Metadata_Reference/#autoupdatemode).
-- The Gradle build must run from the repository root, not `app/`, because the
-  wrapper and `settings.gradle` live at the top level.
+- The recipe uses `subdir: app` so F-Droid's Gradle output discovery finds
+  the APK under the app module. Gradle loads the parent `settings.gradle`;
+  the root wrapper and build configuration remain in the source checkout.
 - `local.properties` is excluded in the draft recipe because it is machine-
   specific and should not be present in F-Droid builds.
 - `Binaries` and `AllowedAPKSigningKeys` request exclusively your signed
@@ -136,11 +140,15 @@ Notes:
 - Keep listing text in upstream Fastlane files rather than a YAML `Summary`.
   The recipe uses a list for `rm`, removing `docs-tools` and `local.properties`
   only from F-Droid's build checkout. `docs-tools` contains website-only npm
-  tooling and is not an Android dependency. The explicit `output` selects
-  the unsigned FOSS APK under `app/build/outputs/apk/fdroid/release/`, since
-  the Gradle command runs at the repository root.
+  tooling and is not an Android dependency. The `gradle: [fdroid]` build
+  selects the unsigned FOSS APK automatically; omit the redundant `output`
+  field. `subdir: app` makes output discovery relative to the app module;
+  `rm` entries remain relative to the repository root.
 - The F-Droid `WebSite` field should point to the GitHub Pages app site, while
   `SourceCode` and `IssueTracker` should point to GitHub.
+- `AutoName` matches the name F-Droid extracts from the tagged source's main
+  manifest. The shared Fastlane title and the FOSS flavor's launcher name
+  remain `ViBRo Navigator FOSS`. Keep submitted YAML in LF line endings.
 
 ## GitHub Action automation
 

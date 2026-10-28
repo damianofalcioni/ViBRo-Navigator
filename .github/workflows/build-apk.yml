@@ -47,7 +47,10 @@ jobs:
           beta_tag="v${version}-beta"
           beta_number="${RELEASE_TAG#"$beta_tag."}"
           if [[ "$RELEASE_TAG" == "v$version" ]]; then
-            :
+            if [[ "$prerelease" == true ]]; then
+              echo "Numeric v${version} tags are reserved for stable F-Droid updates. Use v${version}-beta[.N] for prereleases." >&2
+              exit 1
+            fi
           elif [[ "$RELEASE_TAG" == "$beta_tag" ||
                   ( "$RELEASE_TAG" == "$beta_tag".* && "$beta_number" =~ ^[1-9][0-9]*$ ) ]]; then
             prerelease=true

@@ -9,7 +9,7 @@ Update ViBRo Navigator FOSS to [{{RELEASE_REF}}](https://github.com/damianofalci
 ## Strongly Recommended
 
 * [x] The upstream source contains Fastlane descriptions, images, translations, and changelogs.
-* [x] The release is tagged. Automatic tag discovery remains disabled because numeric GitHub tags can also be prereleases; upstream automation submits stable releases only.
+* [x] The release is tagged. F-Droid automatically discovers stable numeric `v<major>.<minor>.<patch>` tags; prereleases use `-beta` or `-beta.N` tags and are excluded.
 
 ## Suggested
 

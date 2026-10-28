@@ -22,8 +22,9 @@ The binary release job does not enable the Gradle publisher; the separate
 listing workflow uses it. Android version names stay numeric,
 for example `1.0.1` with versionCode `1000001`. The Git tag can be `v1.0.1-beta`
 or `v1.0.1-beta.1` to select testing automatically, regardless of GitHub's
-prerelease checkbox. A plain `v1.0.1` tag also selects testing when published
-as a GitHub prerelease; otherwise it selects production.
+prerelease checkbox. Plain numeric tags such as `v1.0.1` are reserved for
+stable releases, which F-Droid discovers automatically; CI rejects them
+when marked as GitHub prereleases.
 
 ## Initial prerequisites
 
@@ -202,12 +203,11 @@ GitHub Release and its signed FOSS APK are already public.
    visible immediately; the workflow also recognizes `-beta` and `-beta.N`
    tags automatically and marks the release as a prerelease when attaching
    the APK. A title containing "beta" alone does not select testing.
-   Alternatively, keep the plain numeric tag `v1.0.1` and select the GitHub
-   prerelease checkbox. The next new beta or stable upload can use `1.0.2`
+   Use a beta suffix for every prerelease; plain numeric tags are reserved
+   for stable releases. The next new beta or stable upload can use `1.0.2`
    and versionCode `1000002`; the tag suffix does not change the version code.
-   F-Droid's independent tag-based update discovery is disabled; its metadata
-   is submitted only by the stable-release workflow, so numeric prerelease
-   tags are not selected there either.
+   F-Droid automatically discovers stable numeric tags and excludes beta
+   tags. The stable-release workflow also submits updated metadata.
 3. The workflow runs its checks, builds signed artifacts, attaches only the
    FOSS APK while marking beta/prereleases as such on GitHub, and uploads the Play
    AAB to `alpha` or `PLAY_PRERELEASE_TRACK`. The AAB stays in the workflow's
