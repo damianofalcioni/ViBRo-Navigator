@@ -12,6 +12,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.power.NavigationWakeLockController;
 import vibro.navigator.nav.routing.NavigationBRouterRouteCalculator;
 import vibro.navigator.nav.routing.NavigationRouteExecutor;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 
 public final class AndroidNavigationRouteExecutorFactory {
 
@@ -38,7 +39,8 @@ public final class AndroidNavigationRouteExecutorFactory {
                         ROUTE_WAKE_LOCK_TAG,
                         ROUTE_WAKE_LOCK_TIMEOUT_MS,
                         routeCalculation
-                )
+                ),
+                AndroidElapsedRealtimeClock.INSTANCE
         );
     }
 }

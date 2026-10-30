@@ -3,6 +3,9 @@ package vibro.navigator.nav.service;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.android.routing.AndroidNavigationRouteExecutorFactory;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+import vibro.navigator.nav.format.AndroidNavigationTextResources;
+import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
 import vibro.navigator.nav.guidance.NavigationTurnEventDispatcher;
@@ -48,14 +51,16 @@ final class NavigationRoutingRuntime {
         );
         turnEvents.attachDispatcher(turnEventDispatcher);
         NavigationServiceRouteCallback callback = new NavigationServiceRouteCallback(
-                service,
+                new AndroidNavigationTextResources(service),
+                () -> AppNotificationSettings.isSingleInstructionModeEnabled(service),
                 navigationSession,
                 orientationController,
                 foregroundController,
                 turnEvents,
                 routeAppliedLocationRequester,
                 stateEmitter,
-                pending -> routeRecalculator.request(pending)
+                pending -> routeRecalculator.request(pending),
+                AndroidElapsedRealtimeClock.INSTANCE
         );
         routeRecalculator.attachSpeculativeRouteConfirmationSink(callback::onSpeculativeRouteConfirmed);
         return new NavigationRoutingRuntime(executor, callback, maneuverSpeaker);

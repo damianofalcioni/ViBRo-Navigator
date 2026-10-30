@@ -2,7 +2,8 @@
 
 Reviewed `codex/location-reliability` at `65de832d` against the software stages in
 REFERENCE_PLAN.md and RUNS.md, with the 30 October route log supplied by the user.
-The user confirmed that the recorded build matches this branch. Background exit
+The user confirmed that the recorded build matches `65de832d`, before the Round
+Trip correction now committed as `a455ce9f`. Background exit
 is excluded; the pre-existing untracked BACKGROUND_EXIT_20261030.md is untouched.
 The follow-up changes and verification evidence are recorded below.
 
@@ -157,3 +158,60 @@ locale-bundle and Gradle-version advisory warnings. All four APKs carry the
 explicit source label `65de832d-review-20261030`. Source/test/fixture hashes still
 match; no code changed after verification. Exact command, output, artifact hashes
 and remaining device work are recorded in the corresponding STATUS.md entry.
+
+## Notification, selection and timing follow-up
+
+Continued from `a455ce9f` on the same branch. The Round Trip correction, its tests
+and the relative replay are preserved. This follow-up is uncommitted; background
+exit remains excluded.
+
+- A ready speculative reroute now applies first and posts its useful instruction
+  directly. It no longer posts a competing “recalculating” warning first. When
+  no instruction is available, including Single instruction mode, it retains the
+  existing notice-only warning. In-flight calculations still warn immediately;
+  failure does not replace that warning. Four regressions cover these paths.
+- Legacy comparisons now use the accepted provider's latest active candidate
+  for ties. Material improvements and the existing 8-second freshness bias and
+  15-second lifetime still override preference. Chronological dispatch, cadence,
+  provider retirement, filter corrections and motion resets are unchanged.
+- Comparative replay through selection, dispatch, Kalman and motion reduces
+  handovers from **9 to 7** and accepted updates from **22 to 16** over the whole
+  30-observation excerpt (the original final-minute subset had 20 accepts).
+  Maximum accepted age stays **373 ms**. Maximum rapid-acquisition dispatch gap
+  increases from **5,099 to 9,790 ms**; the earlier roughly 30-second input gap is
+  unchanged. The remaining switches are four material accuracy improvements and
+  three freshness escapes after network silence exceeds the existing 8-second
+  bias. Each actual handover still produces UNKNOWN. The old replay has
+  one MOVING evaluation, the new replay none: fewer switches do **not** establish
+  better motion confidence, less rapid acquisition or power savings in these
+  poor observations. Three other recorded streams retain their accept counts,
+  ages and handovers. Synthetic cases cover quality improvement, freshness
+  boundary, source removal/reset, older timestamps and early cadence rejection.
+- `NavigationRouteTiming` records calculation including retries, callback queue
+  wait, ready-result confirmation wait, domain-state application and total time.
+  The Android factory supplies elapsed realtime. A held result no longer logs
+  its full lifetime as calculation time. Timing remains diagnostic-only; no
+  timer, wake lock, subscription or route-validity rule was added for logging.
+- Recovery entry points now identify `alarm`, `awake_timer` and `motion_trigger`,
+  with monotonic deadline/dispatch, uptime and lateness. Regressions distinguish
+  the actual timer/alarm/motion wiring without adding scheduled work.
+
+The baseline reproduction ran eight new tests against unchanged production:
+five expected failures after fixing a fixture's missing confirmation displacement.
+Evidence: `.codex-temp/reliability-handoff-red-final-20261030.txt`. The first
+post-change tests passed but PMD found complexity/coupling and helper issues;
+these were simplified without weakening rules. Focused and expanded checks then
+passed. Final full-check results and artifacts are recorded in the latest
+STATUS.md entry.
+
+Final checks passed in 10m 32s: 2,068 F-Droid and 2,140 GPlay tests (4,208 total),
+zero failures/errors/skips or PMD violations, both debug lints and all four APK
+builds including release shrinking. Lints retain only the two prior advisories.
+All four source labels are `a455ce9f-reliability-handoff-20261030`; saved source
+and preserved-file hashes still match. No source/test changes followed the check.
+
+DEVICE_VALIDATION.md now defines a four-minute unplugged, screen-off stationary
+window per provider, using retained history and the existing app events. No
+phone is currently listed by ADB. No installation, settings change, history reset
+or physical test was performed. CPU/GPS cessation during suspension, Android/watch
+receipt and a physical provider comparison remain unresolved.

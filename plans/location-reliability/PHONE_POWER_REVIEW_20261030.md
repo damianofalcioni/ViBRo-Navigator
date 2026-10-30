@@ -75,3 +75,44 @@ Read commands included `dumpsys power`, `dumpsys deviceidle`,
 `dumpsys batterystats --history`, `dumpsys batterystats --charged vibro.navigator.debug`,
 package/service state and `dumpsys location`. Battery history was not reset and
 full-history collection was not enabled. No production code or tests changed.
+
+## Prepared follow-up
+
+DEVICE_VALIDATION.md now has a short stationary protocol: four minutes unplugged
+and screen off per provider, with read-only dumps before/after and no polling
+during the test. It excludes USB startup, screen-on stopping and reconnection
+from the analysis window. Existing app suspension events can now be paired with
+explicit alarm/awake-timer/motion-trigger records and elapsed/uptime differences.
+No new periodic logging or wake source was added.
+
+At the software follow-up, ADB lists no connected device. No new power capture,
+installation or physical trial has occurred. The original conclusion remains:
+location activity correlates with wakefulness, while an explicit sustained ViBRo
+route wake-lock leak and a hardware cause are unsupported. Actual CPU/GPS
+cessation during acquisition suspension still needs the unplugged test.
+
+## Unplugged legacy attempt, 12:32–12:45
+
+The user's timestamps prompted a read-only capture after reconnection. Retained
+history confirms unplugged, screen-off operation from approximately 12:32:48.6
+to 12:45:18.2. App stopping is logged at 12:45:24.870; USB returns at approximately
+12:45:43.6. This used the older installed Debug package (`sourceRevision=unknown`,
+last updated 29 October), not the newly verified follow-up build.
+
+No stationary suspension occurred: all 20 accepted fixes are network-only, with
+median delivery spacing 40.237 seconds. Sleep correctly rejects network-only
+evidence. Sixteen stream-stall recoveries restart active GPS/network acquisition;
+GPS accounting clears only 100–165 ms at each restart. These are not sleep windows.
+
+CPU-running never clears in the retained history; 20 app elapsed/uptime pairs end
+with the same offset (variation 1 ms). There is no observed added deep sleep.
+This demonstrates wakefulness during active acquisition under these conditions,
+but cannot answer whether CPU/GPS activity stops during intentional suspension.
+The app UID has 15.310 seconds actual partial-wake accounting and 4.001 seconds
+full-wake accounting in this history, not a continuous explicit route lock.
+GPS accounting is not a direct hardware-energy measurement.
+
+No root, settings change, battery-history reset or installation was performed.
+Raw app log SHA-256: `0ae3ea1e5d9aa2ee72820011ba2fb9d5cfed35f6140710799a1fa8f8683b00dc`.
+Local dumps, parser and JSON use the ignored `stationary-1232-` prefix. Exact
+conditions, limits and the repeat prerequisite are in DEVICE_VALIDATION.md.

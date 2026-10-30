@@ -1,8 +1,8 @@
 # Location-reliability progress
 
-Last updated: 30 October 2026. The current branch review reproduced and corrected a Round Trip start-anchor defect after missed departure observations, and added a relative-coordinate session replay from the user's matching 30 October build. Final verification passed: 4,180 tests, zero PMD violations, both flavor debug lints and four debug/release APK tasks. Controlled physical validation remains pending; BRANCH_REVIEW_20261030.md records the new partial device evidence.
+Last updated: 30 October 2026. The notification/provider/diagnostics follow-up is verified, preserving the Round Trip correction in `a455ce9f`. Final checks passed: 4,208 tests, zero PMD violations, both debug lints and four debug/release APK builds. The recorded replay drops from nine to seven handovers, with longer accepted-fix gaps and no demonstrated motion/power gain. The legacy stationary attempt reached no acquisition suspension; the verified build is now installed for a repeat. Physical validation remains pending.
 
-Original analysis baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The software implementation and earlier reviews form baseline `65de832d` on `codex/location-reliability`; the 30 October review corrections and follow-up evidence are recorded below. The user authorized reviewing and fixing all plan stages except background exit. Earlier log-analysis scripts and results are local ignored artifacts; historical handoffs below retain their original revision/worktree descriptions.
+Original analysis baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The software implementation and earlier reviews form baseline `65de832d` on `codex/location-reliability`; the Round Trip correction is committed in `a455ce9f`. The follow-up and device evidence are recorded below. The user authorized reviewing and fixing all plan stages except background exit. Earlier log-analysis scripts and results are local ignored artifacts; historical handoffs below retain their original revision/worktree descriptions.
 
 The baseline and earlier integrated checks passed. The work includes relative-coordinate session replays, raw-evidence motion assessment, clocked motion consumers, corroborated-motion filter lag limits, sparse ETA history, uncertainty-aware acquisition, independently confirmed and ordered arrival, network-quality backoff, timing diagnostics, and shared battery plausibility checks. The user confirmed that the 30 October Huawei PRA-LX1 recording matches the committed branch. It supplies partial sleep/wake and screen-off processing evidence; independently measured positioning accuracy, notification receipt, worst-case wake latency and power comparisons remain pending.
 States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CODE_COMPLETE means code and its stated local checks are finished; it does not imply physical-device validation. A recorded hardware-only gap may coexist with finished code. Never mark skipped/failed checks as passed.
@@ -18,10 +18,10 @@ States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CO
 | 07 | Uncertainty-aware acquisition | VERIFIED | Age/quality/travel caps and current trustworthy native-speed protection; independent recovery, ramp and sparse-cadence coverage |
 | 08 | Confirmed arrival | VERIFIED | Arrival barriers, ordered targets and recovery after missed Round Trip start samples, preserving initial approaches |
 | 09 | Independent network backoff | VERIFIED | Coarse-network probes and silence recovery, with comparative protection for a materially better network source |
-| 10 | Provider selection verification | VERIFIED | Existing selection/deduplication/correction policy retained; full regression coverage passed |
+| 10 | Provider selection verification | VERIFIED | Accepted-provider tie preference; nine to seven replay handovers, unchanged freshness/offset gates; dispatch-gap and UNKNOWN tradeoffs recorded |
 | 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace changes complete; OS/watch presentation and wake timing unmeasured |
 | 12 | Battery telemetry validation | VERIFIED | Shared timed/percentage discontinuity checks, cached observation times and valid percentage plateaus |
-| 13 | Cross-feature integration and automated checks | VERIFIED | 30 October branch review: 4,180 passing tests, PMD, both debug lints and four APK tasks |
+| 13 | Cross-feature integration and automated checks | VERIFIED | 30 October follow-up: 4,208 passing tests, PMD, both debug lints and four APK tasks |
 | 14 | Physical-device comparison | NEEDS_DEVICE | Matching 30 October branch log reviewed; latest correction installation and controlled route/watch/power trials pending |
 
 ## Handoff entry format
@@ -648,3 +648,61 @@ These artifacts supersede the earlier artifact hashes for the current checkout:
 - The user requested committing the completed review on the current branch with a simple message. The commit includes the verified Round Trip fix, regression tests, scrubbed replay, specification and review/device-evidence documentation.
 - The pre-existing untracked BACKGROUND_EXIT_20261030.md remains excluded. Raw logs, phone dumps, scripts and build artifacts remain ignored and local.
 - No production/test/fixture changes followed the successful 4,180-test integrated verification. The recorded APK source label and hashes describe the checkout at build time; creating the source commit does not rebuild or relabel those APKs.
+
+### Notification, provider and diagnostics follow-up — 30 October 2026
+
+- Continued the existing plan on `codex/location-reliability` from HEAD `a455ce9fd4eeca6a9315fcd0a483b728396c614a`. The Round Trip fix is already committed there; its source, tests and replay are preserved. All changes in this follow-up remain uncommitted. Background exit remains excluded.
+- Attribution: the user confirmed the recording matches `65de832d`, before the Round Trip correction. Its SHA-256 still matches the prior review. No new device result is inferred from that recording.
+- Ready speculative routes now hand off directly to useful guidance. Pending calculations still warn immediately; ready routes without an instruction retain the notice-only warning. Calculation failure does not overwrite the warning.
+- Accepted-provider tie preference reduces the recorded excerpt's handovers from 9 to 7, retaining existing material improvement, freshness, cadence, chronology, retirement and offset safeguards. Accepted updates fall from 22 to 16; maximum accepted age stays 373 ms. Maximum rapid dispatch gap grows from 5,099 to 9,790 ms. All seven actual handovers reset motion to UNKNOWN. The replay's MOVING count changes from one to zero; no confidence, rapid-acquisition or power improvement is claimed. Three other recorded streams retain their accept counts, ages and switches. See BRANCH_REVIEW_20261030.md for the limits.
+- Request-scoped monotonic diagnostics separate calculation/retries, callback delivery, confirmation waiting, domain-state application and total time. Android wiring uses elapsed realtime. Recovery records explicitly label alarm, awake timer and motion trigger, with uptime/deadline/lateness. No instrumentation wake-up was added.
+- Added 14 regression methods across provider replays, notification handoff, timing, executor delivery and recovery wiring. The final baseline reproduction had five expected failures among eight tests; the first fixture attempt lacked confirmation displacement and was corrected before that reproduction. Focused tests passed; PMD findings were simplified without suppressions or limit changes. The final expanded run passed 323 tests in 56 suites and PMD in 25 seconds. Output: `.codex-temp/reliability-handoff-expanded-final-20261030.txt`.
+- The first full invocation was cancelled during unit execution after compatibility review identified an unguarded Java `Consumer` in the new diagnostic hook. Replaced it with a nested app-owned diagnostic interface for Android 6. That cancelled invocation is not verification evidence; its output is retained as `.codex-temp/reliability-handoff-cancelled-20261030.txt`. The final expanded pass and full command below include the correction.
+- Updated SPECIFICATION.md, AGENT.md, both review notes and DEVICE_VALIDATION.md. The latter prepares a four-minute unplugged, screen-off stationary window per provider, with retained BatteryStats and no live polling, power changes, history reset or root. ADB currently lists no phone; no installation or physical test occurred.
+- Full verification passed with the command below. Source and preserved-file hashes: `.codex-temp/reliability-handoff-inputs-20261030.json`. Completion, counts and artifact hashes follow. Physical CPU/GPS cessation during suspension, phone/watch receipt, route accuracy, idle latency and provider power comparison remain NEEDS_DEVICE.
+
+```powershell
+.\gradlew.bat complexityCheck lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease -PsourceRevision=a455ce9f-reliability-handoff-20261030 --continue --console=plain --max-workers=2
+```
+
+Output: `.codex-temp/reliability-handoff-final-20261030.txt`.
+
+#### Final notification/provider/diagnostics verification
+
+- BUILD SUCCESSFUL, exit 0, in **10m 32s**; 196 tasks (53 executed, 143 up to date). F-Droid: **2,068 tests / 376 suites**. GPlay: **2,140 tests / 389 suites**. **4,208 total**, zero failures/errors/skips, including all 14 added methods in each flavor.
+- PMD: zero violations, no suppressions or limit changes. Both debug lints: zero errors and only the existing `AppBundleLocaleChanges` and `AndroidGradlePluginVersion` advisories. Language splitting remains disabled; no locale/toolchain change was made. Existing Gradle deprecation notices remain. No new compiler, lint or PMD warning was introduced.
+- Both debug APKs and both unsigned release APKs built successfully, including both R8 release tasks. All four generated BuildConfig files contain `a455ce9f-reliability-handoff-20261030`, the explicit input label for this uncommitted checkout. Counts, lint issues, labels, artifact sizes/times/hashes and PMD count: `.codex-temp/reliability-handoff-verification-20261030.json`.
+- All 18 saved production/test hashes still match. The preserved Round Trip geometry/test, original replay and excluded background-exit note also match their saved hashes. `git diff --check` passed. HEAD remains `a455ce9fd4eeca6a9315fcd0a483b728396c614a`; no source/test changes followed verification. Boundary audit found no new raw location/clock/Handler or flavor-specific imports, and no manifest/dependency changes. Evidence: `.codex-temp/reliability-handoff-boundary-audit-20261030.json`.
+- ADB still lists no phone. No installation or physical trial occurred, and no power setting, battery history or phone state was changed. Next: offer the verified GPlay Debug build for installation when connected, then perform the short unplugged test in DEVICE_VALIDATION.md. Retain the seven remaining policy-required handovers and UNKNOWN acquisition as documented limits; do not claim improved energy use or actual Android/watch delivery.
+
+These artifacts supersede the earlier hashes for this checkout:
+
+| Flavor/build | Local artifact | SHA-256 |
+|---|---|---|
+| fdroid/debug | `app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk` | `99f59f3c810428474dd6073ab8a5137dff2a9508c27a243ac62a6e48545de405` |
+| fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `c8924f9b91fd0e7f9be57602550b284666204be33dbf1664b6a05147c7b808b1` |
+| gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `58288172c8d87b2bb5ab52edd44725d7d064be786435cef6008c23a700badc57` |
+| gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `354b0542e4d04e5ca31efa1737976417781c0bf5f7f7139fa363b42d7e81f5ed` |
+
+### Unplugged stationary attempt — 30 October 2026, 12:32–12:45
+
+- User reported the screen-off/end times. Captured the connected phone's retained BatteryStats history, power, location, battery and package/UID state, and pulled its latest app log using read-only ADB. No installation, settings change, history reset, root or production/test edit occurred.
+- History confirms unplugged/discharging operation and a screen-off window approximately 12:32:48.6–12:45:18.2. App stop is 12:45:24.870; USB reconnect is approximately 12:45:43.6. The installed Debug package was last updated 29 October and logs `sourceRevision=unknown`; this is not validation of the newly verified APK.
+- Legacy mode is active with fused disabled. All 20 accepted fixes are network-only (no GPS fixes), median receipt spacing 40.237 seconds against a 3-second request. Sleep rejects `network_only` evidence and records zero suspensions/fallback checks. Sixteen stream-stall recoveries restart subscriptions; history GPS gaps at those restarts are only 100–165 ms.
+- CPU-running never clears in the retained history. Twenty app clock pairs show an elapsed-minus-uptime offset of 7,003,295–7,003,296 ms, with zero net increase. No added deep sleep is observed. Because acquisition never suspended, the specific CPU/GPS-suspension test remains NEEDS_DEVICE, rather than passed or failed. GPS reception/provider behavior and kernel cause remain unresolved; no hardware cause is inferred.
+- Updated DEVICE_VALIDATION.md and PHONE_POWER_REVIEW_20261030.md. Raw evidence, parser and derived JSON remain ignored under `.codex-temp/stationary-1232-*`; app-log SHA-256 is recorded in the power review. Previous software verification and APK hashes remain valid; no rebuild was needed for this evidence-only update.
+- Next: offer installation of the verified GPlay Debug APK, obtain stable eligible GPS/fused observations and repeat the unplugged window. Confirm suspension actually occurs before interpreting CPU/GPS cessation. Background exit stays excluded and the software follow-up remains uncommitted.
+
+### Verified-build installation — 30 October 2026, 12:51
+
+- User authorized installation on the connected Huawei PRA-LX1. Matched the GPlay Debug APK against the verified SHA-256 `58288172c8d87b2bb5ab52edd44725d7d064be786435cef6008c23a700badc57`, then ran `adb -s 9DC7N17A27022992 install -r app/build/outputs/apk/gplay/debug/app-gplay-debug.apk`; result **Success**. Updated package `vibro.navigator.debug` in place, retaining app data. Package lastUpdateTime is 12:51:37, version 1.0.0 / 1000000.
+- Launched `vibro.navigator.debug/vibro.navigator.main.MainActivity` using `am start -W`: **Status: ok**, activity startup 1,755 ms. The process remained running; its filtered crash buffer was empty at the smoke check. This is startup evidence only, not navigation, visual, OAuth or power validation.
+- Pulled the fresh 12:52:04 app log and confirmed `sourceRevision=a455ce9f-reliability-handoff-20261030`, GPlay Debug and the expected package. Local evidence uses `.codex-temp/reliability-handoff-install-*` and `reliability-handoff-installed-package-20261030.txt`.
+- Installed the already verified artifact without rebuilding or changing source/tests, power settings, provider choice or battery history. Prior 4,208-test/PMD/lint/build evidence and APK hashes still apply. No navigation was started automatically. All follow-up changes remain uncommitted; background exit remains excluded.
+- Next: repeat the unplugged stationary test after stable eligible GPS/fused fixes are available, recording screen-off and stopping times. Confirm actual suspension before interpreting CPU/GPS cessation; DEVICE_VALIDATION.md is updated.
+
+### Follow-up commit handoff — 30 October 2026
+
+- User requested committing the completed follow-up with a simple message: `Improve location reliability`. Scope includes the verified software, regressions, specification/guidance and device-evidence handoff documents. The Round Trip correction remains unchanged.
+- The pre-existing untracked `BACKGROUND_EXIT_20261030.md` remains excluded. Personal logs, phone dumps, analysis scripts, verification records and APKs remain ignored and local.
+- No production/test changes followed the successful 4,208-test verification. The installed APK and its explicit source label/hash remain the verified pre-commit artifact; creating a source commit does not rebuild or relabel it. The remaining work is the controlled physical validation above.

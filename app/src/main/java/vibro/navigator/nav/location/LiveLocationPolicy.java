@@ -19,10 +19,26 @@ final class LiveLocationPolicy {
             @Nullable NavigationLocationFix fused,
             long nowMs
     ) {
+        return selectBestFix(gps, network, fused, null, nowMs);
+    }
+
+    @Nullable
+    static NavigationLocationFix selectBestFix(
+            @Nullable NavigationLocationFix gps,
+            @Nullable NavigationLocationFix network,
+            @Nullable NavigationLocationFix fused,
+            @Nullable NavigationLocationFix lastAccepted,
+            long nowMs
+    ) {
         NavigationLocationFix recentGps = isRecentFix(gps, nowMs) ? gps : null;
         NavigationLocationFix recentNetwork = isRecentFix(network, nowMs) ? network : null;
         NavigationLocationFix recentFused = isRecentFix(fused, nowMs) ? fused : null;
-        return resolveBestFix(resolveBestFix(recentGps, recentNetwork, nowMs), recentFused, nowMs);
+        // Use the accepted provider for ties; freshness and material improvement still win.
+        NavigationLocationFix legacy = lastAccepted != null
+                && NavigationLocationProviders.NETWORK_PROVIDER.equals(lastAccepted.provider)
+                ? resolveBestFix(recentNetwork, recentGps, nowMs)
+                : resolveBestFix(recentGps, recentNetwork, nowMs);
+        return resolveBestFix(legacy, recentFused, nowMs);
     }
 
     static boolean isRecentFix(@Nullable NavigationLocationFix fix, long nowMs) {

@@ -54,6 +54,7 @@ final class NavigationRouteResultApplier {
 
     @NonNull
     List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
+        input.snapshot.timing.applicationStarted();
         float accuracyMeters = accuracyOf(input.lastFiltered);
         RouteStartApproach.Plan approachPlan = RouteStartApproach.plan(
                 input.route,
@@ -100,7 +101,8 @@ final class NavigationRouteResultApplier {
                         || directGuidanceState.isRouteBeelineActive()
         );
         AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
-                + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
+                + " succeeded " + input.snapshot.timing.applicationCompleted()
+                + " elapsedToApplicationMs=" + Math.max(0, input.appliedAtElapsedMs - input.beganAt)
                 + " trackPoints=" + route.track.size()
                 + " voiceHints=" + route.voiceHints.size()
                 + " lengthMeters=" + route.trackLengthMeters);

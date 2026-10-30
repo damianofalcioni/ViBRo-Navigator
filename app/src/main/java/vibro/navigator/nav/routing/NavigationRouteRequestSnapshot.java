@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 public final class NavigationRouteRequestSnapshot {
+    public final NavigationRouteTiming timing = new NavigationRouteTiming();
     public final int requestNumber;
     public final int requestToken;
     @NonNull

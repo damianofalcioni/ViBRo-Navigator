@@ -1,6 +1,6 @@
 # Phone/watch and power validation
 
-Prepared 27 October 2026; updated 30 October 2026. The user supplied a Huawei PRA-LX1 (Android API 26) GPlay Debug route recording matching the committed branch; partial observations are appended below. The subsequent Round Trip review correction has not been installed. Controlled route, phone/watch and power checks remain pending.
+Prepared 27 October 2026; updated 30 October 2026. The user confirmed the morning Huawei PRA-LX1 (API 26) GPlay Debug recording matches `65de832d`, before the Round Trip correction now in `a455ce9f`. The verified follow-up was installed at 12:51 on 30 October and passed a startup smoke check; navigation, phone/watch and power validation remain pending.
 
 ## Build and settings record
 
@@ -37,6 +37,46 @@ Measure independently observed prompt quality, departure latency, fix age/uncert
 
 Use consumption totals only when counters have suitable scale, discharge direction and charging/reset history. Raw vendor current units remain unvalidated. A percentage plateau is allowed. If counters remain unsuitable, report energy unresolved or use a suitable independent measurement setup that does not silently change idle/charging behavior.
 
+## Short unplugged stationary CPU/GPS check
+
+Use the latest verified build from STATUS.md. Allow about five minutes per run,
+with four minutes unplugged and screen off. Physical participation is needed for
+unplugging, keeping the phone still and ending the test. Do not change power,
+stay-awake or battery-optimization settings, reset BatteryStats, or root the phone.
+
+1. While USB is connected, save read-only `dumpsys power`, `dumpsys location`,
+   `dumpsys batterystats --history` and app UID statistics into ignored local
+   files with a new run label. Record package/build, provider setting, logging,
+   battery/charging state and the time. Do not enable extra system recording.
+2. At a safe stationary location with good reception, start ordinary navigation
+   with dynamic intervals and logging enabled. Let the position stabilize. Keep
+   carrying position and all unrelated settings fixed. Use the current provider
+   setting for the first run; record whether fused remains primary or falls back.
+3. Unplug USB, turn the screen off and leave the phone still for four minutes.
+   Note the start/end using another clock. Do not poll ADB, touch the phone or
+   open diagnostics during that window.
+4. At the end, briefly wake the screen and stop navigation while still unplugged.
+   Record that time, then reconnect USB and save fresh copies of the same dumps
+   plus the app log. Keep the startup, screen-on stop and reconnection outside
+   the stationary analysis window.
+5. Align BatteryStats history with each logged subscription suspension and
+   `source=alarm`, `source=awake_timer` or `source=motion_trigger` recovery. Compare
+   CPU-running and Android GPS activity within suspension windows. Compare app
+   elapsed-minus-uptime before/after those windows to measure added deep sleep.
+   Report the number and duration of usable windows; early motion/poor fixes or
+   no actual suspension make the run inconclusive.
+6. Repeat with fused disabled, changing only that app provider setting. Restore
+   the original provider choice afterward. A repeated run in reverse order is
+   needed before attributing a provider difference.
+
+CPU/GPS flags clearing during suspension would establish device sleep/activity
+cessation for those windows. Persistent flags would justify inspecting other
+active requests and framework state; they would not prove a hardware fault or an
+explicit ViBRo wake-lock leak. GPS activity is system accounting, not measured
+GNSS energy. Phone/watch receipt and worst-case idle departure latency need the
+separate route tests above. The legacy attempt below reached no qualifying
+suspension window, so this check remains incomplete.
+
 ## Results to append
 
 For each run: conditions, verified source/build state, route section, physical observations, relevant trace IDs, phone/watch timings, actual sleep/wake latency, valid power readings and limitations. Keep personal coordinates out of committed test resources. Recommend provider defaults or claimed savings only after these observations support them.
@@ -72,3 +112,49 @@ location locks were attributed to the app, but the available aggregate history
 does not identify the exact kernel suspend blocker. The currently USB-powered
 phone also has stay-awake-while-plugged-in enabled. See PHONE_POWER_REVIEW_20261030.md
 for evidence, attribution limits and the next unplugged screen-off test.
+
+### 30 October, 12:32–12:45 stationary attempt
+
+The user reported screen off at 12:32 and navigation ended at 12:45 (Vienna time).
+Read-only capture after reconnection found:
+
+- Unplugged/discharging history starts at approximately 12:32:46. Screen off is
+  recorded at approximately 12:32:48.6, screen on at 12:45:18.2, GPS activity ends
+  at 12:45:24.7 and USB reconnects at 12:45:43.6. History wall times have roughly
+  one-second anchor precision. App stop records are 12:45:24.870 and 12:45:25.637.
+- This is the older installed GPlay Debug package, last updated 29 October at
+  17:51:41, with `sourceRevision=unknown`. The newly verified follow-up APK was
+  not installed. This run cannot validate that follow-up or its new diagnostics.
+- Fused is disabled (`fusedPreferred=false`). GPS and network are requested, but
+  all 20 accepted observations are network fixes; none are GPS fixes. Median
+  receipt spacing is 40,237 ms despite a 3-second request. Accuracy is roughly
+  19.3–20.0 m. Stationary sleep records `network_only` 19 times and never arms
+  subscription suspension. There are zero stationary fallback checks.
+- Sixteen stream-stall recoveries restart acquisition. Recovery dispatch is
+  9,289–9,598 ms after the requested deadline. The GPS activity flag clears for
+  only 100–165 ms at those restarts, rather than for intentional sleep windows.
+- All 20 elapsed/uptime pairs retain an offset of 7,003,295–7,003,296 ms, ending
+  unchanged. Battery history has no CPU-running clear. Thus no added deep sleep
+  is observed during the sampled interval; the requested suspension experiment
+  is **inconclusive because acquisition never suspended**.
+
+The battery percentage goes from 96 to 95; discharging charge counters remain
+implausible, so no energy attribution is made. No settings, history or app state
+were changed by the capture. Raw evidence and derived JSON remain ignored in
+`.codex-temp/stationary-1232-*-20261030.*`; no personal coordinates are committed.
+Next: use the verified build and obtain stable eligible GPS/fused fixes before
+repeating the unplugged window. Lack of GPS fixes is not evidence of a hardware
+fault; reception and provider behavior remain unestablished.
+
+### Verified-build installation, 30 October at 12:51
+
+With user authorization, installed the exact verified GPlay Debug APK in place
+using `adb install -r`, preserving app data. Package `vibro.navigator.debug` now
+logs `sourceRevision=a455ce9f-reliability-handoff-20261030`. Its APK SHA-256 matches
+the latest STATUS.md artifact table. The main activity started successfully and
+the process remained running, with no process-filtered crash-buffer records at
+the smoke check. No navigation or power trial was started automatically.
+
+For the repeat, obtain stable eligible GPS/fused fixes before starting the
+unplugged, screen-off window. The previous network-only run cannot validate
+stationary suspension. Keep power settings and battery history unchanged.

@@ -9,7 +9,7 @@ import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.nav.orientation.StationaryOrientationAdvisor;
 import vibro.navigator.nav.route.VoiceHint;
 
-final class NoOpForegroundController implements NavigationForegroundController {
+class NoOpForegroundController implements NavigationForegroundController {
     @Override
     public void ensureChannels() {
     }

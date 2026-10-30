@@ -63,6 +63,7 @@ final class NavigationSpeculativeRouteState {
             return NavigationSessionSpeculativeRoutes.Confirmation.NONE;
         }
         confirmed = true;
+        activeSnapshot.timing.confirmed();
         return pendingResult == null
                 ? NavigationSessionSpeculativeRoutes.Confirmation.IN_PROGRESS
                 : NavigationSessionSpeculativeRoutes.Confirmation.RESULT_READY;

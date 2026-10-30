@@ -32,9 +32,9 @@ final class NavigationServiceLocationRecovery {
     private boolean running;
     private boolean checking;
     @Nullable private NavigationStationarySleep stationarySleep;
-    @Nullable private TaskScheduler scheduler;
+    private TaskScheduler scheduler = runnable -> { };
     private StationarySleepListener stationarySleepEnded = nowMs -> { };
-    private final Runnable sleepCheck = this::recoverIfStalled;
+    private final Runnable sleepCheck = () -> recoverIfStalled("awake_timer");
 
     NavigationServiceLocationRecovery(
             @NonNull NavigationLocationController locationController,
@@ -42,9 +42,16 @@ final class NavigationServiceLocationRecovery {
             @NonNull NavigationLocationRecoveryAlarm alarm,
             @NonNull ElapsedRealtimeClock clock
     ) {
+        this(locationController, stallMonitor, alarm, clock,
+                message -> AppLogger.d(TAG, message));
+    }
+
+    NavigationServiceLocationRecovery(NavigationLocationController locationController,
+            NavigationLocationStallMonitor stallMonitor, NavigationLocationRecoveryAlarm alarm,
+            ElapsedRealtimeClock clock, NavigationLocationRecoveryScheduler.Diagnostics diagnostics) {
         this.locationController = locationController;
         this.stallMonitor = stallMonitor;
-        recoveryScheduler = new NavigationLocationRecoveryScheduler(alarm);
+        recoveryScheduler = new NavigationLocationRecoveryScheduler(alarm, diagnostics);
         this.clock = clock;
         locationController.acquisition().setStateListener(this::scheduleNextCheck);
     }
@@ -81,10 +88,8 @@ final class NavigationServiceLocationRecovery {
             sleep.beginSleep(clock.elapsedRealtimeMs());
             if (recoveryScheduler.schedule(sleep.deadlineMs())) {
                 locationController.suspendForStationarySleep(sleep.deadlineMs());
-                if (scheduler != null) {
-                    scheduler.removeCallbacks(sleepCheck);
-                    scheduler.postDelayed(sleepCheck, NavigationStationarySleep.CHECK_INTERVAL_MS);
-                }
+                scheduler.removeCallbacks(sleepCheck);
+                scheduler.postDelayed(sleepCheck, NavigationStationarySleep.CHECK_INTERVAL_MS);
                 AppLogger.i(TAG, "Stationary sleep armed; location suspended until motion or fallback check");
             } else {
                 AppLogger.w(TAG, "Stationary sleep blocked reason=fallback_alarm_unavailable");
@@ -100,9 +105,10 @@ final class NavigationServiceLocationRecovery {
         if (!running) {
             return;
         }
+        recoveryScheduler.onCheckDispatched("motion_trigger", clock.elapsedRealtimeMs(), clock.uptimeMs());
         wakeForNavigationChange();
         locationController.requestFastLocationUpdates();
-        AppLogger.i(TAG, "Motion detected; resuming rapid departure acquisition");
+        AppLogger.i(TAG, "Motion detected; resuming rapid departure acquisition source=motion_trigger");
     }
 
     void wakeForNavigationChange() {
@@ -123,17 +129,21 @@ final class NavigationServiceLocationRecovery {
     }
 
     void recoverIfStalled() {
+        recoverIfStalled("alarm");
+    }
+
+    private void recoverIfStalled(String source) {
         if (!running) {
             return;
         }
-        recoveryScheduler.onAlarmTriggered(clock.elapsedRealtimeMs());
+        recoveryScheduler.onCheckDispatched(source, clock.elapsedRealtimeMs(), clock.uptimeMs());
         checking = true;
         try {
             if (stationarySleep != null && stationarySleep.isSleeping()) {
-                checkStationarySleep(stationarySleep);
+                checkStationarySleep(stationarySleep, source);
             } else {
                 locationController.acquisition().checkHealth();
-                recoverStreamIfStalled();
+                recoverStreamIfStalled(source);
             }
         } finally {
             checking = false;
@@ -141,7 +151,7 @@ final class NavigationServiceLocationRecovery {
         }
     }
 
-    private void checkStationarySleep(NavigationStationarySleep sleep) {
+    private void checkStationarySleep(NavigationStationarySleep sleep, String source) {
         if (clock.elapsedRealtimeMs() < sleep.deadlineMs()) {
             return;
         }
@@ -150,15 +160,15 @@ final class NavigationServiceLocationRecovery {
         stationarySleepEnded.onSleepEnded(clock.elapsedRealtimeMs());
         stallMonitor.start(clock.elapsedRealtimeMs());
         locationController.resumeAfterStationarySleep();
-        AppLogger.i(TAG, "Stationary fallback check; verifying fresh fixes before sleeping again");
+        AppLogger.i(TAG, "Stationary fallback check; verifying fresh fixes before sleeping again source=" + source);
     }
 
-    private void recoverStreamIfStalled() {
+    private void recoverStreamIfStalled(String source) {
         long nowMs = clock.elapsedRealtimeMs();
         long expectedIntervalMs = expectedIntervalMs();
         if (stallMonitor.shouldRecover(nowMs, expectedIntervalMs)) {
             AppLogger.w(TAG, "No location callback within requested interval; recovering location provider"
-                    + " expectedIntervalMs=" + expectedIntervalMs);
+                    + " expectedIntervalMs=" + expectedIntervalMs + " source=" + source);
             locationController.restartActiveLocationUpdates(DEFAULT_UPDATE_INTERVAL_MS);
             stallMonitor.recordRecoveryAttempt(nowMs);
         }
@@ -178,9 +188,7 @@ final class NavigationServiceLocationRecovery {
     }
 
     private void cancelSleepCheck() {
-        if (scheduler != null) {
-            scheduler.removeCallbacks(sleepCheck);
-        }
+        scheduler.removeCallbacks(sleepCheck);
     }
 
     private void scheduleNextCheck() {
