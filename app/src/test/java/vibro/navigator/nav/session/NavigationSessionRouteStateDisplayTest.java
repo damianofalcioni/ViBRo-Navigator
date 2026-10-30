@@ -183,7 +183,8 @@ public class NavigationSessionRouteStateDisplayTest extends NavigationSessionRou
                 locationWithSpeed(0.0, 0.0, 1_000L, 0f),
                 0f,
                 true,
-                500L
+                500L,
+                1_000L
         );
         state.buildState(
                 context,

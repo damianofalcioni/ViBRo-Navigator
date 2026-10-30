@@ -12,6 +12,9 @@ import androidx.annotation.Nullable;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.nav.power.NavigationChargeCounterValidation;
+import vibro.navigator.nav.power.NavigationBatterySnapshot;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 
 /** Device-wide measurements, sampled only when an existing location callback wakes the service. */
 public final class AndroidNavigationBatteryLogger {
@@ -19,6 +22,7 @@ public final class AndroidNavigationBatteryLogger {
     private static final String UNKNOWN = "unknown";
     private final Context context;
     private long lastSampleMs = Long.MIN_VALUE;
+    private final NavigationChargeCounterValidation counterValidation = new NavigationChargeCounterValidation();
 
     public AndroidNavigationBatteryLogger(@NonNull Context context) {
         this.context = context;
@@ -54,6 +58,7 @@ public final class AndroidNavigationBatteryLogger {
             Intent intent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
             return "powerReadings=unvalidated levelPercent=" + property(battery, BatteryManager.BATTERY_PROPERTY_CAPACITY)
                     + " chargeCounterUah=" + property(battery, BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
+                    + " chargeCounterStatus=" + counterStatus(battery, intent)
                     + " currentNowUa=" + property(battery, BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
                     + " currentAverageUa=" + property(battery, BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
                     + " voltageMv=" + extra(intent, BatteryManager.EXTRA_VOLTAGE)
@@ -63,6 +68,25 @@ public final class AndroidNavigationBatteryLogger {
                     + " screenInteractive=" + (power == null ? UNKNOWN : power.isInteractive());
         } catch (RuntimeException e) {
             return "measurements=unavailable error=" + e.getClass().getSimpleName();
+        }
+    }
+
+    private String counterStatus(BatteryManager battery, Intent intent) {
+        if (battery == null) {
+            return "unsupported";
+        }
+        try {
+            boolean charging = intent != null && (intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+                    || intent.getIntExtra(BatteryManager.EXTRA_STATUS, 0) == BatteryManager.BATTERY_STATUS_CHARGING);
+            int counter = battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+            if (!NavigationBatterySnapshot.of(counter, -1).hasChargeCounter()) {
+                return counterValidation.record(counter, charging);
+            }
+            return counterValidation.record(NavigationBatterySnapshot.of(counter,
+                    battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
+                    AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs()), charging);
+        } catch (RuntimeException error) {
+            return "unavailable";
         }
     }
 

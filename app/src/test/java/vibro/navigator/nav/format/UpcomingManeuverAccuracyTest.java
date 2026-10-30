@@ -138,7 +138,9 @@ public class UpcomingManeuverAccuracyTest {
     public void arrivalInstructionsRemainVisibleAndUseTheirReachedPolicy() {
         for (int command : new int[]{100, 101}) {
             Fixture fixture = new Fixture(command);
-            fixture.observe(7.0, WALKING_SPEED_MPS, 39f, false, true).assertCurrentAlert();
+            Observation observation = fixture.observe(7.0, WALKING_SPEED_MPS, 39f, false, true);
+            assertTrue(observation.events.isEmpty());
+            assertEquals(command, observation.upcoming.get(0).hint.command);
         }
     }
 

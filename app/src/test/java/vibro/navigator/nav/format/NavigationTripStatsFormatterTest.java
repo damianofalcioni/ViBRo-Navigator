@@ -20,6 +20,7 @@ public class NavigationTripStatsFormatterTest {
                 3,
                 false,
                 false,
+                120_000L,
                 90_000L,
                 30_000L,
                 120_000L,
@@ -68,7 +69,7 @@ public class NavigationTripStatsFormatterTest {
         );
 
         assertTrue(details.contains("Elapsed: 2 min 00 s"));
-        assertTrue(details.contains("Stationary time: 2 min 00 s"));
+        assertTrue(details.contains("Stationary time: 1 min 40 s"));
     }
 
     @Test

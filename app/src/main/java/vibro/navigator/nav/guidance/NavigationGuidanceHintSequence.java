@@ -1,6 +1,5 @@
 package vibro.navigator.nav.guidance;
 
-import vibro.navigator.nav.location.NavigationLocation;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,15 +33,6 @@ final class NavigationGuidanceHintSequence {
             @NonNull GeoJsonRoute route,
             @NonNull PolylineIndex polylineIndex,
             @NonNull List<LatLon> intermediateStops,
-            @Nullable NavigationLocation currentLocation
-    ) {
-        onRouteApplied(route, polylineIndex, intermediateStops, toLatLon(currentLocation));
-    }
-
-    void onRouteApplied(
-            @NonNull GeoJsonRoute route,
-            @NonNull PolylineIndex polylineIndex,
-            @NonNull List<LatLon> intermediateStops,
             @Nullable LatLon currentLocation
     ) {
         replaceWith(NavigationGuidanceHintSequenceBuilder.build(route, polylineIndex, intermediateStops));
@@ -64,7 +54,10 @@ final class NavigationGuidanceHintSequence {
     }
 
     void advanceTo(int nextIndex) {
-        this.nextIndex = Math.max(0, Math.min(nextIndex, hints.size()));
+        int requested = Math.max(0, Math.min(nextIndex, hints.size()));
+        while (this.nextIndex < requested && !NavigationTurnManeuverCueState.isSyntheticArrivalHint(hints.get(this.nextIndex))) {
+            this.nextIndex++;
+        }
     }
 
     void advanceToEnd() {
@@ -73,7 +66,11 @@ final class NavigationGuidanceHintSequence {
 
     void advancePastIntermediateDestination(int trackIndex) {
         while (nextIndex < hints.size() && isPassedByIntermediateArrival(hints.get(nextIndex), trackIndex)) {
+            VoiceHint consumed = hints.get(nextIndex);
             nextIndex++;
+            if (NavigationTurnManeuverCueState.isSyntheticArrivalHint(consumed)) {
+                break;
+            }
         }
     }
 
@@ -145,16 +142,12 @@ final class NavigationGuidanceHintSequence {
         }
 
         for (int i = 0; i < hints.size(); i++) {
-            if (hintAlongTrackMeters.get(i) + 5.0 > match.alongTrackMeters) {
+            if (NavigationTurnManeuverCueState.isSyntheticArrivalHint(hints.get(i))
+                    || hintAlongTrackMeters.get(i) + 5.0 > match.alongTrackMeters) {
                 return i;
             }
         }
         return hints.size();
-    }
-
-    @Nullable
-    private static LatLon toLatLon(@Nullable NavigationLocation location) {
-        return location == null ? null : new LatLon(location.getLatitude(), location.getLongitude());
     }
 
     private static boolean isPassedByIntermediateArrival(@NonNull VoiceHint hint, int trackIndex) {

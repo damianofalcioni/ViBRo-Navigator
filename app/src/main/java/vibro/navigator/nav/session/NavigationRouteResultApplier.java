@@ -164,7 +164,7 @@ final class NavigationRouteResultApplier {
     ) {
         if (!input.snapshot.isRoundTrip()
                 && input.lastFiltered != null
-                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
+                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters, null, input.appliedAtElapsedMs)) {
             return turnState.onDestinationReached(route);
         }
 
@@ -185,7 +185,8 @@ final class NavigationRouteResultApplier {
         }
         Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
                 input.lastFiltered,
-                accuracyMeters
+                accuracyMeters,
+                input.appliedAtElapsedMs
         );
         return reachedIntermediateTrackIndex != null
                 ? turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex)

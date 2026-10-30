@@ -437,7 +437,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 500L
         );
 
-        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+        state.evaluateLocation(
                 location(0.0, 0.001, 2_000L),
                 0f,
                 5f,
@@ -445,17 +445,25 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 2_000L,
                 0L
         );
-        NavigationRouteEvaluation repeatedEvaluation = state.evaluateLocation(
-                location(0.0, 0.001, 3_000L),
+        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 5_000L),
                 0f,
                 5f,
                 90.0,
-                3_000L,
+                5_000L,
+                0L
+        );
+        NavigationRouteEvaluation repeatedEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 6_000L),
+                0f,
+                5f,
+                90.0,
+                6_000L,
                 0L
         );
         NavState navState = state.buildState(
                 context,
-                location(0.0, 0.001, 3_000L),
+                location(0.0, 0.001, 6_000L),
                 0f,
                 true,
                 5f,
@@ -463,7 +471,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 null,
                 null,
                 NavState.NO_DEADLINE,
-                3_000L,
+                6_000L,
                 false,
                 null,
                 null
@@ -654,12 +662,20 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 2_000L,
                 0L
         );
-        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+        state.evaluateLocation(
                 location(0.000005, 0.000005, 3_000L),
                 1f,
                 5f,
                 225.0,
                 3_000L,
+                0L
+        );
+        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+                location(0.000005, 0.000005, 6_000L),
+                1f,
+                5f,
+                225.0,
+                6_000L,
                 0L
         );
 
@@ -686,12 +702,20 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 500L
         );
 
-        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+        state.evaluateLocation(
                 location(0.0, 0.0009, 2_000L),
                 0f,
                 5f,
                 90.0,
                 2_000L,
+                0L
+        );
+        NavigationRouteEvaluation arrivalEvaluation = state.evaluateLocation(
+                location(0.0, 0.0009, 5_000L),
+                0f,
+                5f,
+                90.0,
+                5_000L,
                 0L
         );
 
@@ -719,7 +743,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 500L
         );
 
-        NavigationRouteEvaluation stopEvaluation = state.evaluateLocation(
+        state.evaluateLocation(
                 location(0.0, 0.001, 2_000L),
                 0f,
                 5f,
@@ -727,17 +751,25 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 2_000L,
                 0L
         );
-        NavigationRouteEvaluation repeatedEvaluation = state.evaluateLocation(
-                location(0.0, 0.001, 3_000L),
+        NavigationRouteEvaluation stopEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 5_000L),
                 0f,
                 5f,
                 90.0,
-                3_000L,
+                5_000L,
+                0L
+        );
+        NavigationRouteEvaluation repeatedEvaluation = state.evaluateLocation(
+                location(0.0, 0.001, 6_000L),
+                0f,
+                5f,
+                90.0,
+                6_000L,
                 0L
         );
         NavState navState = state.buildState(
                 context,
-                location(0.0, 0.001, 3_000L),
+                location(0.0, 0.001, 6_000L),
                 0f,
                 true,
                 5f,
@@ -745,7 +777,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 null,
                 null,
                 NavState.NO_DEADLINE,
-                3_000L,
+                6_000L,
                 false,
                 null,
                 null
@@ -782,12 +814,20 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 500L
         );
 
-        NavigationRouteEvaluation stopEvaluation = state.evaluateLocation(
+        state.evaluateLocation(
                 location(0.0, 0.0009, 2_000L),
                 0f,
                 5f,
                 90.0,
                 2_000L,
+                0L
+        );
+        NavigationRouteEvaluation stopEvaluation = state.evaluateLocation(
+                location(0.0, 0.0009, 5_000L),
+                0f,
+                5f,
+                90.0,
+                5_000L,
                 0L
         );
 
@@ -797,7 +837,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
     }
 
     @Test
-    public void applyRouteResult_emitsIntermediateArrivalEventWhenAlreadyInsideStopRadius() {
+    public void applyRouteResultRequiresIndependentFixBeforeIntermediateArrival() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -816,6 +856,9 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 500L
         );
 
+        assertTrue(turnEvents.isEmpty());
+        turnEvents = state.evaluateLocation(location(0.0, 0.001, 4_000L),
+                0f, 5f, 90.0, 4_000L, 0L).turnEvents;
         assertEquals(1, turnEvents.size());
         assertEquals(NavigationTurnEvent.Type.IMMINENT, turnEvents.get(0).type);
         assertEquals(101, turnEvents.get(0).hint.command);
@@ -849,6 +892,14 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 2_000L,
                 0L
         );
+        state.evaluateLocation(
+                location(0.0, 0.001, 5_000L),
+                0f,
+                5f,
+                90.0,
+                5_000L,
+                0L
+        );
 
         List<LatLon> remainingStops = state.remainingIntermediateStops(stops);
 
@@ -857,7 +908,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
     }
 
     @Test
-    public void evaluateLocation_prefersArrivalOverOffTrackRerouteWhenInsideDestinationRadius() {
+    public void coarseObservationNearDestinationDoesNotDeclareArrival() {
         NavigationTextResources context = TestNavigationTextResources.metric();
         NavigationSessionRouteState state = new NavigationSessionRouteState();
         NavigationRequest request = new NavigationRequest(
@@ -885,8 +936,7 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
         );
 
         assertFalse(evaluation.shouldRecalculateRoute());
-        assertEquals(1, evaluation.turnEvents.size());
-        assertEquals(100, evaluation.turnEvents.get(0).hint.command);
+        assertTrue(evaluation.turnEvents.stream().noneMatch(event -> event.hint.command == 100));
     }
 
     @Test
@@ -912,7 +962,8 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 startLocation,
                 0.4f,
                 false,
-                500L
+                500L,
+                1_000L
         );
 
         state.evaluateLocation(
@@ -978,7 +1029,8 @@ public class NavigationSessionRouteStateTest extends NavigationSessionRouteState
                 location(0.0, 0.0, 1_000L),
                 0f,
                 false,
-                500L
+                500L,
+                1_000L
         );
 
         assertEquals(1, turnEvents.size());

@@ -31,7 +31,7 @@ final class StationaryFixEligibility {
     }
 
     private static String speedRejection(NavigationLocation fix) {
-        if (fix.hasSpeed() && !stoppedSpeed(fix.getSpeed())) {
+        if (fix.hasSpeed() && !stoppedSpeed(fix)) {
             return "native_speed_moving_or_invalid";
         }
         if (fix.hasSpeedAccuracy() && !usableSpeedAccuracy(fix.getSpeedAccuracyMetersPerSecond())) {
@@ -40,8 +40,10 @@ final class StationaryFixEligibility {
         return null;
     }
 
-    private static boolean stoppedSpeed(float speed) {
-        return Float.isFinite(speed) && speed >= 0f && speed <= 0.3f;
+    private static boolean stoppedSpeed(NavigationLocation fix) {
+        float speed = fix.getSpeed();
+        return Float.isFinite(speed) && speed >= 0f && speed <= 0.3f
+                && !NavigationNativeSpeedEvidence.hasConfidentPositiveSpeed(fix);
     }
 
     private static boolean usableSpeedAccuracy(float accuracy) {

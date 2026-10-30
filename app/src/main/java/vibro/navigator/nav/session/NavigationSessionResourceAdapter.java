@@ -29,6 +29,11 @@ public final class NavigationSessionResourceAdapter {
         session.components.locationEvaluator.resumeAfterStationarySleep(nowMs);
     }
 
+    /** Candidate eligibility only; suspension requires the separate raw stop/trigger confirmation. */
+    public static boolean canVerifyStationarySleep(NavigationSession session) {
+        return session.components.locationState.needsDepartureChecks();
+    }
+
     public static boolean start(
             @NonNull NavigationSession session,
             @NonNull NavigationTextResources textResources,
@@ -177,15 +182,16 @@ public final class NavigationSessionResourceAdapter {
         }
         session.components.warmupController.onRouteApplied(routeAppliedAtElapsedMs);
         NavigationLocation lastFiltered = session.components.locationState.getLastFilteredLocation();
-        float speedMps = lastFiltered != null ? session.components.locationState.speedMps(lastFiltered) : 0f;
+        float speedMps = session.lastFilteredSpeedMps();
         List<NavigationTurnEvent> turnEvents = session.components.routeState.applyRouteResult(
                 textResources,
                 snapshot,
                 newRoute,
                 lastFiltered,
                 speedMps,
-                session.components.locationState.isLikelyStationary(),
-                beganAt
+                session.components.locationState.isLikelyStationary(routeAppliedAtElapsedMs),
+                beganAt,
+                routeAppliedAtElapsedMs
         );
         session.components.speculativeRouteState.onRouteApplied(snapshot);
         return turnEvents;
@@ -247,8 +253,9 @@ public final class NavigationSessionResourceAdapter {
                 result.route,
                 lastFiltered,
                 speedMps,
-                session.components.locationState.isLikelyStationary(),
-                result.beganAt
+                session.components.locationState.isLikelyStationary(routeAppliedAtElapsedMs),
+                result.beganAt,
+                routeAppliedAtElapsedMs
         );
     }
 
@@ -268,14 +275,16 @@ public final class NavigationSessionResourceAdapter {
     @NonNull
     public static List<String> buildCurrentDirectionDetails(
             @NonNull NavigationSession session,
-            @NonNull NavigationTextResources textResources
+            @NonNull NavigationTextResources textResources,
+            long nowMs
     ) {
         if (!session.started || !session.currentRequest.isComplete()) {
             return Collections.emptyList();
         }
         return session.components.directionDetailsBuilder.build(
                 textResources,
-                session.currentRequest
+                session.currentRequest,
+                nowMs
         );
     }
 

@@ -87,7 +87,7 @@ public class NavigationStationaryRestartIntegrationTest {
                     session, TestNavigationTextResources.metric(), location, time, 3_000L);
             assertFalse(result.isDropped());
             readyToSleep = sleep.observe(location, session.getLastFilteredLocation(),
-                    session.isLikelyStationaryForOrientation(), time);
+                    session.isLikelyStationaryForOrientation(time), time);
             return result;
         }
 
@@ -95,7 +95,7 @@ public class NavigationStationaryRestartIntegrationTest {
             for (long time = 124_000L; time <= 151_000L; time += 3_000L) {
                 accept(time, 144d, 0f);
             }
-            assertTrue(session.isLikelyStationaryForOrientation());
+            assertTrue(session.isLikelyStationaryForOrientation(lastFixMs));
             assertTrue(readyToSleep);
         }
     }

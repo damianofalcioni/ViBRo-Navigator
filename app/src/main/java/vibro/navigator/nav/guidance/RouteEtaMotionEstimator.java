@@ -27,7 +27,7 @@ final class RouteEtaMotionEstimator {
         if (likelyStationary) {
             return RouteMotionEstimate.stationary();
         }
-        RouteProgressSample anchor = latestEligibleSample(samples, locationTimeMs, MIN_ETA_SPEED_SAMPLE_AGE_MS);
+        RouteProgressSample anchor = latestEligibleSample(samples, locationTimeMs, alongTrackMeters, accuracyMeters);
         if (anchor == null) {
             return RouteMotionEstimate.stationary();
         }
@@ -71,12 +71,17 @@ final class RouteEtaMotionEstimator {
         RouteProgressSample previousAnchor = latestEligibleSample(
                 samples,
                 currentAnchor.timeMs,
-                MIN_ETA_SPEED_SAMPLE_AGE_MS
+                currentAnchor.alongTrackMeters,
+                accuracyMeters
         );
         if (previousAnchor == null) {
             return null;
         }
-        Float previousSpeedMps = resolvePreviousEtaSpeed(previousAnchor, currentAnchor, accuracyMeters);
+        if (locationTimeMs - previousAnchor.timeMs > 10_000L) {
+            return null;
+        }
+        Float previousSpeedMps = resolveTrustedEtaSpeed(previousAnchor, currentAnchor.alongTrackMeters,
+                currentAnchor.timeMs, accuracyMeters);
         if (previousSpeedMps == null) {
             return null;
         }
@@ -90,36 +95,26 @@ final class RouteEtaMotionEstimator {
     }
 
     @Nullable
-    private static Float resolvePreviousEtaSpeed(
-            @NonNull RouteProgressSample previousAnchor,
-            @NonNull RouteProgressSample currentAnchor,
-            float accuracyMeters
-    ) {
-        double alongTrackDeltaMeters = currentAnchor.alongTrackMeters - previousAnchor.alongTrackMeters;
-        if (alongTrackDeltaMeters < 0.0) {
-            return null;
-        }
-        if (alongTrackDeltaMeters < minimumEtaProgressMeters(accuracyMeters)) {
-            return 0f;
-        }
-        double elapsedSeconds = (currentAnchor.timeMs - previousAnchor.timeMs) / MILLIS_PER_SECOND;
-        if (elapsedSeconds <= 0.0) {
-            return null;
-        }
-        float speedMps = (float) (alongTrackDeltaMeters / elapsedSeconds);
-        return speedMps >= MIN_TRUSTED_ETA_SPEED_MPS ? speedMps : 0f;
-    }
-
-    @Nullable
     private static RouteProgressSample latestEligibleSample(
             @NonNull Deque<RouteProgressSample> samples,
             long nowMs,
-            long minimumAgeMs
+            double alongTrackMeters,
+            float accuracyMeters
     ) {
         Iterator<RouteProgressSample> candidates = samples.descendingIterator();
         while (candidates.hasNext()) {
             RouteProgressSample candidate = candidates.next();
-            if (nowMs - candidate.timeMs >= minimumAgeMs) {
+            long elapsedMs = nowMs - candidate.timeMs;
+            if (elapsedMs < MIN_ETA_SPEED_SAMPLE_AGE_MS) {
+                continue;
+            }
+            double progressMeters = alongTrackMeters - candidate.alongTrackMeters;
+            // Extend a short moving interval until its displacement clears the quality
+            // threshold. A recent stall/reversal must not resurrect older travel speed.
+            if ((float) (progressMeters / (elapsedMs / MILLIS_PER_SECOND)) < MIN_TRUSTED_ETA_SPEED_MPS) {
+                return null;
+            }
+            if (progressMeters >= minimumEtaProgressMeters(accuracyMeters)) {
                 return candidate;
             }
         }

@@ -49,12 +49,13 @@ final class NavigationRouteDirectionDetails {
                 match.alongTrackMeters,
                 turnState.getNextHintIdx(),
                 match.segmentIndex,
-                progressTracker.resolveEtaSpeedMps(
+                progressTracker.etaHistory().resolve(
                         snapshot.lastFiltered,
                         match.alongTrackMeters,
                         snapshot.accuracyMeters,
-                        snapshot.likelyStationary
-                ),
+                        snapshot.motionState.isMoving(),
+                        snapshot.nowElapsedMs
+                ).speedMps,
                 turnState.isDestinationReached(),
                 turnState.getIntermediateDestinationReachedTrackIndex(),
                 targets,

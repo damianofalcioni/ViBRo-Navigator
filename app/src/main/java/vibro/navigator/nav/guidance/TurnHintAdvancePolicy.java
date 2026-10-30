@@ -27,6 +27,9 @@ final class TurnHintAdvancePolicy {
         boolean updatedNotified5 = notified5;
         boolean advancedPastInstruction = false;
         while (updatedHintIdx < hints.size()) {
+            if (NavigationTurnManeuverCueState.isSyntheticArrivalHint(hints.get(updatedHintIdx))) {
+                break;
+            }
             double hintAlongTrackMetersValue = hintAlongTrackMeters.get(updatedHintIdx);
             boolean passed = hasPassedHint(hintAlongTrackMetersValue, alongTrackMeters);
             boolean retired = shouldRetireAlreadyNotifiedHint(

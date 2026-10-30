@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 
 final class NavigationRouteGeometryMetrics {
     private NavigationRouteGeometryMetrics() {
@@ -36,7 +37,7 @@ final class NavigationRouteGeometryMetrics {
             float accuracyMeters
     ) {
         double preferredWindowMeters = Math.max(
-                NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(accuracyMeters),
+                RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters),
                 25.0
         );
         double routeLengthMeters = routeLengthMeters(route, polylineIndex);

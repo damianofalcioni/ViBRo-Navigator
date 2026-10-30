@@ -69,6 +69,9 @@ public final class NavigationSession {
         }
         paused = false;
         components.headingResolver.clearRouteDisagreement();
+        // A route result may have seeded evidence while location evaluation was paused.
+        components.routeState.clearMotionEvidence();
+        components.straightLineState.clearMotionEvidence();
         components.locationEvaluator.resetDepartureMonitoring();
         return true;
     }
@@ -120,8 +123,8 @@ public final class NavigationSession {
         return lastFiltered == null ? 0f : components.locationState.speedMps(lastFiltered);
     }
 
-    public boolean isLikelyStationaryForOrientation() {
-        return components.locationState.isLikelyStationary();
+    public boolean isLikelyStationaryForOrientation(long nowMs) {
+        return components.locationState.isLikelyStationary(nowMs);
     }
 
     public boolean isRouteCalculationInProgress() {

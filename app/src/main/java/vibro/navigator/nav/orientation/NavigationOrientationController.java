@@ -117,7 +117,8 @@ public final class NavigationOrientationController {
             stationaryOrientationNotifier.reset();
             return;
         }
-        boolean likelyStationary = navigationSession.isLikelyStationaryForOrientation();
+        long nowMs = elapsedRealtimeClock.elapsedRealtimeMs();
+        boolean likelyStationary = navigationSession.isLikelyStationaryForOrientation(nowMs);
         if (!likelyStationary) {
             stationaryOrientationNotifier.reset();
             return;
@@ -129,7 +130,7 @@ public final class NavigationOrientationController {
                 navigationSession.lastFilteredSpeedMps(),
                 navigationSession.currentRouteBearingDegrees(),
                 orientationMonitor.getLatestSample(),
-                elapsedRealtimeClock.elapsedRealtimeMs(),
+                nowMs,
                 foregroundController::sendStationaryOrientationNotification
         );
     }

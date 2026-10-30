@@ -17,6 +17,7 @@ import androidx.core.app.ServiceCompat;
 import vibro.navigator.R;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.main.MainActivity;
 import vibro.navigator.nav.directions.DirectionInfo;
 import vibro.navigator.nav.directions.DirectionKind;
@@ -268,7 +269,12 @@ public final class AndroidNavigationForegroundController implements NavigationFo
             @NonNull NotificationManager notificationManager,
             @NonNull Notification notification
     ) {
+        long postStartedMs = AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs();
         notificationManager.notify(NavigationService.NOTIFICATION_ID_TURN, notification);
+        AppLogger.d(TAG, "Notification post completed notificationId=" + NavigationService.NOTIFICATION_ID_TURN
+                + " postedElapsedMs=" + AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs()
+                + " postCallDurationMs=" + (AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs() - postStartedMs)
+                + " deliveryReceipt=unobserved");
         transientNotificationTimeout.schedule();
     }
 

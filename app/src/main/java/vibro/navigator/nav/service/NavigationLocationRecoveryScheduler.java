@@ -3,6 +3,7 @@ package vibro.navigator.nav.service;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.location.NavigationLocationRecoveryAlarm;
+import vibro.navigator.logging.AppLogger;
 
 final class NavigationLocationRecoveryScheduler {
     private static final long NO_DEADLINE = Long.MIN_VALUE;
@@ -31,6 +32,14 @@ final class NavigationLocationRecoveryScheduler {
 
     void onAlarmTriggered() {
         scheduledDeadlineMs = NO_DEADLINE;
+    }
+
+    void onAlarmTriggered(long nowMs) {
+        if (scheduledDeadlineMs != NO_DEADLINE) {
+            AppLogger.d("NavLocationRecovery", "Recovery check dispatched requestedDeadlineMs=" + scheduledDeadlineMs
+                    + " actualElapsedMs=" + nowMs + " latenessMs=" + Math.max(0, nowMs - scheduledDeadlineMs));
+        }
+        onAlarmTriggered();
     }
 
     void cancel() {

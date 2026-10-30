@@ -101,7 +101,13 @@ public class NavigationSessionTest {
                 location(0.0, 0.001, nowMs + 2_000L, 120f),
                 nowMs + 2_000L
         );
-        NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, nowMs + 3_000L);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, context,
+                location(0.0, 0.001, nowMs + 5_000L, 5f), nowMs + 5_000L);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, context,
+                location(0.0, 0.001, nowMs + 8_000L, 5f), nowMs + 8_000L);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, context,
+                location(0.0, 0.001, nowMs + 11_000L, 5f), nowMs + 11_000L);
+        NavigationRouteRequestSnapshot secondSnapshot = session.prepareRouteRequest(true, nowMs + 12_000L);
 
         assertNotNull(secondSnapshot);
         assertEquals(1, secondSnapshot.intermediates.size());
@@ -245,6 +251,7 @@ public class NavigationSessionTest {
         assertNotNull(result);
         assertTrue(dynamicIntervalMs > 3_000L);
 
+        int revisionBefore = session.components.locationState.motionRevision();
         long expectedLongIntervalTimeMs = sampleTimeMs + dynamicIntervalMs;
         NavigationLocationUpdateResult longIntervalResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
@@ -255,7 +262,8 @@ public class NavigationSessionTest {
         );
 
         assertFalse(longIntervalResult.isDropped());
-        assertEquals(dynamicIntervalMs, longIntervalResult.getSuggestedUpdateIntervalMs());
+        assertEquals(revisionBefore, session.components.locationState.motionRevision());
+        assertTrue(longIntervalResult.getSuggestedUpdateIntervalMs() > 3_000L);
     }
 
     @Test
@@ -704,50 +712,68 @@ public class NavigationSessionTest {
 
         assertTrue(NavigationSessionResourceAdapter.start(session, context, nowMs));
         NavigationSessionResourceAdapter.onRawLocationChanged(session, context, locationWithSpeed(0.0, 0.0, nowMs, 2f), nowMs);
-        NavigationLocationUpdateResult stopResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+        NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
                 locationWithSpeed(0.0, 0.001, nowMs + 20_000L, 2f),
                 nowMs + 20_000L
         );
+        NavigationLocationUpdateResult stopResult = NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.001, nowMs + 23_000L, 2f),
+                nowMs + 23_000L
+        );
         NavigationLocationUpdateResult repeatedStopResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.001, nowMs + 21_000L, 2f),
-                nowMs + 21_000L
+                locationWithSpeed(0.0, 0.001, nowMs + 24_000L, 2f),
+                nowMs + 24_000L
         );
         NavState afterFirstStop = NavigationSessionResourceAdapter.buildState(
                 session,
                 context,
                 NavState.NO_DEADLINE,
-                nowMs + 20_000L,
+                nowMs + 23_000L,
                 null,
                 0.0,
                 null
         );
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.002, nowMs + 43_000L, 2f),
+                nowMs + 43_000L
+        );
         NavigationLocationUpdateResult secondStopResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.002, nowMs + 40_000L, 2f),
-                nowMs + 40_000L
+                locationWithSpeed(0.0, 0.002, nowMs + 46_000L, 2f),
+                nowMs + 46_000L
+        );
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                context,
+                locationWithSpeed(0.0, 0.003, nowMs + 66_000L, 2f),
+                nowMs + 66_000L
         );
         NavigationLocationUpdateResult destinationResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.003, nowMs + 60_000L, 2f),
-                nowMs + 60_000L
+                locationWithSpeed(0.0, 0.003, nowMs + 69_000L, 2f),
+                nowMs + 69_000L
         );
         NavigationLocationUpdateResult repeatedDestinationResult = NavigationSessionResourceAdapter.onRawLocationChanged(
                 session,
                 context,
-                locationWithSpeed(0.0, 0.003, nowMs + 61_000L, 2f),
-                nowMs + 61_000L
+                locationWithSpeed(0.0, 0.003, nowMs + 70_000L, 2f),
+                nowMs + 70_000L
         );
         NavState reachedState = NavigationSessionResourceAdapter.buildState(
                 session,
                 context,
                 NavState.NO_DEADLINE,
-                nowMs + 60_000L,
+                nowMs + 69_000L,
                 null,
                 0.0,
                 null

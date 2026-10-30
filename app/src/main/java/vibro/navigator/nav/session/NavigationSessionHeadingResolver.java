@@ -72,6 +72,9 @@ public final class NavigationSessionHeadingResolver {
         if (lastFiltered == null) {
             return lastHeading;
         }
+        if (NavigationUnconfirmedHeadingPolicy.useCompass(!movementStarted, locationState, lastFiltered, nowMs)) {
+            return selectStartupHeading(displayHeadingDegrees, displayHeadingAccuracyDegrees);
+        }
         if (!likelyStationary) {
             movementStarted = true;
             stationaryCompassGate.reset();

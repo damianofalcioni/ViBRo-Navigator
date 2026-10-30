@@ -17,6 +17,8 @@ import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.geo.LatLon;
@@ -35,13 +37,14 @@ public class SurroundingStreetOverlayControllerTest {
     private final CountingChunkLoader chunkLoader = new CountingChunkLoader();
     private final MutableSettings settings = new MutableSettings();
     private CountDownLatch stateLatch;
+    private final BlockingQueue<Runnable> scheduledResults = new LinkedBlockingQueue<>();
     private SurroundingStreetOverlayController controller;
 
     @Before
     public void setUp() {
         stateLatch = new CountDownLatch(1);
         controller = new SurroundingStreetOverlayController(
-                runnable -> runnable.run(),
+                scheduledResults::add,
                 clock,
                 new SurroundingStreetOverlayRuntime(chunkLoader, settings),
                 () -> stateLatch.countDown()
@@ -159,8 +162,15 @@ public class SurroundingStreetOverlayControllerTest {
     }
 
     private void assertStateEmitted() throws InterruptedException {
-        if (!stateLatch.await(3, TimeUnit.SECONDS)) {
-            throw new AssertionError("Street overlay state was not emitted");
+        // Match production's serialized result delivery. Running completions on the
+        // loader thread races setting changes and can release a later test phase's latch.
+        long deadlineNanos = System.nanoTime() + TimeUnit.SECONDS.toNanos(3);
+        while (stateLatch.getCount() > 0) {
+            Runnable result = scheduledResults.poll(Math.max(0, deadlineNanos - System.nanoTime()), TimeUnit.NANOSECONDS);
+            if (result == null) {
+                throw new AssertionError("Street overlay state was not emitted");
+            }
+            result.run();
         }
     }
 

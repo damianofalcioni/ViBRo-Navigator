@@ -10,13 +10,12 @@ import java.util.Objects;
 
 public final class NavigationLocationMotionModel {
 
-    private static final float MAX_STATIONARY_REPORTED_SPEED_MPS = 0.35f;
     private static final long RECENT_MOTION_WINDOW_MS = 3_000L;
-    private static final double MAX_STATIONARY_RECENT_DISTANCE_METERS = 0.8;
     private static final long MIN_MOVEMENT_BEARING_ELAPSED_MS = 2_000L;
     private static final double MIN_MOVEMENT_BEARING_DISTANCE_METERS = 3.0;
 
     private final ArrayDeque<NavigationLocation> recentFilteredLocations = new ArrayDeque<>();
+    private final NavigationRawMotionHistory rawHistory = new NavigationRawMotionHistory();
     private final NavigationDisplayCourseHistory displayCourseHistory = new NavigationDisplayCourseHistory();
     private final NavigationStationarityTracker stationarityTracker = new NavigationStationarityTracker();
     private final NavigationMovementEvidence movementEvidence = new NavigationMovementEvidence();
@@ -30,6 +29,7 @@ public final class NavigationLocationMotionModel {
         lastFiltered = null;
         previousFiltered = null;
         recentFilteredLocations.clear();
+        rawHistory.reset();
         displayCourseHistory.reset();
         stationarityTracker.reset();
         movementEvidence.reset();
@@ -41,23 +41,37 @@ public final class NavigationLocationMotionModel {
     }
 
     public void recordFilteredLocation(@NonNull NavigationLocation filtered) {
+        recordLocation(filtered, filtered);
+    }
+
+    public void recordLocation(@NonNull NavigationLocation raw, @NonNull NavigationLocation filtered) {
+        if (!rawHistory.isNew(raw)) {
+            if (!improvesCurrentObservation(raw)) {
+                return;
+            }
+            // Keep an accepted position correction, but do not reuse confidence or
+            // connect travel across the observation it replaces. Seed one observation.
+            reset();
+        }
         boolean providerChanged = lastFiltered != null && !Objects.equals(lastFiltered.getProvider(), filtered.getProvider());
         if (providerChanged) {
             // Provider offsets are position corrections, not evidence of speed or course.
             lastFiltered = null;
             recentFilteredLocations.clear();
+            rawHistory.reset();
             displayCourseHistory.reset();
             movementEvidence.reset();
         }
         boolean wasStationary = stationarityTracker.isStationary();
         previousFiltered = lastFiltered;
+        rawHistory.record(raw);
         lastFiltered = filtered;
         recentFilteredLocations.addLast(new NavigationLocation(filtered));
         pruneRecentFilteredLocations(filtered.getElapsedRealtimeOrTimeMs());
         if (providerChanged) {
-            stationarityTracker.recordProviderChange(filtered);
+            stationarityTracker.recordProviderChange(raw);
         } else {
-            stationarityTracker.record(filtered, previousFiltered, isStationaryCandidate(), movementEvidence.record(filtered));
+            stationarityTracker.record(raw, rawHistory.isStationaryCandidate(), movementEvidence.record(raw));
         }
         if (!wasStationary && stationarityTracker.isStationary()) {
             // A departure may reverse direction. Approach fixes must not yield a confident
@@ -65,6 +79,13 @@ public final class NavigationLocationMotionModel {
             displayCourseHistory.reset();
         }
         displayCourseHistory.record(filtered);
+    }
+
+    private boolean improvesCurrentObservation(NavigationLocation raw) {
+        return lastFiltered != null
+                && raw.getElapsedRealtimeOrTimeMs() == lastFiltered.getElapsedRealtimeOrTimeMs()
+                && raw.hasAccuracy() && (!lastFiltered.hasAccuracy()
+                || raw.getProviderAccuracy() < lastFiltered.getProviderAccuracy());
     }
 
     public boolean isLikelyStationary() {
@@ -75,29 +96,26 @@ public final class NavigationLocationMotionModel {
         return stationarityTracker.needsDepartureChecks();
     }
 
-    private boolean isStationaryCandidate() {
-        if (lastFiltered == null) {
-            return false;
-        }
-        pruneRecentFilteredLocations(lastFiltered.getElapsedRealtimeOrTimeMs());
-        if (hasStationaryRecentMotionEvidence()) {
-            return true;
-        }
-        if (reportedOrFallbackSpeedMps(lastFiltered) > MAX_STATIONARY_REPORTED_SPEED_MPS) {
-            return false;
-        }
-        if (recentFilteredLocations.size() < 2) {
-            return true;
-        }
-        return totalRecentDistanceMeters() <= MAX_STATIONARY_RECENT_DISTANCE_METERS;
-    }
+    public NavigationMotionState motionState() { return stationarityTracker.state(); }
+
+    /** Read-time expiry uses the caller's monotonic clock without scheduling a wake-up. */
+    public NavigationMotionState motionState(long nowMs) { return stationarityTracker.state(nowMs); }
+
+    public String motionReason() { return stationarityTracker.reason(); }
 
     public float speedMps(@NonNull NavigationLocation location) {
         pruneRecentFilteredLocations(location.getElapsedRealtimeOrTimeMs());
-        if (isLikelyStationary()) {
+        if (isLikelyStationary() || isUncertainSpeed(location)) {
             return 0f;
         }
         return reportedOrFallbackSpeedMps(location);
+    }
+
+    private boolean isUncertainSpeed(NavigationLocation location) {
+        boolean poorPosition = !location.hasAccuracy() || !Float.isFinite(location.getProviderAccuracy())
+                || location.getProviderAccuracy() > 25;
+        return motionState() == NavigationMotionState.UNKNOWN && (poorPosition || rawHistory.hasStationaryPositions())
+                && !location.hasSpeedAccuracy();
     }
 
     public float displaySpeedMps(@NonNull NavigationLocation location) {
@@ -106,7 +124,7 @@ public final class NavigationLocationMotionModel {
                 location,
                 movementEvidence.reference() == null ? previousFiltered : movementEvidence.reference(),
                 isLikelyStationary(),
-                reportedOrFallbackSpeedMps(location)
+                speedMps(location)
         );
     }
 
@@ -176,28 +194,6 @@ public final class NavigationLocationMotionModel {
             );
         }
         return null;
-    }
-
-    private boolean hasStationaryRecentMotionEvidence() {
-        return recentFilteredLocations.size() >= 2
-                && totalRecentDistanceMeters() <= MAX_STATIONARY_RECENT_DISTANCE_METERS;
-    }
-
-    private double totalRecentDistanceMeters() {
-        NavigationLocation previous = null;
-        double cumulativeDistanceMeters = 0.0;
-        for (NavigationLocation sample : recentFilteredLocations) {
-            if (previous != null) {
-                cumulativeDistanceMeters += GeoMath.distanceMeters(
-                        previous.getLatitude(),
-                        previous.getLongitude(),
-                        sample.getLatitude(),
-                        sample.getLongitude()
-                );
-            }
-            previous = sample;
-        }
-        return cumulativeDistanceMeters;
     }
 
     private void pruneRecentFilteredLocations(long newestTimeMs) {

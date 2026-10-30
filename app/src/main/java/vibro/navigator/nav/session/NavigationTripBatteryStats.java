@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.model.NavTripStatus;
 import vibro.navigator.nav.power.NavigationBatterySnapshot;
+import vibro.navigator.nav.power.NavigationChargeCounterValidation;
 
 final class NavigationTripBatteryStats {
     private boolean chargeCounterReliable;
@@ -28,12 +29,10 @@ final class NavigationTripBatteryStats {
     }
 
     void recordSnapshot(@NonNull NavigationBatterySnapshot snapshot) {
-        if (latestSnapshot.hasSameReading(snapshot)) {
-            return;
-        }
-        chargeCounterReliable = chargeCounterReliable && snapshot.hasChargeCounter()
-                && snapshot.chargeCounterMicroAmpHours <= latestSnapshot.chargeCounterMicroAmpHours;
-        levelPercentReliable = levelPercentReliable && snapshot.hasLevelPercent();
+        chargeCounterReliable = chargeCounterReliable
+                && NavigationChargeCounterValidation.isPlausibleDischarge(latestSnapshot, snapshot);
+        levelPercentReliable = levelPercentReliable && snapshot.hasLevelPercent()
+                && snapshot.levelPercent <= latestSnapshot.levelPercent;
         latestSnapshot = snapshot;
     }
 

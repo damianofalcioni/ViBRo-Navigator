@@ -126,7 +126,7 @@ final class NavigationServiceLocationRecovery {
         if (!running) {
             return;
         }
-        recoveryScheduler.onAlarmTriggered();
+        recoveryScheduler.onAlarmTriggered(clock.elapsedRealtimeMs());
         checking = true;
         try {
             if (stationarySleep != null && stationarySleep.isSleeping()) {

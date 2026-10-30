@@ -12,6 +12,11 @@ public final class RouteMotionEstimate {
     }
 
     public static RouteMotionEstimate stationary() {
+        return unavailable();
+    }
+
+    /** No usable live velocity; route timing may still supply an ETA. */
+    public static RouteMotionEstimate unavailable() {
         return new RouteMotionEstimate(0f, UNKNOWN_ACCELERATION_MPS2);
     }
 

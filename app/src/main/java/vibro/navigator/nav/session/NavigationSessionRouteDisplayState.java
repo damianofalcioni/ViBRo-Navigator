@@ -1,6 +1,5 @@
 package vibro.navigator.nav.session;
 
-
 import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
@@ -107,12 +106,13 @@ public final class NavigationSessionRouteDisplayState {
             );
         }
 
-        float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
+        float etaSpeedMps = progressTracker.etaHistory().resolve(
                 snapshot.lastFiltered,
                 match.alongTrackMeters,
                 snapshot.accuracyMeters,
-                snapshot.likelyStationary
-        );
+                snapshot.motionState.isMoving(),
+                snapshot.nowElapsedMs
+        ).speedMps;
         float compassAccuracyMeters = compassMemory.resolveAccuracyMeters(snapshot.accuracyMeters);
         CompassOrientationCue orientationCue = resolveOrientationCue(
                 snapshot,

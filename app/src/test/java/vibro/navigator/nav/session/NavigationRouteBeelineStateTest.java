@@ -166,7 +166,7 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
         assertNotNull(offPathState.routeStatus.compassState);
         assertNotNull(offPathState.routeStatus.compassState.routeStartApproachProjection);
 
-        NavigationRouteEvaluation reachedStop = state.evaluateLocation(
+        state.evaluateLocation(
                 location(STOP.lat, STOP.lon, 4_000L, 3f),
                 1.4f,
                 3f,
@@ -174,11 +174,19 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
                 4_000L,
                 0L
         );
+        NavigationRouteEvaluation reachedStop = state.evaluateLocation(
+                location(STOP.lat, STOP.lon, 7_000L, 3f),
+                1.4f,
+                3f,
+                180.0,
+                7_000L,
+                0L
+        );
         NavState returnState = buildState(
                 textResources,
                 state,
-                location(STOP.lat, STOP.lon, 4_000L, 3f),
-                4_000L
+                location(STOP.lat, STOP.lon, 7_000L, 3f),
+                7_000L
         );
 
         assertEquals(1, reachedStop.turnEvents.size());
@@ -192,18 +200,18 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
         assertNotNull(returnState.routeStatus.compassState.routeStartApproachProjection);
 
         NavigationRouteEvaluation returnedToRoute = state.evaluateLocation(
-                location(0.0, 0.001, 5_000L, 3f),
+                location(0.0, 0.001, 8_000L, 3f),
                 1.4f,
                 3f,
                 180.0,
-                5_000L,
+                8_000L,
                 0L
         );
         NavState routedState = buildState(
                 textResources,
                 state,
-                location(0.0, 0.001, 5_000L, 3f),
-                5_000L
+                location(0.0, 0.001, 8_000L, 3f),
+                8_000L
         );
 
         assertFalse(returnedToRoute.shouldRecalculateRoute());
@@ -295,12 +303,20 @@ public class NavigationRouteBeelineStateTest extends NavigationSessionRouteState
                 3_000L,
                 0L
         );
-        NavigationRouteEvaluation reached = state.evaluateLocation(
+        state.evaluateLocation(
                 location(DESTINATION_POINT.lat, DESTINATION_POINT.lon, 4_000L, 3f),
                 1.4f,
                 3f,
                 270.0,
                 4_000L,
+                0L
+        );
+        NavigationRouteEvaluation reached = state.evaluateLocation(
+                location(DESTINATION_POINT.lat, DESTINATION_POINT.lon, 7_000L, 3f),
+                1.4f,
+                3f,
+                270.0,
+                7_000L,
                 0L
         );
 

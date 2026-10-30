@@ -12,9 +12,9 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 import vibro.navigator.nav.location.NavigationLocationController;
+import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
-import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 import vibro.navigator.nav.routing.NavigationRouteRecalculationReason;
 import vibro.navigator.logging.AppLogger;
 
@@ -71,6 +71,7 @@ final class NavigationRouteEvaluator {
             @NonNull NavigationLocation filtered,
             float speedMps,
             boolean likelyStationary,
+            boolean confirmedMoving,
             float accuracyMeters,
             @Nullable Double actualBearingDegrees,
             long nowMs,
@@ -78,6 +79,9 @@ final class NavigationRouteEvaluator {
             boolean reacquiringAfterLongGap,
             boolean singleInstructionMode
     ) {
+
+        progressTracker.beginLocation(filtered, confirmedMoving);
+        turnState.recordLocationQuality(filtered, accuracyMeters);
         if (directGuidanceEvaluator.isDestinationManuallySkipped()) {
             return NavigationRouteEvaluation.keepRoute(
                     Collections.emptyList(),
@@ -121,6 +125,7 @@ final class NavigationRouteEvaluator {
                 match,
                 speedMps,
                 likelyStationary,
+                confirmedMoving,
                 accuracyMeters,
                 actualBearingDegrees,
                 nowMs,
@@ -141,12 +146,14 @@ final class NavigationRouteEvaluator {
             @NonNull PolylineIndex.Match match,
             float speedMps,
             boolean likelyStationary,
+            boolean confirmedMoving,
             float accuracyMeters,
             @Nullable Double actualBearingDegrees,
             long nowMs,
             long fastChecksUntilMs,
             boolean singleInstructionMode
     ) {
+
         double smoothedAccuracyMeters = progressTracker.rememberAndResolveSmoothedAccuracyMeters(accuracyMeters, nowMs);
         float trustedAccuracyMeters = (float) smoothedAccuracyMeters;
         displayState.rememberSmoothedAccuracyMeters(trustedAccuracyMeters);
@@ -162,27 +169,21 @@ final class NavigationRouteEvaluator {
                 singleInstructionMode
         );
         if (directGuidance != null) {
+            progressTracker.etaHistory().reset();
             return directGuidance;
         }
         double expectedBearingDegrees = geometryState.expectedBearingDegrees(match);
-        float etaSpeedMps = progressTracker.resolveEtaSpeedMps(
-                filtered,
-                match.alongTrackMeters,
-                accuracyMeters,
-                likelyStationary
-        );
-        float etaAccelerationMps2 = progressTracker.resolveEtaAccelerationMps2(
-                filtered,
-                match.alongTrackMeters,
-                accuracyMeters,
-                likelyStationary
-        );
+        var etaMotion = progressTracker.etaHistory().resolve(
+                filtered, match.alongTrackMeters, accuracyMeters, confirmedMoving, nowMs);
+        float etaSpeedMps = etaMotion.speedMps;
+        float etaAccelerationMps2 = etaMotion.accelerationMps2;
         NavigationRouteProgressTracker.DirectionAssessment directionOfProgress = progressTracker.assessDirection(
                 match.alongTrackMeters,
                 nowMs
         );
-        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match)) {
+        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match, nowMs)) {
             deviationHandler.clearDeviationEvidence();
+            progressTracker.etaHistory().reset();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
@@ -194,10 +195,12 @@ final class NavigationRouteEvaluator {
 
         Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
                 filtered,
-                trustedAccuracyMeters
+                trustedAccuracyMeters,
+                nowMs
         );
         if (reachedIntermediateTrackIndex != null) {
             deviationHandler.clearDeviationEvidence();
+            progressTracker.etaHistory().reset();
             progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
             routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
@@ -218,6 +221,7 @@ final class NavigationRouteEvaluator {
                 directGuidanceEvaluator.shouldHoldRouteDeviationWhileStationary(likelyStationary)
         );
         if (deviationDecision.shouldRecalculateRoute()) {
+            progressTracker.etaHistory().reset();
             return NavigationRouteEvaluation.requestRecalculation(
                     deviationDecision.getRerouteNotice(),
                     NavigationRouteRecalculationReason.ROUTE_DEVIATION
@@ -225,10 +229,13 @@ final class NavigationRouteEvaluator {
         }
         if (deviationDecision.shouldKeepCurrentRoute()) {
             if (deviationDecision.isDeviationConfirmationPending()) {
+                progressTracker.etaHistory().reset();
                 return NavigationRouteEvaluation.waitForDeviationConfirmation(
                         deviationDecision.getPendingDeviationReason()
                 );
             }
+            progressTracker.etaHistory().recordTrustedProgress(filtered, match.alongTrackMeters,
+                    accuracyMeters, confirmedMoving, nowMs, deviationDecision.isStableOnRouteSample());
             return keepCurrentRoute(
                     match,
                     etaSpeedMps,
@@ -241,6 +248,7 @@ final class NavigationRouteEvaluator {
         }
 
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
+        progressTracker.etaHistory().record(filtered, match.alongTrackMeters, accuracyMeters, confirmedMoving, nowMs);
         return keepCurrentRoute(
                 match,
                 etaSpeedMps,
@@ -271,7 +279,7 @@ final class NavigationRouteEvaluator {
         double offTrackThresholdMeters = RouteDeviationPolicy.resolveOffTrackThresholdMeters(trustedAccuracyMeters);
         boolean trustedRouteMatch = rememberTrustedRouteMatchForReacquisition(match, offTrackThresholdMeters);
         NavigationRouteEvaluation reachedTarget =
-                reachedTargetWhileReacquiring(filtered, match, trustedAccuracyMeters, trustedRouteMatch);
+                reachedTargetWhileReacquiring(filtered, match, trustedAccuracyMeters, trustedRouteMatch, nowMs);
         if (reachedTarget != null) {
             return reachedTarget;
         }
@@ -313,12 +321,13 @@ final class NavigationRouteEvaluator {
             @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match match,
             float trustedAccuracyMeters,
-            boolean trustedRouteMatch
+            boolean trustedRouteMatch,
+            long nowMs
     ) {
         if (!trustedRouteMatch) {
             return null;
         }
-        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match)) {
+        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, match, nowMs)) {
             routeHistory.recordProgress(match);
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
@@ -328,7 +337,8 @@ final class NavigationRouteEvaluator {
         }
         Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
                 filtered,
-                trustedAccuracyMeters
+                trustedAccuracyMeters,
+                nowMs
         );
         return reachedIntermediateTrackIndex == null
                 ? null
@@ -347,10 +357,7 @@ final class NavigationRouteEvaluator {
             return startupWait;
         }
         AppLogger.i(TAG, "No active route loaded, requesting route calculation");
-        return NavigationRouteEvaluation.requestRecalculation(
-                null,
-                NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE
-        );
+        return NavigationRouteEvaluation.requestRecalculation(null, NavigationRouteRecalculationReason.NO_ACTIVE_ROUTE);
     }
 
     @Nullable
@@ -364,11 +371,7 @@ final class NavigationRouteEvaluator {
         }
         AppLogger.i(TAG, "Waiting for accurate startup NavigationLocation before first route calculation"
                 + " accuracyMeters=" + accuracyMeters);
-        return NavigationRouteEvaluation.keepRoute(
-                Collections.emptyList(),
-                STARTUP_LOCATION_WAIT_INTERVAL_MS,
-                false
-        );
+        return NavigationRouteEvaluation.keepRoute(Collections.emptyList(), STARTUP_LOCATION_WAIT_INTERVAL_MS, false);
     }
 
     @NonNull

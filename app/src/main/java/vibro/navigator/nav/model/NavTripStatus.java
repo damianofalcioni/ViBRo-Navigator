@@ -1,6 +1,7 @@
 package vibro.navigator.nav.model;
 
 import androidx.annotation.NonNull;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 public final class NavTripStatus {
     private static final long NO_ACCEPTED_FIX = -1L;
@@ -16,6 +17,7 @@ public final class NavTripStatus {
     public final int acceptedFixCount;
     public final boolean activeMovingInterval;
     public final boolean activeStationaryInterval;
+    public final long motionEvidenceExpiresAtElapsedMs;
     public final long screenOnDurationMs;
     public final long screenOffDurationMs;
     public final long lastScreenTransitionElapsedMs;
@@ -46,6 +48,7 @@ public final class NavTripStatus {
                 acceptedFixCount,
                 activeMovingInterval,
                 activeStationaryInterval,
+                lastAcceptedFixElapsedMs + NavigationMotionState.MAX_EVIDENCE_AGE_MS,
                 0L,
                 0L,
                 0L,
@@ -66,6 +69,7 @@ public final class NavTripStatus {
             int acceptedFixCount,
             boolean activeMovingInterval,
             boolean activeStationaryInterval,
+            long motionEvidenceExpiresAtElapsedMs,
             long screenOnDurationMs,
             long screenOffDurationMs,
             long lastScreenTransitionElapsedMs,
@@ -83,6 +87,7 @@ public final class NavTripStatus {
         this.acceptedFixCount = Math.max(0, acceptedFixCount);
         this.activeMovingInterval = activeMovingInterval;
         this.activeStationaryInterval = activeStationaryInterval;
+        this.motionEvidenceExpiresAtElapsedMs = motionEvidenceExpiresAtElapsedMs;
         this.screenOnDurationMs = Math.max(0L, screenOnDurationMs);
         this.screenOffDurationMs = Math.max(0L, screenOffDurationMs);
         this.lastScreenTransitionElapsedMs = Math.max(0L, lastScreenTransitionElapsedMs);
@@ -125,7 +130,7 @@ public final class NavTripStatus {
         if (!started || lastAcceptedFixElapsedMs == NO_ACCEPTED_FIX) {
             return 0L;
         }
-        return Math.max(0L, nowElapsedMs - lastAcceptedFixElapsedMs);
+        return Math.max(0L, Math.min(nowElapsedMs, motionEvidenceExpiresAtElapsedMs) - lastAcceptedFixElapsedMs);
     }
 
     private long openScreenIntervalMs(long nowElapsedMs) {

@@ -90,7 +90,7 @@ public class NavigationHeadingAcquisitionIntegrationTest {
 
         private void accept(long elapsedMs, Float bearingAccuracy, float positionAccuracy) {
             nowMs += elapsedMs;
-            longitude += 0.00004;
+            longitude += Math.max(0.00004, elapsedMs / 1_000.0 * 2 / 111_320);
             NavigationLocation location = new NavigationLocation("gps");
             location.setTime(nowMs, nowMs);
             location.setLatitude(0.0);

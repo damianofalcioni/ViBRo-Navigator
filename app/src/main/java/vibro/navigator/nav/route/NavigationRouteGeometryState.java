@@ -4,6 +4,8 @@ package vibro.navigator.nav.route;
 import vibro.navigator.nav.orientation.NavigationExpectedBearingResolver;
 import vibro.navigator.nav.orientation.NavigationRouteDisplayHeadingResolver;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.guidance.NavigationArrivalConfirmation;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -12,6 +14,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
 
 public final class NavigationRouteGeometryState {
+    private final NavigationArrivalConfirmation arrivalConfirmation = new NavigationArrivalConfirmation();
 
     @Nullable
     private GeoJsonRoute route;
@@ -24,12 +27,17 @@ public final class NavigationRouteGeometryState {
     private boolean roundTripDepartureObserved;
 
     public void reset() {
+        arrivalConfirmation.reset();
         route = null;
         polylineIndex = null;
         displayHeadingResolver = null;
         lastSegmentIndex = -1;
         roundTripRoute = false;
         roundTripDepartureObserved = false;
+    }
+
+    public void clearArrivalEvidence() {
+        arrivalConfirmation.reset();
     }
 
     public boolean hasActiveRoute() {
@@ -45,6 +53,7 @@ public final class NavigationRouteGeometryState {
     }
 
     public void loadRoute(@NonNull GeoJsonRoute newRoute, boolean roundTripRoute) {
+        arrivalConfirmation.reset();
         route = newRoute;
         polylineIndex = new PolylineIndex(newRoute.track);
         displayHeadingResolver = new NavigationRouteDisplayHeadingResolver(newRoute, polylineIndex);
@@ -106,28 +115,37 @@ public final class NavigationRouteGeometryState {
     }
 
     public static double resolveDestinationReachedRadiusMeters(float accuracyMeters) {
-        return RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters);
-    }
-
-    public boolean isWithinDestinationReachedRadius(@NonNull NavigationLocation location, float accuracyMeters) {
-        return isWithinDestinationReachedRadius(location, accuracyMeters, null);
+        return NavigationArrivalConfirmation.radiusMeters(accuracyMeters);
     }
 
     public boolean isWithinDestinationReachedRadius(
             @NonNull NavigationLocation location,
             float accuracyMeters,
-            @Nullable PolylineIndex.Match match
+            @Nullable PolylineIndex.Match match,
+            long nowMs
     ) {
+        if (!NavigationMotionState.isFresh(location.getElapsedRealtimeOrTimeMs(), nowMs)
+                || !NavigationArrivalConfirmation.hasUsableAccuracy(location, accuracyMeters)) {
+            arrivalConfirmation.reset();
+            return false;
+        }
         if (route == null || route.track.isEmpty()) {
             return false;
         }
         double destinationReachedRadiusMeters = resolveDestinationReachedRadiusMeters(accuracyMeters);
         if (!NavigationRouteGeometryMetrics.isInsideDestinationReachedRadius(route, location, accuracyMeters)) {
+            arrivalConfirmation.reset();
             rememberRoundTripDeparture(match, accuracyMeters, destinationReachedRadiusMeters);
             return false;
         }
-        return !roundTripRoute
+        boolean endEligible = !roundTripRoute
                 || (roundTripDepartureObserved && isNearRouteEnd(match, destinationReachedRadiusMeters));
+        if (!endEligible) {
+            arrivalConfirmation.reset();
+            return false;
+        }
+        return arrivalConfirmation.observe(location, accuracyMeters,
+                route.track.get(route.track.size() - 1), nowMs);
     }
 
     private boolean isNearRouteEnd(@Nullable PolylineIndex.Match match, double destinationReachedRadiusMeters) {

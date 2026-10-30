@@ -81,7 +81,7 @@ public class NavigationTurnStateTest {
     }
 
     @Test
-    public void evaluate_emitsApproachingIntermediateArrivalBeforeLaterTurn() {
+    public void evaluateWaitsForConfirmedIntermediateArrivalBeforeLaterTurn() {
         NavigationTurnState state = new NavigationTurnState();
         GeoJsonRoute route = new GeoJsonRoute(
                 Arrays.asList(
@@ -120,7 +120,7 @@ public class NavigationTurnStateTest {
         );
 
         assertEquals(NavigationTurnEvent.Type.PASSED, progress.turnEvents.get(0).type);
-        assertEquals(101, progress.turnEvents.get(progress.turnEvents.size() - 1).hint.command);
+        assertTrue(progress.turnEvents.stream().noneMatch(event -> event.hint.command == 101));
 
         state.onIntermediateDestinationReached(2);
         NavigationTurnState.Progress afterReached = state.evaluate(

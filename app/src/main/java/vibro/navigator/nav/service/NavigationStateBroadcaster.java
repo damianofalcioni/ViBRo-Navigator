@@ -59,7 +59,8 @@ public final class NavigationStateBroadcaster {
         if (runtime == null || !displayActive) {
             return true;
         }
-        if (!stateCache.canRefreshHeadingOnly(runtime.activeOrientationCue())) {
+        long nowMs = runtime.elapsedRealtimeMs();
+        if (!stateCache.canRefreshHeadingOnly(runtime.activeOrientationCue(), nowMs)) {
             return false;
         }
         NavState cachedState = stateCache.currentState();
@@ -71,7 +72,7 @@ public final class NavigationStateBroadcaster {
                 cachedState,
                 runtime.displayHeadingDegrees(),
                 runtime.displayHeadingAccuracyDegrees(),
-                runtime.elapsedRealtimeMs()
+                nowMs
         );
         stateCache.storeHeadingState(state);
         dispatch(state);

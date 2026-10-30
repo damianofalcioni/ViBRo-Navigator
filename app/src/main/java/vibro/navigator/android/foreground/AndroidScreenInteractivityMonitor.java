@@ -9,6 +9,8 @@ import android.os.PowerManager;
 import androidx.annotation.NonNull;
 
 import vibro.navigator.nav.foreground.NavigationScreenInteractivityMonitor;
+import vibro.navigator.logging.AppLogger;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 
 public final class AndroidScreenInteractivityMonitor implements NavigationScreenInteractivityMonitor {
 
@@ -23,8 +25,10 @@ public final class AndroidScreenInteractivityMonitor implements NavigationScreen
                 return;
             }
             if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                logScreen(false);
                 listener.onScreenInteractiveChanged(false);
             } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                logScreen(true);
                 listener.onScreenInteractiveChanged(true);
             }
         }
@@ -62,5 +66,11 @@ public final class AndroidScreenInteractivityMonitor implements NavigationScreen
     private boolean isScreenInteractive() {
         PowerManager powerManager = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
         return powerManager == null || powerManager.isInteractive();
+    }
+
+    private static void logScreen(boolean interactive) {
+        AppLogger.d("NavScreen", "Screen transition interactive=" + interactive
+                + " elapsedRealtimeMs=" + AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs()
+                + " uptimeMs=" + AndroidElapsedRealtimeClock.INSTANCE.uptimeMs());
     }
 }

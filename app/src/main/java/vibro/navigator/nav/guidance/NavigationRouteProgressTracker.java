@@ -1,13 +1,12 @@
 package vibro.navigator.nav.guidance;
 
-import vibro.navigator.nav.location.NavigationLocation;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Objects;
+import vibro.navigator.nav.location.NavigationLocation;
 
 public final class NavigationRouteProgressTracker {
 
@@ -16,11 +15,13 @@ public final class NavigationRouteProgressTracker {
 
     private final ArrayDeque<AccuracySample> recentAccuracySamples = new ArrayDeque<>();
     private final ArrayDeque<RouteProgressSample> recentAlongTrackSamples = new ArrayDeque<>();
+    private final NavigationRouteEtaHistory etaHistory = new NavigationRouteEtaHistory();
     private String motionProvider;
 
     public void reset() {
         recentAccuracySamples.clear();
         recentAlongTrackSamples.clear();
+        etaHistory.reset();
         motionProvider = null;
     }
 
@@ -46,79 +47,25 @@ public final class NavigationRouteProgressTracker {
         return (samples[middle - 1] + samples[middle]) / 2.0;
     }
 
-    public float resolveEtaSpeedMps(
-            @Nullable NavigationLocation location,
-            double alongTrackMeters,
-            float accuracyMeters,
-            boolean likelyStationary
-    ) {
-        return resolveEtaMotion(location, alongTrackMeters, accuracyMeters, likelyStationary).speedMps;
-    }
-
-    public float resolveEtaAccelerationMps2(
-            @Nullable NavigationLocation location,
-            double alongTrackMeters,
-            float accuracyMeters,
-            boolean likelyStationary
-    ) {
-        return resolveEtaMotion(location, alongTrackMeters, accuracyMeters, likelyStationary).accelerationMps2;
-    }
-
     @NonNull
-    public RouteMotionEstimate resolveEtaMotion(
-            @Nullable NavigationLocation location,
-            double alongTrackMeters,
-            float accuracyMeters,
-            boolean likelyStationary
-    ) {
-        if (location == null) {
-            return RouteMotionEstimate.stationary();
-        }
-        synchronizeMotionProvider(location.getProvider());
-        return RouteEtaMotionEstimator.resolve(
-                recentAlongTrackSamples,
-                location.getElapsedRealtimeOrTimeMs(),
-                alongTrackMeters,
-                accuracyMeters,
-                likelyStationary
-        );
+    public NavigationRouteEtaHistory etaHistory() {
+        return etaHistory;
     }
 
-    private void synchronizeMotionProvider(@Nullable String provider) {
+    public void beginLocation(NavigationLocation location, boolean confirmedMoving) {
+        recordProvider(location.getProvider());
+        if (!confirmedMoving) {
+            etaHistory.reset();
+        }
+    }
+
+    private void recordProvider(@Nullable String provider) {
         if (motionProvider != null && !Objects.equals(motionProvider, provider)) {
             // A correction between provider coordinate frames is not route progress.
             recentAlongTrackSamples.clear();
+            etaHistory.reset();
         }
         motionProvider = provider;
-    }
-
-    public float resolveEtaSpeedMps(
-            long locationTimeMs,
-            double alongTrackMeters,
-            float accuracyMeters,
-            boolean likelyStationary
-    ) {
-        return resolveEtaMotion(locationTimeMs, alongTrackMeters, accuracyMeters, likelyStationary).speedMps;
-    }
-
-    @NonNull
-    public RouteMotionEstimate resolveEtaMotion(
-            long locationTimeMs,
-            double alongTrackMeters,
-            float accuracyMeters,
-            boolean likelyStationary
-    ) {
-        if (likelyStationary) {
-            return RouteMotionEstimate.stationary();
-        }
-        pruneAlongTrackSamples(locationTimeMs);
-        return RouteEtaMotionEstimator.resolve(
-                recentAlongTrackSamples,
-                locationTimeMs,
-                alongTrackMeters,
-                accuracyMeters,
-                false
-        );
     }
 
     @NonNull
@@ -134,6 +81,9 @@ public final class NavigationRouteProgressTracker {
     }
 
     public void rememberAlongTrackSample(double alongTrackMeters, long nowMs) {
+        if (!recentAlongTrackSamples.isEmpty() && nowMs <= recentAlongTrackSamples.peekLast().timeMs) {
+            return;
+        }
         recentAlongTrackSamples.addLast(new RouteProgressSample(alongTrackMeters, nowMs));
         pruneAlongTrackSamples(nowMs);
     }

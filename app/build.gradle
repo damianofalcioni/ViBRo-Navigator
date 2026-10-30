@@ -67,6 +67,12 @@ android {
     }
 
     defaultConfig {
+        // Explicit input keeps source-archive/F-Droid builds reproducible without a Git checkout.
+        def sourceRevision = providers.gradleProperty("sourceRevision").getOrElse("unknown")
+        if (!(sourceRevision ==~ /[A-Za-z0-9._-]{1,64}/)) {
+            throw new GradleException("sourceRevision must be a short revision identifier")
+        }
+        buildConfigField "String", "SOURCE_REVISION", '"' + sourceRevision + '"'
         applicationId = "vibro.navigator"
         minSdk = 23
         targetSdk = 37

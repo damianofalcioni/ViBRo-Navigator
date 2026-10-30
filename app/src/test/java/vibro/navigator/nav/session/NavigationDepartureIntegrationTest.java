@@ -29,11 +29,11 @@ public class NavigationDepartureIntegrationTest {
         for (int i = 1; i <= 40; i++) {
             result = accept(session, 1_000 + i * 3_000L, i * 3.6, 1.2f, 19);
         }
-        assertFalse(session.isLikelyStationaryForOrientation());
+        assertFalse(session.isLikelyStationaryForOrientation(121_000));
         assertTrue(result.getSuggestedUpdateIntervalMs() > 3_000);
         accept(session, 124_000, 144, 0, 5);
         result = accept(session, 127_000, 144, 0, 5);
-        assertTrue(session.isLikelyStationaryForOrientation());
+        assertTrue(session.isLikelyStationaryForOrientation(127_000));
         assertEquals(3_000, result.getSuggestedUpdateIntervalMs());
         boolean detectedWrongDirection = false;
         for (int i = 1; i <= 10; i++) {

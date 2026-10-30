@@ -29,9 +29,10 @@ final class NavigationSessionDirectionDetailsBuilder {
     @NonNull
     List<String> build(
             @NonNull NavigationTextResources textResources,
-            @NonNull NavigationRequest currentRequest
+            @NonNull NavigationRequest currentRequest,
+            long nowMs
     ) {
-        NavigationDisplaySnapshot snapshot = buildSnapshot(textResources);
+        NavigationDisplaySnapshot snapshot = buildSnapshot(textResources, nowMs);
         return currentRequest.isStraightLine()
                 ? StraightLineNavigationGuidanceText.buildDetailLines(
                         currentRequest,
@@ -43,16 +44,18 @@ final class NavigationSessionDirectionDetailsBuilder {
     }
 
     @NonNull
-    private NavigationDisplaySnapshot buildSnapshot(@NonNull NavigationTextResources textResources) {
+    private NavigationDisplaySnapshot buildSnapshot(@NonNull NavigationTextResources textResources, long nowMs) {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         float displaySpeedMps = lastFiltered != null ? locationState.displaySpeedMps(lastFiltered) : 0f;
-        boolean likelyStationary = locationState.isLikelyStationary();
+        boolean likelyStationary = locationState.isLikelyStationary(nowMs);
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
                 : Float.MAX_VALUE;
         return NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
+                .motionState(locationState.motionState(nowMs))
+                .timing(-1, nowMs)
                 .build();
     }
 }

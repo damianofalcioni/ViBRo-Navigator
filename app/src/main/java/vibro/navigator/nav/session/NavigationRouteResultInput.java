@@ -21,6 +21,7 @@ final class NavigationRouteResultInput {
     public final float speedMps;
     public final boolean likelyStationary;
     public final long beganAt;
+    public final long appliedAtElapsedMs;
     public final boolean singleInstructionMode;
 
     NavigationRouteResultInput(
@@ -31,6 +32,7 @@ final class NavigationRouteResultInput {
             float speedMps,
             boolean likelyStationary,
             long beganAt,
+            long appliedAtElapsedMs,
             boolean singleInstructionMode
     ) {
         this.textResources = textResources;
@@ -40,6 +42,7 @@ final class NavigationRouteResultInput {
         this.speedMps = speedMps;
         this.likelyStationary = likelyStationary;
         this.beganAt = beganAt;
+        this.appliedAtElapsedMs = appliedAtElapsedMs;
         this.singleInstructionMode = singleInstructionMode;
     }
 }

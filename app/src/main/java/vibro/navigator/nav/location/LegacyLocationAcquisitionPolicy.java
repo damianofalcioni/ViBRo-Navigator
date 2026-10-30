@@ -13,6 +13,9 @@ final class LegacyLocationAcquisitionPolicy {
     private int goodFixes;
     private int poorFixes;
     private boolean stable;
+    private boolean gpsUsable;
+    private float gpsAccuracyMeters = Float.POSITIVE_INFINITY;
+    private final LegacyNetworkQuality networkQuality = new LegacyNetworkQuality();
 
     void reset() {
         lastGpsTimeMs = -1L;
@@ -20,9 +23,16 @@ final class LegacyLocationAcquisitionPolicy {
         goodFixes = 0;
         poorFixes = 0;
         stable = false;
+        gpsUsable = false;
+        gpsAccuracyMeters = Float.POSITIVE_INFINITY;
+        networkQuality.reset();
     }
 
     void record(NavigationLocation location, long nowMs, long gpsIntervalMs) {
+        if (NavigationLocationProviders.NETWORK_PROVIDER.equals(location.getProvider())) {
+            networkQuality.record(location, nowMs);
+            return;
+        }
         if (!NavigationLocationProviders.GPS_PROVIDER.equals(location.getProvider())) {
             return;
         }
@@ -32,7 +42,9 @@ final class LegacyLocationAcquisitionPolicy {
         }
         expire(nowMs, gpsIntervalMs);
         lastGpsTimeMs = timeMs;
-        if (!isUsable(location, nowMs)) {
+        gpsUsable = isUsable(location, nowMs);
+        gpsAccuracyMeters = location.getAccuracy();
+        if (!gpsUsable) {
             clearQuality();
             return;
         }
@@ -74,11 +86,15 @@ final class LegacyLocationAcquisitionPolicy {
 
     long networkIntervalMs(long nowMs, long gpsIntervalMs) {
         expire(nowMs, gpsIntervalMs);
-        return stable ? Math.max(gpsIntervalMs, NETWORK_INTERVAL_MS) : gpsIntervalMs;
+        boolean recentGps = gpsUsable && lastGpsTimeMs >= 0
+                && nowMs < lastGpsTimeMs + silenceTimeoutMs(gpsIntervalMs);
+        boolean mayBackOff = !networkQuality.isClearlyBetterThan(gpsAccuracyMeters);
+        return mayBackOff && (stable || (recentGps && networkQuality.isCoarse()))
+                ? Math.max(gpsIntervalMs, NETWORK_INTERVAL_MS) : gpsIntervalMs;
     }
 
     long recoveryDeadlineMs(long gpsIntervalMs) {
-        return stable ? lastGpsTimeMs + silenceTimeoutMs(gpsIntervalMs) : -1L;
+        return stable || networkQuality.isCoarse() ? lastGpsTimeMs + silenceTimeoutMs(gpsIntervalMs) : -1L;
     }
 
     private static long silenceTimeoutMs(long gpsIntervalMs) {

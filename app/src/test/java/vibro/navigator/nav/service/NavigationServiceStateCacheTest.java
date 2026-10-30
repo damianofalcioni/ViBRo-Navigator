@@ -20,17 +20,17 @@ public class NavigationServiceStateCacheTest {
         NavigationServiceStateCache cache = new NavigationServiceStateCache();
         CompassOrientationCue cue = new CompassOrientationCue(90f);
 
-        assertFalse(cache.canRefreshHeadingOnly(cue));
+        assertFalse(cache.canRefreshHeadingOnly(cue, 1_000));
 
         cache.storeStructuralState(state(), cue);
 
-        assertTrue(cache.canRefreshHeadingOnly(new CompassOrientationCue(90f)));
-        assertFalse(cache.canRefreshHeadingOnly(null));
-        assertFalse(cache.canRefreshHeadingOnly(new CompassOrientationCue(180f)));
+        assertTrue(cache.canRefreshHeadingOnly(new CompassOrientationCue(90f), 1_000));
+        assertFalse(cache.canRefreshHeadingOnly(null, 1_000));
+        assertFalse(cache.canRefreshHeadingOnly(new CompassOrientationCue(180f), 1_000));
 
         cache.clear();
 
-        assertFalse(cache.canRefreshHeadingOnly(cue));
+        assertFalse(cache.canRefreshHeadingOnly(cue, 1_000));
     }
 
     private static NavState state() {

@@ -176,6 +176,7 @@ public final class AppLogger {
                 .append(Thread.currentThread().getName())
                 .append("] ")
                 .append(sanitize(message))
+                .append(NavigationEvaluationTrace.suffix())
                 .append("\n");
     }
 

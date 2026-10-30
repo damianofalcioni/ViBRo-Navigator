@@ -11,6 +11,7 @@ import vibro.navigator.nav.guidance.NavigationRouteProgressTracker;
 import vibro.navigator.nav.guidance.NavigationTurnState;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMotionState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.RouteStartApproach;
@@ -179,15 +180,17 @@ final class NavigationRouteDirectGuidanceEvaluator {
         }
         PolylineIndex.Match routeBoundary =
                 directGuidanceState.activeRouteBeelineProgressMatch();
-        if (!wasActive) {
+        if (!wasActive || !routeHistory.hasPendingRerouteFixPath()) {
             PolylineIndex.Match immediatelyCompleted = completeReachableBeelines(
                     filtered,
-                    reachedRadiusMeters
+                    reachedRadiusMeters,
+                    trustedAccuracyMeters,
+                    nowMs
             );
             if (immediatelyCompleted != null) {
                 rememberCompletedBeelineProgress(immediatelyCompleted, nowMs);
                 routeHistory.skipDirectLegs(
-                        travelledMatchBeforeDirectLeg(routeMatch, routeBoundary),
+                        NavigationBeelineCompletionPolicy.travelledMatch(routeMatch, routeBoundary),
                         immediatelyCompleted
                 );
                 startFollowingDirectLegFromCurrentFix(filtered);
@@ -204,6 +207,10 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 );
             }
         }
+        if (NavigationBeelineCompletionPolicy.shouldHoldUntravelled(
+                directGuidanceState, routeHistory, filtered, reachedRadiusMeters)) {
+            return NavigationRouteEvaluation.keepRoute(Collections.emptyList(), DIRECT_GUIDANCE_INTERVAL_MS, true);
+        }
         routeHistory.startDirectLeg(
                 filtered,
                 routeBoundary,
@@ -212,7 +219,9 @@ final class NavigationRouteDirectGuidanceEvaluator {
         );
         PolylineIndex.Match completedMatch = completeReachableBeelines(
                 filtered,
-                reachedRadiusMeters
+                reachedRadiusMeters,
+                trustedAccuracyMeters,
+                nowMs
         );
         deviationHandler.clearDeviationEvidence();
         if (completedMatch == null) {
@@ -262,11 +271,12 @@ final class NavigationRouteDirectGuidanceEvaluator {
                     Collections.emptyList()
             );
         }
-        double timeSeconds = RouteStartApproach.estimateApproachTimeSeconds(
+        double timeSeconds = NavigationMotionState.isFresh(filtered.getElapsedRealtimeOrTimeMs(), nowMs)
+                ? RouteStartApproach.estimateApproachTimeSeconds(
                 distanceMeters,
                 speedMps,
                 likelyStationary
-        );
+        ) : Double.NaN;
         NavigationTurnEvent event = NavigationTurnEvent.beeline(distanceMeters, timeSeconds);
         return NavigationRouteEvaluation.beelineRecovery(
                 requestRecovery,
@@ -277,10 +287,16 @@ final class NavigationRouteDirectGuidanceEvaluator {
     @Nullable
     private PolylineIndex.Match completeReachableBeelines(
             @NonNull NavigationLocation filtered,
-            double reachedRadiusMeters
+            double reachedRadiusMeters,
+            float trustedAccuracy,
+            long nowMs
     ) {
         PolylineIndex.Match completedMatch = null;
         while (directGuidanceState.isRouteBeelineActive()) {
+            if (!NavigationBeelineCompletionPolicy.verifyTarget(
+                    directGuidanceState, intermediateArrivalTracker, arrivalDetector, filtered, trustedAccuracy, nowMs)) {
+                return completedMatch;
+            }
             PolylineIndex.Match nextCompleted =
                     directGuidanceState.completeRouteBeelineIfReached(
                             filtered,
@@ -292,16 +308,6 @@ final class NavigationRouteDirectGuidanceEvaluator {
             completedMatch = nextCompleted;
         }
         return completedMatch;
-    }
-
-    @NonNull
-    private static PolylineIndex.Match travelledMatchBeforeDirectLeg(
-            @NonNull PolylineIndex.Match routeMatch,
-            @NonNull PolylineIndex.Match routeBoundary
-    ) {
-        return routeMatch.alongTrackMeters <= routeBoundary.alongTrackMeters
-                ? routeMatch
-                : routeBoundary;
     }
 
     private void startFollowingDirectLegFromCurrentFix(
@@ -335,7 +341,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
             long fastChecksUntilMs,
             boolean singleInstructionMode
     ) {
-        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, completedMatch)) {
+        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, completedMatch, nowMs)) {
             return NavigationRouteEvaluation.keepRoute(
                     turnState.onDestinationReached(geometryState.route()),
                     NO_SUGGESTED_INTERVAL,
@@ -344,7 +350,8 @@ final class NavigationRouteDirectGuidanceEvaluator {
         }
         Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
                 filtered,
-                trustedAccuracyMeters
+                trustedAccuracyMeters,
+                nowMs
         );
         if (reachedIntermediateTrackIndex != null) {
             return NavigationRouteEvaluation.keepRoute(

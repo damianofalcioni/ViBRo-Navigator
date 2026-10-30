@@ -6,6 +6,7 @@ import vibro.navigator.nav.location.NavigationLocationController;
 import vibro.navigator.nav.location.NavigationLocationMotionModel;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationProviders;
+import vibro.navigator.nav.location.NavigationMotionState;
 import vibro.navigator.nav.startup.NavigationStartupLocationSelector;
 import vibro.navigator.nav.startup.NavigationStartupLocationSeed;
 
@@ -16,7 +17,6 @@ import vibro.navigator.nav.kalman.LatLonKalmanFilter;
 
 public final class NavigationSessionLocationState {
 
-    private static final float MIN_RAW_BEARING_SPEED_MPS = 1.0f;
 
     private final LatLonKalmanFilter kalman = new LatLonKalmanFilter();
     private final LiveLocationCoordinator liveLocationCoordinator = new LiveLocationCoordinator();
@@ -130,12 +130,13 @@ public final class NavigationSessionLocationState {
         }
 
         liveLocationCoordinator.markDispatched(selection, nowMs);
-        motionModel.recordFilteredLocation(filtered);
+        motionModel.recordLocation(selected, filtered);
         locationUpdateCount++;
         diagnostics.accepted(selected.getProvider());
         reacquisitionTracker.recordAccepted(nowMs);
         NavigationLocationDebugLogger.accepted(locationUpdateCount, selected, filtered,
                 motionModel.isLikelyStationary(), motionModel.speedMps(filtered), motionModel.needsDepartureChecks());
+        debugLogger.motion(motionModel.motionState(), motionModel.motionReason(), nowMs);
         return Update.accepted(filtered, reacquiringAfterLongGap);
     }
 
@@ -151,8 +152,20 @@ public final class NavigationSessionLocationState {
         return motionModel.isLikelyStationary();
     }
 
+    public boolean isLikelyStationary(long nowMs) {
+        return motionModel.motionState(nowMs) == NavigationMotionState.STATIONARY;
+    }
+
     boolean needsDepartureChecks() {
         return motionModel.needsDepartureChecks();
+    }
+
+    public boolean isMotionKnown(long nowMs) {
+        return motionModel.motionState(nowMs).isKnown();
+    }
+
+    public NavigationMotionState motionState(long nowMs) {
+        return motionModel.motionState(nowMs);
     }
 
     public void setActiveProviders(@NonNull String providers) {
@@ -175,14 +188,6 @@ public final class NavigationSessionLocationState {
 
     public float displaySpeedMps(@NonNull NavigationLocation location) {
         return motionModel.displaySpeedMps(location);
-    }
-
-    @Nullable
-    public Double actualBearingDegrees(@NonNull NavigationLocation location) {
-        if (location.hasBearing() && speedMps(location) > MIN_RAW_BEARING_SPEED_MPS) {
-            return (double) location.getBearing();
-        }
-        return motionModel.movementBearingDegrees(location);
     }
 
     @Nullable

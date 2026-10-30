@@ -40,11 +40,15 @@ public class NavigationBeelineOrientationCueTest {
 
         NavigationLocation stop = fix(STOP, 4_000L);
         evaluate(state, stop);
+        assertFalse(state.remainingIntermediateStops(Collections.emptyList()).isEmpty());
+        assertCue(compass(state, stop, false, 270.0), 0f);
+        stop = fix(STOP, 7_000L);
+        evaluate(state, stop);
         assertTrue(state.remainingIntermediateStops(Collections.emptyList()).isEmpty());
         assertTrue(state.isBeelineGuidanceActive());
         assertCue(compass(state, stop, false, 270.0), 180f);
 
-        NavigationLocation road = fix(ORIGIN, 7_000L);
+        NavigationLocation road = fix(ORIGIN, 10_000L);
         evaluate(state, road);
         assertFalse(state.isBeelineGuidanceActive());
         NavCompassState completed = compass(state, road, false, 90.0);
@@ -92,7 +96,7 @@ public class NavigationBeelineOrientationCueTest {
         assertCue(compass(state, fix(ORIGIN, 1_000L), false, 90.0), 90f);
         NavigationLocation reached = fix(roadStart, 4_000L);
         NavigationRouteEvaluation evaluation = state.evaluateLocation(
-                reached, 1.4f, false, 5f, 90.0, 4_000L, 0L, false);
+                reached, 1.4f, false, true, 5f, 90.0, 4_000L, 0L, false);
         assertTrue(state.isBeelineGuidanceActive());
         assertCue(compass(state, reached, false, 90.0), 0f);
         assertTrue(evaluation.turnEvents.stream().noneMatch(
@@ -132,12 +136,12 @@ public class NavigationBeelineOrientationCueTest {
                 NavigationRoutingMode.BROUTER, ORIGIN, stops, DESTINATION, "trekking", null,
                 Collections.emptyList(), 0);
         state.applyRouteResult(TestNavigationTextResources.metric(), request, route,
-                fix(ORIGIN, 1_000L), 1.4f, false, 1_000L);
+                fix(ORIGIN, 1_000L), 1.4f, false, 1_000L, 1_000L);
         return state;
     }
 
     private static void evaluate(NavigationSessionRouteState state, NavigationLocation location) {
-        state.evaluateLocation(location, 1.4f, false, 5f, 270.0, location.getTime(), 0L, false);
+        state.evaluateLocation(location, 1.4f, false, true, 5f, 270.0, location.getTime(), 0L, false);
     }
 
     private static NavCompassState compass(NavigationSessionRouteState state, NavigationLocation location,

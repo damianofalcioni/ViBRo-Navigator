@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.logging.AppLogger;
+import vibro.navigator.logging.NavigationEvaluationTrace;
 import vibro.navigator.android.power.AndroidNavigationBatteryLogger;
 
 public final class NavigationServiceLocationHandler implements NavigationLocationListener {
@@ -119,6 +120,13 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
     }
 
     private void handleLocation(@NonNull NavigationLocation location, boolean startupSeed) {
+        NavigationEvaluationTrace.run(location.getProvider(), location.getElapsedRealtimeOrTimeMs(),
+                () -> evaluateLocation(location, startupSeed));
+    }
+
+    private void evaluateLocation(@NonNull NavigationLocation location, boolean startupSeed) {
+        AppLogger.d(TAG, "Location evaluation received elapsedRealtimeMs=" + elapsedRealtimeClock.elapsedRealtimeMs()
+                + " uptimeMs=" + elapsedRealtimeClock.uptimeMs());
         Controllers controllers = this.controllers;
         if (controllers == null) {
             return;

@@ -9,20 +9,27 @@ public final class NavigationBatterySnapshot {
 
     public final int chargeCounterMicroAmpHours;
     public final int levelPercent;
+    public final long observedAtElapsedMs;
 
-    private NavigationBatterySnapshot(int chargeCounterMicroAmpHours, int levelPercent) {
+    private NavigationBatterySnapshot(int chargeCounterMicroAmpHours, int levelPercent, long observedAtElapsedMs) {
         this.chargeCounterMicroAmpHours = cleanChargeCounter(chargeCounterMicroAmpHours);
         this.levelPercent = cleanLevelPercent(levelPercent);
+        this.observedAtElapsedMs = observedAtElapsedMs;
     }
 
     @NonNull
     public static NavigationBatterySnapshot of(int chargeCounterMicroAmpHours, int levelPercent) {
-        return new NavigationBatterySnapshot(chargeCounterMicroAmpHours, levelPercent);
+        return of(chargeCounterMicroAmpHours, levelPercent, -1L);
+    }
+
+    @NonNull
+    public static NavigationBatterySnapshot of(int chargeCounterMicroAmpHours, int levelPercent, long observedAtElapsedMs) {
+        return new NavigationBatterySnapshot(chargeCounterMicroAmpHours, levelPercent, observedAtElapsedMs);
     }
 
     @NonNull
     public static NavigationBatterySnapshot unavailable() {
-        return new NavigationBatterySnapshot(UNKNOWN, UNKNOWN);
+        return new NavigationBatterySnapshot(UNKNOWN, UNKNOWN, -1L);
     }
 
     public boolean hasChargeCounter() {
@@ -32,11 +39,6 @@ public final class NavigationBatterySnapshot {
     public boolean hasLevelPercent() {
         return levelPercent >= 0 && levelPercent <= 100;
     }
-    public boolean hasSameReading(@NonNull NavigationBatterySnapshot other) {
-        return chargeCounterMicroAmpHours == other.chargeCounterMicroAmpHours
-                && levelPercent == other.levelPercent;
-    }
-
     private static int cleanChargeCounter(int value) {
         return value >= MIN_CHARGE_COUNTER_UAH ? value : UNKNOWN;
     }

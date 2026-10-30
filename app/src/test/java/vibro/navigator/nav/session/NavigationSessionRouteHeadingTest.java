@@ -292,7 +292,7 @@ public class NavigationSessionRouteHeadingTest {
                 session.currentRequest.routingMode, new LatLon(0, 0), Collections.emptyList(),
                 session.currentRequest.destination, "trekking", null, Collections.emptyList(), 1_000);
         session.components.routeState.applyRouteResult(TestNavigationTextResources.metric(), request,
-                route, session.getLastFilteredLocation(), 3f, false, 1_000L);
+                route, session.getLastFilteredLocation(), 3f, false, 1_000L, 1_000L);
     }
 
     private static void evaluateRoute(NavigationSession session, long nowMs) {

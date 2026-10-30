@@ -2,6 +2,7 @@ package vibro.navigator.nav.orientation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import androidx.annotation.NonNull;
@@ -30,7 +31,7 @@ import vibro.navigator.nav.time.ElapsedRealtimeClock;
 public class NavigationOrientationControllerTest {
 
     private static final long START_MS = 1_000L;
-    private static final long AFTER_DWELL_MS = 6_500L;
+    private static final long AFTER_DWELL_MS = 7_500L;
 
     @Test
     public void shouldDispatchCompassUiRequiresActiveRouteVisibleUiAndInteractiveScreen() {
@@ -60,6 +61,7 @@ public class NavigationOrientationControllerTest {
                 new PassiveCompassUiState()
         );
         NavigationSession session = straightLineSession();
+        clock.nowMs = START_MS + 1_000L;
         controller.start();
 
         controller.maybeSendStationaryOrientationNotification(session, foregroundController);
@@ -68,6 +70,39 @@ public class NavigationOrientationControllerTest {
 
         assertEquals(1, foregroundController.decisions.size());
         assertEquals(180.0, foregroundController.decisions.get(0).absoluteTurnDegrees(), 0.001);
+    }
+
+    @Test
+    public void freshCompassCannotAnnounceOrRetainOrientationFromAnExpiredStop() {
+        MutableClock clock = new MutableClock(START_MS + 1_000);
+        FakeHeadingMonitor monitor = new FakeHeadingMonitor();
+        RecordingForegroundController foreground = new RecordingForegroundController();
+        NavigationOrientationController controller = new NavigationOrientationController(
+                callback -> monitor.attach(callback), () -> 0, clock, Runnable::run, new PassiveCompassUiState());
+        controller.start();
+        controller.maybeSendStationaryOrientationNotification(straightLineSession(), foreground);
+        clock.nowMs = 12_001;
+        monitor.emit(sample(270, clock.nowMs));
+        assertTrue(foreground.decisions.isEmpty());
+        assertNull(controller.activeOrientationCue());
+    }
+
+    @Test
+    public void stopExpiryClearsAnOrientationCueAlreadyShown() {
+        MutableClock clock = new MutableClock(START_MS + 1_000);
+        FakeHeadingMonitor monitor = new FakeHeadingMonitor();
+        RecordingForegroundController foreground = new RecordingForegroundController();
+        NavigationOrientationController controller = new NavigationOrientationController(
+                callback -> monitor.attach(callback), () -> 0, clock, Runnable::run, new PassiveCompassUiState());
+        controller.start();
+        controller.maybeSendStationaryOrientationNotification(straightLineSession(), foreground);
+        clock.nowMs = AFTER_DWELL_MS;
+        monitor.emit(sample(270, clock.nowMs));
+        assertEquals(1, foreground.decisions.size());
+        clock.nowMs = 12_001;
+        monitor.emit(sample(270, clock.nowMs));
+        assertEquals(1, foreground.decisions.size());
+        assertNull(controller.activeOrientationCue());
     }
 
     @NonNull
@@ -91,6 +126,12 @@ public class NavigationOrientationControllerTest {
                 location(START_MS),
                 START_MS
         );
+        NavigationSessionResourceAdapter.onRawLocationChanged(
+                session,
+                TestNavigationTextResources.metric(),
+                location(START_MS + 1_000L),
+                START_MS + 1_000L
+        );
         return session;
     }
 
@@ -101,6 +142,7 @@ public class NavigationOrientationControllerTest {
         location.setLongitude(0.0);
         location.setTime(timeMs);
         location.setAccuracy(5f);
+        location.setSpeed(0f);
         return location;
     }
 

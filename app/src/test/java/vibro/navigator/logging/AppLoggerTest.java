@@ -58,6 +58,26 @@ public class AppLoggerTest {
     }
 
     @Test
+    public void fixTraceIsScopedNestedAndClearedEvenWhenEvaluationThrows() {
+        AppLogger.setLoggingEnabled(context, true);
+        assertEquals("", NavigationEvaluationTrace.suffix());
+        try {
+            NavigationEvaluationTrace.run("gps", 1_000L, () -> {
+                String outer = NavigationEvaluationTrace.suffix();
+                assertTrue(outer.contains("gps:1000:"));
+                assertTrue(AppLogger.buildLogPrefix("DEBUG", TEST_TAG, "event").toString().contains(outer));
+                NavigationEvaluationTrace.run("network", 2_000L,
+                        () -> assertTrue(NavigationEvaluationTrace.suffix().contains("network:2000:")));
+                assertEquals(outer, NavigationEvaluationTrace.suffix());
+                throw new IllegalStateException("callback failure");
+            });
+        } catch (IllegalStateException expected) {
+            assertEquals("callback failure", expected.getMessage());
+        }
+        assertEquals("", NavigationEvaluationTrace.suffix());
+    }
+
+    @Test
     public void importantMessagesFlushBufferedDebugWithoutPathLookup() throws Exception {
         AppLogger.setLoggingEnabled(context, true);
         Uri uri = Uri.parse(AppLogger.getLogFilePath(context));

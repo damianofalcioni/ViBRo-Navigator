@@ -28,6 +28,7 @@ public final class AndroidBatterySnapshotReader {
     private final Context context;
     @NonNull
     private final NavigationBatterySnapshotCache cache;
+    private final ElapsedRealtimeClock clock;
     @NonNull
     private final BroadcastReceiver batteryChangedReceiver = new BroadcastReceiver() {
         @Override
@@ -46,6 +47,7 @@ public final class AndroidBatterySnapshotReader {
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
         this.context = context.getApplicationContext();
+        clock = elapsedRealtimeClock;
         cache = new NavigationBatterySnapshotCache(elapsedRealtimeClock, MAXIMUM_SNAPSHOT_AGE_MS);
         start();
     }
@@ -118,7 +120,8 @@ public final class AndroidBatterySnapshotReader {
         BatteryManager batteryManager = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
         return NavigationBatterySnapshot.of(
                 chargeCounterMicroAmpHours(batteryManager),
-                levelPercent(batteryManager, batteryIntent)
+                levelPercent(batteryManager, batteryIntent),
+                clock.elapsedRealtimeMs()
         );
     }
 

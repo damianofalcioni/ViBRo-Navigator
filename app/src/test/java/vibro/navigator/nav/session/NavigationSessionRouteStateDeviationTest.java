@@ -1,6 +1,5 @@
 package vibro.navigator.nav.session;
 
-
 import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.RouteDeviationPolicy;
@@ -100,6 +99,7 @@ public class NavigationSessionRouteStateDeviationTest extends NavigationSessionR
                 location(0.0003, 0.0, 20_000L),
                 5f,
                 false,
+                true,
                 5f,
                 90.0,
                 20_000L,

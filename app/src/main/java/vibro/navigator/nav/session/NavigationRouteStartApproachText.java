@@ -20,11 +20,11 @@ final class NavigationRouteStartApproachText {
                 new LatLon(snapshot.lastFiltered.getLatitude(), snapshot.lastFiltered.getLongitude()),
                 target
         );
-        double timeSeconds = RouteStartApproach.estimateApproachTimeSeconds(
+        double timeSeconds = snapshot.hasFreshLocation() ? RouteStartApproach.estimateApproachTimeSeconds(
                 distanceMeters,
                 snapshot.speedMps,
                 snapshot.likelyStationary
-        );
+        ) : Double.NaN;
         return NavigationTextFormatter.formatTurnNotification(
                 snapshot.textResources,
                 new VoiceHint(0, RouteStartApproach.BEELINE_COMMAND, 0, 0.0, 0),

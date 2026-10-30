@@ -3,6 +3,7 @@ package vibro.navigator.nav.session;
 import vibro.navigator.nav.time.NavigationDisplayTime;
 import android.content.Context;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -25,6 +26,7 @@ public final class NavigationDisplaySnapshot {
     final float speedMps;
     final float displaySpeedMps;
     final boolean likelyStationary;
+    final NavigationMotionState motionState;
     final float accuracyMeters;
     @Nullable
     final Integer fixedSatelliteCount;
@@ -52,16 +54,19 @@ public final class NavigationDisplaySnapshot {
     private NavigationDisplaySnapshot(@NonNull Builder builder) {
         textResources = builder.textResources;
         lastFiltered = builder.lastFiltered;
-        speedMps = builder.speedMps;
-        displaySpeedMps = builder.displaySpeedMps;
-        likelyStationary = builder.likelyStationary;
+        boolean fresh = lastFiltered == null
+                || NavigationMotionState.isFresh(lastFiltered.getElapsedRealtimeOrTimeMs(), builder.nowElapsedMs);
+        speedMps = fresh ? builder.speedMps : 0f;
+        displaySpeedMps = fresh ? builder.displaySpeedMps : Float.NaN;
+        motionState = fresh ? builder.motionState : NavigationMotionState.UNKNOWN;
+        likelyStationary = motionState == NavigationMotionState.STATIONARY;
         accuracyMeters = builder.accuracyMeters;
         fixedSatelliteCount = builder.fixedSatelliteCount;
         acquiredFixCount = builder.acquiredFixCount;
         headingDegrees = builder.headingDegrees;
         headingAccuracyDegrees = builder.headingAccuracyDegrees;
         headingSource = builder.headingSource;
-        orientationCue = builder.orientationCue;
+        orientationCue = fresh ? builder.orientationCue : null;
         blockedPoints = builder.blockedPoints;
         nextEvaluationDeadlineElapsedMs = builder.nextEvaluationDeadlineElapsedMs;
         nowMs = builder.nowMs;
@@ -78,6 +83,11 @@ public final class NavigationDisplaySnapshot {
         return builder(new AndroidNavigationTextResources(context));
     }
 
+    boolean hasFreshLocation() {
+        return lastFiltered != null
+                && NavigationMotionState.isFresh(lastFiltered.getElapsedRealtimeOrTimeMs(), nowElapsedMs);
+    }
+
     @NonNull
     static Builder builder(@NonNull NavigationTextResources textResources) {
         return new Builder(textResources);
@@ -90,7 +100,7 @@ public final class NavigationDisplaySnapshot {
         private NavigationLocation lastFiltered;
         private float speedMps;
         private float displaySpeedMps;
-        private boolean likelyStationary;
+        private NavigationMotionState motionState = NavigationMotionState.UNKNOWN;
         private float accuracyMeters = Float.MAX_VALUE;
         @Nullable
         private Integer fixedSatelliteCount;
@@ -140,8 +150,14 @@ public final class NavigationDisplaySnapshot {
             this.lastFiltered = lastFiltered;
             this.speedMps = speedMps;
             this.displaySpeedMps = displaySpeedMps;
-            this.likelyStationary = likelyStationary;
+            this.motionState = likelyStationary ? NavigationMotionState.STATIONARY : NavigationMotionState.MOVING;
             this.accuracyMeters = accuracyMeters;
+            return this;
+        }
+
+        @NonNull
+        Builder motionState(@NonNull NavigationMotionState motionState) {
+            this.motionState = motionState;
             return this;
         }
 

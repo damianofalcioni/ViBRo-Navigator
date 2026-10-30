@@ -69,8 +69,10 @@ public class NativeBeelineRecoveryIntegrationTest {
         evaluate(state, 0);
         long context = state.beelineRecovery().context();
         NavigationLocation reached = fix(0.001, 4_000);
-        state.evaluateLocation(reached, 1.4f, false, 5, 90.0, 4_000, 0, false);
-        assertFalse(state.beelineRecovery().isCurrent(context, 4_000));
+        state.evaluateLocation(reached, 1.4f, false, true, 5, 90.0, 4_000, 0, false);
+        reached.setTime(7_000);
+        state.evaluateLocation(reached, 1.4f, false, true, 5, 90.0, 7_000, 0, false);
+        assertFalse(state.beelineRecovery().isCurrent(context, 7_000));
         assertTrue(state.remainingIntermediateStops(Collections.emptyList()).isEmpty());
     }
 
@@ -92,7 +94,7 @@ public class NativeBeelineRecoveryIntegrationTest {
     private static NavigationRouteEvaluation evaluate(NavigationSessionRouteState state, int step) {
         long now = 1_000 + step * 3_000L;
         NavigationLocation fix = fix(-step * 0.00005, now);
-        NavigationRouteEvaluation evaluation = state.evaluateLocation(fix, 1.4f, false, 5, 270.0, now, 0, false);
+        NavigationRouteEvaluation evaluation = state.evaluateLocation(fix, 1.4f, false, true, 5, 270.0, now, 0, false);
         state.recordRecalculationFixPath(fix, evaluation, false);
         return evaluation;
     }
