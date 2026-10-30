@@ -25,6 +25,11 @@ public class RecordedLocationSessionReliabilityTest {
         replay("gnss-poor-approach", "gps+network");
     }
 
+    @Test
+    public void currentRecordedLegacyHandoversRetainVerificationAndCannotCompleteACoarseArrival() throws Exception {
+        replay("legacy-handover-20261030", "gps+network");
+    }
+
     private static void replay(String name, String providers) throws Exception {
         List<LocationLogReplay.Sample> samples = LocationLogReplay.load(name);
         NavigationLocation last = samples.get(samples.size() - 1).location;

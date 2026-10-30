@@ -51,6 +51,32 @@ public class NavigationRoundTripDepartureQualityTest {
         assertTrue(observe(RETURN, 10_000, 5, 5));
     }
 
+    @Test
+    public void usableDepartureAfterTheShortStartSegmentsCanStillUnlockTheFinish() {
+        for (boolean poorFix : new boolean[] {false, true}) {
+            loadShortStartSegments();
+            assertFalse(observe(new LatLon(0, 0), 1_000, 5, 5));
+            if (poorFix) {
+                assertFalse(observe(new LatLon(0, .0003), 4_000, 75, 75));
+            }
+            assertFalse(observe(new LatLon(0, .0012), 7_000, 5, 5));
+            assertFalse(observe(RETURN, 10_000, 5, 5));
+            assertTrue("Good evidence beyond the start segments must permit a confirmed finish",
+                    observe(RETURN, 13_000, 5, 5));
+        }
+    }
+
+    @Test
+    public void distantPoorOrOffRouteFixCannotUnlockADenselySampledLoopFinish() {
+        for (LatLon point : new LatLon[] {new LatLon(0, .0012), new LatLon(-.001, .0012)}) {
+            loadShortStartSegments();
+            float accuracy = point.lat == 0 ? 75 : 5;
+            assertFalse(observe(point, 1_000, accuracy, accuracy));
+            assertFalse(observe(RETURN, 4_000, 5, 5));
+            assertFalse(observe(RETURN, 7_000, 5, 5));
+        }
+    }
+
     private void checkUnusableDeparture(float rawAccuracy, float trustedAccuracy) {
         load();
         assertFalse(observe(new LatLon(0, .0012), 1_000, rawAccuracy, trustedAccuracy));
@@ -63,6 +89,12 @@ public class NavigationRoundTripDepartureQualityTest {
 
     private void load() {
         state.loadRoute(new GeoJsonRoute(Arrays.asList(new LatLon(0, 0), new LatLon(0, .003),
+                new LatLon(.003, .003), new LatLon(0, 0)), Collections.emptyList(), 1_000, 1_140), true);
+    }
+
+    private void loadShortStartSegments() {
+        state.loadRoute(new GeoJsonRoute(Arrays.asList(new LatLon(0, 0), new LatLon(0, .0001),
+                new LatLon(0, .0002), new LatLon(0, .0003), new LatLon(0, .003),
                 new LatLon(.003, .003), new LatLon(0, 0)), Collections.emptyList(), 1_000, 1_140), true);
     }
 

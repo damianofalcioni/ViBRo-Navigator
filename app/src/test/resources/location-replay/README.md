@@ -1,7 +1,7 @@
 # Location replay fixtures
 
-These excerpts come from the 23 and 27 October 2026 recordings described in
-`plans/location-reliability/ASSESSMENT.md`. They contain relative monotonic times
+These excerpts come from the 23, 27 and 30 October 2026 recordings described in
+`plans/location-reliability/ASSESSMENT.md` and `BRANCH_REVIEW_20261030.md`. They contain relative monotonic times
 and local metre offsets, with each excerpt's first observation as the origin.
 They contain no absolute geographical coordinates. The fixture loader maps the
 offsets onto a local equatorial coordinate system for the existing Java policies.
@@ -17,6 +17,10 @@ requested interval is metadata, not a promise of actual callback spacing.
 - `fused-departure`: the older fused segment with prolonged stationary output.
 - `gnss-departure`: the newer GPS/network segment with prolonged stationary output.
 - `gnss-poor-approach`: the newer poor-quality approach around the reported incident.
+- `legacy-handover-20261030`: callbacks from 08:44:41 to the last complete callback
+  on 30 October, preserving GPS/network changes, receipt ages, coarse fixes and
+  selection candidates. The route target used by its session test is synthetic;
+  it does not claim a recorded destination or independently measured travel.
 
 Use `LocationLogReplay.load(name)` from JVM tests. These are component-policy replays of observed inputs; they do not reconstruct every original Android callback, selection decision, route or sensor event. Recorded positions and speeds
 are observations, not surveyed truth. Motion/filter accuracy assertions use

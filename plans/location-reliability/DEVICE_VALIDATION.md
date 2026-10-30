@@ -1,6 +1,6 @@
 # Phone/watch and power validation
 
-Prepared 27 October 2026; updated 29 October 2026. A Huawei PRA-LX1 (Android API 26) received an earlier GPlay Debug build and passed an application-startup smoke check. That installation predates the review corrections. No device was attached for the latest review; the route, phone/watch and power checks below remain pending.
+Prepared 27 October 2026; updated 30 October 2026. The user supplied a Huawei PRA-LX1 (Android API 26) GPlay Debug route recording matching the committed branch; partial observations are appended below. The subsequent Round Trip review correction has not been installed. Controlled route, phone/watch and power checks remain pending.
 
 ## Build and settings record
 
@@ -40,3 +40,35 @@ Use consumption totals only when counters have suitable scale, discharge directi
 ## Results to append
 
 For each run: conditions, verified source/build state, route section, physical observations, relevant trace IDs, phone/watch timings, actual sleep/wake latency, valid power readings and limitations. Keep personal coordinates out of committed test resources. Recommend provider defaults or claimed savings only after these observations support them.
+
+### 30 October recording
+
+The user supplied a Huawei PRA-LX1 GPlay Debug route recording and confirmed it
+matches branch `65de832d`. The log records three stationary suspensions, two
+fallback checks, one hardware motion wake and continuing screen-off location
+processing. Twelve correlated imminent alerts complete the app posting call in
+21–26 ms. These observations are partial field evidence, not independent turn
+crossings, phone/watch receipt times, worst-case wake latency or a controlled
+provider/power comparison. All 13 charge-counter samples remain implausible.
+See BRANCH_REVIEW_20261030.md for source attribution, counts and limitations.
+The review's subsequent Round Trip correction still needs installation and its
+own device check; the supplied recording precedes that correction.
+
+A follow-up clock audit found no added CPU deep-sleep time across the 187 paired
+elapsed/uptime readings during the recording (their difference varies by only
+1 ms and ends unchanged). Acquisition suspension and the motion-trigger callback
+were exercised, but deep-sleep wake latency remains untested. The first fallback
+has an explicit recovery service action; the second may have used the awake timer.
+This recording does not identify which process or device condition kept the CPU
+awake. The follow-up findings in BRANCH_REVIEW_20261030.md also record rapid
+notification replacement, late provider churn and the reroute-duration attribution.
+
+The connected-phone read-only inspection subsequently recovered the morning
+BatteryStats history. It confirms continuous CPU running during the route and
+resumed sleep shortly after GPS activity ended. Explicit route-calculation wake
+locks were brief (two acquisitions, about 1.178 seconds actual total, maximum
+0.733 seconds); no continuous explicit ViBRo CPU lock was identified. System
+location locks were attributed to the app, but the available aggregate history
+does not identify the exact kernel suspend blocker. The currently USB-powered
+phone also has stay-awake-while-plugged-in enabled. See PHONE_POWER_REVIEW_20261030.md
+for evidence, attribution limits and the next unplugged screen-off test.

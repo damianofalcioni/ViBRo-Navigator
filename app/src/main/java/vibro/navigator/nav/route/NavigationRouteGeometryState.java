@@ -90,7 +90,13 @@ public final class NavigationRouteGeometryState {
                 point,
                 NavigationRouteGeometryMetrics.routeStartAnchorWindowMeters(route, polylineIndex, accuracyMeters)
         );
-        return startMatch != null ? startMatch : match;
+        // Prefer the outbound leg near the shared start/finish. After sparse or
+        // poor fixes, the next usable observation may already be beyond these
+        // short segments; a distant start projection must not hide that departure.
+        // A finish match cannot establish departure or bypass the initial approach.
+        return startMatch != null && (startMatch.distanceToTrackMeters
+                <= RouteDeviationPolicy.resolveOffTrackThresholdMeters(accuracyMeters)
+                || isNearRouteEnd(match, resolveDestinationReachedRadiusMeters(accuracyMeters))) ? startMatch : match;
     }
 
     @Nullable
@@ -149,7 +155,8 @@ public final class NavigationRouteGeometryState {
     }
 
     private boolean isNearRouteEnd(@Nullable PolylineIndex.Match match, double destinationReachedRadiusMeters) {
-        if (route == null || match == null) {
+        // Both callers have already established a loaded route.
+        if (match == null) {
             return false;
         }
         double routeLengthMeters = NavigationRouteGeometryMetrics.routeLengthMeters(route, polylineIndex);

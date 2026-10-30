@@ -1,10 +1,10 @@
 # Location-reliability progress
 
-Last updated: 29 October 2026. The latest independent review prevented expired/future speed readings from permanently inflating trip maximum speed. Final verification: 4,166 passing tests, zero PMD violations, both debug lints and all four debug/release APK tasks passed. Current source label and artifact hashes are recorded in the latest verification entry below. Physical validation remains pending.
+Last updated: 30 October 2026. The current branch review reproduced and corrected a Round Trip start-anchor defect after missed departure observations, and added a relative-coordinate session replay from the user's matching 30 October build. Final verification passed: 4,180 tests, zero PMD violations, both flavor debug lints and four debug/release APK tasks. Controlled physical validation remains pending; BRANCH_REVIEW_20261030.md records the new partial device evidence.
 
-Baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The user subsequently authorized one sustained implementation run covering all software stages. That later instruction supersedes the original one-packet-at-a-time restriction for this chat. All changes remain uncommitted. Earlier log-analysis scripts and results are local ignored artifacts.
+Original analysis baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The software implementation and earlier reviews form baseline `65de832d` on `codex/location-reliability`; the 30 October review corrections and follow-up evidence are recorded below. The user authorized reviewing and fixing all plan stages except background exit. Earlier log-analysis scripts and results are local ignored artifacts; historical handoffs below retain their original revision/worktree descriptions.
 
-The baseline and original integrated checks passed. Independent review corrections now also pass both-flavor tests, lint, maintainability and debug/release builds. The work includes relative-coordinate session replays, raw-evidence motion assessment, clocked motion consumers, corroborated-motion filter lag limits, sparse ETA history, uncertainty-aware acquisition, independently confirmed and ordered arrival, network-quality backoff, timing diagnostics, and shared battery plausibility checks. The earlier Huawei PRA-LX1 installation predates these corrections; no phone was attached during the correction run. Physical accuracy, notification receipt, wake latency and power measurements remain pending.
+The baseline and earlier integrated checks passed. The work includes relative-coordinate session replays, raw-evidence motion assessment, clocked motion consumers, corroborated-motion filter lag limits, sparse ETA history, uncertainty-aware acquisition, independently confirmed and ordered arrival, network-quality backoff, timing diagnostics, and shared battery plausibility checks. The user confirmed that the 30 October Huawei PRA-LX1 recording matches the committed branch. It supplies partial sleep/wake and screen-off processing evidence; independently measured positioning accuracy, notification receipt, worst-case wake latency and power comparisons remain pending.
 States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CODE_COMPLETE means code and its stated local checks are finished; it does not imply physical-device validation. A recorded hardware-only gap may coexist with finished code. Never mark skipped/failed checks as passed.
 
 | Run | Objective | State | Handoff |
@@ -16,13 +16,13 @@ States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CO
 | 05 | Kalman lag and uncertainty | VERIFIED | Corroborated walking lag bound with or without trustworthy speed-accuracy metadata, including precise slow speeds below the native-only threshold; conservative output uncertainty retained |
 | 06 | Cadence-aware ETA history | VERIFIED | Confirmed-motion ETA history uses measurement time; separate receipt-time direction history retained |
 | 07 | Uncertainty-aware acquisition | VERIFIED | Age/quality/travel caps and current trustworthy native-speed protection; independent recovery, ramp and sparse-cadence coverage |
-| 08 | Confirmed arrival | VERIFIED | Arrival barriers across multi-hint updates, route application and co-located required stops |
+| 08 | Confirmed arrival | VERIFIED | Arrival barriers, ordered targets and recovery after missed Round Trip start samples, preserving initial approaches |
 | 09 | Independent network backoff | VERIFIED | Coarse-network probes and silence recovery, with comparative protection for a materially better network source |
 | 10 | Provider selection verification | VERIFIED | Existing selection/deduplication/correction policy retained; full regression coverage passed |
 | 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace changes complete; OS/watch presentation and wake timing unmeasured |
 | 12 | Battery telemetry validation | VERIFIED | Shared timed/percentage discontinuity checks, cached observation times and valid percentage plateaus |
-| 13 | Cross-feature integration and automated checks | VERIFIED | Latest trip-speed freshness audit: 4,166 passing tests, PMD, both debug lints and four APK tasks |
-| 14 | Physical-device comparison | NEEDS_DEVICE | Earlier APK installed on Huawei; review-corrected APK installation and route/watch/power trials pending |
+| 13 | Cross-feature integration and automated checks | VERIFIED | 30 October branch review: 4,180 passing tests, PMD, both debug lints and four APK tasks |
+| 14 | Physical-device comparison | NEEDS_DEVICE | Matching 30 October branch log reviewed; latest correction installation and controlled route/watch/power trials pending |
 
 ## Handoff entry format
 
@@ -594,3 +594,57 @@ These artifacts supersede all earlier hashes in this document:
 ```
 
 Output: `.codex-temp/reliability-review-final-20261029.txt`. Real positioning accuracy, Android/watch receipt, idle wake latency, phone/Auto visuals and provider energy comparison remain NEEDS_DEVICE. Use DEVICE_VALIDATION.md after the integrated build passes and a phone is connected with installation authorized.
+
+### Branch and current-log review — 30 October 2026
+
+- Scope: review and repair the branch against all software plan stages, excluding background exit. HEAD is `65de832d`; existing untracked `BACKGROUND_EXIT_20261030.md` is untouched. No commit, installation or publication was performed.
+- The user supplied `vibro-navigator-log-20261030083155.txt` and confirmed that its build exactly matches this branch. BRANCH_REVIEW_20261030.md records its hash, attribution, observations and limits. It provides partial real-device sleep/wake and screen-off processing evidence; independent accuracy, receipt, worst-case idle latency and provider/power comparisons remain NEEDS_DEVICE.
+- Reproduced a missed-departure defect on a Round Trip with short initial segments: later good fixes beyond them stayed projected onto the start, preventing departure and a subsequent valid finish. `NavigationRouteGeometryState.match` now permits an ordinary non-finish match beyond the initial corridor, while preserving finish anchoring before departure and the initial-beeline protection. Existing arrival freshness, accuracy, route-distance and independent confirmation gates remain intact. Removed a redundant private-helper route-null check; both callers already require a loaded route. No new abstraction, threshold, dependency, resource string, wake-up or permission was introduced.
+- Added two geometry regression methods for missed/sparse/poor departures and rejection of poor/off-route evidence, plus a session replay method using 30 scrubbed GPS/network callbacks from the new recording. SPECIFICATION.md records the matching contract; fixture documentation and DEVICE_VALIDATION.md are aligned.
+- Initial red command: `.\gradlew.bat testFdroidDebugUnitTest --tests '*NavigationRoundTripDepartureQualityTest' --console=plain --max-workers=2`; six tests, one expected failure. Evidence: `.codex-temp/reliability-roundtrip-red-20261030.txt`.
+- The draft fix passed its first focused tests, but the full suite caught `NavigationRouteStartApproachStateTest.roundTripRouteStartApproachIgnoresClosedLoopFinalSegment` in both flavors. That run was cancelled after the test results while later checks were pending; it is not successful verification. Evidence: `.codex-temp/reliability-review-final-20261030.txt`. The corrected policy retains a start match when the unrestricted alternative is the unobserved finish. A subsequent focused attempt exposed the class complexity limit; removing the redundant loaded-route check resolved it without suppression.
+- Final focused command: `.\gradlew.bat testFdroidDebugUnitTest --tests '*RecordedLocation*Test' --tests '*NavigationRoundTrip*Test' --tests '*NavigationArrival*Test' --tests '*NavigationRouteStartApproach*Test' --tests '*NavigationSessionRouteStateTest' complexityCheck --console=plain --max-workers=2`; BUILD SUCCESSFUL in 53 seconds, zero PMD violations. Evidence: `.codex-temp/reliability-review-focused-final-pass-20261030.txt`.
+- Final integrated command is running; actual results are appended below. Source/test/fixture hashes are saved in `.codex-temp/reliability-review-source-hashes-20261030.json`. A connected phone is available, but the review correction has not been installed.
+
+```powershell
+.\gradlew.bat testFdroidDebugUnitTest testGplayDebugUnitTest complexityCheck lintFdroidDebug lintGplayDebug assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease -PsourceRevision=65de832d-review-20261030 --continue --console=plain --max-workers=2
+```
+
+Output: `.codex-temp/reliability-review-final-verified-20261030.txt`.
+
+#### Final branch-review verification
+
+- The complete command above finished BUILD SUCCESSFUL, exit 0, in 20m 43s; 196 tasks (52 executed, 144 up to date). No production/test/fixture changes followed the successful focused check or the final integrated run.
+- F-Droid: 2,054 tests in 372 suites; GPlay: 2,126 tests in 385 suites; 4,180 tests total, zero failures/errors/skips. This includes the new missed-departure cases, the current-log replay and the existing closed-loop initial-approach regression in both flavors.
+- PMD: zero violations, no suppressions added. Both debug lints: zero errors and the same pre-existing `AppBundleLocaleChanges` and `AndroidGradlePluginVersion` warnings. Language splitting remains explicitly disabled in app/build.gradle; no unrelated locale/toolchain change was introduced. Existing Gradle deprecation notices remain; there were no new compiler/PMD/lint warnings.
+- All four APKs built successfully. All four generated BuildConfig files contain `SOURCE_REVISION=65de832d-review-20261030`, an explicit label for this uncommitted checkout. Counts, lint results, artifact sizes/times/hashes: `.codex-temp/reliability-review-verification-20261030.json`.
+- All four saved production/test/fixture hashes match the verified files. `git diff --check` passed; HEAD remains `65de832d659f4ca85b27bc435b11db4d787fa644`. The owned changes are the geometry state, two test classes, new scrubbed fixture, fixture README, specification, this status, device protocol and BRANCH_REVIEW_20261030.md. The inherited untracked background-exit document remains untouched.
+- A phone is connected, but no installation or physical trial was performed in this review. Next: offer the freshly built GPlay Debug APK for installation, then follow DEVICE_VALIDATION.md. The current code can be reviewed or committed independently of the remaining controlled field measurements. No further demonstrated software defect remains from this review.
+
+These artifacts supersede the earlier artifact hashes for the current checkout:
+
+| Flavor/build | Local artifact | SHA-256 |
+|---|---|---|
+| fdroid/debug | `app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk` | `EE794F18AAFC13C86848A39FFBE202A5A73A6B1B2882AD49725D7C4F15CEC694` |
+| fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `FC0AEF50AC12A7A6949911A44C7441806A550F3DEABB591E5E1B8D1AC885EDE9` |
+| gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `5A848CBB84FF87B77CB2B593AF1092EB6C0AFAB5C3515019E5B676B5D063C762` |
+| gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `FCCBB1729C0EEB57621AC87C4B576B80B619A541DBBBBFED2090386862FFB732` |
+
+### Follow-up questions on the recording — 30 October 2026
+
+- Re-examined the current recording for further useful findings. Added the precise notification overlap (same ID, 141 ms), nine late GPS/network handovers, unchanged elapsed-minus-uptime offset across 187 readings, and the distinction between BRouter calculation time and holding a speculative result for confirmation to BRANCH_REVIEW_20261030.md.
+- The shared-notification behavior predates the branch; provider churn is an observed confidence/acquisition cost, not proof of a wrong selected location. The clock evidence shows acquisition suspension without measurable CPU deep sleep in this run; DEVICE_VALIDATION.md now records that limitation explicitly. The first fallback has an explicit recovery service action, while the second may be the awake timer.
+- No production/test/fixture changes, builds, installations or commits were performed in this follow-up. The preceding successful verification and artifact hashes still apply. Future code changes should reproduce a demonstrated defect or define the desired notification handoff before altering notification priority or source hysteresis.
+
+### Connected-phone CPU investigation — 30 October 2026
+
+- User authorized checking CPU wakefulness on the connected phone. Read power, idle, retained BatteryStats history and app UID statistics without changing settings, resetting counters, launching navigation, installing builds or enabling extra recording.
+- PHONE_POWER_REVIEW_20261030.md records the evidence. The history covers the morning route and confirms continuous CPU running, Android GPS activity through approximately 08:46:09 and sleep roughly 13.4 seconds after that activity ended. This is correlation, not exact kernel-cause attribution. Explicit ViBRo route locks total about 1.178 seconds actual across two acquisitions (max 0.733 seconds), so no sustained explicit route-lock leak was found. Location-framework/Google-service locks were also charged to the app UID.
+- Current conditions are USB-powered, screen on, stay-on-while-plugged-in enabled, zero current PowerManager wake locks and no ViBRo Debug navigation service. Those conditions cannot reproduce unplugged screen-off idle behavior. Kernel wake-source files are unavailable to the non-root shell; no root access was attempted.
+- Raw system dumps remain ignored and local. DEVICE_VALIDATION.md now points to an unplugged screen-off stationary comparison of actual CPU/GPS state around subscription suspension. No production/test/fixture change or new automated test run was needed; prior verified source/APKs remain unchanged.
+
+### Commit handoff — 30 October 2026
+
+- The user requested committing the completed review on the current branch with a simple message. The commit includes the verified Round Trip fix, regression tests, scrubbed replay, specification and review/device-evidence documentation.
+- The pre-existing untracked BACKGROUND_EXIT_20261030.md remains excluded. Raw logs, phone dumps, scripts and build artifacts remain ignored and local.
+- No production/test/fixture changes followed the successful 4,180-test integrated verification. The recorded APK source label and hashes describe the checkout at build time; creating the source commit does not rebuild or relabel those APKs.
