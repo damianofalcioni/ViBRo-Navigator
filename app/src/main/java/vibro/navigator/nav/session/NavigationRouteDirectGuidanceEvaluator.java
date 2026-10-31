@@ -15,9 +15,9 @@ import vibro.navigator.nav.location.NavigationMotionState;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.RouteStartApproach;
+import vibro.navigator.nav.session.NavigationBeelineCompletionPolicy.Completion;
 
 final class NavigationRouteDirectGuidanceEvaluator {
-    private static final long NO_SUGGESTED_INTERVAL = -1L;
     private static final long DIRECT_GUIDANCE_INTERVAL_MS = 3_000L;
 
     @NonNull
@@ -29,21 +29,17 @@ final class NavigationRouteDirectGuidanceEvaluator {
     @NonNull
     private final NavigationRouteDeviationHandler deviationHandler;
     @NonNull
-    private final NavigationArrivalDetector arrivalDetector;
-    @NonNull
-    private final NavigationIntermediateArrivalTracker intermediateArrivalTracker;
-    @NonNull
     private final NavigationRouteDirectGuidanceState directGuidanceState;
     @NonNull
     private final NavigationRouteHistory routeHistory;
+    private final NavigationBeelineCompletionPolicy completionPolicy;
 
     NavigationRouteDirectGuidanceEvaluator(
             @NonNull NavigationRouteGeometryState geometryState,
             @NonNull NavigationTurnState turnState,
             @NonNull NavigationRouteProgressTracker progressTracker,
             @NonNull NavigationRouteDeviationHandler deviationHandler,
-            @NonNull NavigationArrivalDetector arrivalDetector,
-            @NonNull NavigationIntermediateArrivalTracker intermediateArrivalTracker,
+            @NonNull NavigationBeelineCompletionPolicy completionPolicy,
             @NonNull NavigationRouteDirectGuidanceState directGuidanceState,
             @NonNull NavigationRouteHistory routeHistory
     ) {
@@ -51,10 +47,9 @@ final class NavigationRouteDirectGuidanceEvaluator {
         this.turnState = turnState;
         this.progressTracker = progressTracker;
         this.deviationHandler = deviationHandler;
-        this.arrivalDetector = arrivalDetector;
-        this.intermediateArrivalTracker = intermediateArrivalTracker;
         this.directGuidanceState = directGuidanceState;
         this.routeHistory = routeHistory;
+        this.completionPolicy = completionPolicy;
     }
 
     @NonNull
@@ -181,17 +176,17 @@ final class NavigationRouteDirectGuidanceEvaluator {
         PolylineIndex.Match routeBoundary =
                 directGuidanceState.activeRouteBeelineProgressMatch();
         if (!wasActive || !routeHistory.hasPendingRerouteFixPath()) {
-            PolylineIndex.Match immediatelyCompleted = completeReachableBeelines(
+            Completion immediatelyCompleted = completionPolicy.completeReachable(
                     filtered,
                     reachedRadiusMeters,
                     trustedAccuracyMeters,
                     nowMs
             );
-            if (immediatelyCompleted != null) {
-                rememberCompletedBeelineProgress(immediatelyCompleted, nowMs);
+            if (immediatelyCompleted.match != null) {
+                rememberCompletedBeelineProgress(immediatelyCompleted.match, nowMs);
                 routeHistory.skipDirectLegs(
                         NavigationBeelineCompletionPolicy.travelledMatch(routeMatch, routeBoundary),
-                        immediatelyCompleted
+                        immediatelyCompleted.match
                 );
                 startFollowingDirectLegFromCurrentFix(filtered);
                 deviationHandler.clearDeviationEvidence();
@@ -217,20 +212,20 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 directGuidanceState.activeRouteBeelineTargetMatch(),
                 reachedRadiusMeters
         );
-        PolylineIndex.Match completedMatch = completeReachableBeelines(
+        Completion completed = completionPolicy.completeReachable(
                 filtered,
                 reachedRadiusMeters,
                 trustedAccuracyMeters,
                 nowMs
         );
         deviationHandler.clearDeviationEvidence();
-        if (completedMatch == null) {
+        if (completed.match == null) {
             return evaluateActiveBeeline(filtered, speedMps, likelyStationary, nowMs);
         }
-        rememberCompletedBeeline(completedMatch, nowMs);
+        rememberCompletedBeeline(completed.match, nowMs);
         startFollowingDirectLeg(filtered, reachedRadiusMeters);
         return evaluateAfterCompletedBeeline(
-                completedMatch,
+                completed,
                 filtered,
                 speedMps,
                 likelyStationary,
@@ -284,32 +279,6 @@ final class NavigationRouteDirectGuidanceEvaluator {
         );
     }
 
-    @Nullable
-    private PolylineIndex.Match completeReachableBeelines(
-            @NonNull NavigationLocation filtered,
-            double reachedRadiusMeters,
-            float trustedAccuracy,
-            long nowMs
-    ) {
-        PolylineIndex.Match completedMatch = null;
-        while (directGuidanceState.isRouteBeelineActive()) {
-            if (!NavigationBeelineCompletionPolicy.verifyTarget(
-                    directGuidanceState, intermediateArrivalTracker, arrivalDetector, filtered, trustedAccuracy, nowMs)) {
-                return completedMatch;
-            }
-            PolylineIndex.Match nextCompleted =
-                    directGuidanceState.completeRouteBeelineIfReached(
-                            filtered,
-                            reachedRadiusMeters
-                    );
-            if (nextCompleted == null) {
-                return completedMatch;
-            }
-            completedMatch = nextCompleted;
-        }
-        return completedMatch;
-    }
-
     private void startFollowingDirectLegFromCurrentFix(
             @NonNull NavigationLocation filtered
     ) {
@@ -332,7 +301,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
 
     @NonNull
     private NavigationRouteEvaluation evaluateAfterCompletedBeeline(
-            @NonNull PolylineIndex.Match completedMatch,
+            @NonNull Completion completed,
             @NonNull NavigationLocation filtered,
             float speedMps,
             boolean likelyStationary,
@@ -341,27 +310,13 @@ final class NavigationRouteDirectGuidanceEvaluator {
             long fastChecksUntilMs,
             boolean singleInstructionMode
     ) {
-        if (arrivalDetector.isDestinationReached(filtered, trustedAccuracyMeters, completedMatch, nowMs)) {
-            return NavigationRouteEvaluation.keepRoute(
-                    turnState.onDestinationReached(geometryState.route()),
-                    NO_SUGGESTED_INTERVAL,
-                    true
-            );
-        }
-        Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
-                filtered,
-                trustedAccuracyMeters,
-                nowMs
-        );
-        if (reachedIntermediateTrackIndex != null) {
-            return NavigationRouteEvaluation.keepRoute(
-                    turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex),
-                    DIRECT_GUIDANCE_INTERVAL_MS,
-                    !directGuidanceState.isRouteBeelineActive()
-            );
+        NavigationRouteEvaluation arrival = completionPolicy.arrivalEvaluation(
+                completed, filtered, trustedAccuracyMeters, nowMs, geometryState.route());
+        if (arrival != null) {
+            return arrival;
         }
         return keepCurrentRouteAfterCompletedBeeline(
-                completedMatch,
+                completed.match,
                 likelyStationary ? 0f : speedMps,
                 nowMs,
                 fastChecksUntilMs,

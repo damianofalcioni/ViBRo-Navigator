@@ -152,7 +152,7 @@ public final class AndroidBatterySnapshotReader {
         return Math.round((level * 100f) / scale);
     }
 
-    private static boolean isCharging(@NonNull Intent batteryIntent) {
+    static boolean isCharging(@NonNull Intent batteryIntent) {
         int status = batteryIntent.getIntExtra(
                 BatteryManager.EXTRA_STATUS,
                 BatteryManager.BATTERY_STATUS_UNKNOWN

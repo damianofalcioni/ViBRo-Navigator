@@ -706,3 +706,34 @@ These artifacts supersede the earlier hashes for this checkout:
 - User requested committing the completed follow-up with a simple message: `Improve location reliability`. Scope includes the verified software, regressions, specification/guidance and device-evidence handoff documents. The Round Trip correction remains unchanged.
 - The pre-existing untracked `BACKGROUND_EXIT_20261030.md` remains excluded. Personal logs, phone dumps, analysis scripts, verification records and APKs remain ignored and local.
 - No production/test changes followed the successful 4,208-test verification. The installed APK and its explicit source label/hash remain the verified pre-commit artifact; creating a source commit does not rebuild or relabel it. The remaining work is the controlled physical validation above.
+
+### Fresh branch audit — 30 October 2026
+
+- User requested checking the branch against the plan and fixing demonstrated gaps, excluding background exit. Baseline: `codex/location-reliability`, HEAD `98fc5aa7`. The only pre-existing working-tree item was untracked `BACKGROUND_EXIT_20261030.md`; it remains excluded and untouched. No commit or installation is authorized by this audit.
+- Reviewed the plan, accumulated implementation and cross-feature paths. New review: `AUDIT_20261030.md`. The software stages are substantially implemented; physical acceptance remains NEEDS_DEVICE for OEM idle latency, CPU/GPS cessation, real accuracy, phone/watch receipt and repeated provider-energy comparisons. ADB listed no device.
+- Reproduced two failures where confirming an intermediate beeline let the completion loop consume a nearby later stop or final beeline before that target's own arrival confirmation. `NavigationBeelineCompletionPolicy` now consumes the reached stop and carries its event before considering the next leg. Adjacent/co-located targets keep independent windows; short return-leg skips and existing route/export history rules are preserved. Added three regression methods, including repeated co-located stops followed by the final beeline. Existing arrival thresholds and quality/freshness rules remain unchanged.
+- Completed the planned battery source comparison: logs identify capacity-property percentage, broadcast percentage and signed difference, marking invalid/missing comparisons unknown. Raw counter/capacity values are read once and reused for validation. The logger shares plugged/charging/full interpretation with `AndroidBatterySnapshotReader`. No new polling, receiver, subscription or wake lock. Added API-23/28/33 regressions; disagreement does not itself invalidate telemetry or establish vendor units.
+- Baseline F-Droid suite passed from the existing Gradle cache. Before-fix reproductions: `.codex-temp/reliability-audit-arrival-red.txt` (2 expected failures) and `.codex-temp/reliability-audit-battery-red.txt` (9 expected failures across 3 API levels). Initial drafts passed behavioral tests but PMD required reducing evaluator complexity/coupling; completion/arrival handling was consolidated in the existing focused policy, without suppressions or baseline changes. The final focused arrival/beeline/export/battery/charge-counter tests and PMD passed in 51 seconds: `.codex-temp/reliability-audit-focused.txt`.
+- Updated SPECIFICATION.md and AGENT.md for the ordered completion contract and battery diagnostics. Saved 1,368 source/config/guidance/excluded-file hashes in `.codex-temp/reliability-audit-inputs.json` before final verification. No dependency, manifest, flavor, alarm, power-setting or background-exit change is included.
+- Full integrated verification is running with the following command. Completion results and artifact hashes will be appended below; this entry alone does not claim that run passed.
+
+```powershell
+.\gradlew.bat complexityCheck lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease -PsourceRevision=98fc5aa7-plan-audit-20261030 --continue --console=plain --warning-mode all --max-workers=2
+```
+
+Output: `.codex-temp/reliability-audit-final.txt`.
+
+#### Final fresh-audit verification
+
+- **BUILD SUCCESSFUL**, exit 0, in **16m 20s**; 196 tasks (54 executed, 142 up to date). F-Droid: **2,077 tests / 377 suites**. GPlay: **2,149 tests / 390 suites**. **4,226 total**, zero failures/errors/skips. Both full test reports include the new common regressions; this is not a filtered-test result.
+- PMD: zero violations. Both debug lints passed with no errors and only the two pre-existing `AppBundleLocaleChanges` and `AndroidGradlePluginVersion` advisories. Offline language packaging remains explicitly unsplit; no Play Core or toolchain change was introduced for those advisories. `--warning-mode all` also identifies the existing `Configuration.setVisible(boolean)` deprecation during plugin configuration. No new compiler/lint/PMD warning was introduced.
+- Both debug and both unsigned release APKs built, including R8 and release vital lint. All four generated BuildConfig source labels are `98fc5aa7-plan-audit-20261030`. Full test counts, lint issues, PMD count, source labels and APK hashes are saved in `.codex-temp/reliability-audit-verification.json`.
+- All **1,368** saved input hashes still match, including production/tests/resources/build configuration, AGENT.md, SPECIFICATION.md and the excluded background-exit note. The latter remains untracked with SHA-256 `38DEA2BE08EC66BBA7D3CD4D16CDF8761BC5453BCF6D559C2DC1B5343FCEF1E9`. No production/test edits followed final verification; only this result handoff and the audit note were updated. Common/F-Droid imports gained no GMS/Auto dependency; Android location/clock ownership is unchanged. `git diff --check` passed.
+- HEAD remains `98fc5aa70f6ce2739890e7ec3a2d574411a7db99`; fixes and audit notes are uncommitted. No phone was connected, no APK was installed, and no physical result is claimed. Next: offer a fresh verified-build installation when a phone is available, then execute DEVICE_VALIDATION.md with adjacent/co-located beeline targets included.
+
+| Flavor/build | Local artifact | SHA-256 |
+|---|---|---|
+| fdroid/debug | `app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk` | `bf8a7e0dd2ee9ff362ae2f03ad15e26212db3022bfbb2a1328e868e45bf00931` |
+| fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `c4def43d385d1d65fdabd8f50e27c5cd9fa89fb4721b970d1504f2e38d507dcf` |
+| gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `9dac44f20c79b2c471b82f066ddee77e023180e72e87c96274a16526d7a4ad54` |
+| gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `bec3e25a9a529383d799fcec65b401f3932c33c82caedbbea2dad28ec8db58d8` |

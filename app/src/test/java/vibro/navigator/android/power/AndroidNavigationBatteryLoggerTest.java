@@ -46,6 +46,8 @@ public class AndroidNavigationBatteryLoggerTest {
         Intent batteryIntent = new Intent(Intent.ACTION_BATTERY_CHANGED)
                 .putExtra(BatteryManager.EXTRA_PLUGGED, BatteryManager.BATTERY_PLUGGED_USB)
                 .putExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_CHARGING)
+                .putExtra(BatteryManager.EXTRA_LEVEL, 70)
+                .putExtra(BatteryManager.EXTRA_SCALE, 100)
                 .putExtra(BatteryManager.EXTRA_VOLTAGE, 3_900)
                 .putExtra(BatteryManager.EXTRA_TEMPERATURE, 310);
 
@@ -57,6 +59,10 @@ public class AndroidNavigationBatteryLoggerTest {
         };
         String measurements = new AndroidNavigationBatteryLogger(context).readMeasurements();
         assertTrue(measurements.contains("levelPercent=73"));
+        assertTrue(measurements.contains("levelPercentSource=capacity_property"));
+        assertTrue(measurements.contains("broadcastLevelPercent=70"));
+        assertTrue(measurements.contains("levelDifferencePercent=3"));
+        assertTrue(measurements.contains("chargeCounterStatus=charging"));
         assertTrue(measurements.contains("chargeCounterUah=2100000"));
         assertTrue(measurements.contains("currentNowUa=-170000"));
         assertTrue(measurements.contains("currentAverageUa=unknown"));
@@ -64,5 +70,35 @@ public class AndroidNavigationBatteryLoggerTest {
         assertTrue(measurements.contains("temperatureTenthsC=310"));
         assertTrue(measurements.contains("plugged=2"));
         assertTrue(measurements.contains("status=2"));
+    }
+
+    @Test
+    public void missingOrInvalidBroadcastPercentageRemainsUnavailable() {
+        for (Intent intent : new Intent[] {new Intent(Intent.ACTION_BATTERY_CHANGED),
+                new Intent(Intent.ACTION_BATTERY_CHANGED).putExtra(BatteryManager.EXTRA_LEVEL, 10)
+                        .putExtra(BatteryManager.EXTRA_SCALE, 0),
+                new Intent(Intent.ACTION_BATTERY_CHANGED).putExtra(BatteryManager.EXTRA_LEVEL, 101)
+                        .putExtra(BatteryManager.EXTRA_SCALE, 100)}) {
+            String measurements = new AndroidNavigationBatteryLogger(withBatteryIntent(intent)).readMeasurements();
+            assertTrue(measurements.contains("broadcastLevelPercent=unknown"));
+            assertTrue(measurements.contains("levelDifferencePercent=unknown"));
+        }
+    }
+
+    @Test
+    public void fullBatteryStatusIsChargingContextEvenWithoutAPluggedExtra() {
+        Intent intent = new Intent(Intent.ACTION_BATTERY_CHANGED)
+                .putExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_FULL);
+        String measurements = new AndroidNavigationBatteryLogger(withBatteryIntent(intent)).readMeasurements();
+        assertTrue(measurements.contains("chargeCounterStatus=charging"));
+    }
+
+    private Context withBatteryIntent(Intent intent) {
+        return new ContextWrapper(app) {
+            @Override
+            public Intent registerReceiver(BroadcastReceiver receiver, IntentFilter filter) {
+                return intent;
+            }
+        };
     }
 }

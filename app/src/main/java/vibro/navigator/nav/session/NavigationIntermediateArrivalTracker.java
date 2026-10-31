@@ -73,12 +73,16 @@ final class NavigationIntermediateArrivalTracker {
     }
 
     boolean verifyBeelineTarget(NavigationLocation location, float accuracy, LatLon target, long nowMs) {
+        return !isCurrentTarget(target) || arrivalConfirmation.observe(location, accuracy,
+                destinations.get(nextDestinationIndex).location, nowMs);
+    }
+
+    boolean isCurrentTarget(LatLon target) {
         if (nextDestinationIndex >= destinations.size()) {
-            return true;
+            return false;
         }
         LatLon stop = destinations.get(nextDestinationIndex).location;
-        return GeoMath.distanceMeters(stop.lat, stop.lon, target.lat, target.lon) > 1
-                || arrivalConfirmation.observe(location, accuracy, stop, nowMs);
+        return GeoMath.distanceMeters(stop.lat, stop.lon, target.lat, target.lon) <= 1;
     }
 
     @Nullable

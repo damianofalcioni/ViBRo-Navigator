@@ -20,6 +20,7 @@ import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 public final class AndroidNavigationBatteryLogger {
     private static final long SAMPLE_INTERVAL_MS = TimeUnit.MINUTES.toMillis(1);
     private static final String UNKNOWN = "unknown";
+    private static final int UNKNOWN_VALUE = Integer.MIN_VALUE;
     private final Context context;
     private long lastSampleMs = Long.MIN_VALUE;
     private final NavigationChargeCounterValidation counterValidation = new NavigationChargeCounterValidation();
@@ -56,9 +57,12 @@ public final class AndroidNavigationBatteryLogger {
             BatteryManager battery = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
             PowerManager power = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
             Intent intent = context.registerReceiver(null, new IntentFilter(Intent.ACTION_BATTERY_CHANGED));
-            return "powerReadings=unvalidated levelPercent=" + property(battery, BatteryManager.BATTERY_PROPERTY_CAPACITY)
-                    + " chargeCounterUah=" + property(battery, BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER)
-                    + " chargeCounterStatus=" + counterStatus(battery, intent)
+            int level = propertyValue(battery, BatteryManager.BATTERY_PROPERTY_CAPACITY);
+            int counter = propertyValue(battery, BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
+            return "powerReadings=unvalidated levelPercent=" + availableValue(level)
+                    + " levelPercentSource=capacity_property " + levelComparison(level, intent)
+                    + " chargeCounterUah=" + availableValue(counter)
+                    + " chargeCounterStatus=" + counterStatus(counter, level, intent)
                     + " currentNowUa=" + property(battery, BatteryManager.BATTERY_PROPERTY_CURRENT_NOW)
                     + " currentAverageUa=" + property(battery, BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE)
                     + " voltageMv=" + extra(intent, BatteryManager.EXTRA_VOLTAGE)
@@ -71,35 +75,52 @@ public final class AndroidNavigationBatteryLogger {
         }
     }
 
-    private String counterStatus(BatteryManager battery, Intent intent) {
-        if (battery == null) {
-            return "unsupported";
+    private String counterStatus(int counter, int level, Intent intent) {
+        boolean charging = intent != null && AndroidBatterySnapshotReader.isCharging(intent);
+        if (!NavigationBatterySnapshot.of(counter, -1).hasChargeCounter()) {
+            return counterValidation.record(counter, charging);
         }
-        try {
-            boolean charging = intent != null && (intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
-                    || intent.getIntExtra(BatteryManager.EXTRA_STATUS, 0) == BatteryManager.BATTERY_STATUS_CHARGING);
-            int counter = battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-            if (!NavigationBatterySnapshot.of(counter, -1).hasChargeCounter()) {
-                return counterValidation.record(counter, charging);
-            }
-            return counterValidation.record(NavigationBatterySnapshot.of(counter,
-                    battery.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY),
-                    AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs()), charging);
-        } catch (RuntimeException error) {
-            return "unavailable";
+        return counterValidation.record(NavigationBatterySnapshot.of(counter, level,
+                AndroidElapsedRealtimeClock.INSTANCE.elapsedRealtimeMs()), charging);
+    }
+
+    private static String levelComparison(int propertyLevel, Intent intent) {
+        int broadcastLevel = broadcastLevelPercent(intent);
+        boolean comparable = isPercent(propertyLevel) && isPercent(broadcastLevel);
+        return "broadcastLevelPercent=" + availableValue(broadcastLevel)
+                + " levelDifferencePercent=" + (comparable ? propertyLevel - broadcastLevel : UNKNOWN);
+    }
+
+    private static int broadcastLevelPercent(Intent intent) {
+        if (intent == null) {
+            return UNKNOWN_VALUE;
         }
+        int level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1);
+        int scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1);
+        return level >= 0 && scale > 0 && level <= scale ? Math.round(level * 100f / scale) : UNKNOWN_VALUE;
+    }
+
+    private static boolean isPercent(int value) {
+        return value >= 0 && value <= 100;
     }
 
     @NonNull
     private static String property(@Nullable BatteryManager battery, int property) {
+        return availableValue(propertyValue(battery, property));
+    }
+
+    private static String availableValue(int value) {
+        return value == UNKNOWN_VALUE ? UNKNOWN : Integer.toString(value);
+    }
+
+    private static int propertyValue(@Nullable BatteryManager battery, int property) {
         if (battery == null) {
-            return UNKNOWN;
+            return UNKNOWN_VALUE;
         }
         try {
-            int value = battery.getIntProperty(property);
-            return value == Integer.MIN_VALUE ? UNKNOWN : Integer.toString(value);
+            return battery.getIntProperty(property);
         } catch (RuntimeException e) {
-            return UNKNOWN;
+            return UNKNOWN_VALUE;
         }
     }
 
