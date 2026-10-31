@@ -43,7 +43,7 @@ public class NavigationTripStatsFormatterTest {
         assertTrue(details.contains("Max speed: 36 km/h"));
         assertTrue(details.contains("Screen on: 1 min 30 s"));
         assertTrue(details.contains("Screen off: 30 s"));
-        assertTrue(details.contains("Battery used: 12.5 mAh"));
+        assertTrue(details.contains("Battery used: ≈12.5 mAh"));
         assertTrue(details.contains("Battery drop: 3%"));
     }
 

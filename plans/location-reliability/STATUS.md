@@ -21,7 +21,7 @@ States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CO
 | 10 | Provider selection verification | VERIFIED | Accepted-provider tie preference; nine to seven replay handovers, unchanged freshness/offset gates; dispatch-gap and UNKNOWN tradeoffs recorded |
 | 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace and provider-local sleep confirmation with measurement/receipt independence complete; OS/watch presentation and wake timing unmeasured |
 | 12 | Battery telemetry validation | VERIFIED | Shared timed/percentage discontinuity checks, cached observation times and valid percentage plateaus |
-| 13 | Cross-feature integration and automated checks | VERIFIED | 31 October follow-up: 4,252 passing tests, PMD, both debug lints and four debug/release APK builds |
+| 13 | Cross-feature integration and automated checks | VERIFIED | 31 October battery follow-up: 4,310 passing tests, PMD, both debug lints and four debug/release APK builds |
 | 14 | Physical-device comparison | NEEDS_DEVICE | Matching 30 October branch log reviewed; latest correction installation and controlled route/watch/power trials pending |
 
 ## Handoff entry format
@@ -830,3 +830,12 @@ Output: `.codex-temp/plan-review-final-20261031.txt`.
 | fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `2A398DC7C42D87E18141E56388D03131039D9A88F60EE246CAF6B8E3D9E6CB7D` |
 | gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `1CA3FB959D1B48234A5C9747EBCB18D5EDDD2D4ED8F80916CE9E0826E00F093E` |
 | gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `E4F9300F4907D7766DE36869C3A15D1DE6616F215DFC617078D7552D659A4864` |
+
+## Generic battery behavior follow-up — 31 October 2026
+
+- User authorized a manufacturer-independent detector after the Huawei counter investigation. Changes remain uncommitted on `codex/location-reliability` at `fbd71bb4`.
+- Shared reader-owned raw observations and pure Java inference now feed diagnostics and trip accounting. Increasing/decreasing signed counters and micro/milli counter/current scales are learned independently, using sustained percentage evidence and shared discharge bounds. Confidence is explicitly inferred, never independently verified.
+- Charging, unknown power, gaps, chronology errors, counter reversals/jumps and contradictory interpretations break the epoch. Closely spaced observations cannot conceal candidate-scale rate violations. Trip mAh stays unavailable across interrupted epochs, and displayed estimates use an approximation marker. Percentage reliability is separate. No whitelist, persisted calibration, dependency, permission or scheduled work was added.
+- Final integrated verification passed in 10m 40s: 2,119 F-Droid + 2,191 GPlay tests (4,310 total), zero failures/errors/skips or PMD violations, both debug lints, and four debug/release APK builds including release R8/vital lint. Only prior lint advisories/Gradle deprecation remain. All 1,382 input hashes match. Four artifacts use `fbd71bb4-battery-behavior-20261031`; this is an explicit pre-commit label.
+- Exact command, architecture, limitations and verification evidence are recorded in BATTERY_BEHAVIOR_20261031.md; raw evidence/artifact hashes remain local under `.codex-temp`. Source, tests, resources, configuration, SPECIFICATION.md and AGENT.md were unchanged after final verification.
+- ADB lists no connected phone at completion. No installation, physical validation, settings change, commit or publication occurred. Long idle/recalibration behavior, calibrated accuracy and multiple-device trials remain NEEDS_DEVICE.

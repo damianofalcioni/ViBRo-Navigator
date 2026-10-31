@@ -33,6 +33,11 @@ public final class NavigationChargeCounterValidation {
         return current.hasChargeCounter() && "plausible_unvalidated".equals(rejectionReason(previous, current));
     }
 
+    static boolean plausibleCounterChange(double changeUah, long elapsedMs) {
+        return elapsedMs >= 0 && changeUah >= 0
+                && changeUah <= COUNTER_STEP_ALLOWANCE_UAH + MAX_DISCHARGE_UA * elapsedMs / 3_600_000.0;
+    }
+
     private static String rejectionReason(NavigationBatterySnapshot previous, NavigationBatterySnapshot current) {
         if (!previous.hasChargeCounter()) {
             return "plausible_unvalidated";
@@ -51,7 +56,7 @@ public final class NavigationChargeCounterValidation {
             return drop > previous.chargeCounterMicroAmpHours * 0.25;
         }
         long elapsedMs = current.observedAtElapsedMs - previous.observedAtElapsedMs;
-        return elapsedMs < 0 || drop > COUNTER_STEP_ALLOWANCE_UAH + MAX_DISCHARGE_UA * elapsedMs / 3_600_000.0;
+        return !plausibleCounterChange(drop, elapsedMs);
     }
 
     private static boolean disagreesWithLevel(NavigationBatterySnapshot previous, NavigationBatterySnapshot current, long drop) {

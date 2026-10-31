@@ -91,6 +91,10 @@ public final class NavigationServiceLocationHandler implements NavigationLocatio
         controllers = new Controllers(locationController, orientationController, foregroundController);
     }
 
+    AndroidNavigationBatteryLogger batteryLogger() {
+        return batteryLogger;
+    }
+
     public void onScreenInteractiveChanged(boolean interactive) {
         Controllers controllers = this.controllers;
         if (!interactive && !currentLocationSeedPolicy.isCurrentLocationSeedAllowed() && controllers != null) {

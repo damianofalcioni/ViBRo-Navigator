@@ -24,19 +24,25 @@ final class NavigationTripBatteryStats {
     void start(@NonNull NavigationBatterySnapshot snapshot) {
         initialSnapshot = snapshot;
         latestSnapshot = snapshot;
-        chargeCounterReliable = snapshot.hasChargeCounter();
+        chargeCounterReliable = snapshot.hasChargeCounter() || snapshot.hasObservedDischarge();
         levelPercentReliable = snapshot.hasLevelPercent();
     }
 
     void recordSnapshot(@NonNull NavigationBatterySnapshot snapshot) {
+        if (snapshot == latestSnapshot) {
+            return;
+        }
         chargeCounterReliable = chargeCounterReliable
-                && NavigationChargeCounterValidation.isPlausibleDischarge(latestSnapshot, snapshot);
+                && counterContinues(snapshot);
         levelPercentReliable = levelPercentReliable && snapshot.hasLevelPercent()
                 && snapshot.levelPercent <= latestSnapshot.levelPercent;
         latestSnapshot = snapshot;
     }
 
     float batteryUsedMilliAmpHours() {
+        if (chargeCounterReliable && initialSnapshot.observation != null) {
+            return latestSnapshot.estimatedUsedMilliAmpHours(initialSnapshot);
+        }
         if (!chargeCounterReliable || !initialSnapshot.hasChargeCounter()
                 || !latestSnapshot.hasChargeCounter()) {
             return Float.NaN;
@@ -44,6 +50,15 @@ final class NavigationTripBatteryStats {
         long usedMicroAmpHours = (long) initialSnapshot.chargeCounterMicroAmpHours
                 - latestSnapshot.chargeCounterMicroAmpHours;
         return usedMicroAmpHours >= 0L ? usedMicroAmpHours / 1000f : Float.NaN;
+    }
+
+    private boolean counterContinues(NavigationBatterySnapshot snapshot) {
+        if (initialSnapshot.observation != null) {
+            return snapshot.sameDischargeEpoch(initialSnapshot)
+                    && snapshot.observedAtElapsedMs >= latestSnapshot.observedAtElapsedMs;
+        }
+        return snapshot.observation == null
+                && NavigationChargeCounterValidation.isPlausibleDischarge(latestSnapshot, snapshot);
     }
 
     int batteryDropPercent() {

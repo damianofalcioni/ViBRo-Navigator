@@ -15,12 +15,13 @@ import java.util.concurrent.TimeUnit;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.power.NavigationBatterySnapshot;
 import vibro.navigator.nav.power.NavigationBatterySnapshotCache;
+import vibro.navigator.nav.power.NavigationBatteryBehaviorDetector;
+import vibro.navigator.nav.power.NavigationBatteryBehavior;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 
 public final class AndroidBatterySnapshotReader {
     private static final String TAG = "NavBattery";
-    private static final int UNKNOWN = Integer.MIN_VALUE;
     // Battery broadcasts are the primary refresh path; this only recovers from missed broadcasts.
     private static final long MAXIMUM_SNAPSHOT_AGE_MS = TimeUnit.MINUTES.toMillis(5L);
 
@@ -29,6 +30,8 @@ public final class AndroidBatterySnapshotReader {
     @NonNull
     private final NavigationBatterySnapshotCache cache;
     private final ElapsedRealtimeClock clock;
+    private final NavigationBatteryBehaviorDetector behaviorDetector = new NavigationBatteryBehaviorDetector();
+    private String diagnostics = "measurements=unavailable";
     @NonNull
     private final BroadcastReceiver batteryChangedReceiver = new BroadcastReceiver() {
         @Override
@@ -46,10 +49,16 @@ public final class AndroidBatterySnapshotReader {
             @NonNull Context context,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
-        this.context = context.getApplicationContext();
+        this(context, elapsedRealtimeClock, true);
+    }
+
+    AndroidBatterySnapshotReader(Context context, ElapsedRealtimeClock elapsedRealtimeClock, boolean observeChanges) {
+        this.context = observeChanges ? context.getApplicationContext() : context;
         clock = elapsedRealtimeClock;
         cache = new NavigationBatterySnapshotCache(elapsedRealtimeClock, MAXIMUM_SNAPSHOT_AGE_MS);
-        start();
+        if (observeChanges) {
+            start();
+        }
     }
 
     public void start() {
@@ -82,6 +91,8 @@ public final class AndroidBatterySnapshotReader {
             AppLogger.w(TAG, "Failed to stop observing battery changes", e);
         } finally {
             observingBatteryChanges = false;
+            behaviorDetector.reset();
+            cache.record(NavigationBatterySnapshot.unavailable());
         }
     }
 
@@ -91,6 +102,12 @@ public final class AndroidBatterySnapshotReader {
             record(batteryIntent());
         }
         return cache.current();
+    }
+
+    /** Called only by the existing throttled diagnostic sample, never a new timer. */
+    public String sampleDiagnostics() {
+        record(batteryIntent());
+        return diagnostics;
     }
 
     @Nullable
@@ -105,51 +122,21 @@ public final class AndroidBatterySnapshotReader {
 
     private void record(@Nullable Intent batteryIntent) {
         try {
-            cache.record(snapshotFrom(batteryIntent));
+            AndroidBatteryReadings readings = AndroidBatteryReadings.read(context, batteryIntent, clock.elapsedRealtimeMs());
+            NavigationBatteryBehavior behavior = behaviorDetector.record(readings.observation);
+            cache.record(NavigationBatterySnapshot.observed(readings.observation, behavior));
+            diagnostics = readings.details + " chargeCounterStatus=" + behavior.reason + " " + behavior.describe();
         } catch (RuntimeException e) {
             AppLogger.w(TAG, "Failed to read battery snapshot", e);
+            behaviorDetector.reset();
             cache.record(NavigationBatterySnapshot.unavailable());
+            diagnostics = "measurements=unavailable error=" + e.getClass().getSimpleName();
         }
-    }
-
-    @NonNull
-    private NavigationBatterySnapshot snapshotFrom(@Nullable Intent batteryIntent) {
-        if (batteryIntent == null || isCharging(batteryIntent)) {
-            return NavigationBatterySnapshot.unavailable();
-        }
-        BatteryManager batteryManager = (BatteryManager) context.getSystemService(Context.BATTERY_SERVICE);
-        return NavigationBatterySnapshot.of(
-                chargeCounterMicroAmpHours(batteryManager),
-                levelPercent(batteryManager, batteryIntent),
-                clock.elapsedRealtimeMs()
-        );
     }
 
     @NonNull
     private static IntentFilter batteryFilter() {
         return new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
-    }
-
-    private static int chargeCounterMicroAmpHours(@Nullable BatteryManager batteryManager) {
-        return batteryManager == null
-                ? UNKNOWN
-                : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER);
-    }
-
-    private static int levelPercent(@Nullable BatteryManager batteryManager, @NonNull Intent batteryIntent) {
-        int propertyLevel = batteryManager == null
-                ? UNKNOWN
-                : batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY);
-        return isPercent(propertyLevel) ? propertyLevel : levelPercentFromIntent(batteryIntent);
-    }
-
-    private static int levelPercentFromIntent(@NonNull Intent batteryIntent) {
-        int level = batteryIntent.getIntExtra(BatteryManager.EXTRA_LEVEL, UNKNOWN);
-        int scale = batteryIntent.getIntExtra(BatteryManager.EXTRA_SCALE, UNKNOWN);
-        if (level < 0 || scale <= 0) {
-            return UNKNOWN;
-        }
-        return Math.round((level * 100f) / scale);
     }
 
     static boolean isCharging(@NonNull Intent batteryIntent) {
@@ -162,7 +149,4 @@ public final class AndroidBatterySnapshotReader {
                 || status == BatteryManager.BATTERY_STATUS_FULL;
     }
 
-    private static boolean isPercent(int value) {
-        return value >= 0 && value <= 100;
-    }
 }

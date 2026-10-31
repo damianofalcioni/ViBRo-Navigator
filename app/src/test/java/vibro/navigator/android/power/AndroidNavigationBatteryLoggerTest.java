@@ -63,9 +63,11 @@ public class AndroidNavigationBatteryLoggerTest {
         assertTrue(measurements.contains("broadcastLevelPercent=70"));
         assertTrue(measurements.contains("levelDifferencePercent=3"));
         assertTrue(measurements.contains("chargeCounterStatus=charging"));
-        assertTrue(measurements.contains("chargeCounterUah=2100000"));
-        assertTrue(measurements.contains("currentNowUa=-170000"));
-        assertTrue(measurements.contains("currentAverageUa=unknown"));
+        assertTrue(measurements.contains("chargeCounterRaw=2100000"));
+        assertTrue(measurements.contains("currentNowRaw=-170000"));
+        assertTrue(measurements.contains("currentAverageRaw=unknown"));
+        assertTrue(measurements.contains("batteryBehavior=UNAVAILABLE"));
+        assertTrue(measurements.contains("actualUnits=unvalidated"));
         assertTrue(measurements.contains("voltageMv=3900"));
         assertTrue(measurements.contains("temperatureTenthsC=310"));
         assertTrue(measurements.contains("plugged=2"));
