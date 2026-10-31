@@ -1,5 +1,9 @@
 # Generic battery behavior detection — 31 October 2026
 
+Update: BATTERY_WINDOW_20261031.md records the subsequent phone trial and labeled
+partial-window display. The whole-trip interruption guard described here remains;
+valid later epochs can now be shown with their own explicit measured coverage.
+
 User-authorized follow-up to BATTERY_COUNTER_INVESTIGATION_20261031.md. The design
 uses observed behavior rather than a Huawei/device whitelist. Application changes
 are uncommitted on `codex/location-reliability`; the original investigation remains

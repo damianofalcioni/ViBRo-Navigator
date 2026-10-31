@@ -24,6 +24,7 @@ public final class NavTripStatus {
     public final boolean screenInteractive;
     public final float batteryUsedMilliAmpHours;
     public final int batteryDropPercent;
+    @NonNull public final NavBatteryEstimate batteryEstimate;
 
     public NavTripStatus(
             boolean started,
@@ -77,6 +78,32 @@ public final class NavTripStatus {
             float batteryUsedMilliAmpHours,
             int batteryDropPercent
     ) {
+        this(started, startedAtElapsedMs, lastAcceptedFixElapsedMs, travelledDistanceMeters,
+                movingDurationMs, stationaryDurationMs, maxSpeedMps, acceptedFixCount, activeMovingInterval,
+                activeStationaryInterval, motionEvidenceExpiresAtElapsedMs, screenOnDurationMs, screenOffDurationMs,
+                lastScreenTransitionElapsedMs, screenInteractive, NavBatteryEstimate.wholeTrip(batteryUsedMilliAmpHours),
+                batteryDropPercent);
+    }
+
+    public NavTripStatus(
+            boolean started,
+            long startedAtElapsedMs,
+            long lastAcceptedFixElapsedMs,
+            double travelledDistanceMeters,
+            long movingDurationMs,
+            long stationaryDurationMs,
+            float maxSpeedMps,
+            int acceptedFixCount,
+            boolean activeMovingInterval,
+            boolean activeStationaryInterval,
+            long motionEvidenceExpiresAtElapsedMs,
+            long screenOnDurationMs,
+            long screenOffDurationMs,
+            long lastScreenTransitionElapsedMs,
+            boolean screenInteractive,
+            @NonNull NavBatteryEstimate batteryEstimate,
+            int batteryDropPercent
+    ) {
         this.started = started;
         this.startedAtElapsedMs = startedAtElapsedMs;
         this.lastAcceptedFixElapsedMs = lastAcceptedFixElapsedMs;
@@ -92,7 +119,8 @@ public final class NavTripStatus {
         this.screenOffDurationMs = Math.max(0L, screenOffDurationMs);
         this.lastScreenTransitionElapsedMs = Math.max(0L, lastScreenTransitionElapsedMs);
         this.screenInteractive = screenInteractive;
-        this.batteryUsedMilliAmpHours = sanitizeBatteryUsed(batteryUsedMilliAmpHours);
+        this.batteryEstimate = batteryEstimate;
+        this.batteryUsedMilliAmpHours = batteryEstimate.wholeTrip ? batteryEstimate.milliAmpHours : Float.NaN;
         this.batteryDropPercent = batteryDropPercent >= 0
                 ? batteryDropPercent
                 : UNKNOWN_BATTERY_DROP_PERCENT;
@@ -140,7 +168,4 @@ public final class NavTripStatus {
         return Math.max(0L, nowElapsedMs - lastScreenTransitionElapsedMs);
     }
 
-    private static float sanitizeBatteryUsed(float value) {
-        return Float.isFinite(value) && value >= 0f ? value : Float.NaN;
-    }
 }

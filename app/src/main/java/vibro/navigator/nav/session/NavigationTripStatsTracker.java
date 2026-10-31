@@ -122,7 +122,7 @@ final class NavigationTripStatsTracker {
                 screenOffDurationMs,
                 lastScreenTransitionElapsedMs,
                 screenInteractive,
-                batteryStats.batteryUsedMilliAmpHours(),
+                batteryStats.estimate(),
                 batteryStats.batteryDropPercent()
         );
     }

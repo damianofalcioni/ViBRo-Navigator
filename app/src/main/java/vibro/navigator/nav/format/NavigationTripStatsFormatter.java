@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavTripStatus;
+import vibro.navigator.nav.model.NavBatteryEstimate;
 
 public final class NavigationTripStatsFormatter {
     private NavigationTripStatsFormatter() {
@@ -138,9 +139,13 @@ public final class NavigationTripStatsFormatter {
             @NonNull NavigationTextResources resources,
             @NonNull NavTripStatus status
     ) {
-        return status.started && Float.isFinite(status.batteryUsedMilliAmpHours)
-                ? resources.getString(R.string.format_nav_battery_used_mah, status.batteryUsedMilliAmpHours)
-                : resources.getString(R.string.nav_status_unavailable);
+        NavBatteryEstimate estimate = status.batteryEstimate;
+        if (!status.started || !Float.isFinite(estimate.milliAmpHours)) {
+            return resources.getString(R.string.nav_status_unavailable);
+        }
+        String amount = resources.getString(R.string.format_nav_battery_used_mah, estimate.milliAmpHours);
+        return estimate.wholeTrip ? amount : resources.getString(R.string.format_nav_battery_partial_usage,
+                amount, formatDuration(resources, estimate.coveredDurationMs()));
     }
 
     @NonNull

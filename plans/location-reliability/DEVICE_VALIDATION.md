@@ -163,3 +163,17 @@ the smoke check. No navigation or power trial was started automatically.
 For the repeat, obtain stable eligible GPS/fused fixes before starting the
 unplugged, screen-off window. The previous network-only run cannot validate
 stationary suspension. Keep power settings and battery history unchanged.
+
+## Battery estimate recovery after an interrupted counter
+
+Use the current verified build and a fresh unplugged navigation session. If the
+raw counter reverses near zero after USB charging, the full-trip total must stay
+unavailable. Once the new epoch reaches INFERRED, trip statistics should show a
+localized partial mAh estimate with measured duration. Compare that duration with
+the battery observation window, allowing for broadcasts between logged samples.
+Open/reopen the details dialog: its covered duration must not advance merely from
+UI reads. A later reset, missing observation or charging transition must hide the
+partial value until another uninterrupted inferred window is available. Never
+add separate windows into a claimed complete-trip total. Preserve the log and
+battery history; source readings remain unvalidated estimates. The 31 October case
+and regression are described in BATTERY_WINDOW_20261031.md.

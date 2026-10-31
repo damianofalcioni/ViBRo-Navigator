@@ -584,4 +584,5 @@
     <string name="confirm_restore_default_configuration">Återställ alla inställningar till standardvärdena?</string>
     <string name="about_setting_restore_defaults_info">Detta omfattar språk, tema, API-nycklar och utdatamappar. Sparade rutter och sökhistorik behålls.</string>
     <string name="msg_default_configuration_restored">Standardkonfiguration återställd</string>
+    <string name="format_nav_battery_partial_usage">%1$s (delvis, under %2$s)</string>
 </resources>

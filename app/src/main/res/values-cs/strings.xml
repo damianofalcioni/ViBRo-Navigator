@@ -592,4 +592,5 @@
     <string name="confirm_restore_default_configuration">Obnovit výchozí hodnoty všech nastavení?</string>
     <string name="about_setting_restore_defaults_info">To zahrnuje jazyk, motiv, klíče API a výstupní složky. Uložené trasy a historie hledání budou zachovány.</string>
     <string name="msg_default_configuration_restored">Výchozí konfigurace obnovena</string>
+    <string name="format_nav_battery_partial_usage">%1$s (částečně, za %2$s)</string>
 </resources>
