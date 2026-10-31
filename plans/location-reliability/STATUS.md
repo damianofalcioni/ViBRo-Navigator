@@ -1,6 +1,6 @@
 # Location-reliability progress
 
-Last updated: 31 October 2026. The latest audit against `a0fc0eac` repaired confirmed slow-speed display and provider-local stationary-sleep confirmation. Final checks passed: 4,240 tests, zero PMD violations, both debug lints and all four debug/release APK builds. Earlier Round Trip, arrival-ordering, notification/provider and battery fixes remain covered. The software stages are substantially implemented; controlled physical validation remains pending. No phone was connected for this audit, and its build was not installed. Background exit remains excluded. See AUDIT_20261031.md and the final handoff below.
+Last updated: 31 October 2026. The follow-up audit against `2c14b027` repaired measurement/receipt-time independence and clustered-relocation invalidation in stationary-sleep confirmation. Final checks passed: 4,252 tests, zero PMD violations, both debug lints and all four debug/release APK builds. Earlier slow-speed display, provider-local sleep, Round Trip, arrival-ordering, notification/provider and battery fixes remain covered. The software stages are substantially implemented; controlled physical validation remains pending. No phone was connected for this audit, and its build was not installed. Background exit remains excluded. See AUDIT_20261031_FOLLOWUP.md and the final handoff below.
 
 Original analysis baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The software implementation and earlier reviews form baseline `65de832d` on `codex/location-reliability`; the Round Trip correction is committed in `a455ce9f`. The follow-up and device evidence are recorded below. The user authorized reviewing and fixing all plan stages except background exit. Earlier log-analysis scripts and results are local ignored artifacts; historical handoffs below retain their original revision/worktree descriptions.
 
@@ -19,9 +19,9 @@ States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CO
 | 08 | Confirmed arrival | VERIFIED | Arrival barriers, ordered targets and recovery after missed Round Trip start samples, preserving initial approaches |
 | 09 | Independent network backoff | VERIFIED | Coarse-network probes and silence recovery, with comparative protection for a materially better network source |
 | 10 | Provider selection verification | VERIFIED | Accepted-provider tie preference; nine to seven replay handovers, unchanged freshness/offset gates; dispatch-gap and UNKNOWN tradeoffs recorded |
-| 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace and provider-local sleep confirmation complete; OS/watch presentation and wake timing unmeasured |
+| 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace and provider-local sleep confirmation with measurement/receipt independence complete; OS/watch presentation and wake timing unmeasured |
 | 12 | Battery telemetry validation | VERIFIED | Shared timed/percentage discontinuity checks, cached observation times and valid percentage plateaus |
-| 13 | Cross-feature integration and automated checks | VERIFIED | 31 October audit: 4,240 passing tests, PMD, both debug lints and four debug/release APK builds |
+| 13 | Cross-feature integration and automated checks | VERIFIED | 31 October follow-up: 4,252 passing tests, PMD, both debug lints and four debug/release APK builds |
 | 14 | Physical-device comparison | NEEDS_DEVICE | Matching 30 October branch log reviewed; latest correction installation and controlled route/watch/power trials pending |
 
 ## Handoff entry format
@@ -770,3 +770,63 @@ Output: `.codex-temp/plan-review-final-20261031.txt`.
 | fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `344D38104D9438B877C8AF69B6CF29CCEED4FE8DFC9F22257DC74375B7D7AAA5` |
 | gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `7C51956D5FAB1EBD10C5E502318C05ACA8A9B8E2A3713836CBD5BF5438669018` |
 | gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `61504F5D8A875ED1CA6268E49CDC9E24C9BFC0B5A469FAC207C3E55ABAAB3D76` |
+
+## 31 October 2026 — Independent follow-up at `2c14b027`
+
+- Scope: reviewed the branch against REFERENCE_PLAN.md/RUNS.md and `main`
+  (`0c463631`), excluding background exit. The user authorized repairs and a
+  simple final commit. Detailed findings are in AUDIT_20261031_FOLLOWUP.md.
+- Repaired two stationary-sleep gaps. Delayed callbacks could supply independent
+  receipt time without independent measurement time or enough observed duration.
+  Fresh eligible relocations inside sample spacing could leave earlier stop
+  evidence intact. Both clocks now require two-second sample spacing and the full
+  confirmation duration; origin contradictions reset full confirmation, the
+  trigger and learned cadence before sample admission.
+- Five new JVM regressions cover measurement/receipt independence, duration and
+  clustered relocations during initial/fallback confirmation. Four fail against
+  unchanged production. One additional service regression verifies both legacy
+  and fused subscription/recovery behavior and subsequent valid re-suspension.
+  Earlier sparse/speedless, handover, motion-wake and lifecycle coverage remains.
+- Updated SPECIFICATION.md, AGENT.md and DEVICE_VALIDATION.md. No Android API,
+  dependency, alarm, permission, notification or wake-lock policy changed.
+- Focused tests passed. The first focused PMD run found an unused helper
+  parameter after the refactor; it was removed, and focused tests/PMD passed.
+  Evidence: `.codex-temp/sleep-review-red-20261031.txt`,
+  `sleep-review-focused-20261031.txt` and
+  `sleep-review-focused-final-20261031.txt`.
+- Final integrated command:
+  `.\gradlew.bat testFdroidDebugUnitTest testGplayDebugUnitTest complexityCheck lintFdroidDebug lintGplayDebug assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease -PsourceRevision=2c14b027-sleep-review-20261031 --console=plain --warning-mode all`.
+  **BUILD SUCCESSFUL in 7m 43s**, 196 tasks (55 executed, 141 up-to-date).
+- **2,090 F-Droid tests and 2,162 GPlay tests: 4,252 total**, zero failures,
+  errors or skips. Both flavors include the five new timing regressions and the
+  service regression. Zero PMD violations. Both debug lints and all four builds,
+  including both R8/release vital lint tasks, passed. Only the pre-existing
+  `AppBundleLocaleChanges`/`AndroidGradlePluginVersion` advisories and
+  plugin-configuration `Configuration.setVisible(boolean)` deprecation remain.
+  Language splitting remains disabled for offline language selection; the
+  toolchain was unchanged.
+- All **1,370 saved input hashes** match after verification, including the
+  excluded note. No production/test/configuration edits followed the final run;
+  only audit/status documentation was completed. All four BuildConfig files
+  contain `2c14b027-sleep-review-20261031`, identifying this pre-commit checkout.
+  Exact checks and artifact hashes are saved locally in
+  `.codex-temp/sleep-review-verification-20261031.json`. `git diff --check` passed.
+- The pre-existing untracked `BACKGROUND_EXIT_20261030.md` remains untouched and
+  excluded, SHA-256
+  `38DEA2BE08EC66BBA7D3CD4D16CDF8761BC5453BCF6D559C2DC1B5343FCEF1E9`.
+  Raw logs, analysis scripts, reports and APKs remain ignored and local.
+- Final commit message: `Fix stationary sleep confirmation`. Its scope is the
+  demonstrated repairs, regressions and aligned guidance/audit. The verified APKs
+  retain their explicit pre-commit source label; committing does not relabel them.
+- ADB lists no connected phone. No installation, physical trial, power-setting
+  change or device-history reset occurred. Real positioning accuracy, CPU/GPS
+  cessation, worst-case departure/wake latency, phone/watch receipt and controlled
+  energy comparisons remain NEEDS_DEVICE. Continue with DEVICE_VALIDATION.md and
+  the latest artifacts below, including measurement-versus-receipt inspection.
+
+| Flavor/build | Local artifact | SHA-256 |
+|---|---|---|
+| fdroid/debug | `app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk` | `372824C60A43305DF14DC888CD5C08A2A00B039D12CAB54DCE82BDD770A3796C` |
+| fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `2A398DC7C42D87E18141E56388D03131039D9A88F60EE246CAF6B8E3D9E6CB7D` |
+| gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `1CA3FB959D1B48234A5C9747EBCB18D5EDDD2D4ED8F80916CE9E0826E00F093E` |
+| gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `E4F9300F4907D7766DE36869C3A15D1DE6616F215DFC617078D7552D659A4864` |

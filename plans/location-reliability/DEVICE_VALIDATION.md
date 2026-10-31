@@ -30,6 +30,8 @@ On a device with a supported significant-motion wake-up trigger, observe actual 
 
 Include a nearby fused-to-legacy handover during stop confirmation and during a fallback check. Confirm that `provider_change` starts a full new stop window and cadence learning, with active acquisition until the new provider independently qualifies. A raw/filtered pair from different observations must log `observation_mismatch` and cannot authorize sleep. Clustered handovers and mismatched pairs also have deterministic JVM coverage; do not force a physical provider failure merely to manufacture them.
 
+Inspect both measurement and receipt times during stop and fallback confirmation. Delayed delivery must not stretch a short measurement sequence into a complete stop window, and clustered measurements delivered separately must not re-suspend acquisition. A fresh eligible fix outside the fixed stop origin must restart full confirmation even inside the two-second sample-spacing window. JVM/service regressions cover these cases for legacy and fused subscriptions; physical delivery and wake latency still need observation.
+
 Do not assume a 30-second inexact alarm will dispatch on time in idle. If measured departure delay is unacceptable, retain active acquisition for the affected configuration while investigating. Report maximum/typical observed latency and any missed departure, rather than claiming guaranteed wake-up.
 
 ## Provider/power comparison

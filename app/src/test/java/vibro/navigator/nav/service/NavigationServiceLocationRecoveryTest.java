@@ -155,6 +155,32 @@ public class NavigationServiceLocationRecoveryTest {
     }
 
     @Test
+    public void delayedMeasurementClusterKeepsFallbackAcquisitionActive() {
+        for (boolean useFused : new boolean[] {false, true}) {
+            Fixture fixture = new Fixture(useFused);
+            String providerName = useFused ? "fused" : GPS_PROVIDER;
+            fixture.enableSleep();
+            for (long time = 1_000; time <= 22_000; time += 3_000) {
+                fixture.acceptStoppedObservation(providerName, time, time);
+            }
+            assertTrue(fixture.controller.isStationarySuspended());
+            fixture.clock.nowMs = 52_000;
+            fixture.recovery.recoverIfStalled();
+            for (int index = 0; index < 3; index++) {
+                fixture.acceptStoppedObservation(providerName, 52_000 + index, 52_000 + index * 2_000);
+                assertFalse(fixture.controller.isStationarySuspended());
+            }
+            assertTrue(fixture.alarm.deadlineMs > fixture.clock.nowMs);
+            assertEquals(null, fixture.scheduler.pending);
+            fixture.acceptStoppedObservation(providerName, 58_000, 58_000);
+            assertFalse(fixture.controller.isStationarySuspended());
+            fixture.acceptStoppedObservation(providerName, 60_000, 60_000);
+            assertTrue(fixture.controller.isStationarySuspended());
+            assertEquals(90_000, fixture.alarm.deadlineMs);
+        }
+    }
+
+    @Test
     public void alarmFailureOrMissingSensorKeepsAcquisitionRunning() {
         Fixture fixture = new Fixture(false);
         fixture.enableSleep();
@@ -287,6 +313,14 @@ public class NavigationServiceLocationRecoveryTest {
             location.setTime(time, time);
             location.setAccuracy(10f);
             recovery.onAcceptedFix(location, location, true);
+        }
+
+        void acceptStoppedObservation(String providerName, long measurementMs, long receiptMs) {
+            clock.nowMs = receiptMs;
+            NavigationLocation location = new NavigationLocation(providerName);
+            location.setTime(measurementMs, measurementMs);
+            location.setAccuracy(5);
+            recovery.onAcceptedFix(location, new NavigationLocation(location), true);
         }
 
         void stableGps() {
