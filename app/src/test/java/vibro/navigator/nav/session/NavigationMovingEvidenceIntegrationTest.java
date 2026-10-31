@@ -77,6 +77,10 @@ public class NavigationMovingEvidenceIntegrationTest {
                 if (i >= 15) {
                     assertTrue(session.components.locationState.motionState(time).isMoving());
                     assertFalse(session.isLikelyStationaryForOrientation(time));
+                    var state = NavigationSessionResourceAdapter.buildState(session,
+                            TestNavigationTextResources.metric(), -1, time, null, null, null);
+                    assertEquals(0.3f, state.gpsStatus.telemetry.speedMps, 0);
+                    assertEquals(0.3f, state.tripStatus.maxSpeedMps, 0);
                 }
             }
             assertTrue(session.components.tripStatsTracker.snapshot().movingDurationMs > 0);

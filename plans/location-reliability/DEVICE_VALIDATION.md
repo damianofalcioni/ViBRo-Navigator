@@ -1,6 +1,6 @@
 # Phone/watch and power validation
 
-Prepared 27 October 2026; updated 30 October 2026. The user confirmed the morning Huawei PRA-LX1 (API 26) GPlay Debug recording matches `65de832d`, before the Round Trip correction now in `a455ce9f`. The verified follow-up was installed at 12:51 on 30 October and passed a startup smoke check; navigation, phone/watch and power validation remain pending.
+Prepared 27 October 2026; updated 31 October 2026. The user confirmed the morning Huawei PRA-LX1 (API 26) GPlay Debug recording matches `65de832d`, before the Round Trip correction now in `a455ce9f`. The verified follow-up was installed at 12:51 on 30 October and passed a startup smoke check; navigation, phone/watch and power validation remain pending.
 
 ## Build and settings record
 
@@ -16,6 +16,7 @@ Use the verified APK and current hash from the latest STATUS.md handoff. GPlay D
 4. Compare regular long-interval fixes on a long straight leg with the poor-quality final approach. Long intervals should remain possible on the former; the latter should request earlier verification. Include a brief reversal during frequent acquisition: backward route progress must discard forward live ETA evidence even when the fix interval is less than two seconds, and subsequent forward progress must rebuild it without old acceleration.
 5. Repeat pause/resume, provider toggling, task backgrounding, screen off/on and stopping navigation. Old callbacks must not resume a stopped session or produce old guidance.
 6. With fixed one-second acquisition, verify that sustained walking retains live ETA once positional progress clears its uncertainty threshold. Repeat slow walking with three-second callbacks; small per-callback steps must not permanently force route-model timing. A stop or reversal must still suppress old travel timing. On a Round Trip with overlapping start/end geometry, arrival must gather a new eligible confirmation window after the match ceases to qualify as the loop finish.
+7. After independent motion confirmation at 0.25–0.35 m/s, verify that GPS display speed and trip maximum retain that supported slow speed in Route and Straight Line modes. Repeat without native speed where the device permits. Unconfirmed slow drift must still be suppressed; wait for sufficient raw progress and usable filtered uncertainty before assessing this display check.
 
 ## Locate notification delay
 
@@ -26,6 +27,8 @@ Record whether a delay was visible on the phone, watch or both. Capture a system
 ## Stationary sleep and recovery
 
 On a device with a supported significant-motion wake-up trigger, observe actual sleep/confirmation, motion wake and fallback-check records. Compare requested deadlines with actual dispatch; test walking away during a screen-off stop. Repeat with the sensor unavailable or registration/alarm failure simulated by focused tests. Active acquisition must remain the fallback when prerequisites fail.
+
+Include a nearby fused-to-legacy handover during stop confirmation and during a fallback check. Confirm that `provider_change` starts a full new stop window and cadence learning, with active acquisition until the new provider independently qualifies. A raw/filtered pair from different observations must log `observation_mismatch` and cannot authorize sleep. Clustered handovers and mismatched pairs also have deterministic JVM coverage; do not force a physical provider failure merely to manufacture them.
 
 Do not assume a 30-second inexact alarm will dispatch on time in idle. If measured departure delay is unacceptable, retain active acquisition for the affected configuration while investigating. Report maximum/typical observed latency and any missed departure, rather than claiming guaranteed wake-up.
 

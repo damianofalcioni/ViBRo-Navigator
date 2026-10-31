@@ -124,6 +124,7 @@ public final class NavigationLocationMotionModel {
                 location,
                 movementEvidence.reference() == null ? previousFiltered : movementEvidence.reference(),
                 isLikelyStationary(),
+                motionState().isMoving(),
                 speedMps(location)
         );
     }

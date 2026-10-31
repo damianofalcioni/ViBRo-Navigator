@@ -1,5 +1,6 @@
 package vibro.navigator.nav.location;
 
+import java.util.Objects;
 import vibro.navigator.logging.AppLogger;
 
 /** Conservative stop confirmation, retaining a fixed origin across periodic check bursts. */
@@ -37,6 +38,7 @@ public final class NavigationStationarySleep {
             reset();
             return false;
         }
+        resetOnProviderChange(raw, nowMs);
         long measurementMs = raw.getElapsedRealtimeMs();
         if (!independent(measurementMs, nowMs)) {
             return false;
@@ -55,6 +57,15 @@ public final class NavigationStationarySleep {
         lastFixMs = nowMs;
         lastMeasurementMs = measurementMs;
         return ready;
+    }
+
+    private void resetOnProviderChange(NavigationLocation raw, long nowMs) {
+        if (origin != null && !Objects.equals(origin.getProvider(), raw.getProvider())) {
+            // Even a clustered handover invalidates the old provider's evidence,
+            // cadence and shortened fallback window before independent-sample gating.
+            report("provider_change", raw, nowMs);
+            reset();
+        }
     }
 
     private boolean confirmed(long nowMs) {

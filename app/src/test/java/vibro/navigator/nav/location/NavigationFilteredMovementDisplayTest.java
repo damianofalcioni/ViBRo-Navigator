@@ -19,6 +19,25 @@ public class NavigationFilteredMovementDisplayTest {
         assertWalkingDisplay(13, true, true);
     }
 
+    @Test
+    public void confirmedSpeedlessSlowWalkingRetainsFilteredDisplaySpeed() {
+        LatLonKalmanFilter filter = new LatLonKalmanFilter();
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        for (int i = 0; i < 30; i++) {
+            NavigationLocation raw = new NavigationLocation("gps");
+            raw.setTime(1_000 + i * 3_000L, 1_000 + i * 3_000L);
+            raw.setLatitude(i * 0.9 / 111_320);
+            raw.setAccuracy(0.5f);
+            NavigationLocation filtered = filter.update(raw);
+            assertNotNull(filtered);
+            model.recordLocation(raw, filtered);
+            if (i >= 15) {
+                assertEquals(NavigationMotionState.MOVING, model.motionState());
+                assertEquals(0.3f, model.displaySpeedMps(filtered), 0.01f);
+            }
+        }
+    }
+
     private static void assertWalkingDisplay(float accuracy, boolean speedQuality, boolean turn) {
         LatLonKalmanFilter filter = new LatLonKalmanFilter();
         NavigationLocationMotionModel model = new NavigationLocationMotionModel();

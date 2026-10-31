@@ -1,10 +1,10 @@
 # Location-reliability progress
 
-Last updated: 30 October 2026. The notification/provider/diagnostics follow-up is verified, preserving the Round Trip correction in `a455ce9f`. Final checks passed: 4,208 tests, zero PMD violations, both debug lints and four debug/release APK builds. The recorded replay drops from nine to seven handovers, with longer accepted-fix gaps and no demonstrated motion/power gain. The legacy stationary attempt reached no acquisition suspension; the verified build is now installed for a repeat. Physical validation remains pending.
+Last updated: 31 October 2026. The latest audit against `a0fc0eac` repaired confirmed slow-speed display and provider-local stationary-sleep confirmation. Final checks passed: 4,240 tests, zero PMD violations, both debug lints and all four debug/release APK builds. Earlier Round Trip, arrival-ordering, notification/provider and battery fixes remain covered. The software stages are substantially implemented; controlled physical validation remains pending. No phone was connected for this audit, and its build was not installed. Background exit remains excluded. See AUDIT_20261031.md and the final handoff below.
 
 Original analysis baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The software implementation and earlier reviews form baseline `65de832d` on `codex/location-reliability`; the Round Trip correction is committed in `a455ce9f`. The follow-up and device evidence are recorded below. The user authorized reviewing and fixing all plan stages except background exit. Earlier log-analysis scripts and results are local ignored artifacts; historical handoffs below retain their original revision/worktree descriptions.
 
-The baseline and earlier integrated checks passed. The work includes relative-coordinate session replays, raw-evidence motion assessment, clocked motion consumers, corroborated-motion filter lag limits, sparse ETA history, uncertainty-aware acquisition, independently confirmed and ordered arrival, network-quality backoff, timing diagnostics, and shared battery plausibility checks. The user confirmed that the 30 October Huawei PRA-LX1 recording matches the committed branch. It supplies partial sleep/wake and screen-off processing evidence; independently measured positioning accuracy, notification receipt, worst-case wake latency and power comparisons remain pending.
+The baseline and earlier integrated checks passed. The work includes relative-coordinate session replays, raw-evidence motion assessment, clocked motion consumers, corroborated-motion filter lag limits, sparse ETA history, uncertainty-aware acquisition, independently confirmed and ordered arrival, network-quality backoff, timing diagnostics, and shared battery plausibility checks. The user confirmed that the 30 October Huawei PRA-LX1 recording matches the earlier `65de832d` build, before subsequent corrections. It supplies partial sleep/wake and screen-off processing evidence; independently measured positioning accuracy, notification receipt, worst-case wake latency and power comparisons remain pending.
 States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CODE_COMPLETE means code and its stated local checks are finished; it does not imply physical-device validation. A recorded hardware-only gap may coexist with finished code. Never mark skipped/failed checks as passed.
 
 | Run | Objective | State | Handoff |
@@ -12,16 +12,16 @@ States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CO
 | 01 | Minimal replay foundation | VERIFIED | Three local-offset excerpts, shared loader and synthetic motion/cadence regressions |
 | 02 | Event and timing diagnostics | VERIFIED | Callback trace, elapsed/uptime, guidance/post/recovery records; explicit build label |
 | 03 | Motion assessment core | VERIFIED | Independently spaced raw motion, independent stop timing, conflicting-speed rejection and 10-second read-time freshness |
-| 04 | Motion-state consumers | VERIFIED | Clocked reads, expired cues and supported trip-prefix retention across UNKNOWN/reacquisition, with separate hardware-sleep credit |
+| 04 | Motion-state consumers | VERIFIED | Clocked reads, confirmed slow display speed, expired cues and supported trip-prefix retention across UNKNOWN/reacquisition, with separate hardware-sleep credit |
 | 05 | Kalman lag and uncertainty | VERIFIED | Corroborated walking lag bound with or without trustworthy speed-accuracy metadata, including precise slow speeds below the native-only threshold; conservative output uncertainty retained |
 | 06 | Cadence-aware ETA history | VERIFIED | Confirmed-motion ETA history uses measurement time; separate receipt-time direction history retained |
 | 07 | Uncertainty-aware acquisition | VERIFIED | Age/quality/travel caps and current trustworthy native-speed protection; independent recovery, ramp and sparse-cadence coverage |
 | 08 | Confirmed arrival | VERIFIED | Arrival barriers, ordered targets and recovery after missed Round Trip start samples, preserving initial approaches |
 | 09 | Independent network backoff | VERIFIED | Coarse-network probes and silence recovery, with comparative protection for a materially better network source |
 | 10 | Provider selection verification | VERIFIED | Accepted-provider tie preference; nine to seven replay handovers, unchanged freshness/offset gates; dispatch-gap and UNKNOWN tradeoffs recorded |
-| 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace changes complete; OS/watch presentation and wake timing unmeasured |
+| 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace and provider-local sleep confirmation complete; OS/watch presentation and wake timing unmeasured |
 | 12 | Battery telemetry validation | VERIFIED | Shared timed/percentage discontinuity checks, cached observation times and valid percentage plateaus |
-| 13 | Cross-feature integration and automated checks | VERIFIED | 30 October follow-up: 4,208 passing tests, PMD, both debug lints and four APK tasks |
+| 13 | Cross-feature integration and automated checks | VERIFIED | 31 October audit: 4,240 passing tests, PMD, both debug lints and four debug/release APK builds |
 | 14 | Physical-device comparison | NEEDS_DEVICE | Matching 30 October branch log reviewed; latest correction installation and controlled route/watch/power trials pending |
 
 ## Handoff entry format
@@ -737,3 +737,36 @@ Output: `.codex-temp/reliability-audit-final.txt`.
 | fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `c4def43d385d1d65fdabd8f50e27c5cd9fa89fb4721b970d1504f2e38d507dcf` |
 | gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `9dac44f20c79b2c471b82f066ddee77e023180e72e87c96274a16526d7a4ad54` |
 | gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `bec3e25a9a529383d799fcec65b401f3932c33c82caedbbea2dad28ec8db58d8` |
+
+### Branch plan review — 31 October 2026
+
+- User requested auditing the branch against the plan, fixing demonstrated gaps except background exit, and committing with a simple message. Starting HEAD: `a0fc0eac` on `codex/location-reliability`. The only pre-existing working-tree item was untracked `BACKGROUND_EXIT_20261030.md`, which remains untouched and excluded.
+- Reviewed the accumulated branch diff against `main` (`0c463631`), the plan and previous review/device handoffs. `AUDIT_20261031.md` records the assessment. The software stages are substantially implemented; positioning accuracy, CPU/GPS cessation, OEM idle wake latency, actual phone/watch receipt and repeated provider-energy measurements remain NEEDS_DEVICE.
+- Fixed a motion-consumer gap: independently confirmed walking at 0.25–0.35 m/s was still suppressed to zero in GPS display speed and trip maximums. The resolver now accepts the existing 0.2 m/s timing floor only for confirmed movement, preserving uncertainty/displacement checks and unconfirmed-low-speed suppression. Coverage includes native and speedless filtered walking plus Route/Straight Line telemetry and trip maximums.
+- Fixed stationary-sleep evidence mixing: raw/filtered observations must share provider and monotonic measurement time. A provider change resets the full stop window, trigger and learned cadence before independently spaced admission, including clustered callbacks and shortened fallback bursts. Acquisition remains active until the new source establishes its own eligible evidence. No acquisition/alarm API, wake-lock, dependency, manifest or background-exit change was made.
+- Before-fix reproduction: `.codex-temp/plan-review-red-20261031.txt` had five failures among 19 tests; `.codex-temp/plan-review-sleep-red-20261031.txt` separately failed all five sleep-handover cases. Seven distinct methods demonstrated the two gaps. Added seven regression methods overall, with further assertions in two existing methods. The first focused pass passed its tests but found two duplicate test literals in PMD; named constants resolved those findings without suppressions or limit changes. The final focused pass passed **201 tests in 29 suites** and PMD in 17 seconds: `.codex-temp/plan-review-focused-final-20261031.txt`.
+- Updated SPECIFICATION.md and AGENT.md with the confirmed-slow-speed and provider-local sleep contracts. Saved source/configuration/guidance and excluded-file hashes in `.codex-temp/plan-review-inputs-20261031.json` before the integrated run. ADB lists no connected device; no installation or physical trial occurred.
+- Full verification is running with the command below. This entry does not claim the full run has passed. Final results and the commit handoff follow after completion.
+
+```powershell
+.\gradlew.bat complexityCheck lintFdroidDebug lintGplayDebug testFdroidDebugUnitTest testGplayDebugUnitTest assembleFdroidDebug assembleGplayDebug assembleFdroidRelease assembleGplayRelease -PsourceRevision=a0fc0eac-plan-review-20261031 --continue --console=plain --warning-mode all --max-workers=2
+```
+
+Output: `.codex-temp/plan-review-final-20261031.txt`.
+
+#### Final 31 October verification and commit handoff
+
+- **BUILD SUCCESSFUL**, exit 0, in **10m 51s**; 196 tasks (55 executed, 141 up to date). F-Droid: **2,084 tests / 378 suites**. GPlay: **2,156 tests / 391 suites**. **4,240 total**, zero failures/errors/skips. Both reports include the new common regressions; these are complete flavor suites.
+- PMD: zero violations, with no suppressions or limit changes. Both debug lints passed with zero errors and only the pre-existing `AppBundleLocaleChanges` and `AndroidGradlePluginVersion` advisories. Language splitting remains disabled for offline language availability; the toolchain was not changed. `--warning-mode all` reports the pre-existing plugin-configuration `Configuration.setVisible(boolean)` deprecation. No new compiler, lint or PMD warning appeared.
+- Both debug and both unsigned release APKs built, including both R8 tasks and release vital lint. All four generated BuildConfig files contain `a0fc0eac-plan-review-20261031`, the explicit input label for this pre-commit checkout. Detailed test counts, lint issues, PMD count, labels, APK sizes/times/hashes and source invariance are saved in `.codex-temp/plan-review-verification-20261031.json`.
+- All **1,367 saved input hashes** match after verification. No production/test/configuration edits followed the final run; only planning handoffs were completed. `git diff --check` passed. The import scan introduced no framework/flavor leakage; one unrelated startup-test LocationManager import is already present in `main` and remains unchanged. No dependency, manifest, Android API, alarm or wake-lock change is included.
+- The pre-existing untracked `BACKGROUND_EXIT_20261030.md` remains untouched and excluded, SHA-256 `38DEA2BE08EC66BBA7D3CD4D16CDF8761BC5453BCF6D559C2DC1B5343FCEF1E9`. Raw logs, analysis scripts, reports and APKs remain ignored and local.
+- The user requested the final commit with a simple message: `Fix location reliability gaps`. Its scope is the two demonstrated repairs, regressions, specification/guidance, current audit and physical-check protocol. A source commit does not rebuild or relabel the verified pre-commit APKs.
+- ADB lists no connected phone. No installation, navigation trial, power-setting change or device-history reset occurred. Physical accuracy, sleep/departure latency, CPU/GPS cessation, Android/watch receipt and repeated provider-energy comparison remain NEEDS_DEVICE. The next phone run should use the verified artifact below and include the slow-display and provider-handover stop-window checks added to DEVICE_VALIDATION.md.
+
+| Flavor/build | Local artifact | SHA-256 |
+|---|---|---|
+| fdroid/debug | `app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk` | `E8A96DCA8DD39DE7C247EDEFE5D344FC0706582A51983B6C4CAC8D74F2348889` |
+| fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `344D38104D9438B877C8AF69B6CF29CCEED4FE8DFC9F22257DC74375B7D7AAA5` |
+| gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `7C51956D5FAB1EBD10C5E502318C05ACA8A9B8E2A3713836CBD5BF5438669018` |
+| gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `61504F5D8A875ED1CA6268E49CDC9E24C9BFC0B5A469FAC207C3E55ABAAB3D76` |

@@ -1,5 +1,7 @@
 package vibro.navigator.nav.location;
 
+import java.util.Objects;
+
 /** Missing native speed is unknown; an armed motion trigger and position history must prove a stop. */
 final class StationaryFixEligibility {
     private StationaryFixEligibility() { }
@@ -7,6 +9,9 @@ final class StationaryFixEligibility {
     static String rejection(NavigationLocation raw, NavigationLocation filtered, long nowMs) {
         if (!fresh(raw, nowMs)) {
             return "measurement_not_fresh";
+        }
+        if (!sameObservation(raw, filtered)) {
+            return "observation_mismatch";
         }
         if (NavigationLocationProviders.NETWORK_PROVIDER.equals(raw.getProvider())) {
             return "network_only";
@@ -18,6 +23,11 @@ final class StationaryFixEligibility {
             return "position_disagreement";
         }
         return speedRejection(raw);
+    }
+
+    private static boolean sameObservation(NavigationLocation raw, NavigationLocation filtered) {
+        return Objects.equals(raw.getProvider(), filtered.getProvider())
+                && raw.getElapsedRealtimeMs() == filtered.getElapsedRealtimeMs();
     }
 
     private static boolean fresh(NavigationLocation raw, long nowMs) {

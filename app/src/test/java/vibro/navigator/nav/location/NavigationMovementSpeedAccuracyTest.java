@@ -14,8 +14,21 @@ public class NavigationMovementSpeedAccuracyTest {
                 if (i >= 15) {
                     assertEquals("Corroborated speed=" + speed, NavigationMotionState.MOVING, model.motionState());
                     assertFalse(model.needsDepartureChecks());
+                    assertEquals("Confirmed slow walking must retain its displayed speed",
+                            speed, model.displaySpeedMps(location), 0);
                 }
             }
+        }
+    }
+
+    @Test
+    public void unconfirmedSlowSpeedStillCannotSupplyDisplayMovement() {
+        NavigationLocationMotionModel model = new NavigationLocationMotionModel();
+        for (int i = 0; i < 4; i++) {
+            NavigationLocation location = slowFix(1_000 + i * 3_000L, i * 0.2, 0.3f);
+            model.recordFilteredLocation(location);
+            assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
+            assertEquals(0, model.displaySpeedMps(location), 0);
         }
     }
 
