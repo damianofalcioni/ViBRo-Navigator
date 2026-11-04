@@ -34,6 +34,9 @@ metadata/android/<locale>/
 The canonical `icon.png` uses the existing 512×512 artwork. The SVG and
 `icon-512x512.png` remain available as source/reference files. Screenshot
 filenames control display order alphabetically.
+Every locale includes its own `images/icon.png`, copied from the canonical
+`en-US` icon, as requested for F-Droid review. When replacing the shared icon,
+update all locale copies. Local listing validation requires an icon per locale.
 
 The feature graphic uses the maintainer-supplied website-hero design, preserved
 unchanged as `metadata/android/en-US/images/featureGraphic.jpg` (1024×500 RGB
@@ -80,7 +83,8 @@ default listing language to English (United States) in Play Console. F-Droid
 also uses `en-US` as its fallback. If translated screenshots are added later,
 put them in that locale's own `images/phoneScreenshots/` directory. The shared
 banner can likewise be overridden with `images/featureGraphic.jpg` in a locale
-folder. There is no need to duplicate the shared images into every language.
+folder. Only the icon is duplicated into every language; feature graphics and
+screenshots continue to use the shared fallback unless localized.
 This fallback applies after the images have been uploaded to the corresponding
 default-language listing; the folder name alone does not change Play Console's
 configured default language.

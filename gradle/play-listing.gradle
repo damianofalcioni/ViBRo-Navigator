@@ -34,8 +34,8 @@ abstract class VerifyPlayListingMetadata extends DefaultTask {
             if (icon.file) {
                 def size = imageSize(icon, false)
                 if (size != [512, 512] || icon.length() > 1024 * 1024) fail("${icon} must be 512x512 and at most 1024 KB.")
-            } else if (locale.name == 'en-US') {
-                fail('The shared images/icon.png is required.')
+            } else {
+                fail("Missing listing icon: ${icon}. Every locale must include images/icon.png.")
             }
             List<File> banners = ['png', 'jpg', 'jpeg'].collect { new File(images, "featureGraphic.${it}") }.findAll { it.file }
             if (banners.size() > 1 || (locale.name == 'en-US' && banners.size() != 1)) {

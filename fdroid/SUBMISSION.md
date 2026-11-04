@@ -107,6 +107,14 @@ Useful repository files already prepared upstream:
 - `docs/`
 - `.github/workflows/fdroid-ready.yml`
 - `.github/workflows/fdroid-submit.yml`
+- [FOSS APK permission inventory](PERMISSIONS.md), including AndroidX's
+  merged receiver permission, for inclusion-review questions
+
+Every Fastlane listing locale must include `images/icon.png`; copy the
+canonical `en-US` icon when adding a locale or replacing the shared artwork.
+F-Droid reads upstream listing assets from the latest release it knows, so
+source artwork changes must be included in a release before automatic import.
+Do not move an existing release tag or replace its APK to update artwork.
 
 Notes:
 
