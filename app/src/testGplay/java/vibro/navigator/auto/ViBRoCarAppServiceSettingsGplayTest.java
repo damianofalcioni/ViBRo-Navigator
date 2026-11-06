@@ -185,7 +185,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
     }
 
     @NonNull
-    private CarContext testCarContext(int carApiLevel) throws Exception {
+    CarContext testCarContext(int carApiLevel) throws Exception {
         CarContext carContext = CarContext.create(new TestLifecycleOwner().getLifecycle());
         Method attachBaseContext = CarContext.class.getDeclaredMethod(
                 "attachBaseContext",

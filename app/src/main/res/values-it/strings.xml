@@ -564,7 +564,7 @@
     <string name="sensor_status_unavailable">Non disponibile</string>
     <string name="sensor_status_permission_denied">Autorizzazione negata</string>
     <string name="auto_no_active_navigation_title">Nessuna navigazione attiva</string>
-    <string name="auto_no_active_navigation_text">Avvia la navigazione sul telefono per mostrare qui le indicazioni.</string>
+    <string name="auto_no_active_navigation_text">Quando il veicolo è parcheggiato in sicurezza, avvia la navigazione sul telefono per mostrare qui le indicazioni.</string>
     <string name="action_restore_default_configuration">Ripristina configurazione predefinita</string>
     <string name="action_restore_defaults">Ripristina valori predefiniti</string>
     <string name="confirm_restore_default_configuration">Ripristinare tutti i valori predefiniti delle impostazioni?</string>
@@ -583,4 +583,6 @@
     <string name="simulation_invalid_position">Inserisci latitudine e longitudine valide, usando il punto come separatore decimale.</string>
     <string name="simulation_save">Salva</string>
     <string name="action_configure_simulation">Configura simulazione</string>
+    <string name="auto_destination_timeout">Il caricamento della destinazione ha superato il tempo limite. Riprova.</string>
+    <string name="auto_retry">Riprova</string>
 </resources>

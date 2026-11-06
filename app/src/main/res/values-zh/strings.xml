@@ -560,7 +560,7 @@
     <string name="sensor_status_unavailable">不可用</string>
     <string name="sensor_status_permission_denied">权限被拒绝</string>
     <string name="auto_no_active_navigation_title">没有激活的导航</string>
-    <string name="auto_no_active_navigation_text">在手机上开始导航以在此显示指引。</string>
+    <string name="auto_no_active_navigation_text">请在安全停车后，在手机上开始导航，以便在此显示指引。</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="other">点按任意位置关闭，或等待%1$d秒</item>
     </plurals>
@@ -591,4 +591,6 @@
     <string name="simulation_invalid_position">请输入有效的纬度和经度，使用小数点和英文逗号。</string>
     <string name="simulation_save">保存</string>
     <string name="action_configure_simulation">配置模拟</string>
+    <string name="auto_destination_timeout">目的地加载超时。请重试。</string>
+    <string name="auto_retry">重试</string>
 </resources>

@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">indisponible</string>
     <string name="sensor_status_permission_denied">permission refusée</string>
     <string name="auto_no_active_navigation_title">Pas de navigation active</string>
-    <string name="auto_no_active_navigation_text">Démarrez la navigation sur le téléphone pour afficher les instructions ici.</string>
+    <string name="auto_no_active_navigation_text">Une fois garé en sécurité, démarrez la navigation sur le téléphone pour afficher les instructions ici.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Touchez n’importe où pour fermer ou attendez %1$d seconde</item>
         <item quantity="many">Touchez n’importe où pour fermer ou attendez %1$d secondes</item>
@@ -601,4 +601,6 @@
     <string name="simulation_invalid_position">Saisissez une latitude et une longitude valides avec des points décimaux.</string>
     <string name="simulation_save">Enregistrer</string>
     <string name="action_configure_simulation">Configurer la simulation</string>
+    <string name="auto_destination_timeout">Le chargement de la destination a pris trop de temps. Réessayez.</string>
+    <string name="auto_retry">Réessayer</string>
 </resources>

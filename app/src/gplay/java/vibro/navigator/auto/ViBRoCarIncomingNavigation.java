@@ -4,12 +4,6 @@ import android.content.Intent;
 
 import androidx.annotation.Nullable;
 import androidx.car.app.CarContext;
-import androidx.car.app.model.Action;
-import androidx.car.app.model.ActionStrip;
-import androidx.car.app.model.ItemList;
-import androidx.car.app.model.ListTemplate;
-import androidx.car.app.model.MessageTemplate;
-import androidx.car.app.model.Row;
 import androidx.car.app.model.Template;
 
 import java.io.IOException;
@@ -18,15 +12,15 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import vibro.navigator.R;
 import vibro.navigator.android.automotive.AndroidCarNavigationStarter;
-import vibro.navigator.android.language.AndroidAppLanguage;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.intent.IntentLocationParser;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 import vibro.navigator.poi.CoordinateParser;
 import vibro.navigator.poi.Poi;
 import vibro.navigator.poi.search.PoiSearchClients;
@@ -38,16 +32,15 @@ final class ViBRoCarIncomingNavigation {
         @Nullable NavigationRequest prepare(Poi destination);
         boolean start(NavigationRequest request);
     }
-    private final CarContext context;
     private final TaskScheduler scheduler;
     private final Runnable invalidate;
     private final ExecutorService worker;
     private final Access access;
+    private final ViBRoCarDestinationLoad load;
+    private final ViBRoCarDestinationTemplates templates;
     private List<Poi> results = Collections.emptyList();
-    @Nullable private Future<?> pending;
     @Nullable private Poi pendingDestination;
-    private int generation;
-    private boolean loading;
+    @Nullable private String pendingQuery;
     private boolean showing;
     private boolean disposed;
     private int message = R.string.nav_route_notice_no_route_found;
@@ -58,11 +51,20 @@ final class ViBRoCarIncomingNavigation {
 
     ViBRoCarIncomingNavigation(CarContext context, TaskScheduler scheduler, Runnable invalidate,
             ExecutorService worker, Access access) {
-        this.context = context;
+        this(context, scheduler, invalidate, worker, access, AndroidElapsedRealtimeClock.INSTANCE);
+    }
+
+    ViBRoCarIncomingNavigation(CarContext context, TaskScheduler scheduler, Runnable invalidate,
+            ExecutorService worker, Access access, ElapsedRealtimeClock clock) {
         this.scheduler = scheduler;
         this.invalidate = invalidate;
         this.worker = worker;
         this.access = access;
+        load = new ViBRoCarDestinationLoad(scheduler, clock, () -> {
+            message = R.string.auto_destination_timeout;
+            invalidate.run();
+        });
+        templates = new ViBRoCarDestinationTemplates(context);
     }
 
     void handle(Intent intent) {
@@ -73,20 +75,23 @@ final class ViBRoCarIncomingNavigation {
         }
         cancel();
         showing = true;
-        loading = true;
-        int token = generation;
-        pending = worker.submit(() -> resolve(query, token));
+        pendingQuery = query;
+        Poi coordinate = CoordinateParser.tryParse(query, null);
+        if (coordinate != null) {
+            select(coordinate);
+        } else {
+            search();
+        }
+    }
+
+    private void search() {
+        int token = beginLoading();
+        String query = pendingQuery;
+        load.submitted(token, worker.submit(() -> resolve(query, token)));
         invalidate.run();
     }
 
     private void resolve(String query, int token) {
-        Poi coordinate = CoordinateParser.tryParse(query, null);
-        if (coordinate != null) {
-            scheduler.post(() -> {
-                if (isCurrent(token)) { select(coordinate); }
-            });
-            return;
-        }
         try {
             List<Poi> matches = access.search(query);
             scheduler.post(() -> showResults(matches, token));
@@ -97,30 +102,30 @@ final class ViBRoCarIncomingNavigation {
     }
 
     private void showResults(List<Poi> matches, int token) {
-        if (!isCurrent(token)) { return; }
+        if (!load.accept(token)) { return; }
         results = new ArrayList<>();
         for (Poi poi : matches) {
             if (poi.hasValidCoordinates()) { results.add(poi); }
         }
-        loading = false;
+        load.finish();
         invalidate.run();
     }
 
     private void select(Poi destination) {
+        if (disposed || !showing) { return; }
         pendingDestination = destination;
         results = Collections.emptyList();
-        loading = true;
-        int token = ++generation;
-        pending = worker.submit(() -> {
+        int token = beginLoading();
+        load.submitted(token, worker.submit(() -> {
             NavigationRequest request = access.prepare(destination);
             scheduler.post(() -> finishStart(request, token));
-        });
+        }));
         invalidate.run();
     }
 
     private void finishStart(@Nullable NavigationRequest request, int token) {
-        if (!isCurrent(token)) { return; }
-        loading = false;
+        if (!load.accept(token)) { return; }
+        load.finish();
         if (request != null && access.start(request)) {
             pendingDestination = null;
             showing = false;
@@ -131,51 +136,48 @@ final class ViBRoCarIncomingNavigation {
     }
 
     void retryPending() {
-        if (showing && !loading && pendingDestination != null) {
-            select(pendingDestination);
-        }
+        // Returning from phone setup can retry; a timed-out request needs an explicit retry.
+        if (message == R.string.auto_setup_required) { retryRequested(); }
+    }
+
+    private void retryRequested() {
+        if (!showing || load.isLoading() || disposed) { return; }
+        if (pendingDestination != null) { select(pendingDestination); }
+        else if (pendingQuery != null) { search(); }
     }
 
     @Nullable
     Template template() {
         if (!showing) { return null; }
-        Action cancel = new Action.Builder().setTitle(text(R.string.action_cancel))
-                .setOnClickListener(() -> { cancel(); invalidate.run(); }).build();
-        return results.isEmpty() ? messageTemplate(cancel) : resultTemplate(cancel);
+        load.refresh();
+        return templates.build(results, load.isLoading(), message, pendingDestination != null || pendingQuery != null,
+                actionsFor(load.revision()));
     }
 
-    @SuppressWarnings("deprecation") // Header setters support the retained Car API 1 hosts.
-    private Template resultTemplate(Action cancel) {
-        ItemList.Builder list = new ItemList.Builder();
-        for (Poi poi : results) {
-            list.addItem(new Row.Builder().setTitle(poi.displayLabel())
-                    .setOnClickListener(() -> select(poi)).build());
-        }
-        return new ListTemplate.Builder().setTitle(text(R.string.hint_search_destination))
-                .setHeaderAction(Action.APP_ICON).setSingleList(list.build())
-                .setActionStrip(new ActionStrip.Builder().addAction(cancel).build()).build();
+    private ViBRoCarDestinationTemplates.Actions actionsFor(int revision) {
+        return new ViBRoCarDestinationTemplates.Actions() {
+            @Override public void cancel() {
+                if (load.matches(revision)) { ViBRoCarIncomingNavigation.this.cancel(); invalidate.run(); }
+            }
+            @Override public void retry() {
+                if (load.matches(revision)) { retryRequested(); }
+            }
+            @Override public void select(Poi poi) {
+                if (load.matches(revision)) { ViBRoCarIncomingNavigation.this.select(poi); }
+            }
+        };
     }
 
-    @SuppressWarnings("deprecation") // Header setters support the retained Car API 1 hosts.
-    private Template messageTemplate(Action cancel) {
-        MessageTemplate.Builder messageTemplate = new MessageTemplate.Builder(
-                text(loading ? R.string.msg_map_poi_loading : message))
-                .setLoading(loading).setTitle(text(R.string.auto_title)).setHeaderAction(Action.APP_ICON)
-                .addAction(cancel);
-        if (pendingDestination != null && !loading) {
-            messageTemplate.addAction(new Action.Builder().setTitle(text(android.R.string.ok))
-                    .setOnClickListener(this::retryPending).build());
-        }
-        return messageTemplate.build();
+    private int beginLoading() {
+        message = R.string.nav_route_notice_no_route_found;
+        return load.begin();
     }
 
     void cancel() {
-        generation++;
-        if (pending != null) { pending.cancel(true); }
-        pending = null;
+        load.cancel();
         showing = false;
-        loading = false;
         pendingDestination = null;
+        pendingQuery = null;
         results = Collections.emptyList();
         message = R.string.nav_route_notice_no_route_found;
     }
@@ -185,9 +187,6 @@ final class ViBRoCarIncomingNavigation {
         cancel();
         worker.shutdownNow();
     }
-
-    private boolean isCurrent(int token) { return !disposed && token == generation; }
-    private String text(int id) { return AndroidAppLanguage.getString(context, id); }
 
     private static final class AndroidAccess implements Access {
         private final CarContext context;

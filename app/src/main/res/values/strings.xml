@@ -420,7 +420,7 @@
     <!-- Used by the gplay car UI; shared here to keep one translation file per language. -->
     <string name="auto_title" translatable="false" tools:ignore="UnusedResources">ViBRo Navigator</string>
     <string name="auto_no_active_navigation_title" tools:ignore="UnusedResources">No active navigation</string>
-    <string name="auto_no_active_navigation_text" tools:ignore="UnusedResources">Start navigation on the phone to show guidance here.</string>
+    <string name="auto_no_active_navigation_text" tools:ignore="UnusedResources">When safely parked, start navigation on the phone to show guidance here.</string>
     <string name="about_settings_title">Settings</string>
     <string name="about_settings_category_display">Display</string>
     <string name="about_settings_category_guidance">Guidance</string>
@@ -648,4 +648,6 @@
     <string name="simulation_invalid_position">Enter valid latitude, longitude with decimal points.</string>
     <string name="simulation_save">Save</string>
     <string name="action_configure_simulation">Configure simulation</string>
+    <string name="auto_destination_timeout" tools:ignore="UnusedResources">Destination loading timed out. Try again.</string>
+    <string name="auto_retry" tools:ignore="UnusedResources">Retry</string>
 </resources>

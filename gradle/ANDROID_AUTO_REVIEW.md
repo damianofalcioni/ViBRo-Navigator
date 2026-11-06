@@ -31,6 +31,11 @@ A recording may help explain setup, but does not replace test-drive support.
 - Exercise `geo:0,0?q=<latitude>,<longitude>` and `google.navigation:q=<latitude>,<longitude>` through initial and new Session intents; verify address selection, cancellation, setup failure/retry and replacement by a newer destination.
 - Check different head-unit aspect ratios, safe-area changes, night/day contrast, route/street rendering and host map gestures. Directions/ETA/controls must remain host components.
 - Test the required `AUTO_DRIVE` host command, callback before/after route start, host stop and car-session destruction before claiming NF-7 coverage.
+- VI-1: with no route and with missing setup/permissions, verify that every phone handoff tells the driver to use the phone only when safely parked. Check the selected app language as well as English.
+- DR-1/DR-2/DR-3: measure action feedback (at most two seconds), cold launch (at most ten seconds), and destination content loading (at most ten seconds). With a slow/unreachable search provider, loading must become a localized timeout after nine seconds; Retry must retain the query/destination and Cancel must prevent any later route start. Repeat after covering/resuming the app and after a newer intent replaces the first.
+- AC-1/API compatibility: exercise address selection, setup failures, repeated timeouts/retries and cancellation without exhausting the host template quota or encountering a dead end. Test Car API 1's text loading state and cancel row, plus API 2+ loading indicators/action strips. The API-1 result list has at most four destinations and one Cancel row.
+- EP-2: return to the Android Auto home screen and relaunch during navigation, pause and destination selection. Verify active navigation reconnects without an unintended restart; also test host/session recreation. Process-death recovery and pending selection continuity must be assessed separately from a normal covered/resumed session; do not claim they are proven by binding tests.
+- VD-1/MR-1/SA-1: inspect the actual host-rendered controls and map in day/night modes, all supported aspect ratios and changing safe areas. Check text/icon contrast against Google's 4.5:1 requirement, clipping, and map transitions for distraction. Record measured results rather than treating themed resources as proof.
 
 ## Release handling
 

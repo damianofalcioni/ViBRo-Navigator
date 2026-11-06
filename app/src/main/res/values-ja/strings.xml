@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">利用不可</string>
     <string name="sensor_status_permission_denied">許可が拒否されました</string>
     <string name="auto_no_active_navigation_title">アクティブなナビゲーションはありません</string>
-    <string name="auto_no_active_navigation_text">ここに案内を表示するには、電話でナビゲーションを開始してください。</string>
+    <string name="auto_no_active_navigation_text">安全な場所に駐車してから、スマートフォンでナビを開始すると、ここに案内が表示されます。</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="other">画面のどこかをタップして閉じるか、%1$d秒待ってください</item>
     </plurals>
@@ -593,4 +593,6 @@
     <string name="simulation_invalid_position">小数点と半角カンマを使って有効な緯度、経度を入力してください。</string>
     <string name="simulation_save">保存</string>
     <string name="action_configure_simulation">シミュレーションを設定</string>
+    <string name="auto_destination_timeout">目的地の読み込みがタイムアウトしました。もう一度お試しください。</string>
+    <string name="auto_retry">再試行</string>
 </resources>

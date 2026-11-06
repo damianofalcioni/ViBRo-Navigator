@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">utilgængelig</string>
     <string name="sensor_status_permission_denied">tilladelse nægtet</string>
     <string name="auto_no_active_navigation_title">Ingen aktiv navigation</string>
-    <string name="auto_no_active_navigation_text">Start navigation på telefonen for at vise vejledning her.</string>
+    <string name="auto_no_active_navigation_text">Når du er sikkert parkeret, skal du starte navigation på telefonen for at vise vejledning her.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Tryk hvor som helst for at lukke, eller vent %1$d sekund</item>
         <item quantity="other">Tryk hvor som helst for at lukke, eller vent %1$d sekunder</item>
@@ -597,4 +597,6 @@
     <string name="simulation_invalid_position">Indtast gyldig breddegrad og længdegrad med decimalpunkt.</string>
     <string name="simulation_save">Gem</string>
     <string name="action_configure_simulation">Konfigurer simulation</string>
+    <string name="auto_destination_timeout">Indlæsning af destinationen tog for lang tid. Prøv igen.</string>
+    <string name="auto_retry">Prøv igen</string>
 </resources>

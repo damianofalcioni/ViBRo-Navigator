@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">غير متاح</string>
     <string name="sensor_status_permission_denied">تم رفض الإذن</string>
     <string name="auto_no_active_navigation_title">لا يوجد تنقل نشط</string>
-    <string name="auto_no_active_navigation_text">ابدأ التنقل على الهاتف لعرض الإرشادات هنا.</string>
+    <string name="auto_no_active_navigation_text">عندما تكون متوقفًا بأمان، ابدأ التنقل على الهاتف لعرض الإرشادات هنا.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="zero">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
         <item quantity="one">المس أي مكان للإغلاق أو انتظر %1$d ثانية</item>
@@ -613,4 +613,6 @@
     <string name="simulation_invalid_position">أدخل خط عرض وخط طول صالحين باستخدام النقطة العشرية والفاصلة الإنجليزية.</string>
     <string name="simulation_save">حفظ</string>
     <string name="action_configure_simulation">إعداد المحاكاة</string>
+    <string name="auto_destination_timeout">انتهت مهلة تحميل الوجهة. حاول مرة أخرى.</string>
+    <string name="auto_retry">إعادة المحاولة</string>
 </resources>

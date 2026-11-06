@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">nem elérhető</string>
     <string name="sensor_status_permission_denied">engedély megtagadva</string>
     <string name="auto_no_active_navigation_title">Nincs aktív navigáció</string>
-    <string name="auto_no_active_navigation_text">Indítsa el a telefonon a navigációt, hogy az útmutatás itt jelenjen meg.</string>
+    <string name="auto_no_active_navigation_text">Miután biztonságosan leparkoltál, indítsd el a navigációt a telefonon, hogy itt megjelenjen az útmutatás.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Koppintson bárhová a bezáráshoz, vagy várjon %1$d másodpercet</item>
         <item quantity="other">Koppintson bárhová a bezáráshoz, vagy várjon %1$d másodpercet</item>
@@ -597,4 +597,6 @@
     <string name="simulation_invalid_position">Adjon meg érvényes szélességet és hosszúságot tizedesponttal.</string>
     <string name="simulation_save">Mentés</string>
     <string name="action_configure_simulation">Szimuláció beállítása</string>
+    <string name="auto_destination_timeout">Az úti cél betöltése túllépte az időkorlátot. Próbáld újra.</string>
+    <string name="auto_retry">Újra</string>
 </resources>

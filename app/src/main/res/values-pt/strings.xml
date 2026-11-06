@@ -561,8 +561,8 @@
     <string name="sensor_status_available">indisponível</string>
     <string name="sensor_status_unavailable">permissão negada</string>
     <string name="sensor_status_permission_denied">permissão negada</string>
-    <string name="auto_no_active_navigation_title">Inicie a navegação no telefone para mostrar as instruções aqui</string>
-    <string name="auto_no_active_navigation_text">.</string>
+    <string name="auto_no_active_navigation_title">Nenhuma navegação ativa</string>
+    <string name="auto_no_active_navigation_text">Quando estiver estacionado em segurança, inicie a navegação no telefone para mostrar as instruções aqui.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Toque em qualquer lugar para fechar ou espere %1$d segundo</item>
         <item quantity="many">Toque em qualquer lugar para fechar ou espere %1$d segundos</item>
@@ -601,4 +601,6 @@
     <string name="simulation_invalid_position">Introduza uma latitude e longitude válidas com pontos decimais.</string>
     <string name="simulation_save">Guardar</string>
     <string name="action_configure_simulation">Configurar simulação</string>
+    <string name="auto_destination_timeout">O carregamento do destino excedeu o tempo limite. Tente novamente.</string>
+    <string name="auto_retry">Tentar novamente</string>
 </resources>

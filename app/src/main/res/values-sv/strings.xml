@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">otillgänglig</string>
     <string name="sensor_status_permission_denied">tillstånd nekas</string>
     <string name="auto_no_active_navigation_title">Ingen aktiv navigation</string>
-    <string name="auto_no_active_navigation_text">Starta navigation på telefonen för att visa vägledning här.</string>
+    <string name="auto_no_active_navigation_text">Starta navigeringen på telefonen när du har parkerat säkert för att visa vägledning här.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Tryck var som helst för att stänga eller vänta %1$d sekund</item>
         <item quantity="other">Tryck var som helst för att stänga eller vänta %1$d sekunder</item>
@@ -597,4 +597,6 @@
     <string name="simulation_invalid_position">Ange giltig latitud och longitud med decimalpunkter.</string>
     <string name="simulation_save">Spara</string>
     <string name="action_configure_simulation">Konfigurera simulering</string>
+    <string name="auto_destination_timeout">Det tog för lång tid att läsa in destinationen. Försök igen.</string>
+    <string name="auto_retry">Försök igen</string>
 </resources>

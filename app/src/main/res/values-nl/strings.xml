@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">niet beschikbaar</string>
     <string name="sensor_status_permission_denied">toestemming geweigerd</string>
     <string name="auto_no_active_navigation_title">Geen actieve navigatie</string>
-    <string name="auto_no_active_navigation_text">Start navigatie op de telefoon om hier begeleiding te tonen.</string>
+    <string name="auto_no_active_navigation_text">Start de navigatie op de telefoon zodra je veilig geparkeerd staat om hier aanwijzingen te tonen.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Tik ergens om te sluiten of wacht %1$d seconde</item>
         <item quantity="other">Tik ergens om te sluiten of wacht %1$d seconden</item>
@@ -597,4 +597,6 @@
     <string name="simulation_invalid_position">Voer een geldige breedtegraad en lengtegraad in met decimale punten.</string>
     <string name="simulation_save">Opslaan</string>
     <string name="action_configure_simulation">Simulatie instellen</string>
+    <string name="auto_destination_timeout">Het laden van de bestemming duurde te lang. Probeer het opnieuw.</string>
+    <string name="auto_retry">Opnieuw proberen</string>
 </resources>

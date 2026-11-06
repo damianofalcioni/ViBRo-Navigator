@@ -560,7 +560,7 @@
     <string name="sensor_status_unavailable">사용 불가</string>
     <string name="sensor_status_permission_denied">권한 거부</string>
     <string name="auto_no_active_navigation_title">활성화된 내비게이션 없음</string>
-    <string name="auto_no_active_navigation_text">여기에 안내를 표시하려면 전화기에서 내비게이션을 시작하세요.</string>
+    <string name="auto_no_active_navigation_text">안전하게 주차한 후 휴대전화에서 내비게이션을 시작하면 여기에 안내가 표시됩니다.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="other">아무 곳이나 터치하여 닫거나 %1$d초 기다리세요</item>
     </plurals>
@@ -591,4 +591,6 @@
     <string name="simulation_invalid_position">소수점과 쉼표를 사용하여 유효한 위도, 경도를 입력하세요.</string>
     <string name="simulation_save">저장</string>
     <string name="action_configure_simulation">시뮬레이션 설정</string>
+    <string name="auto_destination_timeout">목적지 로딩 시간이 초과되었습니다. 다시 시도하세요.</string>
+    <string name="auto_retry">다시 시도</string>
 </resources>

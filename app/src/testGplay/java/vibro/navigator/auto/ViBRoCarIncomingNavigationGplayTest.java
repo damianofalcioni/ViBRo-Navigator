@@ -1,6 +1,7 @@
 package vibro.navigator.auto;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -8,6 +9,7 @@ import android.content.Intent;
 import android.net.Uri;
 
 import androidx.car.app.CarContext;
+import androidx.car.app.OnDoneCallback;
 import androidx.car.app.model.ListTemplate;
 import androidx.car.app.model.MessageTemplate;
 
@@ -24,22 +26,28 @@ import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.R;
+import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.model.NavigationRequest;
 import vibro.navigator.poi.Poi;
 
 @RunWith(RobolectricTestRunner.class)
 public class ViBRoCarIncomingNavigationGplayTest {
+    private static final String ADDRESS_URI = "geo:0,0?q=Vienna";
     private final ArrayDeque<Runnable> ui = new ArrayDeque<>();
+    private final ManualScheduler scheduler = new ManualScheduler();
     private final ManualWorker worker = new ManualWorker();
     private final FakeAccess access = new FakeAccess();
     private ViBRoCarIncomingNavigation incoming;
+    private long nowMs;
+    private CarContext context;
 
     @Before
     public void setUp() throws Exception {
         ViBRoCarAppServiceSettingsGplayTest contexts = new ViBRoCarAppServiceSettingsGplayTest();
         contexts.setUp();
-        CarContext context = contexts.testCarContext();
-        incoming = new ViBRoCarIncomingNavigation(context, ui::add, () -> { }, worker, access);
+        context = contexts.testCarContext();
+        incoming = new ViBRoCarIncomingNavigation(context, scheduler, () -> { }, worker, access, () -> nowMs);
     }
 
     @Test
@@ -70,7 +78,7 @@ public class ViBRoCarIncomingNavigationGplayTest {
 
     @Test
     public void addressesRequireSelectionAndMissingSetupRetainsDestinationForRetry() {
-        incoming.handle(intent("geo:0,0?q=Vienna"));
+        incoming.handle(intent(ADDRESS_URI));
         drain();
         assertTrue(incoming.template() instanceof ListTemplate);
         assertTrue(access.started.isEmpty());
@@ -95,6 +103,99 @@ public class ViBRoCarIncomingNavigationGplayTest {
         drain();
         assertTrue(access.started.isEmpty());
         assertTrue(worker.isShutdown());
+    }
+
+    @Test
+    public void stalledSearchExpiresAndExplicitRetryCanResolveTheSameQuery() {
+        incoming.handle(intent(ADDRESS_URI));
+        assertTrue(((MessageTemplate) incoming.template()).isLoading());
+        assertEquals(9_000L, scheduler.delayMs);
+        nowMs = 9_000;
+        scheduler.delayed.remove().run();
+        assertTimeout();
+        incoming.retryPending(); // Foregrounding must not silently retry a timeout.
+        assertFalse(((MessageTemplate) incoming.template()).isLoading());
+        retryAction();
+        drain();
+        assertTrue(incoming.template() instanceof ListTemplate);
+        assertEquals(1, access.searches);
+        assertTrue(scheduler.delayed.isEmpty());
+    }
+
+    @Test
+    public void searchResultsQueuedBeforeExpiryCannotReplaceTimeout() {
+        incoming.handle(intent(ADDRESS_URI));
+        worker.runNext();
+        nowMs = 9_000;
+        ui.remove().run(); // Result delivery wins the queue race against the scheduled timeout.
+        assertTimeout();
+        assertTrue(scheduler.delayed.isEmpty());
+    }
+
+    @Test
+    public void profilePreparationCannotStartNavigationAfterDeadline() {
+        incoming.handle(intent("google.navigation:q=48.2,16.3"));
+        worker.runNext();
+        nowMs = 9_000;
+        ui.remove().run();
+        assertTimeout();
+        assertTrue(access.started.isEmpty());
+        retryAction();
+        drain();
+        assertEquals(1, access.started.size());
+        assertEquals(0, access.searches);
+        assertNull(incoming.template());
+    }
+
+    @Test
+    public void cancellationAndReplacementRemoveOldDeadlineCallbacks() {
+        incoming.handle(intent(ADDRESS_URI));
+        Runnable obsolete = scheduler.delayed.peek();
+        incoming.handle(intent("geo:0,0?q=48.2,16.3"));
+        obsolete.run();
+        drain();
+        assertEquals(1, access.started.size());
+        assertTrue(scheduler.delayed.isEmpty());
+        incoming.handle(intent(ADDRESS_URI));
+        incoming.cancel();
+        assertTrue(scheduler.delayed.isEmpty());
+        drain();
+        assertNull(incoming.template());
+    }
+
+    @Test
+    public void expiredLoadingIsReplacedWhenTemplatesResumeAfterSleep() {
+        incoming.handle(intent(ADDRESS_URI));
+        nowMs = 30_000;
+        assertTimeout(); // No delayed callback has run yet (Handler delays use uptime).
+        assertTrue(scheduler.delayed.isEmpty());
+    }
+
+    @Test
+    public void oldHostActionsCannotCancelOrReplaceANewerDestination() {
+        incoming.handle(intent(ADDRESS_URI));
+        MessageTemplate previous = (MessageTemplate) incoming.template();
+        drain();
+        ListTemplate oldResults = (ListTemplate) incoming.template();
+        incoming.handle(intent("geo:0,0?q=48.4,16.4"));
+        previous.getActions().get(0).getOnClickDelegate().sendClick(new OnDoneCallback() { });
+        ((androidx.car.app.model.Row) oldResults.getSingleList().getItems().get(0))
+                .getOnClickDelegate().sendClick(new OnDoneCallback() { });
+        drain();
+        assertEquals(1, access.started.size());
+        assertEquals(48.4, access.started.get(0).destination.lat, 0);
+        assertNull(incoming.template());
+    }
+
+    private void assertTimeout() {
+        MessageTemplate template = (MessageTemplate) incoming.template();
+        assertFalse(template.isLoading());
+        assertEquals(context.getString(R.string.auto_destination_timeout), template.getMessage().toString());
+        assertEquals(2, template.getActions().size());
+    }
+
+    private void retryAction() {
+        ((MessageTemplate) incoming.template()).getActions().get(1).getOnClickDelegate().sendClick(new OnDoneCallback() { });
     }
 
     private void drain() {
@@ -136,5 +237,16 @@ public class ViBRoCarIncomingNavigationGplayTest {
         @Override public boolean isShutdown() { return shutdown; }
         @Override public boolean isTerminated() { return shutdown && jobs.isEmpty(); }
         @Override public boolean awaitTermination(long timeout, TimeUnit unit) { return isTerminated(); }
+    }
+
+    private final class ManualScheduler implements TaskScheduler {
+        private final ArrayDeque<Runnable> delayed = new ArrayDeque<>();
+        private long delayMs;
+        @Override public void post(Runnable runnable) { ui.add(runnable); }
+        @Override public void postDelayed(Runnable runnable, long delay) {
+            delayed.add(runnable);
+            delayMs = delay;
+        }
+        @Override public void removeCallbacks(Runnable runnable) { delayed.remove(runnable); }
     }
 }

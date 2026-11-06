@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">niedostępny</string>
     <string name="sensor_status_permission_denied">odmowa dostępu</string>
     <string name="auto_no_active_navigation_title">Brak aktywnej nawigacji</string>
-    <string name="auto_no_active_navigation_text">Uruchom nawigację na telefonie, aby wyświetlić wskazówki tutaj.</string>
+    <string name="auto_no_active_navigation_text">Po bezpiecznym zaparkowaniu uruchom nawigację w telefonie, aby wyświetlić tutaj wskazówki.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Dotknij dowolnego miejsca, aby zamknąć, lub poczekaj %1$d sekundę</item>
         <item quantity="few">Dotknij dowolnego miejsca, aby zamknąć, lub poczekaj %1$d sekundy</item>
@@ -605,4 +605,6 @@
     <string name="simulation_invalid_position">Wpisz prawidłową szerokość i długość geograficzną z kropką dziesiętną.</string>
     <string name="simulation_save">Zapisz</string>
     <string name="action_configure_simulation">Konfiguruj symulację</string>
+    <string name="auto_destination_timeout">Przekroczono limit czasu ładowania celu. Spróbuj ponownie.</string>
+    <string name="auto_retry">Spróbuj ponownie</string>
 </resources>

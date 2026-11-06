@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">no disponible</string>
     <string name="sensor_status_permission_denied">permís denegat</string>
     <string name="auto_no_active_navigation_title">No hi ha navegació activa</string>
-    <string name="auto_no_active_navigation_text">Inicia la navegació al telèfon per mostrar la guia aquí.</string>
+    <string name="auto_no_active_navigation_text">Quan estiguis aparcat en un lloc segur, inicia la navegació al telèfon per mostrar les indicacions aquí.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Toca qualsevol lloc per tancar o espera %1$d segon</item>
         <item quantity="many">Toca qualsevol lloc per tancar o espera %1$d segons</item>
@@ -601,4 +601,6 @@
     <string name="simulation_invalid_position">Introdueix una latitud i longitud vàlides amb punts decimals.</string>
     <string name="simulation_save">Desa</string>
     <string name="action_configure_simulation">Configura la simulació</string>
+    <string name="auto_destination_timeout">La càrrega de la destinació ha superat el temps límit. Torna-ho a provar.</string>
+    <string name="auto_retry">Torna-ho a provar</string>
 </resources>

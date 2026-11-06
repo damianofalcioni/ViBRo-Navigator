@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">nedostupný</string>
     <string name="sensor_status_permission_denied">přístup odepřen</string>
     <string name="auto_no_active_navigation_title">Žádná aktivní navigace</string>
-    <string name="auto_no_active_navigation_text">Spusťte navigaci v telefonu, aby se zde zobrazovalo vedení.</string>
+    <string name="auto_no_active_navigation_text">Až bezpečně zaparkujete, spusťte navigaci v telefonu a zde se zobrazí pokyny.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Klepnutím kamkoli zavřete nebo počkejte %1$d sekundu</item>
         <item quantity="few">Klepnutím kamkoli zavřete nebo počkejte %1$d sekundy</item>
@@ -605,4 +605,6 @@
     <string name="simulation_invalid_position">Zadejte platnou zeměpisnou šířku a délku s desetinnými tečkami.</string>
     <string name="simulation_save">Uložit</string>
     <string name="action_configure_simulation">Nastavit simulaci</string>
+    <string name="auto_destination_timeout">Vypršel časový limit načítání cíle. Zkuste to znovu.</string>
+    <string name="auto_retry">Zkusit znovu</string>
 </resources>

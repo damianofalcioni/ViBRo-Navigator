@@ -562,7 +562,7 @@
     <string name="sensor_status_unavailable">μη διαθέσιμο</string>
     <string name="sensor_status_permission_denied">άδεια αρνηθεί</string>
     <string name="auto_no_active_navigation_title">Καμία ενεργή πλοήγηση</string>
-    <string name="auto_no_active_navigation_text">Ξεκινήστε πλοήγηση στο τηλέφωνο για να εμφανιστεί καθοδήγηση εδώ.</string>
+    <string name="auto_no_active_navigation_text">Όταν σταθμεύσετε με ασφάλεια, ξεκινήστε την πλοήγηση στο τηλέφωνο για να εμφανιστούν οδηγίες εδώ.</string>
     <plurals name="nav_gesture_dismiss_countdown">
         <item quantity="one">Αγγίξτε οπουδήποτε για κλείσιμο ή περιμένετε %1$d δευτερόλεπτο</item>
         <item quantity="other">Αγγίξτε οπουδήποτε για κλείσιμο ή περιμένετε %1$d δευτερόλεπτα</item>
@@ -597,4 +597,6 @@
     <string name="simulation_invalid_position">Εισαγάγετε έγκυρο γεωγραφικό πλάτος και μήκος με δεκαδικές τελείες.</string>
     <string name="simulation_save">Αποθήκευση</string>
     <string name="action_configure_simulation">Ρύθμιση προσομοίωσης</string>
+    <string name="auto_destination_timeout">Η φόρτωση του προορισμού έληξε. Δοκιμάστε ξανά.</string>
+    <string name="auto_retry">Δοκιμή ξανά</string>
 </resources>
