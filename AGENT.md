@@ -1,5 +1,15 @@
 # ViBRo Navigator Agent Guide
 
+## Initial workflow: branches, commits, and handoff
+
+- Before making any change, inspect the current branch and working tree. If `BRANCH_PLAN.md` exists at the repository root, read it before starting work and update it as work progresses.
+- When starting from `main`, create and switch to a new working branch based on `main` before editing files. Use a short, descriptive `codex/` branch name. Never make changes directly on `main`.
+- When already on a working branch derived from `main`, treat the request as a fix or continuation of that branch's feature and continue on that branch unless the user explicitly requests otherwise.
+- For long work, you may create a root-level `BRANCH_PLAN.md` describing the objective, planned steps, progress, validation, and remaining work. Keep it current so a new agent can resume from it; incoming agents must read and update an existing plan.
+- At the end of each completed change, run the applicable checks, review the diff, and commit the change on the working branch with a short, meaningful message. Include any plan updates in the commit and leave unrelated user changes untouched.
+- Never merge into `main` without explicit user approval.
+- Never push the working branch to `origin`.
+
 Primary product requirements live in `SPECIFICATION.md` at the repository root. On the first implementation-oriented interaction in this repository, read `SPECIFICATION.md` before making changes. Use this guide together with that specification, and treat `SPECIFICATION.md` as the source of truth when implementation details or feature expectations are unclear.
 
 For work in `docs/` or `docs-tools/`, also read `docs/AGENT.MD` and `docs-tools/README.md`. They own the website constraints and development-tooling workflow; `SPECIFICATION.md` remains the source of truth for app behavior described by the site.
