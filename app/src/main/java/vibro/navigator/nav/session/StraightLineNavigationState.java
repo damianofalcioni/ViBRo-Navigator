@@ -147,7 +147,9 @@ final class StraightLineNavigationState {
                                         destinationReached,
                                         nextStopIndex
                                 ),
-                                ""
+                                "",
+                                StraightLineNavigationProgress.travelEstimate(
+                                        request, snapshot, destinationReached, nextStopIndex)
                         ),
                         compassState,
                         null,

@@ -3,6 +3,8 @@ package vibro.navigator.nav.presentation;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.List;
+
 import vibro.navigator.R;
 import vibro.navigator.nav.compass.NavCompassGpsStatusLineFactory;
 import vibro.navigator.nav.format.NavigationTextResources;
@@ -12,9 +14,25 @@ import vibro.navigator.nav.model.NavGpsStatus;
 import vibro.navigator.nav.model.NavGpsTelemetry;
 import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavManeuver;
+import vibro.navigator.nav.model.NavProgressStatus;
 
 public final class NavStateResourceComposer {
     private NavStateResourceComposer() {
+    }
+
+    @NonNull
+    public static NavState withTravelEstimate(@NonNull NavState state, @NonNull NavStateBuildInput input) {
+        NavProgressStatus progress = state.routeStatus.progress;
+        return new NavState(state.routeStatus.withProgress(new NavProgressStatus(progress.destinationLine,
+                progress.stopProgressBlock, progress.detailBlock, NavTravelEstimateFactory.from(input))),
+                state.gpsStatus, state.pauseStatus, state.tripStatus);
+    }
+
+    @NonNull
+    public static NavState withManeuvers(@NonNull NavState state, @NonNull List<NavManeuver> maneuvers) {
+        return new NavState(state.routeStatus.withGuidance(state.routeStatus.guidance.withManeuvers(maneuvers)),
+                state.gpsStatus, state.pauseStatus, state.tripStatus);
     }
 
     @NonNull

@@ -585,4 +585,5 @@
     <string name="about_setting_restore_defaults_info">Dit omvat taal, thema, API-sleutels en uitvoermappen. Opgeslagen routes en zoekgeschiedenis blijven behouden.</string>
     <string name="msg_default_configuration_restored">Standaardconfiguratie hersteld</string>
     <string name="format_nav_battery_partial_usage">%1$s (gedeeltelijk, over %2$s)</string>
+    <string name="auto_setup_required">Stel de app in wanneer je veilig geparkeerd staat: bevestig het welkom, installeer BRouter en routegegevens, kies een profiel en schakel locatie en meldingen in. Keer daarna hier terug om opnieuw te proberen.</string>
 </resources>

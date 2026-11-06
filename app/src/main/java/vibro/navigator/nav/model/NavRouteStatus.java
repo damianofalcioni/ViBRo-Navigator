@@ -69,4 +69,9 @@ public final class NavRouteStatus {
                 blockedRoadActionAvailable
         );
     }
+
+    @NonNull
+    public NavRouteStatus withGuidance(@NonNull NavGuidanceStatus value) {
+        return new NavRouteStatus(value, progress, compassState, speedLimit, blockedRoadActionAvailable);
+    }
 }

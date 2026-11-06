@@ -585,4 +585,5 @@
     <string name="about_setting_restore_defaults_info">Detta omfattar språk, tema, API-nycklar och utdatamappar. Sparade rutter och sökhistorik behålls.</string>
     <string name="msg_default_configuration_restored">Standardkonfiguration återställd</string>
     <string name="format_nav_battery_partial_usage">%1$s (delvis, under %2$s)</string>
+    <string name="auto_setup_required">När du har parkerat säkert, slutför inställningen på telefonen: godkänn välkomsten, installera BRouter och ruttdata, välj en profil och aktivera plats och aviseringar. Återvänd sedan hit för att försöka igen.</string>
 </resources>

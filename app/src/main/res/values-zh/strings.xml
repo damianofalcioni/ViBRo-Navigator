@@ -579,4 +579,5 @@
     <string name="about_setting_restore_defaults_info">这包括语言、主题、API 密钥和输出文件夹。已保存的路线和搜索历史将会保留。</string>
     <string name="msg_default_configuration_restored">已恢复默认配置</string>
     <string name="format_nav_battery_partial_usage">%1$s（部分测量，时长 %2$s）</string>
+    <string name="auto_setup_required">安全停车后，请在手机上完成设置：确认欢迎页面，安装 BRouter 和路线数据，选择路线配置，并启用位置和通知。然后返回此处重试。</string>
 </resources>

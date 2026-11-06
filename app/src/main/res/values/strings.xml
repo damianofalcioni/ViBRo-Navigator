@@ -635,4 +635,6 @@
     <string name="confirm_restore_default_configuration">Restore all settings to their default values?</string>
     <string name="about_setting_restore_defaults_info">This includes language, theme, API keys, and output folders. Saved routes and search history will be kept.</string>
     <string name="msg_default_configuration_restored">Default configuration restored</string>
+    <!-- GPlay-only Auto text stays in the shared localization catalog; F-Droid removes it when shrinking. -->
+    <string name="auto_setup_required" tools:ignore="UnusedResources">When safely parked, complete setup on the phone: accept the welcome, install BRouter and routing data, select a routing profile, and enable location and notifications. Then return here to retry.</string>
 </resources>

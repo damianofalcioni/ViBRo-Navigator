@@ -10,6 +10,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 import vibro.navigator.nav.directions.DirectionInfo;
+import vibro.navigator.nav.directions.VoiceHintMapper;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.location.NavigationGpsTextFormatter;
@@ -19,6 +20,13 @@ import vibro.navigator.nav.route.VoiceHint;
 public final class NavigationTextFormatter {
 
     private NavigationTextFormatter() {
+    }
+
+    @NonNull
+    public static String maneuverInstruction(@NonNull NavigationTextResources resources, @NonNull VoiceHint hint) {
+        DirectionInfo direction = VoiceHintMapper.toDirection(hint);
+        return direction.exitNumber > 0 ? resources.getString(direction.labelRes, direction.exitNumber)
+                : resources.getString(direction.labelRes);
     }
 
     @NonNull

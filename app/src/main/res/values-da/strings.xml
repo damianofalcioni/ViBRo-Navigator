@@ -585,4 +585,5 @@
     <string name="about_setting_restore_defaults_info">Dette omfatter sprog, tema, API-nøgler og outputmapper. Gemte ruter og søgehistorik bevares.</string>
     <string name="msg_default_configuration_restored">Standardkonfiguration gendannet</string>
     <string name="format_nav_battery_partial_usage">%1$s (delvist, over %2$s)</string>
+    <string name="auto_setup_required">Når du er sikkert parkeret, fuldfør opsætningen på telefonen: bekræft velkomsten, installer BRouter og rutedata, vælg en profil og aktiver placering og notifikationer. Vend derefter tilbage for at prøve igen.</string>
 </resources>

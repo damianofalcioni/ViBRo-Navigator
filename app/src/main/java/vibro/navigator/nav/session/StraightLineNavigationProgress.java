@@ -11,12 +11,23 @@ import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavTravelEstimate;
 import vibro.navigator.nav.route.NavigationRouteGeometryState;
 
 final class StraightLineNavigationProgress {
     private static final float MIN_ETA_SPEED_MPS = 0.2f;
 
     private StraightLineNavigationProgress() {
+    }
+
+    static NavTravelEstimate travelEstimate(NavigationRequest request, NavigationDisplaySnapshot snapshot,
+            boolean reached, int nextStop) {
+        if (reached) {
+            return new NavTravelEstimate(0, 0, snapshot.nowMs, true);
+        }
+        double distance = remainingDistanceToDestination(request, snapshot.lastFiltered, nextStop);
+        Double seconds = estimateSeconds(distance, snapshot.speedMps, snapshot.likelyStationary);
+        return new NavTravelEstimate(distance, seconds == null ? Double.NaN : seconds, snapshot.nowMs, false);
     }
 
     @Nullable

@@ -593,4 +593,5 @@
     <string name="about_setting_restore_defaults_info">Dotyczy to języka, motywu, kluczy API i folderów wyjściowych. Zapisane trasy i historia wyszukiwania zostaną zachowane.</string>
     <string name="msg_default_configuration_restored">Przywrócono konfigurację domyślną</string>
     <string name="format_nav_battery_partial_usage">%1$s (częściowo, przez %2$s)</string>
+    <string name="auto_setup_required">Po bezpiecznym zaparkowaniu skonfiguruj aplikację na telefonie: zaakceptuj powitanie, zainstaluj BRouter i dane tras, wybierz profil oraz włącz lokalizację i powiadomienia. Potem wróć tutaj, aby ponowić próbę.</string>
 </resources>

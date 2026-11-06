@@ -585,4 +585,5 @@
     <string name="about_setting_restore_defaults_info">Ez magában foglalja a nyelvet, a témát, az API-kulcsokat és a kimeneti mappákat. A mentett útvonalak és a keresési előzmények megmaradnak.</string>
     <string name="msg_default_configuration_restored">Az alapértelmezett konfiguráció visszaállítva</string>
     <string name="format_nav_battery_partial_usage">%1$s (részleges, %2$s alatt)</string>
+    <string name="auto_setup_required">Biztonságos parkolás után állítsd be a telefont: fogadd el az üdvözlést, telepítsd a BRouter alkalmazást és az útvonaladatokat, válassz profilt, engedélyezd a helyadatokat és az értesítéseket. Ezután térj vissza az újrapróbáláshoz.</string>
 </resources>

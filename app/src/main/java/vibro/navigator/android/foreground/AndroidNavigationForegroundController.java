@@ -65,6 +65,7 @@ public final class AndroidNavigationForegroundController implements NavigationFo
 
     @Override
     public void stopForegroundService() {
+        transientNotificationTimeout.cancel();
         ServiceCompat.stopForeground(service, ServiceCompat.STOP_FOREGROUND_REMOVE);
     }
 

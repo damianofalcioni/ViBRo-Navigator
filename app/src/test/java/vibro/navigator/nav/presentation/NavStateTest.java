@@ -127,6 +127,12 @@ public class NavStateTest {
         assertTrue(state.routeStatus.guidance.nextLine.contains("20 s"));
         assertTrue(state.routeStatus.guidance.afterNextLine.contains(DISTANCE_111_METERS));
         assertTrue(state.routeStatus.guidance.afterNextLine.contains("25 s"));
+        // The second phone line is relative to the first; external displays need absolute progress.
+        assertEquals(222.4, state.routeStatus.guidance.maneuvers.get(1).distanceMeters, 1.0);
+        assertEquals(45.0, state.routeStatus.guidance.maneuvers.get(1).timeSeconds, 0.001);
+        assertEquals(3, state.routeStatus.guidance.maneuvers.get(1).hint.command);
+        assertEquals(75.0, state.routeStatus.progress.travelEstimate.timeSeconds, 0.001);
+        assertFalse(state.routeStatus.progress.travelEstimate.destinationReached);
     }
 
     @Test
@@ -355,6 +361,7 @@ public class NavStateTest {
         );
 
         assertTrue(state.routeStatus.guidance.nextLine.contains("--"));
+        assertTrue(Double.isNaN(state.routeStatus.progress.travelEstimate.timeSeconds));
     }
 
     @Test

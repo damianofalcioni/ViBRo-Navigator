@@ -18,7 +18,10 @@ import vibro.navigator.nav.model.NavState;
 
 final class ViBRoCarTemplates {
     interface Actions {
-        void onOpenPhoneApp();
+        void onStopNavigation();
+
+        default void onTogglePaused() { }
+        default void onBlockedRoad() { }
     }
 
     @NonNull
@@ -36,11 +39,24 @@ final class ViBRoCarTemplates {
         if (!usesNavigationTemplate(state)) {
             return buildNoActiveNavigationTemplate();
         }
-        return buildNavigationTemplate();
+        return buildNavigationTemplate(state);
     }
 
     boolean requiresInvalidation(@Nullable NavState previous, @Nullable NavState next) {
-        return usesNavigationTemplate(previous) != usesNavigationTemplate(next);
+        if (usesNavigationTemplate(previous) != usesNavigationTemplate(next)) {
+            return true;
+        }
+        if (next != null && previous != null && sameTemplateInputs(previous, next)) {
+            return false;
+        }
+        return next != null && previous != null && !build(previous).equals(build(next));
+    }
+
+    private static boolean sameTemplateInputs(NavState previous, NavState next) {
+        return previous.routeStatus.guidance == next.routeStatus.guidance
+                && previous.routeStatus.progress == next.routeStatus.progress
+                && previous.pauseStatus.paused == next.pauseStatus.paused
+                && previous.routeStatus.blockedRoadActionAvailable == next.routeStatus.blockedRoadActionAvailable;
     }
 
     @NonNull
@@ -55,9 +71,10 @@ final class ViBRoCarTemplates {
     }
 
     @NonNull
-    private Template buildNavigationTemplate() {
+    private Template buildNavigationTemplate(@NonNull NavState state) {
         NavigationTemplate.Builder builder = new NavigationTemplate.Builder()
-                .setActionStrip(buildNavigationActionStrip());
+                .setActionStrip(buildNavigationActionStrip(state));
+        ViBRoCarGuidance.apply(builder, state);
         if (carContext.getCarAppApiLevel() >= 2) {
             // Required by the host before it delivers scroll, pinch, or double-tap zoom.
             builder.setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build());
@@ -66,14 +83,23 @@ final class ViBRoCarTemplates {
     }
 
     @NonNull
-    private ActionStrip buildNavigationActionStrip() {
-        // NavigationTemplate requires a strip action; the surface-drawn controls stay primary.
-        return new ActionStrip.Builder()
-                .addAction(new Action.Builder()
-                        .setIcon(CarIcon.APP_ICON)
-                        .setOnClickListener(actions::onOpenPhoneApp)
-                        .build())
-                .build();
+    private ActionStrip buildNavigationActionStrip(@NonNull NavState state) {
+        ActionStrip.Builder strip = new ActionStrip.Builder()
+                .addAction(new Action.Builder().setTitle(text(R.string.action_stop_navigation))
+                        .setOnClickListener(actions::onStopNavigation).build())
+                .addAction(iconAction(state.pauseStatus.paused ? R.drawable.ic_play : R.drawable.ic_pause,
+                        actions::onTogglePaused));
+        if (state.routeStatus.blockedRoadActionAvailable && !state.pauseStatus.paused) {
+            strip.addAction(iconAction(R.drawable.ic_blocked_road, actions::onBlockedRoad));
+        }
+        return strip.build();
+    }
+
+    private Action iconAction(int drawable, Runnable action) {
+        return new Action.Builder().setIcon(new CarIcon.Builder(
+                androidx.core.graphics.drawable.IconCompat.createWithResource(carContext, drawable))
+                .build())
+                .setOnClickListener(action::run).build();
     }
 
     @NonNull

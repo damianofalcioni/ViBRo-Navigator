@@ -11,9 +11,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.RectF;
 
 import androidx.annotation.NonNull;
 import androidx.car.app.AppInfo;
@@ -43,7 +40,6 @@ import vibro.navigator.nav.model.NavPauseStatus;
 import vibro.navigator.nav.model.NavProgressStatus;
 import vibro.navigator.nav.model.NavRouteStatus;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.settings.AppNavigationCustomButtonSettings;
 
 @RunWith(RobolectricTestRunner.class)
 public class ViBRoCarAppServiceSettingsGplayTest {
@@ -100,7 +96,7 @@ public class ViBRoCarAppServiceSettingsGplayTest {
     }
 
     @Test
-    public void activeNavigationTemplateBuildsWithMinimalRequiredActionStrip() throws Exception {
+    public void activeNavigationTemplateUsesHostControls() throws Exception {
         ViBRoCarTemplates templates = new ViBRoCarTemplates(
                 testCarContext(),
                 () -> {
@@ -111,8 +107,9 @@ public class ViBRoCarAppServiceSettingsGplayTest {
 
         assertTrue(template instanceof NavigationTemplate);
         NavigationTemplate navigationTemplate = (NavigationTemplate) template;
-        assertEquals(1, navigationTemplate.getActionStrip().getActions().size());
-        assertNull(navigationTemplate.getActionStrip().getActions().get(0).getTitle());
+        assertEquals(2, navigationTemplate.getActionStrip().getActions().size());
+        assertEquals(context.getString(R.string.action_stop_navigation),
+                navigationTemplate.getActionStrip().getActions().get(0).getTitle().toString());
         assertEquals(Action.PAN, navigationTemplate.getMapActionStrip().getActions().get(0));
     }
 
@@ -121,6 +118,22 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         ViBRoCarTemplates templates = new ViBRoCarTemplates(testCarContext(1), () -> { });
         NavigationTemplate template = (NavigationTemplate) templates.build(activeNavigationState());
         assertNull(template.getMapActionStrip());
+    }
+
+    @Test
+    public void guidanceAndEtaUseHostTemplateComponents() throws Exception {
+        ViBRoCarTemplates templates = new ViBRoCarTemplates(testCarContext(), () -> { });
+        NavigationTemplate active = (NavigationTemplate) templates.build(CarNavigationTestStates.active(false, false));
+        androidx.car.app.navigation.model.RoutingInfo routing =
+                (androidx.car.app.navigation.model.RoutingInfo) active.getNavigationInfo();
+        assertEquals("Turn right", routing.getCurrentStep().getCue().toString());
+        assertEquals(120, routing.getCurrentDistance().getDisplayDistance(), 0);
+        assertEquals(50, active.getDestinationTravelEstimate().getRemainingTimeSeconds());
+        assertEquals(3, active.getActionStrip().getActions().size());
+        NavigationTemplate paused = (NavigationTemplate) templates.build(CarNavigationTestStates.active(true, false));
+        assertTrue(paused.getNavigationInfo() instanceof androidx.car.app.navigation.model.MessageInfo);
+        assertNull(paused.getDestinationTravelEstimate());
+        assertEquals(2, paused.getActionStrip().getActions().size());
     }
 
     @Test
@@ -164,22 +177,6 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         assertFalse(templates.requiresInvalidation(active, anotherActive));
         assertTrue(templates.requiresInvalidation(active, noActive));
         assertFalse(templates.requiresInvalidation(noActive, null));
-    }
-
-    @Test
-    public void compassOverlayIgnoresFormerSettingsAndExportButtonAreas() throws Exception {
-        AppNavigationCustomButtonSettings.setEnabled(context, false);
-        CarContext carContext = testCarContext();
-        carContext.setTheme(R.style.Theme_ViBRoNavigator);
-        RecordingAutoControls controls = new RecordingAutoControls();
-        ViBRoAutoCompassOverlayPainter painter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
-        Bitmap bitmap = Bitmap.createBitmap(220, 220, Bitmap.Config.ARGB_8888);
-
-        painter.draw(new Canvas(bitmap), activeNavigationState(), new RectF(10f, 10f, 210f, 210f), 1f);
-
-        assertFalse(painter.handleClick(32f, 188f));
-        assertFalse(painter.handleClick(188f, 188f));
-        assertEquals(0, controls.customButtonToggles);
     }
 
     @NonNull
@@ -239,30 +236,4 @@ public class ViBRoCarAppServiceSettingsGplayTest {
         }
     }
 
-    static final class RecordingAutoControls implements ViBRoAutoSurfaceRenderer.Controls {
-        private int customButtonToggles;
-
-        @Override
-        public void onBlockedRoad() {
-        }
-
-        @Override
-        public void onStopNavigation() {
-        }
-
-        @Override
-        public void onTogglePaused() {
-        }
-
-        @Override
-        public void onToggleCustomButton() {
-            customButtonToggles++;
-        }
-
-        @Override
-        @NonNull
-        public String buildCurrentDirectionDetailsText() {
-            return "";
-        }
-    }
 }

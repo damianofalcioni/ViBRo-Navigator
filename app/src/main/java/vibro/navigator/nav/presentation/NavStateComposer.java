@@ -129,7 +129,7 @@ public final class NavStateComposer {
         NavCompassState compassState = input.compassInput == null
                 ? null
                 : NavCompassStateFactory.buildCompassState(input.compassInput);
-        return create(
+        NavState state = create(
                 destination,
                 stopProgress,
                 gpsTelemetry.compactLine,
@@ -141,6 +141,7 @@ public final class NavStateComposer {
                 false,
                 gpsTelemetry
         );
+        return NavStateResourceComposer.withTravelEstimate(state, input);
     }
 
     @NonNull

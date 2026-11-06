@@ -590,4 +590,5 @@
     <string name="about_setting_restore_defaults_info">Esto incluye el idioma, el tema, las claves API y las carpetas de salida. Se conservarán las rutas guardadas y el historial de búsqueda.</string>
     <string name="msg_default_configuration_restored">Configuración predeterminada restaurada</string>
     <string name="format_nav_battery_partial_usage">%1$s (parcial, durante %2$s)</string>
+    <string name="auto_setup_required">Con el vehículo estacionado de forma segura, configura el teléfono: acepta la bienvenida, instala BRouter y sus datos, elige un perfil y activa ubicación y notificaciones. Luego vuelve aquí para reintentar.</string>
 </resources>

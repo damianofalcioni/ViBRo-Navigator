@@ -567,4 +567,5 @@
     <string name="about_setting_restore_defaults_info">Dies umfasst Sprache, Design, API-Schlüssel und Ausgabeordner. Gespeicherte Routen und der Suchverlauf bleiben erhalten.</string>
     <string name="msg_default_configuration_restored">Standardkonfiguration wiederhergestellt</string>
     <string name="format_nav_battery_partial_usage">%1$s (teilweise, über %2$s)</string>
+    <string name="auto_setup_required">Wenn du sicher geparkt hast, richte die App am Telefon ein: Begrüßung bestätigen, BRouter und Routingdaten installieren, Profil auswählen sowie Standort und Benachrichtigungen aktivieren. Kehre dann hierher zurück.</string>
 </resources>

@@ -601,4 +601,5 @@
     <string name="about_setting_restore_defaults_info">يشمل ذلك اللغة والمظهر ومفاتيح API ومجلدات الإخراج. سيتم الاحتفاظ بالمسارات المحفوظة وسجل البحث.</string>
     <string name="msg_default_configuration_restored">تمت استعادة الإعدادات الافتراضية</string>
     <string name="format_nav_battery_partial_usage">%1$s (جزئي، خلال %2$s)</string>
+    <string name="auto_setup_required">عند الوقوف بأمان، أكمل الإعداد على الهاتف: اقبل شاشة الترحيب وثبّت BRouter وبيانات المسارات واختر ملف توجيه وفعّل الموقع والإشعارات. ثم عد إلى هنا للمحاولة مجددًا.</string>
 </resources>

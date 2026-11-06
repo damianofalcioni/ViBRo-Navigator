@@ -35,7 +35,6 @@ final class ViBRoCarNavigationController {
     private NavigationServiceBinder navBinder;
     private boolean bound;
     private boolean serviceConnectionPending;
-    private boolean refreshLocationSettingsOnReconnect;
 
     private final NavigationService.Listener navListener = new NavigationService.Listener() {
         @Override
@@ -54,6 +53,9 @@ final class ViBRoCarNavigationController {
     private final ServiceConnection connection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
+            if (!serviceConnectionPending) {
+                return; // A late connection cannot resurrect a destroyed/stopped car client.
+            }
             navBinder = (NavigationServiceBinder) service;
             bound = true;
             serviceConnectionPending = false;
@@ -64,17 +66,16 @@ final class ViBRoCarNavigationController {
         @Override
         public void onServiceDisconnected(ComponentName name) {
             AppLogger.w(TAG, "NavigationService disconnected component=" + name);
-            bound = false;
-            serviceConnectionPending = false;
             navBinder = null;
             host.updateCurrentState(null);
+            unbind();
         }
     };
 
     ViBRoCarNavigationController(@NonNull CarContext carContext, @NonNull Host host) {
         this.carContext = carContext;
         this.host = host;
-        actions = new ViBRoCarNavigationActions(carContext, host, () -> navBinder);
+        actions = new ViBRoCarNavigationActions(host, () -> navBinder);
     }
 
     boolean ensureIntegrationEnabled() {
@@ -109,7 +110,7 @@ final class ViBRoCarNavigationController {
     }
 
     void unbind() {
-        if (!bound) {
+        if (!bound && !serviceConnectionPending) {
             serviceConnectionPending = false;
             return;
         }
@@ -133,12 +134,7 @@ final class ViBRoCarNavigationController {
         actions.setCompassStreetViewport(compassState);
     }
 
-    @Nullable
-    NavigationServiceBinder currentBinder() {
-        return navBinder;
-    }
-
-    void addBlockedWaypoint() {
+void addBlockedWaypoint() {
         actions.addBlockedWaypoint();
     }
 
@@ -148,20 +144,11 @@ final class ViBRoCarNavigationController {
 
     void stopNavigation() {
         actions.stopNavigation();
+        if (navBinder == null) {
+            carContext.stopService(new Intent(carContext, NavigationService.class));
+        }
+        host.updateCurrentState(null);
         unbind();
-    }
-
-    void requestLocationSettingsRefreshOnReconnect() {
-        refreshLocationSettingsOnReconnect = true;
-    }
-
-    void openPhoneNavigationIfActive() {
-        actions.openPhoneNavigationIfActive();
-    }
-
-    @NonNull
-    String buildCurrentDirectionDetailsText() {
-        return ViBRoAutoDirectionDetailsText.build(carContext, navBinder);
     }
 
     private void attachConnectedService() {
@@ -180,15 +167,7 @@ final class ViBRoCarNavigationController {
         navBinder.ensureForegroundNotification();
         navBinder.setCarNavigationUiVisible(true);
         navBinder.registerListener(navListener);
-        refreshLocationSettingsIfRequested();
-    }
 
-    private void refreshLocationSettingsIfRequested() {
-        if (!refreshLocationSettingsOnReconnect) {
-            return;
-        }
-        refreshLocationSettingsOnReconnect = false;
-        navBinder.refreshLocationUpdateSettings();
     }
 
     private void clearCurrentState() {

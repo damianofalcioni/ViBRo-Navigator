@@ -11,6 +11,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.nav.model.NavGuidanceStatus;
+import vibro.navigator.nav.model.NavManeuver;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
@@ -61,7 +62,19 @@ public final class NavStateTextFactory {
         String afterNext = visibleLines.size() > 1 ? visibleLines.get(1) : "";
         return new NavGuidanceStatus(next, afterNext,
                 isUncertain(upcomingHints, 0, accuracyMeters),
-                isUncertain(upcomingHints, 1, accuracyMeters));
+                isUncertain(upcomingHints, 1, accuracyMeters), maneuvers(upcomingHints, textResources));
+    }
+
+    @NonNull
+    private static List<NavManeuver> maneuvers(@NonNull List<NavUpcomingHint> hints,
+            @NonNull NavigationTextResources resources) {
+        List<NavManeuver> result = new ArrayList<>();
+        for (NavUpcomingHint upcoming : hints) {
+            result.add(new NavManeuver(upcoming.hint,
+                    NavigationTextFormatter.maneuverInstruction(resources, upcoming.hint),
+                    upcoming.distanceMeters, upcoming.timeSeconds));
+        }
+        return result;
     }
 
     private static boolean isUncertain(@NonNull List<NavUpcomingHint> hints, int index, float accuracyMeters) {

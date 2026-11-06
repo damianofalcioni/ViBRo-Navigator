@@ -167,6 +167,7 @@ public class NavigationService extends AndroidLocalizedService {
     }
 
     private void readNavRequest(@NonNull Intent intent) {
+        runtime().stopManeuverSpeech();
         NavigationRequest request = AndroidNavigationRequestIntentContract.fromIntent(intent);
         navigationSession.loadRequest(request);
     }

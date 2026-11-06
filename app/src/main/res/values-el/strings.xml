@@ -585,4 +585,5 @@
     <string name="about_setting_restore_defaults_info">Περιλαμβάνονται η γλώσσα, το θέμα, τα κλειδιά API και οι φάκελοι εξόδου. Οι αποθηκευμένες διαδρομές και το ιστορικό αναζήτησης θα διατηρηθούν.</string>
     <string name="msg_default_configuration_restored">Έγινε επαναφορά προεπιλεγμένων ρυθμίσεων</string>
     <string name="format_nav_battery_partial_usage">%1$s (μερική μέτρηση, σε %2$s)</string>
+    <string name="auto_setup_required">Όταν σταθμεύσετε με ασφάλεια, ολοκληρώστε τη ρύθμιση στο τηλέφωνο: αποδεχτείτε την υποδοχή, εγκαταστήστε το BRouter και τα δεδομένα, επιλέξτε προφίλ και ενεργοποιήστε τοποθεσία και ειδοποιήσεις. Έπειτα επιστρέψτε για νέα προσπάθεια.</string>
 </resources>

@@ -579,4 +579,5 @@
     <string name="about_setting_restore_defaults_info">언어, 테마, API 키 및 출력 폴더가 포함됩니다. 저장된 경로와 검색 기록은 유지됩니다.</string>
     <string name="msg_default_configuration_restored">기본 설정이 복원되었습니다</string>
     <string name="format_nav_battery_partial_usage">%1$s (부분 측정, %2$s 동안)</string>
+    <string name="auto_setup_required">안전하게 주차한 후 휴대전화에서 설정을 완료하세요. 시작 화면을 확인하고 BRouter와 경로 데이터를 설치한 다음 프로필을 선택하고 위치 및 알림을 활성화하세요. 그런 다음 여기로 돌아와 다시 시도하세요.</string>
 </resources>

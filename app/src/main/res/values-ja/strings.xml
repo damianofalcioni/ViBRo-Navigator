@@ -581,4 +581,5 @@
     <string name="about_setting_restore_defaults_info">言語、テーマ、API キー、出力フォルダーが含まれます。保存済みのルートと検索履歴は保持されます。</string>
     <string name="msg_default_configuration_restored">デフォルト設定に戻しました</string>
     <string name="format_nav_battery_partial_usage">%1$s（部分測定、%2$s間）</string>
+    <string name="auto_setup_required">安全に駐車してから、スマートフォンで初期設定を完了してください。ようこそ画面を確認し、BRouterとルートデータをインストールしてプロファイルを選択し、位置情報と通知を有効にします。その後、ここに戻って再試行してください。</string>
 </resources>

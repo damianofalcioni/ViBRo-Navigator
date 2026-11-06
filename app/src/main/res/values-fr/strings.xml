@@ -589,4 +589,5 @@
     <string name="about_setting_restore_defaults_info">Cela comprend la langue, le thème, les clés API et les dossiers de sortie. Les itinéraires enregistrés et l’historique de recherche seront conservés.</string>
     <string name="msg_default_configuration_restored">Configuration par défaut rétablie</string>
     <string name="format_nav_battery_partial_usage">%1$s (partiel, sur %2$s)</string>
+    <string name="auto_setup_required">Une fois garé en sécurité, configurez le téléphone : validez l’écran de bienvenue, installez BRouter et ses données, choisissez un profil et activez la localisation et les notifications. Revenez ensuite ici pour réessayer.</string>
 </resources>

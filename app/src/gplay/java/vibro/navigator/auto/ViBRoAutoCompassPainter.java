@@ -32,7 +32,6 @@ final class ViBRoAutoCompassPainter {
 
     ViBRoAutoCompassPainter(
             @NonNull CarContext carContext,
-            @NonNull ViBRoAutoSurfaceRenderer.Controls controls,
             @NonNull ViBRoAutoCompassStreetViewportSink compassStreetViewportSink,
             @NonNull ElapsedRealtimeClock elapsedRealtimeClock
     ) {
@@ -45,7 +44,7 @@ final class ViBRoAutoCompassPainter {
                 touchSlop, ViewConfiguration.getDoubleTapTimeout());
         compassView = new NavigationCompassView(carContext);
         this.compassStreetViewportSink = compassStreetViewportSink;
-        overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext, controls);
+        overlayPainter = new ViBRoAutoCompassOverlayPainter(carContext);
     }
 
     void draw(
@@ -86,10 +85,7 @@ final class ViBRoAutoCompassPainter {
     }
 
     boolean handleClick(float x, float y, @NonNull NavState state) {
-        if (overlayPainter.handleClick(x, y)) {
-            return true;
-        }
-        if (!bounds.contains(x, y)) {
+if (!bounds.contains(x, y)) {
             return false;
         }
         if (!gestures.isRecent(elapsedRealtimeClock.elapsedRealtimeMs())) {
@@ -122,7 +118,7 @@ final class ViBRoAutoCompassPainter {
             return false;
         }
         // Rotary hosts can omit the focal point by supplying negative coordinates.
-        return (x < 0f || y < 0f || bounds.contains(x, y)) && !overlayPainter.containsControl(x, y);
+        return (x < 0f || y < 0f || bounds.contains(x, y));
     }
 
     @Nullable

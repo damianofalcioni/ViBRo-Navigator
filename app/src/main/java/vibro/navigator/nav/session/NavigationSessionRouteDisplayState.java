@@ -23,6 +23,7 @@ import vibro.navigator.nav.route.PolylineIndex;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 public final class NavigationSessionRouteDisplayState {
     private static final double TRACK_INDEX_TOLERANCE_METERS = 1.0;
@@ -239,11 +240,11 @@ public final class NavigationSessionRouteDisplayState {
     ) {
         return directGuidanceTarget == null
                 ? state
-                : NavStateComposer.withGuidanceLines(
+                : NavStateResourceComposer.withManeuvers(NavStateComposer.withGuidanceLines(
                         state,
                         NavigationRouteStartApproachText.buildLine(snapshot, directGuidanceTarget),
                         state.routeStatus.guidance.nextLine
-                );
+                ), Collections.singletonList(NavigationRouteStartApproachText.maneuver(snapshot, directGuidanceTarget)));
     }
 
     @NonNull
