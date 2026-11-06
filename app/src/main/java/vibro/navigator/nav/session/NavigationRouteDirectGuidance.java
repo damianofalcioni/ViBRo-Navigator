@@ -37,8 +37,7 @@ final class NavigationRouteDirectGuidance {
                 turnState,
                 progressTracker,
                 deviationHandler,
-                arrivalDetector,
-                intermediateArrivalTracker,
+                new NavigationBeelineCompletionPolicy(state, intermediateArrivalTracker, arrivalDetector, turnState),
                 state,
                 routeHistory
         );

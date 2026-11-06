@@ -11,16 +11,53 @@ import vibro.navigator.nav.power.NavigationBatterySnapshot;
 
 public class NavigationTripStatsTrackerTest {
     @Test
+    public void confirmedMovingStateIsNotConvertedIntoAStopBySuppressedDisplaySpeed() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L);
+        tracker.recordAcceptedLocation(location(0, 0), 1_000L, 0f, false, false, -1, true);
+        tracker.recordAcceptedLocation(location(0, 0.0001), 11_000L, 0f, false, false, -1, true);
+        assertEquals(10_000L, tracker.snapshot().movingDurationMs);
+        assertEquals(0L, tracker.snapshot().stationaryDurationMs);
+    }
+
+    @Test
+    public void unknownMotionKeepsOnlyTheSupportedPrefixWithoutBridgingDistance() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L);
+        tracker.recordAcceptedLocation(location(0, 0), 1_000L, 2f, false, false);
+        tracker.recordAcceptedLocation(location(0, 0.001), 11_000L, 0f, false, false, -1, false);
+        NavTripStatus unknown = tracker.snapshot();
+        assertEquals(10_000L, unknown.movingDurationMs(15_000L));
+        assertEquals(0L, unknown.stationaryDurationMs(15_000L));
+        tracker.recordAcceptedLocation(location(0, 0.002), 21_000L, 2f, false, false);
+        assertEquals(0d, tracker.snapshot().travelledDistanceMeters, 0d);
+        assertEquals(10_000L, tracker.snapshot().movingDurationMs);
+        tracker.recordAcceptedLocation(location(0, 0.0021), 24_000L, 2f, false, false);
+        assertEquals(13_000L, tracker.snapshot().movingDurationMs);
+        assertTrue(tracker.snapshot().travelledDistanceMeters < 12);
+    }
+
+    @Test
+    public void risingBatteryPercentageInvalidatesDropEstimateForTheTrip() {
+        NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
+        tracker.start(1_000L, true, NavigationBatterySnapshot.of(3_000_000, 90));
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(2_990_000, 89));
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(2_980_000, 90));
+        tracker.recordBatterySnapshot(NavigationBatterySnapshot.of(2_970_000, 88));
+        assertEquals(NavTripStatus.UNKNOWN_BATTERY_DROP_PERCENT, tracker.snapshot().batteryDropPercent);
+    }
+
+    @Test
     public void motionWakeCreditsSleepOnlyUntilWakeAndDoesNotCountItTwice() {
         NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
         tracker.start(1_000L);
         tracker.recordAcceptedLocation(location(0, 0), 1_000L, 0f, true, false);
         tracker.recordAcceptedLocation(location(0, 0), 22_000L, 0f, true, false);
         tracker.recordAcceptedLocation(location(0, 0.0001), 26_000L, 2f, false, false, 25_000L);
-        assertEquals(24_000L, tracker.snapshot().stationaryDurationMs);
+        assertEquals(13_000L, tracker.snapshot().stationaryDurationMs);
         assertEquals(1_000L, tracker.snapshot().movingDurationMs);
         tracker.recordAcceptedLocation(location(0, 0.0002), 29_000L, 2f, false, false);
-        assertEquals(24_000L, tracker.snapshot().stationaryDurationMs);
+        assertEquals(13_000L, tracker.snapshot().stationaryDurationMs);
         assertEquals(4_000L, tracker.snapshot().movingDurationMs);
     }
 
@@ -41,20 +78,20 @@ public class NavigationTripStatsTrackerTest {
         tracker.start(1_000L);
 
         tracker.recordAcceptedLocation(location(48.0, 16.0), 1_000L, 0f, true, false);
-        tracker.recordAcceptedLocation(location(48.0, 16.0), 61_000L, 0f, true, false);
-        tracker.recordAcceptedLocation(location(48.0, 16.001), 121_000L, 2f, false, false);
+        tracker.recordAcceptedLocation(location(48.0, 16.0), 6_000L, 0f, true, false);
+        tracker.recordAcceptedLocation(location(48.0, 16.0001), 11_000L, 2f, false, false);
 
         NavTripStatus status = tracker.snapshot();
 
-        assertEquals(60_000L, status.stationaryDurationMs);
-        assertEquals(60_000L, status.movingDurationMs);
+        assertEquals(5_000L, status.stationaryDurationMs);
+        assertEquals(5_000L, status.movingDurationMs);
         assertEquals(2f, status.maxSpeedMps, 0.0f);
         assertEquals(3, status.acceptedFixCount);
-        assertTrue(status.travelledDistanceMeters > 70.0);
+        assertTrue(status.travelledDistanceMeters > 7.0);
     }
 
     @Test
-    public void recordAcceptedLocation_skipsDistanceAndTimeAcrossReacquisitionSegment() {
+    public void recordAcceptedLocation_keepsSupportedTimeWithoutBridgingReacquisition() {
         NavigationTripStatsTracker tracker = new NavigationTripStatsTracker();
         tracker.start(1_000L);
 
@@ -63,7 +100,7 @@ public class NavigationTripStatsTrackerTest {
 
         NavTripStatus status = tracker.snapshot();
 
-        assertEquals(0L, status.movingDurationMs);
+        assertEquals(10_000L, status.movingDurationMs);
         assertEquals(0.0, status.travelledDistanceMeters, 0.0);
     }
 
@@ -75,7 +112,7 @@ public class NavigationTripStatsTrackerTest {
 
         NavTripStatus status = tracker.snapshot();
 
-        assertEquals(30_000L, status.stationaryDurationMs(31_000L));
+        assertEquals(10_000L, status.stationaryDurationMs(31_000L));
     }
 
     @Test

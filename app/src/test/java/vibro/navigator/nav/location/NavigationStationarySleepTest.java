@@ -43,6 +43,24 @@ public class NavigationStationarySleepTest {
     }
 
     @Test
+    public void precisePositiveSlowSpeedCannotAuthorizeSleepFromRepeatedPositions() {
+        Fixture fixture = new Fixture();
+        for (long time = 1_000L; time <= 31_000L; time += 3_000L) {
+            NavigationLocation slow = fix(time, 0d);
+            slow.setSpeed(0.25f);
+            slow.setSpeedAccuracyMetersPerSecond(0.01f);
+            assertFalse(fixture.sleep.observe(slow, slow, true, time));
+        }
+        assertFalse(fixture.sleep.isSleeping());
+        // Real stopped observations must still be able to start a new full confirmation window.
+        assertFalse(fixture.observe(34_000L, 0d));
+        for (long time = 37_000L; time < 55_000L; time += 3_000L) {
+            assertFalse(fixture.observe(time, 0d));
+        }
+        assertTrue(fixture.observe(55_000L, 0d));
+    }
+
+    @Test
     public void stalePoorOrMovingFixesCannotConfirmAStop() {
         Fixture fixture = new Fixture();
         fixture.confirmStop();

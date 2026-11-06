@@ -182,7 +182,8 @@ public class NavigationRouteStartApproachStateTest {
                 requestedStart,
                 0f,
                 true,
-                500L
+                500L,
+                requestedStart.getElapsedRealtimeOrTimeMs()
         );
 
         assertEquals(0.0, state.currentSegmentBearingDegrees(requestedStart), 1.0);

@@ -1,6 +1,7 @@
 package vibro.navigator.nav.model;
 
 import androidx.annotation.NonNull;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 public final class NavTripStatus {
     private static final long NO_ACCEPTED_FIX = -1L;
@@ -16,12 +17,14 @@ public final class NavTripStatus {
     public final int acceptedFixCount;
     public final boolean activeMovingInterval;
     public final boolean activeStationaryInterval;
+    public final long motionEvidenceExpiresAtElapsedMs;
     public final long screenOnDurationMs;
     public final long screenOffDurationMs;
     public final long lastScreenTransitionElapsedMs;
     public final boolean screenInteractive;
     public final float batteryUsedMilliAmpHours;
     public final int batteryDropPercent;
+    @NonNull public final NavBatteryEstimate batteryEstimate;
 
     public NavTripStatus(
             boolean started,
@@ -46,6 +49,7 @@ public final class NavTripStatus {
                 acceptedFixCount,
                 activeMovingInterval,
                 activeStationaryInterval,
+                lastAcceptedFixElapsedMs + NavigationMotionState.MAX_EVIDENCE_AGE_MS,
                 0L,
                 0L,
                 0L,
@@ -66,11 +70,38 @@ public final class NavTripStatus {
             int acceptedFixCount,
             boolean activeMovingInterval,
             boolean activeStationaryInterval,
+            long motionEvidenceExpiresAtElapsedMs,
             long screenOnDurationMs,
             long screenOffDurationMs,
             long lastScreenTransitionElapsedMs,
             boolean screenInteractive,
             float batteryUsedMilliAmpHours,
+            int batteryDropPercent
+    ) {
+        this(started, startedAtElapsedMs, lastAcceptedFixElapsedMs, travelledDistanceMeters,
+                movingDurationMs, stationaryDurationMs, maxSpeedMps, acceptedFixCount, activeMovingInterval,
+                activeStationaryInterval, motionEvidenceExpiresAtElapsedMs, screenOnDurationMs, screenOffDurationMs,
+                lastScreenTransitionElapsedMs, screenInteractive, NavBatteryEstimate.wholeTrip(batteryUsedMilliAmpHours),
+                batteryDropPercent);
+    }
+
+    public NavTripStatus(
+            boolean started,
+            long startedAtElapsedMs,
+            long lastAcceptedFixElapsedMs,
+            double travelledDistanceMeters,
+            long movingDurationMs,
+            long stationaryDurationMs,
+            float maxSpeedMps,
+            int acceptedFixCount,
+            boolean activeMovingInterval,
+            boolean activeStationaryInterval,
+            long motionEvidenceExpiresAtElapsedMs,
+            long screenOnDurationMs,
+            long screenOffDurationMs,
+            long lastScreenTransitionElapsedMs,
+            boolean screenInteractive,
+            @NonNull NavBatteryEstimate batteryEstimate,
             int batteryDropPercent
     ) {
         this.started = started;
@@ -83,11 +114,13 @@ public final class NavTripStatus {
         this.acceptedFixCount = Math.max(0, acceptedFixCount);
         this.activeMovingInterval = activeMovingInterval;
         this.activeStationaryInterval = activeStationaryInterval;
+        this.motionEvidenceExpiresAtElapsedMs = motionEvidenceExpiresAtElapsedMs;
         this.screenOnDurationMs = Math.max(0L, screenOnDurationMs);
         this.screenOffDurationMs = Math.max(0L, screenOffDurationMs);
         this.lastScreenTransitionElapsedMs = Math.max(0L, lastScreenTransitionElapsedMs);
         this.screenInteractive = screenInteractive;
-        this.batteryUsedMilliAmpHours = sanitizeBatteryUsed(batteryUsedMilliAmpHours);
+        this.batteryEstimate = batteryEstimate;
+        this.batteryUsedMilliAmpHours = batteryEstimate.wholeTrip ? batteryEstimate.milliAmpHours : Float.NaN;
         this.batteryDropPercent = batteryDropPercent >= 0
                 ? batteryDropPercent
                 : UNKNOWN_BATTERY_DROP_PERCENT;
@@ -125,7 +158,7 @@ public final class NavTripStatus {
         if (!started || lastAcceptedFixElapsedMs == NO_ACCEPTED_FIX) {
             return 0L;
         }
-        return Math.max(0L, nowElapsedMs - lastAcceptedFixElapsedMs);
+        return Math.max(0L, Math.min(nowElapsedMs, motionEvidenceExpiresAtElapsedMs) - lastAcceptedFixElapsedMs);
     }
 
     private long openScreenIntervalMs(long nowElapsedMs) {
@@ -135,7 +168,4 @@ public final class NavTripStatus {
         return Math.max(0L, nowElapsedMs - lastScreenTransitionElapsedMs);
     }
 
-    private static float sanitizeBatteryUsed(float value) {
-        return Float.isFinite(value) && value >= 0f ? value : Float.NaN;
-    }
 }

@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMovementEvidence;
 
 /** Position corrections never invent velocity; prediction uses a trusted measured course. */
 public final class LatLonKalmanFilter {
@@ -14,6 +15,7 @@ public final class LatLonKalmanFilter {
     private final Kalman1D xFilter = new Kalman1D(1);
     private final Kalman1D yFilter = new Kalman1D(1);
     private final LocationJumpGate jumpGate = new LocationJumpGate();
+    private final NavigationMovementEvidence rawMovement = new NavigationMovementEvidence();
     @Nullable private NavigationLocation lastRaw;
     @Nullable private String lastRejectionReason;
     private double refLat;
@@ -26,6 +28,7 @@ public final class LatLonKalmanFilter {
         jumpGate.reset();
         lastRejectionReason = null;
         lastDelayedCorrectionTimeMs = Long.MIN_VALUE;
+        rawMovement.reset();
     }
 
     /** Refine the next chronological output without changing fix time, speed, course or jump history. */
@@ -102,13 +105,16 @@ public final class LatLonKalmanFilter {
     }
 
     private NavigationLocation smooth(NavigationLocation in, double dt) {
+        boolean moving = rawMovement.record(in);
         predict(in, dt);
         double variance = LocationFilterPolicy.measurementVariance(in);
         double x = normalizeLongitude(in.getLongitude() - refLon) * longitudeScale;
         double y = (in.getLatitude() - refLat) * METERS_PER_DEGREE;
         xFilter.update(x, variance);
         yFilter.update(y, variance);
-        boundLag(x, y, LocationFilterPolicy.accuracy(in), variance);
+        double lagLimit = moving ? Math.max(3, LocationFilterPolicy.speed(in) * 2)
+                : LocationFilterPolicy.accuracy(in);
+        boundLag(x, y, Math.min(LocationFilterPolicy.accuracy(in), lagLimit), variance);
         NavigationLocation out = new NavigationLocation(in);
         out.setLatitude(refLat + yFilter.position() / METERS_PER_DEGREE);
         out.setLongitude(normalizeLongitude(refLon + xFilter.position() / longitudeScale));
@@ -162,6 +168,8 @@ public final class LatLonKalmanFilter {
         yFilter.reset(0, 0, variance, 0);
         lastRaw = new NavigationLocation(in);
         jumpGate.reset();
+        rawMovement.reset();
+        rawMovement.record(in);
         return new NavigationLocation(in);
     }
 

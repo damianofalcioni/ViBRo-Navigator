@@ -327,7 +327,8 @@ public class DirectLegTravelHistoryTest {
         accept(state, fix(0, 0.0008, 4_000, 1));
         LatLon accuracyReachedFix = new LatLon(0.00012, 0.001);
         accept(state, fix(accuracyReachedFix.lat, accuracyReachedFix.lon, 7_000, 1));
-        accept(state, fix(routePoint.lat, routePoint.lon, 10_000, 1));
+        accept(state, fix(accuracyReachedFix.lat, accuracyReachedFix.lon, 10_000, 1));
+        accept(state, fix(routePoint.lat, routePoint.lon, 13_000, 1));
 
         List<List<LatLon>> connectors =
                 state.historyForExport().recalculationBridgeSegmentsSnapshot();
@@ -368,7 +369,8 @@ public class DirectLegTravelHistoryTest {
 
         accept(state, fix(0, 0.001, 4_000, 1));
         accept(state, fix(destination.lat, destination.lon, 7_000, 1));
-        accept(state, fix(0, 0.00105, 10_000, 1));
+        accept(state, fix(destination.lat, destination.lon, 10_000, 1));
+        accept(state, fix(0, 0.00105, 13_000, 1));
 
         List<LatLon> remaining = state.historyForExport().remainingRoute().track;
         assertEquals(1, remaining.size());

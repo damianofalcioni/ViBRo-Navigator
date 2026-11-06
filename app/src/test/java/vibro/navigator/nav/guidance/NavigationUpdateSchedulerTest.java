@@ -6,6 +6,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.location.NavigationLocation;
 
 import org.junit.Test;
 
@@ -16,6 +17,46 @@ import java.util.List;
 public class NavigationUpdateSchedulerTest {
 
     private final NavigationUpdateScheduler scheduler = new NavigationUpdateScheduler();
+
+    @Test
+    public void anAcceleratingRoutedApproachRequestsVerificationBeforeTheTurnCrossing() {
+        GeoJsonRoute route = new GeoJsonRoute(Arrays.asList(new LatLon(0, 0), new LatLon(0.01, 0)),
+                Collections.singletonList(new VoiceHint(1, 1, 0, 0, 90)), 1100, 1112);
+        PolylineIndex index = new PolylineIndex(route.track);
+        NavigationTurnState turns = new NavigationTurnState();
+        turns.onRouteApplied(route, index, Collections.emptyList(), null, 1, 5);
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setTime(100_000, 100_000);
+        location.setSpeed(10);
+        location.setSpeedAccuracyMetersPerSecond(0.1f);
+        turns.recordLocationQuality(location, 5);
+        NavigationTurnState.Progress decision = turns.evaluate(route, index, index.totalLengthMeters() - 100,
+                0, 1, Float.NaN, true, 100_000, 0, false);
+        assertEquals(3_000, decision.suggestedUpdateIntervalMs);
+        assertEquals(0, decision.turnEvents.size());
+    }
+
+    @Test
+    public void movingQualityRecoveryWaitsForIndependentFixesAndRampsAfterVerification() {
+        GeoJsonRoute route = route(Arrays.asList(new LatLon(0, 0), new LatLon(0, 0.01)),
+                Collections.emptyList());
+        PolylineIndex index = new PolylineIndex(route.track);
+        assertEquals(30_000, qualityInterval(route, index, 1_000, 5));
+        assertEquals(3_000, qualityInterval(route, index, 4_000, 130));
+        assertEquals(3_000, qualityInterval(route, index, 7_000, 5));
+        assertEquals(3_000, qualityInterval(route, index, 7_001, 5));
+        assertEquals(3_000, qualityInterval(route, index, 10_000, 5));
+        assertEquals(5_000, qualityInterval(route, index, 13_000, 5));
+        scheduler.resetPostManeuverIntervalRamp();
+        assertEquals(30_000, qualityInterval(route, index, 16_000, 5));
+    }
+
+    private long qualityInterval(GeoJsonRoute route, PolylineIndex index, long time, float accuracy) {
+        NavigationLocation location = new NavigationLocation("gps");
+        location.setTime(time, time);
+        scheduler.recordLocationQuality(location, accuracy);
+        return scheduler.suggestUpdateInterval(time, 0, route, index, null, 300d, 0, 0, 1.5f);
+    }
 
     @Test
     public void suggestUpdateInterval_keepsFastPollingDuringWarmupWindow() {

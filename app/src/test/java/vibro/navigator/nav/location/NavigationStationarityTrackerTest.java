@@ -10,12 +10,12 @@ public class NavigationStationarityTrackerTest {
     private final NavigationLocationMotionModel model = new NavigationLocationMotionModel();
 
     @Test
-    public void noisySpeedsAndPoorPositionsPreserveStopAcrossSixtySecondIntervals() {
+    public void noisySparseFixesBecomeUnknownAndKeepDepartureVerification() {
         record(1_000L, 0.0, 0f, 5f);
         NavigationLocation last = null;
         for (int i = 1; i <= 4; i++) {
             last = record(1_000L + i * 60_000L, i % 2 == 0 ? -12.0 : 15.0, 0.6f, 60f);
-            assertTrue(model.isLikelyStationary());
+            assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
             assertEquals(0f, model.speedMps(last), 0f);
             assertEquals(0f, model.displaySpeedMps(last), 0f);
         }
@@ -26,7 +26,7 @@ public class NavigationStationarityTrackerTest {
         record(1_000L, 0.0, 0f, 5f);
         record(4_000L, 2.0, 0.5f, 5f);
         record(7_000L, -3.0, 0.7f, 5f);
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
     }
 
     @Test
@@ -34,7 +34,7 @@ public class NavigationStationarityTrackerTest {
         record(1_000L, 0.0, 0f, 5f);
         for (int i = 1; i <= 5; i++) {
             record(1_000L + i * 3_000L, i * 1.8, 0.6f, 5f);
-            assertTrue(model.isLikelyStationary());
+            assertFalse(model.isLikelyStationary());
         }
         NavigationLocation moving = record(19_000L, 10.8, 0.6f, 5f);
         assertFalse(model.isLikelyStationary());
@@ -75,7 +75,9 @@ public class NavigationStationarityTrackerTest {
     public void coherentNativeWalkingCanRecoverWhileFilterLagInflatesPositionUncertainty() {
         record(1_000, 0, 0, 15);
         for (int i = 1; i <= 4; i++) {
-            record(1_000 + i * 3_000L, i * 4, 1.3f, 45);
+            NavigationLocation sample = location(1_000 + i * 3_000L, i * 4, 1.3f, 15);
+            sample.setFilteredAccuracy(45);
+            model.recordFilteredLocation(sample);
         }
         assertFalse(model.isLikelyStationary());
         assertFalse(model.needsDepartureChecks());
@@ -85,7 +87,7 @@ public class NavigationStationarityTrackerTest {
     public void poorPositionJumpDoesNotReleaseStopButGoodDisplacementDoes() {
         record(1_000L, 0.0, 0f, 5f);
         record(61_000L, 200.0, 0.5f, 100f);
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
         record(121_000L, 200.0, 0.5f, 5f);
         assertFalse(model.isLikelyStationary());
     }
@@ -111,16 +113,17 @@ public class NavigationStationarityTrackerTest {
     }
 
     @Test
-    public void speedMustExceedTravelThresholdAndExcludeRestToReleaseStop() {
+    public void precisePositiveSpeedAtTravelThresholdRequiresVerificationInsteadOfAStop() {
         record(1_000L, 0.0, 0f, 5f);
         NavigationLocation boundary = location(4_000L, 0.5, 0.35f, 6f);
         boundary.setSpeedAccuracyMetersPerSecond(0.05f);
         model.recordFilteredLocation(boundary);
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
+        assertTrue(model.needsDepartureChecks());
         NavigationLocation uncertain = location(7_000L, 0.5, 0.4f, 6f);
         uncertain.setSpeedAccuracyMetersPerSecond(0.2f);
         model.recordFilteredLocation(uncertain);
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
     }
 
     @Test
@@ -131,7 +134,7 @@ public class NavigationStationarityTrackerTest {
             NavigationLocation noise = location(61_000L + i * 60_000L, 1.0, 0.5f, 40f);
             noise.setSpeedAccuracyMetersPerSecond(uncertainties[i]);
             model.recordFilteredLocation(noise);
-            assertTrue(model.isLikelyStationary());
+            assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
         }
     }
 
@@ -141,7 +144,7 @@ public class NavigationStationarityTrackerTest {
         float[] uncertainties = {Float.NaN, Float.POSITIVE_INFINITY, -1f};
         for (int i = 0; i < uncertainties.length; i++) {
             record(61_000L + i * 60_000L, 30.0, 0.5f, uncertainties[i]);
-            assertTrue(model.isLikelyStationary());
+            assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
         }
     }
 
@@ -149,7 +152,7 @@ public class NavigationStationarityTrackerTest {
     public void morePreciseFixCanEstablishReferenceWithoutLeakingItsInputChanges() {
         record(1_000L, 0.0, 0f, 80f);
         NavigationLocation precise = record(61_000L, 1.0, 0.5f, 3f);
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
         precise.setLatitude(1.0);
         record(121_000L, 8.0, 0.5f, 3f);
         assertFalse(model.isLikelyStationary());
@@ -158,7 +161,8 @@ public class NavigationStationarityTrackerTest {
     @Test
     public void duplicateOrOlderFixCannotResetStationaryTracking() {
         record(1_000L, 0.0, 0f, 5f);
-        record(1_000L, 30.0, 10f, 5f);
+        record(4_000L, 0.0, 0f, 5f);
+        record(4_000L, 30.0, 10f, 5f);
         record(900L, 40.0, 10f, 5f);
         assertTrue(model.isLikelyStationary());
     }
@@ -173,9 +177,9 @@ public class NavigationStationarityTrackerTest {
     }
 
     @Test
-    public void poorInitialFixWithSmallUnconfirmedVelocityAllowsStartupCompass() {
+    public void poorInitialFixWithSmallUnconfirmedVelocityIsUnknown() {
         record(1_000L, 0.0, 0.5f, 80f);
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
     }
 
     private NavigationLocation record(long timeMs, double distanceMeters, float speed, float accuracy) {

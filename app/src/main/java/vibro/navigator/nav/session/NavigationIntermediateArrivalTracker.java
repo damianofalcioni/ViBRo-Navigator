@@ -8,10 +8,10 @@ import androidx.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import vibro.navigator.geo.GeoMath;
 import vibro.navigator.geo.LatLon;
+import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.route.GeoJsonRoute;
-import vibro.navigator.nav.route.NavigationRouteGeometryState;
+import vibro.navigator.nav.guidance.NavigationArrivalConfirmation;
 import vibro.navigator.nav.route.PolylineIndex;
 
 final class NavigationIntermediateArrivalTracker {
@@ -21,11 +21,17 @@ final class NavigationIntermediateArrivalTracker {
     private final List<IntermediateDestination> destinations = new ArrayList<>();
     private int nextDestinationIndex;
     private boolean routeApplied;
+    private final NavigationArrivalConfirmation arrivalConfirmation = new NavigationArrivalConfirmation();
 
     void reset() {
         destinations.clear();
         nextDestinationIndex = 0;
         routeApplied = false;
+        arrivalConfirmation.reset();
+    }
+
+    void clearArrivalEvidence() {
+        arrivalConfirmation.reset();
     }
 
     void onRouteApplied(
@@ -34,6 +40,7 @@ final class NavigationIntermediateArrivalTracker {
             @NonNull PolylineIndex polylineIndex
     ) {
         destinations.clear();
+        arrivalConfirmation.reset();
         for (LatLon stop : stops) {
             PolylineIndex.Match match = polylineIndex.match(stop, -1);
             if (match != null) {
@@ -48,16 +55,34 @@ final class NavigationIntermediateArrivalTracker {
     }
 
     @Nullable
-    Integer reachedTrackIndex(@NonNull NavigationLocation currentLocation, float accuracyMeters) {
+    Integer reachedTrackIndex(@NonNull NavigationLocation currentLocation, float accuracyMeters, long nowMs) {
         if (nextDestinationIndex >= destinations.size()) {
             return null;
         }
         IntermediateDestination destination = destinations.get(nextDestinationIndex);
-        if (!isWithinReachedRadius(currentLocation, accuracyMeters, destination.location)) {
+        if (!arrivalConfirmation.observe(currentLocation, accuracyMeters, destination.location, nowMs)) {
             return null;
         }
         nextDestinationIndex++;
+        arrivalConfirmation.reset();
         return destination.trackIndex;
+    }
+
+    boolean hasRemainingDestinations() {
+        return nextDestinationIndex < destinations.size();
+    }
+
+    boolean verifyBeelineTarget(NavigationLocation location, float accuracy, LatLon target, long nowMs) {
+        return !isCurrentTarget(target) || arrivalConfirmation.observe(location, accuracy,
+                destinations.get(nextDestinationIndex).location, nowMs);
+    }
+
+    boolean isCurrentTarget(LatLon target) {
+        if (nextDestinationIndex >= destinations.size()) {
+            return false;
+        }
+        LatLon stop = destinations.get(nextDestinationIndex).location;
+        return GeoMath.distanceMeters(stop.lat, stop.lon, target.lat, target.lon) <= 1;
     }
 
     @Nullable
@@ -70,6 +95,7 @@ final class NavigationIntermediateArrivalTracker {
             return null;
         }
         nextDestinationIndex++;
+        arrivalConfirmation.reset();
         return destination.trackIndex;
     }
 
@@ -83,20 +109,6 @@ final class NavigationIntermediateArrivalTracker {
             remaining.add(destinations.get(i).location);
         }
         return remaining;
-    }
-
-    private static boolean isWithinReachedRadius(
-            @NonNull NavigationLocation currentLocation,
-            float accuracyMeters,
-            @NonNull LatLon destination
-    ) {
-        double distanceMeters = GeoMath.distanceMeters(
-                currentLocation.getLatitude(),
-                currentLocation.getLongitude(),
-                destination.lat,
-                destination.lon
-        );
-        return distanceMeters <= NavigationRouteGeometryState.resolveDestinationReachedRadiusMeters(accuracyMeters);
     }
 
     private static int trackIndexAtOrAfter(

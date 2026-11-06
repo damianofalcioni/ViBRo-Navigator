@@ -12,7 +12,7 @@ public class NavigationLocationMotionModelTest {
     private static final String GPS_PROVIDER = "gps";
 
     @Test
-    public void positionCorrectionPreservesKnownMotionWithoutInventingSpeed() {
+    public void positionCorrectionRequiresNewMotionEvidenceWithoutInventingSpeed() {
         NavigationLocationMotionModel model = new NavigationLocationMotionModel();
         NavigationLocation moving = location(1_000L, 1_000L, 48.2, 16.37, 1.4f);
         moving.setSpeedAccuracyMetersPerSecond(0.1f);
@@ -27,7 +27,8 @@ public class NavigationLocationMotionModelTest {
         gps.setAccuracy(33f);
         model.recordFilteredLocation(gps);
         assertFalse(model.isLikelyStationary());
-        assertEquals(1.4f, model.speedMps(gps), 0f);
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
+        assertEquals(0f, model.speedMps(gps), 0f);
     }
 
     @Test
@@ -86,7 +87,7 @@ public class NavigationLocationMotionModelTest {
     }
 
     @Test
-    public void speedMps_returnsZeroWhenFastReportedSpeedContradictsStationaryJitter() {
+    public void conflictingSpeedAndPositionSuppressSpeedWithoutClaimingAStop() {
         NavigationLocationMotionModel model = new NavigationLocationMotionModel();
         NavigationLocation first = location(1_000L, 1_000L, 48.2082000, 16.3738000, 21f);
         NavigationLocation second = location(2_000L, 2_000L, 48.2082003, 16.3738002, 19f);
@@ -96,7 +97,7 @@ public class NavigationLocationMotionModelTest {
         model.recordFilteredLocation(second);
         model.recordFilteredLocation(third);
 
-        assertTrue(model.isLikelyStationary());
+        assertEquals(NavigationMotionState.UNKNOWN, model.motionState());
         assertEquals(0.0f, model.speedMps(third), 0.0f);
     }
 

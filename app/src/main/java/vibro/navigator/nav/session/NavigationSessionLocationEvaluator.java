@@ -144,9 +144,10 @@ final class NavigationSessionLocationEvaluator {
                 filtered,
                 nowMs,
                 locationState.displaySpeedMps(filtered),
-                locationState.isLikelyStationary(),
+                locationState.isLikelyStationary(nowMs),
                 update.isReacquiringAfterLongGap(),
-                stationarySleepEndedAtMs
+                stationarySleepEndedAtMs,
+                locationState.isMotionKnown(nowMs)
         );
         stationarySleepEndedAtMs = -1L;
         routeRequestManager.clearRouteFailure();
@@ -169,7 +170,7 @@ final class NavigationSessionLocationEvaluator {
                     currentRequest,
                     filtered,
                     locationState.speedMps(filtered),
-                    locationState.isLikelyStationary(),
+                    locationState.isLikelyStationary(nowMs),
                     locationState.accuracyMeters(filtered),
                     locationState.trustedActualBearingDegreesForReroute(filtered),
                     nowMs,
@@ -197,7 +198,8 @@ final class NavigationSessionLocationEvaluator {
         NavigationRouteEvaluation evaluation = routeState.evaluateLocation(
                 filtered,
                 locationState.speedMps(filtered),
-                locationState.isLikelyStationary(),
+                locationState.isLikelyStationary(nowMs),
+                locationState.motionState(nowMs).isMoving(),
                 locationState.accuracyMeters(filtered),
                 locationState.trustedActualBearingDegreesForReroute(filtered),
                 nowMs,
@@ -242,6 +244,6 @@ final class NavigationSessionLocationEvaluator {
         boolean forward = evaluation.isStableOnRouteSample()
                 && (straightLine || evaluation.hasForwardProgress());
         return departureMonitor.interval(evaluation.getSuggestedUpdateIntervalMs(),
-                locationState.needsDepartureChecks(), forward, nowMs);
+                !locationState.isMotionKnown(nowMs) || locationState.needsDepartureChecks(), forward, nowMs);
     }
 }

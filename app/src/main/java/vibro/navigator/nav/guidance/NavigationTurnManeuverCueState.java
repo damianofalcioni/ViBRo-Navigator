@@ -74,8 +74,8 @@ final class NavigationTurnManeuverCueState {
                 && !isSyntheticArrivalHint(signal.hint);
     }
 
-    static boolean isSyntheticArrivalHint(@NonNull VoiceHint hint) {
-        return hint.command == NavigationArrivalTurnEvents.DESTINATION_ARRIVAL_COMMAND
-                || hint.command == NavigationArrivalTurnEvents.INTERMEDIATE_ARRIVAL_COMMAND;
+    static boolean isSyntheticArrivalHint(@Nullable VoiceHint hint) {
+        return hint != null && (hint.command == NavigationArrivalTurnEvents.DESTINATION_ARRIVAL_COMMAND
+                || hint.command == NavigationArrivalTurnEvents.INTERMEDIATE_ARRIVAL_COMMAND);
     }
 }

@@ -44,6 +44,7 @@ public final class NavigationTurnEventDispatcher {
     private void notifyImminent(@NonNull VoiceHint hint, double distanceMeters, double timeSeconds) {
         DirectionInfo directionInfo = VoiceHintMapper.toDirection(hint);
         AppLogger.i(TAG, "Imminent turn kind=" + directionInfo.kind
+                + " hintTrackIndex=" + hint.indexInTrack + " command=" + hint.command
                 + " distanceMeters=" + distanceMeters
                 + " timeSeconds=" + timeSeconds);
         notificationSink.sendImminentTurnNotification(hint, distanceMeters, timeSeconds);

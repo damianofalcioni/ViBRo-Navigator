@@ -43,6 +43,7 @@ final class NavigationServiceRuntimeFactory {
                 uiScheduler,
                 nowMs -> NavigationSessionResourceAdapter.resumeAfterStationarySleep(navigationSession, nowMs)
         );
+        locationHandler.batteryLogger().useSnapshotReader(runtime.batterySnapshotReader);
         return runtime;
     }
 }

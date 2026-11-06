@@ -192,7 +192,8 @@ public final class NavigationServiceBinderHost implements NavigationServiceBinde
     public List<String> buildCurrentDirectionDetails() {
         return NavigationSessionResourceAdapter.buildCurrentDirectionDetails(
                 navigationSession,
-                new AndroidNavigationTextResources(context)
+                new AndroidNavigationTextResources(context),
+                elapsedRealtimeClock.elapsedRealtimeMs()
         );
     }
 }

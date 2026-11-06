@@ -1,17 +1,20 @@
 package vibro.navigator.nav.location;
 
+import java.util.Objects;
 import vibro.navigator.logging.AppLogger;
 
 /** Conservative stop confirmation, retaining a fixed origin across periodic check bursts. */
 public final class NavigationStationarySleep {
     public static final long CHECK_INTERVAL_MS = 30_000L;
     private static final long CONFIRM_STOP_MS = 20_000L;
+    private static final long MIN_SAMPLE_SPACING_MS = 2_000L;
     private final NavigationMotionTrigger trigger;
     private final Runnable onMotion;
     private final StationaryFixCadence cadence = new StationaryFixCadence();
     private final StationarySleepDiagnostics diagnostics;
     private NavigationLocation origin;
     private long firstFixMs = -1L;
+    private long firstMeasurementMs = -1L;
     private long lastFixMs = -1L;
     private long lastMeasurementMs = -1L;
     private long deadlineMs = -1L;
@@ -37,6 +40,7 @@ public final class NavigationStationarySleep {
             reset();
             return false;
         }
+        resetOnOriginChange(raw, nowMs);
         long measurementMs = raw.getElapsedRealtimeMs();
         if (!independent(measurementMs, nowMs)) {
             return false;
@@ -48,26 +52,45 @@ public final class NavigationStationarySleep {
         }
         if (firstFixMs < 0L) {
             firstFixMs = nowMs;
+            firstMeasurementMs = measurementMs;
         }
         fixes++;
-        boolean ready = confirmed(nowMs);
+        boolean ready = confirmed(measurementMs, nowMs);
         report(ready ? "ready" : "confirming_with_armed_motion_trigger", raw, nowMs);
         lastFixMs = nowMs;
         lastMeasurementMs = measurementMs;
         return ready;
     }
 
-    private boolean confirmed(long nowMs) {
+    private void resetOnOriginChange(NavigationLocation raw, long nowMs) {
+        if (origin == null) {
+            return;
+        }
+        if (!Objects.equals(origin.getProvider(), raw.getProvider())) {
+            // Even a clustered handover invalidates the old provider's evidence,
+            // cadence and shortened fallback window before independent-sample gating.
+            report("provider_change", raw, nowMs);
+            reset();
+        } else if (!(origin.distanceTo(raw) <= 3f)) {
+            // Contradictory positions invalidate a stop even inside sample spacing.
+            report("position_left_stop_origin", raw, nowMs);
+            reset();
+        }
+    }
+
+    private boolean confirmed(long measurementMs, long nowMs) {
         long confirmationMs = checking ? 4_000L : CONFIRM_STOP_MS;
-        return fixes >= 3 && nowMs - firstFixMs >= confirmationMs;
+        return fixes >= 3 && nowMs - firstFixMs >= confirmationMs
+                && measurementMs - firstMeasurementMs >= confirmationMs;
     }
 
     private boolean independent(long measurementMs, long nowMs) {
-        return measurementMs > lastMeasurementMs && (lastFixMs < 0 || nowMs - lastFixMs >= 2_000L);
+        return (lastMeasurementMs < 0 || measurementMs - lastMeasurementMs >= MIN_SAMPLE_SPACING_MS)
+                && (lastFixMs < 0 || nowMs - lastFixMs >= MIN_SAMPLE_SPACING_MS);
     }
 
     private void prepareConfirmation(NavigationLocation raw, long nowMs) {
-        String reason = restartReason(raw, nowMs);
+        String reason = restartReason(nowMs);
         if (reason != null) {
             if (origin != null) {
                 report(reason, raw, nowMs);
@@ -78,12 +101,9 @@ public final class NavigationStationarySleep {
         cadence.record(nowMs);
     }
 
-    private String restartReason(NavigationLocation raw, long nowMs) {
+    private String restartReason(long nowMs) {
         if (origin == null) {
             return "new_stop_window";
-        }
-        if (!(origin.distanceTo(raw) <= 3f)) {
-            return "position_left_stop_origin";
         }
         return lastFixMs >= 0 && nowMs - lastFixMs > cadence.gapLimitMs() ? "callback_gap" : null;
     }
@@ -120,6 +140,7 @@ public final class NavigationStationarySleep {
         deadlineMs = -1L;
         checking = true;
         firstFixMs = -1L;
+        firstMeasurementMs = -1L;
         lastFixMs = -1L;
         fixes = 0;
     }
@@ -134,6 +155,7 @@ public final class NavigationStationarySleep {
         armed = false;
         origin = null;
         firstFixMs = -1L;
+        firstMeasurementMs = -1L;
         lastFixMs = -1L;
         lastMeasurementMs = -1L;
         deadlineMs = -1L;

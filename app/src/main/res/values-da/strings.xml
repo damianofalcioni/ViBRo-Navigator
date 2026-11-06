@@ -584,4 +584,5 @@
     <string name="confirm_restore_default_configuration">Vil du gendanne alle indstillinger til standardværdierne?</string>
     <string name="about_setting_restore_defaults_info">Dette omfatter sprog, tema, API-nøgler og outputmapper. Gemte ruter og søgehistorik bevares.</string>
     <string name="msg_default_configuration_restored">Standardkonfiguration gendannet</string>
+    <string name="format_nav_battery_partial_usage">%1$s (delvist, over %2$s)</string>
 </resources>

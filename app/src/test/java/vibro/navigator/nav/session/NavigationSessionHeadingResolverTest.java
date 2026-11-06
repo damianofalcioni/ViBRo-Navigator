@@ -118,6 +118,7 @@ public class NavigationSessionHeadingResolverTest {
     public void noisyLongIntervalFixPreservesActivatedCompassUntilConfirmedSlowMovement() {
         accept(1_000L, 0.0, 15f, 5f, 84f);
         assertEquals(84.0, selectCurrent(180.0, 1_000L).headingDegrees, 0.0);
+        accept(5_000L, 0.0, 0f, 5f, 84f);
         accept(6_000L, 0.0, 0f, 5f, 84f);
         assertTrue(locationState.isLikelyStationary());
         selectCurrent(180.0, 6_000L);
@@ -125,7 +126,7 @@ public class NavigationSessionHeadingResolverTest {
         assertEquals(220.0, selectCurrent(220.0, 8_000L).headingDegrees, 0.0);
 
         accept(66_000L, 2.0, 0.5f, 80f, 10f);
-        assertTrue(locationState.isLikelyStationary());
+        assertFalse(locationState.isMotionKnown(66_000L));
         assertEquals(225.0, selectCurrent(225.0, 66_000L).headingDegrees, 0.0);
         assertEquals(228.0, selectCurrent(228.0, 66_100L).headingDegrees, 0.0);
 
@@ -140,7 +141,7 @@ public class NavigationSessionHeadingResolverTest {
     @Test
     public void poorStartupFixWithSmallVelocityContinuesLiveCompass() {
         accept(1_000L, 0.0, 0.5f, 80f, 84f);
-        assertTrue(locationState.isLikelyStationary());
+        assertFalse(locationState.isMotionKnown(1_000L));
         assertEquals(180.0, selectCurrent(180.0, 1_000L).headingDegrees, 0.0);
         accept(61_000L, 5.0, 0.6f, 80f, 84f);
         assertEquals(185.0, selectCurrent(185.0, 61_000L).headingDegrees, 0.0);
@@ -150,6 +151,7 @@ public class NavigationSessionHeadingResolverTest {
     public void freshReliableWalkingBearingReplacesIncomingGpsHeadingOnFirstReversedFix() {
         accept(1_000L, 0.0, 1.4f, 5f, 353f);
         assertEquals(353.0, selectCurrent(103.0, 1_000L).headingDegrees, 0.0);
+        accept(3_000L, 0.0, 0f, 5f, 353f);
         accept(4_000L, 0.0, 0f, 5f, 353f);
         assertTrue(locationState.isLikelyStationary());
         selectCurrent(103.0, 4_000L);

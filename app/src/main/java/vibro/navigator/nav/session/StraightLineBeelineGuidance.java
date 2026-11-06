@@ -10,15 +10,19 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.guidance.BeelineNotificationTracker;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.guidance.NavigationUpdateScheduler;
+import vibro.navigator.nav.guidance.NavigationAcquisitionQuality;
+import vibro.navigator.nav.guidance.NavigationAcquisitionRecovery;
 import vibro.navigator.nav.guidance.NavigationWrongDirectionNotice;
 import vibro.navigator.nav.guidance.StraightLineWrongDirectionDetector;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 final class StraightLineBeelineGuidance {
     @NonNull
     private final NavigationUpdateScheduler updateScheduler = new NavigationUpdateScheduler();
     @NonNull
     private final BeelineNotificationTracker notificationTracker = new BeelineNotificationTracker();
+    private final NavigationAcquisitionRecovery qualityRecovery = new NavigationAcquisitionRecovery();
     @NonNull
     private final StraightLineWrongDirectionDetector wrongDirectionDetector =
             new StraightLineWrongDirectionDetector();
@@ -26,6 +30,7 @@ final class StraightLineBeelineGuidance {
     void reset() {
         wrongDirectionDetector.reset();
         notificationTracker.reset();
+        qualityRecovery.reset();
     }
 
     @NonNull
@@ -41,17 +46,20 @@ final class StraightLineBeelineGuidance {
             long fastChecksUntilMs
     ) {
         double distanceMeters = StraightLineNavigationProgress.distanceMeters(location, target);
-        Double timeSeconds = StraightLineNavigationProgress.estimateSeconds(
+        Double timeSeconds = NavigationMotionState.isFresh(location.getElapsedRealtimeOrTimeMs(), nowMs)
+                ? StraightLineNavigationProgress.estimateSeconds(
                 distanceMeters,
                 speedMps,
                 likelyStationary
-        );
+        ) : null;
         long updateIntervalMs = updateScheduler.suggestDirectTargetUpdateInterval(
                 nowMs,
                 fastChecksUntilMs,
                 timeSeconds
         );
         updateIntervalMs = BeelineNotificationTracker.limitSuggestedUpdateInterval(updateIntervalMs);
+        long qualityCapMs = NavigationAcquisitionQuality.limit(60_000L, distanceMeters, speedMps, location, nowMs);
+        updateIntervalMs = Math.min(updateIntervalMs, qualityRecovery.limit(qualityCapMs, location, nowMs));
         if (notificationTracker.shouldNotify(target, distanceMeters, nowMs)) {
             turnEvents.add(NavigationTurnEvent.beeline(
                     distanceMeters,

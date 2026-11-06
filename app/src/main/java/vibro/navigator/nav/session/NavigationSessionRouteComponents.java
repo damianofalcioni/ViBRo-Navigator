@@ -24,10 +24,11 @@ final class NavigationSessionRouteComponents {
     @NonNull
     final NavigationSessionRouteDisplayState displayState = new NavigationSessionRouteDisplayState();
     @NonNull
-    final NavigationArrivalDetector arrivalDetector = new NavigationArrivalDetector(geometryState);
-    @NonNull
     final NavigationIntermediateArrivalTracker intermediateArrivalTracker =
             new NavigationIntermediateArrivalTracker();
+    @NonNull
+    final NavigationArrivalDetector arrivalDetector =
+            new NavigationArrivalDetector(geometryState, intermediateArrivalTracker);
     @NonNull
     final NavigationRouteDirectGuidance directGuidance =
             new NavigationRouteDirectGuidance(

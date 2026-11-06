@@ -42,7 +42,8 @@ public class RouteStartApproachStationaryOrientationTest {
                 requestedStart,
                 0f,
                 true,
-                500L
+                500L,
+                1_000L
         );
         RecordingSink sink = new RecordingSink();
         StationaryOrientationNotifier notifier =

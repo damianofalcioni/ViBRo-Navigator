@@ -1,16 +1,12 @@
 package vibro.navigator.nav.service;
 
-import android.content.Context;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.List;
 
 import vibro.navigator.logging.AppLogger;
-import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
 import vibro.navigator.nav.foreground.NavigationForegroundController;
-import vibro.navigator.nav.format.AndroidNavigationTextResources;
 import vibro.navigator.nav.format.NavigationTextResources;
 import vibro.navigator.nav.guidance.NavigationRerouteNotice;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
@@ -22,7 +18,6 @@ import vibro.navigator.nav.routing.PendingRouteRecalculation;
 import vibro.navigator.nav.session.NavigationSession;
 import vibro.navigator.nav.session.NavigationSessionResourceAdapter;
 import vibro.navigator.nav.session.NavigationSessionSpeculativeRoutes;
-import vibro.navigator.settings.AppNotificationSettings;
 import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 public final class NavigationServiceRouteCallback implements NavigationRouteExecutor.Callback {
@@ -57,30 +52,6 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
     private final Runnable stateEmitter;
     private final RouteRecalculator routeRecalculator;
     private final ElapsedRealtimeClock clock;
-
-    public NavigationServiceRouteCallback(
-            @NonNull Context context,
-            @NonNull NavigationSession navigationSession,
-            @NonNull NavigationOrientationController orientationController,
-            @NonNull NavigationForegroundController foregroundController,
-            @NonNull TurnEventDispatcher turnEventDispatcher,
-            @NonNull RouteAppliedLocationRequester routeAppliedLocationRequester,
-            @NonNull Runnable stateEmitter,
-            @NonNull RouteRecalculator routeRecalculator
-    ) {
-        this(
-                new AndroidNavigationTextResources(context),
-                () -> AppNotificationSettings.isSingleInstructionModeEnabled(context),
-                navigationSession,
-                orientationController,
-                foregroundController,
-                turnEventDispatcher,
-                routeAppliedLocationRequester,
-                stateEmitter,
-                routeRecalculator,
-                AndroidElapsedRealtimeClock.INSTANCE
-        );
-    }
 
     NavigationServiceRouteCallback(
             @NonNull NavigationTextResources textResources,
@@ -153,11 +124,10 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
             @Nullable NavigationRerouteNotice rerouteNotice,
             @NonNull NavigationSessionSpeculativeRoutes.Confirmation confirmation
     ) {
-        if (rerouteNotice != null) {
-            foregroundController.sendOffRouteNotification(rerouteNotice);
-        }
         if (confirmation == NavigationSessionSpeculativeRoutes.Confirmation.RESULT_READY) {
-            applyConfirmedSpeculativeRouteResult();
+            applyConfirmedSpeculativeRouteResult(rerouteNotice);
+        } else if (rerouteNotice != null && !navigationSession.isPaused()) {
+            foregroundController.sendOffRouteNotification(rerouteNotice);
         }
     }
 
@@ -181,14 +151,18 @@ public final class NavigationServiceRouteCallback implements NavigationRouteExec
         runQueuedRouteRecalculation("Re-running queued route recalculation after previous request finished");
     }
 
-    private void applyConfirmedSpeculativeRouteResult() {
+    private void applyConfirmedSpeculativeRouteResult(@Nullable NavigationRerouteNotice rerouteNotice) {
         long routeAppliedAtElapsedMs = routeAppliedLocationRequester.requestFastLocationUpdates();
-        turnEventDispatcher.dispatch(NavigationSessionResourceAdapter.applyConfirmedSpeculativeRouteResult(
+        List<NavigationTurnEvent> events = NavigationSessionResourceAdapter.applyConfirmedSpeculativeRouteResult(
                 navigationSession,
                 textResources,
                 routeAppliedAtElapsedMs,
                 singleInstructionModeProvider.isSingleInstructionModeEnabled()
-        ));
+        );
+        if (events.isEmpty() && rerouteNotice != null && !navigationSession.isPaused()) {
+            foregroundController.sendOffRouteNotification(rerouteNotice.asNotificationOnly());
+        }
+        turnEventDispatcher.dispatch(events);
         orientationController.maybeSendStationaryOrientationNotification(navigationSession, foregroundController);
         stateEmitter.run();
         runQueuedRouteRecalculation("Re-running queued route recalculation after speculative route was confirmed");

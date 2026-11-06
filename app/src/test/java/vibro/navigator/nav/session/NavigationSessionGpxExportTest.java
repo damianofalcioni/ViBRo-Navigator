@@ -214,6 +214,8 @@ public class NavigationSessionGpxExportTest {
         NavigationLocation reachedStop = locationWithSpeed(stop.lat, stop.lon, 4_000L, 2f);
         routeState.evaluateLocation(reachedStop, 2f, 5f, 90.0, 4_000L, 0L);
 
+        reachedStop = locationWithSpeed(stop.lat, stop.lon, 7_000L, 2f);
+        routeState.evaluateLocation(reachedStop, 2f, 5f, 90.0, 7_000L, 0L);
         assertTrue(routeState.remainingIntermediateStops(request.stops).isEmpty());
         String gpx = NavigationSessionRouteExporter.export(
                 textResources,

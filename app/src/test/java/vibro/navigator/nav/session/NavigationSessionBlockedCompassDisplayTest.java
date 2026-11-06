@@ -37,7 +37,8 @@ public class NavigationSessionBlockedCompassDisplayTest extends NavigationSessio
                 currentLocation,
                 0f,
                 true,
-                500L
+                500L,
+                currentLocation.getElapsedRealtimeOrTimeMs()
         );
 
         List<NogoPoint> blockedPoints = state.addBlockedPointsAhead(currentLocation, 10_000L);

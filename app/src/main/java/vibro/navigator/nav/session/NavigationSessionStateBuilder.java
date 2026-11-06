@@ -198,7 +198,7 @@ final class NavigationSessionStateBuilder {
         NavigationSessionHeadingResolver.Selection heading = selectHeading(
                 currentRequest,
                 lastFiltered,
-                locationState.isLikelyStationary(),
+                locationState.isLikelyStationary(nowMs),
                 displayHeadingDegrees,
                 displayHeadingAccuracyDegrees,
                 nowMs
@@ -228,7 +228,7 @@ final class NavigationSessionStateBuilder {
         NavigationLocation lastFiltered = locationState.getLastFilteredLocation();
         float speedMps = lastFiltered != null ? locationState.speedMps(lastFiltered) : 0f;
         float displaySpeedMps = lastFiltered != null ? locationState.displaySpeedMps(lastFiltered) : 0f;
-        boolean likelyStationary = locationState.isLikelyStationary();
+        boolean likelyStationary = locationState.isLikelyStationary(time.elapsedRealtimeMs);
         float accuracyMeters = lastFiltered != null
                 ? locationState.accuracyMeters(lastFiltered)
                 : Float.MAX_VALUE;
@@ -242,9 +242,10 @@ final class NavigationSessionStateBuilder {
         );
         return NavigationDisplaySnapshot.builder(textResources)
                 .location(lastFiltered, speedMps, displaySpeedMps, likelyStationary, accuracyMeters)
+                .motionState(locationState.motionState(time.elapsedRealtimeMs))
                 .gps(fixedSatelliteCount, acquiredFixCount)
                 .heading(heading.headingDegrees, heading.headingAccuracyDegrees, heading.headingSource)
-                .orientationCue(orientationCue)
+                .orientationCue(likelyStationary ? orientationCue : null)
                 .blockedPoints(routeState.copyBlockedPoints())
                 .timing(nextEvaluationDeadlineElapsedMs, time)
                 .routeCalculation(

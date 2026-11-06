@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
 import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.location.NavigationLocation;
 
 public final class NavigationUpdateScheduler {
 
@@ -27,6 +28,18 @@ public final class NavigationUpdateScheduler {
 
     @NonNull
     private final PostManeuverIntervalRamp postManeuverIntervalRamp = new PostManeuverIntervalRamp();
+    private NavigationLocation qualityLocation;
+    private final NavigationAcquisitionRecovery qualityRecovery = new NavigationAcquisitionRecovery();
+    private String intervalReason = "not_evaluated";
+
+    String intervalReason() {
+        return intervalReason;
+    }
+
+    public void recordLocationQuality(NavigationLocation location, float accuracy) {
+        qualityLocation = new NavigationLocation(location);
+        qualityLocation.setAccuracy(accuracy);
+    }
 
     public long suggestUpdateInterval(
             long nowMs,
@@ -88,7 +101,12 @@ public final class NavigationUpdateScheduler {
             float speedMps,
             float accelerationMps2
     ) {
-        if (!canEstimateRouteTime(nowMs, fastChecksUntilMs, route, polylineIndex)) {
+        if (nowMs <= fastChecksUntilMs) {
+            intervalReason = "fast_checks";
+            return MIN_UPDATE_INTERVAL_MS;
+        }
+        if (polylineIndex == null || route == null || route.track.isEmpty()) {
+            intervalReason = "route_unavailable";
             return MIN_UPDATE_INTERVAL_MS;
         }
 
@@ -102,20 +120,38 @@ public final class NavigationUpdateScheduler {
                 RouteMotionEstimate.withAcceleration(speedMps, accelerationMps2)
         );
         if (timeToNextSeconds == null) {
+            intervalReason = "eta_unavailable";
             return MIN_UPDATE_INTERVAL_MS;
         }
         if (timeToNextSeconds <= VERY_IMMINENT_HINT_THRESHOLD_SECONDS) {
+            intervalReason = "imminent_hint";
             return MIN_UPDATE_INTERVAL_MS;
         }
-        return intervalFromTimeToTarget(timeToNextSeconds);
+        long qualityCapMs = NavigationAcquisitionQuality.limit(MAX_UPDATE_INTERVAL_MS,
+                Math.max(0, targetAlongTrackMeters - alongTrackMeters), speedMps, qualityLocation, nowMs);
+        return qualityLimitedInterval(intervalFromTimeToTarget(timeToNextSeconds), qualityCapMs, nowMs);
+    }
+
+    private long qualityLimitedInterval(long routeIntervalMs, long qualityCapMs, long nowMs) {
+        long recoveredCapMs = qualityRecovery.limit(qualityCapMs, qualityLocation, nowMs);
+        intervalReason = NavigationGuidanceDiagnostics.limitingIntervalReason(
+                intervalReason, routeIntervalMs, qualityCapMs, recoveredCapMs);
+        return Math.min(routeIntervalMs, recoveredCapMs);
     }
 
     long applyPostManeuverIntervalRamp(long suggestedIntervalMs, boolean passedInstruction, long nowMs) {
-        return postManeuverIntervalRamp.apply(suggestedIntervalMs, passedInstruction, nowMs);
+        long intervalMs = postManeuverIntervalRamp.apply(suggestedIntervalMs, passedInstruction, nowMs);
+        if (intervalMs < suggestedIntervalMs) {
+            intervalReason = "post_maneuver_ramp";
+        }
+        return intervalMs;
     }
 
     void resetPostManeuverIntervalRamp() {
         postManeuverIntervalRamp.reset();
+        qualityLocation = null;
+        qualityRecovery.reset();
+        intervalReason = "not_evaluated";
     }
 
     public long suggestDirectTargetUpdateInterval(
@@ -132,18 +168,6 @@ public final class NavigationUpdateScheduler {
             return MIN_UPDATE_INTERVAL_MS;
         }
         return intervalFromTimeToTarget(timeToTargetSeconds);
-    }
-
-    private static boolean canEstimateRouteTime(
-            long nowMs,
-            long fastChecksUntilMs,
-            @Nullable GeoJsonRoute route,
-            @Nullable PolylineIndex polylineIndex
-    ) {
-        return nowMs > fastChecksUntilMs
-                && polylineIndex != null
-                && route != null
-                && !route.track.isEmpty();
     }
 
     @Nullable
@@ -200,7 +224,7 @@ public final class NavigationUpdateScheduler {
         return MAX_UPDATE_INTERVAL_MS;
     }
 
-    private static long intervalFromTimeToTarget(double timeToTargetSeconds) {
+    private long intervalFromTimeToTarget(double timeToTargetSeconds) {
         long intervalMs = (long) Math.max(
                 MIN_UPDATE_INTERVAL_MS,
                 Math.min(MAX_UPDATE_INTERVAL_MS, timeToTargetSeconds * DISTANCE_TO_INTERVAL_FACTOR)
@@ -208,9 +232,14 @@ public final class NavigationUpdateScheduler {
         return bucketInterval(applyManeuverGuard(intervalMs, timeToTargetSeconds));
     }
 
-    private static long applyManeuverGuard(long intervalMs, double timeToNextSeconds) {
+    private long applyManeuverGuard(long intervalMs, double timeToNextSeconds) {
+        intervalReason = "route_eta";
         if (timeToNextSeconds <= MANEUVER_GUARD_TIME_THRESHOLD_SECONDS) {
-            return Math.min(intervalMs, MANEUVER_GUARD_MAX_INTERVAL_MS);
+            long guardedIntervalMs = Math.min(intervalMs, MANEUVER_GUARD_MAX_INTERVAL_MS);
+            if (guardedIntervalMs < intervalMs) {
+                intervalReason = "maneuver_guard";
+            }
+            return guardedIntervalMs;
         }
         return intervalMs;
     }

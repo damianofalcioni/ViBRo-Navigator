@@ -146,7 +146,7 @@ public class NavigationBeelineHeadingHandoffTest {
                 mode, new LatLon(0, 0), Collections.emptyList(),
                 route.track.get(route.track.size() - 1), "trekking", null, Collections.emptyList(), 1_000);
         state.applyRouteResult(TestNavigationTextResources.metric(), request, route,
-                fix(0, 0, 1_000), 3f, false, 1_000);
+                fix(0, 0, 1_000), 3f, false, 1_000, 1_000);
     }
 
     private static void evaluate(NavigationSessionRouteState state, NavigationLocation location, boolean stationary) {

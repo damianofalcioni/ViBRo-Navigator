@@ -1,5 +1,7 @@
 package vibro.navigator.nav.location;
 
+import java.util.Objects;
+
 /** Missing native speed is unknown; an armed motion trigger and position history must prove a stop. */
 final class StationaryFixEligibility {
     private StationaryFixEligibility() { }
@@ -7,6 +9,9 @@ final class StationaryFixEligibility {
     static String rejection(NavigationLocation raw, NavigationLocation filtered, long nowMs) {
         if (!fresh(raw, nowMs)) {
             return "measurement_not_fresh";
+        }
+        if (!sameObservation(raw, filtered)) {
+            return "observation_mismatch";
         }
         if (NavigationLocationProviders.NETWORK_PROVIDER.equals(raw.getProvider())) {
             return "network_only";
@@ -20,6 +25,11 @@ final class StationaryFixEligibility {
         return speedRejection(raw);
     }
 
+    private static boolean sameObservation(NavigationLocation raw, NavigationLocation filtered) {
+        return Objects.equals(raw.getProvider(), filtered.getProvider())
+                && raw.getElapsedRealtimeMs() == filtered.getElapsedRealtimeMs();
+    }
+
     private static boolean fresh(NavigationLocation raw, long nowMs) {
         long ageMs = nowMs - raw.getElapsedRealtimeMs();
         return raw.getElapsedRealtimeMs() >= 0L && ageMs >= 0L && ageMs <= 5_000L;
@@ -31,7 +41,7 @@ final class StationaryFixEligibility {
     }
 
     private static String speedRejection(NavigationLocation fix) {
-        if (fix.hasSpeed() && !stoppedSpeed(fix.getSpeed())) {
+        if (fix.hasSpeed() && !stoppedSpeed(fix)) {
             return "native_speed_moving_or_invalid";
         }
         if (fix.hasSpeedAccuracy() && !usableSpeedAccuracy(fix.getSpeedAccuracyMetersPerSecond())) {
@@ -40,8 +50,10 @@ final class StationaryFixEligibility {
         return null;
     }
 
-    private static boolean stoppedSpeed(float speed) {
-        return Float.isFinite(speed) && speed >= 0f && speed <= 0.3f;
+    private static boolean stoppedSpeed(NavigationLocation fix) {
+        float speed = fix.getSpeed();
+        return Float.isFinite(speed) && speed >= 0f && speed <= 0.3f
+                && !NavigationNativeSpeedEvidence.hasConfidentPositiveSpeed(fix);
     }
 
     private static boolean usableSpeedAccuracy(float accuracy) {

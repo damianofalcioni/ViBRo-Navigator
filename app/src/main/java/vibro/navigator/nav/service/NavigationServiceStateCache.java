@@ -7,6 +7,8 @@ import vibro.navigator.nav.compass.CompassOrientationCue;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.NavCompassHeadingRefresh;
 import vibro.navigator.nav.model.NavState;
+import vibro.navigator.nav.model.NavGpsTelemetry;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 final class NavigationServiceStateCache {
     @Nullable
@@ -31,10 +33,18 @@ final class NavigationServiceStateCache {
         return currentState;
     }
 
-    boolean canRefreshHeadingOnly(@Nullable CompassOrientationCue orientationCue) {
+    boolean canRefreshHeadingOnly(@Nullable CompassOrientationCue orientationCue, long nowMs) {
         return currentState != null
                 && sameCue(sourceOrientationCue, orientationCue)
+                && !hasExpiredLiveSpeed(currentState.gpsStatus.telemetry, nowMs)
                 && !hasPendingRadiusChange(currentState);
+    }
+
+    private static boolean hasExpiredLiveSpeed(NavGpsTelemetry telemetry, long nowMs) {
+        // Rebuild once at expiry. The rebuilt snapshot has unavailable speed,
+        // so subsequent compass samples can keep using the lightweight path.
+        return Float.isFinite(telemetry.speedMps) && telemetry.fixElapsedRealtimeMs >= 0
+                && !NavigationMotionState.isFresh(telemetry.fixElapsedRealtimeMs, nowMs);
     }
 
     void clear() {

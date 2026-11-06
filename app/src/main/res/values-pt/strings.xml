@@ -588,4 +588,5 @@
     <string name="confirm_restore_default_configuration">Restaurar todas as definições para os valores predefinidos?</string>
     <string name="about_setting_restore_defaults_info">Isto inclui o idioma, o tema, as chaves API e as pastas de saída. As rotas guardadas e o histórico de pesquisa serão mantidos.</string>
     <string name="msg_default_configuration_restored">Configuração predefinida restaurada</string>
+    <string name="format_nav_battery_partial_usage">%1$s (parcial, durante %2$s)</string>
 </resources>

@@ -9,6 +9,7 @@ import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.model.RoundTripDirection;
 import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.time.ElapsedRealtimeClock;
 
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -139,6 +140,7 @@ public final class NavigationRouteExecutor {
     private final TaskScheduler mainThreadScheduler;
     private final RouteCalculationGuard routeCalculationGuard;
     private final NavigationRouteRetryPolicy routeRetryPolicy;
+    private final ElapsedRealtimeClock clock;
     private volatile boolean shutdown;
 
     public NavigationRouteExecutor(
@@ -187,10 +189,27 @@ public final class NavigationRouteExecutor {
             long transientRouteRetryDelayMs,
             @NonNull Sleeper sleeper
     ) {
+        this(routeCalculator, executorService, mainThreadScheduler, routeCalculationGuard,
+                maxTransientRouteRetries, transientRouteRetryDelayMs, sleeper,
+                () -> TimeUnit.NANOSECONDS.toMillis(System.nanoTime()));
+    }
+
+    @VisibleForTesting
+    public NavigationRouteExecutor(
+            @NonNull RouteCalculator routeCalculator,
+            @NonNull ExecutorService executorService,
+            @NonNull TaskScheduler mainThreadScheduler,
+            @NonNull RouteCalculationGuard routeCalculationGuard,
+            int maxTransientRouteRetries,
+            long transientRouteRetryDelayMs,
+            @NonNull Sleeper sleeper,
+            @NonNull ElapsedRealtimeClock clock
+    ) {
         this.routeCalculator = routeCalculator;
         this.executorService = executorService;
         this.mainThreadScheduler = mainThreadScheduler;
         this.routeCalculationGuard = routeCalculationGuard;
+        this.clock = clock;
         this.routeRetryPolicy = new NavigationRouteRetryPolicy(
                 maxTransientRouteRetries,
                 transientRouteRetryDelayMs,
@@ -215,6 +234,18 @@ public final class NavigationRouteExecutor {
         );
     }
 
+    public NavigationRouteExecutor(
+            @NonNull RouteCalculator routeCalculator,
+            @NonNull ExecutorService executorService,
+            @NonNull TaskScheduler mainThreadScheduler,
+            @NonNull RouteCalculationGuard routeCalculationGuard,
+            @NonNull ElapsedRealtimeClock clock
+    ) {
+        this(routeCalculator, executorService, mainThreadScheduler, routeCalculationGuard,
+                DEFAULT_MAX_TRANSIENT_ROUTE_RETRIES, DEFAULT_TRANSIENT_ROUTE_RETRY_DELAY_MS,
+                Thread::sleep, clock);
+    }
+
     public void requestRoute(
             @NonNull NavigationRouteRequestSnapshot snapshot,
             @NonNull Callback callback
@@ -225,7 +256,7 @@ public final class NavigationRouteExecutor {
         }
         try {
             executorService.submit(() -> {
-                long beganAt = System.currentTimeMillis();
+                snapshot.timing.start(clock);
                 try {
                     GeoJsonRoute newRoute = routeCalculationGuard.run(
                             () -> calculateRouteWithRetry(snapshot)
@@ -233,8 +264,12 @@ public final class NavigationRouteExecutor {
                     if (newRoute.track.isEmpty()) {
                         throw new IllegalStateException("BRouter returned an empty route");
                     }
-                    deliverRouteApplied(snapshot, callback, newRoute, beganAt);
+                    AppLogger.i(TAG, "Route calculation #" + snapshot.requestNumber + " completed "
+                            + snapshot.timing.calculationCompleted());
+                    deliverRouteApplied(snapshot, callback, newRoute, snapshot.timing.calculationStartedAtMs());
                 } catch (Exception e) {
+                    AppLogger.i(TAG, "Route calculation #" + snapshot.requestNumber + " failed "
+                            + snapshot.timing.calculationCompleted());
                     deliverRouteFailure(snapshot, callback, e);
                 }
             });
@@ -273,6 +308,7 @@ public final class NavigationRouteExecutor {
         }
         mainThreadScheduler.post(() -> {
             if (!shutdown) {
+                snapshot.timing.resultReceived();
                 callback.onRouteApplied(snapshot, newRoute, beganAt);
             }
         });

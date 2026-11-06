@@ -150,7 +150,7 @@ public class NavigationBeelineRecoveryRequestsTest {
     private static void observe(NavigationSession session, long nowMs) {
         NavigationLocation location = session.getLastFilteredLocation();
         NavigationRouteEvaluation evaluation = session.components.routeState.evaluateLocation(location, 1.4f,
-                false, 20, null, nowMs, 0, false);
+                false, true, 20, null, nowMs, 0, false);
         session.components.routeState.recordRecalculationFixPath(location, evaluation, session.isRouteCalculationInProgress());
     }
 

@@ -54,6 +54,7 @@ final class NavigationRouteResultApplier {
 
     @NonNull
     List<NavigationTurnEvent> applyRouteResult(@NonNull NavigationRouteResultInput input) {
+        input.snapshot.timing.applicationStarted();
         float accuracyMeters = accuracyOf(input.lastFiltered);
         RouteStartApproach.Plan approachPlan = RouteStartApproach.plan(
                 input.route,
@@ -100,7 +101,8 @@ final class NavigationRouteResultApplier {
                         || directGuidanceState.isRouteBeelineActive()
         );
         AppLogger.i(TAG, "Route recalculation #" + input.snapshot.requestNumber
-                + " succeeded durationMs=" + (System.currentTimeMillis() - input.beganAt)
+                + " succeeded " + input.snapshot.timing.applicationCompleted()
+                + " elapsedToApplicationMs=" + Math.max(0, input.appliedAtElapsedMs - input.beganAt)
                 + " trackPoints=" + route.track.size()
                 + " voiceHints=" + route.voiceHints.size()
                 + " lengthMeters=" + route.trackLengthMeters);
@@ -164,32 +166,37 @@ final class NavigationRouteResultApplier {
     ) {
         if (!input.snapshot.isRoundTrip()
                 && input.lastFiltered != null
-                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters)) {
+                && arrivalDetector.isDestinationReached(input.lastFiltered, accuracyMeters, null, input.appliedAtElapsedMs)) {
             return turnState.onDestinationReached(route);
         }
 
-        List<NavigationTurnEvent> initialEvents = turnState.onRouteApplied(
-                route,
-                geometryState.polylineIndex(),
-                input.snapshot.intermediates,
-                initialGuidanceLocation(input, route),
-                initialSpeedMps,
-                suppressInitialTurnEvent ? Float.MAX_VALUE : accuracyMeters
-        );
-        initialEvents = NavigationInitialTurnEvents.suppressForSingleInstructionMode(
-                initialEvents,
-                input.singleInstructionMode
-        );
+        List<NavigationTurnEvent> initialEvents = initializeTurnGuidance(
+                input, route, initialSpeedMps, accuracyMeters, suppressInitialTurnEvent);
         if (input.lastFiltered == null) {
             return initialEvents;
         }
         Integer reachedIntermediateTrackIndex = intermediateArrivalTracker.reachedTrackIndex(
                 input.lastFiltered,
-                accuracyMeters
+                accuracyMeters,
+                input.appliedAtElapsedMs
         );
         return reachedIntermediateTrackIndex != null
                 ? turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex)
                 : initialEvents;
+    }
+
+    private List<NavigationTurnEvent> initializeTurnGuidance(NavigationRouteResultInput input,
+            GeoJsonRoute route, float speedMps, float accuracyMeters, boolean suppressInitialTurnEvent) {
+        boolean freshLocation = input.hasFreshLocation();
+        List<NavigationTurnEvent> events = turnState.onRouteApplied(
+                route,
+                geometryState.polylineIndex(),
+                input.snapshot.intermediates,
+                freshLocation ? initialGuidanceLocation(input, route) : null,
+                speedMps,
+                suppressInitialTurnEvent || !freshLocation ? Float.MAX_VALUE : accuracyMeters
+        );
+        return NavigationInitialTurnEvents.suppressForSingleInstructionMode(events, input.singleInstructionMode);
     }
 
     private float accuracyOf(@Nullable NavigationLocation location) {

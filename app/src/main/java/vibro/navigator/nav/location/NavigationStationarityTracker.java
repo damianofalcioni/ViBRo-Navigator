@@ -1,116 +1,67 @@
 package vibro.navigator.nav.location;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 final class NavigationStationarityTracker {
-    private static final float MAX_STATIONARY_SPEED_MPS = 0.35f;
-    private static final float MAX_UNCONFIRMED_START_SPEED_MPS = 2.5f;
     private static final float MAX_MOVEMENT_POSITION_ACCURACY_METERS = 25f;
-    private static final double MIN_CONFIRMED_DISPLACEMENT_METERS = 1.5;
 
-    private boolean stationary;
+    private NavigationMotionState state = NavigationMotionState.UNKNOWN;
+    private String reason = "no_evidence";
     private long lastSampleTimeMs = Long.MIN_VALUE;
-    @Nullable
-    private NavigationLocation stopReference;
-    @Nullable
-    private NavigationLocation stopOrigin;
-    private boolean movementConfirmed;
+    private final NavigationNativeSpeedEvidence nativeSpeedEvidence = new NavigationNativeSpeedEvidence();
 
     void reset() {
-        stationary = false;
+        state = NavigationMotionState.UNKNOWN;
+        reason = "no_evidence";
         lastSampleTimeMs = Long.MIN_VALUE;
-        stopReference = null;
-        stopOrigin = null;
-        movementConfirmed = false;
+        nativeSpeedEvidence.reset();
     }
 
     boolean isStationary() {
-        return stationary;
+        return state == NavigationMotionState.STATIONARY;
     }
+
+    NavigationMotionState state() { return state; }
+
+    NavigationMotionState state(long nowMs) {
+        return lastSampleTimeMs != Long.MIN_VALUE && lastSampleTimeMs <= nowMs
+                && nowMs - lastSampleTimeMs <= NavigationMotionState.MAX_EVIDENCE_AGE_MS
+                ? state : NavigationMotionState.UNKNOWN;
+    }
+
+    String reason() { return reason; }
 
     void recordProviderChange(@NonNull NavigationLocation location) {
-        // Preserve known motion/stop state while discarding the old coordinate reference.
-        stopReference = null;
-        stopOrigin = null;
-        movementConfirmed = false;
-        record(location, location, false, false);
+        // The old provider's coordinate frame cannot confirm movement or a stop here.
+        nativeSpeedEvidence.reset();
+        state = NavigationMotionState.UNKNOWN;
+        reason = "provider_change";
+        record(location, false, false);
     }
 
-    void record(@NonNull NavigationLocation location, @Nullable NavigationLocation previous,
-            boolean stationaryCandidate, boolean coherentMovement) {
+    void record(@NonNull NavigationLocation location, boolean stationaryCandidate, boolean coherentMovement) {
         long sampleTimeMs = location.getElapsedRealtimeOrTimeMs();
         if (sampleTimeMs <= lastSampleTimeMs) {
             return;
         }
         lastSampleTimeMs = sampleTimeMs;
-        NavigationLocation reference = stopReference == null ? previous : stopReference;
-        if (hasConfidentMovingSpeed(location) || hasClearDisplacement(reference, location) || coherentMovement) {
-            stationary = false;
-            movementConfirmed = true;
-            stopReference = null;
-            stopOrigin = null;
+        boolean nativeMovement = nativeSpeedEvidence.record(location);
+        if (coherentMovement || nativeMovement) {
+            state = NavigationMotionState.MOVING;
+            reason = coherentMovement ? "coherent_raw_movement" : "independent_movement";
             return;
         }
-        if (shouldRetainStop(location, previous, stationaryCandidate)) {
-            stationary = true;
-            movementConfirmed = false;
-            retainBestStopReference(location);
+        if (stationaryCandidate && accuracyMeters(location) <= MAX_MOVEMENT_POSITION_ACCURACY_METERS) {
+            state = NavigationMotionState.STATIONARY;
+            reason = "stationary_observation";
+        } else {
+            state = NavigationMotionState.UNKNOWN;
+            reason = "movement_unconfirmed";
         }
     }
 
     boolean needsDepartureChecks() {
-        return stationary || !movementConfirmed;
-    }
-
-    private boolean shouldRetainStop(NavigationLocation location,
-            @Nullable NavigationLocation previous, boolean stationaryCandidate) {
-        return stationary || stationaryCandidate || isUncertainFirstFix(location, previous);
-    }
-
-    private static boolean isUncertainFirstFix(NavigationLocation location,
-            @Nullable NavigationLocation previous) {
-        return previous == null && location.getSpeed() <= MAX_UNCONFIRMED_START_SPEED_MPS
-                && accuracyMeters(location) > MAX_MOVEMENT_POSITION_ACCURACY_METERS;
-    }
-
-    private void retainBestStopReference(NavigationLocation location) {
-        // Keep the stop origin through ambiguous fixes so slow movement can accumulate.
-        if (stopReference == null) {
-            stopReference = new NavigationLocation(location);
-            stopOrigin = new NavigationLocation(location);
-            return;
-        }
-        if (accuracyMeters(location) < accuracyMeters(stopReference)
-                && stopOrigin.distanceTo(location) <= MIN_CONFIRMED_DISPLACEMENT_METERS) {
-            stopReference = new NavigationLocation(location);
-        }
-    }
-
-    private static boolean hasConfidentMovingSpeed(NavigationLocation location) {
-        if (!location.hasSpeed() || !location.hasSpeedAccuracy()) {
-            return false;
-        }
-        float speed = location.getSpeed();
-        float uncertainty = location.getSpeedAccuracyMetersPerSecond();
-        // Confirm nonzero motion; applying the travel-speed threshold to the
-        // uncertainty bound too needlessly delays reliable slow walking.
-        return Float.isFinite(speed) && validAccuracy(uncertainty)
-                && speed > MAX_STATIONARY_SPEED_MPS && speed - 2.0 * uncertainty > 0.0;
-    }
-
-    private static boolean hasClearDisplacement(@Nullable NavigationLocation reference,
-            NavigationLocation location) {
-        if (reference == null || location.getElapsedRealtimeOrTimeMs()
-                <= reference.getElapsedRealtimeOrTimeMs()) {
-            return false;
-        }
-        double uncertainty = accuracyMeters(reference) + accuracyMeters(location);
-        if (!Double.isFinite(uncertainty)
-                || accuracyMeters(location) > MAX_MOVEMENT_POSITION_ACCURACY_METERS) {
-            return false;
-        }
-        return reference.distanceTo(location) > Math.max(MIN_CONFIRMED_DISPLACEMENT_METERS, uncertainty);
+        return state != NavigationMotionState.MOVING;
     }
 
     private static float accuracyMeters(NavigationLocation location) {

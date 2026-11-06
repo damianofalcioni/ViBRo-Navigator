@@ -27,14 +27,14 @@ public class NavigationStationarySleepTripStatsTest {
                 TestNavigationTextResources.metric(), stop(22_000), 52_000, 1_000);
         assertTrue(stale.isDropped());
         fixture.accept(52_000);
-        assertEquals(51_000, fixture.stationaryMs());
+        assertEquals(48_000, fixture.stationaryMs());
         assertTrue(fixture.session.components.locationState.motionRevision() > revision);
         fixture.accept(54_000);
         assertTrue(fixture.accept(56_000));
         fixture.sleep.beginSleep(56_000);
         fixture.wake(86_000);
         fixture.accept(86_000);
-        assertEquals(85_000, fixture.stationaryMs());
+        assertEquals(80_000, fixture.stationaryMs());
     }
 
     @Test
@@ -43,7 +43,7 @@ public class NavigationStationarySleepTripStatsTest {
         fixture.sleep.beginSleep(22_000);
         fixture.wake(47_000);
         fixture.accept(70_000);
-        assertEquals(46_000, fixture.stationaryMs());
+        assertEquals(43_000, fixture.stationaryMs());
         assertEquals(0d, fixture.session.components.tripStatsTracker.snapshot().travelledDistanceMeters, 0d);
     }
 
@@ -55,6 +55,8 @@ public class NavigationStationarySleepTripStatsTest {
         NavigationSessionResourceAdapter.start(fixture.session, TestNavigationTextResources.metric(), 100_000);
         fixture.accept(100_000);
         fixture.accept(103_000);
+        assertEquals(0, fixture.stationaryMs());
+        fixture.accept(106_000);
         assertEquals(3_000, fixture.stationaryMs());
     }
 
@@ -91,7 +93,8 @@ public class NavigationStationarySleepTripStatsTest {
             var result = NavigationSessionResourceAdapter.onRawLocationChanged(session,
                     TestNavigationTextResources.metric(), raw, nowMs, 1_000);
             assertFalse(result.isDropped());
-            return sleep.observe(raw, session.getLastFilteredLocation(), session.isLikelyStationaryForOrientation(), nowMs);
+            return sleep.observe(raw, session.getLastFilteredLocation(),
+                    NavigationSessionResourceAdapter.canVerifyStationarySleep(session), nowMs);
         }
 
         void wake(long nowMs) {

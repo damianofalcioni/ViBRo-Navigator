@@ -7,6 +7,7 @@ import vibro.navigator.geo.GeoMath;
 
 final class NavigationDisplaySpeedResolver {
     private static final float MAX_STATIONARY_REPORTED_SPEED_MPS = 0.35f;
+    private static final float MIN_CONFIRMED_MOVING_SPEED_MPS = 0.2f;
     private static final float MAX_UNCONFIRMED_LOW_SPEED_MPS = 2.5f;
     private static final double MAX_STATIONARY_RECENT_DISTANCE_METERS = 0.8;
     private static final double MIN_LOW_SPEED_CONFIRMATION_DISTANCE_METERS = 1.5;
@@ -23,9 +24,10 @@ final class NavigationDisplaySpeedResolver {
             @NonNull NavigationLocation location,
             @Nullable NavigationLocation previousFiltered,
             boolean stationaryRecentMotion,
+            boolean confirmedMoving,
             float speedMps
     ) {
-        if (isSuppressedBaseSpeed(stationaryRecentMotion, speedMps)) {
+        if (isSuppressedBaseSpeed(stationaryRecentMotion, confirmedMoving, speedMps)) {
             return 0f;
         }
         if (!location.hasSpeed()) {
@@ -34,10 +36,12 @@ final class NavigationDisplaySpeedResolver {
         return resolveReportedSpeed(location, previousFiltered, speedMps);
     }
 
-    private static boolean isSuppressedBaseSpeed(boolean stationaryRecentMotion, float speedMps) {
-        return stationaryRecentMotion
-                || !Float.isFinite(speedMps)
-                || speedMps <= MAX_STATIONARY_REPORTED_SPEED_MPS;
+    private static boolean isSuppressedBaseSpeed(boolean stationaryRecentMotion, boolean confirmedMoving, float speedMps) {
+        if (stationaryRecentMotion || !Float.isFinite(speedMps)) {
+            return true;
+        }
+        return confirmedMoving ? speedMps < MIN_CONFIRMED_MOVING_SPEED_MPS
+                : speedMps <= MAX_STATIONARY_REPORTED_SPEED_MPS;
     }
 
     private static float resolveReportedSpeed(

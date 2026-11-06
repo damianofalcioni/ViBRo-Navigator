@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.location.FusedLocationUpdateClient;
@@ -23,6 +24,37 @@ import static org.junit.Assert.assertTrue;
 public class NavigationServiceLocationRecoveryTest {
     private static final String GPS_PROVIDER = "gps";
     private static final String NETWORK_PROVIDER = "network";
+    @Test
+    public void existingWakeSourcesReportTheirActualEntryPointWithoutNewScheduledWork() {
+        for (boolean timer : new boolean[] {false, true}) {
+            Fixture fixture = new Fixture(false);
+            fixture.enableSleep();
+            fixture.stationaryStop();
+            int schedules = fixture.alarm.scheduleCalls;
+            fixture.clock.nowMs = 52_025;
+            if (timer) {
+                fixture.scheduler.pending.run();
+            } else {
+                fixture.recovery.recoverIfStalled();
+            }
+            assertEquals(1, fixture.diagnostics.size());
+            assertEquals("Recovery check dispatched source=" + (timer ? "awake_timer" : "alarm")
+                    + " requestedDeadlineMs=52000 actualElapsedMs=52025 uptimeMs=5025 latenessMs=25",
+                    fixture.diagnostics.get(0));
+            assertFalse(fixture.controller.isStationarySuspended());
+            assertEquals(schedules + 1, fixture.alarm.scheduleCalls);
+            assertEquals(1, fixture.departureResets);
+            assertEquals(null, fixture.scheduler.pending);
+        }
+        Fixture fixture = new Fixture(true);
+        fixture.enableSleep();
+        fixture.stationaryStop();
+        fixture.clock.nowMs = 25_000;
+        fixture.motion.fire();
+        assertTrue(fixture.diagnostics.get(0).contains("source=motion_trigger"));
+        assertEquals(1, fixture.diagnostics.size());
+        assertTrue(fixture.fused.active);
+    }
     @Test
     public void networkAcceptanceCannotPostponeGpsSilenceAlarm() {
         Fixture fixture = new Fixture(false);
@@ -123,6 +155,32 @@ public class NavigationServiceLocationRecoveryTest {
     }
 
     @Test
+    public void delayedMeasurementClusterKeepsFallbackAcquisitionActive() {
+        for (boolean useFused : new boolean[] {false, true}) {
+            Fixture fixture = new Fixture(useFused);
+            String providerName = useFused ? "fused" : GPS_PROVIDER;
+            fixture.enableSleep();
+            for (long time = 1_000; time <= 22_000; time += 3_000) {
+                fixture.acceptStoppedObservation(providerName, time, time);
+            }
+            assertTrue(fixture.controller.isStationarySuspended());
+            fixture.clock.nowMs = 52_000;
+            fixture.recovery.recoverIfStalled();
+            for (int index = 0; index < 3; index++) {
+                fixture.acceptStoppedObservation(providerName, 52_000 + index, 52_000 + index * 2_000);
+                assertFalse(fixture.controller.isStationarySuspended());
+            }
+            assertTrue(fixture.alarm.deadlineMs > fixture.clock.nowMs);
+            assertEquals(null, fixture.scheduler.pending);
+            fixture.acceptStoppedObservation(providerName, 58_000, 58_000);
+            assertFalse(fixture.controller.isStationarySuspended());
+            fixture.acceptStoppedObservation(providerName, 60_000, 60_000);
+            assertTrue(fixture.controller.isStationarySuspended());
+            assertEquals(90_000, fixture.alarm.deadlineMs);
+        }
+    }
+
+    @Test
     public void alarmFailureOrMissingSensorKeepsAcquisitionRunning() {
         Fixture fixture = new Fixture(false);
         fixture.enableSleep();
@@ -207,6 +265,7 @@ public class NavigationServiceLocationRecoveryTest {
     }
 
     private static final class Fixture {
+        private final List<String> diagnostics = new ArrayList<>();
         private final MutableClock clock = new MutableClock();
         private final Provider provider = new Provider();
         private final Alarm alarm = new Alarm();
@@ -220,7 +279,8 @@ public class NavigationServiceLocationRecoveryTest {
 
         Fixture(boolean fused) {
             controller = new NavigationLocationController(provider, new Gnss(), this.fused, () -> fused, clock);
-            recovery = new NavigationServiceLocationRecovery(controller, new NavigationLocationStallMonitor(), alarm, clock);
+            recovery = new NavigationServiceLocationRecovery(controller, new NavigationLocationStallMonitor(), alarm, clock,
+                    diagnostics::add);
             controller.requestLocationUpdates(3_000L);
             recovery.start();
         }
@@ -255,6 +315,14 @@ public class NavigationServiceLocationRecoveryTest {
             recovery.onAcceptedFix(location, location, true);
         }
 
+        void acceptStoppedObservation(String providerName, long measurementMs, long receiptMs) {
+            clock.nowMs = receiptMs;
+            NavigationLocation location = new NavigationLocation(providerName);
+            location.setTime(measurementMs, measurementMs);
+            location.setAccuracy(5);
+            recovery.onAcceptedFix(location, new NavigationLocation(location), true);
+        }
+
         void stableGps() {
             for (long time : new long[] {1_000L, 6_000L, 11_000L}) {
                 clock.nowMs = time;
@@ -274,6 +342,7 @@ public class NavigationServiceLocationRecoveryTest {
     private static final class MutableClock implements ElapsedRealtimeClock {
         private long nowMs = 1_000L;
         @Override public long elapsedRealtimeMs() { return nowMs; }
+        @Override public long uptimeMs() { return nowMs - 47_000; }
     }
 
     private static final class Alarm implements NavigationLocationRecoveryAlarm {

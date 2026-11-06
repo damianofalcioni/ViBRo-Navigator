@@ -20,6 +20,7 @@ public class NavigationTripStatsFormatterTest {
                 3,
                 false,
                 false,
+                120_000L,
                 90_000L,
                 30_000L,
                 120_000L,
@@ -42,7 +43,7 @@ public class NavigationTripStatsFormatterTest {
         assertTrue(details.contains("Max speed: 36 km/h"));
         assertTrue(details.contains("Screen on: 1 min 30 s"));
         assertTrue(details.contains("Screen off: 30 s"));
-        assertTrue(details.contains("Battery used: 12.5 mAh"));
+        assertTrue(details.contains("Battery used: ≈12.5 mAh"));
         assertTrue(details.contains("Battery drop: 3%"));
     }
 
@@ -68,7 +69,7 @@ public class NavigationTripStatsFormatterTest {
         );
 
         assertTrue(details.contains("Elapsed: 2 min 00 s"));
-        assertTrue(details.contains("Stationary time: 2 min 00 s"));
+        assertTrue(details.contains("Stationary time: 1 min 40 s"));
     }
 
     @Test

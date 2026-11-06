@@ -17,10 +17,11 @@ public class NavigationDisplayCourseStopTest {
         assertEquals(0.0, model.displayMovementCourse(incoming).headingDegrees, 0.01);
         record(model, 10_000L, 30, 1.4f);
         record(model, 13_000L, 30, 0f);
+        record(model, 16_000L, 30, 0f);
         assertTrue(model.isLikelyStationary());
-        NavigationLocation firstReturn = record(model, 16_000L, 28, 1.4f);
+        NavigationLocation firstReturn = record(model, 19_000L, 28, 1.4f);
         assertNull(model.displayMovementCourse(firstReturn));
-        NavigationLocation returnFix = record(model, 19_000L, 25, 1.4f);
+        NavigationLocation returnFix = record(model, 22_000L, 25, 1.4f);
         NavigationLocationMotionModel.Course course = model.displayMovementCourse(returnFix);
         assertNotNull(course);
         assertEquals(180.0, course.headingDegrees, 0.01);

@@ -110,7 +110,8 @@ public final class LiveLocationCoordinator {
 
     @Nullable
     NavigationLocationFix selectBestLiveFix(long nowMs) {
-        return LiveLocationPolicy.selectBestFix(latestGpsFix, latestNetworkFix, latestFusedFix, nowMs);
+        return LiveLocationPolicy.selectBestFix(latestGpsFix, latestNetworkFix, latestFusedFix,
+                lastDispatchedRawFix, nowMs);
     }
 
     @Nullable

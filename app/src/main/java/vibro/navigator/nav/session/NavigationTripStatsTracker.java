@@ -1,8 +1,8 @@
 package vibro.navigator.nav.session;
 
 import androidx.annotation.NonNull;
-import vibro.navigator.geo.GeoMath;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMotionState;
 import vibro.navigator.nav.model.NavTripStatus;
 import vibro.navigator.nav.power.NavigationBatterySnapshot;
 
@@ -15,16 +15,11 @@ final class NavigationTripStatsTracker {
     private long startedAtElapsedMs;
     private long lastAcceptedFixElapsedMs = NO_ACCEPTED_FIX;
     private long lastScreenTransitionElapsedMs = NO_SCREEN_TRANSITION;
-    private final PreviousLocation lastLocation = new PreviousLocation();
-    private double travelledDistanceMeters;
-    private long movingDurationMs;
-    private long stationaryDurationMs;
+    private final NavigationTripMotionStats motionStats = new NavigationTripMotionStats();
     private long screenOnDurationMs;
     private long screenOffDurationMs;
     private float maxSpeedMps = Float.NaN;
     private int acceptedFixCount;
-    private boolean activeMovingInterval;
-    private boolean activeStationaryInterval;
     private boolean screenInteractive = true;
     @NonNull
     private final NavigationTripBatteryStats batteryStats = new NavigationTripBatteryStats();
@@ -34,16 +29,11 @@ final class NavigationTripStatsTracker {
         startedAtElapsedMs = 0L;
         lastAcceptedFixElapsedMs = NO_ACCEPTED_FIX;
         lastScreenTransitionElapsedMs = NO_SCREEN_TRANSITION;
-        lastLocation.reset();
-        travelledDistanceMeters = 0.0;
-        movingDurationMs = 0L;
-        stationaryDurationMs = 0L;
+        motionStats.reset();
         screenOnDurationMs = 0L;
         screenOffDurationMs = 0L;
         maxSpeedMps = Float.NaN;
         acceptedFixCount = 0;
-        activeMovingInterval = false;
-        activeStationaryInterval = false;
         screenInteractive = true;
         batteryStats.reset();
     }
@@ -77,25 +67,23 @@ final class NavigationTripStatsTracker {
 
     void recordAcceptedLocation(NavigationLocation location, long nowElapsedMs, float displaySpeedMps,
             boolean likelyStationary, boolean startNewSegment, long stationarySleepEndedAtMs) {
+        recordAcceptedLocation(location, nowElapsedMs, displaySpeedMps, isStationary(displaySpeedMps, likelyStationary),
+                startNewSegment, stationarySleepEndedAtMs, true);
+    }
+
+    void recordAcceptedLocation(NavigationLocation location, long nowElapsedMs, float displaySpeedMps,
+            boolean likelyStationary, boolean startNewSegment, long stationarySleepEndedAtMs, boolean motionKnown) {
         if (!started) {
             return;
         }
-        boolean stationary = isStationary(displaySpeedMps, likelyStationary);
-        long sleepMs = stationarySleepDurationMs(stationarySleepEndedAtMs, nowElapsedMs);
-        stationaryDurationMs += sleepMs;
-        long intervalMs = Math.max(0L, acceptedIntervalMs(nowElapsedMs, startNewSegment) - sleepMs);
-        if (stationary) {
-            stationaryDurationMs += intervalMs;
-        } else {
-            movingDurationMs += intervalMs;
-            travelledDistanceMeters += travelledDistanceMeters(location, startNewSegment);
+        motionStats.record(location, nowElapsedMs, likelyStationary, startNewSegment,
+                stationarySleepEndedAtMs, motionKnown);
+        if (location.getElapsedRealtimeMs() < 0
+                || NavigationMotionState.isFresh(location.getElapsedRealtimeMs(), nowElapsedMs)) {
+            maxSpeedMps = maxSpeed(maxSpeedMps, displaySpeedMps);
         }
-        maxSpeedMps = maxSpeed(maxSpeedMps, displaySpeedMps);
         acceptedFixCount++;
         lastAcceptedFixElapsedMs = nowElapsedMs;
-        lastLocation.record(location);
-        activeMovingInterval = !stationary;
-        activeStationaryInterval = stationary;
     }
 
     void recordScreenInteractive(boolean interactive, long nowElapsedMs) {
@@ -122,18 +110,19 @@ final class NavigationTripStatsTracker {
                 true,
                 startedAtElapsedMs,
                 lastAcceptedFixElapsedMs,
-                travelledDistanceMeters,
-                movingDurationMs,
-                stationaryDurationMs,
+                motionStats.distanceMeters(),
+                motionStats.movingMs(),
+                motionStats.stationaryMs(),
                 maxSpeedMps,
                 acceptedFixCount,
-                activeMovingInterval,
-                activeStationaryInterval,
+                motionStats.moving(),
+                motionStats.stationary(),
+                motionStats.expiresAtMs(),
                 screenOnDurationMs,
                 screenOffDurationMs,
                 lastScreenTransitionElapsedMs,
                 screenInteractive,
-                batteryStats.batteryUsedMilliAmpHours(),
+                batteryStats.estimate(),
                 batteryStats.batteryDropPercent()
         );
     }
@@ -145,31 +134,6 @@ final class NavigationTripStatsTracker {
         } else {
             screenOffDurationMs += intervalMs;
         }
-    }
-
-    private long acceptedIntervalMs(long nowElapsedMs, boolean startNewSegment) {
-        if (startNewSegment || lastAcceptedFixElapsedMs == NO_ACCEPTED_FIX) {
-            return 0L;
-        }
-        return Math.max(0L, nowElapsedMs - lastAcceptedFixElapsedMs);
-    }
-
-    private long stationarySleepDurationMs(long endedAtMs, long nowMs) {
-        return lastAcceptedFixElapsedMs == NO_ACCEPTED_FIX ? 0L
-                : Math.max(0L, Math.min(endedAtMs, nowMs) - lastAcceptedFixElapsedMs);
-    }
-
-    private double travelledDistanceMeters(@NonNull NavigationLocation location, boolean startNewSegment) {
-        if (startNewSegment || !lastLocation.isAvailable()) {
-            return 0.0;
-        }
-        double distanceMeters = GeoMath.distanceMeters(
-                lastLocation.latitude,
-                lastLocation.longitude,
-                location.getLatitude(),
-                location.getLongitude()
-        );
-        return Double.isFinite(distanceMeters) ? Math.max(0.0, distanceMeters) : 0.0;
     }
 
     private static boolean isStationary(float displaySpeedMps, boolean likelyStationary) {
@@ -194,22 +158,4 @@ final class NavigationTripStatsTracker {
         return Math.max(0L, nowElapsedMs - lastScreenTransitionElapsedMs);
     }
 
-    private static final class PreviousLocation {
-        private double latitude = Double.NaN;
-        private double longitude = Double.NaN;
-
-        private void reset() {
-            latitude = Double.NaN;
-            longitude = Double.NaN;
-        }
-
-        private void record(@NonNull NavigationLocation location) {
-            latitude = location.getLatitude();
-            longitude = location.getLongitude();
-        }
-
-        private boolean isAvailable() {
-            return !Double.isNaN(latitude);
-        }
-    }
 }

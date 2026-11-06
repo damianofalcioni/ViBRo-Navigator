@@ -8,14 +8,24 @@ import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.location.NavigationLocationFormatter;
 import vibro.navigator.nav.location.NavigationLocationProviders;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 final class NavigationLocationDebugLogger {
     private static final String TAG = "NavSessionLocation";
 
     private long lastCallbackAtMs = -1L;
+    private NavigationMotionState lastMotionState;
 
     void reset() {
         lastCallbackAtMs = -1L;
+        lastMotionState = null;
+    }
+
+    void motion(NavigationMotionState state, String reason, long nowMs) {
+        if (state != lastMotionState) {
+            lastMotionState = state;
+            AppLogger.d(TAG, "Motion assessment state=" + state + " reason=" + reason + " nowElapsedMs=" + nowMs);
+        }
     }
 
     static void droppedNoRecentCandidate(@NonNull NavigationLocation rawLocation, @Nullable String activeProviders) {

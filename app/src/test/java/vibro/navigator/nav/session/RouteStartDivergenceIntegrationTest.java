@@ -77,7 +77,7 @@ public class RouteStartDivergenceIntegrationTest {
     }
 
     private static NavigationRouteEvaluation evaluate(NavigationSessionRouteState state, double lon, long now) {
-        return state.evaluateLocation(fix(lon, now), 5, false, 20, 270.0, now, 0, false);
+        return state.evaluateLocation(fix(lon, now), 5, false, true, 20, 270.0, now, 0, false);
     }
 
     private static NavigationLocation fix(double lon, long now) {

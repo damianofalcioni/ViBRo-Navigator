@@ -13,6 +13,7 @@ import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.compass.NavCompassState;
 import vibro.navigator.nav.compass.StraightLineNavCompassStateFactory;
 import vibro.navigator.nav.guidance.NavigationArrivalTurnEvents;
+import vibro.navigator.nav.guidance.NavigationArrivalConfirmation;
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.location.NavigationLocation;
 import vibro.navigator.nav.model.NavGuidanceStatus;
@@ -32,10 +33,12 @@ final class StraightLineNavigationState {
 
     private int nextStopIndex;
     private boolean destinationReached;
+    private final NavigationArrivalConfirmation arrivalConfirmation = new NavigationArrivalConfirmation();
 
     void reset() {
         nextStopIndex = 0;
         destinationReached = false;
+        arrivalConfirmation.reset();
         beelineGuidance.reset();
         compassMemory.reset();
     }
@@ -43,6 +46,7 @@ final class StraightLineNavigationState {
     void onRequestStarted(@NonNull NavigationRequest request) {
         nextStopIndex = 0;
         destinationReached = request.destination == null;
+        arrivalConfirmation.reset();
         beelineGuidance.reset();
         compassMemory.reset();
     }
@@ -61,15 +65,16 @@ final class StraightLineNavigationState {
         if (request.destination == null || destinationReached) {
             return keepDirectGuidance();
         }
-        List<NavigationTurnEvent> turnEvents = advanceReachedStops(request, location, accuracyMeters);
+        List<NavigationTurnEvent> turnEvents = advanceReachedStops(request, location, accuracyMeters, nowMs);
         if (!turnEvents.isEmpty()) {
             beelineGuidance.reset();
         }
         if (nextStopIndex >= request.stops.size()
-                && StraightLineNavigationProgress.isWithinReachedRadius(
+                && arrivalConfirmation.observe(
                         location,
                         accuracyMeters,
-                        request.destination
+                        request.destination,
+                        nowMs
                 )) {
             destinationReached = true;
             turnEvents.addAll(NavigationArrivalTurnEvents.destinationArrival(nextStopIndex));
@@ -178,6 +183,7 @@ final class StraightLineNavigationState {
     }
 
     void clearMotionEvidence() {
+        arrivalConfirmation.reset();
         beelineGuidance.reset();
     }
 
@@ -190,6 +196,7 @@ final class StraightLineNavigationState {
     }
 
     boolean skipActiveTarget(@NonNull NavigationRequest request) {
+        arrivalConfirmation.reset();
         if (!hasActiveTarget(request)) {
             return false;
         }
@@ -206,17 +213,20 @@ final class StraightLineNavigationState {
     private List<NavigationTurnEvent> advanceReachedStops(
             @NonNull NavigationRequest request,
             @NonNull NavigationLocation location,
-            float accuracyMeters
+            float accuracyMeters,
+            long nowMs
     ) {
         List<NavigationTurnEvent> turnEvents = new ArrayList<>();
         while (nextStopIndex < request.stops.size()
-                && StraightLineNavigationProgress.isWithinReachedRadius(
+                && arrivalConfirmation.observe(
                         location,
                         accuracyMeters,
-                        request.stops.get(nextStopIndex)
+                        request.stops.get(nextStopIndex),
+                        nowMs
                 )) {
             turnEvents.addAll(NavigationArrivalTurnEvents.intermediateArrival(nextStopIndex));
             nextStopIndex++;
+            arrivalConfirmation.reset();
         }
         return turnEvents;
     }

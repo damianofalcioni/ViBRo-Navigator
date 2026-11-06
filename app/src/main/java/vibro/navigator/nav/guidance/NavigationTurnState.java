@@ -6,8 +6,8 @@ import androidx.annotation.Nullable;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.route.GeoJsonRoute;
 import vibro.navigator.nav.route.PolylineIndex;
+import vibro.navigator.nav.location.NavigationLocation;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public final class NavigationTurnState {
@@ -15,6 +15,7 @@ public final class NavigationTurnState {
     private final TurnEventPlanner turnEventPlanner = new TurnEventPlanner();
     private final NavigationGuidanceHintSequence guidanceHints = new NavigationGuidanceHintSequence();
     private final NavigationTurnManeuverCueState maneuverCueState = new NavigationTurnManeuverCueState();
+    private final NavigationGuidanceDiagnostics diagnostics = new NavigationGuidanceDiagnostics();
 
     private int nextHintIdx;
     private int routeHintCount;
@@ -26,6 +27,7 @@ public final class NavigationTurnState {
     private boolean startupIntervalRampPending;
 
     public void reset() {
+        diagnostics.reset();
         guidanceHints.reset();
         nextHintIdx = 0;
         routeHintCount = 0;
@@ -41,6 +43,10 @@ public final class NavigationTurnState {
 
     public int getNextHintIdx() {
         return nextHintIdx;
+    }
+
+    public void recordLocationQuality(NavigationLocation location, float accuracy) {
+        updateScheduler.recordLocationQuality(location, accuracy);
     }
 
     public boolean isDestinationReached() {
@@ -180,7 +186,9 @@ public final class NavigationTurnState {
                 restartIntervalRamp,
                 nowMs
         );
-        return new Progress(toTurnEvents(progress.signals), suggestedUpdateIntervalMs);
+        diagnostics.record(progress.decision, suggestedUpdateIntervalMs, updateScheduler.intervalReason(),
+                trustworthyProgress, progress.signals.size(), nowMs);
+        return new Progress(NavigationTurnSignalEvents.convert(progress.signals), suggestedUpdateIntervalMs);
     }
 
     @NonNull
@@ -193,6 +201,7 @@ public final class NavigationTurnState {
             float accuracyMeters
     ) {
         routeHintCount = route.voiceHints.size();
+        diagnostics.reset();
         guidanceHints.onRouteApplied(route, polylineIndex, intermediateStops, lastFiltered);
         syncNextRouteHintIndex(route);
         notified20 = false;
@@ -293,13 +302,14 @@ public final class NavigationTurnState {
             return noTurnEvents();
         }
         initialTurnNotificationSent = true;
-        return oneTurnEvent(toTurnEvent(initialSignal));
+        return NavigationTurnSignalEvents.single(initialSignal);
     }
 
     private boolean hasPendingInitialTurnSignal() {
         return !guidanceHints.hints().isEmpty()
                 && guidanceHints.nextIndex() >= 0
-                && guidanceHints.nextIndex() < guidanceHints.hints().size();
+                && guidanceHints.nextIndex() < guidanceHints.hints().size()
+                && !NavigationTurnManeuverCueState.isSyntheticArrivalHint(guidanceHints.nextHint());
     }
 
     private void syncNextRouteHintIndex(@NonNull GeoJsonRoute route) {
@@ -311,40 +321,8 @@ public final class NavigationTurnState {
     }
 
     @NonNull
-    private List<NavigationTurnEvent> toTurnEvents(@NonNull List<TurnEventPlanner.TurnSignal> signals) {
-        if (signals.isEmpty()) {
-            return noTurnEvents();
-        }
-        List<NavigationTurnEvent> events = new ArrayList<>(signals.size());
-        for (TurnEventPlanner.TurnSignal signal : signals) {
-            events.add(toTurnEvent(signal));
-        }
-        return events;
-    }
-
-    @NonNull
     private static List<NavigationTurnEvent> noTurnEvents() {
-        return new ArrayList<>();
-    }
-
-    @NonNull
-    private static List<NavigationTurnEvent> oneTurnEvent(@NonNull NavigationTurnEvent event) {
-        List<NavigationTurnEvent> events = new ArrayList<>(1);
-        events.add(event);
-        return events;
-    }
-
-    @NonNull
-    private NavigationTurnEvent toTurnEvent(@NonNull TurnEventPlanner.TurnSignal signal) {
-        switch (signal.type) {
-            case PASSED:
-                return NavigationTurnEvent.passed(signal.hint);
-            case INITIAL:
-                return NavigationTurnEvent.initial(signal.hint, signal.distanceMeters, signal.timeSeconds);
-            case IMMINENT:
-            default:
-                return NavigationTurnEvent.imminent(signal.hint, signal.distanceMeters, signal.timeSeconds);
-        }
+        return NavigationTurnSignalEvents.empty();
     }
 
     public static final class Progress {

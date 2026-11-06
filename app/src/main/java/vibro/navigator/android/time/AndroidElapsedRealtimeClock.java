@@ -11,4 +11,7 @@ public enum AndroidElapsedRealtimeClock implements ElapsedRealtimeClock {
     public long elapsedRealtimeMs() {
         return SystemClock.elapsedRealtime();
     }
+
+    @Override
+    public long uptimeMs() { return SystemClock.uptimeMillis(); }
 }

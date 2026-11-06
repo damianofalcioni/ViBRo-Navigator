@@ -64,6 +64,7 @@ final class AppLogSessionInfo {
 
     private static void appendAppInfo(@NonNull StringBuilder out, @NonNull Context context) {
         append(out, "appVersion", BuildConfig.VERSION_NAME);
+        append(out, "sourceRevision", BuildConfig.SOURCE_REVISION);
         append(out, "versionCode", BuildConfig.VERSION_CODE);
         append(out, "applicationId", BuildConfig.APPLICATION_ID);
         append(out, "package", context.getPackageName());

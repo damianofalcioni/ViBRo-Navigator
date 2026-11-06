@@ -1,11 +1,10 @@
 package vibro.navigator.nav.session;
 
-
 import vibro.navigator.nav.guidance.NavigationTurnEvent;
 import vibro.navigator.nav.model.NavState;
-import vibro.navigator.nav.presentation.NavStateComposer;
 import vibro.navigator.geo.LatLon;
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.presentation.NavStateComposer;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -32,6 +31,8 @@ public final class NavigationSessionRouteState {
     void clearMotionEvidence() {
         components.deviationHandler.reset();
         components.progressTracker.reset();
+        components.geometryState.clearArrivalEvidence();
+        components.intermediateArrivalTracker.clearArrivalEvidence();
         components.directGuidance.state().clearMotionEvidence();
     }
 
@@ -129,6 +130,7 @@ public final class NavigationSessionRouteState {
                 filtered,
                 speedMps,
                 likelyStationary,
+                !likelyStationary,
                 accuracyMeters,
                 actualBearingDegrees,
                 nowMs,
@@ -142,6 +144,7 @@ public final class NavigationSessionRouteState {
             @NonNull NavigationLocation filtered,
             float speedMps,
             boolean likelyStationary,
+            boolean confirmedMoving,
             float accuracyMeters,
             @Nullable Double actualBearingDegrees,
             long nowMs,
@@ -153,6 +156,7 @@ public final class NavigationSessionRouteState {
                 filtered,
                 speedMps,
                 likelyStationary,
+                confirmedMoving,
                 accuracyMeters,
                 actualBearingDegrees,
                 nowMs,
@@ -160,7 +164,8 @@ public final class NavigationSessionRouteState {
                 reacquiringAfterLongGap,
                 singleInstructionMode
         );
-        components.headingHandoff.onLocationEvaluated(wasBeeline, filtered, likelyStationary, evaluation, nowMs);
+        components.headingHandoff.onLocationEvaluated(wasBeeline, filtered,
+                likelyStationary, evaluation, nowMs);
         beelineRecovery().setTarget(components.directGuidance.activeTarget());
         return evaluation;
     }
@@ -222,6 +227,7 @@ public final class NavigationSessionRouteState {
         return components.blockedRoadAction.perform(lastFiltered, nowMs);
     }
 
+    /** Synchronous policy convenience; asynchronous handoffs must supply their actual elapsed application time. */
     @NonNull
     public List<NavigationTurnEvent> applyRouteResult(
             @NonNull NavigationTextResources textResources,
@@ -238,7 +244,8 @@ public final class NavigationSessionRouteState {
                 lastFiltered,
                 speedMps,
                 false,
-                beganAt
+                beganAt,
+                lastFiltered != null ? lastFiltered.getElapsedRealtimeOrTimeMs() : 0L
         );
     }
 
@@ -250,7 +257,8 @@ public final class NavigationSessionRouteState {
             @Nullable NavigationLocation lastFiltered,
             float speedMps,
             boolean likelyStationary,
-            long beganAt
+            long beganAt,
+            long appliedAtElapsedMs
     ) {
         components.deviationHandler.reset();
         components.progressTracker.reset();
@@ -263,6 +271,7 @@ public final class NavigationSessionRouteState {
                 speedMps,
                 likelyStationary,
                 beganAt,
+                appliedAtElapsedMs,
                 singleInstructionMode
         ));
         components.headingHandoff.onRouteApplied(wasBeeline);

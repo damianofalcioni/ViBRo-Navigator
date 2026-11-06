@@ -18,6 +18,7 @@ public final class TurnEventPlanner {
         final boolean notified20;
         final boolean notified5;
         final boolean advancedPastInstruction;
+        final NavigationGuidanceDecision decision;
         @NonNull
         final List<TurnSignal> signals;
 
@@ -26,13 +27,15 @@ public final class TurnEventPlanner {
                 boolean notified20,
                 boolean notified5,
                 boolean advancedPastInstruction,
-                @NonNull List<TurnSignal> signals
+                @NonNull List<TurnSignal> signals,
+                NavigationGuidanceDecision decision
         ) {
             this.nextHintIdx = nextHintIdx;
             this.notified20 = notified20;
             this.notified5 = notified5;
             this.advancedPastInstruction = advancedPastInstruction;
             this.signals = signals;
+            this.decision = decision;
         }
     }
 
@@ -283,7 +286,8 @@ public final class TurnEventPlanner {
             @NonNull TurnNotificationPlan notificationPlan
     ) {
         if (!trustworthyProgress || hints.isEmpty() || nextHintIdx >= hints.size()) {
-            return new Progress(nextHintIdx, notified20, notified5, false, Collections.emptyList());
+            return new Progress(nextHintIdx, notified20, notified5, false, Collections.emptyList(),
+                    NavigationGuidanceDecision.pending(hints, hintAlongTrackMeters, nextHintIdx, alongTrackMeters));
         }
 
         List<TurnSignal> signals = new ArrayList<>();
@@ -303,8 +307,10 @@ public final class TurnEventPlanner {
                 consumed.advancedPastInstruction
         );
 
-        if (cursor.nextHintIdx >= hints.size()) {
-            return cursor.toProgress(signals);
+        if (cursor.nextHintIdx >= hints.size()
+                || NavigationTurnManeuverCueState.isSyntheticArrivalHint(hints.get(cursor.nextHintIdx))) {
+            return cursor.toProgress(signals,
+                    NavigationGuidanceDecision.pending(hints, hintAlongTrackMeters, cursor.nextHintIdx, alongTrackMeters));
         }
 
         return appendImminentSignalIfNeeded(
@@ -335,6 +341,8 @@ public final class TurnEventPlanner {
             @NonNull List<TurnSignal> signals
     ) {
         VoiceHint next = hints.get(cursor.nextHintIdx);
+        NavigationGuidanceDecision decision = NavigationGuidanceDecision.pending(
+                hints, hintAlongTrackMeters, cursor.nextHintIdx, alongTrackMeters);
         double hintDistMeters = hintAlongTrackMeters.get(cursor.nextHintIdx);
         double distanceToNextMeters = Math.max(0.0, hintDistMeters - alongTrackMeters);
         Double timeToNextSeconds = RouteTimeEstimator.estimateSecondsToAlongTrack(
@@ -346,14 +354,15 @@ public final class TurnEventPlanner {
                 motionEstimate
         );
         if (timeToNextSeconds == null) {
-            return cursor.toProgress(signals);
+            return cursor.toProgress(signals, decision.withTime(null, NavigationGuidanceDecision.Reason.ETA_UNAVAILABLE));
         }
         if (!TurnDistanceReliability.isImminentReliable(
                 distanceToNextMeters,
                 motionEstimate.speedMps,
                 timeToNextSeconds
         )) {
-            return cursor.toProgress(signals);
+            return cursor.toProgress(signals,
+                    decision.withTime(timeToNextSeconds, NavigationGuidanceDecision.Reason.DISTANCE_UNRELIABLE));
         }
 
         boolean updatedNotified20 = cursor.notified20;
@@ -367,19 +376,25 @@ public final class TurnEventPlanner {
                     updatedNotified20,
                     updatedNotified5,
                     cursor.advancedPastInstruction,
-                    signals
+                    signals,
+                    decision.withTime(timeToNextSeconds, NavigationGuidanceDecision.Reason.CLOSEST_ALERT)
             );
         }
+        NavigationGuidanceDecision.Reason reason = NavigationGuidanceDecision.pendingAlertReason(
+                notificationPlan.isClosestAlertDue(timeToNextSeconds), notificationPlan.isPreparatoryAlertDue(timeToNextSeconds),
+                cursor.notified5, cursor.notified20);
         if (!cursor.notified20 && notificationPlan.isPreparatoryAlertDue(timeToNextSeconds)) {
             updatedNotified20 = true;
             signals.add(TurnSignal.imminent(next, distanceToNextMeters, timeToNextSeconds));
+            reason = NavigationGuidanceDecision.Reason.PREPARATORY_ALERT;
         }
         return new Progress(
                 cursor.nextHintIdx,
                 updatedNotified20,
                 updatedNotified5,
                 cursor.advancedPastInstruction,
-                signals
+                signals,
+                decision.withTime(timeToNextSeconds, reason)
         );
     }
 
@@ -402,8 +417,8 @@ public final class TurnEventPlanner {
         }
 
         @NonNull
-        public Progress toProgress(@NonNull List<TurnSignal> signals) {
-            return new Progress(nextHintIdx, notified20, notified5, advancedPastInstruction, signals);
+        public Progress toProgress(@NonNull List<TurnSignal> signals, NavigationGuidanceDecision decision) {
+            return new Progress(nextHintIdx, notified20, notified5, advancedPastInstruction, signals, decision);
         }
     }
 
