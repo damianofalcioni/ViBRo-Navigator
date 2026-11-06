@@ -1,7 +1,6 @@
 # Battery behavior replays
 
-Battery-only observations from the 27 and 30 October 2026 Huawei PRA-LX1 logs
-investigated in `plans/location-reliability/BATTERY_COUNTER_INVESTIGATION_20261031.md`.
+Battery-only observations from the 27 and 30 October 2026 Huawei PRA-LX1 logs.
 Rows contain relative monotonic receipt time, raw charge-counter value, raw current
 and battery percentage. They contain no coordinates, device identifiers or routes.
 

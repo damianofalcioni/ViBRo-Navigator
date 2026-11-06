@@ -1,7 +1,7 @@
 # Location replay fixtures
 
-These excerpts come from the 23, 27 and 30 October 2026 recordings described in
-`plans/location-reliability/ASSESSMENT.md` and `BRANCH_REVIEW_20261030.md`. They contain relative monotonic times
+These excerpts come from the 23, 27 and 30 October 2026 recordings.
+They contain relative monotonic times
 and local metre offsets, with each excerpt's first observation as the origin.
 They contain no absolute geographical coordinates. The fixture loader maps the
 offsets onto a local equatorial coordinate system for the existing Java policies.
