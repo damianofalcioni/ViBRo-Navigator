@@ -122,6 +122,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         if (!directGuidanceState.isRouteStartApproachActive()) {
             return null;
         }
+        boolean freshLocation = NavigationMotionState.isFresh(filtered.getElapsedRealtimeOrTimeMs(), nowMs);
         if (directGuidanceState.isRouteStartApproachReached(match, currentAccuracyMeters)) {
             directGuidanceState.clearRouteStartApproach();
             geometryState.rememberSegment(match);
@@ -139,12 +140,12 @@ final class NavigationRouteDirectGuidanceEvaluator {
                                     geometryState.polylineIndex(),
                                     new LatLon(filtered.getLatitude(), filtered.getLongitude()),
                                     likelyStationary ? 0f : speedMps,
-                                    currentAccuracyMeters
+                                    freshLocation ? currentAccuracyMeters : Float.MAX_VALUE
                             ),
                             singleInstructionMode
                     ),
                     DIRECT_GUIDANCE_INTERVAL_MS,
-                    true
+                    freshLocation
             );
         }
         deviationHandler.clearDeviationEvidence();
@@ -204,7 +205,8 @@ final class NavigationRouteDirectGuidanceEvaluator {
         }
         if (NavigationBeelineCompletionPolicy.shouldHoldUntravelled(
                 directGuidanceState, routeHistory, filtered, reachedRadiusMeters)) {
-            return NavigationRouteEvaluation.keepRoute(Collections.emptyList(), DIRECT_GUIDANCE_INTERVAL_MS, true);
+            return NavigationRouteEvaluation.keepRoute(Collections.emptyList(), DIRECT_GUIDANCE_INTERVAL_MS,
+                    NavigationMotionState.isFresh(filtered.getElapsedRealtimeOrTimeMs(), nowMs));
         }
         routeHistory.startDirectLeg(
                 filtered,
@@ -316,6 +318,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
             return arrival;
         }
         return keepCurrentRouteAfterCompletedBeeline(
+                filtered,
                 completed.match,
                 likelyStationary ? 0f : speedMps,
                 nowMs,
@@ -339,12 +342,14 @@ final class NavigationRouteDirectGuidanceEvaluator {
 
     @NonNull
     private NavigationRouteEvaluation keepCurrentRouteAfterCompletedBeeline(
+            @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match match,
             float speedMps,
             long nowMs,
             long fastChecksUntilMs,
             boolean singleInstructionMode
     ) {
+        boolean trustworthyProgress = NavigationMotionState.isFresh(filtered.getElapsedRealtimeOrTimeMs(), nowMs);
         NavigationTurnState.Progress progress = turnState.evaluate(
                 geometryState.route(),
                 geometryState.polylineIndex(),
@@ -352,7 +357,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
                 match.segmentIndex,
                 speedMps,
                 Float.NaN,
-                true,
+                trustworthyProgress,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode
@@ -360,7 +365,7 @@ final class NavigationRouteDirectGuidanceEvaluator {
         return NavigationRouteEvaluation.keepRoute(
                 progress.turnEvents,
                 progress.suggestedUpdateIntervalMs,
-                !directGuidanceState.isRouteBeelineActive()
+                trustworthyProgress && !directGuidanceState.isRouteBeelineActive()
         );
     }
 }

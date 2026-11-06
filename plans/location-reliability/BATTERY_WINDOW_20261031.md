@@ -58,3 +58,14 @@ in `.codex-temp/battery-window-focused.log`. Coverage includes multiple resets,
 charging, missing counters and cached-read coverage. The inference thresholds,
 provider policies, recovery work, subscriptions and permissions are unchanged.
 Full verification results and installation status will be appended below.
+
+### Independent branch verification — 6 November 2026
+
+The subsequent merge-readiness audit at `2ce19214` includes this partial-window
+implementation and its recorded regression. After repairing a separate routed
+guidance freshness gap, the full branch passed 4,330 tests, PMD, both debug lints
+and all four debug/release APK builds. See AUDIT_20261106.md and the latest
+STATUS.md handoff for the exact command, source label and artifact hashes. No
+phone was connected for that audit; it supplies no new installation or physical
+battery-validation result, and does not reconstruct the missing 31 October
+handoff.

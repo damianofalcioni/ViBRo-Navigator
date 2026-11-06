@@ -1,6 +1,6 @@
 # Location-reliability progress
 
-Last updated: 31 October 2026. The follow-up audit against `2c14b027` repaired measurement/receipt-time independence and clustered-relocation invalidation in stationary-sleep confirmation. Final checks passed: 4,252 tests, zero PMD violations, both debug lints and all four debug/release APK builds. Earlier slow-speed display, provider-local sleep, Round Trip, arrival-ordering, notification/provider and battery fixes remain covered. The software stages are substantially implemented; controlled physical validation remains pending. No phone was connected for this audit, and its build was not installed. Background exit remains excluded. See AUDIT_20261031_FOLLOWUP.md and the final handoff below.
+Last updated: 6 November 2026. The merge-readiness audit starting at `2ce19214` repaired stale initial/approaching routed-turn guidance, including hint initialization, ordinary progress and route-start/native-beeline handoffs. Final checks passed: 4,330 tests, zero PMD violations, both debug lints and all four debug/release APK builds. The software changes are ready to merge; the physical plan remains incomplete. No phone was connected, and this build was not installed. Background exit remains excluded. See AUDIT_20261106.md and the final handoff below.
 
 Original analysis baseline: 746aa24dd55018ca44bd82f5847fc14d21574e85. The software implementation and earlier reviews form baseline `65de832d` on `codex/location-reliability`; the Round Trip correction is committed in `a455ce9f`. The follow-up and device evidence are recorded below. The user authorized reviewing and fixing all plan stages except background exit. Earlier log-analysis scripts and results are local ignored artifacts; historical handoffs below retain their original revision/worktree descriptions.
 
@@ -20,8 +20,8 @@ States: PLANNED, IN_PROGRESS, PARTIAL, CODE_COMPLETE, VERIFIED, NEEDS_DEVICE. CO
 | 09 | Independent network backoff | VERIFIED | Coarse-network probes and silence recovery, with comparative protection for a materially better network source |
 | 10 | Provider selection verification | VERIFIED | Accepted-provider tie preference; nine to seven replay handovers, unchanged freshness/offset gates; dispatch-gap and UNKNOWN tradeoffs recorded |
 | 11 | Notification/recovery diagnosis | NEEDS_DEVICE | Local scheduler/trace and provider-local sleep confirmation with measurement/receipt independence complete; OS/watch presentation and wake timing unmeasured |
-| 12 | Battery telemetry validation | VERIFIED | Shared timed/percentage discontinuity checks, cached observation times and valid percentage plateaus |
-| 13 | Cross-feature integration and automated checks | VERIFIED | 31 October battery follow-up: 4,310 passing tests, PMD, both debug lints and four debug/release APK builds |
+| 12 | Battery telemetry validation | VERIFIED | Shared detector, independently inferred counter/current units and direction, discontinuity epochs, cached observation times and explicit partial measurement coverage; calibration still needs device evidence |
+| 13 | Cross-feature integration and automated checks | VERIFIED | 6 November merge audit: 4,330 passing tests, PMD, both debug lints and four debug/release APK builds |
 | 14 | Physical-device comparison | NEEDS_DEVICE | Matching 30 October branch log reviewed; latest correction installation and controlled route/watch/power trials pending |
 
 ## Handoff entry format
@@ -839,3 +839,67 @@ Output: `.codex-temp/plan-review-final-20261031.txt`.
 - Final integrated verification passed in 10m 40s: 2,119 F-Droid + 2,191 GPlay tests (4,310 total), zero failures/errors/skips or PMD violations, both debug lints, and four debug/release APK builds including release R8/vital lint. Only prior lint advisories/Gradle deprecation remain. All 1,382 input hashes match. Four artifacts use `fbd71bb4-battery-behavior-20261031`; this is an explicit pre-commit label.
 - Exact command, architecture, limitations and verification evidence are recorded in BATTERY_BEHAVIOR_20261031.md; raw evidence/artifact hashes remain local under `.codex-temp`. Source, tests, resources, configuration, SPECIFICATION.md and AGENT.md were unchanged after final verification.
 - ADB lists no connected phone at completion. No installation, physical validation, settings change, commit or publication occurred. Long idle/recalibration behavior, calibrated accuracy and multiple-device trials remain NEEDS_DEVICE.
+
+## Merge-readiness audit — 6 November 2026
+
+- User requested evaluating this branch against the plan, fixing related defects
+  except background exit, and committing with a simple message. Starting HEAD:
+  `2ce19214`, with a clean working tree. Fetched `origin/main` at `66cef02e`
+  (common ancestor `0c463631`); its one newer commit concerns F-Droid metadata
+  and documentation. The branch merges with it without conflicts; no merge or
+  push was performed. Detailed assessment: AUDIT_20261106.md.
+- Fixed routed guidance freshness at actual evaluation/application time. Expired
+  or future fixes cannot post initial turns or initialize the hint cursor past
+  an earlier maneuver. Ordinary progress and route-start/native-beeline handoffs
+  hold pending turn-alert flags and warmup/departure stability until fresh
+  evidence arrives. Route loading, rapid acquisition, fresh due alerts, arrival
+  confirmation and distance-only beeline reminders retain their contracts.
+- Seven new regression methods cover both routed modes, boundary freshness,
+  stale hint initialization, fresh recovery, both direct-guidance handoffs and
+  a delayed confirmed speculative callback. Before production changes, 11 tests
+  ran with six expected failures (`merge-review-red-20261106.txt`). The repair
+  passed focused tests but initially exceeded one PMD method-complexity limit;
+  separating hint initialization from arrival-event assembly resolved it without
+  suppressions or rule changes. Final focused verification passed **53 tests in
+  11 suites and PMD** in 47 seconds (`merge-review-focused-clean-20261106.txt`).
+- Updated SPECIFICATION.md and AGENT.md with the guidance freshness contract,
+  DEVICE_VALIDATION.md with corresponding field checks, and the battery-window
+  note with the subsequent verification reference. No dependency, manifest,
+  Android API, alarm, permission, wake-lock or provider/battery policy changed.
+- Initial build attempts selected an incomplete VS Code Java runtime without
+  `jlink`. Used the complete installed Android Studio JBR 21 and command-line
+  toolchain discovery overrides; repository build configuration is unchanged.
+  The exact final command is in AUDIT_20261106.md. Its local console output is
+  `.codex-temp/merge-review-final-20261106.txt`.
+- **BUILD SUCCESSFUL in 12m 36s**, exit 0; 196 tasks (52 executed, 144 up to date).
+  **2,129 F-Droid tests / 385 suites + 2,201 GPlay tests / 398 suites = 4,330
+  tests**, zero failures/errors/skips. All seven new methods ran in both complete
+  suites. Zero PMD violations; both debug lints and all four APK builds, including
+  release R8/vital lint, passed. Only the pre-existing locale/AGP lint advisories
+  and plugin-configuration `Configuration.setVisible(boolean)` deprecation
+  remain. No new compiler warning appeared.
+- All **1,386 saved input hashes match** after final verification. No production,
+  test, resource, configuration, SPECIFICATION.md or AGENT.md edits followed it;
+  only planning/audit handoffs were finished. All four BuildConfig files contain
+  `2ce19214-guidance-review-20261106`, the explicit pre-commit source label.
+  Exact checks and artifact hashes are also saved in ignored
+  `.codex-temp/merge-review-verification-20261106.json`. `git diff --check` passed.
+  Import scans added no framework/flavor leakage; the unrelated startup-test
+  LocationManager import already exists in `main`.
+- Background exit is untouched. Its existing note retains SHA-256
+  `38DEA2BE08EC66BBA7D3CD4D16CDF8761BC5453BCF6D559C2DC1B5343FCEF1E9`.
+  Final commit message: `Fix stale turn guidance`. The verified APKs retain the
+  explicit pre-commit label; committing does not relabel or rebuild them.
+- Verdict: **ready for software merge**. Runs 11/14 retain **NEEDS_DEVICE** for
+  positioning error, CPU/GPS cessation, worst-case wake/departure latency,
+  Android/watch receipt and repeated provider-energy comparisons. ADB lists no
+  connected phone after verification. No installation or physical trial occurred.
+  Next: use the current artifacts below with DEVICE_VALIDATION.md when a phone
+  is available; do not claim the physical plan or background-exit work complete.
+
+| Flavor/build | Local artifact | SHA-256 |
+|---|---|---|
+| fdroid/debug | `app/build/outputs/apk/fdroid/debug/app-fdroid-debug.apk` | `1A1E070C209A0A0B68B21CA4DAFDF5E312AA22A13390C9E7CBE67E004A61E9F8` |
+| fdroid/release | `app/build/outputs/apk/fdroid/release/app-fdroid-release-unsigned.apk` | `0548864AB9554E9A2B924FE51915198854C2B4C3BC4308FE971F5F33C0441692` |
+| gplay/debug | `app/build/outputs/apk/gplay/debug/app-gplay-debug.apk` | `9C631CE0E1BC962D566DFCD1DD97B62FF37F05B6EE41535A503FE6661EEBD2D5` |
+| gplay/release | `app/build/outputs/apk/gplay/release/app-gplay-release-unsigned.apk` | `8E6D576C7959376E22E1EA57990A9B32E15103D791CE01F4C98D88255AFDCC9D` |

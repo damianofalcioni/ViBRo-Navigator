@@ -170,18 +170,8 @@ final class NavigationRouteResultApplier {
             return turnState.onDestinationReached(route);
         }
 
-        List<NavigationTurnEvent> initialEvents = turnState.onRouteApplied(
-                route,
-                geometryState.polylineIndex(),
-                input.snapshot.intermediates,
-                initialGuidanceLocation(input, route),
-                initialSpeedMps,
-                suppressInitialTurnEvent ? Float.MAX_VALUE : accuracyMeters
-        );
-        initialEvents = NavigationInitialTurnEvents.suppressForSingleInstructionMode(
-                initialEvents,
-                input.singleInstructionMode
-        );
+        List<NavigationTurnEvent> initialEvents = initializeTurnGuidance(
+                input, route, initialSpeedMps, accuracyMeters, suppressInitialTurnEvent);
         if (input.lastFiltered == null) {
             return initialEvents;
         }
@@ -193,6 +183,20 @@ final class NavigationRouteResultApplier {
         return reachedIntermediateTrackIndex != null
                 ? turnState.onIntermediateDestinationReached(reachedIntermediateTrackIndex)
                 : initialEvents;
+    }
+
+    private List<NavigationTurnEvent> initializeTurnGuidance(NavigationRouteResultInput input,
+            GeoJsonRoute route, float speedMps, float accuracyMeters, boolean suppressInitialTurnEvent) {
+        boolean freshLocation = input.hasFreshLocation();
+        List<NavigationTurnEvent> events = turnState.onRouteApplied(
+                route,
+                geometryState.polylineIndex(),
+                input.snapshot.intermediates,
+                freshLocation ? initialGuidanceLocation(input, route) : null,
+                speedMps,
+                suppressInitialTurnEvent || !freshLocation ? Float.MAX_VALUE : accuracyMeters
+        );
+        return NavigationInitialTurnEvents.suppressForSingleInstructionMode(events, input.singleInstructionMode);
     }
 
     private float accuracyOf(@Nullable NavigationLocation location) {

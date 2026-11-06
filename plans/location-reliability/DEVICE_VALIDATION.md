@@ -1,6 +1,6 @@
 # Phone/watch and power validation
 
-Prepared 27 October 2026; updated 31 October 2026. The user confirmed the morning Huawei PRA-LX1 (API 26) GPlay Debug recording matches `65de832d`, before the Round Trip correction now in `a455ce9f`. The verified follow-up was installed at 12:51 on 30 October and passed a startup smoke check; navigation, phone/watch and power validation remain pending.
+Prepared 27 October 2026; updated 6 November 2026. The user confirmed the morning Huawei PRA-LX1 (API 26) GPlay Debug recording matches `65de832d`, before the Round Trip correction now in `a455ce9f`. The verified follow-up was installed at 12:51 on 30 October and passed a startup smoke check; navigation, phone/watch and power validation remain pending.
 
 ## Build and settings record
 
@@ -19,6 +19,15 @@ Use the verified APK and current hash from the latest STATUS.md handoff. GPlay D
 7. After independent motion confirmation at 0.25–0.35 m/s, verify that GPS display speed and trip maximum retain that supported slow speed in Route and Straight Line modes. Repeat without native speed where the device permits. Unconfirmed slow drift must still be suppressed; wait for sufficient raw progress and usable filtered uncertainty before assessing this display check.
 
 ## Locate notification delay
+
+Where route calculation/callback delivery outlasts the ten-second fix evidence
+window, verify that the route loads and rapid acquisition continues without an
+initial turn based on the expired fix. Include Route and Round Trip. Delayed
+on-route fixes and route-start/native-beeline handoffs must not consume an
+approaching-turn alert or complete warmup/departure stability; fresh progress
+must still produce the currently due alert. Correlate measurement and application
+times, rather than treating callback receipt as a new measurement. Deterministic
+JVM/service regressions cover these paths; device timing remains unmeasured.
 
 Use traceId to connect the recorded observation, motion assessment, guidance decision and notification-post completion. Compare measurement age, receipt elapsed time and uptime, generated events and posting duration. `deliveryReceipt=unobserved` means Android/watch presentation remains unmeasured.
 

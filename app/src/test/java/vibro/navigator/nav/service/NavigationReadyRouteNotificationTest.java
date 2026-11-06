@@ -68,6 +68,18 @@ public class NavigationReadyRouteNotificationTest {
         assertEquals(0, fixture.fastRequests);
     }
 
+    @Test
+    public void delayedConfirmedRouteCannotPostATurnFromAnExpiredFix() {
+        Fixture fixture = new Fixture(false);
+        fixture.confirm();
+        fixture.nowMs = 26_000;
+        fixture.snapshot.timing.resultReceived();
+        fixture.callback.onRouteApplied(fixture.snapshot, Fixture.route(.0003), 12_100);
+        assertEquals(Collections.singletonList(WARNING), fixture.foreground.posts);
+        assertTrue(fixture.session.hasActiveRoute());
+        assertEquals(1, fixture.fastRequests);
+    }
+
     private static final class Fixture {
         private final NavigationSession session = new NavigationSession();
         private final Foreground foreground = new Foreground();

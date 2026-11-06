@@ -1,6 +1,7 @@
 package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -44,5 +45,10 @@ final class NavigationRouteResultInput {
         this.beganAt = beganAt;
         this.appliedAtElapsedMs = appliedAtElapsedMs;
         this.singleInstructionMode = singleInstructionMode;
+    }
+
+    boolean hasFreshLocation() {
+        return lastFiltered != null && NavigationMotionState.isFresh(
+                lastFiltered.getElapsedRealtimeOrTimeMs(), appliedAtElapsedMs);
     }
 }

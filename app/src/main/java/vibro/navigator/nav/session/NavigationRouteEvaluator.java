@@ -1,6 +1,7 @@
 package vibro.navigator.nav.session;
 
 import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.location.NavigationMotionState;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -237,6 +238,7 @@ final class NavigationRouteEvaluator {
             progressTracker.etaHistory().recordTrustedProgress(filtered, match.alongTrackMeters,
                     accuracyMeters, confirmedMoving, nowMs, deviationDecision.isStableOnRouteSample());
             return keepCurrentRoute(
+                    filtered,
                     match,
                     etaSpeedMps,
                     etaAccelerationMps2,
@@ -250,6 +252,7 @@ final class NavigationRouteEvaluator {
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         progressTracker.etaHistory().record(filtered, match.alongTrackMeters, accuracyMeters, confirmedMoving, nowMs);
         return keepCurrentRoute(
+                filtered,
                 match,
                 etaSpeedMps,
                 etaAccelerationMps2,
@@ -292,6 +295,7 @@ final class NavigationRouteEvaluator {
         }
         progressTracker.rememberAlongTrackSample(match.alongTrackMeters, nowMs);
         return keepCurrentRoute(
+                filtered,
                 match,
                 likelyStationary ? 0f : speedMps,
                 Float.NaN,
@@ -376,6 +380,7 @@ final class NavigationRouteEvaluator {
 
     @NonNull
     private NavigationRouteEvaluation keepCurrentRoute(
+            @NonNull NavigationLocation filtered,
             @NonNull PolylineIndex.Match match,
             float etaSpeedMps,
             float etaAccelerationMps2,
@@ -384,6 +389,8 @@ final class NavigationRouteEvaluator {
             boolean singleInstructionMode,
             boolean stableOnRouteSample
     ) {
+        boolean trustworthyProgress = stableOnRouteSample && NavigationMotionState.isFresh(
+                filtered.getElapsedRealtimeOrTimeMs(), nowMs);
         geometryState.rememberSegment(match);
         routeHistory.recordProgress(match);
         NavigationTurnState.Progress progress = turnState.evaluate(
@@ -393,7 +400,7 @@ final class NavigationRouteEvaluator {
                 match.segmentIndex,
                 etaSpeedMps,
                 etaAccelerationMps2,
-                stableOnRouteSample,
+                trustworthyProgress,
                 nowMs,
                 fastChecksUntilMs,
                 singleInstructionMode
@@ -401,7 +408,7 @@ final class NavigationRouteEvaluator {
         return NavigationRouteEvaluation.keepForwardRoute(
                 progress.turnEvents,
                 progress.suggestedUpdateIntervalMs,
-                stableOnRouteSample,
+                trustworthyProgress,
                 progressTracker.assessDirection(match.alongTrackMeters, nowMs).status
                         == NavigationRouteProgressTracker.DirectionStatus.FORWARD
         );
