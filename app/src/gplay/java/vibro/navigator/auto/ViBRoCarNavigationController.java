@@ -34,6 +34,7 @@ final class ViBRoCarNavigationController {
     private final ViBRoCarNavigationActions actions;
     private NavigationServiceBinder navBinder;
     private boolean bound;
+    private boolean autoDrive;
     private boolean serviceConnectionPending;
 
     private final NavigationService.Listener navListener = new NavigationService.Listener() {
@@ -142,6 +143,16 @@ void addBlockedWaypoint() {
         actions.togglePaused();
     }
 
+    void enableAutoDrive() {
+        autoDrive = true;
+        if (navBinder != null) { navBinder.enableSimulation(); }
+    }
+
+    void dispose() {
+        if (autoDrive) { stopNavigation(); }
+        unbind();
+    }
+
     void stopNavigation() {
         actions.stopNavigation();
         if (navBinder == null) {
@@ -164,6 +175,7 @@ void addBlockedWaypoint() {
             unbind();
             return;
         }
+        if (autoDrive) { navBinder.enableSimulation(); }
         navBinder.ensureForegroundNotification();
         navBinder.setCarNavigationUiVisible(true);
         navBinder.registerListener(navListener);

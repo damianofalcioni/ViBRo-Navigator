@@ -586,4 +586,15 @@
     <string name="msg_default_configuration_restored">Έγινε επαναφορά προεπιλεγμένων ρυθμίσεων</string>
     <string name="format_nav_battery_partial_usage">%1$s (μερική μέτρηση, σε %2$s)</string>
     <string name="auto_setup_required">Όταν σταθμεύσετε με ασφάλεια, ολοκληρώστε τη ρύθμιση στο τηλέφωνο: αποδεχτείτε την υποδοχή, εγκαταστήστε το BRouter και τα δεδομένα, επιλέξτε προφίλ και ενεργοποιήστε τοποθεσία και ειδοποιήσεις. Έπειτα επιστρέψτε για νέα προσπάθεια.</string>
+    <string name="label_simulation">Προσομοίωση</string>
+    <string name="simulation_speed_kmh">Προσομοιωμένη ταχύτητα (km/h)</string>
+    <string name="simulation_speed_mph">Προσομοιωμένη ταχύτητα (mph)</string>
+    <string name="simulation_initial_position">Αρχική θέση GPS (προαιρετική)</string>
+    <string name="simulation_position_hint">Γεωγραφικό πλάτος, μήκος</string>
+    <string name="simulation_config_help">Οι ρυθμίσεις εφαρμόζονται στην επόμενη έναρξη πλοήγησης. Αφήστε τη θέση κενή για χρήση της θέσης της συσκευής. Η ταχύτητα 0 διατηρεί τη θέση σταθερή.</string>
+    <string name="simulation_info">Δοκιμάστε την πλοήγηση χωρίς μετακίνηση. Διαθέσιμη και στις δύο εκδόσεις. Οι προσομοιωμένες θέσεις ακολουθούν την επιλεγμένη διαδρομή και σταματούν κατά την παύση πλοήγησης. Απενεργοποιήστε το πριν ξεκινήσετε πραγματική πλοήγηση.</string>
+    <string name="simulation_invalid_speed">Εισαγάγετε ταχύτητα από 0 έως 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Εισαγάγετε έγκυρο γεωγραφικό πλάτος και μήκος με δεκαδικές τελείες.</string>
+    <string name="simulation_save">Αποθήκευση</string>
+    <string name="action_configure_simulation">Ρύθμιση προσομοίωσης</string>
 </resources>

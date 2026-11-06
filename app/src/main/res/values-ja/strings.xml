@@ -582,4 +582,15 @@
     <string name="msg_default_configuration_restored">デフォルト設定に戻しました</string>
     <string name="format_nav_battery_partial_usage">%1$s（部分測定、%2$s間）</string>
     <string name="auto_setup_required">安全に駐車してから、スマートフォンで初期設定を完了してください。ようこそ画面を確認し、BRouterとルートデータをインストールしてプロファイルを選択し、位置情報と通知を有効にします。その後、ここに戻って再試行してください。</string>
+    <string name="label_simulation">シミュレーション</string>
+    <string name="simulation_speed_kmh">シミュレーション速度 (km/h)</string>
+    <string name="simulation_speed_mph">シミュレーション速度 (mph)</string>
+    <string name="simulation_initial_position">開始GPS位置（任意）</string>
+    <string name="simulation_position_hint">緯度, 経度</string>
+    <string name="simulation_config_help">設定は次回のナビゲーション開始時に適用されます。位置を空欄にすると端末の位置を使用します。速度0では位置を固定します。</string>
+    <string name="simulation_info">移動せずにナビゲーションを試せます。両方のバージョンで利用できます。シミュレーション位置は選択したルートに沿って進み、ナビゲーションの一時停止中は止まります。実際のナビゲーションを開始する前に無効にしてください。</string>
+    <string name="simulation_invalid_speed">0～300 km/h（0～186.41 mph）の速度を入力してください。</string>
+    <string name="simulation_invalid_position">小数点と半角カンマを使って有効な緯度、経度を入力してください。</string>
+    <string name="simulation_save">保存</string>
+    <string name="action_configure_simulation">シミュレーションを設定</string>
 </resources>

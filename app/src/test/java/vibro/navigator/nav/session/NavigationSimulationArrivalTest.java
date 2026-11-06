@@ -1,0 +1,101 @@
+package vibro.navigator.nav.session;
+
+import org.junit.Test;
+import java.util.Arrays;
+import java.util.Collections;
+
+import vibro.navigator.geo.LatLon;
+import vibro.navigator.nav.format.TestNavigationTextResources;
+import vibro.navigator.nav.location.NavigationLocation;
+import vibro.navigator.nav.model.NavigationRequest;
+import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.nav.route.GeoJsonRoute;
+import vibro.navigator.nav.routing.NavigationRouteRequestSnapshot;
+import vibro.navigator.nav.simulation.NavigationSimulationConfig;
+import vibro.navigator.nav.simulation.SimulationTestDriver;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class NavigationSimulationArrivalTest {
+    private static final LatLon ORIGIN = new LatLon(0, 0);
+    private static final LatLon STOP = new LatLon(0, 0.0005);
+    private static final LatLon DESTINATION = new LatLon(0, 0.001);
+
+    @Test
+    public void requiredStopBetweenVerticesWaitsForNormalArrivalConfirmation() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        SimulationTestDriver driver = driver(session);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, TestNavigationTextResources.metric(),
+                driver.source.currentFix(), driver.nowMs());
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, driver.nowMs());
+        assertNotNull(snapshot);
+        GeoJsonRoute route = new GeoJsonRoute(Arrays.asList(ORIGIN, DESTINATION), Collections.emptyList(), 20, 111);
+        NavigationSessionResourceAdapter.applyRouteResult(session, TestNavigationTextResources.metric(), snapshot, route, driver.nowMs());
+        for (int i = 0; i < 80; i++) { driver.advance(1000); }
+        assertTrue(session.components.routeState.remainingIntermediateStops(Collections.singletonList(STOP)).isEmpty());
+        assertTrue(session.components.routeState.isDestinationReached());
+    }
+
+    @Test
+    public void roundTripMustDepartBeforeConfirmingTheReturnToItsStart() {
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(NavigationRoutingMode.ROUND_TRIP, "car", null, null, null,
+                Collections.emptyList(), 1000));
+        assertTrue(NavigationSessionResourceAdapter.start(session, TestNavigationTextResources.metric(), 100000));
+        SimulationTestDriver driver = driver(session);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, TestNavigationTextResources.metric(),
+                driver.source.currentFix(), driver.nowMs());
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, driver.nowMs());
+        assertNotNull(snapshot);
+        GeoJsonRoute route = new GeoJsonRoute(Arrays.asList(ORIGIN, STOP, new LatLon(0.0005, 0.0005), ORIGIN),
+                Collections.emptyList(), 20, 190);
+        NavigationSessionResourceAdapter.applyRouteResult(session, TestNavigationTextResources.metric(), snapshot, route, driver.nowMs());
+        for (int i = 0; i < 80; i++) { driver.advance(1000); }
+        assertTrue(session.components.routeState.isDestinationReached());
+        assertEquals(0, session.getLastFilteredLocation().getLongitude(), 0.00001);
+    }
+
+    @Test
+    public void straightLineVisitsStopAndConfirmsDestinationThroughNormalFilter() {
+        NavigationSession session = session(NavigationRoutingMode.STRAIGHT_LINE);
+        SimulationTestDriver driver = driver(session);
+        for (int i = 0; i < 80; i++) { driver.advance(1000); }
+        assertEquals(1, session.components.straightLineState.nextStopIndexForDisplay());
+        assertTrue(session.components.straightLineState.isDestinationReachedForDisplay());
+        assertEquals(DESTINATION.lon, session.getLastFilteredLocation().getLongitude(), 0.00001);
+    }
+
+    @Test
+    public void routedNavigationWaitsAtIntermediateAndDestinationForIndependentArrivalEvidence() {
+        NavigationSession session = session(NavigationRoutingMode.BROUTER);
+        SimulationTestDriver driver = driver(session);
+        NavigationLocation seed = driver.source.currentFix();
+        assertNotNull(seed);
+        NavigationSessionResourceAdapter.onRawLocationChanged(session, TestNavigationTextResources.metric(), seed, driver.nowMs());
+        NavigationRouteRequestSnapshot snapshot = session.prepareRouteRequest(true, driver.nowMs());
+        assertNotNull(snapshot);
+        GeoJsonRoute route = new GeoJsonRoute(Arrays.asList(ORIGIN, STOP, DESTINATION), Collections.emptyList(), 20, 111);
+        NavigationSessionResourceAdapter.applyRouteResult(session, TestNavigationTextResources.metric(), snapshot, route, driver.nowMs());
+        for (int i = 0; i < 80; i++) { driver.advance(1000); }
+        assertTrue(session.components.routeState.remainingIntermediateStops(Collections.singletonList(STOP)).isEmpty());
+        assertTrue(session.components.routeState.isDestinationReached());
+    }
+
+    private static NavigationSession session(NavigationRoutingMode mode) {
+        NavigationSession session = new NavigationSession();
+        session.loadRequest(new NavigationRequest(mode, "trekking", "End", DESTINATION, Collections.singletonList(STOP)));
+        assertTrue(NavigationSessionResourceAdapter.start(session, TestNavigationTextResources.metric(), 100000));
+        return session;
+    }
+
+    private static SimulationTestDriver driver(NavigationSession session) {
+        SimulationTestDriver driver = new SimulationTestDriver(() -> NavigationSessionSimulation.path(session),
+                fix -> NavigationSessionResourceAdapter.onRawLocationChanged(session, TestNavigationTextResources.metric(),
+                        fix, fix.getElapsedRealtimeMs()));
+        driver.source.configure(true, new NavigationSimulationConfig(10, ORIGIN));
+        driver.source.start();
+        return driver;
+    }
+}

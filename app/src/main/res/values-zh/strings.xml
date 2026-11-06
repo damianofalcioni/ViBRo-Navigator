@@ -580,4 +580,15 @@
     <string name="msg_default_configuration_restored">已恢复默认配置</string>
     <string name="format_nav_battery_partial_usage">%1$s（部分测量，时长 %2$s）</string>
     <string name="auto_setup_required">安全停车后，请在手机上完成设置：确认欢迎页面，安装 BRouter 和路线数据，选择路线配置，并启用位置和通知。然后返回此处重试。</string>
+    <string name="label_simulation">模拟</string>
+    <string name="simulation_speed_kmh">模拟速度 (km/h)</string>
+    <string name="simulation_speed_mph">模拟速度 (mph)</string>
+    <string name="simulation_initial_position">初始 GPS 位置（可选）</string>
+    <string name="simulation_position_hint">纬度, 经度</string>
+    <string name="simulation_config_help">设置将在下次开始导航时生效。位置留空将使用设备位置。速度为 0 时位置保持不变。</string>
+    <string name="simulation_info">无需移动即可体验导航。两个版本均可使用。模拟位置沿所选路线前进，并在导航暂停时停止。开始实际导航前请关闭此选项。</string>
+    <string name="simulation_invalid_speed">请输入 0 至 300 km/h（0–186.41 mph）的速度。</string>
+    <string name="simulation_invalid_position">请输入有效的纬度和经度，使用小数点和英文逗号。</string>
+    <string name="simulation_save">保存</string>
+    <string name="action_configure_simulation">配置模拟</string>
 </resources>

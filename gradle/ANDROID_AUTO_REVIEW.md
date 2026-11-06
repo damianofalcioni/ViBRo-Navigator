@@ -1,6 +1,6 @@
 # Android Auto review preparation
 
-Simulation is deferred at the maintainer's request. Do not submit this work as fully compliant until the required test-drive callback is implemented and tested. Automated checks cannot establish Google Play approval or head-unit compatibility.
+Shared navigation simulation and the host auto-drive callback are implemented. Complete the manual DHU checks below before resubmission. Automated checks cannot establish Google Play approval or head-unit compatibility.
 
 ## Reviewer setup instructions
 
@@ -13,7 +13,15 @@ Use these as the basis for the Play Console App content → App access instructi
 5. Enable Android Auto in ViBRo Settings and connect Android Auto/DHU. Use the active route or issue a standard navigation intent to the app. Address searches require internet and result selection; coordinate intents do not.
 6. Confirm that the host shows maneuvers, distance to the next turn, and ETA when available. Stop, Pause/Resume and the available Blocked road action use the same phone navigation session.
 
-Add the actual simulation activation instructions only after simulation exists. A recording may help explain setup, but does not replace test-drive support.
+### Simulation for reviewers
+
+1. On the phone, open Settings → Advanced → Simulation. Use its configuration button to set speed (default 50 km/h, or the equivalent in mph) and an optional starting latitude, longitude inside the downloaded BRouter region. The map button beside the coordinates selects the same position from the POI map. Save the configuration.
+2. Enable the Simulation switch and start navigation to a destination in that region. Settings apply on the next navigation start. Leave the origin blank to use device location; configured coordinates avoid waiting for a physical GPS fix. Keep device location services enabled and grant Android location/notification permissions, as required by the foreground service.
+3. Connect Android Auto/DHU. Guidance is marked Simulation; positions follow the route without moving the device. Pause/Resume freezes/continues movement. Stop ends it. To return to real navigation, stop, disable Simulation and start again.
+4. Also test host-triggered simulation with the manual switch off: `adb shell dumpsys activity service vibro.navigator/vibro.navigator.auto.ViBRoCarAppService AUTO_DRIVE`. For the debug Google Play package, replace the component with `vibro.navigator.debug/vibro.navigator.auto.ViBRoCarAppService`. Start a route if none is active. The callback can arrive before binding and is retained by the car session. Existing real navigation restarts in simulation. This does not change the stored switch; destroying the car session stops host-triggered simulation.
+5. Use an origin/destination and profile for which BRouter can calculate an actual route. Initial loading holds position, intermediate stops wait for normal arrival confirmation, and loop routes continue through their return leg. A speed of 0 intentionally holds position. Device sleep does not fast-forward the simulation.
+
+A recording may help explain setup, but does not replace test-drive support.
 
 ## Manual checks before resubmission
 
@@ -22,7 +30,7 @@ Add the actual simulation activation instructions only after simulation exists. 
 - Check route calculation/recalculation, pause/resume, confirmed arrival, stop, disconnect/reconnect and integration disabling. No stale turn or ETA should survive those transitions.
 - Exercise `geo:0,0?q=<latitude>,<longitude>` and `google.navigation:q=<latitude>,<longitude>` through initial and new Session intents; verify address selection, cancellation, setup failure/retry and replacement by a newer destination.
 - Check different head-unit aspect ratios, safe-area changes, night/day contrast, route/street rendering and host map gestures. Directions/ETA/controls must remain host components.
-- Complete simulation and test the required `AUTO_DRIVE` host command before claiming NF-7 coverage.
+- Test the required `AUTO_DRIVE` host command, callback before/after route start, host stop and car-session destruction before claiming NF-7 coverage.
 
 ## Release handling
 
@@ -32,4 +40,5 @@ Prepare a new semantic version/code using the existing `prepareRelease` workflow
 
 - [Navigation requirements NF-1 through NF-7](https://developer.android.com/docs/quality-guidelines/car-app-quality)
 - [Navigation intents, metadata, notifications and simulation](https://developer.android.com/training/cars/apps/navigation)
+- [Location foreground-service prerequisites](https://developer.android.com/develop/background-work/services/fgs/service-types#location)
 - [Car App Library release notes](https://developer.android.com/jetpack/androidx/releases/car-app)

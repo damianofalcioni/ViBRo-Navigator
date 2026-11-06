@@ -590,4 +590,15 @@
     <string name="msg_default_configuration_restored">Configuração predefinida restaurada</string>
     <string name="format_nav_battery_partial_usage">%1$s (parcial, durante %2$s)</string>
     <string name="auto_setup_required">Com o veículo estacionado em segurança, configure no telefone: aceite as boas-vindas, instale BRouter e os dados, escolha um perfil e ative localização e notificações. Depois volte aqui para tentar novamente.</string>
+    <string name="label_simulation">Simulação</string>
+    <string name="simulation_speed_kmh">Velocidade simulada (km/h)</string>
+    <string name="simulation_speed_mph">Velocidade simulada (mph)</string>
+    <string name="simulation_initial_position">Posição GPS inicial (opcional)</string>
+    <string name="simulation_position_hint">Latitude, longitude</string>
+    <string name="simulation_config_help">As definições aplicam-se no próximo início da navegação. Deixe a posição em branco para usar a do dispositivo. A velocidade 0 mantém a posição.</string>
+    <string name="simulation_info">Experimente a navegação sem se deslocar. Disponível nas duas versões. As posições simuladas seguem o percurso selecionado e param quando a navegação está em pausa. Desative esta opção antes de iniciar uma navegação real.</string>
+    <string name="simulation_invalid_speed">Introduza uma velocidade entre 0 e 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Introduza uma latitude e longitude válidas com pontos decimais.</string>
+    <string name="simulation_save">Guardar</string>
+    <string name="action_configure_simulation">Configurar simulação</string>
 </resources>

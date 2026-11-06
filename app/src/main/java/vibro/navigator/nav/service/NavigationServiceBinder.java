@@ -74,10 +74,18 @@ public final class NavigationServiceBinder extends Binder {
     }
 
     private final Host host;
+    private final Runnable autoDrive;
 
     public NavigationServiceBinder(@NonNull Host host) {
-        this.host = host;
+        this(host, () -> { });
     }
+
+    public NavigationServiceBinder(Host host, Runnable autoDrive) {
+        this.host = host;
+        this.autoDrive = autoDrive;
+    }
+
+    public void enableSimulation() { autoDrive.run(); }
 
     public void registerListener(@NonNull NavigationService.Listener listener) {
         host.registerListener(listener);

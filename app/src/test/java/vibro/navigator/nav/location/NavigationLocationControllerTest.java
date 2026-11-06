@@ -353,16 +353,16 @@ public class NavigationLocationControllerTest {
         }
     }
 
-    private static final class FakeLocationProvider implements NavigationLocationProvider {
+    static final class FakeLocationProvider implements NavigationLocationProvider {
         @NonNull
         private final List<String> enabledProviders;
         @NonNull
         private List<String> requestedProviders = Collections.emptyList();
         private boolean fineGranted = true;
         private boolean coarseGranted = true;
-        private int requestProviderUpdatesCount;
+        int requestProviderUpdatesCount;
         private int cancelCurrentLocationRequestsCount;
-        private int requestSeedForEnabledProviderCount;
+        int requestSeedForEnabledProviderCount;
         private long requestedMinTimeMs;
         @Nullable
         private NavigationLocation gpsLastKnown;
@@ -449,12 +449,12 @@ public class NavigationLocationControllerTest {
         }
     }
 
-    private static final class FakeGnssTracker implements NavigationGnssTracker {
+    static final class FakeGnssTracker implements NavigationGnssTracker {
         @Nullable
         private Integer fixedSatelliteCount;
         @NonNull
         private List<String> requestedProviders = Collections.emptyList();
-        private boolean trackingAllowed = true;
+        boolean trackingAllowed = true;
 
         @Nullable
         @Override
@@ -479,8 +479,9 @@ public class NavigationLocationControllerTest {
         }
     }
 
-    private static final class FakeFusedLocationUpdateClient implements FusedLocationUpdateClient {
+    static final class FakeFusedLocationUpdateClient implements FusedLocationUpdateClient {
         private int cancelCurrentLocationSeedCount;
+        int currentSeedRequestCount;
 
         @Override
         public boolean isAvailable() {
@@ -498,6 +499,7 @@ public class NavigationLocationControllerTest {
 
         @Override
         public void requestCurrentLocationSeed(boolean fineGranted, boolean coarseGranted) {
+            currentSeedRequestCount++;
         }
 
         @Override

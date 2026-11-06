@@ -1,5 +1,7 @@
 package vibro.navigator.nav.service;
 
+import vibro.navigator.nav.simulation.NavigationSimulator;
+
 import android.content.Context;
 
 import androidx.annotation.NonNull;
@@ -82,7 +84,8 @@ final class NavigationServiceRuntime {
             boolean sleepEligible) {
         streetOverlay.onAcceptedLocation(location);
         if (filtered != null) {
-            locationRecovery.onAcceptedFix(location, filtered, sleepEligible);
+            locationRecovery.onAcceptedFix(location, filtered, sleepEligible
+                    && !NavigationSimulator.PROVIDER.equals(location.getProvider()));
         }
     }
 

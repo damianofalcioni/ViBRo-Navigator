@@ -586,4 +586,15 @@
     <string name="msg_default_configuration_restored">Standaardconfiguratie hersteld</string>
     <string name="format_nav_battery_partial_usage">%1$s (gedeeltelijk, over %2$s)</string>
     <string name="auto_setup_required">Stel de app in wanneer je veilig geparkeerd staat: bevestig het welkom, installeer BRouter en routegegevens, kies een profiel en schakel locatie en meldingen in. Keer daarna hier terug om opnieuw te proberen.</string>
+    <string name="label_simulation">Simulatie</string>
+    <string name="simulation_speed_kmh">Gesimuleerde snelheid (km/h)</string>
+    <string name="simulation_speed_mph">Gesimuleerde snelheid (mph)</string>
+    <string name="simulation_initial_position">GPS-startpositie (optioneel)</string>
+    <string name="simulation_position_hint">Breedtegraad, lengtegraad</string>
+    <string name="simulation_config_help">Instellingen gelden vanaf de volgende navigatiestart. Laat de positie leeg om de apparaatlocatie te gebruiken. Snelheid 0 houdt de positie vast.</string>
+    <string name="simulation_info">Probeer navigatie zonder te bewegen. Beschikbaar in beide versies. Gesimuleerde posities volgen de gekozen route en stoppen bij gepauzeerde navigatie. Schakel dit uit voordat je echte navigatie start.</string>
+    <string name="simulation_invalid_speed">Voer een snelheid in van 0 tot 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Voer een geldige breedtegraad en lengtegraad in met decimale punten.</string>
+    <string name="simulation_save">Opslaan</string>
+    <string name="action_configure_simulation">Simulatie instellen</string>
 </resources>

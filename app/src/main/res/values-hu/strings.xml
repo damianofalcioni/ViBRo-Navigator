@@ -586,4 +586,15 @@
     <string name="msg_default_configuration_restored">Az alapértelmezett konfiguráció visszaállítva</string>
     <string name="format_nav_battery_partial_usage">%1$s (részleges, %2$s alatt)</string>
     <string name="auto_setup_required">Biztonságos parkolás után állítsd be a telefont: fogadd el az üdvözlést, telepítsd a BRouter alkalmazást és az útvonaladatokat, válassz profilt, engedélyezd a helyadatokat és az értesítéseket. Ezután térj vissza az újrapróbáláshoz.</string>
+    <string name="label_simulation">Szimuláció</string>
+    <string name="simulation_speed_kmh">Szimulált sebesség (km/h)</string>
+    <string name="simulation_speed_mph">Szimulált sebesség (mph)</string>
+    <string name="simulation_initial_position">Kezdeti GPS-pozíció (opcionális)</string>
+    <string name="simulation_position_hint">Szélesség, hosszúság</string>
+    <string name="simulation_config_help">A beállítások a navigáció következő indításakor érvényesülnek. Üres pozíciónál az eszköz helyzetét használja. A 0 sebesség helyben tartja a pozíciót.</string>
+    <string name="simulation_info">Próbálja ki a navigációt mozgás nélkül. Mindkét változatban elérhető. A szimulált pozíciók a kiválasztott útvonalat követik, és a navigáció szüneteltetésekor megállnak. Valós navigáció indítása előtt kapcsolja ki.</string>
+    <string name="simulation_invalid_speed">Adjon meg 0 és 300 km/h (0–186,41 mph) közötti sebességet.</string>
+    <string name="simulation_invalid_position">Adjon meg érvényes szélességet és hosszúságot tizedesponttal.</string>
+    <string name="simulation_save">Mentés</string>
+    <string name="action_configure_simulation">Szimuláció beállítása</string>
 </resources>

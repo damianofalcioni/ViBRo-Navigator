@@ -30,7 +30,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     @NonNull
     private final Runnable initializeSettings = this::initializeSettingsSection;
 
-    private AboutSettingsControllers settingsControllers;
+    private final AboutSettingsControllers settingsControllers = new AboutSettingsControllers(this);
     private AboutDiagnosticSection diagnosticSection;
     private AboutSettingsSwitches settingsSwitches;
     private final AboutDatabaseBackupActions databaseBackupActions = new AboutDatabaseBackupActions(
@@ -50,6 +50,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_about);
         outputSaving.restoreState(savedInstanceState);
+        settingsControllers.restoreState(savedInstanceState);
 
         TextView version = findViewById(R.id.aboutVersion);
         AboutProjectLinks.configure(this);
@@ -114,7 +115,6 @@ public class AboutActivity extends AndroidLocalizedActivity {
                 this::scheduleDiagnosticSectionRender
         );
         settingsSwitches.configure();
-        settingsControllers = new AboutSettingsControllers(this);
         settingsControllers.configure();
         databaseBackupActions.configure(exportDatabaseButton, importDatabaseButton);
         AboutRestoreDefaultsAction.configure(this, () -> {
@@ -225,6 +225,7 @@ public class AboutActivity extends AndroidLocalizedActivity {
     protected void onSaveInstanceState(@NonNull Bundle state) {
         flushDeferredSettings();
         outputSaving.saveState(state);
+        settingsControllers.saveState(state);
         super.onSaveInstanceState(state);
     }
 

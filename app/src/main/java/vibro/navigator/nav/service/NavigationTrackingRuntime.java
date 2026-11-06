@@ -33,14 +33,15 @@ final class NavigationTrackingRuntime {
     ) {
         NavigationLocationController locationController = AndroidNavigationLocationControllerFactory.create(
                 service,
-                locationHandler
+                locationHandler, locationHandler.simulation().source()
         );
         NavigationOrientationController orientationController = AndroidNavigationOrientationControllerFactory.create(
                 service,
                 uiScheduler::post,
                 uiVisibility
         );
-        locationHandler.attachControllers(locationController, orientationController, foregroundController);
+        locationHandler.attachControllers(new NavigationServiceLocationControllers(
+                locationController, orientationController, foregroundController));
         return new NavigationTrackingRuntime(locationController, orientationController);
     }
 }

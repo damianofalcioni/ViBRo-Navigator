@@ -586,4 +586,15 @@
     <string name="msg_default_configuration_restored">Standardkonfiguration gendannet</string>
     <string name="format_nav_battery_partial_usage">%1$s (delvist, over %2$s)</string>
     <string name="auto_setup_required">Når du er sikkert parkeret, fuldfør opsætningen på telefonen: bekræft velkomsten, installer BRouter og rutedata, vælg en profil og aktiver placering og notifikationer. Vend derefter tilbage for at prøve igen.</string>
+    <string name="label_simulation">Simulation</string>
+    <string name="simulation_speed_kmh">Simuleret hastighed (km/h)</string>
+    <string name="simulation_speed_mph">Simuleret hastighed (mph)</string>
+    <string name="simulation_initial_position">GPS-startposition (valgfri)</string>
+    <string name="simulation_position_hint">Breddegrad, længdegrad</string>
+    <string name="simulation_config_help">Indstillingerne gælder fra næste navigationsstart. Lad positionen være tom for at bruge enhedens placering. Hastighed 0 fastholder positionen.</string>
+    <string name="simulation_info">Prøv navigation uden at bevæge dig. Tilgængelig i begge versioner. Simulerede positioner følger den valgte rute og stopper, når navigationen sættes på pause. Slå dette fra, før du starter rigtig navigation.</string>
+    <string name="simulation_invalid_speed">Indtast en hastighed fra 0 til 300 km/h (0–186,41 mph).</string>
+    <string name="simulation_invalid_position">Indtast gyldig breddegrad og længdegrad med decimalpunkt.</string>
+    <string name="simulation_save">Gem</string>
+    <string name="action_configure_simulation">Konfigurer simulation</string>
 </resources>

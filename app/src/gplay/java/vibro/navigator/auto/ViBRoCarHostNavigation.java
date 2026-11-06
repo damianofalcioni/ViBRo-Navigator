@@ -22,8 +22,10 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
 
     private final Host host;
     private final Runnable stopNavigation;
+    private Runnable enableAutoDrive = () -> { };
     private boolean navigating;
     private boolean disposed;
+    private long updateRevision;
     @Nullable private Trip lastTrip;
     private String lastGuidanceLine = "";
 
@@ -37,8 +39,16 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
         this.stopNavigation = stopNavigation;
     }
 
+    void setAutoDriveAction(Runnable action) { enableAutoDrive = action; }
+
+    @Override
+    public void onAutoDriveEnabled() {
+        if (!disposed) { enableAutoDrive.run(); }
+    }
+
     void update(@Nullable NavState state) {
         if (disposed) { return; }
+        long activeRevision = ++updateRevision;
         if (!isNavigating(state)) {
             close();
             return;
@@ -48,9 +58,13 @@ final class ViBRoCarHostNavigation implements NavigationManagerCallback {
             navigating = true;
             host.started();
         }
-        if (!navigating) {
-            return; // The host may revoke ownership synchronously while handling start.
+        if (!navigating || activeRevision != updateRevision) {
+            return; // Host start may revoke ownership or synchronously replace state in auto-drive.
         }
+        publishTrip(state);
+    }
+
+    private void publishTrip(NavState state) {
         Trip trip = ViBRoCarTrip.from(state);
         String guidanceLine = state.routeStatus.guidance.nextLine;
         if (!trip.equals(lastTrip) || !guidanceLine.equals(lastGuidanceLine)) {

@@ -1,9 +1,11 @@
 package vibro.navigator.nav.service;
 
+import vibro.navigator.android.dispatch.AndroidTaskScheduler;
+import vibro.navigator.android.time.AndroidElapsedRealtimeClock;
+
 import vibro.navigator.nav.time.NavigationDisplayTime;
 import vibro.navigator.nav.session.NavigationSessionContextResources;
 
-import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.dispatch.TaskScheduler;
 import vibro.navigator.nav.format.AndroidNavigationTextResources;
@@ -76,14 +78,15 @@ public class NavigationService extends AndroidLocalizedService {
             this,
             navigationSession,
             turnEvents,
-            new NavigationServiceLocationRouteRecalculator(routeRecalculator),
+            routeRecalculator.locationActions(),
             this::hasRunningNavigationSession,
             (raw, filtered, sleepEligible) -> {
                 if (runtime != null) {
                     runtime.onAcceptedLocation(raw, filtered, sleepEligible);
                 }
             },
-            this::emitState
+            this::emitState,
+            AndroidElapsedRealtimeClock.INSTANCE
     );
     private final NavigationForegroundCoordinator foregroundCoordinator =
             new NavigationForegroundCoordinator(
@@ -117,7 +120,7 @@ public class NavigationService extends AndroidLocalizedService {
             },
             this::pauseNavigation,
             this::resumeNavigation
-    ));
+    ), () -> locationHandler.simulation().enable(this::startNavigation));
     private final NavigationServiceCommandHandler commandHandler = new NavigationServiceCommandHandler(
             this::readNavRequest,
             this::startNavigation,
@@ -173,6 +176,7 @@ public class NavigationService extends AndroidLocalizedService {
     }
 
     private void startNavigation() {
+        locationHandler.simulation().prepare();
         runtime().resetTrackingState();
         runtime().resetStreetOverlay();
 
@@ -241,6 +245,7 @@ public class NavigationService extends AndroidLocalizedService {
         AppExitDiagnostics.navigationStoppedAsync(this, navigationSession.isStarted());
         AppLogger.i(TAG, "Stopping navigation listeners=" + stateBroadcaster.size()
                 + " routeLoaded=" + navigationSession.hasActiveRoute());
+        locationHandler.simulation().stop();
         navigationSession.stop();
         runtime().resetStreetOverlay();
         foregroundCoordinator.stopMonitoring();
@@ -303,6 +308,7 @@ public class NavigationService extends AndroidLocalizedService {
                 orientationCue
         );
         s = runtime().attachStreetOverlay(s);
+        s = locationHandler.simulation().label(s);
         stateBroadcaster.dispatchStructural(s, orientationCue);
     }
 

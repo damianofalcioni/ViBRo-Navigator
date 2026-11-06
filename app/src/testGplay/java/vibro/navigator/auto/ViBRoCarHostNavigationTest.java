@@ -11,8 +11,34 @@ import org.junit.Test;
 
 import vibro.navigator.nav.model.NavState;
 import vibro.navigator.nav.route.VoiceHint;
+import vibro.navigator.nav.simulation.NavigationSimulationDisplay;
 
 public class ViBRoCarHostNavigationTest {
+    @Test
+    public void synchronousAutoDriveRefreshCannotBeOverwrittenByTheOriginalRealState() {
+        RecordingHost host = new RecordingHost();
+        ViBRoCarHostNavigation navigation = new ViBRoCarHostNavigation(host, () -> { });
+        NavState initial = CarNavigationTestStates.active(false, false);
+        NavState simulated = NavigationSimulationDisplay.label(initial, "Simulation");
+        navigation.setAutoDriveAction(() -> navigation.update(simulated));
+        host.onStart = navigation::onAutoDriveEnabled;
+        navigation.update(initial);
+        assertEquals(1, host.updates);
+        assertEquals(simulated, host.state);
+    }
+
+    @Test
+    public void autoDriveCallbackActivatesSharedSimulationAndIgnoresDisposedSession() {
+        int[] enables = {0};
+        ViBRoCarHostNavigation navigation = new ViBRoCarHostNavigation(new RecordingHost(), () -> { });
+        navigation.setAutoDriveAction(() -> enables[0]++);
+        navigation.onAutoDriveEnabled();
+        assertEquals(1, enables[0]);
+        navigation.dispose();
+        navigation.onAutoDriveEnabled();
+        assertEquals(1, enables[0]);
+    }
+
     @Test
     public void ownsNavigationOnceAndDoesNotRepublishHeadingOnlyUpdates() {
         RecordingHost host = new RecordingHost();
@@ -110,6 +136,7 @@ public class ViBRoCarHostNavigationTest {
         private int updates;
         private int clears;
         private Trip trip;
+        private NavState state;
         private Runnable onStart;
 
         @Override public void started() {
@@ -117,7 +144,7 @@ public class ViBRoCarHostNavigationTest {
             if (onStart != null) { onStart.run(); }
         }
         @Override public void ended() { ends++; }
-        @Override public void update(Trip trip, NavState state) { updates++; this.trip = trip; }
+        @Override public void update(Trip trip, NavState state) { updates++; this.trip = trip; this.state = state; }
         @Override public void clear() { clears++; }
     }
 }

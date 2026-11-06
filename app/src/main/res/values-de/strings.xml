@@ -568,4 +568,15 @@
     <string name="msg_default_configuration_restored">Standardkonfiguration wiederhergestellt</string>
     <string name="format_nav_battery_partial_usage">%1$s (teilweise, über %2$s)</string>
     <string name="auto_setup_required">Wenn du sicher geparkt hast, richte die App am Telefon ein: Begrüßung bestätigen, BRouter und Routingdaten installieren, Profil auswählen sowie Standort und Benachrichtigungen aktivieren. Kehre dann hierher zurück.</string>
+    <string name="label_simulation">Simulation</string>
+    <string name="simulation_speed_kmh">Simulierte Geschwindigkeit (km/h)</string>
+    <string name="simulation_speed_mph">Simulierte Geschwindigkeit (mph)</string>
+    <string name="simulation_initial_position">GPS-Startposition (optional)</string>
+    <string name="simulation_position_hint">Breitengrad, Längengrad</string>
+    <string name="simulation_config_help">Die Einstellungen gelten beim nächsten Navigationsstart. Ohne Startposition wird der Gerätestandort verwendet. Geschwindigkeit 0 hält die Position.</string>
+    <string name="simulation_info">Navigation ohne Bewegung ausprobieren. In beiden Versionen verfügbar. Simulierte Positionen folgen der gewählten Route und halten bei pausierter Navigation an. Vor dem Start echter Navigation ausschalten.</string>
+    <string name="simulation_invalid_speed">Eine Geschwindigkeit von 0 bis 300 km/h (0–186,41 mph) eingeben.</string>
+    <string name="simulation_invalid_position">Gültigen Breitengrad und Längengrad mit Dezimalpunkt eingeben.</string>
+    <string name="simulation_save">Speichern</string>
+    <string name="action_configure_simulation">Simulation konfigurieren</string>
 </resources>

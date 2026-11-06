@@ -61,6 +61,7 @@ public final class ViBRoCarScreen extends Screen {
             incomingNavigation.cancel();
             navigationController.stopNavigation();
         });
+        hostNavigation.setAutoDriveAction(navigationController::enableAutoDrive);
         ViBRoCarControls controls = new ViBRoCarControls();
         templates = new ViBRoCarTemplates(carContext, controls);
         surfaceRenderer = new ViBRoAutoSurfaceRenderer(
@@ -92,7 +93,7 @@ public final class ViBRoCarScreen extends Screen {
                 uiScheduler.removeCallbacks(surfaceCountdownTicker);
                 incomingNavigation.dispose();
                 hostNavigation.dispose();
-                navigationController.unbind();
+                navigationController.dispose();
                 surfaceRenderer.dispose();
             }
         });
