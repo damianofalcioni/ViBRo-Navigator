@@ -7,6 +7,7 @@
 - The non-simulation implementation and validation are complete. Full verification, lifecycle refinement checks, and final lint-warning cleanup verification all passed. No commands are left running. This implementation and handoff are committed together locally on this branch; use git log -1 for the commit identifier.
 - Simulation is explicitly deferred by the user. No simulation implementation, simulation setting, synthetic-location provider, or functional `onAutoDriveEnabled` override has been added. Do not implement it until the user settles the simple approach they want.
 - Nothing has been pushed, merged, published, submitted to Play, or installed on a phone. Both release APKs built locally are unsigned. App version remains `1.0.0` / `1000000`; this is not a new upload-ready release.
+- This plan is branch-only. Keep it while work and handoffs continue; before an approved merge, preserve any lasting decisions in maintained documentation, remove this file on the working branch, and commit its removal. The final merge diff and target tree must exclude `BRANCH_PLAN.md`, as now required by AGENT.md.
 - Read `AGENT.md`, this plan and specification section 4.5.8, then inspect `git status` and `git log -3`. The completed milestone is recorded below; do not repeat its checks without a relevant change or new failure. Never push this working branch or merge without the required user authorization.
 
 ## Original problem and review context
