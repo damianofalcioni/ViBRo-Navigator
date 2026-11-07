@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.view.ViewConfiguration;
 
 import androidx.annotation.NonNull;
@@ -57,7 +58,9 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = profilesRepository.getProfilesTreePickerInitialUri(activity);
+        Uri savedProfileHint = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
+                ? profilesRepository.getCustomProfileUri(activity) : null;
+        Uri initialUri = profilesRepository.getProfilesTreePickerInitialUri(activity, savedProfileHint);
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_profiles_storage_access)
                 .setMessage(activity.getString(R.string.msg_brouter_profiles_storage_access_prompt,

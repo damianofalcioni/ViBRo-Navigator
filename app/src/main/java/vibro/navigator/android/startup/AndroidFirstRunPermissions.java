@@ -54,8 +54,12 @@ public final class AndroidFirstRunPermissions {
     }
 
     private void next() {
-        waitingForResult = false;
         step++;
+        resumeSetup();
+    }
+
+    private void resumeSetup() {
+        waitingForResult = false;
         start();
     }
 
@@ -129,11 +133,11 @@ public final class AndroidFirstRunPermissions {
         if (!waitingForResult) {
             return false;
         }
-        if (requestCode == REQUEST_SETTINGS || storage.handleResult(requestCode, resultCode, data)) {
+        if (requestCode == REQUEST_SETTINGS) {
             next();
             return true;
         }
-        return false;
+        return storage.handleResult(requestCode, resultCode, data, this::next, this::resumeSetup);
     }
 
     public boolean onRequestPermissionsResult(int requestCode) {

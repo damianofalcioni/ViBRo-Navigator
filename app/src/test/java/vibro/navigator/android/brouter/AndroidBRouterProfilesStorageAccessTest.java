@@ -79,7 +79,6 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
-    @Config(sdk = Build.VERSION_CODES.R)
     public void folderPermissionFallsBackToPrimaryDespiteUnrelatedSdCardAndSavedUris() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         new TestOutputStorageCard(activity);
@@ -92,25 +91,23 @@ public class AndroidBRouterProfilesStorageAccessTest {
 
         Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, "primary:Documents/custom.brf");
         repository.saveCustomProfile(activity, custom, "custom");
-        AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
-        idlePrompt();
+        assertFolderPermissionStartsAt(activity, repository, MEDIA_FOLDER);
+    }
 
-        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
-        assertNotNull(dialog);
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(MEDIA_FOLDER));
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        shadowOf(Looper.getMainLooper()).idle();
+    @Test
+    public void onlyAndroid10UsesSavedLegacyProfileWhenProbingFails() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
+        Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, PRIMARY_ROOT_ID + LEGACY_FOLDER + "/custom.brf");
+        repository.saveCustomProfile(activity, custom, "custom");
 
-        Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
-        Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
-        assertEquals(PRIMARY_ROOT_ID + MEDIA_FOLDER, DocumentsContract.getDocumentId(initial));
-        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
-        assertNull(shadowOf(activity).getLastRequestedPermission());
+        String expectedFolder = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q ? LEGACY_FOLDER : MEDIA_FOLDER;
+        assertFolderPermissionStartsAt(activity, repository, expectedFolder);
     }
 
     @Test
     @Config(sdk = Build.VERSION_CODES.R)
-    public void folderPermissionUsesDetectedSdCardProfiles() {
+    public void detectedSdCardProfilesTakePrecedenceOverSavedLegacyProfile() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         new TestOutputStorageCard(activity);
         File cardRoot = new File(activity.getCacheDir(), TestOutputStorageCard.ID);
@@ -124,9 +121,9 @@ public class AndroidBRouterProfilesStorageAccessTest {
         };
         String documentId = TestOutputStorageCard.ID + ":" + MEDIA_FOLDER;
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
-
+        Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, PRIMARY_ROOT_ID + LEGACY_FOLDER + "/custom.brf");
         assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, documentId),
-                repository.getProfilesTreePickerInitialUri(context));
+                repository.getProfilesTreePickerInitialUri(context, custom));
     }
 
     @Test
@@ -137,6 +134,27 @@ public class AndroidBRouterProfilesStorageAccessTest {
         activity.finish();
         idlePrompt();
         assertNull(ShadowAlertDialog.getLatestAlertDialog());
+    }
+
+    private static void assertFolderPermissionStartsAt(
+            Activity activity,
+            BRouterProfilesRepository repository,
+            String expectedFolder
+    ) {
+        AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
+        idlePrompt();
+
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(expectedFolder));
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
+        Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
+        assertEquals(PRIMARY_ROOT_ID + expectedFolder, DocumentsContract.getDocumentId(initial));
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
+        assertNull(shadowOf(activity).getLastRequestedPermission());
     }
 
     private static void idlePrompt() {

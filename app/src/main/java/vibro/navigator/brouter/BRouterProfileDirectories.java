@@ -41,15 +41,19 @@ final class BRouterProfileDirectories {
             Uri parentUri = toParentDocumentUri(customProfileUri);
             return parentUri != null ? parentUri : customProfileUri;
         }
-        return resolveProfilesPickerInitialUri(context);
+        return resolveProfilesPickerInitialUri(context, null);
     }
 
     @Nullable
-    Uri getProfilesTreePickerInitialUri(@NonNull Context context, @Nullable Uri persistedTreeUri) {
+    Uri getProfilesTreePickerInitialUri(
+            @NonNull Context context,
+            @Nullable Uri persistedTreeUri,
+            @Nullable Uri savedProfileHint
+    ) {
         if (persistedTreeUri != null) {
             return initialUriForTree(persistedTreeUri);
         }
-        return resolveProfilesPickerInitialUri(context);
+        return resolveProfilesPickerInitialUri(context, savedProfileHint);
     }
 
     @Nullable
@@ -107,10 +111,18 @@ final class BRouterProfileDirectories {
     }
 
     @NonNull
-    private Uri resolveProfilesPickerInitialUri(@NonNull Context context) {
-        String existing = findExistingProfilesDocumentId(context);
+    private Uri resolveProfilesPickerInitialUri(@NonNull Context context, @Nullable Uri savedProfileHint) {
+        List<String> candidates = getProfilesDocumentIdCandidates(context);
+        String existing = findExistingProfilesDocumentId(context, candidates);
         if (existing != null) {
             return buildExternalStorageDocumentUri(existing);
+        }
+        // A file grant may identify the folder even when probing cannot read its parent.
+        if (savedProfileHint != null) {
+            String parent = toParentDocumentId(savedProfileHint);
+            if (parent != null && candidates.contains(parent)) {
+                return buildExternalStorageDocumentUri(parent);
+            }
         }
         List<String> fallbackCandidates = BRouterProfileDirectoryCandidates.buildFallbackPickerDocumentIdCandidates(
                 directoryCandidates.getSecondaryStorageRootIds(context)
@@ -121,8 +133,8 @@ final class BRouterProfileDirectories {
     }
 
     @Nullable
-    private String findExistingProfilesDocumentId(@NonNull Context context) {
-        for (String documentId : getProfilesDocumentIdCandidates(context)) {
+    private String findExistingProfilesDocumentId(@NonNull Context context, @NonNull List<String> candidates) {
+        for (String documentId : candidates) {
             if (documentExists(context, documentId)) {
                 AppLogger.d(TAG, "Using detected profiles path documentId=" + documentId);
                 return documentId;

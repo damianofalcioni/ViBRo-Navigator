@@ -3,7 +3,12 @@ package vibro.navigator.android.startup;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.net.Uri;
+import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+
+import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesTreeAccessPrompt;
@@ -48,25 +53,42 @@ final class AndroidFirstRunStorageAccess {
         return true;
     }
 
-    boolean handleResult(int requestCode, int resultCode, Intent data) {
+    boolean handleResult(
+            int requestCode,
+            int resultCode,
+            @Nullable Intent data,
+            Runnable onAdvance,
+            Runnable onRetry
+    ) {
         if (requestCode != REQUEST_PROFILES && requestCode != REQUEST_SEGMENTS) {
             return false;
         }
-        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
-            persist(requestCode, data);
+        if (resultCode == Activity.RESULT_OK && !persist(requestCode, data)) {
+            int message = requestCode == REQUEST_PROFILES
+                    ? R.string.msg_brouter_profiles_storage_permission_required
+                    : R.string.msg_compass_surrounding_streets_storage_permission_required;
+            Toast.makeText(activity, message, Toast.LENGTH_SHORT).show();
+            onRetry.run();
+        } else {
+            onAdvance.run();
         }
         return true;
     }
 
-    private void persist(int requestCode, Intent data) {
-        if (!AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
-            return;
+    private boolean persist(int requestCode, @Nullable Intent data) {
+        if (data == null) {
+            return false;
+        }
+        Uri uri = data.getData();
+        if (uri == null || !AndroidBRouterFolderAccess.persistReadPermission(activity, data, uri)) {
+            return false;
         }
         if (requestCode == REQUEST_PROFILES) {
-            profiles.saveProfilesTreeUri(activity, data.getData());
+            profiles.saveProfilesTreeUri(activity, uri);
         } else {
-            segments.saveSegmentsTreeUri(activity, data.getData());
+            segments.saveSegmentsTreeUri(activity, uri);
         }
+        return true;
     }
 
     private boolean needsFolderAccess() {

@@ -12,6 +12,7 @@ import android.content.ComponentName;
 import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Looper;
+import android.provider.DocumentsContract;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -24,6 +25,7 @@ import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowDialog;
+import org.robolectric.shadows.ShadowToast;
 
 import java.util.concurrent.TimeUnit;
 
@@ -101,6 +103,55 @@ public class MainActivityFirstRunSetupTest {
             assertNotNull(shadowOf(controller.get()).getLastRequestedPermission());
             finishPermissions(controller.get());
         }
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.Q)
+    public void rejectedFoldersExplainMissingAccessAndCanBeRetriedOrSkipped() {
+        installBRouter(ApplicationProvider.getApplicationContext());
+        Intent downloads = folderSelection("primary:Download");
+        Intent profiles = folderSelection("primary:Android/media/btools.routingapp/brouter/profiles2");
+        try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            continueWelcome();
+            idle();
+            int profileRequest = chooseFolder(controller.get(), downloads);
+            assertEquals(controller.get().getString(R.string.msg_brouter_profiles_storage_permission_required),
+                    ShadowToast.getTextOfLatestToast());
+            assertTrue(controller.get().getContentResolver().getPersistedUriPermissions().isEmpty());
+
+            controller.recreate();
+            idle();
+            assertEquals(profileRequest, chooseFolder(controller.get(), profiles));
+            assertEquals(profiles.getData(),
+                    controller.get().getContentResolver().getPersistedUriPermissions().get(0).getUri());
+
+            int segmentRequest = chooseFolder(controller.get(), downloads);
+            assertNotEquals(profileRequest, segmentRequest);
+            assertEquals(controller.get().getString(R.string.msg_compass_surrounding_streets_storage_permission_required),
+                    ShadowToast.getTextOfLatestToast());
+            assertEquals(1, controller.get().getContentResolver().getPersistedUriPermissions().size());
+            assertNull(shadowOf(controller.get()).getLastRequestedPermission());
+            cancelPrompt();
+            assertEquals(AndroidFirstRunPermissions.REQUEST_RUNTIME,
+                    shadowOf(controller.get()).getLastRequestedPermission().requestCode);
+            finishPermissions(controller.get());
+        }
+    }
+
+    private static Intent folderSelection(String documentId) {
+        return new Intent()
+                .setData(DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", documentId))
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+    }
+
+    private static int chooseFolder(MainActivity activity, Intent selection) {
+        ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+        ShadowActivity.IntentForResult request = shadowOf(activity).getNextStartedActivityForResult();
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, request.intent.getAction());
+        activity.onActivityResult(request.requestCode, Activity.RESULT_OK, selection);
+        idle();
+        return request.requestCode;
     }
 
     private static void continueWelcome() {
