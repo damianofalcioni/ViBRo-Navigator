@@ -1,6 +1,7 @@
 package vibro.navigator.main;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
@@ -159,6 +160,13 @@ final class MainActivityRouteModeController {
         modeChangeListener.onRouteModeChanged(currentRoutingMode());
     }
 
+    void onNewIntent(@NonNull Intent intent, boolean brouterInstalled) {
+        if (!Intent.ACTION_MAIN.equals(intent.getAction())) {
+            refreshAvailability(brouterInstalled);
+            showRouteMode();
+        }
+    }
+
     void updateDistanceUnitText() {
         boolean imperial = AppSettings.isImperialUnitsEnabled(activity);
         roundTripDistanceLabel.setText(imperial
@@ -167,6 +175,23 @@ final class MainActivityRouteModeController {
         roundTripDistanceEdit.setHint(imperial
                 ? R.string.hint_round_trip_distance_mi
                 : R.string.hint_round_trip_distance_km);
+    }
+
+    void refreshAvailability(boolean brouterInstalled) {
+        if (this.brouterInstalled == brouterInstalled) {
+            return;
+        }
+        NavigationRoutingMode previousMode = currentRoutingMode();
+        NavigationRoutingMode mode = availableMode(previousMode, brouterInstalled);
+        this.brouterInstalled = brouterInstalled;
+        restoringSelection = true;
+        routeModeSpinner.setAdapter(new MainActivityRouteModeAdapter(activity, brouterInstalled));
+        selectMode(mode);
+        restoringSelection = false;
+        if (mode != previousMode) {
+            render(mode);
+            modeChangeListener.onRouteModeChanged(mode);
+        }
     }
 
     void startRoundTripNavigation(@NonNull ProfileSelection profileSelection) {

@@ -10,8 +10,6 @@ import android.view.ViewConfiguration;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import androidx.core.util.Consumer;
-
 import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
@@ -32,37 +30,29 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        show(activity, profilesRepository, requestCode, logTag, beforeLaunch, onCancel, dialog -> { });
-    }
-
-    public static void show(
-            @NonNull Activity activity,
-            @NonNull BRouterProfilesRepository profilesRepository,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel,
-            @NonNull Consumer<AlertDialog> onShown
-    ) {
         AndroidTaskScheduler.main().postDelayed(() -> {
             if (!activity.isFinishing() && !activity.isDestroyed()) {
-                onShown.accept(showNow(activity, profilesRepository, requestCode, logTag, beforeLaunch, onCancel));
+                showNow(activity, findInitialUri(activity, profilesRepository), requestCode, logTag, beforeLaunch, onCancel);
             }
         }, ViewConfiguration.getPressedStateDuration());
     }
 
-    private static AlertDialog showNow(
+    @Nullable
+    static Uri findInitialUri(@NonNull Activity activity, @NonNull BRouterProfilesRepository profilesRepository) {
+        Uri savedProfileHint = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
+                ? profilesRepository.getCustomProfileUri(activity) : null;
+        return AndroidBRouterPickerLocation.resolve(
+                activity, profilesRepository.getProfilesTreePickerInitialUri(activity, savedProfileHint), FOLDER_NAME);
+    }
+
+    static AlertDialog showNow(
             @NonNull Activity activity,
-            @NonNull BRouterProfilesRepository profilesRepository,
+            @Nullable Uri initialUri,
             int requestCode,
             @NonNull String logTag,
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri savedProfileHint = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
-                ? profilesRepository.getCustomProfileUri(activity) : null;
-        Uri initialUri = AndroidBRouterPickerLocation.resolve(
-                activity, profilesRepository.getProfilesTreePickerInitialUri(activity, savedProfileHint), FOLDER_NAME);
         if (initialUri == null) {
             return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME, onCancel);
         }

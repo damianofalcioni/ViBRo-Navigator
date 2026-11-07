@@ -10,8 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.provider.DocumentsContractCompat;
 
-import androidx.core.util.Consumer;
-
 import vibro.navigator.R;
 import vibro.navigator.android.dispatch.AndroidTaskScheduler;
 import vibro.navigator.android.storage.AndroidDocumentAccess;
@@ -32,35 +30,27 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        show(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel, dialog -> { });
-    }
-
-    public static void show(
-            @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository,
-            int requestCode,
-            @NonNull String logTag,
-            @NonNull Runnable beforeLaunch,
-            @NonNull Runnable onCancel,
-            @NonNull Consumer<AlertDialog> onShown
-    ) {
         AndroidTaskScheduler.main().postDelayed(() -> {
             if (!activity.isFinishing() && !activity.isDestroyed()) {
-                onShown.accept(showNow(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel));
+                showNow(activity, findInitialUri(activity, segmentsRepository), requestCode, logTag, beforeLaunch, onCancel);
             }
         }, ViewConfiguration.getPressedStateDuration());
     }
 
-    private static AlertDialog showNow(
+    @Nullable
+    static Uri findInitialUri(@NonNull Activity activity, @NonNull BRouterSegmentsRepository segmentsRepository) {
+        return AndroidBRouterPickerLocation.resolve(
+                activity, initialDocumentUri(segmentsRepository.getSegmentsTreePickerInitialUri(activity)), FOLDER_NAME);
+    }
+
+    static AlertDialog showNow(
             @NonNull Activity activity,
-            @NonNull BRouterSegmentsRepository segmentsRepository,
+            @Nullable Uri initialUri,
             int requestCode,
             @NonNull String logTag,
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = AndroidBRouterPickerLocation.resolve(
-                activity, initialDocumentUri(segmentsRepository.getSegmentsTreePickerInitialUri(activity)), FOLDER_NAME);
         if (initialUri == null) {
             return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME, onCancel);
         }

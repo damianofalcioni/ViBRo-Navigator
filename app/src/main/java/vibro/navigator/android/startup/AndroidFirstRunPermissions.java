@@ -10,6 +10,7 @@ import android.os.Bundle;
 import androidx.core.app.ActivityCompat;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterStorageSetup;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.nav.startup.NavigationPreflight;
 
@@ -22,7 +23,7 @@ public final class AndroidFirstRunPermissions {
 
     private final Activity activity;
     private final Runnable onComplete;
-    private final AndroidFirstRunStorageAccess storage;
+    private final AndroidBRouterStorageSetup storage;
     private final Step[] steps;
     private int step;
     private boolean waitingForResult;
@@ -31,7 +32,7 @@ public final class AndroidFirstRunPermissions {
     public AndroidFirstRunPermissions(Activity activity, Bundle state, Runnable onComplete) {
         this.activity = activity;
         this.onComplete = onComplete;
-        storage = new AndroidFirstRunStorageAccess(activity);
+        storage = new AndroidBRouterStorageSetup(activity, state);
         steps = new Step[]{this::profiles, this::segments, this::runtime, this::location,
                 this::notifications, this::battery};
         if (state != null) {
@@ -130,6 +131,9 @@ public final class AndroidFirstRunPermissions {
     }
 
     public boolean onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (storage.handleForegroundResult(requestCode, resultCode, data)) {
+            return true;
+        }
         if (!waitingForResult) {
             return false;
         }
@@ -151,6 +155,11 @@ public final class AndroidFirstRunPermissions {
     public void saveState(Bundle state) {
         state.putInt(STATE_STEP, step);
         state.putBoolean(STATE_WAITING, waitingForResult);
+        storage.saveState(state);
+    }
+
+    public void setBRouterForegroundChecksEnabled(boolean enabled) {
+        storage.setForegroundChecksEnabled(enabled);
     }
 
     public void dispose() {

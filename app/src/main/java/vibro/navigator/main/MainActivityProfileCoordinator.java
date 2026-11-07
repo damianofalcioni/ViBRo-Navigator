@@ -1,6 +1,5 @@
 package vibro.navigator.main;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
@@ -8,9 +7,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
-import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.R;
@@ -18,7 +15,6 @@ import vibro.navigator.nav.model.NavigationRoutingMode;
 
 final class MainActivityProfileCoordinator {
     private static final int REQUEST_STARTUP_PROFILES_STORAGE = 1003;
-    private static final String TAG = "MainProfileCoordinator";
 
     @NonNull
     private final MainActivity activity;
@@ -30,7 +26,6 @@ final class MainActivityProfileCoordinator {
     private final ProfileSpinnerController profileSpinnerController;
     @NonNull
     private final ProfileParameterSettingsController profileParameterSettingsController;
-    private boolean waitingForStartupProfilesTree;
     private final MainActivityStartupCoordinator startup;
 
     private MainActivityProfileCoordinator(
@@ -129,26 +124,12 @@ final class MainActivityProfileCoordinator {
         if (!enabled) {
             return;
         }
-        if (isBRouterInstalled()) {
-            requestProfilesStorageAccessAtStartupIfNeeded();
-        } else {
+        if (!isBRouterInstalled()) {
             MainActivityBRouterInstallPrompt.show(activity);
+        } else if (AndroidLegacyExternalStorageAccess.isRuntimeReadPermissionRelevant()
+                && !AndroidLegacyExternalStorageAccess.hasReadPermission(activity)) {
+            AndroidLegacyExternalStorageAccess.requestReadPermission(activity, REQUEST_STARTUP_PROFILES_STORAGE);
         }
-    }
-
-    private void requestProfilesStorageAccessAtStartupIfNeeded() {
-        if (AndroidBRouterProfilesStorageAccess.hasAccess(activity, profilesRepository)) {
-            return;
-        }
-        AndroidBRouterProfilesStorageAccess.request(
-                activity,
-                profilesRepository,
-                REQUEST_STARTUP_PROFILES_STORAGE,
-                TAG,
-                () -> waitingForStartupProfilesTree = true,
-                () -> {
-                }
-        );
     }
 
     @Nullable
@@ -172,10 +153,6 @@ final class MainActivityProfileCoordinator {
 
     private boolean onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         if (startup.onActivityResult(requestCode, resultCode, data)) {
-            return true;
-        }
-        if (requestCode == REQUEST_STARTUP_PROFILES_STORAGE) {
-            handleStartupProfilesTreeResult(resultCode, data);
             return true;
         }
         return profilePicker.handleActivityResult(requestCode, resultCode, data);
@@ -203,20 +180,6 @@ final class MainActivityProfileCoordinator {
             showStorageRequiredToast();
         }
         return true;
-    }
-
-    private void handleStartupProfilesTreeResult(int resultCode, @Nullable Intent data) {
-        if (!waitingForStartupProfilesTree) {
-            return;
-        }
-        waitingForStartupProfilesTree = false;
-        if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
-            profilesRepository.saveProfilesTreeUri(activity, data.getData());
-            profilePicker.refreshProfiles();
-            return;
-        }
-        showStorageRequiredToast();
     }
 
     private void showStorageRequiredToast() {

@@ -24,6 +24,7 @@ final class MainActivityStartupCoordinator {
     private boolean waitingForInstall;
     private boolean leftForInstall;
     private boolean ready;
+    private boolean resumed;
 
     MainActivityStartupCoordinator(MainActivity activity, MainActivityProfileCoordinator profiles) {
         this.activity = activity;
@@ -73,9 +74,10 @@ final class MainActivityStartupCoordinator {
 
     private void complete() {
         AppMainUiSettings.completeFirstRunSetup(activity);
-        MainActivityProfileCoordinator.refresh(profiles);
+        profiles.refresh();
         ready = true;
         onReady.run();
+        permissions.setBRouterForegroundChecksEnabled(resumed);
     }
 
     boolean isPending() {
@@ -96,14 +98,19 @@ final class MainActivityStartupCoordinator {
     }
 
     void onPause() {
+        resumed = false;
+        permissions.setBRouterForegroundChecksEnabled(false);
         if (waitingForInstall) {
             leftForInstall = true;
         }
     }
 
     void onResume() {
+        resumed = true;
         if (waitingForInstall && leftForInstall) {
             afterInstall();
+        } else if (ready) {
+            permissions.setBRouterForegroundChecksEnabled(true);
         }
     }
 
