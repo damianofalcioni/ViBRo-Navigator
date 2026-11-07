@@ -29,9 +29,25 @@ final class NavigationStartupSegmentsTreeAccess {
     @NonNull
     private final BRouterSegmentsRepository segmentsRepository =
             AndroidBRouterSegmentsRepositoryFactory.create();
+    private boolean resumed;
+    @Nullable
+    private Runnable pendingStartup;
 
     NavigationStartupSegmentsTreeAccess(@NonNull Activity activity) {
         this.activity = activity;
+    }
+
+    void onResume() {
+        resumed = true;
+        Runnable startup = pendingStartup;
+        pendingStartup = null;
+        if (startup != null) {
+            runWhenResumed(startup);
+        }
+    }
+
+    void onPause() {
+        resumed = false;
     }
 
     boolean shouldRequest(boolean autoStartNavigation) {
@@ -50,9 +66,9 @@ final class NavigationStartupSegmentsTreeAccess {
                 TAG,
                 () -> {
                     denySurroundingStreetStorage();
-                    continueStartup.run();
+                    runWhenResumed(continueStartup);
                 },
-                continueStartup
+                () -> runWhenResumed(continueStartup)
         );
     }
 
@@ -71,8 +87,19 @@ final class NavigationStartupSegmentsTreeAccess {
         } else {
             denySurroundingStreetStorage();
         }
-        afterHandled.run();
+        runWhenResumed(afterHandled);
         return true;
+    }
+
+    private void runWhenResumed(@NonNull Runnable startup) {
+        if (activity.isFinishing() || activity.isDestroyed()) {
+            return;
+        }
+        if (resumed) {
+            startup.run();
+        } else {
+            pendingStartup = startup;
+        }
     }
 
     private void denySurroundingStreetStorage() {

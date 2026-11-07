@@ -205,10 +205,12 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         renderer.refreshSettings();
         gestureHints.refreshCountdown();
         startupCoordinator.onResume();
+        startupSegmentsTreeAccess.onResume();
     }
 
     @Override
     protected void onPause() {
+        startupSegmentsTreeAccess.onPause();
         startupCoordinator.onPause();
         super.onPause();
     }

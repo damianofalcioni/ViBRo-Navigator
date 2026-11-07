@@ -7,6 +7,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
@@ -41,6 +42,8 @@ import vibro.navigator.settings.AppCompassSettings;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.R)
 public class NavigationActivityStartupStorageRobolectricTest {
+    private static final String SEGMENTS_FOLDER = "segments4";
+
     @Before
     public void setUp() {
         Application context = ApplicationProvider.getApplicationContext();
@@ -51,7 +54,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
 
     @Test
     public void startupRequestsSegmentsTreeBeforeNavigationWhenModernStorageGrantIsMissing() {
-        TestBRouterStorage.createPrimaryFolder("segments4");
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         TestNavigationActivity activity = Robolectric.buildActivity(
                 TestNavigationActivity.class,
                 navigationIntent()
@@ -78,8 +81,46 @@ public class NavigationActivityStartupStorageRobolectricTest {
     }
 
     @Test
+    public void missingSegmentsFolderDefersPreflightUntilNavigationResumes() {
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            TestNavigationActivity activity = controller.get();
+            controller.pause().stop();
+            waitForStartupCheck();
+
+            assertNull(shadowOf(activity).getLastRequestedPermission());
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+
+            controller.restart().resume();
+
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
+    public void segmentsPickerResultDefersPreflightUntilNavigationResumes() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            TestNavigationActivity activity = controller.get();
+            continueFromBRouterPrompt(activity);
+            int requestCode = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+            controller.pause().stop();
+
+            activity.onActivityResult(requestCode, Activity.RESULT_CANCELED, null);
+
+            assertFalse(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertNull(shadowOf(activity).getLastRequestedPermission());
+
+            controller.restart().resume();
+
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
     public void decliningAnAvailableSegmentsFolderDisablesSurroundingStreets() {
-        TestBRouterStorage.createPrimaryFolder("segments4");
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         TestNavigationActivity activity = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent())
                 .setup().get();
         waitForStartupCheck();
@@ -100,7 +141,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
                 activity.getString(R.string.action_continue),
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText().toString()
         );
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains("segments4"));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(SEGMENTS_FOLDER));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
     }
