@@ -35,8 +35,7 @@ final class BRouterProfileDirectories {
             @Nullable Uri customProfileUri
     ) {
         if (hasProfilesTreeReadPermission) {
-            Uri treeDocumentUri = profilesTreeUri == null ? null : documentAccess.buildTreeDocumentUri(profilesTreeUri);
-            return treeDocumentUri != null ? treeDocumentUri : profilesTreeUri;
+            return initialUriForTree(profilesTreeUri);
         }
         if (customProfileUri != null) {
             Uri parentUri = toParentDocumentUri(customProfileUri);
@@ -48,6 +47,22 @@ final class BRouterProfileDirectories {
             return null;
         }
         return buildExternalStorageDocumentUri(documentId);
+    }
+
+    @Nullable
+    Uri getProfilesTreePickerInitialUri(@NonNull Context context, @Nullable Uri persistedTreeUri) {
+        if (persistedTreeUri != null) {
+            return initialUriForTree(persistedTreeUri);
+        }
+        List<String> candidates = getProfilesDocumentIdCandidates(context);
+        String existing = findExistingProfilesDocumentId(context, candidates);
+        return buildExternalStorageDocumentUri(existing != null ? existing : candidates.get(0));
+    }
+
+    @Nullable
+    private Uri initialUriForTree(@Nullable Uri treeUri) {
+        Uri documentUri = treeUri == null ? null : documentAccess.buildTreeDocumentUri(treeUri);
+        return documentUri != null ? documentUri : treeUri;
     }
 
     @NonNull
@@ -100,7 +115,7 @@ final class BRouterProfileDirectories {
 
     @Nullable
     private String resolveProfilesPickerInitialDocumentId(@NonNull Context context) {
-        String existing = findExistingProfilesDocumentId(context);
+        String existing = findExistingProfilesDocumentId(context, getProfilesDocumentIdCandidates(context));
         if (existing != null) {
             return existing;
         }
@@ -116,8 +131,8 @@ final class BRouterProfileDirectories {
     }
 
     @Nullable
-    private String findExistingProfilesDocumentId(@NonNull Context context) {
-        for (String documentId : getProfilesDocumentIdCandidates(context)) {
+    private String findExistingProfilesDocumentId(@NonNull Context context, @NonNull List<String> candidates) {
+        for (String documentId : candidates) {
             if (documentExists(context, documentId)) {
                 AppLogger.d(TAG, "Using detected profiles path documentId=" + documentId);
                 return documentId;

@@ -8,6 +8,7 @@ import android.view.ViewConfiguration;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.provider.DocumentsContractCompat;
 
 import androidx.core.util.Consumer;
 
@@ -57,7 +58,7 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = segmentsRepository.getSegmentsTreePickerInitialUri(activity);
+        Uri initialUri = initialDocumentUri(segmentsRepository.getSegmentsTreePickerInitialUri(activity));
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_segments_storage_access)
                 .setMessage(activity.getString(R.string.msg_brouter_segments_storage_access_prompt,
@@ -72,6 +73,13 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
                 .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
                 .setOnCancelListener(dialog -> onCancel.run())
                 .show();
+    }
+
+    @Nullable
+    private static Uri initialDocumentUri(@Nullable Uri uri) {
+        // Android 10 DocumentsUI can fall back to Downloads for a bare tree URI.
+        return uri != null && DocumentsContractCompat.isTreeUri(uri)
+                ? AndroidDocumentAccess.buildTreeDocumentUri(uri) : uri;
     }
 
     private static void launchPicker(

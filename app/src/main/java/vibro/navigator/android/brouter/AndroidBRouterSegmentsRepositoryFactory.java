@@ -10,7 +10,6 @@ import java.io.IOException;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidDocumentReadFile;
-import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterSegmentDependencies;
 import vibro.navigator.brouter.BRouterSegmentReadFile;
@@ -26,7 +25,7 @@ public final class AndroidBRouterSegmentsRepositoryFactory {
                 new AndroidDocuments(),
                 new AndroidSegmentFiles(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
-                AndroidPersistedUriPermissions::hasReadPermission
+                AndroidBRouterFolderAccess::hasPersistedReadPermission
         ));
     }
 

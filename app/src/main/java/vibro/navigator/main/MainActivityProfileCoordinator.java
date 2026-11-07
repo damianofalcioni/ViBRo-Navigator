@@ -8,9 +8,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
-import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.R;
@@ -211,7 +211,7 @@ final class MainActivityProfileCoordinator {
         }
         waitingForStartupProfilesTree = false;
         if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
+                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
             profilesRepository.saveProfilesTreeUri(activity, data.getData());
             profilePicker.refreshProfiles();
             return;

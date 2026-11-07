@@ -11,7 +11,6 @@ import androidx.annotation.Nullable;
 import java.util.List;
 
 import vibro.navigator.android.storage.AndroidDocumentAccess;
-import vibro.navigator.android.storage.AndroidPersistedUriPermissions;
 import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterProfileDependencies;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -31,12 +30,8 @@ public final class AndroidBRouterProfilesRepositoryFactory {
                 new AndroidDocuments(),
                 AndroidStorageVolumes::secondaryStorageRootIds,
                 new AndroidPackagesAccess(),
-                AndroidBRouterProfilesRepositoryFactory::hasPersistedReadPermission
+                AndroidBRouterFolderAccess::hasPersistedReadPermission
         );
-    }
-
-    private static boolean hasPersistedReadPermission(@NonNull Context context, @Nullable Uri uri) {
-        return AndroidPersistedUriPermissions.hasReadPermission(context, uri);
     }
 
     private static final class AndroidDocuments implements BRouterProfileDependencies.DocumentAccess {

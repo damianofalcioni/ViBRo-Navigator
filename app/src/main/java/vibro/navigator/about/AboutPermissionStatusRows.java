@@ -9,10 +9,10 @@ import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
+import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesStorageAccess;
-import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
@@ -128,7 +128,7 @@ final class AboutPermissionStatusRows {
         }
         waitingForSurroundingStreetSegmentsTree = false;
         if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
+                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
             segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
         } else {
             showStorageRequiredToast(R.string.msg_compass_surrounding_streets_storage_permission_required);
@@ -143,7 +143,7 @@ final class AboutPermissionStatusRows {
         }
         waitingForProfilesTree = false;
         if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
+                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
             profilesRepository.saveProfilesTreeUri(activity, data.getData());
         } else {
             showStorageRequiredToast(R.string.msg_brouter_profiles_storage_permission_required);

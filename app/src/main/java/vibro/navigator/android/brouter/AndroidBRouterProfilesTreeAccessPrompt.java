@@ -57,7 +57,7 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = profilesRepository.getCustomProfilePickerInitialUri(activity);
+        Uri initialUri = profilesRepository.getProfilesTreePickerInitialUri(activity);
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_profiles_storage_access)
                 .setMessage(activity.getString(R.string.msg_brouter_profiles_storage_access_prompt,

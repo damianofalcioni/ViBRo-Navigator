@@ -31,6 +31,7 @@ import org.robolectric.shadows.ShadowAlertDialog;
 
 import java.util.concurrent.TimeUnit;
 
+import vibro.navigator.android.storage.TestOutputStorageCard;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 
 @RunWith(RobolectricTestRunner.class)
@@ -75,24 +76,32 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
-    @Config(sdk = Build.VERSION_CODES.Q)
-    public void legacyFolderInstructionsAndPickerUseSameLocation() {
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void folderPermissionTargetsBRouterInsteadOfSavedDownloadsOrCustomFile() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        new TestOutputStorageCard(activity);
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
-        Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, PRIMARY_ROOT_ID + LEGACY_FOLDER + "/custom.brf");
+        Uri downloads = DocumentsContract.buildTreeDocumentUri("com.android.providers.downloads.documents",
+                "raw:/storage/emulated/0/Download");
+        repository.saveProfilesTreeUri(activity, downloads);
+        activity.getContentResolver().takePersistableUriPermission(downloads, Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        assertFalse(AndroidBRouterProfilesStorageAccess.hasAccess(activity, repository));
+
+        Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, "primary:Documents/custom.brf");
         repository.saveCustomProfile(activity, custom, "custom");
         AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
         idlePrompt();
 
+        String folder = "Android/media/btools.routingapp/brouter/profiles2";
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(LEGACY_FOLDER));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(folder));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
 
         Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
         Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
-        assertEquals(PRIMARY_ROOT_ID + LEGACY_FOLDER, DocumentsContract.getDocumentId(initial));
+        assertEquals(TestOutputStorageCard.ID + ":" + folder, DocumentsContract.getDocumentId(initial));
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
         assertNull(shadowOf(activity).getLastRequestedPermission());
     }

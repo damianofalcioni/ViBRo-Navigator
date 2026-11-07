@@ -219,6 +219,13 @@ public class BRouterProfilesRepository {
         );
     }
 
+    @Nullable
+    public Uri getProfilesTreePickerInitialUri(@NonNull Context context) {
+        Uri treeUri = getProfilesTreeUri(context);
+        return profileDirectories.getProfilesTreePickerInitialUri(
+                context, hasPersistedReadPermission(context, treeUri) ? treeUri : null);
+    }
+
     public boolean hasPersistedProfilesTreeAccess(@NonNull Context context) {
         return hasPersistedReadPermission(context, getProfilesTreeUri(context));
     }

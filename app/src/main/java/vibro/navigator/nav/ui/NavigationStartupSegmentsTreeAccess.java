@@ -8,10 +8,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterFolderAccess;
 import vibro.navigator.android.brouter.AndroidBRouterProfilesRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.AndroidBRouterSegmentsTreeAccessPrompt;
-import vibro.navigator.android.storage.AndroidDocumentAccess;
 import vibro.navigator.android.storage.AndroidLegacyExternalStorageAccess;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
@@ -67,7 +67,7 @@ final class NavigationStartupSegmentsTreeAccess {
             return false;
         }
         if (resultCode == Activity.RESULT_OK && data != null && data.getData() != null
-                && AndroidDocumentAccess.persistReadPermission(activity, data, data.getData())) {
+                && AndroidBRouterFolderAccess.persistReadPermission(activity, data, data.getData())) {
             segmentsRepository.saveSegmentsTreeUri(activity, data.getData());
         } else {
             denySurroundingStreetStorage();
