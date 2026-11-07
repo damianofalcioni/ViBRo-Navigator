@@ -41,12 +41,7 @@ final class BRouterProfileDirectories {
             Uri parentUri = toParentDocumentUri(customProfileUri);
             return parentUri != null ? parentUri : customProfileUri;
         }
-        String documentId = resolveProfilesPickerInitialDocumentId(context);
-        if (documentId == null) {
-            AppLogger.d(TAG, "No accessible profiles folder found for custom picker initial URI");
-            return null;
-        }
-        return buildExternalStorageDocumentUri(documentId);
+        return resolveProfilesPickerInitialUri(context);
     }
 
     @Nullable
@@ -54,9 +49,7 @@ final class BRouterProfileDirectories {
         if (persistedTreeUri != null) {
             return initialUriForTree(persistedTreeUri);
         }
-        List<String> candidates = getProfilesDocumentIdCandidates(context);
-        String existing = findExistingProfilesDocumentId(context, candidates);
-        return buildExternalStorageDocumentUri(existing != null ? existing : candidates.get(0));
+        return resolveProfilesPickerInitialUri(context);
     }
 
     @Nullable
@@ -113,26 +106,23 @@ final class BRouterProfileDirectories {
         }
     }
 
-    @Nullable
-    private String resolveProfilesPickerInitialDocumentId(@NonNull Context context) {
-        String existing = findExistingProfilesDocumentId(context, getProfilesDocumentIdCandidates(context));
+    @NonNull
+    private Uri resolveProfilesPickerInitialUri(@NonNull Context context) {
+        String existing = findExistingProfilesDocumentId(context);
         if (existing != null) {
-            return existing;
+            return buildExternalStorageDocumentUri(existing);
         }
         List<String> fallbackCandidates = BRouterProfileDirectoryCandidates.buildFallbackPickerDocumentIdCandidates(
                 directoryCandidates.getSecondaryStorageRootIds(context)
         );
-        if (fallbackCandidates.isEmpty()) {
-            return null;
-        }
         String fallback = fallbackCandidates.get(0);
         AppLogger.d(TAG, "Using fallback profiles path documentId=" + fallback);
-        return fallback;
+        return buildExternalStorageDocumentUri(fallback);
     }
 
     @Nullable
-    private String findExistingProfilesDocumentId(@NonNull Context context, @NonNull List<String> candidates) {
-        for (String documentId : candidates) {
+    private String findExistingProfilesDocumentId(@NonNull Context context) {
+        for (String documentId : getProfilesDocumentIdCandidates(context)) {
             if (documentExists(context, documentId)) {
                 AppLogger.d(TAG, "Using detected profiles path documentId=" + documentId);
                 return documentId;

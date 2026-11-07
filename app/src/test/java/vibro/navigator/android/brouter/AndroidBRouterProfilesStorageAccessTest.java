@@ -11,6 +11,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -29,6 +30,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowAlertDialog;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.android.storage.TestOutputStorageCard;
@@ -40,6 +42,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
     private static final String AUTHORITY = "com.android.externalstorage.documents";
     private static final String PRIMARY_ROOT_ID = "primary:";
     private static final String LEGACY_FOLDER = "Android/data/btools.routingapp/files/brouter/profiles2";
+    private static final String MEDIA_FOLDER = "Android/media/btools.routingapp/brouter/profiles2";
 
     @Before
     public void resetStorageSettings() {
@@ -77,7 +80,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
 
     @Test
     @Config(sdk = Build.VERSION_CODES.R)
-    public void folderPermissionTargetsBRouterInsteadOfSavedDownloadsOrCustomFile() {
+    public void folderPermissionFallsBackToPrimaryDespiteUnrelatedSdCardAndSavedUris() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         new TestOutputStorageCard(activity);
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
@@ -92,18 +95,38 @@ public class AndroidBRouterProfilesStorageAccessTest {
         AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
         idlePrompt();
 
-        String folder = "Android/media/btools.routingapp/brouter/profiles2";
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);
-        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(folder));
+        assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(MEDIA_FOLDER));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
 
         Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
         Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
-        assertEquals(TestOutputStorageCard.ID + ":" + folder, DocumentsContract.getDocumentId(initial));
+        assertEquals(PRIMARY_ROOT_ID + MEDIA_FOLDER, DocumentsContract.getDocumentId(initial));
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
         assertNull(shadowOf(activity).getLastRequestedPermission());
+    }
+
+    @Test
+    @Config(sdk = Build.VERSION_CODES.R)
+    public void folderPermissionUsesDetectedSdCardProfiles() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        new TestOutputStorageCard(activity);
+        File cardRoot = new File(activity.getCacheDir(), TestOutputStorageCard.ID);
+        assertTrue(new File(cardRoot, MEDIA_FOLDER).mkdirs());
+        Context context = new ContextWrapper(activity) {
+            @Override
+            public File[] getExternalFilesDirs(String type) {
+                File cardAppFiles = new File(cardRoot, "Android/data/" + getPackageName() + "/files");
+                return new File[]{getExternalFilesDir(type), cardAppFiles};
+            }
+        };
+        String documentId = TestOutputStorageCard.ID + ":" + MEDIA_FOLDER;
+        BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
+
+        assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, documentId),
+                repository.getProfilesTreePickerInitialUri(context));
     }
 
     @Test
