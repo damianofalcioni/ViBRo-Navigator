@@ -11,6 +11,7 @@ public final class BRouterDirectoryCandidates {
             "Android/media/btools.routingapp/brouter/";
     private static final String LEGACY_DATA_BROUTER_RELATIVE_DOCUMENT_PATH =
             "Android/data/btools.routingapp/files/brouter/";
+    private static final String LEGACY_SHARED_BROUTER_RELATIVE_DOCUMENT_PATH = "brouter/";
 
     private BRouterDirectoryCandidates() {
     }
@@ -25,6 +26,7 @@ public final class BRouterDirectoryCandidates {
         rootIds.add(PRIMARY_ROOT_ID);
         addForRoots(candidates, rootIds, MEDIA_BROUTER_RELATIVE_DOCUMENT_PATH, directoryName);
         addForRoots(candidates, rootIds, LEGACY_DATA_BROUTER_RELATIVE_DOCUMENT_PATH, directoryName);
+        addDocumentIdCandidate(candidates, PRIMARY_ROOT_ID, LEGACY_SHARED_BROUTER_RELATIVE_DOCUMENT_PATH, directoryName);
         return candidates;
     }
 

@@ -2,6 +2,8 @@ package vibro.navigator.android.brouter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
@@ -20,10 +22,13 @@ import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowAlertDialog;
 
+import java.io.File;
 import java.util.concurrent.TimeUnit;
 
+import vibro.navigator.android.storage.AndroidStorageVolumes;
 import vibro.navigator.brouter.BRouterSegmentsRepository;
 
 @RunWith(RobolectricTestRunner.class)
@@ -40,14 +45,22 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         repository.saveSegmentsTreeUri(activity, tree);
         activity.getContentResolver().takePersistableUriPermission(tree, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        AndroidBRouterSegmentsTreeAccessPrompt.show(activity, repository, 42, "StorageTest", () -> { }, () -> { });
-        shadowOf(Looper.getMainLooper()).idleFor(ViewConfiguration.getPressedStateDuration(), TimeUnit.MILLISECONDS);
-        ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        shadowOf(Looper.getMainLooper()).idle();
-
-        Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
+        Intent picker = openPicker(activity, repository);
         Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
         assertEquals(DocumentsContract.buildDocumentUriUsingTree(tree, id), initial);
+    }
+
+    @Test
+    public void opensPickerAtFixedLegacySharedSegmentsFolder() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        String folder = "brouter/segments4";
+        assertTrue(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), folder).mkdirs());
+        BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();
+
+        Intent picker = openPicker(activity, repository);
+        Uri initial = IntentCompat.getParcelableExtra(picker, DocumentsContract.EXTRA_INITIAL_URI, Uri.class);
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
+        assertEquals(DocumentsContract.buildDocumentUri(AUTHORITY, "primary:" + folder), initial);
     }
 
     @Test
@@ -61,5 +74,16 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
         repository.saveSegmentsTreeUri(activity, downloads);
         activity.getContentResolver().takePersistableUriPermission(downloads, Intent.FLAG_GRANT_READ_URI_PERMISSION);
         assertFalse(repository.hasPersistedSegmentsTreeAccess(activity));
+    }
+
+    private static Intent openPicker(Activity activity, BRouterSegmentsRepository repository) {
+        AndroidBRouterSegmentsTreeAccessPrompt.show(activity, repository, 42, "StorageTest", () -> { }, () -> { });
+        shadowOf(Looper.getMainLooper()).idleFor(ViewConfiguration.getPressedStateDuration(), TimeUnit.MILLISECONDS);
+        ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        ShadowActivity.IntentForResult request = shadowOf(activity).getNextStartedActivityForResult();
+        assertNotNull(request);
+        return request.intent;
     }
 }

@@ -115,6 +115,15 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
+    public void offersFixedLegacySharedProfilesFolder() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        String folder = "brouter/profiles2";
+        assertTrue(new File(AndroidStorageVolumes.storageRoot(activity, "primary"), folder).mkdirs());
+
+        assertFolderPermissionStartsAt(activity, AndroidBRouterProfilesRepositoryFactory.create(), folder);
+    }
+
+    @Test
     @Config(sdk = Build.VERSION_CODES.R)
     public void detectedSdCardProfilesTakePrecedenceOverSavedLegacyProfile() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
