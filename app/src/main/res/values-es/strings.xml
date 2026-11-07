@@ -159,6 +159,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">Las calles circundantes necesitan acceso a la carpeta BRouter segments4. En la siguiente pantalla, navega hasta %1$s y confirma el acceso a la carpeta. Si esa ubicación no está disponible, selecciona la carpeta donde BRouter almacena sus archivos .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Se necesita acceso al almacenamiento para leer archivos de perfil de BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Almacenamiento de perfiles de BRouter</string>
+    <string name="msg_brouter_storage_folder_missing">Abre BRouter y termina de configurar el almacenamiento para que la carpeta %1$s esté disponible. Luego inténtalo de nuevo.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter necesitan acceso a la carpeta profiles2. En la siguiente pantalla, busque %1$s y confirme el acceso a la carpeta. Si esa ubicación no está disponible, seleccione la carpeta donde BRouter almacena sus perfiles .brf.\n\nNotificación de prueba de símbolo</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>
     <string name="msg_map_location_searching">Buscando ubicación actual…</string>

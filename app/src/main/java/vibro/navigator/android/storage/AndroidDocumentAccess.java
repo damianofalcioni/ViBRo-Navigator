@@ -25,6 +25,12 @@ public final class AndroidDocumentAccess {
     private AndroidDocumentAccess() {
     }
 
+    public enum DirectoryPresence {
+        PRESENT,
+        MISSING,
+        UNKNOWN
+    }
+
     @NonNull
     public static Intent openDocumentTreeIntent(@Nullable Uri initialUri) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
@@ -211,6 +217,14 @@ public final class AndroidDocumentAccess {
                     + " error=" + e.getClass().getSimpleName());
             return false;
         }
+    }
+
+    @NonNull
+    public static DirectoryPresence externalStorageDirectoryPresence(
+            @NonNull Context context,
+            @NonNull String documentId
+    ) {
+        return AndroidExternalDirectoryPresence.check(context, documentId);
     }
 
     private static void addInitialUriIfSupported(@NonNull Intent intent, @Nullable Uri initialUri) {

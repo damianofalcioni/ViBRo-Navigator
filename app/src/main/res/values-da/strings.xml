@@ -159,6 +159,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">Omgivende gader har brug for adgang til BRouter segments4 mappen. På næste skærm skal du gennemse til %1$s og bekræfte mappens adgang. Hvis denne placering ikke er tilgængelig, vælg den mappe, hvor BRouter gemmer sine .rd5 filer.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Lagringsadgang er nødvendig for at læse BRouter profildata.</string>
     <string name="title_brouter_profiles_storage_access">BRouter profilopbevaring</string>
+    <string name="msg_brouter_storage_folder_missing">Åbn BRouter, og fuldfør opsætningen af lageret for at gøre mappen %1$s tilgængelig. Prøv derefter igen.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profiler har brug for adgang til profiles2-mappen. På næste skærm skal du navigere til %1$s og bekræfte adgang til mappen. Hvis den placering ikke er tilgængelig, skal du vælge den mappe, hvor BRouter gemmer sine .brf-profiler.</string>
     <string name="msg_symbol_test_notification_sent">Symboltestmeddelelse sendt.</string>
     <string name="msg_map_location_searching">Søger nuværende placering…</string>

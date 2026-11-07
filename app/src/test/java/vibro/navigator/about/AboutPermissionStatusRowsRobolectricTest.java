@@ -39,6 +39,7 @@ import org.robolectric.shadows.ShadowToast;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.startup.AndroidNavigationPreflight;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
@@ -178,6 +179,7 @@ public class AboutPermissionStatusRowsRobolectricTest {
     @Test
     public void profileStorageRowOpensInstructionPromptBeforeFolderPicker() {
         installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("profiles2");
         AboutActivity activity = AboutActivityTestSupport.setupWithSettings();
         idleInitialDiagnosticRender();
 

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import androidx.test.core.app.ApplicationProvider;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppCompassSettings;
@@ -108,6 +109,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void surroundingStreetsSwitchRequestsSegmentsTreeOnAndroid11() {
         installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("segments4");
         AboutActivity activity = activity();
         Switch surroundingStreetsSwitch = activity.findViewById(R.id.aboutCompassSurroundingStreetsSwitch);
 
@@ -168,6 +170,7 @@ public class AboutSurroundingStreetStorageSettingsRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void diagnosticSegmentsTreeRowRequestsFolderAccessOnAndroid11() {
         installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("segments4");
         AboutActivity activity = activity();
         idleInitialDiagnosticRender();
 

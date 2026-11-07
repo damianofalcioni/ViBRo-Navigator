@@ -19,6 +19,7 @@ import vibro.navigator.brouter.BRouterSegmentsRepository;
 import vibro.navigator.logging.AppLogger;
 
 public final class AndroidBRouterSegmentsTreeAccessPrompt {
+    private static final String FOLDER_NAME = "segments4";
 
     private AndroidBRouterSegmentsTreeAccessPrompt() {
     }
@@ -58,11 +59,15 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
-        Uri initialUri = initialDocumentUri(segmentsRepository.getSegmentsTreePickerInitialUri(activity));
+        Uri initialUri = AndroidBRouterPickerLocation.resolve(
+                activity, initialDocumentUri(segmentsRepository.getSegmentsTreePickerInitialUri(activity)), FOLDER_NAME);
+        if (initialUri == null) {
+            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME, onCancel);
+        }
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_segments_storage_access)
                 .setMessage(activity.getString(R.string.msg_brouter_segments_storage_access_prompt,
-                        AndroidBRouterStorageInstructions.folderPath(initialUri, "segments4")))
+                        AndroidBRouterStorageInstructions.folderPath(initialUri, FOLDER_NAME)))
                 .setPositiveButton(R.string.action_continue, (dialog, which) -> launchPicker(
                         activity,
                         initialUri,

@@ -159,6 +159,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">周辺の通りには BRouter segments4 フォルダへのアクセスが必要です。次の画面で %1$s に移動し、フォルダアクセスを確認してください。その場所が利用できない場合は、BRouter が .rd5 ファイルを保存しているフォルダを選択してください。</string>
     <string name="msg_brouter_profiles_storage_permission_required">BRouter プロフィールファイルを読むにはストレージアクセスが必要です。</string>
     <string name="title_brouter_profiles_storage_access">BRouter プロフィールのストレージ</string>
+    <string name="msg_brouter_storage_folder_missing">BRouter を開いてストレージの設定を完了し、%1$s フォルダを利用できるようにしてください。その後、もう一度お試しください。</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter プロファイルは profiles2 フォルダーへのアクセスが必要です。次の画面で %1$s に移動し、フォルダーアクセスを確認してください。その場所が利用できない場合は、BRouter が .brf プロファイルを保存するフォルダーを選択してください。</string>
     <string name="msg_symbol_test_notification_sent">シンボルテスト通知が送信されました。</string>
     <string name="msg_map_location_searching">現在地を検索中…</string>

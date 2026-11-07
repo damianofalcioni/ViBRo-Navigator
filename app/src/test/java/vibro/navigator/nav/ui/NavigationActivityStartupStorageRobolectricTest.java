@@ -26,6 +26,7 @@ import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowPackageManager;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.settings.AppCompassSettings;
@@ -43,6 +44,7 @@ public class NavigationActivityStartupStorageRobolectricTest {
 
     @Test
     public void startupRequestsSegmentsTreeBeforeNavigationWhenModernStorageGrantIsMissing() {
+        TestBRouterStorage.createPrimaryFolder("segments4");
         TestNavigationActivity activity = Robolectric.buildActivity(
                 TestNavigationActivity.class,
                 navigationIntent()

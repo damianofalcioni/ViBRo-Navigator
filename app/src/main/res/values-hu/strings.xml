@@ -159,6 +159,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">A környező utcákhoz hozzáférés szükséges a BRouter segments4 mappához. A következő képernyőn tallózzon a %1$s mappához, és erősítse meg a mappa hozzáférést. Ha a hely nem elérhető, válassza azt a mappát, ahol a BRouter tárolja a .rd5 fájlokat.</string>
     <string name="msg_brouter_profiles_storage_permission_required">A BRouter profil fájlok olvasásához tárolási hozzáférés szükséges.</string>
     <string name="title_brouter_profiles_storage_access">BRouter profil tárolás</string>
+    <string name="msg_brouter_storage_folder_missing">Nyissa meg a BRoutert, és fejezze be a tárhely beállítását, hogy a(z) %1$s mappa elérhető legyen. Ezután próbálja újra.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiloknak hozzáférésre van szükségük a profiles2 mappához. A következő képernyőn böngésszen a %1$s mappához, és erősítse meg a mappa-hozzáférést. Ha ez a hely nem elérhető, válassza ki azt a mappát, ahol a BRouter tárolja a .brf profiljait.</string>
     <string name="msg_symbol_test_notification_sent">Szimbólum teszt értesítés elküldve.</string>
     <string name="msg_map_location_searching">Aktuális hely keresése…</string>

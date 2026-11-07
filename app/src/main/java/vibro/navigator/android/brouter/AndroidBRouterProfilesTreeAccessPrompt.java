@@ -19,6 +19,7 @@ import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 
 public final class AndroidBRouterProfilesTreeAccessPrompt {
+    private static final String FOLDER_NAME = "profiles2";
 
     private AndroidBRouterProfilesTreeAccessPrompt() {
     }
@@ -60,11 +61,15 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
     ) {
         Uri savedProfileHint = Build.VERSION.SDK_INT == Build.VERSION_CODES.Q
                 ? profilesRepository.getCustomProfileUri(activity) : null;
-        Uri initialUri = profilesRepository.getProfilesTreePickerInitialUri(activity, savedProfileHint);
+        Uri initialUri = AndroidBRouterPickerLocation.resolve(
+                activity, profilesRepository.getProfilesTreePickerInitialUri(activity, savedProfileHint), FOLDER_NAME);
+        if (initialUri == null) {
+            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME, onCancel);
+        }
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_profiles_storage_access)
                 .setMessage(activity.getString(R.string.msg_brouter_profiles_storage_access_prompt,
-                        AndroidBRouterStorageInstructions.folderPath(initialUri, "profiles2")))
+                        AndroidBRouterStorageInstructions.folderPath(initialUri, FOLDER_NAME)))
                 .setPositiveButton(R.string.action_continue, (dialog, which) -> launchPicker(
                         activity,
                         initialUri,

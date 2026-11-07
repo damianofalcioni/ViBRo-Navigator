@@ -5,7 +5,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-final class BRouterDirectoryCandidates {
+public final class BRouterDirectoryCandidates {
     private static final String PRIMARY_ROOT_ID = "primary";
     private static final String MEDIA_BROUTER_RELATIVE_DOCUMENT_PATH =
             "Android/media/btools.routingapp/brouter/";
@@ -16,7 +16,7 @@ final class BRouterDirectoryCandidates {
     }
 
     @NonNull
-    static List<String> buildLikelyDocumentIdCandidates(
+    public static List<String> buildLikelyDocumentIdCandidates(
             @NonNull List<String> secondaryRootIds,
             @NonNull String directoryName
     ) {

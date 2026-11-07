@@ -34,6 +34,7 @@ import org.robolectric.shadows.ShadowToast;
 import org.robolectric.util.ReflectionHelpers;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppNavigationCustomButtonSettings;
@@ -120,6 +121,7 @@ public class NavigationCustomButtonRobolectricTest {
     @Config(sdk = Build.VERSION_CODES.R)
     public void surroundingStreetsTargetRequestsSegmentsTreeOnAndroid11() {
         installBRouterPackage();
+        TestBRouterStorage.createPrimaryFolder("segments4");
         Application context = ApplicationProvider.getApplicationContext();
         AppNavigationCustomButtonSettings.setEnabled(context, true);
         AppNavigationCustomButtonSettings.setTarget(context, Target.SURROUNDING_STREETS);

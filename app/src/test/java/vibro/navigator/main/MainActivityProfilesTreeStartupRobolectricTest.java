@@ -26,6 +26,7 @@ import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowPackageManager;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.logging.AppLogger;
 import vibro.navigator.settings.AppMainUiSettings;
@@ -46,6 +47,7 @@ public class MainActivityProfilesTreeStartupRobolectricTest {
     @Test
     @Config(sdk = Build.VERSION_CODES.R)
     public void onCreate_whenProfilesTreeGrantMissing_showsInstructionPromptBeforeFolderPicker() {
+        TestBRouterStorage.createPrimaryFolder("profiles2");
         MainActivity activity = Robolectric.buildActivity(MainActivity.class).setup().get();
         shadowOf(Looper.getMainLooper()).idleFor(android.view.ViewConfiguration.getPressedStateDuration(),
                 java.util.concurrent.TimeUnit.MILLISECONDS);

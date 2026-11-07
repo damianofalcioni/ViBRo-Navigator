@@ -30,6 +30,7 @@ import org.robolectric.shadows.ShadowToast;
 import java.util.concurrent.TimeUnit;
 
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.startup.AndroidFirstRunPermissions;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.settings.AppMainUiSettings;
@@ -37,6 +38,7 @@ import vibro.navigator.settings.AppMainUiSettings;
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = Build.VERSION_CODES.TIRAMISU)
 public class MainActivityFirstRunSetupTest {
+    private static final String PROFILES_FOLDER = "profiles2";
     @Test
     public void cancellingInstallStartsPermissionsAndRecreationDoesNotDuplicateRequest() {
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
@@ -79,23 +81,26 @@ public class MainActivityFirstRunSetupTest {
             installBRouter(app);
             controller.recreate();
             idle();
-            assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()).contains("profiles2"));
+            assertMissingFolderCanBeSkipped(controller.get(), PROFILES_FOLDER);
+            assertMissingFolderCanBeSkipped(controller.get(), "segments4");
+            assertEquals(AndroidFirstRunPermissions.REQUEST_RUNTIME,
+                    shadowOf(controller.get()).getLastRequestedPermission().requestCode);
         }
     }
 
     @Test
     public void cancellingFolderPromptsAdvancesThroughProfilesSegmentsAndRuntimePermissions() {
-        installBRouter(ApplicationProvider.getApplicationContext());
+        installBRouterWithStorage();
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
             continueWelcome();
             idle();
-            assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()).contains("profiles2"));
+            assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()).contains(PROFILES_FOLDER));
             assertNull(shadowOf(controller.get()).getLastRequestedPermission());
             AlertDialog original = ShadowAlertDialog.getLatestAlertDialog();
             controller.recreate();
             idle();
             assertFalse(original.isShowing());
-            assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()).contains("profiles2"));
+            assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()).contains(PROFILES_FOLDER));
             cancelPrompt();
             idle();
             assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage()).contains("segments4"));
@@ -108,7 +113,7 @@ public class MainActivityFirstRunSetupTest {
     @Test
     @Config(sdk = Build.VERSION_CODES.Q)
     public void rejectedFoldersExplainMissingAccessAndCanBeRetriedOrSkipped() {
-        installBRouter(ApplicationProvider.getApplicationContext());
+        installBRouterWithStorage();
         Intent downloads = folderSelection("primary:Download");
         Intent profiles = folderSelection("primary:Android/media/btools.routingapp/brouter/profiles2");
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class).setup()) {
@@ -180,5 +185,21 @@ public class MainActivityFirstRunSetupTest {
         PackageInfo brouter = new PackageInfo();
         brouter.packageName = BRouterProfilesRepository.BROUTER_PACKAGE_NAME;
         shadowOf(app.getPackageManager()).installPackage(brouter);
+    }
+
+    private static void installBRouterWithStorage() {
+        installBRouter(ApplicationProvider.getApplicationContext());
+        TestBRouterStorage.createPrimaryFolder(PROFILES_FOLDER);
+        TestBRouterStorage.createPrimaryFolder("segments4");
+    }
+
+    private static void assertMissingFolderCanBeSkipped(MainActivity activity, String folderName) {
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, folderName),
+                String.valueOf(shadowOf(dialog).getMessage()));
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        idle();
+        ShadowActivity.IntentForResult next = shadowOf(activity).getNextStartedActivityForResult();
+        assertTrue(next == null || !Intent.ACTION_OPEN_DOCUMENT_TREE.equals(next.intent.getAction()));
     }
 }

@@ -85,7 +85,7 @@ final class AndroidExternalStorageDocumentFiles {
     }
 
     @Nullable
-    private static File fileForDocumentId(@NonNull Context context, @NonNull String documentId) {
+    static File fileForDocumentId(@NonNull Context context, @NonNull String documentId) {
         int separator = documentId.indexOf(':');
         if (separator <= 0 || separator >= documentId.length() - 1) {
             return null;

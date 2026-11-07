@@ -175,6 +175,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">Surrounding streets need access to the BRouter segments4 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .rd5 files.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Storage access is needed to read BRouter profile files.</string>
     <string name="title_brouter_profiles_storage_access">BRouter profile storage</string>
+    <string name="msg_brouter_storage_folder_missing">Open BRouter and finish storage setup to make the %1$s folder available. Then try again.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter profiles need access to the profiles2 folder. On the next screen, browse to %1$s and confirm folder access. If that location is unavailable, select the folder where BRouter stores its .brf profiles.</string>
     <string name="msg_symbol_test_notification_sent">Symbol test notification sent.</string>
     <string name="msg_map_location_searching">Looking up current location…</string>

@@ -159,6 +159,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">Els carrers de l\'entorn necessiten accés a la carpeta segments4 de BRouter. A la següent pantalla, navegueu fins a %1$s i confirmeu l\'accés a la carpeta. Si aquesta ubicació no està disponible, seleccioneu la carpeta on BRouter desa els seus fitxers .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Cal accés a l\'emmagatzematge per llegir fitxers de perfil BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Emmagatzematge de perfils BRouter</string>
+    <string name="msg_brouter_storage_folder_missing">Obre BRouter i completa la configuració de l’emmagatzematge perquè la carpeta %1$s estigui disponible. Després torna-ho a provar.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter necessiten accés a la carpeta profiles2. A la següent pantalla, navega a %1$s i confirma l\'accés a la carpeta. Si aquesta ubicació no està disponible, selecciona la carpeta on BRouter desa els seus perfils .brf.\n\nNotificació de prova de símbol</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>
     <string name="msg_map_location_searching">Buscant la ubicació actual…\n\nLa ubicació actual no està disponible</string>

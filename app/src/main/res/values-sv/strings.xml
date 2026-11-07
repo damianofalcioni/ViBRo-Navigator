@@ -159,6 +159,7 @@
     <string name="msg_brouter_segments_storage_access_prompt">Omgivande gator behöver åtkomst till BRouter segments4-mappen. På nästa skärm går du till %1$s och bekräftar mappåtkomst. Om den platsen inte är tillgänglig, välj mappen där BRouter lagrar sina .rd5-filer.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Lagringsåtkomst behövs för att läsa BRouter-profilfiler.</string>
     <string name="title_brouter_profiles_storage_access">BRouter-profillagring</string>
+    <string name="msg_brouter_storage_folder_missing">Öppna BRouter och slutför lagringsinställningarna så att mappen %1$s blir tillgänglig. Försök sedan igen.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profiler behöver åtkomst till profiles2-mappen. På nästa skärm, bläddra till %1$s och bekräfta mappåtkomst. Om den platsen inte är tillgänglig, välj mappen där BRouter lagrar sina .brf-profiler.</string>
     <string name="msg_symbol_test_notification_sent">Symboltestmeddelande skickat.</string>
     <string name="msg_map_location_searching">Söker efter aktuell plats…</string>
