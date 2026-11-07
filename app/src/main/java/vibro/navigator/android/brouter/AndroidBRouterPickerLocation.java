@@ -61,12 +61,14 @@ final class AndroidBRouterPickerLocation {
     static AlertDialog showMissingFolder(
             @NonNull Activity activity,
             @NonNull String folderName,
-            @NonNull Runnable onDismiss
+            @NonNull Runnable onBrowse,
+            @NonNull Runnable onCancel
     ) {
         return new AlertDialog.Builder(activity)
                 .setMessage(activity.getString(R.string.msg_brouter_storage_folder_missing, folderName))
-                .setPositiveButton(android.R.string.ok, (dialog, which) -> onDismiss.run())
-                .setOnCancelListener(dialog -> onDismiss.run())
+                .setPositiveButton(R.string.action_browse, (dialog, which) -> onBrowse.run())
+                .setNegativeButton(R.string.action_cancel, (dialog, which) -> onCancel.run())
+                .setOnCancelListener(dialog -> onCancel.run())
                 .show();
     }
 }

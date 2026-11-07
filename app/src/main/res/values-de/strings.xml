@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Umliegende Straßen benötigen Zugriff auf den BRouter-Ordner segments4. Gehe auf dem nächsten Bildschirm zu %1$s und bestätige den Ordnerzugriff. Falls dieser Ort nicht verfügbar ist, wähle den Ordner, in dem BRouter seine .rd5-Dateien speichert.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Speicherzugriff wird benötigt, um BRouter-Profildateien zu lesen.</string>
     <string name="title_brouter_profiles_storage_access">BRouter-Profilspeicher</string>
-    <string name="msg_brouter_storage_folder_missing">Öffne BRouter und schließe die Speichereinrichtung ab, damit der Ordner %1$s verfügbar ist. Versuche es dann erneut.</string>
+    <string name="action_browse">Durchsuchen</string>
+    <string name="msg_brouter_storage_folder_missing">Suche den Ordner %1$s und wähle ihn aus. Falls er noch nicht existiert, schließe die Speichereinrichtung in BRouter ab.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter-Profile benötigen Zugriff auf den Ordner profiles2. Gehe auf dem nächsten Bildschirm zu %1$s und bestätige den Ordnerzugriff. Falls dieser Ort nicht verfügbar ist, wähle den Ordner, in dem BRouter seine .brf-Profile speichert.</string>
     <string name="msg_symbol_test_notification_sent">Symbol-Testbenachrichtigung gesendet.</string>
     <string name="msg_map_location_searching">Aktuellen Standort suchen…</string>

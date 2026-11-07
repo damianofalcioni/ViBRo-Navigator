@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Aanliggende straten hebben toegang nodig tot de BRouter segments4-map. Navigeer op het volgende scherm naar %1$s en bevestig de maptoegang. Als die locatie niet beschikbaar is, selecteer de map waar BRouter zijn .rd5-bestanden opslaat.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Toegang tot opslag is nodig om BRouter-profielbestanden te kunnen lezen.</string>
     <string name="title_brouter_profiles_storage_access">BRouter profielopslag</string>
-    <string name="msg_brouter_storage_folder_missing">Open BRouter en rond de opslaginstellingen af om de map %1$s beschikbaar te maken. Probeer het daarna opnieuw.</string>
+    <string name="action_browse">Bladeren</string>
+    <string name="msg_brouter_storage_folder_missing">Blader naar de map %1$s en selecteer deze. Als de map nog niet bestaat, rond je de opslaginstellingen af in BRouter.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter-profielen hebben toegang nodig tot de profiles2-map. Blader op het volgende scherm naar %1$s en bevestig de toegang tot de map. Als die locatie niet beschikbaar is, selecteer dan de map waarin BRouter zijn .brf-profielen opslaat.</string>
     <string name="msg_symbol_test_notification_sent">Symbol-testmelding verzonden.</string>
     <string name="msg_map_location_searching">Huidige locatie opzoeken…</string>

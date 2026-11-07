@@ -54,7 +54,8 @@ public final class AndroidBRouterProfilesTreeAccessPrompt {
             @NonNull Runnable onCancel
     ) {
         if (initialUri == null) {
-            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME, onCancel);
+            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME,
+                    () -> launchPicker(activity, null, requestCode, logTag, beforeLaunch), onCancel);
         }
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_profiles_storage_access)

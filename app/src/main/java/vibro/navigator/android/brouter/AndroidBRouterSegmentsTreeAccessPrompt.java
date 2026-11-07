@@ -30,10 +30,39 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable beforeLaunch,
             @NonNull Runnable onCancel
     ) {
+        show(activity, segmentsRepository, requestCode, logTag, beforeLaunch, onCancel, null);
+    }
+
+    public static void showIfAvailable(
+            @NonNull Activity activity,
+            @NonNull BRouterSegmentsRepository segmentsRepository,
+            int requestCode,
+            @NonNull String logTag,
+            @NonNull Runnable onCancel,
+            @NonNull Runnable onUnavailable
+    ) {
+        show(activity, segmentsRepository, requestCode, logTag, () -> { }, onCancel, onUnavailable);
+    }
+
+    private static void show(
+            @NonNull Activity activity,
+            @NonNull BRouterSegmentsRepository segmentsRepository,
+            int requestCode,
+            @NonNull String logTag,
+            @NonNull Runnable beforeLaunch,
+            @NonNull Runnable onCancel,
+            @Nullable Runnable onUnavailable
+    ) {
         AndroidTaskScheduler.main().postDelayed(() -> {
-            if (!activity.isFinishing() && !activity.isDestroyed()) {
-                showNow(activity, findInitialUri(activity, segmentsRepository), requestCode, logTag, beforeLaunch, onCancel);
+            if (activity.isFinishing() || activity.isDestroyed()) {
+                return;
             }
+            Uri initialUri = findInitialUri(activity, segmentsRepository);
+            if (initialUri == null && onUnavailable != null) {
+                onUnavailable.run();
+                return;
+            }
+            showNow(activity, initialUri, requestCode, logTag, beforeLaunch, onCancel);
         }, ViewConfiguration.getPressedStateDuration());
     }
 
@@ -52,7 +81,8 @@ public final class AndroidBRouterSegmentsTreeAccessPrompt {
             @NonNull Runnable onCancel
     ) {
         if (initialUri == null) {
-            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME, onCancel);
+            return AndroidBRouterPickerLocation.showMissingFolder(activity, FOLDER_NAME,
+                    () -> launchPicker(activity, null, requestCode, logTag, beforeLaunch), onCancel);
         }
         return new AlertDialog.Builder(activity)
                 .setTitle(R.string.title_brouter_segments_storage_access)

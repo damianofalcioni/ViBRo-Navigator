@@ -74,7 +74,9 @@ public final class AndroidBRouterStorageSetup {
 
     private void showFolder(int requestCode, @Nullable Uri initialUri, Runnable beforeLaunch, Runnable onCancel) {
         Runnable launch = () -> {
-            foreground.setOffered(requestCode, true);
+            if (initialUri != null) {
+                foreground.setOffered(requestCode, true);
+            }
             beforeLaunch.run();
         };
         Runnable cancel = () -> {

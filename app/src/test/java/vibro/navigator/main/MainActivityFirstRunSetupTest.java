@@ -85,10 +85,20 @@ public class MainActivityFirstRunSetupTest {
             installBRouter(app);
             controller.recreate();
             idle();
-            assertMissingFolderCanBeSkipped(controller.get(), PROFILES_FOLDER);
-            assertMissingFolderCanBeSkipped(controller.get(), SEGMENTS_FOLDER);
+            MainActivity activity = controller.get();
+            assertMissingFolderCanBeSkipped(activity, PROFILES_FOLDER);
+            ShadowActivity.IntentForResult manualPicker = openFolderPicker(activity);
+            assertFalse(manualPicker.intent.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
+            activity.onActivityResult(manualPicker.requestCode, Activity.RESULT_CANCELED, null);
             assertEquals(AndroidFirstRunPermissions.REQUEST_RUNTIME,
-                    shadowOf(controller.get()).getLastRequestedPermission().requestCode);
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+            finishPermissions(activity);
+
+            controller.pause().stop();
+            TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+            controller.start().resume();
+            assertTrue(String.valueOf(shadowOf(ShadowAlertDialog.getLatestAlertDialog()).getMessage())
+                    .contains(SEGMENTS_FOLDER));
         }
     }
 
@@ -210,13 +220,18 @@ public class MainActivityFirstRunSetupTest {
     }
 
     private static int chooseFolder(MainActivity activity, Intent selection) {
+        ShadowActivity.IntentForResult request = openFolderPicker(activity);
+        activity.onActivityResult(request.requestCode, Activity.RESULT_OK, selection);
+        idle();
+        return request.requestCode;
+    }
+
+    private static ShadowActivity.IntentForResult openFolderPicker(MainActivity activity) {
         ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
         ShadowActivity.IntentForResult request = shadowOf(activity).getNextStartedActivityForResult();
         assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, request.intent.getAction());
-        activity.onActivityResult(request.requestCode, Activity.RESULT_OK, selection);
-        idle();
-        return request.requestCode;
+        return request;
     }
 
     private static void continueWelcome() {
@@ -257,7 +272,7 @@ public class MainActivityFirstRunSetupTest {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, folderName),
                 String.valueOf(shadowOf(dialog).getMessage()));
-        dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+        dialog.getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         idle();
         ShadowActivity.IntentForResult next = shadowOf(activity).getNextStartedActivityForResult();
         assertTrue(next == null || !Intent.ACTION_OPEN_DOCUMENT_TREE.equals(next.intent.getAction()));

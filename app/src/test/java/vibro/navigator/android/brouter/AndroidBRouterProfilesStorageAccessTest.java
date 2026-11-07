@@ -86,7 +86,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
     }
 
     @Test
-    public void missingFoldersShowSetupWithoutOpeningPicker() {
+    public void missingFoldersStillAllowManualBrowsing() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         new TestOutputStorageCard(activity);
         BRouterProfilesRepository repository = AndroidBRouterProfilesRepositoryFactory.create();
@@ -98,7 +98,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
 
         Uri custom = DocumentsContract.buildDocumentUri(AUTHORITY, "primary:Documents/custom.brf");
         repository.saveCustomProfile(activity, custom, "custom");
-        assertSetupRequired(activity, repository);
+        assertManualBrowseAvailable(activity, repository);
     }
 
     @Test
@@ -110,7 +110,7 @@ public class AndroidBRouterProfilesStorageAccessTest {
         if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
             assertFolderPermissionStartsAt(activity, repository, LEGACY_FOLDER);
         } else {
-            assertSetupRequired(activity, repository);
+            assertManualBrowseAvailable(activity, repository);
         }
     }
 
@@ -195,14 +195,18 @@ public class AndroidBRouterProfilesStorageAccessTest {
         assertNull(shadowOf(activity).getLastRequestedPermission());
     }
 
-    private static void assertSetupRequired(Activity activity, BRouterProfilesRepository repository) {
+    private static void assertManualBrowseAvailable(Activity activity, BRouterProfilesRepository repository) {
         AndroidBRouterProfilesStorageAccess.request(activity, repository, 42, "StorageTest", () -> { }, () -> { });
         idlePrompt();
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertEquals(activity.getString(R.string.msg_brouter_storage_folder_missing, PROFILES_FOLDER),
                 String.valueOf(shadowOf(dialog).getMessage()));
+        assertEquals(activity.getString(R.string.action_browse), dialog.getButton(AlertDialog.BUTTON_POSITIVE).getText());
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
-        assertNull(shadowOf(activity).getNextStartedActivityForResult());
+        shadowOf(Looper.getMainLooper()).idle();
+        Intent picker = shadowOf(activity).getNextStartedActivityForResult().intent;
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
+        assertFalse(picker.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
     }
 
     private static void idlePrompt() {

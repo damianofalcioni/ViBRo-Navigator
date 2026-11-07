@@ -64,6 +64,16 @@ public class AndroidBRouterSegmentsTreeAccessPromptTest {
     }
 
     @Test
+    public void opensManualPickerWhenNoKnownSegmentsFolderExists() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+
+        Intent picker = openPicker(activity, AndroidBRouterSegmentsRepositoryFactory.create());
+
+        assertEquals(Intent.ACTION_OPEN_DOCUMENT_TREE, picker.getAction());
+        assertFalse(picker.hasExtra(DocumentsContract.EXTRA_INITIAL_URI));
+    }
+
+    @Test
     public void rejectsDownloadsAsSegmentsAccess() {
         Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
         BRouterSegmentsRepository repository = AndroidBRouterSegmentsRepositoryFactory.create();

@@ -42,18 +42,17 @@ final class NavigationStartupSegmentsTreeAccess {
                 && !segmentsRepository.hasPersistedSegmentsTreeAccess(activity);
     }
 
-    void startPicker(@NonNull Runnable onCancel) {
-        AndroidBRouterSegmentsTreeAccessPrompt.show(
+    void startPicker(@NonNull Runnable continueStartup) {
+        AndroidBRouterSegmentsTreeAccessPrompt.showIfAvailable(
                 activity,
                 segmentsRepository,
                 REQUEST_SEGMENTS_TREE,
                 TAG,
                 () -> {
-                },
-                () -> {
                     denySurroundingStreetStorage();
-                    onCancel.run();
-                }
+                    continueStartup.run();
+                },
+                continueStartup
         );
     }
 

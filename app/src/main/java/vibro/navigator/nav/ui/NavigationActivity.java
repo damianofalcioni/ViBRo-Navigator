@@ -265,7 +265,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
             AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
         }
         if (startupSegmentsTreeAccess.shouldRequest(startupCoordinator.isAutoStartNavigation())) {
-            startupSegmentsTreeAccess.startPicker(this::ensureReadyThenStart);
+            startupSegmentsTreeAccess.startPicker(startupCoordinator::ensureReadyThenStart);
             return;
         }
         startupCoordinator.ensureReadyThenStart();

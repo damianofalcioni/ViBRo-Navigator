@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Οι γύρω δρόμοι χρειάζονται πρόσβαση στον φάκελο BRouter segments4. Στην επόμενη οθόνη, πλοηγηθείτε στο %1$s και επιβεβαιώστε την πρόσβαση στον φάκελο. Εάν αυτή η τοποθεσία δεν είναι διαθέσιμη, επιλέξτε τον φάκελο όπου το BRouter αποθηκεύει τα αρχεία .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Απαιτείται πρόσβαση αποθήκευσης για ανάγνωση των αρχείων προφίλ BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Αποθήκευση προφίλ BRouter</string>
-    <string name="msg_brouter_storage_folder_missing">Ανοίξτε το BRouter και ολοκληρώστε τη ρύθμιση του χώρου αποθήκευσης για να γίνει διαθέσιμος ο φάκελος %1$s. Στη συνέχεια δοκιμάστε ξανά.</string>
+    <string name="action_browse">Περιήγηση</string>
+    <string name="msg_brouter_storage_folder_missing">Περιηγηθείτε για να επιλέξετε τον φάκελο %1$s. Αν δεν υπάρχει ακόμη, ολοκληρώστε τη ρύθμιση του χώρου αποθήκευσης στο BRouter.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter προφίλ χρειάζονται πρόσβαση στον φάκελο profiles2. Στην επόμενη οθόνη, μεταβείτε στο %1$s και επιβεβαιώστε την πρόσβαση στο φάκελο. Εάν αυτή η τοποθεσία δεν είναι διαθέσιμη, επιλέξτε το φάκελο στον οποίο αποθηκεύει BRouter τα .brf προφίλ του.</string>
     <string name="msg_symbol_test_notification_sent">Στάλθηκε ειδοποίηση δοκιμής συμβόλου.</string>
     <string name="msg_map_location_searching">Αναζητώντας την τρέχουσα τοποθεσία…</string>

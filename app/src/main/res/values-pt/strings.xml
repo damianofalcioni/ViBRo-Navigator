@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Ruas próximas precisam de acesso à pasta segments4 do BRouter. Na próxima tela, navegue até %1$s e confirme o acesso à pasta. Se esse local não estiver disponível, selecione a pasta onde BRouter armazena seus arquivos .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">É necessário acesso ao armazenamento para ler arquivos de perfil BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Armazenamento de perfil BRouter</string>
-    <string name="msg_brouter_storage_folder_missing">Abra o BRouter e conclua a configuração do armazenamento para disponibilizar a pasta %1$s. Depois, tente novamente.</string>
+    <string name="action_browse">Procurar</string>
+    <string name="msg_brouter_storage_folder_missing">Procure e selecione a pasta %1$s. Se ainda não existir, conclua a configuração do armazenamento no BRouter.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter precisam de acesso à pasta profiles2. Na próxima tela, navegue até %1$s e confirme o acesso à pasta. Se essa localização não estiver disponível, selecione a pasta onde BRouter armazena seus perfis .brf.\n\nNotificação de teste de símbolo</string>
     <string name="msg_symbol_test_notification_sent">enviada.</string>
     <string name="msg_map_location_searching">Consultando localização atual…</string>

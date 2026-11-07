@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">周边街道需要访问 BRouter segments4 文件夹。在下一屏中，浏览至 %1$s 并确认文件夹访问权限。如果该位置不可用，请选择 BRouter 存储其 .rd5 文件的文件夹。</string>
     <string name="msg_brouter_profiles_storage_permission_required">需要存储权限以读取 BRouter 配置文件文件。</string>
     <string name="title_brouter_profiles_storage_access">BRouter 配置文件存储</string>
-    <string name="msg_brouter_storage_folder_missing">打开 BRouter 并完成存储设置，使 %1$s 文件夹可用，然后重试。</string>
+    <string name="action_browse">浏览</string>
+    <string name="msg_brouter_storage_folder_missing">浏览并选择 %1$s 文件夹。如果该文件夹尚不存在，请先在 BRouter 中完成存储设置。</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter 配置文件需要访问 profiles2 文件夹。在下一个屏幕上，浏览到 %1$s 并确认文件夹访问权限。如果该位置不可用，请选择 BRouter 存储其 .brf 配置文件的文件夹。</string>
     <string name="msg_symbol_test_notification_sent">符号测试通知已发送。</string>
     <string name="msg_map_location_searching">正在查找当前位置…</string>

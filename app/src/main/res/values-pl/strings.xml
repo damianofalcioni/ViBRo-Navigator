@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Okoliczne ulice wymagają dostępu do folderu BRouter segments4. Na następnym ekranie przejdź do %1$s i potwierdź dostęp do folderu. Jeśli ta lokalizacja jest niedostępna, wybierz folder, w którym BRouter przechowuje swoje pliki .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Dostęp do pamięci jest potrzebny, aby odczytać pliki profilu BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Przechowywanie profilu BRouter</string>
-    <string name="msg_brouter_storage_folder_missing">Otwórz BRouter i dokończ konfigurację pamięci, aby udostępnić folder %1$s. Następnie spróbuj ponownie.</string>
+    <string name="action_browse">Przeglądaj</string>
+    <string name="msg_brouter_storage_folder_missing">Odszukaj i wybierz folder %1$s. Jeśli jeszcze nie istnieje, dokończ konfigurację pamięci w BRouterze.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter potrzebują dostępu do folderu profiles2. Na następnym ekranie przejdź do %1$s i potwierdź dostęp do folderu. Jeśli ta lokalizacja jest niedostępna, wybierz folder, w którym BRouter przechowuje swoje profile .brf.\n\nPowiadomienie o teście symbolu</string>
     <string name="msg_symbol_test_notification_sent">wysłane.</string>
     <string name="msg_map_location_searching">Wyszukiwanie bieżącej lokalizacji…</string>

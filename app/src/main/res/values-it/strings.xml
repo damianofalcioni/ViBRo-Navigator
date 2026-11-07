@@ -160,7 +160,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Le strade circostanti richiedono l’accesso alla cartella segments4 di BRouter. Nella schermata successiva vai a %1$s e conferma l’accesso alla cartella. Se la posizione non è disponibile, seleziona la cartella in cui BRouter salva i file .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">L’accesso all’archiviazione è necessario per leggere i profili BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Archiviazione dei profili BRouter</string>
-    <string name="msg_brouter_storage_folder_missing">Apri BRouter e completa la configurazione dell’archiviazione per rendere disponibile la cartella %1$s. Poi riprova.</string>
+    <string name="action_browse">Sfoglia</string>
+    <string name="msg_brouter_storage_folder_missing">Sfoglia le cartelle per selezionare %1$s. Se non esiste ancora, completa la configurazione dell’archiviazione in BRouter.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">I profili BRouter richiedono l’accesso alla cartella profiles2. Nella schermata successiva vai a %1$s e conferma l’accesso alla cartella. Se la posizione non è disponibile, seleziona la cartella in cui BRouter salva i profili .brf.</string>
     <string name="msg_symbol_test_notification_sent">Notifica di prova dei simboli inviata.</string>
     <string name="msg_map_location_searching">Ricerca della posizione attuale…</string>

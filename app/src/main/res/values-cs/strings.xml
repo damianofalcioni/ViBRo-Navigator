@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Okolní ulice potřebují přístup do složky BRouter segments4. Na další obrazovce přejděte do %1$s a potvrďte přístup ke složce. Pokud tato lokalita není dostupná, vyberte složku, kam BRouter ukládá své soubory .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">Pro čtení profilových souborů BRouter je potřeba přístup k úložišti.</string>
     <string name="title_brouter_profiles_storage_access">Uložení profilů BRouter</string>
-    <string name="msg_brouter_storage_folder_missing">Otevřete BRouter a dokončete nastavení úložiště, aby byla složka %1$s dostupná. Potom to zkuste znovu.</string>
+    <string name="action_browse">Procházet</string>
+    <string name="msg_brouter_storage_folder_missing">Vyhledejte a vyberte složku %1$s. Pokud ještě neexistuje, dokončete nastavení úložiště v BRouteru.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter potřebují přístup ke složce profiles2. Na další obrazovce přejděte do %1$s a potvrďte přístup ke složce. Pokud toto umístění není k dispozici, vyberte složku, kde BRouter ukládá své profily .brf.\n\nOdesláno upozornění na test symbolu</string>
     <string name="msg_symbol_test_notification_sent">.</string>
     <string name="msg_map_location_searching">Hledání aktuální polohy…</string>

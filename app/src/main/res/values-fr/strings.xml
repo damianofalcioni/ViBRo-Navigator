@@ -159,7 +159,8 @@
     <string name="msg_brouter_segments_storage_access_prompt">Les rues environnantes ont besoin d\'accès au dossier segments4 de BRouter. Sur l\'écran suivant, naviguez vers %1$s et confirmez l\'accès au dossier. Si cet emplacement n\'est pas disponible, sélectionnez le dossier où BRouter stocke ses fichiers .rd5.</string>
     <string name="msg_brouter_profiles_storage_permission_required">L\'accès au stockage est nécessaire pour lire les fichiers de profil BRouter.</string>
     <string name="title_brouter_profiles_storage_access">Stockage du profil BRouter</string>
-    <string name="msg_brouter_storage_folder_missing">Ouvrez BRouter et terminez la configuration du stockage pour rendre le dossier %1$s disponible. Réessayez ensuite.</string>
+    <string name="action_browse">Parcourir</string>
+    <string name="msg_brouter_storage_folder_missing">Parcourez le stockage pour sélectionner le dossier %1$s. S’il n’existe pas encore, terminez la configuration du stockage dans BRouter.</string>
     <string name="msg_brouter_profiles_storage_access_prompt">BRouter ont besoin d\'accéder au dossier profiles2. Sur l\'écran suivant, naviguez jusqu\'à %1$s et confirmez l\'accès au dossier. Si cet emplacement n\'est pas disponible, sélectionnez le dossier où BRouter stocke ses profils .brf.\n\nNotification de test de symbole</string>
     <string name="msg_symbol_test_notification_sent">envoyée.</string>
     <string name="msg_map_location_searching">Recherche de la localisation actuelle…</string>
