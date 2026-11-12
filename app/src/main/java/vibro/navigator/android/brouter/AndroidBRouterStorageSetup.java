@@ -209,7 +209,10 @@ public final class AndroidBRouterStorageSetup {
                 return false;
             }
             pendingRequest = 0;
-            return AndroidBRouterStorageSetup.this.handleResult(requestCode, resultCode, data, this::refresh, this::refresh);
+            return AndroidBRouterStorageSetup.this.handleResult(requestCode, resultCode, data, this::refresh, () -> {
+                setOffered(requestCode, false);
+                refresh();
+            });
         }
 
         void setOffered(int requestCode, boolean offered) {

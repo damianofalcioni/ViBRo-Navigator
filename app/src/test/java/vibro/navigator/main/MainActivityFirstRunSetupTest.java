@@ -249,6 +249,34 @@ public class MainActivityFirstRunSetupTest {
         }
     }
 
+    @Test
+    @Config(sdk = Build.VERSION_CODES.Q)
+    public void rejectedForegroundGrantCanBeRetriedAfterReturningFromPicker() {
+        Application app = ApplicationProvider.getApplicationContext();
+        AppMainUiSettings.completeWelcome(app);
+        installBRouter(app);
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            MainActivity activity = controller.get();
+            ShadowActivity.IntentForResult request = openFolderPicker(activity);
+            controller.pause().stop().start();
+            activity.onActivityResult(request.requestCode, Activity.RESULT_OK, folderSelection("primary:Download"));
+            controller.resume();
+            idle();
+
+            assertEquals(activity.getString(R.string.msg_compass_surrounding_streets_storage_permission_required),
+                    ShadowToast.getTextOfLatestToast());
+            assertTrue(activity.getContentResolver().getPersistedUriPermissions().isEmpty());
+            assertTrue(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+
+            Intent segments = folderSelection("primary:Android/media/btools.routingapp/brouter/segments4");
+            assertEquals(request.requestCode, chooseFolder(activity, segments));
+            assertEquals(segments.getData(), activity.getContentResolver().getPersistedUriPermissions().get(0).getUri());
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+        }
+    }
+
     private static Intent folderSelection(String documentId) {
         return new Intent()
                 .setData(DocumentsContract.buildTreeDocumentUri("com.android.externalstorage.documents", documentId))
