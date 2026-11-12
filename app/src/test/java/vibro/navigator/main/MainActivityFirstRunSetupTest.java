@@ -13,6 +13,7 @@ import android.content.pm.PackageInfo;
 import android.os.Build;
 import android.os.Looper;
 import android.provider.DocumentsContract;
+import android.widget.EditText;
 import android.widget.ListAdapter;
 import android.widget.Spinner;
 
@@ -36,6 +37,8 @@ import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.startup.AndroidFirstRunPermissions;
 import vibro.navigator.brouter.BRouterProfilesRepository;
 import vibro.navigator.nav.model.NavigationRoutingMode;
+import vibro.navigator.nav.ui.NavigationActivity;
+import vibro.navigator.settings.AppCompassSettings;
 import vibro.navigator.settings.AppMainUiSettings;
 
 @RunWith(RobolectricTestRunner.class)
@@ -155,6 +158,39 @@ public class MainActivityFirstRunSetupTest {
             idle();
             assertEquals(roundTrip, modes.getSelectedItemPosition());
             assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+        }
+    }
+
+    @Test
+    public void navigationLaunchCarriesDismissedSegmentsPromptAcrossRecreation() {
+        Application app = ApplicationProvider.getApplicationContext();
+        AppMainUiSettings.completeWelcome(app);
+        AppMainUiSettings.setRoutingMode(app, NavigationRoutingMode.STRAIGHT_LINE);
+        installBRouter(app);
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+
+        try (var controller = Robolectric.buildActivity(MainActivity.class).setup()) {
+            AlertDialog segments = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(String.valueOf(shadowOf(segments).getMessage()).contains(SEGMENTS_FOLDER));
+            cancelPrompt();
+            controller.recreate();
+
+            MainActivity activity = controller.get();
+            EditText destination = activity.findViewById(R.id.destinationEdit);
+            destination.setText("48.18, 16.37");
+            activity.findViewById(R.id.startNavButton).performClick();
+
+            Intent trip = shadowOf(activity).getNextStartedActivity();
+            assertNotNull(trip);
+            assertEquals(NavigationActivity.class.getName(), trip.getComponent().getClassName());
+            assertTrue(trip.getBooleanExtra(NavigationActivity.EXTRA_SKIP_SEGMENTS_PROMPT, false));
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+        }
+        try (var reopened = Robolectric.buildActivity(MainActivity.class).setup()) {
+            AlertDialog segments = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue(segments.isShowing());
+            assertTrue(String.valueOf(shadowOf(segments).getMessage()).contains(SEGMENTS_FOLDER));
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(reopened.get()));
         }
     }
 

@@ -29,6 +29,7 @@ import vibro.navigator.logging.AppLogger;
 public class NavigationActivity extends AndroidLocalizedActivity {
 
     public static final String EXTRA_RESUME_EXISTING = "resume_existing";
+    public static final String EXTRA_SKIP_SEGMENTS_PROMPT = "vibro.navigator.extra.SKIP_SEGMENTS_PROMPT";
 
     private static final String TAG = "NavigationActivity";
 
@@ -38,14 +39,14 @@ public class NavigationActivity extends AndroidLocalizedActivity {
     private boolean refreshLocationSettingsOnReconnect;
     private final NavigationLifecyclePolicy lifecyclePolicy = new NavigationLifecyclePolicy();
     private final TaskScheduler uiScheduler = AndroidTaskScheduler.main();
-    private final NavigationStartupSegmentsTreeAccess startupSegmentsTreeAccess =
-            new NavigationStartupSegmentsTreeAccess(this);
     private NavigationActivityCommands commands;
     private NavigationActivityRenderer renderer;
     private NavigationActivityBackHandler backHandler;
     private NavigationGestureHints gestureHints;
     private final NavigationStartupCoordinator startupCoordinator =
             NavigationActivityStartupHost.createCoordinator(this);
+    private final NavigationStartupSegmentsTreeAccess startupSegmentsTreeAccess =
+            new NavigationStartupSegmentsTreeAccess(this, startupCoordinator::ensureReadyThenStart);
     private final NavigationActivityStopMonitor stopMonitor = new NavigationActivityStopMonitor(
             uiScheduler,
             new NavigationActivityStopMonitor.Host() {
@@ -128,8 +129,10 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         super.onCreate(savedInstanceState);
         AndroidNavigationLockScreenWindow.allowOverLockScreen(this);
         setContentView(R.layout.activity_navigation);
+        boolean restoringSegmentsCheck = startupSegmentsTreeAccess.restoreState(savedInstanceState);
         startupCoordinator.setAutoStartNavigation(
-                savedInstanceState == null && hasNavigationRequest() && !shouldResumeExistingNavigation()
+                (savedInstanceState == null || restoringSegmentsCheck)
+                        && hasNavigationRequest() && !shouldResumeExistingNavigation()
         );
         AppLogger.i(TAG, "onCreate savedState=" + (savedInstanceState != null)
                 + " autoStartNavigation=" + startupCoordinator.isAutoStartNavigation()
@@ -238,6 +241,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
 
     @Override
     protected void onDestroy() {
+        startupSegmentsTreeAccess.clear();
         gestureHints.dismiss();
         backHandler.unregisterPredictiveBackCallbackIfNeeded();
         super.onDestroy();
@@ -253,6 +257,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
 
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
+        startupSegmentsTreeAccess.saveState(outState);
         gestureHints.saveState(outState);
         commands.saveState(outState);
         super.onSaveInstanceState(outState);
@@ -263,11 +268,12 @@ public class NavigationActivity extends AndroidLocalizedActivity {
     }
 
     private void ensureReadyThenStart() {
-        if (!startupCoordinator.isAutoStartNavigation()) {
+        boolean autoStart = startupCoordinator.isAutoStartNavigation();
+        if (!autoStart) {
             AppLogger.i(TAG, "NavigationActivity attached in resume mode, waiting for existing service state");
         }
-        if (startupSegmentsTreeAccess.shouldRequest(startupCoordinator.isAutoStartNavigation())) {
-            startupSegmentsTreeAccess.startPicker(startupCoordinator::ensureReadyThenStart);
+        if (startupSegmentsTreeAccess.deferStartup(
+                autoStart, getIntent().getBooleanExtra(EXTRA_SKIP_SEGMENTS_PROMPT, false))) {
             return;
         }
         startupCoordinator.ensureReadyThenStart();
@@ -305,7 +311,7 @@ public class NavigationActivity extends AndroidLocalizedActivity {
         if (commands.handleActivityResult(requestCode, resultCode, data)) {
             return;
         }
-        if (startupSegmentsTreeAccess.handleActivityResult(requestCode, resultCode, data, this::ensureReadyThenStart)) {
+        if (startupSegmentsTreeAccess.handleActivityResult(requestCode, resultCode, data)) {
             return;
         }
         if (renderer != null && renderer.customButtonUi().onActivityResult(requestCode, resultCode, data)) {

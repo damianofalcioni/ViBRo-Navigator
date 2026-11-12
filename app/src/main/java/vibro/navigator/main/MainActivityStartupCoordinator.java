@@ -84,6 +84,10 @@ final class MainActivityStartupCoordinator {
         return !ready;
     }
 
+    boolean wasSegmentsFolderOffered() {
+        return permissions.wasSegmentsFolderOffered();
+    }
+
     boolean onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_INSTALL && waitingForInstall) {
             // Stores can return RESULT_CANCELED immediately when opening another task.

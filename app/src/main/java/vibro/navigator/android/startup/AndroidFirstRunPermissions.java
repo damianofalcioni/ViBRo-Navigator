@@ -162,6 +162,10 @@ public final class AndroidFirstRunPermissions {
         storage.setForegroundChecksEnabled(enabled);
     }
 
+    public boolean wasSegmentsFolderOffered() {
+        return storage.wasSegmentsFolderOffered();
+    }
+
     public void dispose() {
         storage.dispose();
         if (settingsDialog != null) {

@@ -194,12 +194,12 @@ final class MainActivityRouteModeController {
         }
     }
 
-    void startRoundTripNavigation(@NonNull ProfileSelection profileSelection) {
+    void startRoundTripNavigation(@NonNull ProfileSelection profileSelection, boolean skipSegmentsPrompt) {
         NavigationRequest request = roundTripRequestFactory.resolveRequest(profileSelection);
         if (request == null) {
             return;
         }
-        MainActivityNavigationLauncher.launch(activity, request);
+        MainActivityNavigationLauncher.launch(activity, request, skipSegmentsPrompt);
     }
 
     private void render(@NonNull NavigationRoutingMode mode) {

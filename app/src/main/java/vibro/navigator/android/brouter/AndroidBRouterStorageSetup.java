@@ -58,6 +58,10 @@ public final class AndroidBRouterStorageSetup {
         foreground.refresh();
     }
 
+    public boolean wasSegmentsFolderOffered() {
+        return foreground.segmentsOffered;
+    }
+
     private boolean needsGrant(int requestCode) {
         return requestCode == REQUEST_PROFILES
                 ? !profiles.hasPersistedProfilesTreeAccess(activity)

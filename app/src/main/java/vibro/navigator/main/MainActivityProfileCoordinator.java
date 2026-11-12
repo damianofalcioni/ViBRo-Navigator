@@ -80,6 +80,10 @@ final class MainActivityProfileCoordinator {
         return profilesRepository.isBRouterInstalled(activity);
     }
 
+    boolean wasSegmentsFolderOffered() {
+        return startup.wasSegmentsFolderOffered();
+    }
+
     void refresh() {
         profileSpinnerController.refresh();
     }

@@ -15,8 +15,9 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Looper;
-import android.view.ViewConfiguration;
+import android.provider.DocumentsContract;
 
 import androidx.test.core.app.ApplicationProvider;
 
@@ -30,9 +31,8 @@ import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowActivity;
 import org.robolectric.shadows.ShadowPackageManager;
 
-import java.util.concurrent.TimeUnit;
-
 import vibro.navigator.R;
+import vibro.navigator.android.brouter.AndroidBRouterSegmentsRepositoryFactory;
 import vibro.navigator.android.brouter.TestBRouterStorage;
 import vibro.navigator.android.intent.AndroidNavigationRequestIntentContract;
 import vibro.navigator.brouter.BRouterProfilesRepository;
@@ -72,8 +72,6 @@ public class NavigationActivityStartupStorageRobolectricTest {
         TestNavigationActivity activity = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent())
                 .setup().get();
 
-        waitForStartupCheck();
-
         assertNull(ShadowAlertDialog.getLatestAlertDialog());
         assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
         assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
@@ -82,15 +80,13 @@ public class NavigationActivityStartupStorageRobolectricTest {
 
     @Test
     public void missingSegmentsFolderDefersPreflightUntilNavigationResumes() {
-        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).create().start()) {
             TestNavigationActivity activity = controller.get();
-            controller.pause().stop();
-            waitForStartupCheck();
 
             assertNull(shadowOf(activity).getLastRequestedPermission());
             assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
 
-            controller.restart().resume();
+            controller.resume();
 
             assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
                     shadowOf(activity).getLastRequestedPermission().requestCode);
@@ -119,12 +115,81 @@ public class NavigationActivityStartupStorageRobolectricTest {
     }
 
     @Test
+    public void deferredPickerResultContinuesStartupAfterRecreation() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        Bundle stateBeforeResult = new Bundle();
+        Bundle state = new Bundle();
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            TestNavigationActivity activity = controller.get();
+            continueFromBRouterPrompt(activity);
+            int requestCode = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+            controller.pause().stop().saveInstanceState(stateBeforeResult);
+            activity.onActivityResult(requestCode, Activity.RESULT_CANCELED, null);
+            assertNull(shadowOf(activity).getLastRequestedPermission());
+            controller.saveInstanceState(state);
+        }
+
+        assertRestoredStartupRequestsPermissions(state);
+        assertRestoredStartupRequestsPermissions(stateBeforeResult);
+    }
+
+    @Test
+    public void recreationWhilePickerIsOpenWaitsForItsResult() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        Bundle state = new Bundle();
+        int requestCode;
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup()) {
+            TestNavigationActivity activity = controller.get();
+            continueFromBRouterPrompt(activity);
+            requestCode = shadowOf(activity).getNextStartedActivityForResult().requestCode;
+            controller.pause().stop().saveInstanceState(state);
+        }
+
+        try (var recreated = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup(state)) {
+            TestNavigationActivity activity = recreated.get();
+            assertFalse(ShadowAlertDialog.getLatestAlertDialog().isShowing());
+            assertNull(shadowOf(activity).getNextStartedActivityForResult());
+
+            Intent grant = new Intent().setData(DocumentsContract.buildTreeDocumentUri(
+                    "com.android.externalstorage.documents", "primary:Android/media/btools.routingapp/brouter/segments4"))
+                    .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            activity.onActivityResult(requestCode, Activity.RESULT_OK, grant);
+
+            assertTrue(AndroidBRouterSegmentsRepositoryFactory.create().hasPersistedSegmentsTreeAccess(activity));
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
+    public void mainScreenDismissalSkipsPromptAndKeepsSurroundingStreetsEnabled() {
+        TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
+        Intent intent = navigationIntent().putExtra(NavigationActivity.EXTRA_SKIP_SEGMENTS_PROMPT, true);
+        try (var controller = Robolectric.buildActivity(TestNavigationActivity.class, intent).create().start()) {
+            TestNavigationActivity activity = controller.get();
+            assertNull(shadowOf(activity).getLastRequestedPermission());
+
+            controller.resume();
+
+            assertNull(ShadowAlertDialog.getLatestAlertDialog());
+            assertTrue(AppCompassSettings.isSurroundingStreetsEnabled(activity));
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(activity).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    private static void assertRestoredStartupRequestsPermissions(Bundle state) {
+        try (var recreated = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent()).setup(state)) {
+            assertEquals(NavigationStartupCoordinator.REQUEST_PERMISSIONS,
+                    shadowOf(recreated.get()).getLastRequestedPermission().requestCode);
+        }
+    }
+
+    @Test
     public void decliningAnAvailableSegmentsFolderDisablesSurroundingStreets() {
         TestBRouterStorage.createPrimaryFolder(SEGMENTS_FOLDER);
         TestNavigationActivity activity = Robolectric.buildActivity(TestNavigationActivity.class, navigationIntent())
                 .setup().get();
-        waitForStartupCheck();
-
         ShadowAlertDialog.getLatestAlertDialog().getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
 
@@ -134,7 +199,6 @@ public class NavigationActivityStartupStorageRobolectricTest {
     }
 
     private static void continueFromBRouterPrompt(TestNavigationActivity activity) {
-        waitForStartupCheck();
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
         assertNotNull(dialog);
         assertEquals(
@@ -144,10 +208,6 @@ public class NavigationActivityStartupStorageRobolectricTest {
         assertTrue(String.valueOf(shadowOf(dialog).getMessage()).contains(SEGMENTS_FOLDER));
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
         shadowOf(Looper.getMainLooper()).idle();
-    }
-
-    private static void waitForStartupCheck() {
-        shadowOf(Looper.getMainLooper()).idleFor(ViewConfiguration.getPressedStateDuration(), TimeUnit.MILLISECONDS);
     }
 
     private static Intent navigationIntent() {
